@@ -1,0 +1,5 @@
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/engines': false
+  prisma: true
+  unrs-resolver: false

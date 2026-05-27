@@ -1,0 +1,49 @@
+services:
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: development
+    container_name: cares_local_server
+    ports:
+      - '9000:9000'
+    env_file:
+      - ./.env
+    command: npm run start:dev
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
+    depends_on:
+      - db
+    volumes:
+      - ./server:/usr/src/app
+      - /usr/src/app/node_modules
+
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DATABASE_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

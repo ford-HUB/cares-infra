@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./common"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  user_id            String             @id @default(uuid())
+  firstname          String
+  lastname           String
+  avatar             String?
+  user_biometrics    UserBiometric[]
+  accounts           Account[]
+  user_verifications UserVerification[]
+  role               Role               @relation(fields: [role_id], references: [role_id])
+  role_id            String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model UserVerification {
+  user_verification_id String             @id @default(uuid())
+  user_id              String
+  user                 User               @relation(fields: [user_id], references: [user_id])
+  school_id_url        String
+  status               VerificationStatus @default(PENDING)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+enum EmbeddingType {
+  FACE
+  FINGERPRINT
+  IRIS
+}
+
+model UserBiometric {
+  user_biometric_id String                     @id @default(uuid())
+  face_url          String
+  embedding         Unsupported("vector(512)")
+  embedding_type    EmbeddingType              @default(FACE)
+  isActive          Boolean                    @default(true)
+  user_id           String
+  user              User                       @relation(fields: [user_id], references: [user_id])
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+}
+
+enum RoleType {
+  ADMIN
+  VOLUNTEER
+  DONOR
+  BENEFICIARY
+}
+
+model Role {
+  role_id   String   @id @default(uuid())
+  type      RoleType @default(VOLUNTEER)
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  account_id String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  user       User     @relation(fields: [user_id], references: [user_id])
+  user_id    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
