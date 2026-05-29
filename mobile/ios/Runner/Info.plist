@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>CARES needs camera access to capture your school ID and face for registration.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CARES needs photo library access to upload your school ID.</string>
 </dict>
 </plist>

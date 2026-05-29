@@ -17,8 +17,8 @@
 
 import * as runtime from "@prisma/client/runtime/index-browser"
 
-export type * from '../models.js'
-export type * from './prismaNamespace.js'
+export type * from '../models'
+export type * from './prismaNamespace'
 
 export const Decimal = runtime.Decimal
 
@@ -51,7 +51,15 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-
+  User: 'User',
+  UserSchoolInfo: 'UserSchoolInfo',
+  Department: 'Department',
+  Major: 'Major',
+  YearLevel: 'YearLevel',
+  UserVerification: 'UserVerification',
+  UserBiometric: 'UserBiometric',
+  Role: 'Role',
+  Account: 'Account'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -68,4 +76,158 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const UserScalarFieldEnum = {
+  user_id: 'user_id',
+  firstname: 'firstname',
+  lastname: 'lastname',
+  middle_name: 'middle_name',
+  gender: 'gender',
+  age: 'age',
+  current_address: 'current_address',
+  phone_number: 'phone_number',
+  avatar: 'avatar',
+  role_id: 'role_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UserSchoolInfoScalarFieldEnum = {
+  user_school_info_id: 'user_school_info_id',
+  id_number: 'id_number',
+  graduation_year: 'graduation_year',
+  graduation_month: 'graduation_month',
+  graduation_day: 'graduation_day',
+  department_id: 'department_id',
+  major_id: 'major_id',
+  year_level_id: 'year_level_id',
+  user_id: 'user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserSchoolInfoScalarFieldEnum = (typeof UserSchoolInfoScalarFieldEnum)[keyof typeof UserSchoolInfoScalarFieldEnum]
+
+
+export const DepartmentScalarFieldEnum = {
+  department_id: 'department_id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DepartmentScalarFieldEnum = (typeof DepartmentScalarFieldEnum)[keyof typeof DepartmentScalarFieldEnum]
+
+
+export const MajorScalarFieldEnum = {
+  major_id: 'major_id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MajorScalarFieldEnum = (typeof MajorScalarFieldEnum)[keyof typeof MajorScalarFieldEnum]
+
+
+export const YearLevelScalarFieldEnum = {
+  year_level_id: 'year_level_id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type YearLevelScalarFieldEnum = (typeof YearLevelScalarFieldEnum)[keyof typeof YearLevelScalarFieldEnum]
+
+
+export const UserVerificationScalarFieldEnum = {
+  user_verification_id: 'user_verification_id',
+  user_id: 'user_id',
+  school_id_url: 'school_id_url',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserVerificationScalarFieldEnum = (typeof UserVerificationScalarFieldEnum)[keyof typeof UserVerificationScalarFieldEnum]
+
+
+export const UserBiometricScalarFieldEnum = {
+  user_biometric_id: 'user_biometric_id',
+  face_url: 'face_url',
+  embedding: 'embedding',
+  embedding_type: 'embedding_type',
+  isActive: 'isActive',
+  user_id: 'user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserBiometricScalarFieldEnum = (typeof UserBiometricScalarFieldEnum)[keyof typeof UserBiometricScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  role_id: 'role_id',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const AccountScalarFieldEnum = {
+  account_id: 'account_id',
+  email: 'email',
+  password: 'password',
+  user_id: 'user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+export const SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+} as const
+
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

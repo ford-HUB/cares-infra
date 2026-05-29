@@ -1,0 +1,27 @@
+---
+description: Project-wide context — read Cursor docs and repo rules before coding
+alwaysApply: true
+---
+
+# CARES monorepo context
+
+Before implementing or refactoring, **read applicable rules** in `.cursor/rules/`:
+
+| Area | Rule file | When |
+|------|-----------|------|
+| Flutter mobile | `mobile-flutter.mdc` | Any work under `mobile/` |
+| NestJS server | `server-nestjs.mdc` | Any work under `server/` |
+
+For Cursor product behavior (rules, agents, skills, hooks), use official docs: https://docs.cursor.com
+
+## Repo layout
+
+- `mobile/` — Flutter app; **snake_case** files/folders (see `mobile-flutter.mdc`)
+- `server/` — NestJS API; **kebab-case** files (see `server-nestjs.mdc`)
+- `docker-compose.yaml` — local infra
+
+## Global expectations
+
+- Minimize scope; match existing conventions in the touched area.
+- Do not commit secrets (`.env`, keys, tokens).
+- Only create git commits when the user explicitly asks.

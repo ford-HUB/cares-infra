@@ -7,11 +7,23 @@ datasource db {
   provider = "postgresql"
 }
 
+enum GenderType {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   user_id            String             @id @default(uuid())
   firstname          String
   lastname           String
+  middle_name        String?
+  gender             GenderType         @default(OTHER)
+  age                Int
+  current_address    String
+  phone_number       String             @unique
   avatar             String?
+  user_school_info   UserSchoolInfo[]
   user_biometrics    UserBiometric[]
   accounts           Account[]
   user_verifications UserVerification[]
@@ -19,6 +31,48 @@ model User {
   role_id            String
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+}
+
+model UserSchoolInfo {
+  user_school_info_id String     @id @default(uuid())
+  id_number           String     @unique
+  graduation_year     Int
+  graduation_month    Int
+  graduation_day      Int
+  department_id       String
+  department          Department @relation(fields: [department_id], references: [department_id])
+  major_id            String
+  major               Major      @relation(fields: [major_id], references: [major_id])
+  year_level_id       String
+  year_level          YearLevel  @relation(fields: [year_level_id], references: [year_level_id])
+  user_id             String
+  user                User       @relation(fields: [user_id], references: [user_id])
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Department {
+  department_id    String           @id @default(uuid())
+  name             String
+  user_school_info UserSchoolInfo[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Major {
+  major_id         String           @id @default(uuid())
+  name             String
+  user_school_info UserSchoolInfo[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model YearLevel {
+  year_level_id    String           @id @default(uuid())
+  name             String
+  user_school_info UserSchoolInfo[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 enum VerificationStatus {
@@ -44,15 +98,15 @@ enum EmbeddingType {
 }
 
 model UserBiometric {
-  user_biometric_id String                     @id @default(uuid())
+  user_biometric_id String        @id @default(uuid())
   face_url          String
-  embedding         Unsupported("vector(512)")
-  embedding_type    EmbeddingType              @default(FACE)
-  isActive          Boolean                    @default(true)
+  embedding         Json?
+  embedding_type    EmbeddingType @default(FACE)
+  isActive          Boolean       @default(true)
   user_id           String
-  user              User                       @relation(fields: [user_id], references: [user_id])
-  createdAt         DateTime                   @default(now())
-  updatedAt         DateTime                   @updatedAt
+  user              User          @relation(fields: [user_id], references: [user_id])
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
 enum RoleType {

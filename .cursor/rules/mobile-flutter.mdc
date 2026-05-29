@@ -1,0 +1,71 @@
+---
+description: Flutter mobile — feature architecture, Riverpod, naming, UI patterns
+globs: mobile/**
+alwaysApply: false
+---
+
+# Mobile (Flutter)
+
+## File naming — snake_case (always)
+
+Dart/Flutter standard: **snake_case** for every file and folder under `lib/`.
+
+| ✅ Correct | ❌ Wrong |
+|-----------|---------|
+| `login_screen.dart` | `login-screen.dart`, `LoginScreen.dart`, `cares_login_screen.dart` |
+| `app_theme.dart` | `appTheme.dart`, `CaresTheme.dart` |
+| `register_face_scan_step.dart` | `registerFaceScanStep.dart` |
+
+- **Files & folders**: `lower_snake_case` only.
+- **Classes / enums**: `PascalCase` (`LoginScreen`, `AppColors`).
+- **Members / functions**: `lowerCamelCase` (`onComplete`, `buildAppTheme`).
+- Do **not** prefix every file/class with `cares` or `Cares`. Reserve product branding for `main.dart` (`CaresApp`), app title, and copy constants.
+- Feature paths: `features/auth/presentation/screens/login_screen.dart`.
+
+## Folder layout (required)
+
+```
+lib/
+├── core/           # constants, theme, utils, network, services
+├── shared/         # widgets, components, models (cross-feature)
+├── features/
+│   └── {feature}/  # auth, face_verification, onboarding, dashboard, settings
+│       ├── presentation/
+│       ├── data/
+│       └── domain/
+└── main.dart
+```
+
+- New code goes in the correct layer. Do not put feature UI in `core/`.
+- Prefer `shared/widgets/` for reusable UI used by 2+ features.
+
+## UI vs logic
+
+```dart
+// BAD — API/business logic inside build/onPressed
+onPressed: () async { /* 50+ lines */ }
+
+// GOOD — thin widget, logic in controller/notifier
+onPressed: ref.read(loginControllerProvider.notifier).login,
+```
+
+- **State management: Riverpod** (`flutter_riverpod`). Use `Notifier`/`AsyncNotifier` or `StateNotifier` for feature controllers; expose providers from `presentation/` or `data/`.
+- Screens compose widgets; controllers handle async work, validation, and API calls.
+
+## Widgets
+
+- Keep screens **under ~300 lines**. Split into `presentation/widgets/` (feature) or `shared/widgets/` (reusable).
+- Reuse shared components: `PrimaryButton`, `CustomTextField`, etc. in `shared/widgets/` — no copy-paste buttons/fields.
+
+## Environment
+
+- Use **`.env`** (e.g. `flutter_dotenv`) for API base URL, keys, tokens.
+- Never hardcode URLs, API keys, or secrets in source.
+
+## Dependencies
+
+- Add `flutter_riverpod` (and `flutter_dotenv` when wiring env) via `pubspec.yaml` when introducing state/env — do not invent a second state solution.
+
+## Imports
+
+- Package imports: `package:mobile/...` matching `pubspec.yaml` name `mobile`.

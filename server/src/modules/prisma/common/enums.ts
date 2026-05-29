@@ -9,7 +9,38 @@
 * 🟢 You can import this file directly.
 */
 
+export const GenderType = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  OTHER: 'OTHER'
+} as const
+
+export type GenderType = (typeof GenderType)[keyof typeof GenderType]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const VerificationStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type VerificationStatus = (typeof VerificationStatus)[keyof typeof VerificationStatus]
+
+
+export const EmbeddingType = {
+  FACE: 'FACE',
+  FINGERPRINT: 'FINGERPRINT',
+  IRIS: 'IRIS'
+} as const
+
+export type EmbeddingType = (typeof EmbeddingType)[keyof typeof EmbeddingType]
+
+
+export const RoleType = {
+  ADMIN: 'ADMIN',
+  VOLUNTEER: 'VOLUNTEER',
+  DONOR: 'DONOR',
+  BENEFICIARY: 'BENEFICIARY'
+} as const
+
+export type RoleType = (typeof RoleType)[keyof typeof RoleType]
