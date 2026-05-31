@@ -11,7 +11,7 @@ class OnboardingLandingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
-          AppBrandingHeader(logoSize: 180),
+          AppBrandingHeader(logoSize: 180, logoShadow: true),
         ],
       ),
     );

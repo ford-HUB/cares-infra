@@ -3,6 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_branding_header.dart';
 import '../../shared/widgets/auth_text_field.dart';
 import '../onboarding/onboarding_screen.dart';
+import 'registration/registration_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -114,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // TODO: navigate to forgot password
                     },
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.accent,
+                      foregroundColor: AppColors.primary,
                     ),
                     child: const Text(
                       'Forgot Password?',
@@ -128,14 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _onLogin,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.textPrimary,
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                   child: const Text(
                     'Log In',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -154,14 +147,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // TODO: navigate to sign up
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const RegistrationFlowScreen(),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Sign Up',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.accent,
+                          color: AppColors.primary,
                         ),
                       ),
                     ),

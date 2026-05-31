@@ -17,7 +17,7 @@ class OnboardingHeadline extends StatelessWidget {
           width: 48,
           height: 4,
           decoration: BoxDecoration(
-            color: AppColors.accent,
+            color: AppColors.accentBright,
             borderRadius: BorderRadius.circular(2),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/cares_logo.dart';
 import '../auth/login_screen.dart';
 import 'widgets/onboarding_intro_page.dart';
 import 'widgets/onboarding_landing_page.dart';
@@ -76,27 +77,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 250),
-                  opacity: _isLandingPage ? 0 : 1,
-                  child: IgnorePointer(
-                    ignoring: _isLandingPage,
-                    child: TextButton(
-                      onPressed: _goToLogin,
-                      child: const Text(
-                        'Skip',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+              child: Row(
+                children: [
+                  const CaresLogo(size: 44, showShadow: true),
+                  const Spacer(),
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 250),
+                    opacity: _isLandingPage ? 0 : 1,
+                    child: IgnorePointer(
+                      ignoring: _isLandingPage,
+                      child: TextButton(
+                        onPressed: _goToLogin,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          minimumSize: const Size(0, 44),
+                        ),
+                        child: const Text(
+                          'Skip',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
             Expanded(

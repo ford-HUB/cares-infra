@@ -8,17 +8,19 @@ class AppBrandingHeader extends StatelessWidget {
     this.logoSize = 120,
     this.showTagline = true,
     this.compact = false,
+    this.logoShadow = false,
   });
 
   final double logoSize;
   final bool showTagline;
   final bool compact;
+  final bool logoShadow;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CaresLogo(size: logoSize),
+        CaresLogo(size: logoSize, showShadow: logoShadow),
         SizedBox(height: compact ? 20 : 24),
         Text(
           'CARES',
