@@ -14,6 +14,8 @@ class AuthTextField extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     this.onFieldSubmitted,
+    this.onChanged,
+    this.maxLines = 1,
   });
 
   final TextEditingController controller;
@@ -26,6 +28,8 @@ class AuthTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +51,8 @@ class AuthTextField extends StatelessWidget {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
+          onChanged: onChanged,
+          maxLines: maxLines,
           validator: validator,
           style: const TextStyle(
             fontSize: 15,

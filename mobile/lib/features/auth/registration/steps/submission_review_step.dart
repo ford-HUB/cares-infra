@@ -75,6 +75,8 @@ class SubmissionReviewStep extends StatelessWidget {
           title: 'Account Details',
           children: [
             _reviewRow('Account Type', data.accountTypeLabel),
+            if (data.isBeneficiary)
+              _reviewRow('Beneficiary Type', data.beneficiaryTypeLabel),
             if (data.isRegularUser) _reviewRow('Role', data.userRoleLabel),
           ],
         ),
@@ -82,35 +84,60 @@ class SubmissionReviewStep extends StatelessWidget {
         RegistrationSectionCard(
           title: 'Personal Information',
           children: [
-            _reviewRow('Name', '${data.firstName} ${data.lastName}'),
+            _reviewRow('Name', data.fullName),
+            if (data.isBeneficiary) ...[
+              _reviewRow('Date of Birth', data.dateOfBirth ?? '—'),
+              _reviewRow('Gender', data.gender ?? '—'),
+              _reviewRow('Address', data.address),
+            ],
             _reviewRow('Email', data.email),
-            _reviewRow('Phone', data.phoneNumber),
-            _reviewRow('School ID', data.schoolIdNumber),
-          ],
-        ),
-        const SizedBox(height: 12),
-        RegistrationSectionCard(
-          title: 'Academic Information',
-          children: [
-            _reviewRow('Department', data.department ?? '—'),
-            _reviewRow('Course', data.course ?? '—'),
-            _reviewRow('Year Level', data.yearLevel ?? '—'),
-          ],
-        ),
-        const SizedBox(height: 12),
-        RegistrationSectionCard(
-          title: 'Verification Documents',
-          children: [
             _reviewRow(
-              'School ID',
-              data.schoolIdImagePath != null ? 'Uploaded' : 'Missing',
+              data.isBeneficiary ? 'Contact Number' : 'Phone',
+              data.phoneNumber,
             ),
-            _reviewRow(
-              'Selfie',
-              data.selfieImagePath != null ? 'Uploaded' : 'Missing',
-            ),
+            if (data.isRegularUser)
+              _reviewRow('School ID', data.schoolIdNumber),
+            if (data.isOrganizationMember)
+              _reviewRow('Organization', data.organizationName),
           ],
         ),
+        if (data.isRegularUser) ...[
+          const SizedBox(height: 12),
+          RegistrationSectionCard(
+            title: 'Academic Information',
+            children: [
+              _reviewRow('Department', data.department ?? '—'),
+              _reviewRow('Course', data.course ?? '—'),
+              _reviewRow('Year Level', data.yearLevel ?? '—'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          RegistrationSectionCard(
+            title: 'Verification Documents',
+            children: [
+              _reviewRow(
+                'School ID',
+                data.schoolIdImagePath != null ? 'Uploaded' : 'Missing',
+              ),
+              _reviewRow(
+                'Selfie',
+                data.selfieImagePath != null ? 'Uploaded' : 'Missing',
+              ),
+            ],
+          ),
+        ],
+        if (data.isBeneficiary) ...[
+          const SizedBox(height: 12),
+          RegistrationSectionCard(
+            title: 'Verification',
+            children: [
+              _reviewRow(
+                'Face Picture',
+                data.facePicturePath != null ? 'Uploaded' : 'Missing',
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
