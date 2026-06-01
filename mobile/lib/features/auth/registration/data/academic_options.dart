@@ -6,10 +6,9 @@ const List<String> kYearLevels = [
 ];
 
 const Map<String, List<String>> kDepartmentCourses = {
-  'College of Engineering': [
+  'College of Computer Studies': [
     'BS Computer Science',
     'BS Information Technology',
-    'BS Computer Engineering',
   ],
   'College of Business': [
     'BS Business Administration',

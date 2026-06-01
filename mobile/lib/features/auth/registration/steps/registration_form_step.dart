@@ -43,7 +43,9 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
     _phoneController = TextEditingController(text: data.phoneNumber);
     _schoolIdController = TextEditingController(text: data.schoolIdNumber);
     _passwordController = TextEditingController(text: data.password);
-    _confirmPasswordController = TextEditingController(text: data.confirmPassword);
+    _confirmPasswordController = TextEditingController(
+      text: data.confirmPassword,
+    );
     _passwordController.addListener(_syncPassword);
   }
 
@@ -100,25 +102,29 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
               AuthTextField(
                 controller: _firstNameController,
                 label: 'First Name',
+                hintText: 'John',
                 icon: Icons.person_outline_rounded,
                 textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'First name is required' : null,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'First name is required'
+                    : null,
               ),
               const SizedBox(height: 16),
               AuthTextField(
                 controller: _lastNameController,
                 label: 'Last Name',
+                hintText: 'Doe',
                 icon: Icons.person_outline_rounded,
                 textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Last name is required' : null,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'Last name is required'
+                    : null,
               ),
               const SizedBox(height: 16),
               AuthTextField(
                 controller: _emailController,
                 label: 'Email Address',
-                hintText: 'you@example.com',
+                hintText: 'johndoe@example.com',
                 icon: Icons.mail_outline_rounded,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
@@ -135,8 +141,9 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Phone number is required' : null,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'Phone number is required'
+                    : null,
               ),
               const SizedBox(height: 16),
               AuthTextField(
@@ -144,8 +151,9 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
                 label: 'School ID Number',
                 icon: Icons.badge_outlined,
                 textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'School ID is required' : null,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'School ID is required'
+                    : null,
               ),
             ],
           ),
@@ -184,8 +192,9 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
                 onChanged: data.department == null
                     ? null
                     : (value) => setState(() => data.course = value),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Course/Program is required' : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Course/Program is required'
+                    : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
