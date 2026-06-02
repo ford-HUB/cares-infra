@@ -15,10 +15,32 @@ model User {
   user_biometrics    UserBiometric[]
   accounts           Account[]
   user_verifications UserVerification[]
+  profile            UserProfile?
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+}
+
+model UserProfile {
+  user_profile_id   String    @id @default(uuid())
+  user_id           String    @unique
+  user              User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  middlename        String?
+  phone             String?
+  school_id_number  String?
+  department        String?
+  course            String?
+  year_level        String?
+  date_of_birth     DateTime?
+  gender            String?
+  address           String?
+  organization_name String?
+  account_type      String
+  beneficiary_type  String?
+  user_role         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 enum VerificationStatus {

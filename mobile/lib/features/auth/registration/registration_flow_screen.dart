@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/cares_logo.dart';
 import '../login_screen.dart';
+import '../data/auth_api.dart';
 import 'models/registration_data.dart';
 import 'steps/account_type_step.dart';
 import 'steps/beneficiary_registration_form_step.dart';
@@ -22,6 +24,7 @@ class RegistrationFlowScreen extends StatefulWidget {
 class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
   final RegistrationData _data = RegistrationData();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final AuthApi _authApi = AuthApi();
 
   RegistrationFlowStep _currentStep = RegistrationFlowStep.accountType;
   bool _isSubmitting = false;
@@ -144,43 +147,53 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
   Future<void> _submitRegistration() async {
     setState(() => _isSubmitting = true);
 
-    // TODO: persist registration data and upload verification images securely.
-    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    try {
+      await _authApi.register(_data);
+      if (!mounted) return;
 
-    if (!mounted) return;
+      setState(() => _isSubmitting = false);
 
-    setState(() => _isSubmitting = false);
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: AppColors.accent),
-            SizedBox(width: 8),
-            Text('Account Created'),
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: AppColors.accent),
+              SizedBox(width: 8),
+              Text('Account Created'),
+            ],
+          ),
+          content: const Text(
+            'Your account has been saved successfully. '
+            'You can now log in with your email and password.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+                  (_) => false,
+                );
+              },
+              child: const Text('Go to Login'),
+            ),
           ],
         ),
-        content: const Text(
-          'Account created successfully.'
-          'Proceed to login to continue.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
-                (_) => false,
-              );
-            },
-            child: const Text('Go to Login'),
-          ),
-        ],
-      ),
-    );
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showMessage(error.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showMessage(
+        'Registration failed. Check your connection and try again.',
+      );
+    }
   }
 
   @override

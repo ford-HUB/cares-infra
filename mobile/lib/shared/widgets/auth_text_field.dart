@@ -69,14 +69,15 @@ class AuthTextField extends StatelessWidget {
           maxLength: maxLength,
           inputFormatters: _inputFormatters,
           buildCounter: maxLength != null
-              ? (_, {required currentLength, required isFocused, required maxLength}) =>
-                  null
+              ? (
+                  _, {
+                  required currentLength,
+                  required isFocused,
+                  required maxLength,
+                }) => null
               : null,
           validator: validator,
-          style: const TextStyle(
-            fontSize: 15,
-            color: AppColors.textPrimary,
-          ),
+          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: Icon(icon, color: AppColors.textMuted, size: 22),

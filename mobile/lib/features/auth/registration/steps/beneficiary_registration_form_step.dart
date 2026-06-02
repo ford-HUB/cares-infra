@@ -3,6 +3,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/auth_text_field.dart';
 import '../models/registration_data.dart';
 import '../widgets/image_upload_card.dart';
+import '../utils/password_strength.dart';
+import '../widgets/password_strength_indicator.dart';
 import '../widgets/registration_section_card.dart';
 
 class BeneficiaryRegistrationFormStep extends StatefulWidget {
@@ -31,6 +33,10 @@ class _BeneficiaryRegistrationFormStepState
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
   late final TextEditingController _organizationController;
+  late final TextEditingController _passwordController;
+  late final TextEditingController _confirmPasswordController;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   static const List<String> _genders = [
     'Male', 'Female',
@@ -50,7 +56,14 @@ class _BeneficiaryRegistrationFormStepState
     _organizationController = TextEditingController(
       text: data.organizationName,
     );
+    _passwordController = TextEditingController(text: data.password);
+    _confirmPasswordController = TextEditingController(
+      text: data.confirmPassword,
+    );
+    _passwordController.addListener(_syncPassword);
   }
+
+  void _syncPassword() => setState(() {});
 
   void _syncToData() {
     data.firstName = _firstNameController.text.trim();
@@ -62,6 +75,8 @@ class _BeneficiaryRegistrationFormStepState
     if (data.isOrganizationMember) {
       data.organizationName = _organizationController.text.trim();
     }
+    data.password = _passwordController.text;
+    data.confirmPassword = _confirmPasswordController.text;
   }
 
   Future<void> _pickDateOfBirth() async {
@@ -142,6 +157,9 @@ class _BeneficiaryRegistrationFormStepState
     _phoneController.dispose();
     _emailController.dispose();
     _organizationController.dispose();
+    _passwordController.removeListener(_syncPassword);
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -319,6 +337,56 @@ class _BeneficiaryRegistrationFormStepState
                       : null,
                 ),
               ],
+            ],
+          ),
+          const SizedBox(height: 16),
+          RegistrationSectionCard(
+            title: 'Account Security',
+            children: [
+              AuthTextField(
+                controller: _passwordController,
+                label: 'Password',
+                hintText: '********',
+                icon: Icons.lock_outline_rounded,
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.next,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.textMuted,
+                    size: 22,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                validator: validatePassword,
+              ),
+              const SizedBox(height: 10),
+              PasswordStrengthIndicator(password: _passwordController.text),
+              const SizedBox(height: 16),
+              AuthTextField(
+                controller: _confirmPasswordController,
+                label: 'Re-enter Password',
+                hintText: '********',
+                icon: Icons.lock_outline_rounded,
+                obscureText: _obscureConfirm,
+                textInputAction: TextInputAction.done,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirm
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.textMuted,
+                    size: 22,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
+                ),
+                validator: (v) =>
+                    validateConfirmPassword(v, _passwordController.text),
+              ),
             ],
           ),
           const SizedBox(height: 16),
