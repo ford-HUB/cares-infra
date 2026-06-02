@@ -29,32 +29,32 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
   int get _totalSteps => _data.isBeneficiary ? 3 : 5;
 
   int get _stepNumber => switch (_currentStep) {
-        RegistrationFlowStep.accountType => 1,
-        RegistrationFlowStep.userRole => 2,
-        RegistrationFlowStep.registrationForm =>
-          _data.isBeneficiary ? 2 : 3,
-        RegistrationFlowStep.identityVerification => 4,
-        RegistrationFlowStep.submission => _data.isBeneficiary ? 3 : 5,
-      };
+    RegistrationFlowStep.accountType => 1,
+    RegistrationFlowStep.userRole => 2,
+    RegistrationFlowStep.registrationForm => _data.isBeneficiary ? 2 : 3,
+    RegistrationFlowStep.identityVerification => 4,
+    RegistrationFlowStep.submission => _data.isBeneficiary ? 3 : 5,
+  };
 
   String get _stepTitle => switch (_currentStep) {
-        RegistrationFlowStep.accountType => 'Choose Your Account Type',
-        RegistrationFlowStep.userRole => 'Select Your Role',
-        RegistrationFlowStep.registrationForm => _data.isBeneficiary
-            ? 'Beneficiary Registration Form'
-            : 'Registration Form',
-        RegistrationFlowStep.identityVerification => 'Verify Your Identity',
-        RegistrationFlowStep.submission => 'Review & Submit',
-      };
+    RegistrationFlowStep.accountType => 'Choose Your Account Type',
+    RegistrationFlowStep.userRole => 'Select Your Role',
+    RegistrationFlowStep.registrationForm =>
+      _data.isBeneficiary
+          ? 'Beneficiary Registration Form'
+          : 'Registration Form',
+    RegistrationFlowStep.identityVerification => 'Verify Your Identity',
+    RegistrationFlowStep.submission => 'Review & Submit',
+  };
 
   bool get _canContinue => switch (_currentStep) {
-        RegistrationFlowStep.accountType => _canContinueAccountType,
-        RegistrationFlowStep.userRole => _data.userRole != null,
-        RegistrationFlowStep.registrationForm => true,
-        RegistrationFlowStep.identityVerification =>
-          _data.schoolIdImagePath != null && _data.selfieImagePath != null,
-        RegistrationFlowStep.submission => true,
-      };
+    RegistrationFlowStep.accountType => _canContinueAccountType,
+    RegistrationFlowStep.userRole => _data.userRole != null,
+    RegistrationFlowStep.registrationForm => true,
+    RegistrationFlowStep.identityVerification =>
+      _data.schoolIdImagePath != null && _data.selfieImagePath != null,
+    RegistrationFlowStep.submission => true,
+  };
 
   bool get _canContinueAccountType {
     if (_data.accountType == null) return false;
@@ -137,10 +137,7 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -163,12 +160,12 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
           children: [
             Icon(Icons.check_circle_rounded, color: AppColors.accent),
             SizedBox(width: 8),
-            Text('Registration Submitted'),
+            Text('Account Created'),
           ],
         ),
         content: const Text(
-          'Your registration has been submitted successfully. '
-          'You can now sign in once your account is reviewed.',
+          'Account created successfully.'
+          'Proceed to login to continue.',
         ),
         actions: [
           FilledButton(
@@ -244,7 +241,8 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
                     onBack: _goBack,
                     onContinue: _goNext,
                     continueEnabled: _canContinue,
-                    continueLabel: _currentStep == RegistrationFlowStep.submission
+                    continueLabel:
+                        _currentStep == RegistrationFlowStep.submission
                         ? 'Submit Registration'
                         : 'Continue',
                     isLoading: _isSubmitting,
@@ -283,27 +281,25 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
   Widget _buildStepContent() {
     return switch (_currentStep) {
       RegistrationFlowStep.accountType => AccountTypeStep(
-          data: _data,
-          onChanged: () => setState(() {}),
-        ),
+        data: _data,
+        onChanged: () => setState(() {}),
+      ),
       RegistrationFlowStep.userRole => UserRoleStep(
-          selectedRole: _data.userRole,
-          onRoleSelected: (role) => setState(() => _data.userRole = role),
-        ),
-      RegistrationFlowStep.registrationForm => _data.isBeneficiary
-          ? BeneficiaryRegistrationFormStep(
-              data: _data,
-              formKey: _formKey,
-              onChanged: () => setState(() {}),
-            )
-          : RegistrationFormStep(
-              data: _data,
-              formKey: _formKey,
-            ),
+        selectedRole: _data.userRole,
+        onRoleSelected: (role) => setState(() => _data.userRole = role),
+      ),
+      RegistrationFlowStep.registrationForm =>
+        _data.isBeneficiary
+            ? BeneficiaryRegistrationFormStep(
+                data: _data,
+                formKey: _formKey,
+                onChanged: () => setState(() {}),
+              )
+            : RegistrationFormStep(data: _data, formKey: _formKey),
       RegistrationFlowStep.identityVerification => IdentityVerificationStep(
-          data: _data,
-          onChanged: () => setState(() {}),
-        ),
+        data: _data,
+        onChanged: () => setState(() {}),
+      ),
       RegistrationFlowStep.submission => SubmissionReviewStep(data: _data),
     };
   }

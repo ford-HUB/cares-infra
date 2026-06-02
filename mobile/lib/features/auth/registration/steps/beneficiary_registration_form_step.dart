@@ -279,9 +279,17 @@ class _BeneficiaryRegistrationFormStepState
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Contact number is required'
-                    : null,
+                maxLength: 11,
+                digitsOnly: true,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Contact number is required';
+                  }
+                  if (v.length != 11) {
+                    return 'Contact number must be 11 digits';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               AuthTextField(

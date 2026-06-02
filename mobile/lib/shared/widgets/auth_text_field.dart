@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_theme.dart';
 
 class AuthTextField extends StatelessWidget {
@@ -16,6 +17,8 @@ class AuthTextField extends StatelessWidget {
     this.onFieldSubmitted,
     this.onChanged,
     this.maxLines = 1,
+    this.maxLength,
+    this.digitsOnly = false,
   });
 
   final TextEditingController controller;
@@ -30,6 +33,16 @@ class AuthTextField extends StatelessWidget {
   final void Function(String)? onFieldSubmitted;
   final void Function(String)? onChanged;
   final int? maxLines;
+  final int? maxLength;
+  final bool digitsOnly;
+
+  List<TextInputFormatter>? get _inputFormatters {
+    if (!digitsOnly && maxLength == null) return null;
+    return [
+      if (digitsOnly) FilteringTextInputFormatter.digitsOnly,
+      if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +66,12 @@ class AuthTextField extends StatelessWidget {
           onFieldSubmitted: onFieldSubmitted,
           onChanged: onChanged,
           maxLines: maxLines,
+          maxLength: maxLength,
+          inputFormatters: _inputFormatters,
+          buildCounter: maxLength != null
+              ? (_, {required currentLength, required isFocused, required maxLength}) =>
+                  null
+              : null,
           validator: validator,
           style: const TextStyle(
             fontSize: 15,

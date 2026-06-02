@@ -138,22 +138,40 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
               AuthTextField(
                 controller: _phoneController,
                 label: 'Phone Number',
+                hintText: '09123456789',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Phone number is required'
-                    : null,
+                maxLength: 11,
+                digitsOnly: true,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Phone number is required';
+                  }
+                  if (v.length != 11) {
+                    return 'Invalid phone number';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               AuthTextField(
                 controller: _schoolIdController,
                 label: 'School ID Number',
+                hintText: '24255502',
                 icon: Icons.badge_outlined,
                 textInputAction: TextInputAction.next,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'School ID is required'
-                    : null,
+                maxLength: 8,
+                digitsOnly: true,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'School ID is required';
+                  }
+                  if (v.length != 8) {
+                    return 'Invalid School ID';
+                  }
+                  return null;
+                },
               ),
             ],
           ),
