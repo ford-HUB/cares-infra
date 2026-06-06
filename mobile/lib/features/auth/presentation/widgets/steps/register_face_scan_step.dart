@@ -11,12 +11,11 @@ import 'package:mobile/core/utils/media_permissions.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/presentation/utils/face_camera_input_helper.dart';
 import 'package:mobile/features/auth/presentation/utils/face_guide_geometry.dart';
-import 'package:mobile/features/auth/presentation/utils/face_liveness_checker.dart';
 import 'package:mobile/features/auth/presentation/widgets/face_scan_overlay_painter.dart';
 import 'package:mobile/features/auth/presentation/widgets/unmirrored_face_image.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/// Step 2: capture center, blink, left, right, final — thumbnails below camera.
+/// Step 2: single face photo with oval guide and alignment feedback.
 class RegisterFaceScanStep extends StatefulWidget {
   const RegisterFaceScanStep({
     super.key,
@@ -36,13 +35,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   static const _frameThrottle = Duration(milliseconds: 100);
 
   final _picker = ImagePicker();
-  final _liveness = FaceLivenessChecker();
   final _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
       performanceMode: FaceDetectorMode.fast,
       enableLandmarks: true,
       enableContours: false,
-      enableClassification: true,
+      enableClassification: false,
       enableTracking: true,
       minFaceSize: 0.05,
     ),
@@ -60,7 +58,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   DateTime? _lastFrameProcessed;
   bool _faceSeen = false;
   bool _faceInGuide = false;
-  double _holdProgress = 0;
 
   FaceCaptureSet get _captures => widget.captures;
 
@@ -123,7 +120,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     if (_isStarting || widget.captures.isComplete) return;
     _isStarting = true;
     _useSystemFallback = false;
-    _liveness.reset();
 
     setState(() {
       _errorMessage = null;
@@ -212,14 +208,10 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       if (!mounted || _isCapturing) return;
 
       if (faces.isEmpty) {
-        if (_liveness.phase != FaceLivenessPhase.finished) {
-          _liveness.tickWithoutFace();
-        }
-        if (mounted && (_faceSeen || _faceInGuide || _holdProgress > 0)) {
+        if (mounted && (_faceSeen || _faceInGuide)) {
           setState(() {
             _faceSeen = false;
             _faceInGuide = false;
-            _holdProgress = 0;
           });
         }
         return;
@@ -228,30 +220,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       final face = _largestFace(faces);
       final centered = FaceGuideGeometry.isFaceCenteredInOval(face, frame);
       final jawAligned = FaceGuideGeometry.isJawInOvalZone(face, frame);
-      final highlight = switch (_liveness.phase) {
-        FaceLivenessPhase.center || FaceLivenessPhase.finalCapture =>
-          centered || jawAligned,
-        FaceLivenessPhase.blink => jawAligned,
-        FaceLivenessPhase.turnLeft ||
-        FaceLivenessPhase.turnRight =>
-          FaceGuideGeometry.isFaceDetectable(face, frame),
-        FaceLivenessPhase.finished => false,
-      };
-
-      if (_liveness.phase != FaceLivenessPhase.finished) {
-        _liveness.update(face, frame);
-      }
-
-      final completed = _liveness.consumeCompletedPhase();
-      if (completed != null) {
-        await _captureStepShot(completed);
-      }
+      final aligned = centered || jawAligned;
 
       if (mounted) {
         setState(() {
           _faceSeen = true;
-          _faceInGuide = highlight;
-          _holdProgress = _liveness.holdProgress;
+          _faceInGuide = aligned;
         });
       }
     } catch (e) {
@@ -261,19 +235,16 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     }
   }
 
-  bool get _hasAnyCapture => _captures.shots.any((s) => s != null);
-
-  Future<void> _showShotPreview(int index) async {
-    final file = _captures.shots[index];
+  Future<void> _showShotPreview() async {
+    final file = _captures.photo;
     if (file == null || !mounted) return;
 
     await showDialog<void>(
       context: context,
       barrierColor: Colors.black87,
       builder: (ctx) => _FaceShotPreviewDialog(
-        label: FaceCaptureSet.labels[index],
         filePath: file.path,
-        onRetryAll: () {
+        onRetry: () {
           Navigator.pop(ctx);
           unawaited(_retryFaceCapture());
         },
@@ -282,15 +253,14 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   }
 
   Future<void> _retryFaceCapture() async {
-    if (_isCapturing || !_hasAnyCapture) return;
+    if (_isCapturing) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Retry face scan?'),
+        title: const Text('Retake face photo?'),
         content: const Text(
-          'All captured face photos will be cleared and you will start '
-          'the scan again from the beginning.',
+          'Your captured photo will be cleared so you can take a new one.',
         ),
         actions: [
           TextButton(
@@ -299,7 +269,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Retry'),
+            child: const Text('Retake'),
           ),
         ],
       ),
@@ -308,13 +278,11 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     if (confirmed != true || !mounted) return;
 
     widget.onCapturesChanged(const FaceCaptureSet());
-    _liveness.reset();
-    _useSystemFallback = false;
     _faceSeen = false;
     _faceInGuide = false;
-    _holdProgress = 0;
     _errorMessage = null;
     _permissionDenied = false;
+    _useSystemFallback = false;
 
     await _disposeCamera();
     if (!mounted) return;
@@ -323,18 +291,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     await _openInAppCamera();
   }
 
-  Future<void> _captureCurrentStepManually() async {
-    if (_isCapturing || widget.captures.isComplete) return;
-    final step = _liveness.phase;
-    if (step == FaceLivenessPhase.finished) return;
-    _liveness.forceCompleteCurrentPhase();
-    final completed = _liveness.consumeCompletedPhase();
-    if (completed != null) {
-      await _captureStepShot(completed);
-    }
-  }
-
-  Future<void> _captureStepShot(FaceLivenessPhase step) async {
+  Future<void> _capturePhoto() async {
     final controller = _cameraController;
     if (controller == null || !controller.value.isInitialized || _isCapturing) {
       return;
@@ -345,37 +302,21 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     if (wasStreaming) await _stopImageStream();
 
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 350));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       final file = await controller.takePicture();
       if (!mounted) return;
 
-      final updated = _assignCapture(step, file);
-      widget.onCapturesChanged(updated);
-
-      if (updated.isComplete) {
-        await _disposeCamera();
-      } else if (wasStreaming && mounted) {
-        await _startFaceDetection();
-      }
+      widget.onCapturesChanged(_captures.copyWith(photo: file));
+      await _disposeCamera();
     } catch (e) {
-      debugPrint('Step capture failed: $e');
+      debugPrint('Capture failed: $e');
       if (mounted) {
-        setState(() => _errorMessage = 'Could not save photo. Retrying…');
+        setState(() => _errorMessage = 'Could not save photo. Please try again.');
+        if (wasStreaming) await _startFaceDetection();
       }
     } finally {
       if (mounted) setState(() => _isCapturing = false);
     }
-  }
-
-  FaceCaptureSet _assignCapture(FaceLivenessPhase step, XFile file) {
-    return switch (step) {
-      FaceLivenessPhase.center => _captures.copyWith(center: file),
-      FaceLivenessPhase.blink => _captures.copyWith(blink: file),
-      FaceLivenessPhase.turnLeft => _captures.copyWith(left: file),
-      FaceLivenessPhase.turnRight => _captures.copyWith(right: file),
-      FaceLivenessPhase.finalCapture => _captures.copyWith(finalShot: file),
-      FaceLivenessPhase.finished => _captures,
-    };
   }
 
   Face _largestFace(List<Face> faces) {
@@ -419,9 +360,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       );
       if (!mounted) return;
       if (file != null) {
-        widget.onCapturesChanged(
-          const FaceCaptureSet().copyWith(center: file, finalShot: file),
-        );
+        widget.onCapturesChanged(_captures.copyWith(photo: file));
       } else {
         setState(() => _errorMessage = 'Face photo required.');
       }
@@ -436,7 +375,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   Widget build(BuildContext context) {
     final allDone = _captures.isComplete;
     final scan = _scanController;
-    final shotCount = _captures.shots.where((s) => s != null).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -451,10 +389,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
         const SizedBox(height: 8),
         Text(
           allDone
-              ? 'All face photos captured ($shotCount/5).'
+              ? 'Face photo captured.'
               : !_faceSeen && _cameraController != null
                   ? 'Looking for your face… move into the outline'
-                  : _liveness.instruction,
+                  : _faceInGuide
+                      ? 'Face aligned — tap Capture when ready'
+                      : 'Center your face in the oval',
           style: TextStyle(
             fontSize: 14,
             height: 1.45,
@@ -463,13 +403,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
                 : AppColors.secondary.withValues(alpha: 0.9),
           ),
         ),
-        if (!allDone && !_useSystemFallback) ...[
-          const SizedBox(height: 12),
-          _LivenessStepRow(
-            captures: _captures,
-            activeIndex: _liveness.activeStepIndex,
-          ),
-        ],
         const SizedBox(height: 16),
         AspectRatio(
           aspectRatio: 3 / 4,
@@ -479,23 +412,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
           ),
         ),
         const SizedBox(height: 16),
-        _CapturedShotsGallery(
-          captures: _captures,
-          onShotTap: _showShotPreview,
-        ),
-        if (_hasAnyCapture) ...[
-          const SizedBox(height: 6),
-          Text(
-            'Tap a photo to preview',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.secondary.withValues(alpha: 0.85),
-            ),
-          ),
-        ],
-        const SizedBox(height: 12),
-        if (_hasAnyCapture)
+        if (allDone)
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -503,32 +420,26 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
                   ? null
                   : () => unawaited(_retryFaceCapture()),
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry face scan'),
+              label: const Text('Retake photo'),
             ),
           ),
-        if (_hasAnyCapture) const SizedBox(height: 12),
         if (!allDone &&
             !_useSystemFallback &&
-            _cameraController != null &&
-            _liveness.phase.allowsManualCapture) ...[
+            _cameraController != null) ...[
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _isCapturing
-                  ? null
-                  : () => unawaited(_captureCurrentStepManually()),
+            child: ElevatedButton.icon(
+              onPressed: _isCapturing ? null : () => unawaited(_capturePhoto()),
               icon: const Icon(Icons.camera_alt_outlined),
-              label: Text(
-                'Capture ${FaceCaptureSet.labels[_liveness.activeStepIndex]} manually',
-              ),
+              label: Text(_isCapturing ? 'Capturing…' : 'Capture'),
             ),
           ),
-        ],
-        if (!allDone && !_useSystemFallback && _cameraController != null)
+          const SizedBox(height: 8),
           TextButton(
             onPressed: _isCapturing ? null : () => unawaited(_openSystemCameraWithGuide()),
             child: const Text('Use system camera instead'),
           ),
+        ],
         if (!allDone && (_useSystemFallback || _cameraController == null))
           SizedBox(
             width: double.infinity,
@@ -557,13 +468,13 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   }
 
   Widget _buildPreview(bool allDone, AnimationController? scan) {
-    if (allDone && _captures.finalShot != null) {
+    if (allDone && _captures.photo != null) {
       return GestureDetector(
-        onTap: () => unawaited(_showShotPreview(4)),
+        onTap: () => unawaited(_showShotPreview()),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            UnmirroredFaceImage(filePath: _captures.finalShot!.path),
+            UnmirroredFaceImage(filePath: _captures.photo!.path),
             Container(color: AppColors.primary.withValues(alpha: 0.15)),
             const Center(
               child: Icon(Icons.check_circle, color: Colors.white, size: 72),
@@ -638,9 +549,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   }
 
   Widget _buildLiveCameraStack(CameraController controller, AnimationController? scan) {
-    final showLoader = _isCapturing || (_faceInGuide && _holdProgress > 0);
-    final instruction = _overlayInstruction();
-
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -652,13 +560,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
               painter: FaceScanOverlayPainter(
                 progress: scan.value,
                 aligned: _faceInGuide,
-                holdProgress: _holdProgress,
                 isCapturing: _isCapturing,
-                instruction: instruction,
+                instruction: _overlayInstruction(),
               ),
             ),
           ),
-        if (showLoader)
+        if (_isCapturing)
           Center(
             child: Container(
               padding: const EdgeInsets.all(14),
@@ -666,14 +573,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
                 color: Colors.black.withValues(alpha: 0.45),
                 shape: BoxShape.circle,
               ),
-              child: SizedBox(
+              child: const SizedBox(
                 width: 44,
                 height: 44,
                 child: CircularProgressIndicator(
-                  value: _isCapturing ? null : _holdProgress.clamp(0.05, 1.0),
                   strokeWidth: 4,
-                  color: const Color(0xFF66BB6A),
-                  backgroundColor: Colors.white24,
+                  color: Color(0xFF66BB6A),
                 ),
               ),
             ),
@@ -684,222 +589,20 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
 
   String _overlayInstruction() {
     if (_isCapturing) return 'Capturing photo…';
-    if (_faceInGuide) {
-      return switch (_liveness.phase) {
-        FaceLivenessPhase.center => 'Face aligned — hold still…',
-        FaceLivenessPhase.blink => 'Blink detected — hold…',
-        FaceLivenessPhase.turnLeft || FaceLivenessPhase.turnRight =>
-          'Good — keep holding turn…',
-        FaceLivenessPhase.finalCapture => 'Aligned — hold for final photo…',
-        FaceLivenessPhase.finished => _liveness.instruction,
-      };
-    }
-    return _liveness.instruction;
-  }
-}
-
-class _LivenessStepRow extends StatelessWidget {
-  const _LivenessStepRow({
-    required this.captures,
-    required this.activeIndex,
-  });
-
-  final FaceCaptureSet captures;
-  final int activeIndex;
-
-  @override
-  Widget build(BuildContext context) {
-    final shots = captures.shots;
-    return Row(
-      children: List.generate(FaceCaptureSet.labels.length, (i) {
-        final done = shots[i] != null;
-        final current = !done && i == activeIndex;
-        return Expanded(
-          child: Column(
-            children: [
-              Icon(
-                done
-                    ? Icons.check_circle
-                    : current
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                size: 18,
-                color: done
-                    ? const Color(0xFF66BB6A)
-                    : current
-                        ? AppColors.primary
-                        : AppColors.fieldBorder,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                FaceCaptureSet.labels[i],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: current ? FontWeight.w700 : FontWeight.w500,
-                  color: done
-                      ? const Color(0xFF66BB6A)
-                      : current
-                          ? AppColors.primaryDark
-                          : AppColors.secondary.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _CapturedShotsGallery extends StatelessWidget {
-  const _CapturedShotsGallery({
-    required this.captures,
-    required this.onShotTap,
-  });
-
-  final FaceCaptureSet captures;
-  final void Function(int index) onShotTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Captured photos',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primaryDark.withValues(alpha: 0.9),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 88,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: FaceCaptureSet.labels.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 10),
-            itemBuilder: (context, i) {
-              final file = captures.shots[i];
-              final label = FaceCaptureSet.labels[i];
-              return _ShotThumb(
-                label: label,
-                file: file,
-                onTap: file != null ? () => onShotTap(i) : null,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ShotThumb extends StatelessWidget {
-  const _ShotThumb({
-    required this.label,
-    required this.file,
-    this.onTap,
-  });
-
-  final String label;
-  final XFile? file;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final image = file != null
-        ? UnmirroredFaceImage(filePath: file!.path)
-        : ColoredBox(
-            color: AppColors.fieldBorder.withValues(alpha: 0.5),
-            child: Center(
-              child: Icon(
-                Icons.face_retouching_natural,
-                color: AppColors.secondary.withValues(alpha: 0.5),
-                size: 28,
-              ),
-            ),
-          );
-
-    return SizedBox(
-      width: 72,
-      child: Column(
-        children: [
-          Expanded(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: BorderRadius.circular(10),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: file != null
-                        ? Border.all(
-                            color: const Color(0xFF66BB6A).withValues(alpha: 0.6),
-                            width: 1.5,
-                          )
-                        : null,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        image,
-                        if (file != null)
-                          const Align(
-                            alignment: Alignment.bottomRight,
-                            child: Padding(
-                              padding: EdgeInsets.all(4),
-                              child: Icon(
-                                Icons.zoom_in,
-                                size: 16,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(color: Colors.black54, blurRadius: 4),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: file != null
-                  ? const Color(0xFF66BB6A)
-                  : AppColors.secondary.withValues(alpha: 0.8),
-            ),
-          ),
-        ],
-      ),
-    );
+    if (_faceInGuide) return 'Face aligned — tap Capture';
+    if (_faceSeen) return 'Adjust position to align with the oval';
+    return 'Center your face in the oval';
   }
 }
 
 class _FaceShotPreviewDialog extends StatelessWidget {
   const _FaceShotPreviewDialog({
-    required this.label,
     required this.filePath,
-    required this.onRetryAll,
+    required this.onRetry,
   });
 
-  final String label;
   final String filePath;
-  final VoidCallback onRetryAll;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -914,10 +617,10 @@ class _FaceShotPreviewDialog extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
             child: Row(
               children: [
-                Expanded(
+                const Expanded(
                   child: Text(
-                    label,
-                    style: const TextStyle(
+                    'Face photo',
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -965,9 +668,9 @@ class _FaceShotPreviewDialog extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: onRetryAll,
+                    onPressed: onRetry,
                     icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Retry scan'),
+                    label: const Text('Retake'),
                   ),
                 ),
               ],
@@ -1001,6 +704,12 @@ class _SystemCameraGuideDialog extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Center your face in the frame and tap the shutter.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 16),
             Row(

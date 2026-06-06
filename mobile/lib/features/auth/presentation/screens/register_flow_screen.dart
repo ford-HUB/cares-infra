@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
+import 'package:mobile/features/auth/domain/volunteer_type.dart';
+import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_step_indicator.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_account_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_face_scan_step.dart';
@@ -13,7 +15,14 @@ import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_rev
 import 'package:mobile/features/auth/presentation/widgets/steps/register_verification_step.dart';
 
 class RegisterFlowScreen extends StatefulWidget {
-  const RegisterFlowScreen({super.key});
+  const RegisterFlowScreen({
+    super.key,
+    required this.roleType,
+    required this.volunteerType,
+  });
+
+  final RegistrationRoleType roleType;
+  final VolunteerType volunteerType;
 
   @override
   State<RegisterFlowScreen> createState() => _RegisterFlowScreenState();
@@ -42,21 +51,41 @@ class _RegisterFlowScreenState extends State<RegisterFlowScreen> {
   String _confirmPassword = '';
   String _verificationCode = '';
 
+  @override
+  void initState() {
+    super.initState();
+    _ocrData = RegisterOcrSample.sample.copyWith(
+      volunteerType: widget.volunteerType.apiValue,
+    );
+  }
+
   bool get _ocrDataValid {
-    return _ocrData.firstname.trim().isNotEmpty &&
+    final baseValid = _ocrData.firstname.trim().isNotEmpty &&
         _ocrData.lastname.trim().isNotEmpty &&
         _ocrData.age > 0 &&
         _ocrData.currentAddress.trim().isNotEmpty &&
         _ocrData.phoneNumber.trim().length >= 7 &&
         _ocrData.idNumber.trim().isNotEmpty &&
-        _ocrData.departmentName.trim().isNotEmpty &&
-        _ocrData.majorName.trim().isNotEmpty &&
-        _ocrData.yearLevelName.trim().isNotEmpty &&
-        _ocrData.graduationYear >= 1900 &&
-        _ocrData.graduationMonth >= 1 &&
-        _ocrData.graduationMonth <= 12 &&
-        _ocrData.graduationDay >= 1 &&
-        _ocrData.graduationDay <= 31;
+        _ocrData.departmentName.trim().isNotEmpty;
+
+    final volunteerType =
+        VolunteerTypeX.fromApiValue(_ocrData.volunteerType) ??
+            widget.volunteerType;
+
+    return switch (volunteerType) {
+      VolunteerType.student => baseValid &&
+          _ocrData.majorName.trim().isNotEmpty &&
+          _ocrData.yearLevelName.trim().isNotEmpty &&
+          _ocrData.graduationYear >= 1900 &&
+          _ocrData.graduationMonth >= 1 &&
+          _ocrData.graduationMonth <= 12 &&
+          _ocrData.graduationDay >= 1 &&
+          _ocrData.graduationDay <= 31,
+      VolunteerType.staff => baseValid,
+      VolunteerType.alumni => baseValid &&
+          _ocrData.majorName.trim().isNotEmpty &&
+          _ocrData.graduationYear >= 1900,
+    };
   }
 
   bool get _accountValid {
@@ -162,7 +191,9 @@ class _RegisterFlowScreenState extends State<RegisterFlowScreen> {
     if (mounted) {
       setState(() {
         _ocrExtracting = false;
-        _ocrData = RegisterOcrSample.sample;
+        _ocrData = RegisterOcrSample.sample.copyWith(
+          volunteerType: widget.volunteerType.apiValue,
+        );
       });
     }
   }
@@ -187,9 +218,9 @@ class _RegisterFlowScreenState extends State<RegisterFlowScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: AppColors.primary,
-        title: const Text(
-          'Create account',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        title: Text(
+          '${widget.volunteerType.label} registration',
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -283,6 +314,7 @@ class _RegisterFlowScreenState extends State<RegisterFlowScreen> {
         return RegisterOcrReviewStep(
           key: const ValueKey('ocr'),
           data: _ocrData,
+          volunteerType: widget.volunteerType,
           isExtracting: _ocrExtracting,
           onChanged: (data) => setState(() => _ocrData = data),
         );

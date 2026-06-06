@@ -3,10 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_copy.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/auth/presentation/screens/register_flow_screen.dart';
+import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/animated_illustration.dart';
+import 'package:mobile/features/auth/presentation/widgets/sun_weather_panel.dart';
 
-/// Sign-in screen — shown after the welcome film completes.
+/// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -64,7 +65,17 @@ class _LoginScreenState extends State<LoginScreen>
         return Scaffold(
           body: Stack(
             children: [
-              _LoginBackground(progress: t, ambient: ambient),
+              const _LoginBackground(),
+              Positioned(
+                top: MediaQuery.paddingOf(context).top - 12,
+                right: -8,
+                child: SunWeatherPanel(
+                  size: math.min(MediaQuery.sizeOf(context).width * 0.27, 108),
+                  passwordVisible: !_obscurePassword,
+                  progress: t,
+                  ambient: ambient,
+                ),
+              ),
               SafeArea(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -207,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen>
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => const RegisterFlowScreen(),
+                builder: (_) => const RegisterTypeSelectionScreen(),
               ),
             );
           },
@@ -267,64 +278,40 @@ class _LoginScreenState extends State<LoginScreen>
 }
 
 class _LoginBackground extends StatelessWidget {
-  const _LoginBackground({required this.progress, required this.ambient});
-
-  final double progress;
-  final double ambient;
+  const _LoginBackground();
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _LoginBgPainter(progress: progress, ambient: ambient),
+    return const CustomPaint(
+      painter: _LoginBgPainter(),
       size: Size.infinite,
     );
   }
 }
 
 class _LoginBgPainter extends CustomPainter {
-  _LoginBgPainter({required this.progress, required this.ambient});
+  const _LoginBgPainter();
 
-  final double progress;
-  final double ambient;
+  static const _skyTop = Color(0xFF81D4FA);
+  static const _skyMid = Color(0xFFFFF9C4);
+  static const _skyBottom = Color(0xFFF1F8E9);
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
+
     canvas.drawRect(
       rect,
       Paint()
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFE8F5E9), AppColors.background, Color(0xFFF9FBE7)],
+          colors: [_skyTop, _skyMid, _skyBottom],
+          stops: [0.0, 0.45, 1.0],
         ).createShader(rect),
     );
-
-    final fadeIn = Curves.easeOut.transform(progress.clamp(0.0, 1.0));
-    final center = Offset(size.width * 0.5, size.height * 0.15);
-    canvas.drawCircle(
-      center,
-      size.width * 0.5,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [
-            AppColors.secondary.withValues(alpha: 0.1 * fadeIn),
-            Colors.transparent,
-          ],
-        ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.5)),
-    );
-
-    final leafPaint = Paint()
-      ..color = AppColors.light.withValues(alpha: 0.3 * fadeIn);
-    for (var i = 0; i < 10; i++) {
-      final phase = ambient * math.pi * 2 + i;
-      final x = size.width * (0.15 + (i % 3) * 0.28) + math.sin(phase) * 10;
-      final y = size.height * (0.1 + (i ~/ 3) * 0.2) + math.cos(phase) * 8;
-      canvas.drawCircle(Offset(x, y), 3, leafPaint);
-    }
   }
 
   @override
-  bool shouldRepaint(_LoginBgPainter old) =>
-      old.progress != progress || old.ambient != ambient;
+  bool shouldRepaint(_LoginBgPainter old) => false;
 }

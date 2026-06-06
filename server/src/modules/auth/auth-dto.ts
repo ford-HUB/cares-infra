@@ -1,20 +1,15 @@
-import { EmbeddingType, GenderType, RoleType } from "../prisma/common/client";
+import { EmbeddingType, GenderType, RoleType } from "../../infastructures/prisma/common/client";
 
 export interface CreateUserAccountDto {
     email: string;
     password: string;
 }
 
-export interface CreateUserDto extends UserSchoolInfoDto, CreateUserAccountDto {
-    firstname: string;
-    lastname: string;
-    middle_name: string;
-    role_type: RoleType;
-    gender: GenderType;
-    age: number;
-    current_address: string;
-    phone_number: string;
-    avatar?: string;
+export interface BiometricDto {
+    face_url: string;
+    embedding: number[];
+    embedding_type: EmbeddingType;
+    isActive: boolean;
 }
 
 export interface UserSchoolInfoDto {
@@ -27,6 +22,21 @@ export interface UserSchoolInfoDto {
     year_level: YearLevelDto;
 }
 
+export interface CreateUserDto {
+    firstname: string;
+    lastname: string;
+    middle_name: string;
+    role_type: RoleType;
+    gender: GenderType;
+    age: number;
+    current_address: string;
+    phone_number: string;
+    avatar?: string;
+    account: CreateUserAccountDto;
+    school_info: UserSchoolInfoDto;
+    biometric: BiometricDto;
+}
+
 export interface DepartmentDto {
     name: string;
 }
@@ -37,12 +47,4 @@ export interface MajorDto {
 
 export interface YearLevelDto {
     name: string;
-}
-
-export interface CreateBiometricDto {
-    face_url: string;
-    embedding: number[];
-    embedding_type: EmbeddingType;
-    isActive: boolean;
-    user_id: string;
 }

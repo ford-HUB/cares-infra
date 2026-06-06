@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
+import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 
 class RegisterOcrReviewStep extends StatefulWidget {
   const RegisterOcrReviewStep({
     super.key,
     required this.data,
+    required this.volunteerType,
     required this.isExtracting,
     required this.onChanged,
   });
 
   final RegisterOcrSample data;
+  final VolunteerType volunteerType;
   final bool isExtracting;
   final ValueChanged<RegisterOcrSample> onChanged;
 
@@ -22,7 +25,8 @@ class RegisterOcrReviewStep extends StatefulWidget {
 
 class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   static const _genders = ['MALE', 'FEMALE', 'OTHER'];
-  static const _roles = ['VOLUNTEER', 'DONOR', 'BENEFICIARY', 'ADMIN'];
+  static const _yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  static const _shsGradeLevels = ['Grade 11', 'Grade 12'];
 
   late final TextEditingController _firstname;
   late final TextEditingController _lastname;
@@ -37,9 +41,19 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   late final TextEditingController _gradYear;
   late final TextEditingController _gradMonth;
   late final TextEditingController _gradDay;
+  late final TextEditingController _volunteerTypeLabel;
 
   late String _gender;
-  late String _roleType;
+  String? _selectedYearLevel;
+
+  bool get _isStudent => widget.volunteerType == VolunteerType.student;
+  bool get _isAlumni => widget.volunteerType == VolunteerType.alumni;
+  bool get _usesCourseField => _isStudent || _isAlumni;
+  bool get _isSeniorHigh =>
+      widget.data.departmentName == 'Senior High Department';
+
+  List<String> get _yearLevelOptions =>
+      _isSeniorHigh ? _shsGradeLevels : _yearLevels;
 
   @override
   void initState() {
@@ -58,8 +72,15 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradYear = TextEditingController(text: '${data.graduationYear}');
     _gradMonth = TextEditingController(text: '${data.graduationMonth}');
     _gradDay = TextEditingController(text: '${data.graduationDay}');
+    _volunteerTypeLabel =
+        TextEditingController(text: widget.volunteerType.label);
     _gender = data.gender;
-    _roleType = data.roleType;
+
+    final yearOptions = _yearLevelOptions;
+    if (yearOptions.contains(data.yearLevelName)) {
+      _selectedYearLevel = data.yearLevelName;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _notifyParent());
   }
 
@@ -78,7 +99,16 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradYear.dispose();
     _gradMonth.dispose();
     _gradDay.dispose();
+    _volunteerTypeLabel.dispose();
     super.dispose();
+  }
+
+  void _onYearLevelChanged(String? value) {
+    setState(() {
+      _selectedYearLevel = value;
+      _yearLevel.text = value ?? '';
+    });
+    _notifyParent();
   }
 
   void _notifyParent() {
@@ -99,11 +129,13 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         idNumber: _idNumber.text.trim(),
         departmentName: _department.text.trim(),
         majorName: _major.text.trim(),
-        yearLevelName: _yearLevel.text.trim(),
+        yearLevelName: _isStudent
+            ? (_selectedYearLevel ?? _yearLevel.text.trim())
+            : '',
         graduationYear: gradYear,
         graduationMonth: gradMonth,
         graduationDay: gradDay,
-        roleType: _roleType,
+        volunteerType: widget.volunteerType.apiValue,
       ),
     );
   }
@@ -166,11 +198,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           ),
           child: const Row(
             children: [
-              Icon(Icons.edit_outlined, size: 20, color: AppColors.primaryDark),
+              Icon(Icons.verified_outlined, size: 20, color: AppColors.primaryDark),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'All fields are editable — sample OCR preview',
+                  'Department, course, and volunteer type are locked. Other fields can be corrected.',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -243,73 +275,86 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         ),
         const SizedBox(height: 12),
         RegisterFormField(
+          label: 'Type of volunteer',
+          controller: _volunteerTypeLabel,
+          readOnly: true,
+        ),
+        const SizedBox(height: 12),
+        RegisterFormField(
           label: 'Department',
           controller: _department,
-          onChanged: (_) => _notifyParent(),
+          readOnly: true,
         ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Major',
-          controller: _major,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Year level',
-          controller: _yearLevel,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Graduation date',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.primaryDark,
+        if (_usesCourseField) ...[
+          const SizedBox(height: 12),
+          RegisterFormField(
+            label: _isSeniorHigh ? 'Strand' : 'Course',
+            controller: _major,
+            readOnly: true,
           ),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            Expanded(
-              child: RegisterFormField(
-                label: 'Month',
-                controller: _gradMonth,
-                keyboardType: TextInputType.number,
-                onChanged: (_) => _notifyParent(),
-              ),
+        ],
+        if (_isStudent) ...[
+          const SizedBox(height: 12),
+          _dropdown(
+            label: _isSeniorHigh ? 'Grade level' : 'Year level',
+            value: _selectedYearLevel,
+            hint: 'Select your ${_isSeniorHigh ? 'grade level' : 'year level'}',
+            items: _yearLevelOptions,
+            onChanged: _onYearLevelChanged,
+          ),
+        ],
+        if (_isAlumni) ...[
+          const SizedBox(height: 12),
+          RegisterFormField(
+            label: 'Graduated year',
+            controller: _gradYear,
+            keyboardType: TextInputType.number,
+            onChanged: (_) => _notifyParent(),
+          ),
+        ],
+        if (_isStudent) ...[
+          const SizedBox(height: 12),
+          const Text(
+            'Graduation date',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryDark,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: RegisterFormField(
-                label: 'Day',
-                controller: _gradDay,
-                keyboardType: TextInputType.number,
-                onChanged: (_) => _notifyParent(),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: RegisterFormField(
+                  label: 'Month',
+                  controller: _gradMonth,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => _notifyParent(),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              flex: 2,
-              child: RegisterFormField(
-                label: 'Year',
-                controller: _gradYear,
-                keyboardType: TextInputType.number,
-                onChanged: (_) => _notifyParent(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RegisterFormField(
+                  label: 'Day',
+                  controller: _gradDay,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => _notifyParent(),
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _dropdown(
-          label: 'Role',
-          value: _roleType,
-          items: _roles,
-          onChanged: (v) {
-            setState(() => _roleType = v!);
-            _notifyParent();
-          },
-        ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: RegisterFormField(
+                  label: 'Year',
+                  controller: _gradYear,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => _notifyParent(),
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 8),
       ],
     );
@@ -334,10 +379,15 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
 
   Widget _dropdown({
     required String label,
-    required String value,
+    required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
+    String? hint,
+    bool enabled = true,
+    String Function(String value)? itemLabel,
   }) {
+    final display = itemLabel ?? (String v) => v;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -351,15 +401,25 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          initialValue: value,
+          initialValue: value != null && items.contains(value) ? value : null,
           items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(
+                    display(e),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
               .toList(),
-          onChanged: onChanged,
+          onChanged: enabled ? onChanged : null,
           decoration: InputDecoration(
-            hintText: label,
+            hintText: hint ?? label,
             filled: true,
-            fillColor: AppColors.fieldFill,
+            fillColor: enabled
+                ? AppColors.fieldFill
+                : AppColors.fieldFill.withValues(alpha: 0.6),
           ),
         ),
       ],

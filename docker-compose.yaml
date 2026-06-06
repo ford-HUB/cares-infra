@@ -4,7 +4,7 @@ services:
       context: ./server
       dockerfile: Dockerfile
       target: development
-    container_name: cares_local_server
+    container_name: local_server
     ports:
       - '9000:9000'
     env_file:
@@ -13,8 +13,11 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - db
+      - redis
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
@@ -33,6 +36,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -45,5 +56,22 @@ services:
     depends_on:
       - db
 
+  fr-service:
+    build:
+      context: ./microservices/fr-service
+      dockerfile: Dockerfile
+    container_name: fr_service
+    ports:
+      - '8001:8001'
+    environment:
+      - PORT=8001
+      - MODEL_NAME=buffalo_l
+      - CTX_ID=-1
+      - DET_SIZE=640
+      - VERIFY_THRESHOLD=0.4
+      - EMBEDDING_DIM=512
+      - CORS_ORIGINS=*
+
 volumes:
   postgres_data:
+  redis_data:

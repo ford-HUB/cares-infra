@@ -15,7 +15,7 @@ class RegisterOcrSample {
     required this.graduationYear,
     required this.graduationMonth,
     required this.graduationDay,
-    required this.roleType,
+    required this.volunteerType,
   });
 
   final String firstname;
@@ -32,7 +32,7 @@ class RegisterOcrSample {
   final int graduationYear;
   final int graduationMonth;
   final int graduationDay;
-  final String roleType;
+  final String volunteerType;
 
   RegisterOcrSample copyWith({
     String? firstname,
@@ -49,7 +49,7 @@ class RegisterOcrSample {
     int? graduationYear,
     int? graduationMonth,
     int? graduationDay,
-    String? roleType,
+    String? volunteerType,
   }) {
     return RegisterOcrSample(
       firstname: firstname ?? this.firstname,
@@ -66,7 +66,7 @@ class RegisterOcrSample {
       graduationYear: graduationYear ?? this.graduationYear,
       graduationMonth: graduationMonth ?? this.graduationMonth,
       graduationDay: graduationDay ?? this.graduationDay,
-      roleType: roleType ?? this.roleType,
+      volunteerType: volunteerType ?? this.volunteerType,
     );
   }
 
@@ -89,12 +89,12 @@ class RegisterOcrSample {
     phoneNumber: '+639171234567',
     idNumber: '2021-08452',
     departmentName: 'College of Teacher Education',
-    majorName: 'Bachelor of Elementary Education',
+    majorName: 'BEED - Bachelor of Elementary Education',
     yearLevelName: '3rd Year',
     graduationYear: 2026,
     graduationMonth: 3,
     graduationDay: 15,
-    roleType: 'VOLUNTEER',
+    volunteerType: 'STUDENT',
   );
 
   /// Suggested email for the account step (static OCR preview).

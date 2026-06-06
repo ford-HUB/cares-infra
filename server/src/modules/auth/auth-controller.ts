@@ -1,23 +1,29 @@
 import { AuthService } from "./auth-service";
-import { Body, Controller, Post } from "@nestjs/common";
-import { CreateBiometricSchema, CreateUserSchema } from "./auth-validator";
+import { Body, Controller, Post, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { CreateUserSchema } from "./auth-validator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
-import { CreateUserDto, CreateBiometricDto } from "./auth-dto";
+import { CreateUserDto } from "./auth-dto";
 import { ResponseMessage } from "src/common/decorators/response-message-decorator";
+import { S3Service } from "src/infastructures/s3/s3-service";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @Controller('v1/auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService, 
+        private readonly s3Service: S3Service
+    ) {}
 
     @Post('register')
     @ResponseMessage('User created')
-    async createUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUserDto) {
-        return await this.authService.createUser(data);
+    async registerUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUserDto) {
+        return await this.authService.registerUser(data);
     }
 
-    @Post('register/biometric')
-    @ResponseMessage('Biometric created')
-    async createBiometric(@Body(new ZodValidationPipe(CreateBiometricSchema)) data: CreateBiometricDto) {
-        return await this.authService.createBiometric(data);
+    @Post('upload-id')
+    @ResponseMessage('ID uploaded')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadID(@UploadedFile() file: Express.Multer.File) {
+        return await this.authService.uploadID(file);
     }
 }

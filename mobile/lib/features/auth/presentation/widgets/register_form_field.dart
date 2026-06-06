@@ -11,6 +11,7 @@ class RegisterFormField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.obscureText = false,
+    this.readOnly = false,
     this.maxLines = 1,
     this.suffixIcon,
     this.onChanged,
@@ -23,6 +24,7 @@ class RegisterFormField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool obscureText;
+  final bool readOnly;
   final int maxLines;
   final Widget? suffixIcon;
   final ValueChanged<String>? onChanged;
@@ -47,12 +49,24 @@ class RegisterFormField extends StatelessWidget {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           obscureText: obscureText,
+          readOnly: readOnly,
           maxLines: maxLines,
           onChanged: onChanged,
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint ?? label,
-            suffixIcon: suffixIcon,
+            suffixIcon: suffixIcon ??
+                (readOnly
+                    ? Icon(
+                        Icons.lock_outline,
+                        size: 18,
+                        color: AppColors.secondary.withValues(alpha: 0.55),
+                      )
+                    : null),
+            filled: readOnly,
+            fillColor: readOnly
+                ? AppColors.fieldFill.withValues(alpha: 0.65)
+                : null,
           ),
         ),
       ],

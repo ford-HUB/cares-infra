@@ -11,6 +11,7 @@ Before implementing or refactoring, **read applicable rules** in `.cursor/rules/
 |------|-----------|------|
 | Flutter mobile | `mobile-flutter.mdc` | Any work under `mobile/` |
 | NestJS server | `server-nestjs.mdc` | Any work under `server/` |
+| GitHub Actions | `github-actions.mdc` | Any work under `.github/` |
 
 For Cursor product behavior (rules, agents, skills, hooks), use official docs: https://docs.cursor.com
 
