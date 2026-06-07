@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/session/static_user_session.dart';
@@ -25,7 +26,7 @@ class EventParticipation {
 }
 
 /// In-memory event registration store for the static prototype phase.
-class EventRegistrationStore {
+class EventRegistrationStore extends ChangeNotifier {
   EventRegistrationStore._();
 
   static final EventRegistrationStore instance = EventRegistrationStore._();
@@ -35,6 +36,13 @@ class EventRegistrationStore {
 
   String _key(String eventId, String email) =>
       '$eventId|${email.trim().toLowerCase()}';
+
+  List<EventParticipation> participationsForEmail(String email) {
+    final normalized = email.trim().toLowerCase();
+    return _participations.values
+        .where((p) => p.participantEmail.trim().toLowerCase() == normalized)
+        .toList();
+  }
 
   EventParticipation? participationFor(String eventId, String email) {
     return _participations[_key(eventId, email)];
@@ -62,6 +70,7 @@ class EventRegistrationStore {
       registeredAt: DateTime.now(),
     );
     _participations[key] = participation;
+    notifyListeners();
     return participation;
   }
 
@@ -70,5 +79,6 @@ class EventRegistrationStore {
     if (participation == null) return;
     participation.attendanceVerified = true;
     participation.attendanceVerifiedAt = DateTime.now();
+    notifyListeners();
   }
 }

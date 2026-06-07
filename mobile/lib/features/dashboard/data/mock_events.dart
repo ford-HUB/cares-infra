@@ -217,6 +217,13 @@ final kMockUpcomingEvents = [
 
 final kMockAllEvents = [...kMockFeaturedEvents, ...kMockUpcomingEvents];
 
+CaresEvent? findEventById(String id) {
+  for (final event in kMockAllEvents) {
+    if (event.id == id) return event;
+  }
+  return null;
+}
+
 List<String> smartSearchSuggestionsFor(String query) {
   if (query.trim().isEmpty) {
     return [
