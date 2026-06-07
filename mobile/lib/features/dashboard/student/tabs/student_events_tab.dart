@@ -42,6 +42,16 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
 
   List<String> get _suggestions => smartSearchSuggestionsFor(_query);
 
+  bool get _hasActiveFilters =>
+      _query.trim().isNotEmpty || _selectedCategory != 'All';
+
+  String get _subtitle {
+    if (_query.trim().isNotEmpty) {
+      return '${_filteredEvents.length} result${_filteredEvents.length == 1 ? '' : 's'} found';
+    }
+    return '${_filteredEvents.length} events available';
+  }
+
   void _applySuggestion(String suggestion) {
     _searchController.text = suggestion;
     _searchController.selection = TextSelection.collapsed(
@@ -56,111 +66,84 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
     setState(() => _query = '');
   }
 
+  void _clearFilters() {
+    _clearSearch();
+    setState(() => _selectedCategory = 'All');
+  }
+
   @override
   Widget build(BuildContext context) {
     final events = _filteredEvents;
     final showSuggestions =
         _searchFocusNode.hasFocus && _suggestions.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Events',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                    ),
+    return GestureDetector(
+      onTap: () => _searchFocusNode.unfocus(),
+      child: ColoredBox(
+        color: AppColors.background,
+        child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(
+              child: EventsPageHeader(
+                subtitle: _subtitle,
               ),
-              const SizedBox(height: 4),
-              Text(
-                _query.trim().isEmpty
-                    ? '${events.length} events available'
-                    : '${events.length} result${events.length == 1 ? '' : 's'} for "${_query.trim()}"',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: SmartEventSearchBar(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  query: _query,
+                  onQueryChanged: (value) => setState(() => _query = value),
+                  onSuggestionTap: _applySuggestion,
+                  onClear: _clearSearch,
+                  showSuggestions: showSuggestions,
+                  suggestions: _suggestions,
                 ),
               ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: SmartEventSearchBar(
-            controller: _searchController,
-            focusNode: _searchFocusNode,
-            query: _query,
-            onQueryChanged: (value) => setState(() => _query = value),
-            onSuggestionTap: _applySuggestion,
-            onClear: _clearSearch,
-            showSuggestions: showSuggestions,
-            suggestions: _suggestions,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-          child: EventCategoryFilters(
-            selected: _selectedCategory,
-            onSelected: (category) => setState(() => _selectedCategory = category),
-          ),
-        ),
-        Expanded(
-          child: events.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 48,
-                          color: AppColors.textMuted.withValues(alpha: 0.7),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _query.trim().isEmpty
-                              ? 'No events in this category yet.'
-                              : 'No events match "$_query".',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            height: 1.45,
-                          ),
-                        ),
-                        if (_query.isNotEmpty || _selectedCategory != 'All') ...[
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: () {
-                              _clearSearch();
-                              setState(() => _selectedCategory = 'All');
-                            },
-                            child: const Text('Clear filters'),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    final event = events[index];
-                    return EventCatalogCard(
-                      event: event,
-                      onTap: () => EventDetailsScreen.open(context, event),
-                    );
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: EventCategoryFilters(
+                  selected: _selectedCategory,
+                  onSelected: (category) {
+                    setState(() => _selectedCategory = category);
+                    _searchFocusNode.unfocus();
                   },
                 ),
+              ),
+            ),
+            if (events.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: EventsEmptyState(
+                  query: _query,
+                  hasActiveFilters: _hasActiveFilters,
+                  onClearFilters: _clearFilters,
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final event = events[index];
+                      return EventCatalogCard(
+                        event: event,
+                        onTap: () => EventDetailsScreen.open(context, event),
+                      );
+                    },
+                    childCount: events.length,
+                  ),
+                ),
+              ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

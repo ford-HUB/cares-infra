@@ -2,6 +2,44 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/mock_events.dart';
 
+class EventsPageHeader extends StatelessWidget {
+  const EventsPageHeader({
+    super.key,
+    required this.subtitle,
+  });
+
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Events',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class SmartEventSearchBar extends StatelessWidget {
   const SmartEventSearchBar({
     super.key,
@@ -29,105 +67,167 @@ class SmartEventSearchBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          controller: controller,
-          focusNode: focusNode,
-          onChanged: onQueryChanged,
-          textInputAction: TextInputAction.search,
-          decoration: InputDecoration(
-            hintText: 'Search events...',
-            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
-            suffixIcon: query.isNotEmpty
-                ? IconButton(
-                    onPressed: onClear,
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                  )
-                : null,
-            filled: true,
-            fillColor: AppColors.inputFill,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: focusNode.hasFocus
+                  ? AppColors.primary.withValues(alpha: 0.35)
+                  : AppColors.inputFill,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.45),
-                width: 1.5,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
+            ],
+          ),
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            onChanged: onQueryChanged,
+            textInputAction: TextInputAction.search,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Search by title, tag, or location',
+              hintStyle: TextStyle(
+                color: AppColors.textMuted.withValues(alpha: 0.9),
+                fontWeight: FontWeight.w400,
+              ),
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: focusNode.hasFocus
+                    ? AppColors.primary
+                    : AppColors.textMuted,
+              ),
+              suffixIcon: query.isNotEmpty
+                  ? IconButton(
+                      onPressed: onClear,
+                      icon: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputFill,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close_rounded, size: 16),
+                      ),
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
             ),
           ),
         ),
-        if (showSuggestions && suggestions.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.inputFill),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
-                  child: Text(
-                    query.trim().isEmpty ? 'Suggestions' : 'Smart matches',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textMuted,
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 200),
+          crossFadeState: showSuggestions && suggestions.isNotEmpty
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+          firstChild: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.inputFill),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Text(
+                      query.trim().isEmpty ? 'Popular searches' : 'Suggestions',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ),
-                ),
-                ...suggestions.map(
-                  (suggestion) => InkWell(
-                    onTap: () => onSuggestionTap(suggestion),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            query.trim().isEmpty
-                                ? Icons.trending_up_rounded
-                                : Icons.search_rounded,
-                            size: 18,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              suggestion,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                              ),
+                  ...List.generate(suggestions.length, (index) {
+                    final suggestion = suggestions[index];
+                    final isLast = index == suggestions.length - 1;
+                    return Column(
+                      children: [
+                        InkWell(
+                          onTap: () => onSuggestionTap(suggestion),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.inputFill,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    query.trim().isEmpty
+                                        ? Icons.trending_up_rounded
+                                        : Icons.search_rounded,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    suggestion,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.north_west_rounded,
+                                  size: 14,
+                                  color: AppColors.textMuted.withValues(alpha: 0.7),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                        ),
+                        if (!isLast)
+                          Divider(
+                            height: 1,
+                            indent: 60,
+                            color: AppColors.inputFill.withValues(alpha: 0.8),
+                          ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
-        ],
+          secondChild: const SizedBox.shrink(),
+        ),
       ],
     );
   }
@@ -145,35 +245,53 @@ class EventCategoryFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: kEventFilterCategories.map((category) {
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: kEventFilterCategories.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final category = kEventFilterCategories[index];
           final isSelected = selected == category;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(category),
-              selected: isSelected,
-              onSelected: (_) => onSelected(category),
-              showCheckmark: false,
-              labelStyle: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => onSelected(category),
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.inputFill,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
               ),
-              selectedColor: AppColors.primary,
-              backgroundColor: AppColors.surface,
-              side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.inputFill,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 4),
             ),
           );
-        }).toList(),
+        },
       ),
     );
   }
@@ -189,138 +307,171 @@ class EventCatalogCard extends StatelessWidget {
   final CaresEvent event;
   final VoidCallback onTap;
 
-  Widget _detailRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 15, color: AppColors.textMuted),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
+  Widget _metaRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: AppColors.textMuted),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.2,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final urgent = event.daysUntil <= 3;
+    final fillRatio = event.totalCapacity == 0
+        ? 0.0
+        : event.registeredCount / event.totalCapacity;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 18),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           child: Ink(
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.inputFill),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.inputFill.withValues(alpha: 0.9)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  height: 130,
-                  decoration: BoxDecoration(
-                    color: AppColors.inputFill,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(18),
-                    ),
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.event_rounded,
-                      size: 52,
-                      color: AppColors.primary.withValues(alpha: 0.55),
-                    ),
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.inputFill,
+                              AppColors.primary.withValues(alpha: 0.12),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: Center(
+                          child: Icon(
+                            Icons.event_available_rounded,
+                            size: 44,
+                            color: AppColors.primary.withValues(alpha: 0.45),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface.withValues(alpha: 0.92),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            event.category,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: event.tags
-                            .map(
-                              (tag) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  tag,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: event.tags.map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              tag,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
                               ),
-                            )
-                            .toList(),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         event.title,
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
                           height: 1.25,
+                          letterSpacing: -0.2,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      _metaRow(Icons.apartment_rounded, event.organization),
+                      const SizedBox(height: 6),
+                      _metaRow(Icons.place_outlined, event.location),
                       const SizedBox(height: 10),
-                      _detailRow(Icons.person_outline_rounded, event.organization),
-                      _detailRow(Icons.location_on_outlined, event.location),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: _detailRow(
-                              Icons.calendar_today_outlined,
+                            child: _metaRow(
+                              Icons.calendar_month_outlined,
                               event.formattedDate,
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 4,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
                               color: urgent
-                                  ? AppColors.secondary.withValues(alpha: 0.12)
-                                  : AppColors.inputFill,
+                                  ? AppColors.secondary.withValues(alpha: 0.1)
+                                  : AppColors.primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               event.countdownLeftLabel,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: urgent
                                     ? AppColors.secondary
@@ -330,27 +481,25 @@ class EventCatalogCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       Row(
                         children: [
                           Expanded(
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
-                                value: event.totalCapacity == 0
-                                    ? 0
-                                    : event.registeredCount / event.totalCapacity,
-                                minHeight: 6,
+                                value: fillRatio,
+                                minHeight: 5,
                                 backgroundColor: AppColors.inputFill,
                                 color: AppColors.primary,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           Text(
                             '${event.registeredCount}/${event.totalCapacity}',
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textSecondary,
                             ),
@@ -363,6 +512,83 @@ class EventCatalogCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class EventsEmptyState extends StatelessWidget {
+  const EventsEmptyState({
+    super.key,
+    required this.query,
+    required this.hasActiveFilters,
+    required this.onClearFilters,
+  });
+
+  final String query;
+  final bool hasActiveFilters;
+  final VoidCallback onClearFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.inputFill,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.event_busy_rounded,
+                size: 36,
+                color: AppColors.textMuted.withValues(alpha: 0.8),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              query.trim().isEmpty
+                  ? 'No events found'
+                  : 'No matches for "$query"',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try a different search term or filter.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary.withValues(alpha: 0.9),
+                height: 1.45,
+              ),
+            ),
+            if (hasActiveFilters) ...[
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: onClearFilters,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text('Clear filters'),
+              ),
+            ],
+          ],
         ),
       ),
     );
