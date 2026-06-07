@@ -105,7 +105,7 @@ class _StudentRanksTabState extends State<StudentRanksTab> {
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
-                          color: AppColors.primary,
+                          color: AppColors.textPrimary,
                         ),
                   ),
                   const SizedBox(height: 6),

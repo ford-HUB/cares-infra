@@ -43,7 +43,7 @@ class DashboardHeader extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                   height: 1.1,
                 ),
               ),
@@ -58,7 +58,7 @@ class DashboardHeader extends StatelessWidget {
             IconButton(
               onPressed: () => DashboardNotificationsScreen.open(context),
               icon: const Icon(Icons.notifications_none_rounded),
-              color: AppColors.textPrimary,
+              color: AppColors.primary,
               tooltip: 'Notifications',
             ),
             if (showNotificationDot)

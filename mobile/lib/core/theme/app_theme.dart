@@ -1,22 +1,37 @@
 import 'package:flutter/material.dart';
 
-/// Environmental green palette — forest, sage, and natural tones.
+/// Environmental green palette — sage background, forest accents.
 class AppColors {
-  static const Color primary = Color(0xFF1F6B45);
-  static const Color primaryLight = Color(0xFF2E8B57);
+  // Main surfaces
+  static const Color background = Color(0xFFF0F7E8);
+  static const Color surface = Color(0xFFFEFEFE);
+
+  // Brand greens
+  static const Color primary = Color(0xFF2D7634);
+  static const Color primaryDark = Color(0xFF1F5F28);
+  static const Color primaryLight = Color(0xFF3A9042);
+  static const Color accentLight = Color(0xFFC1D8B9);
+
+  // Legacy aliases used across the app
+  static const Color accent = Color(0xFF6E9E58);
+  static const Color accentBright = Color(0xFF8DB878);
+  static const Color accentYellow = Color(0xFF8DB878);
+  static const Color accentGreen = Color(0xFF1F5F28);
+
+  // Semantic
   static const Color secondary = Color(0xFFC62828);
-  static const Color accent = Color(0xFF3CB371);
-  static const Color accentBright = Color(0xFF66BB6A);
-  static const Color accentYellow = Color(0xFF8BC34A);
-  static const Color accentGreen = Color(0xFF2E7D32);
-  static const Color background = Color(0xFFF1F8F4);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color inputFill = Color(0xFFE4EFE8);
-  static const Color borderLight = Color(0xFFC8DFD0);
   static const Color accentOrange = Color(0xFFE65100);
-  static const Color textPrimary = Color(0xFF1A2E22);
-  static const Color textSecondary = Color(0xFF5A6F62);
-  static const Color textMuted = Color(0xFF8FA396);
+
+  // Fills & borders
+  static const Color inputFill = Color(0xFFCFE8C8);
+  static const Color borderCard = Color(0xFFB7DDB5);
+  static const Color borderLight = Color(0xFFCFE8C8);
+  static const Color borderActive = Color(0xFF2D7634);
+
+  // Text
+  static const Color textPrimary = Color(0xFF1F5F28);
+  static const Color textSecondary = Color(0xFF6E9E58);
+  static const Color textMuted = Color(0xFF95B888);
 
   static const double cardRadius = 18;
   static const double pillRadius = 999;
@@ -31,13 +46,13 @@ class AppDecorations {
     return BoxDecoration(
       color: color ?? AppColors.surface,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: AppColors.borderLight, width: 1),
+      border: Border.all(color: AppColors.borderCard, width: 1),
     );
   }
 
   static BoxDecoration softBadge({Color? fill}) {
     return BoxDecoration(
-      color: fill ?? AppColors.inputFill,
+      color: fill ?? AppColors.accentLight,
       borderRadius: BorderRadius.circular(AppColors.pillRadius),
       border: Border.all(color: AppColors.borderLight, width: 1),
     );
@@ -119,12 +134,12 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: borderRadius,
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: borderRadius,
-          borderSide: BorderSide(
-            color: AppColors.primary.withValues(alpha: 0.5),
+          borderSide: const BorderSide(
+            color: AppColors.borderActive,
             width: 1.5,
           ),
         ),

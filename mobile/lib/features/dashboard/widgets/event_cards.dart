@@ -67,7 +67,7 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -295,7 +295,7 @@ class UpcomingEventCard extends StatelessWidget {
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppColors.cardRadius),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.22),
+                color: AppColors.borderCard,
                 width: 1,
               ),
             ),
@@ -315,7 +315,7 @@ class UpcomingEventCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     height: 1.25,
                   ),
                 ),
@@ -424,7 +424,7 @@ class _UpcomingEventTag extends StatelessWidget {
         color: AppColors.background,
         borderRadius: BorderRadius.circular(AppColors.pillRadius),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.28),
+          color: AppColors.borderLight,
           width: 1,
         ),
       ),

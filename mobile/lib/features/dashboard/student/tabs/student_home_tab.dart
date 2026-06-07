@@ -56,7 +56,7 @@ class StudentHomeTab extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                 ),
           ),
         ),
@@ -95,7 +95,7 @@ class StudentHomeTab extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                 ),
           ),
         ),

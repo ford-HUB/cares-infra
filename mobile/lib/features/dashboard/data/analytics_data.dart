@@ -36,9 +36,9 @@ const kAnalyticsMonthlyStats = [
 ];
 
 const kAnalyticsCategoryBreakdown = [
-  CategoryBreakdown(category: 'Environment', count: 5, colorValue: 0xFF1F6B45),
-  CategoryBreakdown(category: 'Education', count: 4, colorValue: 0xFF2E8B57),
-  CategoryBreakdown(category: 'Health', count: 2, colorValue: 0xFF66BB6A),
+  CategoryBreakdown(category: 'Environment', count: 5, colorValue: 0xFF2D7634),
+  CategoryBreakdown(category: 'Education', count: 4, colorValue: 0xFF3A9042),
+  CategoryBreakdown(category: 'Health', count: 2, colorValue: 0xFF6E9E58),
 ];
 
 class AnalyticsSummary {
