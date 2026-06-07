@@ -11,6 +11,10 @@ class StaticSessionUser {
     required this.accountType,
     this.userRole,
     this.beneficiaryType,
+    this.department,
+    this.course,
+    this.phoneNumber = '',
+    this.schoolIdNumber = '',
     Set<String>? interests,
     Set<String>? skills,
     Set<String>? causes,
@@ -27,6 +31,10 @@ class StaticSessionUser {
   AccountType accountType;
   UserRole? userRole;
   BeneficiaryType? beneficiaryType;
+  String? department;
+  String? course;
+  String phoneNumber;
+  String schoolIdNumber;
   final Set<String> interests;
   final Set<String> skills;
   final Set<String> causes;
@@ -46,6 +54,21 @@ class StaticSessionUser {
     return userRole?.name ?? 'Regular User';
   }
 
+  String get roleDisplayName => switch (userRole) {
+        UserRole.student => 'Student',
+        UserRole.staff => 'Staff',
+        UserRole.faculty => 'Faculty',
+        null => 'Member',
+      };
+
+  String get affiliationLine {
+    final role = roleDisplayName;
+    if (department != null && department!.trim().isNotEmpty) {
+      return '$role · $department';
+    }
+    return role;
+  }
+
   StaticSessionUser copyFromPrototype(PrototypeUserData data) {
     firstName = data.firstName;
     lastName = data.lastName;
@@ -54,6 +77,10 @@ class StaticSessionUser {
     accountType = data.accountType ?? AccountType.regularUser;
     userRole = data.userRole;
     beneficiaryType = data.beneficiaryType;
+    department = data.department;
+    course = data.course;
+    phoneNumber = data.phoneNumber;
+    schoolIdNumber = data.schoolIdNumber;
     interests
       ..clear()
       ..addAll(data.interests);
@@ -78,6 +105,10 @@ class StaticSessionUser {
       accountType: data.accountType ?? AccountType.regularUser,
       userRole: data.userRole,
       beneficiaryType: data.beneficiaryType,
+      department: data.department,
+      course: data.course,
+      phoneNumber: data.phoneNumber,
+      schoolIdNumber: data.schoolIdNumber,
       interests: Set<String>.from(data.interests),
       skills: Set<String>.from(data.skills),
       causes: Set<String>.from(data.causes),

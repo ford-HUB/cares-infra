@@ -135,22 +135,27 @@ class DashboardBottomNav extends StatelessWidget {
   const DashboardBottomNav({
     super.key,
     required this.currentIndex,
+    required this.isDonorMode,
     required this.onTap,
   });
 
   final int currentIndex;
+  final bool isDonorMode;
   final ValueChanged<int> onTap;
-
-  static const _items = [
-    (Icons.home_rounded, 'Home'),
-    (Icons.event_rounded, 'Events'),
-    (Icons.assignment_rounded, 'Activities'),
-    (Icons.leaderboard_rounded, 'Ranks'),
-    (Icons.person_rounded, 'Profile'),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final items = [
+      (Icons.home_rounded, 'Home'),
+      (
+        isDonorMode ? Icons.favorite_rounded : Icons.event_rounded,
+        isDonorMode ? 'Donations' : 'Events',
+      ),
+      (Icons.assignment_rounded, 'Activities'),
+      (Icons.leaderboard_rounded, 'Ranks'),
+      (Icons.person_rounded, 'Profile'),
+    ];
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -168,8 +173,8 @@ class DashboardBottomNav extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(_items.length, (index) {
-              final (icon, label) = _items[index];
+            children: List.generate(items.length, (index) {
+              final (icon, label) = items[index];
               final selected = index == currentIndex;
               return Expanded(
                 child: InkWell(

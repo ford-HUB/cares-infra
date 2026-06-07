@@ -37,10 +37,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         isDonorMode: isDonorMode,
         onModeToggle: _toggleVolunteerDonor,
       ),
-      const StudentEventsTab(),
+      StudentEventsTab(isDonorMode: isDonorMode),
       const StudentActivitiesTab(),
       const StudentRanksTab(),
-      StudentProfileTab(user: widget.user),
+      StudentProfileTab(
+        user: widget.user,
+        onNavigateToTab: (index) => setState(() => _currentIndex = index),
+      ),
     ];
 
     return Scaffold(
@@ -53,6 +56,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       ),
       bottomNavigationBar: DashboardBottomNav(
         currentIndex: _currentIndex,
+        isDonorMode: isDonorMode,
         onTap: (index) => setState(() => _currentIndex = index),
       ),
     );

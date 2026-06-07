@@ -51,6 +51,7 @@ class SmartEventSearchBar extends StatelessWidget {
     required this.onClear,
     required this.showSuggestions,
     required this.suggestions,
+    this.hintText = 'Search by title, tag, or location',
   });
 
   final TextEditingController controller;
@@ -61,6 +62,7 @@ class SmartEventSearchBar extends StatelessWidget {
   final VoidCallback onClear;
   final bool showSuggestions;
   final List<String> suggestions;
+  final String hintText;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +97,7 @@ class SmartEventSearchBar extends StatelessWidget {
               color: AppColors.textPrimary,
             ),
             decoration: InputDecoration(
-              hintText: 'Search by title, tag, or location',
+              hintText: hintText,
               hintStyle: TextStyle(
                 color: AppColors.textMuted.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w400,

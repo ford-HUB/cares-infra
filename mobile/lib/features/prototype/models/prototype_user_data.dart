@@ -9,6 +9,10 @@ class PrototypeUserData {
   AccountType? accountType;
   UserRole? userRole;
   BeneficiaryType? beneficiaryType;
+  String? department;
+  String? course;
+  String phoneNumber = '';
+  String schoolIdNumber = '';
 
   final Set<String> interests = {};
   final Set<String> skills = {};

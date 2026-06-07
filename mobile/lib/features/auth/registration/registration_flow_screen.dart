@@ -156,7 +156,11 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
       ..password = _data.password
       ..accountType = _data.accountType
       ..userRole = _data.userRole
-      ..beneficiaryType = _data.beneficiaryType;
+      ..beneficiaryType = _data.beneficiaryType
+      ..department = _data.department
+      ..course = _data.course
+      ..phoneNumber = _data.phoneNumber
+      ..schoolIdNumber = _data.schoolIdNumber;
   }
 
   Future<void> _submitRegistration() async {
