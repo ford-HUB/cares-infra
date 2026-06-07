@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_theme.dart';
 import 'models/prototype_user_data.dart';
-import 'interest_profiling_screen.dart';
+import 'account_created_screen.dart';
 
 /// Static prototype OTP — any 4-digit code works; demo code is 1234.
 const kPrototypeOtpCode = '1234';
@@ -56,9 +56,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       return;
     }
 
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => InterestProfilingScreen(userData: widget.userData),
+        builder: (_) => AccountCreatedScreen(userData: widget.userData),
       ),
     );
   }
