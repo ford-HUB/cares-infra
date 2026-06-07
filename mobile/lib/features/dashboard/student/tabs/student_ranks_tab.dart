@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/session/static_user_session.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/activity_data.dart';
+import '../../data/donation_store.dart';
+import '../../data/event_registration_store.dart';
 import '../../data/leaderboard_data.dart';
 
 class StudentRanksTab extends StatefulWidget {
@@ -10,11 +14,78 @@ class StudentRanksTab extends StatefulWidget {
 }
 
 class _StudentRanksTabState extends State<StudentRanksTab> {
+  final _eventStore = EventRegistrationStore.instance;
+  final _donationStore = DonationStore.instance;
   LeaderboardCategory _category = LeaderboardCategory.volunteers;
 
   @override
+  void initState() {
+    super.initState();
+    _eventStore.addListener(_onDataChanged);
+    _donationStore.addListener(_onDataChanged);
+  }
+
+  @override
+  void dispose() {
+    _eventStore.removeListener(_onDataChanged);
+    _donationStore.removeListener(_onDataChanged);
+    super.dispose();
+  }
+
+  void _onDataChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String get _userEmail =>
+      StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+
+  String get _userName {
+    final user = StaticUserSession.instance.currentUser;
+    if (user == null || user.firstName.trim().isEmpty) return 'You';
+    return user.firstName.trim();
+  }
+
+  int get _userPoints {
+    final verified = _eventStore
+        .participationsForEmail(_userEmail)
+        .where((p) => p.attendanceVerified)
+        .length;
+    return verified * 25;
+  }
+
+  int get _userEventsAttended {
+    final verified = _eventStore
+        .participationsForEmail(_userEmail)
+        .where((p) => p.attendanceVerified)
+        .length;
+    if (verified > 0) return verified + kMockAttendedActivities.length;
+    return verified;
+  }
+
+  int get _userTotalDonated =>
+      _donationStore.totalDonatedForEmail(_userEmail);
+
+  int get _userDonationsCount =>
+      _donationStore.donationsForEmail(_userEmail).length;
+
+  List<LeaderboardEntry> get _entries {
+    if (_category == LeaderboardCategory.volunteers) {
+      return buildVolunteerLeaderboard(
+        userName: _userName,
+        userPoints: _userPoints,
+        userEventsAttended: _userEventsAttended,
+      );
+    }
+    return buildDonorLeaderboard(
+      userName: _userName,
+      userTotalDonated: _userTotalDonated,
+      userDonationsCount: _userDonationsCount,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final entries = leaderboardFor(_category);
+    final entries = _entries;
     final topThree = entries.take(3).toList();
     final rest = entries.skip(3).toList();
 
@@ -34,6 +105,7 @@ class _StudentRanksTabState extends State<StudentRanksTab> {
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
+                          color: AppColors.primary,
                         ),
                   ),
                   const SizedBox(height: 6),
@@ -180,8 +252,8 @@ class _TopThreePodium extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 20, 12, 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.inputFill),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -257,16 +329,22 @@ class _PodiumSlot extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _AvatarCircle(emoji: entry.avatarEmoji, size: 44),
+        _AvatarCircle(
+          emoji: entry.avatarEmoji,
+          size: 44,
+          highlight: entry.isCurrentUser,
+        ),
         const SizedBox(height: 8),
         Text(
-          entry.name,
+          entry.isCurrentUser ? '${entry.name} (You)' : entry.name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
+            color: entry.isCurrentUser
+                ? AppColors.primary
+                : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 2),
@@ -275,7 +353,7 @@ class _PodiumSlot extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: _valueColor,
+            color: entry.isCurrentUser ? AppColors.primary : _valueColor,
           ),
         ),
         const SizedBox(height: 10),
@@ -283,11 +361,20 @@ class _PodiumSlot extends StatelessWidget {
           height: podiumHeight,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: _podiumColor,
+            color: entry.isCurrentUser
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : _podiumColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            border: entry.isCurrentUser
+                ? Border.all(color: AppColors.primary.withValues(alpha: 0.35))
+                : null,
           ),
           alignment: Alignment.center,
-          child: Icon(_medalIcon, color: _medalColor, size: 28),
+          child: Icon(
+            entry.isCurrentUser ? Icons.person_rounded : _medalIcon,
+            color: entry.isCurrentUser ? AppColors.primary : _medalColor,
+            size: 28,
+          ),
         ),
       ],
     );
@@ -306,9 +393,15 @@ class _LeaderboardListTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.inputFill),
+          color: entry.isCurrentUser
+              ? AppColors.primary.withValues(alpha: 0.06)
+              : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          border: Border.all(
+            color: entry.isCurrentUser
+                ? AppColors.primary.withValues(alpha: 0.35)
+                : AppColors.borderLight,
+          ),
         ),
         child: Row(
           children: [
@@ -316,25 +409,33 @@ class _LeaderboardListTile extends StatelessWidget {
               width: 32,
               child: Text(
                 '#${entry.rank}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textMuted,
+                  color: entry.isCurrentUser
+                      ? AppColors.primary
+                      : AppColors.textMuted,
                 ),
               ),
             ),
-            _AvatarCircle(emoji: entry.avatarEmoji, size: 40),
+            _AvatarCircle(
+              emoji: entry.avatarEmoji,
+              size: 40,
+              highlight: entry.isCurrentUser,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.name,
-                    style: const TextStyle(
+                    entry.isCurrentUser ? '${entry.name} (You)' : entry.name,
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: entry.isCurrentUser
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -350,10 +451,12 @@ class _LeaderboardListTile extends StatelessWidget {
             ),
             Text(
               entry.displayValue,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
-                color: AppColors.primary,
+                color: entry.isCurrentUser
+                    ? AppColors.primary
+                    : AppColors.primary,
               ),
             ),
           ],
@@ -367,10 +470,12 @@ class _AvatarCircle extends StatelessWidget {
   const _AvatarCircle({
     required this.emoji,
     required this.size,
+    this.highlight = false,
   });
 
   final String emoji;
   final double size;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -378,9 +483,14 @@ class _AvatarCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.inputFill,
+        color: highlight
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : AppColors.inputFill,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.inputFill),
+        border: Border.all(
+          color: highlight ? AppColors.primary : AppColors.borderLight,
+          width: highlight ? 2 : 1,
+        ),
       ),
       alignment: Alignment.center,
       child: Text(

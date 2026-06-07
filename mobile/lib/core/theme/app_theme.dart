@@ -12,9 +12,36 @@ class AppColors {
   static const Color background = Color(0xFFF1F8F4);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color inputFill = Color(0xFFE4EFE8);
+  static const Color borderLight = Color(0xFFC8DFD0);
+  static const Color accentOrange = Color(0xFFE65100);
   static const Color textPrimary = Color(0xFF1A2E22);
   static const Color textSecondary = Color(0xFF5A6F62);
   static const Color textMuted = Color(0xFF8FA396);
+
+  static const double cardRadius = 18;
+  static const double pillRadius = 999;
+}
+
+/// Reusable surfaces matching the eco-friendly dashboard palette.
+class AppDecorations {
+  static BoxDecoration surfaceCard({
+    Color? color,
+    double radius = AppColors.cardRadius,
+  }) {
+    return BoxDecoration(
+      color: color ?? AppColors.surface,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: AppColors.borderLight, width: 1),
+    );
+  }
+
+  static BoxDecoration softBadge({Color? fill}) {
+    return BoxDecoration(
+      color: fill ?? AppColors.inputFill,
+      borderRadius: BorderRadius.circular(AppColors.pillRadius),
+      border: Border.all(color: AppColors.borderLight, width: 1),
+    );
+  }
 }
 
 class AppTheme {

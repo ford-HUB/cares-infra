@@ -93,6 +93,7 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
+                          color: AppColors.primary,
                         ),
                   ),
                   const SizedBox(height: 6),
@@ -192,11 +193,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputFill),
-      ),
+      decoration: AppDecorations.surfaceCard(),
       child: Column(
         children: [
           Icon(icon, color: color, size: 22),
@@ -323,14 +320,10 @@ class _ActivityCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
           child: Ink(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.inputFill),
-            ),
+            decoration: AppDecorations.surfaceCard(),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -338,8 +331,9 @@ class _ActivityCard extends StatelessWidget {
                   width: 52,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.inputFill,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderLight),
                   ),
                   child: Column(
                     children: [
@@ -414,9 +408,8 @@ class _ActivityCard extends StatelessWidget {
                     horizontal: 8,
                     vertical: 6,
                   ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                  decoration: AppDecorations.softBadge(
+                    fill: AppColors.primary.withValues(alpha: 0.1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

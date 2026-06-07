@@ -36,14 +36,28 @@ class _FeaturedDonationsCarouselState extends State<FeaturedDonationsCarousel> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const Text(
-              'Featured Donations',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Featured Donations',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Swipe to explore',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
             ),
             TextButton(onPressed: () {}, child: const Text('See all')),
           ],
@@ -78,7 +92,7 @@ class _FeaturedDonationsCarouselState extends State<FeaturedDonationsCarousel> {
               width: active ? 20 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: active ? AppColors.primary : AppColors.inputFill,
+                color: active ? AppColors.primary : AppColors.borderLight,
                 borderRadius: BorderRadius.circular(4),
               ),
             );
@@ -238,121 +252,152 @@ class UpcomingDonationCard extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 12),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
           child: Ink(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.inputFill),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(AppColors.cardRadius),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.22),
+                width: 1,
+              ),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 52,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.inputFill,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        donation.dayLabel,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                          height: 1,
-                        ),
-                      ),
-                      Text(
-                        donation.monthLabel,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _UpcomingDonationTag(label: donation.category),
+                    const _UpcomingDonationTag(label: 'Active'),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  donation.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                    height: 1.25,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        donation.title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${donation.raisedLabel} · ${donation.progressPercentLabel} funded',
+                const SizedBox(height: 6),
+                Text(
+                  donation.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        donation.formattedDeadline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.apartment_rounded,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        donation.organization,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: donation.progress.clamp(0, 1),
-                          minHeight: 4,
+                          minHeight: 5,
                           backgroundColor: AppColors.inputFill,
                           color: AppColors.primary,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: donation.daysLeft <= 7
-                            ? AppColors.secondary.withValues(alpha: 0.12)
-                            : AppColors.inputFill,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        donation.countdownLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: donation.daysLeft <= 7
-                              ? AppColors.secondary
-                              : AppColors.primary,
-                        ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${donation.raisedLabel}/${donation.goalLabel}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
                     Icon(
                       Icons.chevron_right_rounded,
-                      color: AppColors.textMuted.withValues(alpha: 0.8),
+                      size: 20,
+                      color: AppColors.primary.withValues(alpha: 0.7),
                     ),
                   ],
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UpcomingDonationTag extends StatelessWidget {
+  const _UpcomingDonationTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppColors.pillRadius),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.28),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
         ),
       ),
     );

@@ -7,6 +7,8 @@ class LeaderboardEntry {
     required this.avatarEmoji,
     required this.displayValue,
     required this.subtitle,
+    required this.score,
+    this.isCurrentUser = false,
   });
 
   final int rank;
@@ -14,128 +16,213 @@ class LeaderboardEntry {
   final String avatarEmoji;
   final String displayValue;
   final String subtitle;
+  final int score;
+  final bool isCurrentUser;
 }
 
-const kVolunteerLeaderboard = [
-  LeaderboardEntry(
-    rank: 1,
+class _LeaderboardSeed {
+  const _LeaderboardSeed({
+    required this.name,
+    required this.avatarEmoji,
+    required this.score,
+    required this.subtitle,
+  });
+
+  final String name;
+  final String avatarEmoji;
+  final int score;
+  final String subtitle;
+}
+
+const _volunteerSeeds = [
+  _LeaderboardSeed(
     name: 'Maria',
     avatarEmoji: '👩',
-    displayValue: '1240 pts',
+    score: 1240,
     subtitle: '12 events attended',
   ),
-  LeaderboardEntry(
-    rank: 2,
+  _LeaderboardSeed(
     name: 'Juan',
     avatarEmoji: '👨',
-    displayValue: '980 pts',
+    score: 980,
     subtitle: '10 events attended',
   ),
-  LeaderboardEntry(
-    rank: 3,
+  _LeaderboardSeed(
     name: 'Ana',
     avatarEmoji: '👩',
-    displayValue: '870 pts',
+    score: 870,
     subtitle: '9 events attended',
   ),
-  LeaderboardEntry(
-    rank: 4,
+  _LeaderboardSeed(
     name: 'Carlos Gomez',
     avatarEmoji: '👨',
-    displayValue: '750 pts',
+    score: 750,
     subtitle: '10 events attended',
   ),
-  LeaderboardEntry(
-    rank: 5,
+  _LeaderboardSeed(
     name: 'Lena Bautista',
     avatarEmoji: '👩',
-    displayValue: '620 pts',
+    score: 620,
     subtitle: '9 events attended',
   ),
-  LeaderboardEntry(
-    rank: 6,
+  _LeaderboardSeed(
     name: 'Rico Mendoza',
     avatarEmoji: '👨',
-    displayValue: '580 pts',
+    score: 580,
     subtitle: '8 events attended',
   ),
-  LeaderboardEntry(
-    rank: 7,
+  _LeaderboardSeed(
     name: 'Sofia Tan',
     avatarEmoji: '👩',
-    displayValue: '510 pts',
+    score: 510,
     subtitle: '7 events attended',
   ),
-  LeaderboardEntry(
-    rank: 8,
+  _LeaderboardSeed(
     name: 'Mark Villanueva',
     avatarEmoji: '👨',
-    displayValue: '440 pts',
+    score: 440,
     subtitle: '6 events attended',
   ),
 ];
 
-const kDonorLeaderboard = [
-  LeaderboardEntry(
-    rank: 1,
+const _donorSeeds = [
+  _LeaderboardSeed(
     name: 'Rosa',
     avatarEmoji: '👩',
-    displayValue: '₱15.0k',
+    score: 15000,
     subtitle: '12 donations',
   ),
-  LeaderboardEntry(
-    rank: 2,
+  _LeaderboardSeed(
     name: 'Bong',
     avatarEmoji: '👨',
-    displayValue: '₱12.4k',
+    score: 12400,
     subtitle: '10 donations',
   ),
-  LeaderboardEntry(
-    rank: 3,
+  _LeaderboardSeed(
     name: 'Celia',
     avatarEmoji: '👩',
-    displayValue: '₱9.8k',
+    score: 9800,
     subtitle: '8 donations',
   ),
-  LeaderboardEntry(
-    rank: 4,
+  _LeaderboardSeed(
     name: 'Diego Lim',
     avatarEmoji: '👨',
-    displayValue: '₱7.2k',
+    score: 7200,
     subtitle: '4 donations',
   ),
-  LeaderboardEntry(
-    rank: 5,
+  _LeaderboardSeed(
     name: 'Fely Cruz',
     avatarEmoji: '👩',
-    displayValue: '₱6.1k',
+    score: 6100,
     subtitle: '6 donations',
   ),
-  LeaderboardEntry(
-    rank: 6,
+  _LeaderboardSeed(
     name: 'Gerry Ty',
     avatarEmoji: '👨',
-    displayValue: '₱5.4k',
+    score: 5400,
     subtitle: '2 donations',
   ),
-  LeaderboardEntry(
-    rank: 7,
+  _LeaderboardSeed(
     name: 'Helen Go',
     avatarEmoji: '👩',
-    displayValue: '₱4.8k',
+    score: 4800,
     subtitle: '8 donations',
   ),
-  LeaderboardEntry(
-    rank: 8,
+  _LeaderboardSeed(
     name: 'Ivan Uy',
     avatarEmoji: '👨',
-    displayValue: '₱3.2k',
+    score: 3200,
     subtitle: '1 donation',
   ),
 ];
 
+List<LeaderboardEntry> buildVolunteerLeaderboard({
+  required String userName,
+  required int userPoints,
+  required int userEventsAttended,
+}) {
+  return _buildRankedLeaderboard(
+    seeds: _volunteerSeeds,
+    userName: userName,
+    userScore: userPoints,
+    userSubtitle: '$userEventsAttended event${userEventsAttended == 1 ? '' : 's'} attended',
+    formatValue: (score) => '$score pts',
+  );
+}
+
+List<LeaderboardEntry> buildDonorLeaderboard({
+  required String userName,
+  required int userTotalDonated,
+  required int userDonationsCount,
+}) {
+  return _buildRankedLeaderboard(
+    seeds: _donorSeeds,
+    userName: userName,
+    userScore: userTotalDonated,
+    userSubtitle: '$userDonationsCount donation${userDonationsCount == 1 ? '' : 's'}',
+    formatValue: _formatDonorValue,
+  );
+}
+
+List<LeaderboardEntry> _buildRankedLeaderboard({
+  required List<_LeaderboardSeed> seeds,
+  required String userName,
+  required int userScore,
+  required String userSubtitle,
+  required String Function(int score) formatValue,
+}) {
+  final displayName = userName.trim().isEmpty ? 'You' : userName.trim();
+
+  final candidates = <({_LeaderboardSeed seed, bool isCurrentUser})>[
+    for (final seed in seeds) (seed: seed, isCurrentUser: false),
+    (
+      seed: _LeaderboardSeed(
+        name: displayName,
+        avatarEmoji: '👤',
+        score: userScore,
+        subtitle: userSubtitle,
+      ),
+      isCurrentUser: true,
+    ),
+  ];
+
+  candidates.sort((a, b) => b.seed.score.compareTo(a.seed.score));
+
+  return [
+    for (var i = 0; i < candidates.length; i++)
+      LeaderboardEntry(
+        rank: i + 1,
+        name: candidates[i].seed.name,
+        avatarEmoji: candidates[i].seed.avatarEmoji,
+        displayValue: formatValue(candidates[i].seed.score),
+        subtitle: candidates[i].seed.subtitle,
+        score: candidates[i].seed.score,
+        isCurrentUser: candidates[i].isCurrentUser,
+      ),
+  ];
+}
+
+String _formatDonorValue(int amount) {
+  if (amount >= 1000) {
+    final thousands = amount / 1000;
+    final formatted = thousands >= 10
+        ? thousands.toStringAsFixed(0)
+        : thousands.toStringAsFixed(1);
+    return '₱${formatted}k';
+  }
+  return '₱$amount';
+}
+
 List<LeaderboardEntry> leaderboardFor(LeaderboardCategory category) {
   return category == LeaderboardCategory.volunteers
-      ? kVolunteerLeaderboard
-      : kDonorLeaderboard;
+      ? buildVolunteerLeaderboard(
+          userName: 'You',
+          userPoints: 0,
+          userEventsAttended: 0,
+        )
+      : buildDonorLeaderboard(
+          userName: 'You',
+          userTotalDonated: 0,
+          userDonationsCount: 0,
+        );
 }

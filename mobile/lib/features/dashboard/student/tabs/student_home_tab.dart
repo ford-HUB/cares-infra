@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/session/static_user_session.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../data/mock_donations.dart';
 import '../../data/mock_events.dart';
 import '../../screens/donation_details_screen.dart';
@@ -55,6 +56,7 @@ class StudentHomeTab extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
                 ),
           ),
         ),
@@ -93,6 +95,7 @@ class StudentHomeTab extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
                 ),
           ),
         ),

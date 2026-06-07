@@ -425,26 +425,25 @@ class _TotalDonatedCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: Ink(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.inputFill),
-          ),
+          decoration: AppDecorations.surfaceCard(),
           child: Row(
             children: [
               Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE65100).withValues(alpha: 0.12),
+                  color: AppColors.accentOrange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.accentOrange.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Icon(
                   Icons.favorite_rounded,
-                  color: Color(0xFFE65100),
+                  color: AppColors.accentOrange,
                   size: 22,
                 ),
               ),
@@ -467,7 +466,7 @@ class _TotalDonatedCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFFE65100),
+                        color: AppColors.accentOrange,
                         height: 1,
                       ),
                     ),
@@ -575,14 +574,10 @@ class _StatTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: Ink(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.inputFill),
-          ),
+          decoration: AppDecorations.surfaceCard(),
           child: Column(
             children: [
               Text(
@@ -639,11 +634,7 @@ class _SettingsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputFill),
-      ),
+      decoration: AppDecorations.surfaceCard(),
       child: Column(
         children: [
           for (var i = 0; i < children.length; i++) ...[
@@ -652,7 +643,7 @@ class _SettingsGroup extends StatelessWidget {
                 height: 1,
                 thickness: 1,
                 indent: 56,
-                color: AppColors.inputFill,
+                color: AppColors.borderLight,
               ),
             children[i],
           ],
@@ -683,7 +674,7 @@ class _SettingsTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(

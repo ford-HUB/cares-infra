@@ -57,14 +57,28 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const Text(
-              'Featured Events',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Featured Events',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Swipe to explore',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
             ),
             TextButton(
               onPressed: () {},
@@ -102,7 +116,7 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
               width: active ? 20 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: active ? AppColors.primary : AppColors.inputFill,
+                color: active ? AppColors.primary : AppColors.borderLight,
                 borderRadius: BorderRadius.circular(4),
               ),
             );
@@ -274,134 +288,153 @@ class UpcomingEventCard extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 12),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
           child: Ink(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.inputFill),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+              borderRadius: BorderRadius.circular(AppColors.cardRadius),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.22),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _UpcomingEventTag(label: event.category),
+                    const _UpcomingEventTag(label: 'Upcoming'),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  event.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  event.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        event.formattedDate,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        event.location,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: event.capacityFilled,
+                          minHeight: 5,
+                          backgroundColor: AppColors.inputFill,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${event.registeredCount}/${event.totalCapacity}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: AppColors.primary.withValues(alpha: 0.7),
+                    ),
+                  ],
                 ),
               ],
             ),
-            child: Row(
-            children: [
-              Container(
-                width: 52,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.inputFill,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      event.dayLabel,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                        height: 1,
-                      ),
-                    ),
-                    Text(
-                      event.monthLabel,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          size: 14,
-                          color: AppColors.textMuted,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            event.location,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: event.capacityFilled,
-                        minHeight: 4,
-                        backgroundColor: AppColors.inputFill,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: event.daysUntil <= 3
-                          ? AppColors.secondary.withValues(alpha: 0.12)
-                          : AppColors.inputFill,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      event.countdownLabel,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: event.daysUntil <= 3
-                            ? AppColors.secondary
-                            : AppColors.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.textMuted.withValues(alpha: 0.8),
-                  ),
-                ],
-              ),
-            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _UpcomingEventTag extends StatelessWidget {
+  const _UpcomingEventTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppColors.pillRadius),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.28),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
+        ),
       ),
     );
   }

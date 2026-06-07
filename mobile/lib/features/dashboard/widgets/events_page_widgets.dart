@@ -72,19 +72,12 @@ class SmartEventSearchBar extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppColors.cardRadius),
             border: Border.all(
               color: focusNode.hasFocus
                   ? AppColors.primary.withValues(alpha: 0.35)
-                  : AppColors.inputFill,
+                  : AppColors.borderLight,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: TextField(
             controller: controller,
@@ -139,18 +132,7 @@ class SmartEventSearchBar extends StatelessWidget {
             padding: const EdgeInsets.only(top: 10),
             child: Container(
               clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.inputFill),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
+              decoration: AppDecorations.surfaceCard(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -268,19 +250,10 @@ class EventCategoryFilters extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppColors.pillRadius),
                   border: Border.all(
-                    color: isSelected ? AppColors.primary : AppColors.inputFill,
+                    color: isSelected ? AppColors.primary : AppColors.borderLight,
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
                 ),
                 child: Text(
                   category,
@@ -343,19 +316,15 @@ class EventCatalogCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
           child: Ink(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.inputFill.withValues(alpha: 0.9)),
-            ),
+            decoration: AppDecorations.surfaceCard(radius: AppColors.cardRadius),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+                    top: Radius.circular(AppColors.cardRadius),
                   ),
                   child: Stack(
                     children: [
@@ -389,9 +358,8 @@ class EventCatalogCard extends StatelessWidget {
                             horizontal: 10,
                             vertical: 5,
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface.withValues(alpha: 0.92),
-                            borderRadius: BorderRadius.circular(20),
+                          decoration: AppDecorations.softBadge(
+                            fill: AppColors.surface.withValues(alpha: 0.92),
                           ),
                           child: Text(
                             event.category,
@@ -466,9 +434,15 @@ class EventCatalogCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: urgent
-                                  ? AppColors.secondary.withValues(alpha: 0.1)
-                                  : AppColors.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
+                                  ? AppColors.accentOrange.withValues(alpha: 0.12)
+                                  : AppColors.inputFill,
+                              borderRadius:
+                                  BorderRadius.circular(AppColors.pillRadius),
+                              border: Border.all(
+                                color: urgent
+                                    ? AppColors.accentOrange.withValues(alpha: 0.25)
+                                    : AppColors.borderLight,
+                              ),
                             ),
                             child: Text(
                               event.countdownLeftLabel,
@@ -476,7 +450,7 @@ class EventCatalogCard extends StatelessWidget {
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: urgent
-                                    ? AppColors.secondary
+                                    ? AppColors.accentOrange
                                     : AppColors.primary,
                               ),
                             ),

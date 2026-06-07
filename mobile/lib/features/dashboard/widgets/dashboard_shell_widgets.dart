@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../screens/dashboard_notifications_screen.dart';
 
 class DashboardHeader extends StatelessWidget {
   const DashboardHeader({
@@ -22,7 +23,7 @@ class DashboardHeader extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundColor: AppColors.inputFill,
+          backgroundColor: AppColors.surface,
           child: Icon(Icons.person_rounded, color: AppColors.primary, size: 28),
         ),
         const SizedBox(width: 12),
@@ -34,7 +35,7 @@ class DashboardHeader extends StatelessWidget {
                 'Welcome back,',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontSize: 13,
-                      color: AppColors.textMuted,
+                      color: AppColors.textSecondary,
                     ),
               ),
               Text(
@@ -42,7 +43,7 @@ class DashboardHeader extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: AppColors.primary,
                   height: 1.1,
                 ),
               ),
@@ -55,9 +56,10 @@ class DashboardHeader extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             IconButton(
-              onPressed: () {},
+              onPressed: () => DashboardNotificationsScreen.open(context),
               icon: const Icon(Icons.notifications_none_rounded),
               color: AppColors.textPrimary,
+              tooltip: 'Notifications',
             ),
             if (showNotificationDot)
               Positioned(
@@ -95,34 +97,33 @@ class VolunteerDonorToggle extends StatelessWidget {
     final icon = isDonorMode ? Icons.favorite_rounded : Icons.volunteer_activism_rounded;
 
     return Material(
-      color: AppColors.inputFill,
-      borderRadius: BorderRadius.circular(24),
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(AppColors.pillRadius),
+      elevation: 0,
       child: InkWell(
         onTap: onToggle,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.35),
-            ),
-          ),
+        borderRadius: BorderRadius.circular(AppColors.pillRadius),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: AppColors.primary),
+              Icon(icon, size: 18, color: Colors.white),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.primary),
+              Icon(
+                Icons.swap_horiz_rounded,
+                size: 16,
+                color: Colors.white.withValues(alpha: 0.85),
+              ),
             ],
           ),
         ),
@@ -159,13 +160,9 @@ class DashboardBottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        border: Border(
+          top: BorderSide(color: AppColors.borderLight, width: 1),
+        ),
       ),
       child: SafeArea(
         top: false,
