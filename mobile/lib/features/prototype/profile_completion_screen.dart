@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../auth/login_screen.dart';
 import 'models/prototype_user_data.dart';
@@ -45,6 +46,8 @@ class ProfileCompletionScreen extends StatelessWidget {
   }
 
   void _completeSetup(BuildContext context) {
+    StaticUserSession.instance.upsertFromPrototype(userData);
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,

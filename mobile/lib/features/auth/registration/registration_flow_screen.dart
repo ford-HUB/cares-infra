@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/cares_logo.dart';
 import '../../prototype/email_verification_screen.dart';
@@ -152,7 +153,10 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
       ..firstName = _data.firstName
       ..lastName = _data.lastName
       ..email = _data.email
-      ..password = _data.password;
+      ..password = _data.password
+      ..accountType = _data.accountType
+      ..userRole = _data.userRole
+      ..beneficiaryType = _data.beneficiaryType;
   }
 
   Future<void> _submitRegistration() async {
@@ -163,10 +167,13 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
+      final userData = _toPrototypeUserData();
+      StaticUserSession.instance.upsertFromPrototype(userData);
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => EmailVerificationScreen(
-            userData: _toPrototypeUserData(),
+            userData: userData,
           ),
         ),
       );

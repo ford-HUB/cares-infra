@@ -1,8 +1,14 @@
+import '../../auth/registration/models/registration_data.dart';
+
 class PrototypeUserData {
   String firstName = '';
   String lastName = '';
   String email = '';
   String password = '';
+
+  AccountType? accountType;
+  UserRole? userRole;
+  BeneficiaryType? beneficiaryType;
 
   final Set<String> interests = {};
   final Set<String> skills = {};

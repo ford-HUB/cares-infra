@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/navigation/dashboard_router.dart';
+import '../../core/session/static_user_session.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_branding_header.dart';
 import '../../shared/widgets/auth_text_field.dart';
@@ -28,14 +30,24 @@ class _LoginScreenState extends State<LoginScreen> {
   void _onLogin() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Login successful! (Static prototype — no authentication yet.)',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
+    final user = StaticUserSession.instance.signIn(
+      _emailController.text,
+      _passwordController.text,
     );
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Invalid email or password. Register an account first.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    DashboardRouter.navigateAfterLogin(context, user);
   }
 
   void _goToSignUp() {
