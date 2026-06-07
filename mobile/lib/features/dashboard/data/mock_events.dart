@@ -14,6 +14,10 @@ class CaresEvent {
     required this.tags,
     required this.registeredCount,
     required this.totalCapacity,
+    required this.requirements,
+    required this.venueLatitude,
+    required this.venueLongitude,
+    this.attendanceRadiusMeters = 500,
     this.isFeatured = false,
     this.imageAsset,
   });
@@ -32,6 +36,10 @@ class CaresEvent {
   final List<String> tags;
   final int registeredCount;
   final int totalCapacity;
+  final List<String> requirements;
+  final double venueLatitude;
+  final double venueLongitude;
+  final double attendanceRadiusMeters;
   final bool isFeatured;
   final String? imageAsset;
 
@@ -60,6 +68,8 @@ class CaresEvent {
   String get countdownLeftLabel => '${daysUntil}d left';
 
   String get formattedDate => '${date.month}/${date.day}/${date.year}';
+
+  String get dateTimeLabel => '$formattedDate · $time';
 
   bool matchesQuery(String query) {
     if (query.trim().isEmpty) return true;
@@ -97,6 +107,13 @@ final kMockFeaturedEvents = [
     tags: ['feeding', 'community'],
     registeredCount: 38,
     totalCapacity: 50,
+    requirements: [
+      'Wear comfortable clothes and closed shoes',
+      'Bring a valid school ID',
+      'Arrive 15 minutes before the start time',
+    ],
+    venueLatitude: 10.3157,
+    venueLongitude: 123.8854,
     isFeatured: true,
   ),
   CaresEvent(
@@ -115,6 +132,12 @@ final kMockFeaturedEvents = [
     tags: ['education', 'supplies'],
     registeredCount: 18,
     totalCapacity: 40,
+    requirements: [
+      'Volunteers must be at least 16 years old',
+      'Follow packing and sorting instructions on-site',
+    ],
+    venueLatitude: 10.3235,
+    venueLongitude: 123.9200,
     isFeatured: true,
   ),
 ];
@@ -136,6 +159,13 @@ final kMockUpcomingEvents = [
     tags: ['environment', 'cleanup'],
     registeredCount: 32,
     totalCapacity: 50,
+    requirements: [
+      'Bring gloves and a reusable water bottle',
+      'Wear sun protection and appropriate footwear',
+      'Participants under 18 must be accompanied by a guardian',
+    ],
+    venueLatitude: 10.3173,
+    venueLongitude: 123.9494,
   ),
   CaresEvent(
     id: 'upcoming-2',
@@ -153,6 +183,12 @@ final kMockUpcomingEvents = [
     tags: ['environment', 'reforestation'],
     registeredCount: 22,
     totalCapacity: 40,
+    requirements: [
+      'Wear clothes you do not mind getting muddy',
+      'Bring a hat and drinking water',
+    ],
+    venueLatitude: 10.3157,
+    venueLongitude: 123.8854,
   ),
   CaresEvent(
     id: 'upcoming-3',
@@ -170,6 +206,12 @@ final kMockUpcomingEvents = [
     tags: ['health', 'community'],
     registeredCount: 30,
     totalCapacity: 50,
+    requirements: [
+      'Volunteers assisting medical booths must wear the provided vest',
+      'Maintain patient confidentiality at all times',
+    ],
+    venueLatitude: 10.2447,
+    venueLongitude: 123.8495,
   ),
 ];
 
@@ -191,8 +233,9 @@ List<String> smartSearchSuggestionsFor(String query) {
 
   for (final event in kMockAllEvents) {
     if (event.title.toLowerCase().contains(q)) suggestions.add(event.title);
-    if (event.category.toLowerCase().contains(q))
+    if (event.category.toLowerCase().contains(q)) {
       suggestions.add(event.category);
+    }
     for (final tag in event.tags) {
       if (tag.toLowerCase().contains(q)) suggestions.add(tag);
     }

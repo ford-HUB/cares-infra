@@ -70,5 +70,7 @@
 	<string>Camera access is required to capture verification documents and selfies.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is required to upload verification documents.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Location access is used to verify your attendance at event venues.</string>
 </dict>
 </plist>
