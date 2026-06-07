@@ -3,6 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_branding_header.dart';
 import '../../shared/widgets/auth_text_field.dart';
 import '../onboarding/onboarding_screen.dart';
+import 'forgot_password_screen.dart';
 import 'registration/registration_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,6 +35,16 @@ class _LoginScreenState extends State<LoginScreen> {
           'Login successful! (Static prototype — no authentication yet.)',
         ),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _goToForgotPassword() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ForgotPasswordScreen(
+          initialEmail: _emailController.text.trim(),
+        ),
       ),
     );
   }
@@ -113,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: _goToForgotPassword,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                     ),
