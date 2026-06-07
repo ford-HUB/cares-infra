@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../core/config/api_config.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/cares_logo.dart';
+import '../../prototype/email_verification_screen.dart';
+import '../../prototype/models/prototype_user_data.dart';
 import '../login_screen.dart';
 import '../data/auth_api.dart';
 import 'models/registration_data.dart';
@@ -144,8 +147,31 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
     );
   }
 
+  PrototypeUserData _toPrototypeUserData() {
+    return PrototypeUserData()
+      ..firstName = _data.firstName
+      ..lastName = _data.lastName
+      ..email = _data.email
+      ..password = _data.password;
+  }
+
   Future<void> _submitRegistration() async {
     setState(() => _isSubmitting = true);
+
+    if (ApiConfig.useStaticPrototype) {
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => EmailVerificationScreen(
+            userData: _toPrototypeUserData(),
+          ),
+        ),
+      );
+      return;
+    }
 
     try {
       await _authApi.register(_data);

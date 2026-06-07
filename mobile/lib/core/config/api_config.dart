@@ -1,13 +1,9 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+/// API configuration placeholder for a future backend integration phase.
 class ApiConfig {
-  static String get baseUrl {
-    final value = dotenv.env['API_BASE_URL'];
-    if (value == null || value.isEmpty) {
-      throw StateError(
-        'API_BASE_URL is not set. Copy .env.example to .env in the mobile folder.',
-      );
-    }
-    return value.endsWith('/') ? value.substring(0, value.length - 1) : value;
-  }
+  ApiConfig._();
+
+  static const String baseUrl = 'http://localhost:3000';
+
+  /// When true, registration skips the API and continues the static prototype flow.
+  static const bool useStaticPrototype = true;
 }

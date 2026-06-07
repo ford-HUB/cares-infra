@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/network/api_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_branding_header.dart';
 import '../../shared/widgets/auth_text_field.dart';
 import '../onboarding/onboarding_screen.dart';
-import 'data/auth_api.dart';
 import 'registration/registration_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,9 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authApi = AuthApi();
   bool _obscurePassword = true;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,64 +25,30 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _onLogin() async {
+  void _onLogin() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() => _isLoading = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Login successful! (Static prototype — no authentication yet.)',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
-    try {
-      await _authApi.login(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login successful!'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      // TODO: navigate to home/dashboard when available.
-    } on ApiException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Login failed. Check your connection and try again.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+  void _goToSignUp() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const RegistrationFlowScreen(),
+      ),
+    );
   }
 
   void _backToIntroduction() {
     Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const OnboardingScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            ),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 350),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const OnboardingScreen()),
     );
   }
 
@@ -151,9 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: navigate to forgot password
-                    },
+                    onPressed: () {},
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                     ),
@@ -168,20 +128,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
-                  onPressed: _isLoading ? null : _onLogin,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                  onPressed: _onLogin,
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -190,18 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       "Don't have an account? ",
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const RegistrationFlowScreen(),
-                          ),
-                        );
-                      },
+                      onTap: _goToSignUp,
                       child: const Text(
                         'Sign Up',
                         style: TextStyle(
