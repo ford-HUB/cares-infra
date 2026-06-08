@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/session/static_user_session.dart';
+import '../../../auth/registration/models/registration_data.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/login_screen.dart';
 import '../../data/activity_data.dart';
@@ -337,7 +338,11 @@ class _ProfileHeaderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.fullName.isEmpty ? 'Volunteer' : user.fullName,
+                          user.fullName.isEmpty
+                              ? (user.accountType == AccountType.beneficiary
+                                  ? 'Beneficiary'
+                                  : 'Volunteer')
+                              : user.fullName,
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,

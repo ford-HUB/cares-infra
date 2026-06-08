@@ -62,11 +62,21 @@ class StaticSessionUser {
       };
 
   String get affiliationLine {
+    if (accountType == AccountType.beneficiary) {
+      return roleLabel;
+    }
     final role = roleDisplayName;
     if (department != null && department!.trim().isNotEmpty) {
       return '$role · $department';
     }
     return role;
+  }
+
+  /// Student and beneficiary accounts share the full CARES dashboard.
+  bool get usesMainDashboard {
+    if (accountType == AccountType.beneficiary) return true;
+    return accountType == AccountType.regularUser &&
+        userRole == UserRole.student;
   }
 
   StaticSessionUser copyFromPrototype(PrototypeUserData data) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../auth/registration/models/registration_data.dart';
 import '../../auth/registration/data/academic_options.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -133,6 +134,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     final courses = coursesForDepartment(_department);
+    final isBeneficiary =
+        widget.user.accountType == AccountType.beneficiary;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -254,62 +257,65 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const _FieldLabel('ID Number'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _schoolIdController,
-              decoration: _fieldDecoration(
-                hint: 'e.g. 2021-00123',
-                icon: Icons.badge_outlined,
+            if (!isBeneficiary) ...[
+              const _FieldLabel('ID Number'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _schoolIdController,
+                decoration: _fieldDecoration(
+                  hint: 'e.g. 2021-00123',
+                  icon: Icons.badge_outlined,
+                ),
               ),
-            ),
-            const SizedBox(height: 28),
-            const _SectionHeader(title: 'Academic Information'),
-            const SizedBox(height: 16),
-            const _FieldLabel('Department'),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              key: ValueKey('department-$_department'),
-              initialValue: _department,
-              decoration: _fieldDecoration(
-                hint: 'Select department',
-                icon: Icons.school_outlined,
+              const SizedBox(height: 28),
+              const _SectionHeader(title: 'Academic Information'),
+              const SizedBox(height: 16),
+              const _FieldLabel('Department'),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                key: ValueKey('department-$_department'),
+                initialValue: _department,
+                decoration: _fieldDecoration(
+                  hint: 'Select department',
+                  icon: Icons.school_outlined,
+                ),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: kDepartmentCourses.keys
+                    .map(
+                      (dept) => DropdownMenuItem(
+                        value: dept,
+                        child: Text(dept),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _onDepartmentChanged,
               ),
-              icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              items: kDepartmentCourses.keys
-                  .map(
-                    (dept) => DropdownMenuItem(
-                      value: dept,
-                      child: Text(dept),
-                    ),
-                  )
-                  .toList(),
-              onChanged: _onDepartmentChanged,
-            ),
-            const SizedBox(height: 16),
-            const _FieldLabel('Course'),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              key: ValueKey('course-$_department-$_course'),
-              initialValue: courses.contains(_course) ? _course : null,
-              decoration: _fieldDecoration(
-                hint: 'Select course',
-                icon: Icons.menu_book_outlined,
+              const SizedBox(height: 16),
+              const _FieldLabel('Course'),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                key: ValueKey('course-$_department-$_course'),
+                initialValue: courses.contains(_course) ? _course : null,
+                decoration: _fieldDecoration(
+                  hint: 'Select course',
+                  icon: Icons.menu_book_outlined,
+                ),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: courses
+                    .map(
+                      (course) => DropdownMenuItem(
+                        value: course,
+                        child: Text(course),
+                      ),
+                    )
+                    .toList(),
+                onChanged: courses.isEmpty
+                    ? null
+                    : (value) => setState(() => _course = value),
               ),
-              icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              items: courses
-                  .map(
-                    (course) => DropdownMenuItem(
-                      value: course,
-                      child: Text(course),
-                    ),
-                  )
-                  .toList(),
-              onChanged: courses.isEmpty
-                  ? null
-                  : (value) => setState(() => _course = value),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
+            ] else
+              const SizedBox(height: 32),
             FilledButton(
               onPressed: _save,
               style: FilledButton.styleFrom(

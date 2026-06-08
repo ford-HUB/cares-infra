@@ -69,8 +69,7 @@ class PlaceholderDashboardScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text(
               'A dedicated dashboard for this account type is coming soon. '
-              'Student users (Regular User + Student role) are routed to the '
-              'Student Dashboard.',
+              'Student and Beneficiary accounts use the full CARES dashboard.',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 height: 1.5,

@@ -38,9 +38,7 @@ class _BeneficiaryRegistrationFormStepState
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  static const List<String> _genders = [
-    'Male', 'Female',
-    'Prefer not to say'];
+  static const List<String> _genders = ['Male', 'Female', 'Prefer not to say'];
 
   RegistrationData get data => widget.data;
 
@@ -177,6 +175,7 @@ class _BeneficiaryRegistrationFormStepState
               AuthTextField(
                 controller: _firstNameController,
                 label: 'First Name',
+                hintText: 'John',
                 icon: Icons.person_outline_rounded,
                 textInputAction: TextInputAction.next,
                 validator: (v) => v == null || v.trim().isEmpty
@@ -187,6 +186,7 @@ class _BeneficiaryRegistrationFormStepState
               AuthTextField(
                 controller: _middleNameController,
                 label: 'Middle Name (optional)',
+                hintText: 'Doe',
                 icon: Icons.person_outline_rounded,
                 textInputAction: TextInputAction.next,
               ),
@@ -194,6 +194,7 @@ class _BeneficiaryRegistrationFormStepState
               AuthTextField(
                 controller: _lastNameController,
                 label: 'Last Name',
+                hintText: 'Doe',
                 icon: Icons.person_outline_rounded,
                 textInputAction: TextInputAction.next,
                 validator: (v) => v == null || v.trim().isEmpty
@@ -283,6 +284,7 @@ class _BeneficiaryRegistrationFormStepState
               AuthTextField(
                 controller: _addressController,
                 label: 'Address',
+                hintText: '123 Main St, Anytown, USA',
                 icon: Icons.location_on_outlined,
                 textInputAction: TextInputAction.next,
                 validator: (v) => v == null || v.trim().isEmpty
