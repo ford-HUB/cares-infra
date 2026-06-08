@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.env
+models/*.keras
+models/*.h5
+
+# Dataset images — never commit real ID photos
+datasets/**/*.jpg
+datasets/**/*.jpeg
+datasets/**/*.png
+datasets/**/*.webp
+datasets/**/*.bmp
+datasets/**/*.gif
+datasets/**/*.tiff

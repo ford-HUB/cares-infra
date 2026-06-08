@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/camera_bootstrap.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/media_permissions.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/presentation/utils/face_camera_input_helper.dart';
 import 'package:mobile/features/auth/presentation/utils/face_guide_geometry.dart';
@@ -19,12 +21,18 @@ import 'package:permission_handler/permission_handler.dart';
 class RegisterFaceScanStep extends StatefulWidget {
   const RegisterFaceScanStep({
     super.key,
+    required this.registrationId,
     required this.captures,
     required this.onCapturesChanged,
+    required this.verifySelfie,
+    required this.onVerified,
   });
 
+  final String registrationId;
   final FaceCaptureSet captures;
   final ValueChanged<FaceCaptureSet> onCapturesChanged;
+  final Future<VerifyFaceResponse> Function(XFile selfie) verifySelfie;
+  final void Function(FaceCaptureSet captures, double similarity) onVerified;
 
   @override
   State<RegisterFaceScanStep> createState() => _RegisterFaceScanStepState();
@@ -33,6 +41,8 @@ class RegisterFaceScanStep extends StatefulWidget {
 class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   static const _frameThrottle = Duration(milliseconds: 100);
+  static const _alignedHoldDuration = Duration(seconds: 1);
+  static const _verifyCooldown = Duration(milliseconds: 1500);
 
   final _picker = ImagePicker();
   final _faceDetector = FaceDetector(
@@ -58,6 +68,10 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   DateTime? _lastFrameProcessed;
   bool _faceSeen = false;
   bool _faceInGuide = false;
+  bool _isVerifying = false;
+  double? _similarity;
+  DateTime? _alignedSince;
+  DateTime? _verifyCooldownUntil;
 
   FaceCaptureSet get _captures => widget.captures;
 
@@ -187,7 +201,9 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   }
 
   Future<void> _onCameraFrame(CameraImage image) async {
-    if (_isCapturing || _isProcessingFrame || widget.captures.isComplete) return;
+    if (_isCapturing || _isVerifying || _isProcessingFrame || widget.captures.isComplete) {
+      return;
+    }
 
     final now = DateTime.now();
     if (_lastFrameProcessed != null &&
@@ -212,6 +228,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
           setState(() {
             _faceSeen = false;
             _faceInGuide = false;
+            _alignedSince = null;
           });
         }
         return;
@@ -226,7 +243,16 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
         setState(() {
           _faceSeen = true;
           _faceInGuide = aligned;
+          if (aligned) {
+            _alignedSince ??= DateTime.now();
+          } else {
+            _alignedSince = null;
+          }
         });
+      }
+
+      if (aligned) {
+        unawaited(_maybeStartVerification());
       }
     } catch (e) {
       debugPrint('Face detection error: $e');
@@ -280,6 +306,9 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     widget.onCapturesChanged(const FaceCaptureSet());
     _faceSeen = false;
     _faceInGuide = false;
+    _similarity = null;
+    _alignedSince = null;
+    _verifyCooldownUntil = null;
     _errorMessage = null;
     _permissionDenied = false;
     _useSystemFallback = false;
@@ -291,28 +320,104 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     await _openInAppCamera();
   }
 
-  Future<void> _capturePhoto() async {
-    final controller = _cameraController;
-    if (controller == null || !controller.value.isInitialized || _isCapturing) {
+  Future<void> _maybeStartVerification() async {
+    if (_isVerifying || _isCapturing || widget.captures.isComplete) return;
+    if (_verifyCooldownUntil != null && DateTime.now().isBefore(_verifyCooldownUntil!)) {
       return;
     }
+    if (!_faceInGuide || _alignedSince == null) return;
+    if (DateTime.now().difference(_alignedSince!) < _alignedHoldDuration) return;
 
-    setState(() => _isCapturing = true);
+    await _runVerification();
+  }
+
+  Future<void> _runVerification() async {
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = null;
+    });
+
     final wasStreaming = controller.value.isStreamingImages;
     if (wasStreaming) await _stopImageStream();
 
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
       final file = await controller.takePicture();
       if (!mounted) return;
 
-      widget.onCapturesChanged(_captures.copyWith(photo: file));
-      await _disposeCamera();
+      final result = await widget.verifySelfie(file);
+      if (!mounted) return;
+
+      setState(() => _similarity = result.similarity);
+
+      if (result.match) {
+        final captures = _captures.copyWith(photo: file);
+        widget.onCapturesChanged(captures);
+        await _disposeCamera();
+        widget.onVerified(captures, result.similarity);
+        return;
+      }
+
+      setState(() {
+        _verifyCooldownUntil = DateTime.now().add(_verifyCooldown);
+        _alignedSince = null;
+        _errorMessage = result.message.isNotEmpty
+            ? result.message
+            : 'Your selfie does not match your ID. Adjust and hold still.';
+      });
+
+      await _startFaceDetection();
     } catch (e) {
-      debugPrint('Capture failed: $e');
+      debugPrint('Face verification error: $e');
       if (mounted) {
-        setState(() => _errorMessage = 'Could not save photo. Please try again.');
-        if (wasStreaming) await _startFaceDetection();
+        setState(() {
+          _errorMessage = e is ApiException
+              ? e.message
+              : 'Verification failed. Please try again.';
+          _verifyCooldownUntil = DateTime.now().add(const Duration(seconds: 2));
+          _alignedSince = null;
+        });
+        await _startFaceDetection();
+      }
+    } finally {
+      if (mounted) setState(() => _isVerifying = false);
+    }
+  }
+
+  Future<void> _verifyPickedPhoto(XFile file) async {
+    setState(() {
+      _isCapturing = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await widget.verifySelfie(file);
+      if (!mounted) return;
+
+      setState(() => _similarity = result.similarity);
+
+      if (result.match) {
+        final captures = _captures.copyWith(photo: file);
+        widget.onCapturesChanged(captures);
+        widget.onVerified(captures, result.similarity);
+        return;
+      }
+
+      setState(() {
+        _errorMessage = result.message.isNotEmpty
+            ? result.message
+            : 'Your selfie does not match your ID. Try again.';
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e is ApiException
+              ? e.message
+              : 'Verification failed. Please try again.';
+        });
       }
     } finally {
       if (mounted) setState(() => _isCapturing = false);
@@ -360,7 +465,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       );
       if (!mounted) return;
       if (file != null) {
-        widget.onCapturesChanged(_captures.copyWith(photo: file));
+        await _verifyPickedPhoto(file);
       } else {
         setState(() => _errorMessage = 'Face photo required.');
       }
@@ -389,12 +494,18 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
         const SizedBox(height: 8),
         Text(
           allDone
-              ? 'Face photo captured.'
-              : !_faceSeen && _cameraController != null
-                  ? 'Looking for your face… move into the outline'
-                  : _faceInGuide
-                      ? 'Face aligned — tap Capture when ready'
-                      : 'Center your face in the oval',
+              ? 'Face verified successfully.'
+              : _isVerifying
+                  ? 'Hold still — verifying your face…'
+                  : _similarity != null && !_faceInGuide
+                      ? 'Adjust position and hold still to retry matching'
+                      : !_faceSeen && _cameraController != null
+                          ? 'Looking for your face… move into the outline'
+                          : _faceInGuide
+                              ? _similarity == null
+                                  ? 'Face aligned — hold still to verify'
+                                  : 'Matching… ${(_similarity! * 100).toStringAsFixed(0)}% — hold still'
+                              : 'Center your face in the oval',
           style: TextStyle(
             fontSize: 14,
             height: 1.45,
@@ -426,17 +537,24 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
         if (!allDone &&
             !_useSystemFallback &&
             _cameraController != null) ...[
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isCapturing ? null : () => unawaited(_capturePhoto()),
-              icon: const Icon(Icons.camera_alt_outlined),
-              label: Text(_isCapturing ? 'Capturing…' : 'Capture'),
+          if (_similarity != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: _similarity!.clamp(0.0, 1.0),
+                minHeight: 6,
+                backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
+                color: _similarity! >= 0.4
+                    ? const Color(0xFF66BB6A)
+                    : AppColors.secondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
+          ],
           TextButton(
-            onPressed: _isCapturing ? null : () => unawaited(_openSystemCameraWithGuide()),
+            onPressed: _isCapturing || _isVerifying
+                ? null
+                : () => unawaited(_openSystemCameraWithGuide()),
             child: const Text('Use system camera instead'),
           ),
         ],
@@ -560,12 +678,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
               painter: FaceScanOverlayPainter(
                 progress: scan.value,
                 aligned: _faceInGuide,
-                isCapturing: _isCapturing,
+                isCapturing: _isCapturing || _isVerifying,
                 instruction: _overlayInstruction(),
               ),
             ),
           ),
-        if (_isCapturing)
+        if (_isCapturing || _isVerifying)
           Center(
             child: Container(
               padding: const EdgeInsets.all(14),
@@ -588,8 +706,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   }
 
   String _overlayInstruction() {
+    if (_isVerifying) return 'Verifying face match…';
     if (_isCapturing) return 'Capturing photo…';
-    if (_faceInGuide) return 'Face aligned — tap Capture';
+    if (_faceInGuide && _similarity != null) {
+      return 'Matching… ${(_similarity! * 100).toStringAsFixed(0)}%';
+    }
+    if (_faceInGuide) return 'Hold still — verifying';
     if (_faceSeen) return 'Adjust position to align with the oval';
     return 'Center your face in the oval';
   }

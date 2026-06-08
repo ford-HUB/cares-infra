@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     verify_threshold: float = 0.4
     embedding_dim: int = 512
     cors_origins: str = "*"
+    redis_host: str = "localhost"
+    redis_port: int = 6379
 
 
 settings = Settings()

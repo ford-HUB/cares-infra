@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.face_engine import face_engine
+from app.redis_client import connect_redis, disconnect_redis
 from app.schemas import ApiResponse, CompareEmbeddingsBody
 
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +18,9 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     face_engine.load()
+    await connect_redis()
     yield
+    await disconnect_redis()
 
 
 app = FastAPI(
@@ -77,6 +80,39 @@ def validate_embedding(embedding: list[float]) -> None:
 @app.get("/health")
 async def health() -> ApiResponse:
     return success("Service healthy", {"status": "ok", "model": settings.model_name})
+
+
+@app.post("/api/v1/verify-images")
+async def verify_images(
+    id_image: UploadFile = File(...),
+    selfie: UploadFile = File(...),
+) -> ApiResponse:
+    id_bytes = await read_upload(id_image)
+    selfie_bytes = await read_upload(selfie)
+
+    try:
+        id_result = face_engine.extract_from_bytes(id_bytes)
+        selfie_result = face_engine.extract_from_bytes(selfie_bytes)
+    except ValueError as exc:
+        raise failure(str(exc), 422) from exc
+
+    validate_embedding(id_result.embedding)
+    validate_embedding(selfie_result.embedding)
+
+    similarity = face_engine.cosine_similarity(id_result.embedding, selfie_result.embedding)
+    match = similarity >= settings.verify_threshold
+
+    return success(
+        "Image verification complete",
+        {
+            "match": match,
+            "similarity": similarity,
+            "threshold": settings.verify_threshold,
+            "id_det_score": id_result.det_score,
+            "selfie_det_score": selfie_result.det_score,
+            "selfie_embedding": selfie_result.embedding,
+        },
+    )
 
 
 @app.post("/api/v1/embed")

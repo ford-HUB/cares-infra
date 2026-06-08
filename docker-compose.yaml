@@ -15,9 +15,15 @@ services:
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - FR_SERVICE_URL=http://fr-service:8001
+      - OCR_SERVICE_URL=http://ocr-service:8002
+      - UCID_SERVICE_URL=http://ucid-service:8003
     depends_on:
       - db
       - redis
+      - fr-service
+      - ocr-service
+      - ucid-service
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
@@ -71,6 +77,35 @@ services:
       - VERIFY_THRESHOLD=0.4
       - EMBEDDING_DIM=512
       - CORS_ORIGINS=*
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+  ocr-service:
+    build:
+      context: ./microservices/ocr-service
+      dockerfile: Dockerfile
+    container_name: ocr_service
+    ports:
+      - '8002:8002'
+    environment:
+      - PORT=8002
+      - CORS_ORIGINS=*
+
+  ucid-service:
+    build:
+      context: ./microservices/ucid-service
+      dockerfile: Dockerfile
+    container_name: ucid_service
+    ports:
+      - '8003:8003'
+    environment:
+      - PORT=8003
+      - CORS_ORIGINS=*
+      - VALID_THRESHOLD=0.85
+    volumes:
+      - ./microservices/ucid-service/models:/app/models
 
 volumes:
   postgres_data:

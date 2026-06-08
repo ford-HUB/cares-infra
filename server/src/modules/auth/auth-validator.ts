@@ -51,3 +51,17 @@ export const CreateUserSchema = z
   .strict();
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+
+export const RegistrationIdSchema = z
+  .object({
+    registrationId: z.uuid(),
+  })
+  .strict();
+
+export const RegisterFromSessionSchema = CreateUserSchema.omit({ biometric: true })
+  .extend({
+    registrationId: z.uuid(),
+  })
+  .strict();
+
+export type RegisterFromSessionInput = z.infer<typeof RegisterFromSessionSchema>;

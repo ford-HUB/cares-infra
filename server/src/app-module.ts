@@ -6,6 +6,7 @@ import { RedisModule } from './infastructures/redis/redis-module';
 import { AuthModule } from './modules/auth/auth-module';
 import { HealthController } from './health-controller';
 import { S3Module } from './infastructures/s3/s3-module';
+import { MicroservicesModule } from './infastructures/microservices/microservices-module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { S3Module } from './infastructures/s3/s3-module';
     PrismaModule,
     RedisModule,
     S3Module,
+    MicroservicesModule,
     AuthModule,
   ],
   controllers: [HealthController],

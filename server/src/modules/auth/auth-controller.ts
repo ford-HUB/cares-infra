@@ -1,18 +1,22 @@
 import { AuthService } from "./auth-service";
-import { Body, Controller, Post, UseInterceptors, UploadedFile } from "@nestjs/common";
-import { CreateUserSchema } from "./auth-validator";
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Post,
+    UploadedFile,
+    UploadedFiles,
+    UseInterceptors,
+} from "@nestjs/common";
+import { CreateUserSchema, RegisterFromSessionSchema, RegistrationIdSchema } from "./auth-validator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
-import { CreateUserDto } from "./auth-dto";
+import { CreateUserDto, RegisterFromSessionDto, RegistrationIdDto } from "./auth-dto";
 import { ResponseMessage } from "src/common/decorators/response-message-decorator";
-import { S3Service } from "src/infastructures/s3/s3-service";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FileFieldsInterceptor, FileInterceptor } from "@nestjs/platform-express";
 
 @Controller('v1/auth')
 export class AuthController {
-    constructor(
-        private readonly authService: AuthService, 
-        private readonly s3Service: S3Service
-    ) {}
+    constructor(private readonly authService: AuthService) {}
 
     @Post('register')
     @ResponseMessage('User created')
@@ -22,8 +26,55 @@ export class AuthController {
 
     @Post('upload-id')
     @ResponseMessage('ID uploaded')
-    @UseInterceptors(FileInterceptor('file'))
-    async uploadID(@UploadedFile() file: Express.Multer.File) {
-        return await this.authService.uploadID(file);
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'front', maxCount: 1 },
+        { name: 'back', maxCount: 1 },
+    ]))
+    async uploadID(
+        @UploadedFiles() files: { front?: Express.Multer.File[]; back?: Express.Multer.File[] },
+    ) {
+        const front = files.front?.[0];
+        const back = files.back?.[0];
+
+        if (!front || !back) {
+            throw new BadRequestException('Front and back ID images are required');
+        }
+
+        return await this.authService.uploadID(front, back);
+    }
+
+    @Post('verify-face')
+    @ResponseMessage('Face verification complete')
+    @UseInterceptors(FileInterceptor('selfie'))
+    async verifyFace(
+        @Body('registrationId') registrationId: string,
+        @UploadedFile() selfie: Express.Multer.File,
+    ) {
+        const registrationResult = RegistrationIdSchema.safeParse({ registrationId });
+        if (!registrationResult.success) {
+            throw new BadRequestException('Valid registrationId is required');
+        }
+
+        if (!selfie) {
+            throw new BadRequestException('Selfie image is required');
+        }
+
+        return await this.authService.verifyFace(registrationResult.data.registrationId, selfie);
+    }
+
+    @Post('register-from-session')
+    @ResponseMessage('User created')
+    async registerFromSession(
+        @Body(new ZodValidationPipe(RegisterFromSessionSchema)) data: RegisterFromSessionDto,
+    ) {
+        return await this.authService.registerFromSession(data);
+    }
+
+    @Post('extract-id')
+    @ResponseMessage('ID fields extracted')
+    async extractId(
+        @Body(new ZodValidationPipe(RegistrationIdSchema)) body: RegistrationIdDto,
+    ) {
+        return await this.authService.extractId(body.registrationId);
     }
 }
