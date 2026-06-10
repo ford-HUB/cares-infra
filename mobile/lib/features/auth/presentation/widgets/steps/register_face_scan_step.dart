@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/camera_bootstrap.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/media_permissions.dart';
@@ -44,8 +43,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   static const _alignedHoldDuration = Duration(seconds: 1);
   static const _verifyCooldown = Duration(milliseconds: 1500);
 
-  final _picker = ImagePicker();
-  final _faceDetector = FaceDetector(
+z  final _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
       performanceMode: FaceDetectorMode.fast,
       enableLandmarks: true,
@@ -63,7 +61,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   bool _permissionDenied = false;
   bool _isStarting = false;
   bool _isCapturing = false;
-  bool _useSystemFallback = false;
   bool _isProcessingFrame = false;
   DateTime? _lastFrameProcessed;
   bool _faceSeen = false;
@@ -104,9 +101,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
       unawaited(_disposeCamera());
-    } else if (state == AppLifecycleState.resumed &&
-        !widget.captures.isComplete &&
-        !_useSystemFallback) {
+    } else if (state == AppLifecycleState.resumed && !widget.captures.isComplete) {
       unawaited(_openInAppCamera());
     }
   }
@@ -130,10 +125,9 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     } catch (_) {}
   }
 
-  Future<void> _openInAppCamera() async {
-    if (_isStarting || widget.captures.isComplete) return;
+  Future<void> _openInAppCamera({bool force = false}) async {
+    if (_isStarting || (!force && widget.captures.isComplete)) return;
     _isStarting = true;
-    _useSystemFallback = false;
 
     setState(() {
       _errorMessage = null;
@@ -184,8 +178,10 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     } catch (e) {
       debugPrint('In-app camera failed: $e');
       if (mounted) {
-        setState(() => _isStarting = false);
-        await _openSystemCameraWithGuide();
+        setState(() {
+          _isStarting = false;
+          _errorMessage = 'Could not open camera. Please try again.';
+        });
       }
     }
   }
@@ -311,13 +307,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     _verifyCooldownUntil = null;
     _errorMessage = null;
     _permissionDenied = false;
-    _useSystemFallback = false;
 
     await _disposeCamera();
     if (!mounted) return;
 
     setState(() {});
-    await _openInAppCamera();
+    await _openInAppCamera(force: true);
   }
 
   Future<void> _maybeStartVerification() async {
@@ -387,43 +382,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     }
   }
 
-  Future<void> _verifyPickedPhoto(XFile file) async {
-    setState(() {
-      _isCapturing = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final result = await widget.verifySelfie(file);
-      if (!mounted) return;
-
-      setState(() => _similarity = result.similarity);
-
-      if (result.match) {
-        final captures = _captures.copyWith(photo: file);
-        widget.onCapturesChanged(captures);
-        widget.onVerified(captures, result.similarity);
-        return;
-      }
-
-      setState(() {
-        _errorMessage = result.message.isNotEmpty
-            ? result.message
-            : 'Your selfie does not match your ID. Try again.';
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e is ApiException
-              ? e.message
-              : 'Verification failed. Please try again.';
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _isCapturing = false);
-    }
-  }
-
   Face _largestFace(List<Face> faces) {
     return faces.reduce(
       (a, b) =>
@@ -432,48 +390,6 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
               ? a
               : b,
     );
-  }
-
-  Future<void> _openSystemCameraWithGuide() async {
-    if (!mounted) return;
-    final proceed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => _SystemCameraGuideDialog(scanProgress: _scanController),
-    );
-    if (proceed != true || !mounted) return;
-
-    await _disposeCamera();
-    _useSystemFallback = true;
-    setState(() {});
-
-    final permission = await MediaPermissions.ensureCamera();
-    if (!permission.isGranted) {
-      setState(() {
-        _permissionDenied = true;
-        _errorMessage = permission.message;
-      });
-      return;
-    }
-
-    setState(() => _isCapturing = true);
-    try {
-      final file = await _picker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
-        imageQuality: 90,
-      );
-      if (!mounted) return;
-      if (file != null) {
-        await _verifyPickedPhoto(file);
-      } else {
-        setState(() => _errorMessage = 'Face photo required.');
-      }
-    } catch (e) {
-      if (mounted) setState(() => _errorMessage = 'Could not open camera.');
-    } finally {
-      if (mounted) setState(() => _isCapturing = false);
-    }
   }
 
   @override
@@ -534,37 +450,29 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
               label: const Text('Retake photo'),
             ),
           ),
-        if (!allDone &&
-            !_useSystemFallback &&
-            _cameraController != null) ...[
-          if (_similarity != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _similarity!.clamp(0.0, 1.0),
-                minHeight: 6,
-                backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
-                color: _similarity! >= 0.4
-                    ? const Color(0xFF66BB6A)
-                    : AppColors.secondary,
-              ),
+        if (!allDone && _cameraController != null && _similarity != null) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: _similarity!.clamp(0.0, 1.0),
+              minHeight: 6,
+              backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
+              color: _similarity! >= 0.4
+                  ? const Color(0xFF66BB6A)
+                  : AppColors.secondary,
             ),
-            const SizedBox(height: 8),
-          ],
-          TextButton(
-            onPressed: _isCapturing || _isVerifying
-                ? null
-                : () => unawaited(_openSystemCameraWithGuide()),
-            child: const Text('Use system camera instead'),
           ),
+          const SizedBox(height: 8),
         ],
-        if (!allDone && (_useSystemFallback || _cameraController == null))
+        if (!allDone && !_isStarting && _cameraController == null)
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _isCapturing ? null : () => unawaited(_openSystemCameraWithGuide()),
+              onPressed: _isCapturing || _isVerifying
+                  ? null
+                  : () => unawaited(_openInAppCamera(force: true)),
               icon: const Icon(Icons.camera_front_outlined),
-              label: const Text('Open camera with guide'),
+              label: const Text('Open camera'),
             ),
           ),
         if (_errorMessage != null && !allDone) ...[
@@ -643,23 +551,22 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       );
     }
 
-    if (_useSystemFallback) {
-      return const ColoredBox(
-        color: Color(0xFF263238),
-        child: Center(
-          child: Text(
-            'Use system camera to continue',
-            style: TextStyle(color: Colors.white70),
-          ),
-        ),
-      );
-    }
-
     final controller = _cameraController;
     if (controller == null || !controller.value.isInitialized) {
-      return const ColoredBox(
-        color: Color(0xFF263238),
-        child: Center(child: CircularProgressIndicator(color: AppColors.secondary)),
+      return ColoredBox(
+        color: const Color(0xFF263238),
+        child: Center(
+          child: _errorMessage != null
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                )
+              : const CircularProgressIndicator(color: AppColors.secondary),
+        ),
       );
     }
 
@@ -799,64 +706,6 @@ class _FaceShotPreviewDialog extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SystemCameraGuideDialog extends StatelessWidget {
-  const _SystemCameraGuideDialog({required this.scanProgress});
-
-  final AnimationController? scanProgress;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF263238),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Face photo guide',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Center your face in the frame and tap the shutter.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: const BorderSide(color: Colors.white24),
-                    ),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Open camera'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -1,5 +1,3 @@
-"""Train front/back UCLM ID classifiers using transfer learning."""
-
 from __future__ import annotations
 
 import os

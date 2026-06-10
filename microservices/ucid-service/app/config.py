@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_dir: str = "models"
     front_model_file: str = "front_classifier.keras"
     back_model_file: str = "back_classifier.keras"
-    valid_threshold: float = 0.85
+    valid_threshold: float = 0.50
     input_size: int = 224
 
 

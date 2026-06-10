@@ -52,6 +52,7 @@ class RegisterFormField extends StatelessWidget {
           readOnly: readOnly,
           maxLines: maxLines,
           onChanged: onChanged,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint ?? label,

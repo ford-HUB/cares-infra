@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/auth/data/models/registration_api_models.dart';
@@ -24,11 +25,13 @@ class AuthRegistrationService {
           'front',
           frontBytes,
           filename: front.name,
+          contentType: _imageContentType(front),
         ),
         http.MultipartFile.fromBytes(
           'back',
           backBytes,
           filename: back.name,
+          contentType: _imageContentType(back),
         ),
       ],
     );
@@ -50,6 +53,7 @@ class AuthRegistrationService {
           'selfie',
           selfieBytes,
           filename: selfie.name,
+          contentType: _imageContentType(selfie),
         ),
       ],
     );
@@ -61,6 +65,7 @@ class AuthRegistrationService {
     final response = await _api.postJson(
       '/auth/extract-id',
       body: {'registrationId': registrationId},
+      timeout: const Duration(seconds: 90),
     );
 
     return ExtractIdResponse.fromJson(response['data'] as Map<String, dynamic>);
@@ -84,5 +89,22 @@ class AuthRegistrationService {
     );
 
     return response['data'] as Map<String, dynamic>? ?? {};
+  }
+
+  MediaType _imageContentType(XFile file) {
+    final mime = file.mimeType;
+    if (mime != null && mime.startsWith('image/')) {
+      return MediaType.parse(mime);
+    }
+
+    final name = file.name.toLowerCase();
+    if (name.endsWith('.png')) {
+      return MediaType('image', 'png');
+    }
+    if (name.endsWith('.webp')) {
+      return MediaType('image', 'webp');
+    }
+
+    return MediaType('image', 'jpeg');
   }
 }

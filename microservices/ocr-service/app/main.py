@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.ocr_engine import ocr_engine
+from app.ocr_engine import count_populated_fields, ocr_engine
 from app.schemas import ApiResponse, IdExtractResult
 
 logging.basicConfig(level=logging.INFO)
@@ -55,13 +55,26 @@ def failure(message: str, status_code: int, errors: dict | None = None) -> HTTPE
     )
 
 
+def _looks_like_image(data: bytes) -> bool:
+    if len(data) < 12:
+        return False
+    if data.startswith(b"\xff\xd8\xff"):
+        return True
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return True
+    return data.startswith(b"RIFF") and data[8:12] == b"WEBP"
+
+
 async def read_upload(file: UploadFile) -> bytes:
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise failure("File must be an image", 400)
     data = await file.read()
     if not data:
         raise failure("Empty image upload", 400)
-    return data
+
+    content_type = file.content_type or ""
+    if content_type.startswith("image/") or _looks_like_image(data):
+        return data
+
+    raise failure("File must be an image", 400)
 
 
 @app.get("/health")
@@ -83,6 +96,23 @@ async def extract(
         parsed = ocr_engine.parse_id_text(front_text, back_text)
     except ValueError as exc:
         raise failure(str(exc), 422) from exc
+
+    populated = count_populated_fields(parsed)
+    logger.info(
+        "OCR extract complete front_bytes=%s back_bytes=%s front_text_len=%s "
+        "back_text_len=%s populated_fields=%s",
+        len(front_bytes),
+        len(back_bytes),
+        len(front_text),
+        len(back_text),
+        populated,
+    )
+    if populated == 0 and (front_text or back_text):
+        logger.warning(
+            "OCR parser matched no fields. front_preview=%r back_preview=%r",
+            front_text[:300],
+            back_text[:300],
+        )
 
     result = IdExtractResult(
         firstname=parsed.firstname,

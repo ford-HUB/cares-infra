@@ -46,11 +46,14 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   String? _registrationId;
   FaceCaptureSet _faceCaptures = const FaceCaptureSet();
   bool _ocrExtracting = false;
+  bool _ocrExtractFailed = false;
+  bool _ocrExtractSucceeded = false;
+  String? _ocrExtractError;
   bool _isSubmitting = false;
   bool _verificationCodeSent = false;
 
-  RegisterOcrSample _ocrData = RegisterOcrSample.sample;
-  String _email = RegisterOcrSample.suggestedEmail;
+  late RegisterOcrSample _ocrData;
+  String _email = '';
   String _password = '';
   String _confirmPassword = '';
   String _verificationCode = '';
@@ -58,7 +61,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   @override
   void initState() {
     super.initState();
-    _ocrData = RegisterOcrSample.sample.copyWith(
+    _ocrData = RegisterOcrSample.empty(
       volunteerType: widget.volunteerType.apiValue,
     );
   }
@@ -112,7 +115,10 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       case 1:
         return false;
       case 2:
-        return !_ocrExtracting && _ocrDataValid;
+        return !_ocrExtracting &&
+            !_ocrExtractFailed &&
+            _ocrExtractSucceeded &&
+            _ocrDataValid;
       case 3:
         return _accountValid;
       case 4:
@@ -211,6 +217,10 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     setState(() {
       _faceCaptures = captures;
       _step = 2;
+      _ocrExtracting = true;
+      _ocrExtractFailed = false;
+      _ocrExtractSucceeded = false;
+      _ocrExtractError = null;
     });
     await _runOcrExtract();
   }
@@ -218,11 +228,22 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   Future<void> _runOcrExtract() async {
     final registrationId = _registrationId;
     if (registrationId == null) {
-      _showError('Registration session expired. Please restart registration.');
+      if (!mounted) return;
+      setState(() {
+        _ocrExtracting = false;
+        _ocrExtractFailed = true;
+        _ocrExtractError =
+            'Registration session expired. Please restart registration.';
+      });
       return;
     }
 
-    setState(() => _ocrExtracting = true);
+    setState(() {
+      _ocrExtracting = true;
+      _ocrExtractFailed = false;
+      _ocrExtractSucceeded = false;
+      _ocrExtractError = null;
+    });
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
@@ -231,14 +252,20 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
       setState(() {
         _ocrExtracting = false;
-        _ocrData = response.ocrData.copyWith(
-          volunteerType: widget.volunteerType.apiValue,
-        );
+        _ocrExtractSucceeded = true;
+        _ocrData = response.ocrData
+            .copyWith(volunteerType: widget.volunteerType.apiValue)
+            .enrichFromRawText();
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _ocrExtracting = false);
-      _showError(e is ApiException ? e.message : 'Failed to extract ID details.');
+      final message =
+          e is ApiException ? e.message : 'Failed to extract ID details.';
+      setState(() {
+        _ocrExtracting = false;
+        _ocrExtractFailed = true;
+        _ocrExtractError = message;
+      });
     }
   }
 
@@ -286,7 +313,15 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     }
     setState(() {
       _step--;
-      if (_step < 2) _ocrExtracting = false;
+      if (_step == 1) {
+        _faceCaptures = const FaceCaptureSet();
+      }
+      if (_step < 2) {
+        _ocrExtracting = false;
+        _ocrExtractFailed = false;
+        _ocrExtractSucceeded = false;
+        _ocrExtractError = null;
+      }
       if (_step < 4) _verificationCodeSent = false;
     });
   }
@@ -323,6 +358,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
                   child: _buildStep(registrationId),
@@ -379,10 +416,13 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         );
       case 2:
         return RegisterOcrReviewStep(
-          key: const ValueKey('ocr'),
+          key: const ValueKey('ocr-review'),
           data: _ocrData,
           volunteerType: widget.volunteerType,
           isExtracting: _ocrExtracting,
+          extractFailed: _ocrExtractFailed,
+          extractErrorMessage: _ocrExtractError,
+          onRetry: () => unawaited(_runOcrExtract()),
           onChanged: (data) => setState(() => _ocrData = data),
         );
       case 3:

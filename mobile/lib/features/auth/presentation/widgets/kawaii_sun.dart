@@ -13,6 +13,7 @@ class KawaiiSun extends StatefulWidget {
     this.progress = 1.0,
     this.ambient = 0.0,
     this.weatherMood = SunWeatherMood.clear,
+    this.tempCelsius,
   });
 
   final double size;
@@ -20,6 +21,7 @@ class KawaiiSun extends StatefulWidget {
   final double progress;
   final double ambient;
   final SunWeatherMood weatherMood;
+  final double? tempCelsius;
 
   @override
   State<KawaiiSun> createState() => _KawaiiSunState();
@@ -28,6 +30,7 @@ class KawaiiSun extends StatefulWidget {
 class _KawaiiSunState extends State<KawaiiSun> with TickerProviderStateMixin {
   late final AnimationController _revealController;
   late final AnimationController _blinkController;
+  late final AnimationController _rainController;
 
   @override
   void initState() {
@@ -41,7 +44,24 @@ class _KawaiiSunState extends State<KawaiiSun> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 280),
     );
+    _rainController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _syncRainAnimation();
     _schedulePeriodicBlink();
+  }
+
+  void _syncRainAnimation() {
+    if (widget.weatherMood == SunWeatherMood.rainy) {
+      if (!_rainController.isAnimating) {
+        _rainController.repeat();
+      }
+    } else {
+      _rainController
+        ..stop()
+        ..value = 0;
+    }
   }
 
   void _schedulePeriodicBlink() {
@@ -68,12 +88,16 @@ class _KawaiiSunState extends State<KawaiiSun> with TickerProviderStateMixin {
         _revealController.reverse();
       }
     }
+    if (oldWidget.weatherMood != widget.weatherMood) {
+      _syncRainAnimation();
+    }
   }
 
   @override
   void dispose() {
     _revealController.dispose();
     _blinkController.dispose();
+    _rainController.dispose();
     super.dispose();
   }
 
@@ -83,8 +107,17 @@ class _KawaiiSunState extends State<KawaiiSun> with TickerProviderStateMixin {
     final scale = 0.85 + 0.15 * fadeIn;
     final canvasSize = _canvasSize(widget.weatherMood, widget.size);
 
+    final discomfort = weatherDiscomfortFromTemp(
+      widget.tempCelsius ?? 28,
+      widget.weatherMood,
+    );
+
     return AnimatedBuilder(
-      animation: Listenable.merge([_revealController, _blinkController]),
+      animation: Listenable.merge([
+        _revealController,
+        _blinkController,
+        _rainController,
+      ]),
       builder: (context, _) {
         return Opacity(
           opacity: fadeIn,
@@ -101,7 +134,8 @@ class _KawaiiSunState extends State<KawaiiSun> with TickerProviderStateMixin {
                   blinkClosedAmount: Curves.easeInOut.transform(_blinkController.value),
                   ambient: widget.ambient,
                   weatherMood: widget.weatherMood,
-                  rainPhase: widget.ambient,
+                  weatherDiscomfort: discomfort,
+                  rainPhase: _rainController.value,
                 ),
               ),
             ),
@@ -153,6 +187,7 @@ class _KawaiiSunPainter extends CustomPainter {
     required this.blinkClosedAmount,
     required this.ambient,
     required this.weatherMood,
+    required this.weatherDiscomfort,
     required this.rainPhase,
   });
 
@@ -161,6 +196,7 @@ class _KawaiiSunPainter extends CustomPainter {
   final double blinkClosedAmount;
   final double ambient;
   final SunWeatherMood weatherMood;
+  final double weatherDiscomfort;
   final double rainPhase;
 
   static const _bodyLight = Color(0xFFFFF176);
@@ -174,18 +210,24 @@ class _KawaiiSunPainter extends CustomPainter {
   static const _armColor = Color(0xFFFFB74D);
   static const _handColor = Color(0xFFFFCC80);
   static const _shadesLens = Color(0xFF263238);
-  static const _cloudLight = Color(0xFFECEFF1);
-  static const _cloudDark = Color(0xFF90A4AE);
-  static const _cloudShadow = Color(0xFF78909C);
+  static const _cloudPale = Color(0xFFECEFF1);
+  static const _cloudMid = Color(0xFFB0BEC5);
+  static const _cloudDark = Color(0xFF78909C);
+  static const _cloudDeep = Color(0xFF546E7A);
   static const _rainColor = Color(0xFF64B5F6);
   static const _shadesFrame = Color(0xFF37474F);
 
-  static double _glowDimmer(SunWeatherMood mood) {
-    return switch (mood) {
-      SunWeatherMood.clear => 1.0,
-      SunWeatherMood.cloudy => 0.7,
-      SunWeatherMood.rainy => 0.75,
-    };
+  static double _glowDimmer(SunWeatherMood mood, double discomfort) {
+    if (mood == SunWeatherMood.clear) return 1.0;
+    return (1.0 - discomfort * 0.35).clamp(0.55, 1.0);
+  }
+
+  (Color fill, Color shadow) _cloudColors(double discomfort) {
+    final t = discomfort.clamp(0.0, 1.0);
+    return (
+      Color.lerp(_cloudPale, _cloudDeep, t)!,
+      Color.lerp(_cloudMid, _cloudDark, t)!,
+    );
   }
 
   static double _segment(double t, double start, double end) {
@@ -270,7 +312,7 @@ class _KawaiiSunPainter extends CustomPainter {
     final scaledBodyRadius = bodyRadius * pulse;
     final face = _SunFaceLayout(center: center, bodyRadius: scaledBodyRadius);
     final t = revealProgress;
-    final glowScale = _glowDimmer(weatherMood);
+    final glowScale = _glowDimmer(weatherMood, weatherDiscomfort);
 
     _drawHeatBloom(canvas, center, scaledBodyRadius, heatPulse * glowScale);
     _drawGlareStreaks(canvas, size, center, scaledBodyRadius, heatPulse * glowScale);
@@ -431,12 +473,17 @@ class _KawaiiSunPainter extends CustomPainter {
     Offset? shadesPos,
     double shadesOpacity = 0,
   }) {
-    final isRainy = weatherMood == SunWeatherMood.rainy;
-    final primary = isRainy ? _cloudLight : _cloudDark;
-    final secondary = isRainy ? const Color(0xFFCFD8DC) : _cloudShadow;
+    final (primary, secondary) = _cloudColors(weatherDiscomfort);
 
-    for (final cloud in _cloudSpecs(center, bodyRadius)) {
-      final cloudScale = bodyRadius * cloud.scale;
+    final specs = _cloudSpecs(center, bodyRadius);
+    final visibleCount = math.max(
+      4,
+      (specs.length * (0.45 + weatherDiscomfort * 0.55)).round(),
+    );
+
+    for (var i = 0; i < visibleCount; i++) {
+      final cloud = specs[i];
+      final cloudScale = bodyRadius * cloud.scale * (0.88 + weatherDiscomfort * 0.18);
       final occludes = _cloudShouldOccludeForeground(
         center,
         bodyRadius,
@@ -491,18 +538,27 @@ class _KawaiiSunPainter extends CustomPainter {
   }
 
   void _drawRain(Canvas canvas, Offset center, double bodyRadius, double phase) {
-    const dropCount = 14;
-    final rainPaint = Paint()
-      ..color = _rainColor.withValues(alpha: 0.75)
-      ..strokeWidth = bodyRadius * 0.025
-      ..strokeCap = StrokeCap.round;
+    const dropCount = 22;
+    final spreadLeft = bodyRadius * 1.35;
+    final spreadRight = bodyRadius * 1.05;
 
     for (var i = 0; i < dropCount; i++) {
-      final x = center.dx - bodyRadius * 1.1 + (i * bodyRadius * 0.16);
-      final cycle = (phase + i * 0.08) % 1.0;
-      final yStart = center.dy + bodyRadius * 0.42 + cycle * bodyRadius * 0.62;
-      final yEnd = yStart + bodyRadius * 0.16;
-      canvas.drawLine(Offset(x, yStart), Offset(x - bodyRadius * 0.03, yEnd), rainPaint);
+      final lane = i / (dropCount - 1);
+      final x = center.dx - spreadLeft + lane * (spreadLeft + spreadRight);
+      final cycle = (phase + i * 0.047) % 1.0;
+      final yStart = center.dy + bodyRadius * 0.18 + cycle * bodyRadius * 0.88;
+      final dropLen = bodyRadius * (0.12 + (i % 3) * 0.03);
+      final alpha = 0.45 + (i % 4) * 0.12;
+      final rainPaint = Paint()
+        ..color = _rainColor.withValues(alpha: alpha)
+        ..strokeWidth = bodyRadius * 0.022
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawLine(
+        Offset(x, yStart),
+        Offset(x - bodyRadius * 0.045, yStart + dropLen),
+        rainPaint,
+      );
     }
   }
 
@@ -861,5 +917,6 @@ class _KawaiiSunPainter extends CustomPainter {
       oldDelegate.blinkClosedAmount != blinkClosedAmount ||
       oldDelegate.ambient != ambient ||
       oldDelegate.weatherMood != weatherMood ||
+      oldDelegate.weatherDiscomfort != weatherDiscomfort ||
       oldDelegate.rainPhase != rainPhase;
 }

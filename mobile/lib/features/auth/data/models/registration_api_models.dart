@@ -1,3 +1,4 @@
+import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
 class UploadIdResponse {
@@ -71,7 +72,9 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       age: (json['age'] as num?)?.toInt() ?? 0,
       currentAddress: json['currentAddress'] as String? ?? '',
       phoneNumber: json['phoneNumber'] as String? ?? '',
-      idNumber: json['idNumber'] as String? ?? '',
+      idNumber: RegisterOcrRawParser.normalizeIdNumber(
+        json['idNumber'] as String? ?? '',
+      ),
       departmentName: json['departmentName'] as String? ?? '',
       majorName: json['majorName'] as String? ?? '',
       yearLevelName: json['yearLevelName'] as String? ?? '',
@@ -79,7 +82,9 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       graduationMonth: (json['graduationMonth'] as num?)?.toInt() ?? 0,
       graduationDay: (json['graduationDay'] as num?)?.toInt() ?? 0,
       volunteerType: json['volunteerType'] as String? ?? 'STUDENT',
-    );
+      rawTextFront: json['rawTextFront'] as String? ?? '',
+      rawTextBack: json['rawTextBack'] as String? ?? '',
+    ).enrichFromRawText();
   }
 
   Map<String, dynamic> toRegisterPayload({
@@ -103,7 +108,7 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
         'password': password,
       },
       'school_info': {
-        'id_number': idNumber,
+        'id_number': RegisterOcrRawParser.normalizeIdNumber(idNumber),
         'graduation_year': graduationYear,
         'graduation_month': graduationMonth,
         'graduation_day': graduationDay,

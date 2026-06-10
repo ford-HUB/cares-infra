@@ -48,6 +48,7 @@ class ApiClient {
   Future<Map<String, dynamic>> postJson(
     String path, {
     required Map<String, dynamic> body,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     return _guard(() async {
       final response = await _client
@@ -56,7 +57,7 @@ class ApiClient {
             headers: const {'Content-Type': 'application/json'},
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(timeout);
       return _parseResponse(response);
     }, path);
   }

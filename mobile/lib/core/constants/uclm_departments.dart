@@ -64,4 +64,46 @@ class UclmDepartments {
 
   static List<String> coursesFor(String department) =>
       coursesByDepartment[department] ?? const [];
+
+  /// Best-effort match of OCR-extracted text to a known department name.
+  static String? matchDepartment(String extracted) {
+    final normalized = extracted.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    for (final name in names) {
+      if (name.toLowerCase() == normalized) return name;
+    }
+
+    for (final name in names) {
+      final lower = name.toLowerCase();
+      if (lower.contains(normalized) || normalized.contains(lower)) return name;
+    }
+
+    return null;
+  }
+
+  /// Best-effort match of OCR-extracted text to a course under [department].
+  static String? matchCourse(String department, String extracted) {
+    final courses = coursesFor(department);
+    if (courses.isEmpty) return null;
+
+    final normalized = extracted.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    for (final course in courses) {
+      if (course.toLowerCase() == normalized) return course;
+    }
+
+    for (final course in courses) {
+      final lower = course.toLowerCase();
+      final abbreviation = lower.split(' - ').first;
+      if (lower.contains(normalized) ||
+          normalized.contains(lower) ||
+          normalized.contains(abbreviation)) {
+        return course;
+      }
+    }
+
+    return null;
+  }
 }

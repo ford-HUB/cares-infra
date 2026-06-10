@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { toImageBlob } from 'src/common/utils/image-mime';
 
 export interface UcidValidationResult {
     isValid: boolean;
@@ -34,12 +35,14 @@ export class UcidServiceClient {
     async validateId(
         frontImage: Buffer,
         frontFilename: string,
+        frontMimetype: string | undefined,
         backImage: Buffer,
         backFilename: string,
+        backMimetype: string | undefined,
     ): Promise<UcidValidationResult> {
         const form = new FormData();
-        form.append('front', new Blob([new Uint8Array(frontImage)]), frontFilename);
-        form.append('back', new Blob([new Uint8Array(backImage)]), backFilename);
+        form.append('front', toImageBlob(frontImage, frontMimetype, frontFilename), frontFilename);
+        form.append('back', toImageBlob(backImage, backMimetype, backFilename), backFilename);
 
         const response = await fetch(`${this.baseUrl}/api/v1/validate`, {
             method: 'POST',

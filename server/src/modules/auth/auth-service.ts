@@ -93,8 +93,10 @@ export class AuthService {
             validation = await this.ucidServiceClient.validateId(
                 front.buffer,
                 front.originalname,
+                front.mimetype,
                 back.buffer,
                 back.originalname,
+                back.mimetype,
             );
         } catch (error) {
             const detail = error instanceof Error ? error.message : 'ID validation failed';
@@ -165,12 +167,13 @@ export class AuthService {
 
         const session = await this.requireSession(registrationId);
 
+        const canVerifyFace =
+            session.step === 'id_uploaded' ||
+            session.step === 'face_verified' ||
+            session.step === 'ocr_completed';
 
-
-        if (session.step !== 'id_uploaded') {
-
+        if (!canVerifyFace) {
             throw new BadRequestException('Invalid registration step for face verification');
-
         }
 
 
@@ -180,13 +183,15 @@ export class AuthService {
             'ID photo',
         );
 
-        let verification;
+        let verification : any;
         try {
             verification = await this.frServiceClient.verifyImages(
                 idImage,
                 'id-front.jpg',
+                'image/jpeg',
                 selfie.buffer,
                 selfie.originalname,
+                selfie.mimetype,
             );
         } catch (error) {
             const detail = error instanceof Error ? error.message : 'Face verification failed';
@@ -234,6 +239,8 @@ export class AuthService {
 
             step: 'face_verified',
 
+            ocrData: null,
+
         });
 
 
@@ -269,17 +276,23 @@ export class AuthService {
 
         const backImage = await this.loadUploadedImage(session.idBackImageUrl, 'ID back photo');
 
-        const ocrData = await this.ocrServiceClient.extractIdFields(
-
-            frontImage,
-
-            'id-front.jpg',
-
-            backImage,
-
-            'id-back.jpg',
-
-        );
+        let ocrData: IdOcrResultDto;
+        try {
+            ocrData = await this.ocrServiceClient.extractIdFields(
+                frontImage,
+                'id-front.jpg',
+                backImage,
+                'id-back.jpg',
+            );
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : 'OCR extraction failed';
+            if (detail.includes('Invalid image')) {
+                throw new BadRequestException(detail);
+            }
+            throw new BadGatewayException(
+                'OCR service is unavailable. Please try again shortly.',
+            );
+        }
 
 
 

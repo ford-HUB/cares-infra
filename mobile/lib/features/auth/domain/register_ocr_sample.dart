@@ -1,3 +1,5 @@
+import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
+
 /// Static sample data mirroring server [CreateUserSchema] for OCR preview UI.
 class RegisterOcrSample {
   const RegisterOcrSample({
@@ -16,6 +18,8 @@ class RegisterOcrSample {
     required this.graduationMonth,
     required this.graduationDay,
     required this.volunteerType,
+    this.rawTextFront = '',
+    this.rawTextBack = '',
   });
 
   final String firstname;
@@ -33,6 +37,8 @@ class RegisterOcrSample {
   final int graduationMonth;
   final int graduationDay;
   final String volunteerType;
+  final String rawTextFront;
+  final String rawTextBack;
 
   RegisterOcrSample copyWith({
     String? firstname,
@@ -50,6 +56,8 @@ class RegisterOcrSample {
     int? graduationMonth,
     int? graduationDay,
     String? volunteerType,
+    String? rawTextFront,
+    String? rawTextBack,
   }) {
     return RegisterOcrSample(
       firstname: firstname ?? this.firstname,
@@ -67,6 +75,8 @@ class RegisterOcrSample {
       graduationMonth: graduationMonth ?? this.graduationMonth,
       graduationDay: graduationDay ?? this.graduationDay,
       volunteerType: volunteerType ?? this.volunteerType,
+      rawTextFront: rawTextFront ?? this.rawTextFront,
+      rawTextBack: rawTextBack ?? this.rawTextBack,
     );
   }
 
@@ -77,6 +87,47 @@ class RegisterOcrSample {
       '${graduationMonth.toString().padLeft(2, '0')}/'
       '${graduationDay.toString().padLeft(2, '0')}/'
       '$graduationYear';
+
+  /// Backfills empty structured fields using raw OCR text from the API.
+  RegisterOcrSample enrichFromRawText() {
+    if (rawTextFront.isEmpty && rawTextBack.isEmpty) return this;
+
+    final parsed = RegisterOcrRawParser.parse(rawTextFront, rawTextBack);
+    return copyWith(
+      firstname: firstname.trim().isNotEmpty ? null : parsed.firstname,
+      lastname: lastname.trim().isNotEmpty ? null : parsed.lastname,
+      middleName: middleName.trim().isNotEmpty ? null : parsed.middleName,
+      gender: gender.trim().isNotEmpty ? null : parsed.gender,
+      age: age > 0 ? null : (parsed.age > 0 ? parsed.age : null),
+      currentAddress: RegisterOcrRawParser.preferAddress(
+        currentAddress,
+        parsed.currentAddress,
+      ),
+      phoneNumber: phoneNumber.trim().isNotEmpty ? null : parsed.phoneNumber,
+      idNumber: idNumber.trim().isNotEmpty ? null : parsed.idNumber,
+    );
+  }
+
+  /// Empty defaults before OCR extraction completes.
+  static RegisterOcrSample empty({required String volunteerType}) {
+    return RegisterOcrSample(
+      firstname: '',
+      lastname: '',
+      middleName: '',
+      gender: '',
+      age: 0,
+      currentAddress: '',
+      phoneNumber: '',
+      idNumber: '',
+      departmentName: '',
+      majorName: '',
+      yearLevelName: '',
+      graduationYear: 0,
+      graduationMonth: 0,
+      graduationDay: 0,
+      volunteerType: volunteerType,
+    );
+  }
 
   /// Plausible UCLM student ID OCR preview.
   static const sample = RegisterOcrSample(

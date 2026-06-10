@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IdOcrResultDto } from 'src/modules/auth/auth-dto';
+import { toImageBlob } from 'src/common/utils/image-mime';
 
 interface OcrApiResponse {
     ok: boolean;
@@ -19,8 +20,8 @@ export class OcrServiceClient {
         backFilename: string,
     ): Promise<IdOcrResultDto> {
         const form = new FormData();
-        form.append('front', new Blob([new Uint8Array(frontImage)]), frontFilename);
-        form.append('back', new Blob([new Uint8Array(backImage)]), backFilename);
+        form.append('front', toImageBlob(frontImage, undefined, frontFilename), frontFilename);
+        form.append('back', toImageBlob(backImage, undefined, backFilename), backFilename);
 
         const response = await fetch(`${this.baseUrl}/api/v1/extract`, {
             method: 'POST',

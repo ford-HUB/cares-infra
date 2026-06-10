@@ -25,6 +25,7 @@ class SunWeatherPanel extends ConsumerWidget {
     final weatherAsync = ref.watch(weatherProvider);
     final snapshot = weatherAsync.valueOrNull;
     final mood = snapshot?.mood ?? SunWeatherMood.clear;
+    final tempCelsius = snapshot?.tempCelsius;
     final tempLabel = snapshot?.tempLabel ?? '--°C';
     final canvasSize = kawaiiSunCanvasSize(mood, size);
     final sunCenterX = kawaiiSunDiscCenterX(mood, size);
@@ -39,6 +40,7 @@ class SunWeatherPanel extends ConsumerWidget {
           progress: progress,
           ambient: ambient,
           weatherMood: mood,
+          tempCelsius: tempCelsius,
         ),
         const SizedBox(height: 6),
         SizedBox(

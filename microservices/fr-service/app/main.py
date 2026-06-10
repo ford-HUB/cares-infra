@@ -59,13 +59,26 @@ def failure(message: str, status_code: int, errors: dict | None = None) -> HTTPE
     )
 
 
+def _looks_like_image(data: bytes) -> bool:
+    if len(data) < 12:
+        return False
+    if data.startswith(b"\xff\xd8\xff"):
+        return True
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return True
+    return data.startswith(b"RIFF") and data[8:12] == b"WEBP"
+
+
 async def read_upload(file: UploadFile) -> bytes:
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise failure("File must be an image", 400)
     data = await file.read()
     if not data:
         raise failure("Empty image upload", 400)
-    return data
+
+    content_type = file.content_type or ""
+    if content_type.startswith("image/") or _looks_like_image(data):
+        return data
+
+    raise failure("File must be an image", 400)
 
 
 def validate_embedding(embedding: list[float]) -> None:

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { toImageBlob } from 'src/common/utils/image-mime';
 
 export interface FrVerifyImagesResult {
     match: boolean;
@@ -30,12 +31,14 @@ export class FrServiceClient {
     async verifyImages(
         idImage: Buffer,
         idFilename: string,
+        idMimetype: string | undefined,
         selfie: Buffer,
         selfieFilename: string,
+        selfieMimetype: string | undefined,
     ): Promise<FrVerifyImagesResult> {
         const form = new FormData();
-        form.append('id_image', new Blob([new Uint8Array(idImage)]), idFilename);
-        form.append('selfie', new Blob([new Uint8Array(selfie)]), selfieFilename);
+        form.append('id_image', toImageBlob(idImage, idMimetype, idFilename), idFilename);
+        form.append('selfie', toImageBlob(selfie, selfieMimetype, selfieFilename), selfieFilename);
 
         const response = await fetch(`${this.baseUrl}/api/v1/verify-images`, {
             method: 'POST',
