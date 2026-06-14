@@ -13,9 +13,9 @@ import 'package:mobile/features/auth/presentation/providers/register_flow_provid
 import 'package:mobile/features/auth/presentation/widgets/register_step_indicator.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_account_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_face_scan_step.dart';
+import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_id_upload_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_review_step.dart';
-import 'package:mobile/features/auth/presentation/widgets/steps/register_verification_step.dart';
 
 class RegisterFlowScreen extends ConsumerStatefulWidget {
   const RegisterFlowScreen({
@@ -37,7 +37,6 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     'Face scan',
     'Your details',
     'Account',
-    'Verify',
   ];
 
   int _step = 0;
@@ -50,13 +49,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   bool _ocrExtractSucceeded = false;
   String? _ocrExtractError;
   bool _isSubmitting = false;
-  bool _verificationCodeSent = false;
 
   late RegisterOcrSample _ocrData;
   String _email = '';
   String _password = '';
   String _confirmPassword = '';
-  String _verificationCode = '';
 
   @override
   void initState() {
@@ -102,10 +99,6 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     return emailOk && passwordOk && matchOk;
   }
 
-  bool get _verificationValid =>
-      _verificationCode.length == 6 &&
-      _verificationCode == RegisterVerificationStep.demoCode;
-
   bool get _canContinue {
     if (_isSubmitting) return false;
 
@@ -121,8 +114,6 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
             _ocrDataValid;
       case 3:
         return _accountValid;
-      case 4:
-        return _verificationValid;
       default:
         return false;
     }
@@ -137,9 +128,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       case 2:
         return 'Continue to account';
       case 3:
-        return 'Send verification code';
-      case 4:
-        return 'Complete registration';
+        return 'Continue to verification';
       default:
         return 'Continue';
     }
@@ -167,25 +156,63 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     }
 
     if (_step == 3) {
-      setState(() {
-        _step = 4;
-        _verificationCodeSent = true;
-      });
-      if (mounted) {
+      await _sendVerificationCode();
+    }
+  }
+
+  Future<void> _sendVerificationCode() async {
+    final registrationId = _registrationId;
+    if (registrationId == null) {
+      _showError('Registration session expired. Please restart registration.');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final service = ref.read(authRegistrationServiceProvider);
+      final sendResult = await service.sendVerificationCode(email: _email.trim());
+      if (!mounted) return;
+
+      setState(() => _isSubmitting = false);
+
+      if (!sendResult.sent && sendResult.reused) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Verification code sent to $_email (preview: ${RegisterVerificationStep.demoCode})',
+              sendResult.verified
+                  ? 'Your email is already verified. Enter the same code to continue.'
+                  : 'Your verification code is still active. Check your email and enter it below.',
             ),
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
-      return;
-    }
 
-    if (_step == 4) {
-      await _finishRegistration();
+      final completed = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => EmailVerificationScreen(
+            email: _email.trim(),
+            registrationId: registrationId,
+            ocrData: _ocrData,
+            roleType: widget.roleType,
+            password: _password,
+            initialExpiresInSeconds: sendResult.expiresInSeconds,
+            emailAlreadyVerified: sendResult.verified,
+            codeReused: sendResult.reused,
+          ),
+        ),
+      );
+
+      if (completed == true && mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showError(
+        e is ApiException ? e.message : 'Failed to send verification code.',
+      );
     }
   }
 
@@ -269,41 +296,6 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     }
   }
 
-  Future<void> _finishRegistration() async {
-    final registrationId = _registrationId;
-    if (registrationId == null) {
-      _showError('Registration session expired. Please restart registration.');
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      final service = ref.read(authRegistrationServiceProvider);
-      await service.registerFromSession(
-        registrationId: registrationId,
-        ocrData: _ocrData,
-        roleType: widget.roleType.apiValue,
-        email: _email.trim(),
-        password: _password,
-      );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration complete! You can now sign in.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.of(context).pop();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSubmitting = false);
-      _showError(e is ApiException ? e.message : 'Registration failed. Please try again.');
-    }
-  }
-
   void _back() {
     if (_isSubmitting) return;
 
@@ -322,7 +314,6 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         _ocrExtractSucceeded = false;
         _ocrExtractError = null;
       }
-      if (_step < 4) _verificationCodeSent = false;
     });
   }
 
@@ -434,13 +425,6 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           onEmailChanged: (v) => setState(() => _email = v),
           onPasswordChanged: (v) => setState(() => _password = v),
           onConfirmPasswordChanged: (v) => setState(() => _confirmPassword = v),
-        );
-      case 4:
-        return RegisterVerificationStep(
-          key: const ValueKey('verify'),
-          code: _verificationCode,
-          codeSent: _verificationCodeSent,
-          onCodeChanged: (v) => setState(() => _verificationCode = v),
         );
       default:
         return const SizedBox.shrink();

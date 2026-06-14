@@ -14,11 +14,12 @@ import { EmbeddingType } from "../../infastructures/prisma/common/client";
 import {
     BadGatewayException,
     BadRequestException,
+    ConflictException,
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
 
-import { randomUUID } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 
 import * as bcrypt from "bcrypt";
 
@@ -32,7 +33,10 @@ import { OcrServiceClient } from "src/infastructures/microservices/ocr-service-c
 
 import { UcidServiceClient } from "src/infastructures/microservices/ucid-service-client";
 
-import { DurationUtils } from "../shared/utilities/duration-utils";
+import { DurationUtils } from "../../shared/utilities/duration-utils";
+
+import { TemplateUtils } from "src/shared/utilities/templete-utils";
+import { NodemailerService } from "src/infastructures/nodemailer/nodemailer-service";
 
 
 
@@ -53,6 +57,8 @@ export class AuthService {
         private readonly ocrServiceClient: OcrServiceClient,
 
         private readonly ucidServiceClient: UcidServiceClient,
+
+        private readonly nodemailerService: NodemailerService,
 
     ) {}
 
@@ -88,7 +94,7 @@ export class AuthService {
 
     ): Promise<UploadIdResponseDto> {
 
-        let validation;
+        let validation : any;
         try {
             validation = await this.ucidServiceClient.validateId(
                 front.buffer,
@@ -325,6 +331,8 @@ export class AuthService {
     async registerFromSession(data: RegisterFromSessionDto) {
         const session = await this.requireSession(data.registrationId);
 
+        await this.requireVerifiedEmail(data.account.email);
+
         if (session.step !== 'ocr_completed') {
             throw new BadRequestException('OCR extraction must complete before registration');
         }
@@ -357,6 +365,8 @@ export class AuthService {
             },
         });
 
+        const normalizedEmail = data.account.email.trim().toLowerCase();
+        await this.clearOtpState(normalizedEmail);
         await this.redisService.delete(this.registrationKey(data.registrationId));
 
         return user;
@@ -439,6 +449,127 @@ export class AuthService {
 
     }
 
+    async sendOtpEmail(email: string) {
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const existingAccount = await this.authRepository.findUserByEmail(normalizedEmail);
+        if (existingAccount) {
+            throw new ConflictException('An account with this email already exists');
+        }
+
+        const existingOtp = await this.redisService.get<string>(this.otpKey(normalizedEmail));
+        if (existingOtp) {
+            const expiresInSeconds = await this.redisService.ttl(this.otpKey(normalizedEmail));
+            const verified = await this.isEmailVerified(normalizedEmail);
+
+            return {
+                email: normalizedEmail,
+                sent: false,
+                reused: true,
+                verified,
+                expiresInSeconds: expiresInSeconds > 0 ? expiresInSeconds : 0,
+            };
+        }
+
+        const otp = randomInt(100000, 1000000).toString();
+        const template = await TemplateUtils.compileTemplate('otp-verification.html', {
+            code: otp,
+            username: normalizedEmail,
+            expiresInMinutes: 30,
+        });
+
+        try {
+            await this.nodemailerService.sendEmail(normalizedEmail, 'OTP Verification', template);
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : 'Email delivery failed';
+            throw new BadGatewayException(
+                `Unable to send verification email. ${detail}`,
+            );
+        }
+
+        await this.clearOtpState(normalizedEmail);
+        await this.redisService.set(
+            this.otpKey(normalizedEmail),
+            otp,
+            DurationUtils.THIRTY_MINUTES,
+        );
+
+        return {
+            email: normalizedEmail,
+            sent: true,
+            reused: false,
+            verified: false,
+            expiresInSeconds: DurationUtils.THIRTY_MINUTES,
+        };
+    }
+
+    async getVerificationStatus(email: string) {
+        const normalizedEmail = email.trim().toLowerCase();
+        const expiresInSeconds = await this.redisService.ttl(this.otpKey(normalizedEmail));
+        const hasActiveCode = expiresInSeconds > 0;
+        const verified = await this.isEmailVerified(normalizedEmail);
+
+        return {
+            email: normalizedEmail,
+            hasActiveCode,
+            verified,
+            expiresInSeconds: hasActiveCode ? expiresInSeconds : 0,
+        };
+    }
+
+    async verifyOtpEmail(email: string, otp: string) {
+        const normalizedEmail = email.trim().toLowerCase();
+        const storedOtp = await this.redisService.get<string>(this.otpKey(normalizedEmail));
+
+        if (!storedOtp) {
+            throw new BadRequestException('Verification code expired or not found. Please request a new code.');
+        }
+
+        if (storedOtp !== otp) {
+            throw new BadRequestException('Invalid verification code');
+        }
+
+        await this.redisService.set(
+            this.otpVerifiedKey(normalizedEmail),
+            'true',
+            DurationUtils.THIRTY_MINUTES,
+        );
+
+        const expiresInSeconds = await this.redisService.ttl(this.otpKey(normalizedEmail));
+
+        return {
+            email: normalizedEmail,
+            verified: true,
+            expiresInSeconds: expiresInSeconds > 0 ? expiresInSeconds : 0,
+        };
+    }
+
+    private otpKey(email: string): string {
+        return `otp:${email}`;
+    }
+
+    private otpVerifiedKey(email: string): string {
+        return `otp-verified:${email}`;
+    }
+
+    private async isEmailVerified(email: string): Promise<boolean> {
+        const verified = await this.redisService.get<string>(this.otpVerifiedKey(email));
+        return verified === 'true';
+    }
+
+    private async clearOtpState(email: string): Promise<void> {
+        await this.redisService.delete(this.otpKey(email));
+        await this.redisService.delete(this.otpVerifiedKey(email));
+    }
+
+    private async requireVerifiedEmail(email: string): Promise<void> {
+        const normalizedEmail = email.trim().toLowerCase();
+        const verified = await this.isEmailVerified(normalizedEmail);
+
+        if (!verified) {
+            throw new BadRequestException('Email verification is required before registration');
+        }
+    }
 }
 
 

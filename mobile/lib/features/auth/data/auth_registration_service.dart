@@ -91,6 +91,37 @@ class AuthRegistrationService {
     return response['data'] as Map<String, dynamic>? ?? {};
   }
 
+  Future<SendVerificationResponse> sendVerificationCode({required String email}) async {
+    final response = await _api.postJson(
+      '/auth/send-verification',
+      body: {'email': email.trim()},
+    );
+
+    return SendVerificationResponse.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  Future<VerificationStatusResponse> getVerificationStatus({required String email}) async {
+    final response = await _api.postJson(
+      '/auth/verification-status',
+      body: {'email': email.trim()},
+    );
+
+    return VerificationStatusResponse.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    await _api.postJson(
+      '/auth/verify-otp',
+      body: {
+        'email': email.trim(),
+        'otp': otp.trim(),
+      },
+    );
+  }
+
   MediaType _imageContentType(XFile file) {
     final mime = file.mimeType;
     if (mime != null && mime.startsWith('image/')) {

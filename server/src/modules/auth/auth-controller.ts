@@ -8,9 +8,9 @@ import {
     UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
-import { CreateUserSchema, RegisterFromSessionSchema, RegistrationIdSchema } from "./auth-validator";
+import { CreateUserSchema, RegisterFromSessionSchema, RegistrationIdSchema, SendVerificationSchema, VerifyOtpSchema } from "./auth-validator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
-import { CreateUserDto, RegisterFromSessionDto, RegistrationIdDto } from "./auth-dto";
+import { CreateUserDto, RegisterFromSessionDto, RegistrationIdDto, SendVerificationDto, VerifyOtpDto } from "./auth-dto";
 import { ResponseMessage } from "src/common/decorators/response-message-decorator";
 import { FileFieldsInterceptor, FileInterceptor } from "@nestjs/platform-express";
 
@@ -76,5 +76,29 @@ export class AuthController {
         @Body(new ZodValidationPipe(RegistrationIdSchema)) body: RegistrationIdDto,
     ) {
         return await this.authService.extractId(body.registrationId);
+    }
+
+    @Post('send-verification')
+    @ResponseMessage('Verification code sent')
+    async sendVerification(
+        @Body(new ZodValidationPipe(SendVerificationSchema)) body: SendVerificationDto,
+    ) {
+        return await this.authService.sendOtpEmail(body.email);
+    }
+
+    @Post('verification-status')
+    @ResponseMessage('Verification status')
+    async verificationStatus(
+        @Body(new ZodValidationPipe(SendVerificationSchema)) body: SendVerificationDto,
+    ) {
+        return await this.authService.getVerificationStatus(body.email);
+    }
+
+    @Post('verify-otp')
+    @ResponseMessage('Email verified')
+    async verifyOtp(
+        @Body(new ZodValidationPipe(VerifyOtpSchema)) body: VerifyOtpDto,
+    ) {
+        return await this.authService.verifyOtpEmail(body.email, body.otp);
     }
 }

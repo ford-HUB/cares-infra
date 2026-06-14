@@ -120,3 +120,12 @@ export interface RegisterFromSessionDto {
     account: CreateUserAccountDto;
     school_info: UserSchoolInfoDto;
 }
+
+export interface SendVerificationDto {
+    email: string;
+}
+
+export interface VerifyOtpDto {
+    email: string;
+    otp: string;
+}

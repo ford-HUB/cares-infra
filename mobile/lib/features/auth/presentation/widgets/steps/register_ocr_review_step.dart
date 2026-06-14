@@ -57,6 +57,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   late final TextEditingController _gradDay;
   late final TextEditingController _volunteerTypeLabel;
 
+  late final FocusNode _gradMonthFocus;
+  late final FocusNode _gradDayFocus;
+  late final FocusNode _gradYearFocus;
+
   late String _gender;
   String? _selectedDepartment;
   String? _selectedCourse;
@@ -89,6 +93,9 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradMonth = TextEditingController();
     _gradDay = TextEditingController();
     _volunteerTypeLabel = TextEditingController(text: widget.volunteerType.label);
+    _gradMonthFocus = FocusNode();
+    _gradDayFocus = FocusNode();
+    _gradYearFocus = FocusNode();
     _gender = '';
 
     if (!widget.isExtracting && !widget.extractFailed) {
@@ -102,36 +109,14 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
 
     final extractionCompleted =
         oldWidget.isExtracting && !widget.isExtracting && !widget.extractFailed;
-    final dataChanged = _hasDifferentExtractedData(oldWidget.data, widget.data);
 
-    if (extractionCompleted || (dataChanged && !widget.isExtracting)) {
+    if (extractionCompleted) {
       setState(() => _applyData(widget.data));
-      if (extractionCompleted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || widget.isExtracting || widget.extractFailed) return;
-          _notifyParent();
-        });
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || widget.isExtracting || widget.extractFailed) return;
+        _notifyParent();
+      });
     }
-  }
-
-  bool _hasDifferentExtractedData(RegisterOcrSample a, RegisterOcrSample b) {
-    return a.firstname != b.firstname ||
-        a.lastname != b.lastname ||
-        a.middleName != b.middleName ||
-        a.age != b.age ||
-        a.currentAddress != b.currentAddress ||
-        a.phoneNumber != b.phoneNumber ||
-        a.idNumber != b.idNumber ||
-        a.gender != b.gender ||
-        a.departmentName != b.departmentName ||
-        a.majorName != b.majorName ||
-        a.yearLevelName != b.yearLevelName ||
-        a.graduationYear != b.graduationYear ||
-        a.graduationMonth != b.graduationMonth ||
-        a.graduationDay != b.graduationDay ||
-        a.rawTextFront != b.rawTextFront ||
-        a.rawTextBack != b.rawTextBack;
   }
 
   RegisterOcrSample get _effectiveData => widget.data.enrichFromRawText();
@@ -206,7 +191,35 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradMonth.dispose();
     _gradDay.dispose();
     _volunteerTypeLabel.dispose();
+    _gradMonthFocus.dispose();
+    _gradDayFocus.dispose();
+    _gradYearFocus.dispose();
     super.dispose();
+  }
+
+  void _focusNextField(FocusNode next) {
+    FocusScope.of(context).requestFocus(next);
+  }
+
+  void _onGradMonthChanged(String value) {
+    _notifyParent();
+    if (value.length >= 2) {
+      _focusNextField(_gradDayFocus);
+    }
+  }
+
+  void _onGradDayChanged(String value) {
+    _notifyParent();
+    if (value.length >= 2) {
+      _focusNextField(_gradYearFocus);
+    }
+  }
+
+  void _onGradYearChanged(String value) {
+    _notifyParent();
+    if (value.length >= 4) {
+      _gradYearFocus.unfocus();
+    }
   }
 
   void _onDepartmentChanged(String? value) {
@@ -347,8 +360,6 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       );
     }
 
-    final display = _effectiveData;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -397,23 +408,23 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         _sectionTitle('Personal information', Icons.person_outline),
         const SizedBox(height: 12),
         RegisterFormField(
-          key: ValueKey('firstname-${display.firstname}'),
           label: 'First name',
           controller: _firstname,
+          textInputAction: TextInputAction.next,
           onChanged: (_) => _notifyParent(),
         ),
         const SizedBox(height: 12),
         RegisterFormField(
-          key: ValueKey('middle-${display.middleName}'),
           label: 'Middle name',
           controller: _middleName,
+          textInputAction: TextInputAction.next,
           onChanged: (_) => _notifyParent(),
         ),
         const SizedBox(height: 12),
         RegisterFormField(
-          key: ValueKey('lastname-${display.lastname}'),
           label: 'Last name',
           controller: _lastname,
+          textInputAction: TextInputAction.next,
           onChanged: (_) => _notifyParent(),
         ),
         const SizedBox(height: 12),
@@ -501,9 +512,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           RegisterFormField(
             label: 'Graduated year',
             controller: _gradYear,
+            focusNode: _gradYearFocus,
             keyboardType: TextInputType.number,
             inputFormatters: _fourDigitInputFormatters,
-            onChanged: (_) => _notifyParent(),
+            onChanged: _onGradYearChanged,
           ),
         ],
         if (_isStudent) ...[
@@ -523,9 +535,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 child: RegisterFormField(
                   label: 'Month',
                   controller: _gradMonth,
+                  focusNode: _gradMonthFocus,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
                   inputFormatters: _twoDigitInputFormatters,
-                  onChanged: (_) => _notifyParent(),
+                  onChanged: _onGradMonthChanged,
                 ),
               ),
               const SizedBox(width: 8),
@@ -533,9 +547,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 child: RegisterFormField(
                   label: 'Day',
                   controller: _gradDay,
+                  focusNode: _gradDayFocus,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
                   inputFormatters: _twoDigitInputFormatters,
-                  onChanged: (_) => _notifyParent(),
+                  onChanged: _onGradDayChanged,
                 ),
               ),
               const SizedBox(width: 8),
@@ -544,9 +560,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 child: RegisterFormField(
                   label: 'Year',
                   controller: _gradYear,
+                  focusNode: _gradYearFocus,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                   inputFormatters: _fourDigitInputFormatters,
-                  onChanged: (_) => _notifyParent(),
+                  onChanged: _onGradYearChanged,
                 ),
               ),
             ],

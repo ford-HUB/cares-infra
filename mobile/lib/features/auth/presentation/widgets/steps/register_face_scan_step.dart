@@ -43,7 +43,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   static const _alignedHoldDuration = Duration(seconds: 1);
   static const _verifyCooldown = Duration(milliseconds: 1500);
 
-z  final _faceDetector = FaceDetector(
+  final _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
       performanceMode: FaceDetectorMode.fast,
       enableLandmarks: true,
@@ -60,7 +60,7 @@ z  final _faceDetector = FaceDetector(
   String? _errorMessage;
   bool _permissionDenied = false;
   bool _isStarting = false;
-  bool _isCapturing = false;
+  final bool _isCapturing = false;
   bool _isProcessingFrame = false;
   DateTime? _lastFrameProcessed;
   bool _faceSeen = false;

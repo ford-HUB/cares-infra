@@ -1,4 +1,5 @@
 import { NotFoundException, Injectable } from "@nestjs/common";
+import { Prisma } from "../../infastructures/prisma/common/client";
 import { PrismaService } from "../../infastructures/prisma/prisma-service";
 import { CreateUserDto } from "./auth-dto";
 
@@ -10,38 +11,20 @@ export class AuthRepository {
 
     async createUser (data: CreateUserDto) {
         return await this.prisma.$transaction(async (tx) => {
-            const department = await tx.department.findFirst({
-                where: { name: data.school_info.department.name },
-                select: { department_id: true },
-            });
+            const department = await this.findOrCreateDepartment(
+                tx,
+                data.school_info.department.name,
+            );
 
-            if (!department) {
-                throw new NotFoundException(
-                    `Department not found: ${data.school_info.department.name}`,
-                );
-            }
+            const major = await this.findOrCreateMajor(
+                tx,
+                data.school_info.major.name,
+            );
 
-            const major = await tx.major.findFirst({
-                where: { name: data.school_info.major.name },
-                select: { major_id: true },
-            });
-
-            if (!major) {
-                throw new NotFoundException(
-                    `Major not found: ${data.school_info.major.name}`,
-                );
-            }
-
-            const yearLevel = await tx.yearLevel.findFirst({
-                where: { name: data.school_info.year_level.name },
-                select: { year_level_id: true },
-            });
-
-            if (!yearLevel) {
-                throw new NotFoundException(
-                    `Year level not found: ${data.school_info.year_level.name}`,
-                );
-            }
+            const yearLevel = await this.findOrCreateYearLevel(
+                tx,
+                data.school_info.year_level.name,
+            );
 
             const role = (await tx.role.findFirst({
                     where: { type: data.role_type },
@@ -140,6 +123,78 @@ export class AuthRepository {
             include: {
                 user: true,
             },
+        });
+    }
+
+    private async findOrCreateDepartment(
+        tx: Prisma.TransactionClient,
+        name: string,
+    ) {
+        const normalizedName = name.trim();
+        if (!normalizedName) {
+            throw new NotFoundException('Department name is required');
+        }
+
+        const existing = await tx.department.findFirst({
+            where: { name: normalizedName },
+            select: { department_id: true },
+        });
+
+        if (existing) {
+            return existing;
+        }
+
+        return tx.department.create({
+            data: { name: normalizedName },
+            select: { department_id: true },
+        });
+    }
+
+    private async findOrCreateMajor(
+        tx: Prisma.TransactionClient,
+        name: string,
+    ) {
+        const normalizedName = name.trim();
+        if (!normalizedName) {
+            throw new NotFoundException('Major name is required');
+        }
+
+        const existing = await tx.major.findFirst({
+            where: { name: normalizedName },
+            select: { major_id: true },
+        });
+
+        if (existing) {
+            return existing;
+        }
+
+        return tx.major.create({
+            data: { name: normalizedName },
+            select: { major_id: true },
+        });
+    }
+
+    private async findOrCreateYearLevel(
+        tx: Prisma.TransactionClient,
+        name: string,
+    ) {
+        const normalizedName = name.trim();
+        if (!normalizedName) {
+            throw new NotFoundException('Year level name is required');
+        }
+
+        const existing = await tx.yearLevel.findFirst({
+            where: { name: normalizedName },
+            select: { year_level_id: true },
+        });
+
+        if (existing) {
+            return existing;
+        }
+
+        return tx.yearLevel.create({
+            data: { name: normalizedName },
+            select: { year_level_id: true },
         });
     }
 }

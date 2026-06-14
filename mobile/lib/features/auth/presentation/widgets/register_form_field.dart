@@ -15,7 +15,10 @@ class RegisterFormField extends StatelessWidget {
     this.maxLines = 1,
     this.suffixIcon,
     this.onChanged,
+    this.onSubmitted,
     this.inputFormatters,
+    this.focusNode,
+    this.autofocus = false,
   });
 
   final String label;
@@ -28,7 +31,10 @@ class RegisterFormField extends StatelessWidget {
   final int maxLines;
   final Widget? suffixIcon;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
+  final FocusNode? focusNode;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +52,15 @@ class RegisterFormField extends StatelessWidget {
         const SizedBox(height: 6),
         TextField(
           controller: controller,
+          focusNode: focusNode,
+          autofocus: autofocus,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           obscureText: obscureText,
           readOnly: readOnly,
           maxLines: maxLines,
           onChanged: onChanged,
+          onSubmitted: onSubmitted,
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           inputFormatters: inputFormatters,
           decoration: InputDecoration(

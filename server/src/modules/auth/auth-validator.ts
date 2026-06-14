@@ -65,3 +65,16 @@ export const RegisterFromSessionSchema = CreateUserSchema.omit({ biometric: true
   .strict();
 
 export type RegisterFromSessionInput = z.infer<typeof RegisterFromSessionSchema>;
+
+export const SendVerificationSchema = z
+  .object({
+    email: z.string().trim().email(),
+  })
+  .strict();
+
+export const VerifyOtpSchema = z
+  .object({
+    email: z.string().trim().email(),
+    otp: z.string().trim().length(6).regex(/^\d{6}$/),
+  })
+  .strict();

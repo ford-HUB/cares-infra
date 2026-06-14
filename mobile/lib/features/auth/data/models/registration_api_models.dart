@@ -1,6 +1,55 @@
 import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
+class SendVerificationResponse {
+  const SendVerificationResponse({
+    required this.email,
+    required this.sent,
+    required this.reused,
+    required this.verified,
+    required this.expiresInSeconds,
+  });
+
+  factory SendVerificationResponse.fromJson(Map<String, dynamic> json) {
+    return SendVerificationResponse(
+      email: json['email'] as String? ?? '',
+      sent: json['sent'] as bool? ?? true,
+      reused: json['reused'] as bool? ?? false,
+      verified: json['verified'] as bool? ?? false,
+      expiresInSeconds: (json['expiresInSeconds'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  final String email;
+  final bool sent;
+  final bool reused;
+  final bool verified;
+  final int expiresInSeconds;
+}
+
+class VerificationStatusResponse {
+  const VerificationStatusResponse({
+    required this.email,
+    required this.hasActiveCode,
+    required this.verified,
+    required this.expiresInSeconds,
+  });
+
+  factory VerificationStatusResponse.fromJson(Map<String, dynamic> json) {
+    return VerificationStatusResponse(
+      email: json['email'] as String? ?? '',
+      hasActiveCode: json['hasActiveCode'] as bool? ?? false,
+      verified: json['verified'] as bool? ?? false,
+      expiresInSeconds: (json['expiresInSeconds'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  final String email;
+  final bool hasActiveCode;
+  final bool verified;
+  final int expiresInSeconds;
+}
+
 class UploadIdResponse {
   const UploadIdResponse({required this.registrationId});
 
