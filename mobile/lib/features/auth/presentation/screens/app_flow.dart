@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
-import 'package:mobile/features/auth/presentation/screens/welcome_film_screen.dart';
+import 'package:mobile/features/auth/presentation/widgets/app_entry_intro.dart';
 
-/// Root flow: welcome short-film → login.
+/// Root flow: entry splash → login.
 class AppFlow extends StatefulWidget {
   const AppFlow({super.key});
 
@@ -10,11 +10,28 @@ class AppFlow extends StatefulWidget {
   State<AppFlow> createState() => _AppFlowState();
 }
 
-class _AppFlowState extends State<AppFlow> {
+class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
   bool _showLogin = false;
+  late final AnimationController _introController;
 
-  void _goToLogin() {
-    setState(() => _showLogin = true);
+  @override
+  void initState() {
+    super.initState();
+    _introController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..forward();
+    _introController.addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(() => _showLogin = true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _introController.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,9 +54,17 @@ class _AppFlowState extends State<AppFlow> {
       },
       child: _showLogin
           ? const LoginScreen(key: ValueKey('login'))
-          : WelcomeFilmScreen(
-              key: const ValueKey('film'),
-              onComplete: _goToLogin,
+          : ColoredBox(
+              key: const ValueKey('entry'),
+              color: Colors.white,
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: _introController,
+                  builder: (context, _) => AppEntryIntro(
+                    progress: _introController.value,
+                  ),
+                ),
+              ),
             ),
     );
   }

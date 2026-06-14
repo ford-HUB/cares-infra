@@ -93,7 +93,7 @@ class FaceScanOverlayPainter extends CustomPainter {
         (isCapturing
             ? 'Capturing photo…'
             : aligned
-                ? 'Hold still — almost there…'
+                ? 'Face aligned'
                 : 'Center your face in the oval');
     _drawLabel(
       canvas,

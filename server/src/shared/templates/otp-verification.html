@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Verify your email — CARES</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #24292e; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f6f8fa;">
+    <tr>
+      <td align="center" style="padding: 32px 16px 48px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 544px;">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+                <img src="https://res.cloudinary.com/dhkp7er6i/image/upload/v1781425864/transparent-logo_ahvqrr.png" alt="CARES Logo" style="width: 50px; height: 50px;">
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.25; color: #24292e;">
+                Please verify your email, {{username}}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color: #ffffff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 32px 40px;">
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5; color: #24292e;">
+                Here is your CARES verification code:
+              </p>
+
+              <p style="margin: 0 0 32px; font-size: 36px; font-weight: 600; line-height: 1.2; letter-spacing: 0.08em; text-align: center; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; color: #24292e;">
+                {{code}}
+              </p>
+
+              <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                This code is valid for <strong>{{expiresInMinutes}} minute</strong> and can only be used once.
+              </p>
+
+              <p style="margin: 0 0 32px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                <strong>Please don't share this code with anyone:</strong> we'll never ask for it on the phone or via email.
+              </p>
+
+              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #24292e;">
+                Thanks,<br>
+                The CARES Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 24px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #586069; max-width: 480px;">
+                You're receiving this email because a verification code was requested for your CARES account. If this wasn't you, please ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
