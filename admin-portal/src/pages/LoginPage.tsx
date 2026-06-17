@@ -37,7 +37,7 @@ export function LoginPage() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.logo}>C</div>
+          <img src="/public/cares_logo.png" alt="CARES" className={styles.logo} />
           <h1 className={styles.title}>CARES Admin Portal</h1>
           <p className={styles.subtitle}>
             Sign in to manage mobile app content, events, and donation campaigns.

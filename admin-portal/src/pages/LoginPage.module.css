@@ -26,7 +26,8 @@
   width: 56px;
   height: 56px;
   margin: 0 auto 16px;
-  border-radius: 16px;
+  border-radius: 50px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
   background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
   color: white;
   font-size: 28px;

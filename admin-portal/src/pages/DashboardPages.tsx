@@ -1,95 +1,134 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import {
+  ACTIVITY_LABELS,
+  getDashboardMetrics,
+  type ActivityType,
+} from '@/data/dashboardData';
 import { ADMIN_ROLE_LABELS } from '@/types/auth';
 import styles from './DashboardPages.module.css';
 
-const SUPER_ADMIN_STATS = [
-  { label: 'Total Users', value: '1,248', change: '+12 this week' },
-  { label: 'Active Events', value: '18', change: '5 upcoming' },
-  { label: 'Donation Campaigns', value: '9', change: '₱284k raised' },
-  { label: 'Registrations', value: '432', change: '86% attendance' },
-];
-
-const COORDINATOR_STATS = [
-  { label: 'Your Events', value: '6', change: '2 draft' },
-  { label: 'Registrations', value: '156', change: '32 pending check-in' },
-  { label: 'Donation Campaigns', value: '4', change: '1 ending soon' },
-  { label: 'Total Raised', value: '₱92k', change: '61% of goal' },
-];
+const ACTIVITY_ICONS: Record<ActivityType, string> = {
+  event_created: '◫',
+  donation_updated: '♥',
+  user_registered: '◎',
+  announcement_published: '📢',
+};
 
 export function DashboardOverviewPage() {
-  const { session } = useAuth();
-  const isSuperAdmin = session!.user.role === 'super_admin';
-  const stats = isSuperAdmin ? SUPER_ADMIN_STATS : COORDINATOR_STATS;
+  const { session, can } = useAuth();
+  const user = session!.user;
+  const isSuperAdmin = user.role === 'super_admin';
+  const { stats, activities } = getDashboardMetrics(user.role);
+  const canPublishAnnouncement = can('manage_content');
 
   return (
     <div>
       <div className={styles.welcomeBanner}>
         <div>
-          <p className={styles.welcomeEyebrow}>Step 3 · Dashboard Access</p>
-          <h2 className={styles.welcomeTitle}>
-            Welcome, {session!.user.firstName}
-          </h2>
+          <p className={styles.welcomeEyebrow}>Dashboard</p>
+          <h2 className={styles.welcomeTitle}>Welcome, {user.firstName}</h2>
           <p className={styles.welcomeText}>
-            You are signed in as{' '}
-            <strong>{ADMIN_ROLE_LABELS[session!.user.role]}</strong>. Content
-            you manage here appears in the CARES mobile application.
+            Manage mobile app content as{' '}
+            <strong>{ADMIN_ROLE_LABELS[user.role]}</strong>. Updates here sync
+            to the CARES mobile application.
           </p>
         </div>
-        <div className={styles.roleBadge}>
-          {ADMIN_ROLE_LABELS[session!.user.role]}
-        </div>
+        <div className={styles.roleBadge}>{ADMIN_ROLE_LABELS[user.role]}</div>
       </div>
 
-      <div className={styles.statsGrid}>
-        {stats.map((stat) => (
-          <div key={stat.label} className={styles.statCard}>
-            <p className={styles.statLabel}>{stat.label}</p>
-            <p className={styles.statValue}>{stat.value}</p>
-            <p className={styles.statChange}>{stat.change}</p>
-          </div>
-        ))}
-      </div>
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Quick Statistics</h3>
+        <div className={styles.statsGrid}>
+          {stats.map((stat) => (
+            <div key={stat.id} className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <span className={styles.statIcon}>{stat.icon}</span>
+                <p className={styles.statLabel}>{stat.label}</p>
+              </div>
+              <p className={styles.statValue}>{stat.value}</p>
+              <p className={styles.statChange}>{stat.change}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className={styles.grid2}>
         <section className={styles.panel}>
-          <h3 className={styles.panelTitle}>Your access scope</h3>
-          {isSuperAdmin ? (
-            <ul className={styles.list}>
-              <li>Full system access across all mobile content</li>
-              <li>Manage users, roles, and verification status</li>
-              <li>Create, edit, and publish events & donation campaigns</li>
-              <li>View registrations, reports, and analytics</li>
-            </ul>
-          ) : (
-            <ul className={styles.list}>
-              <li>Create and manage volunteer events</li>
-              <li>View and export event registrations</li>
-              <li>Create and manage donation campaigns</li>
-              <li>Monitor campaign progress shown in the mobile app</li>
-            </ul>
-          )}
+          <div className={styles.panelHeader}>
+            <h3 className={styles.panelTitle}>Recent Activity</h3>
+            <span className={styles.panelBadge}>Live feed</span>
+          </div>
+          <ul className={styles.activityList}>
+            {activities.map((item) => (
+              <li key={item.id} className={styles.activityItem}>
+                <div
+                  className={`${styles.activityIcon} ${styles[`activity_${item.type}`]}`}
+                >
+                  {ACTIVITY_ICONS[item.type]}
+                </div>
+                <div className={styles.activityBody}>
+                  <p className={styles.activityTitle}>{item.title}</p>
+                  <p className={styles.activityDetail}>{item.detail}</p>
+                  <div className={styles.activityMeta}>
+                    <span className={styles.activityTag}>
+                      {ACTIVITY_LABELS[item.type]}
+                    </span>
+                    <span className={styles.activityTime}>{item.timeAgo}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className={styles.panel}>
-          <h3 className={styles.panelTitle}>CMS quick actions</h3>
-          <div className={styles.actions}>
-            <button type="button" className={styles.actionBtn}>
-              + New Event
-            </button>
-            <button type="button" className={styles.actionBtn}>
-              + Donation Campaign
-            </button>
-            {isSuperAdmin && (
-              <button type="button" className={styles.actionBtnSecondary}>
-                Review user verifications
+          <h3 className={styles.panelTitle}>Quick Actions</h3>
+          <p className={styles.panelIntro}>
+            Create and publish content that appears in the mobile app.
+          </p>
+          <div className={styles.quickActions}>
+            <Link to="/dashboard/events" className={styles.quickActionPrimary}>
+              <span className={styles.quickActionIcon}>+</span>
+              <span>
+                <strong>Create Event</strong>
+                <small>Add a volunteer event to the mobile app</small>
+              </span>
+            </Link>
+
+            <Link to="/dashboard/donations" className={styles.quickActionPrimary}>
+              <span className={styles.quickActionIcon}>+</span>
+              <span>
+                <strong>Create Donation Campaign</strong>
+                <small>Launch a fundraising campaign for donors</small>
+              </span>
+            </Link>
+
+            {canPublishAnnouncement ? (
+              <button type="button" className={styles.quickActionSecondary}>
+                <span className={styles.quickActionIconSecondary}>📢</span>
+                <span>
+                  <strong>Publish Announcement</strong>
+                  <small>Notify all mobile app users</small>
+                </span>
               </button>
+            ) : (
+              <div className={styles.quickActionDisabled}>
+                <span className={styles.quickActionIconSecondary}>📢</span>
+                <span>
+                  <strong>Publish Announcement</strong>
+                  <small>Super Admin access required</small>
+                </span>
+              </div>
             )}
           </div>
-          <p className={styles.panelNote}>
-            Module screens (events, donations, users) are scaffolded in the
-            sidebar. Connect to the NestJS API when backend CMS endpoints are
-            ready.
-          </p>
+
+          {!isSuperAdmin && (
+            <p className={styles.panelNote}>
+              As an Event Coordinator, you can manage events, donation campaigns,
+              and view registrations for your assigned content.
+            </p>
+          )}
         </section>
       </div>
     </div>

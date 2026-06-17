@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { ADMIN_ROLE_LABELS } from '@/types/auth';
 import type { AdminPermission } from '@/types/auth';
