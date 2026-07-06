@@ -59,7 +59,10 @@ export const ModelName = {
   UserVerification: 'UserVerification',
   UserBiometric: 'UserBiometric',
   Role: 'Role',
-  Account: 'Account'
+  Account: 'Account',
+  Interest: 'Interest',
+  UserInterest: 'UserInterest',
+  Event: 'Event'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -88,6 +91,12 @@ export const UserScalarFieldEnum = {
   current_address: 'current_address',
   phone_number: 'phone_number',
   avatar: 'avatar',
+  portal_department: 'portal_department',
+  address_street: 'address_street',
+  address_barangay: 'address_barangay',
+  address_city: 'address_city',
+  address_province: 'address_province',
+  signature_url: 'signature_url',
   role_id: 'role_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -191,6 +200,60 @@ export const AccountScalarFieldEnum = {
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
 
 
+export const InterestScalarFieldEnum = {
+  interest_id: 'interest_id',
+  code: 'code',
+  label: 'label',
+  description: 'description',
+  is_active: 'is_active',
+  sort_order: 'sort_order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InterestScalarFieldEnum = (typeof InterestScalarFieldEnum)[keyof typeof InterestScalarFieldEnum]
+
+
+export const UserInterestScalarFieldEnum = {
+  user_interest_id: 'user_interest_id',
+  user_id: 'user_id',
+  selected: 'selected',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserInterestScalarFieldEnum = (typeof UserInterestScalarFieldEnum)[keyof typeof UserInterestScalarFieldEnum]
+
+
+export const EventScalarFieldEnum = {
+  event_id: 'event_id',
+  title: 'title',
+  description: 'description',
+  event_started: 'event_started',
+  event_ended: 'event_ended',
+  location: 'location',
+  max_participants: 'max_participants',
+  participants: 'participants',
+  organizer_name: 'organizer_name',
+  category: 'category',
+  department: 'department',
+  specified_category: 'specified_category',
+  images: 'images',
+  status: 'status',
+  funds_donation: 'funds_donation',
+  goods_donation: 'goods_donation',
+  goods_types: 'goods_types',
+  beneficiary_applicable: 'beneficiary_applicable',
+  max_beneficiaries: 'max_beneficiaries',
+  geojson: 'geojson',
+  area_sqm: 'area_sqm',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -205,6 +268,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

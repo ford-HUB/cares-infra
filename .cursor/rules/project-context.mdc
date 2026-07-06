@@ -11,6 +11,7 @@ Before implementing or refactoring, **read applicable rules** in `.cursor/rules/
 |------|-----------|------|
 | Flutter mobile | `mobile-flutter.mdc` | Any work under `mobile/` |
 | NestJS server | `server-nestjs.mdc` | Any work under `server/` |
+| React site | `site-web.mdc` | Any work under `site/` |
 | GitHub Actions | `github-actions.mdc` | Any work under `.github/` |
 
 For Cursor product behavior (rules, agents, skills, hooks), use official docs: https://docs.cursor.com
@@ -19,6 +20,7 @@ For Cursor product behavior (rules, agents, skills, hooks), use official docs: h
 
 - `mobile/` — Flutter app; **snake_case** files/folders (see `mobile-flutter.mdc`)
 - `server/` — NestJS API; **kebab-case** files (see `server-nestjs.mdc`)
+- `site/` — React + Vite web app (see `site-web.mdc`)
 - `docker-compose.yaml` — local infra
 
 ## Global expectations

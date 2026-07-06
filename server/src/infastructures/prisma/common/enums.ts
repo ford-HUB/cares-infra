@@ -37,10 +37,32 @@ export type EmbeddingType = (typeof EmbeddingType)[keyof typeof EmbeddingType]
 
 
 export const RoleType = {
-  ADMIN: 'ADMIN',
+  DIRECTOR: 'DIRECTOR',
+  STAFF: 'STAFF',
+  COORDINATOR: 'COORDINATOR',
+  ASSISTANT_COORDINATOR: 'ASSISTANT_COORDINATOR',
   VOLUNTEER: 'VOLUNTEER',
   DONOR: 'DONOR',
   BENEFICIARY: 'BENEFICIARY'
 } as const
 
 export type RoleType = (typeof RoleType)[keyof typeof RoleType]
+
+
+export const InterestCode = {
+  ACADEMIC_ACTIVITIES: 'ACADEMIC_ACTIVITIES',
+  DONATION_DRIVES: 'DONATION_DRIVES',
+  ENVIRONMENT: 'ENVIRONMENT'
+} as const
+
+export type InterestCode = (typeof InterestCode)[keyof typeof InterestCode]
+
+
+export const EventStatus = {
+  Upcoming: 'Upcoming',
+  Ongoing: 'Ongoing',
+  Completed: 'Completed',
+  Cancelled: 'Cancelled'
+} as const
+
+export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]

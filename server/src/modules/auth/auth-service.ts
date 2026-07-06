@@ -4,19 +4,25 @@ import {
     CreateUserDto,
     ExtractIdResponseDto,
     IdOcrResultDto,
+    LoginDto,
+    LoginResponseDto,
+    AdminLoginResponseDto,
+    MeResponseDto,
     RegisterFromSessionDto,
     RegistrationSessionDto,
     UploadIdResponseDto,
     VerifyFaceResponseDto,
 } from "./auth-dto";
-import { EmbeddingType } from "../../infastructures/prisma/common/client";
+import { EmbeddingType, RoleType } from "../../infastructures/prisma/common/client";
 
 import {
     BadGatewayException,
     BadRequestException,
     ConflictException,
+    ForbiddenException,
     Injectable,
     NotFoundException,
+    UnauthorizedException,
 } from "@nestjs/common";
 
 import { randomInt, randomUUID } from "crypto";
@@ -37,6 +43,9 @@ import { DurationUtils } from "../../shared/utilities/duration-utils";
 
 import { TemplateUtils } from "src/shared/utilities/templete-utils";
 import { NodemailerService } from "src/infastructures/nodemailer/nodemailer-service";
+import { JwtService } from "src/infastructures/jwt/jwt-service";
+import { JwtPayload } from "src/common/types/jwt-payload";
+import { isPortalRole } from "src/common/constants/portal-role-types";
 
 
 
@@ -60,6 +69,8 @@ export class AuthService {
 
         private readonly nodemailerService: NodemailerService,
 
+        private readonly jwtService: JwtService,
+
     ) {}
 
 
@@ -82,6 +93,92 @@ export class AuthService {
 
         });
 
+    }
+
+    async login(data: LoginDto): Promise<LoginResponseDto> {
+        const email = data.email.trim().toLowerCase();
+        const account = await this.authRepository.findAccountForLogin(email);
+        if (!account) {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+
+        let passwordMatches = false;
+        try {
+            passwordMatches = await bcrypt.compare(data.password, account.password);
+        } catch {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+
+        if (!passwordMatches) {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+
+        return {
+            user_id: account.user.user_id,
+            role_type: account.user.role.type,
+            email: account.email,
+            firstname: account.user.firstname,
+            has_interests: account.user.user_interest !== null,
+            access_token: this.jwtService.sign({
+                sub: account.user.user_id,
+                email: account.email,
+                role_type: account.user.role.type,
+            }),
+        };
+    }
+
+    async adminLogin(data: LoginDto): Promise<AdminLoginResponseDto> {
+        const email = data.email.trim().toLowerCase();
+        const account = await this.authRepository.findAccountForLogin(email);
+        if (!account) {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+
+        let passwordMatches = false;
+        try {
+            passwordMatches = await bcrypt.compare(data.password, account.password);
+        } catch {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+
+        if (!passwordMatches) {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+
+        if (!isPortalRole(account.user.role.type)) {
+            throw new ForbiddenException("This portal is for administrators only");
+        }
+
+        return {
+            user_id: account.user.user_id,
+            role_type: account.user.role.type,
+            email: account.email,
+            firstname: account.user.firstname,
+            lastname: account.user.lastname,
+            has_interests: account.user.user_interest !== null,
+            access_token: this.jwtService.sign({
+                sub: account.user.user_id,
+                email: account.email,
+                role_type: account.user.role.type,
+            }),
+        };
+    }
+
+    async getMe(user: JwtPayload): Promise<MeResponseDto> {
+        const profile = await this.authRepository.findUserProfile(user.sub);
+        if (!profile) {
+            throw new UnauthorizedException("User not found");
+        }
+
+        const email = profile.accounts[0]?.email ?? user.email;
+
+        return {
+            user_id: profile.user_id,
+            email,
+            firstname: profile.firstname,
+            lastname: profile.lastname,
+            role_type: profile.role.type,
+        };
     }
 
 

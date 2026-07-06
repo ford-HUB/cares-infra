@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
+  StreamableFile,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { map, Observable } from 'rxjs';
@@ -32,6 +33,10 @@ export class ResponseTransformInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) => {
+        if (data instanceof StreamableFile) {
+          return data;
+        }
+
         const response: ApiSuccessResponse<typeof data> = {
           ok: true,
           data,

@@ -3,15 +3,22 @@ import {
     BadRequestException,
     Body,
     Controller,
+    Get,
+    HttpCode,
     Post,
     UploadedFile,
     UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
-import { CreateUserSchema, RegisterFromSessionSchema, RegistrationIdSchema, SendVerificationSchema, VerifyOtpSchema } from "./auth-validator";
+import { CreateUserSchema, LoginSchema, RegisterFromSessionSchema, RegistrationIdSchema, SendVerificationSchema, VerifyOtpSchema } from "./auth-validator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
-import { CreateUserDto, RegisterFromSessionDto, RegistrationIdDto, SendVerificationDto, VerifyOtpDto } from "./auth-dto";
+import { CreateUserDto, LoginDto, RegisterFromSessionDto, RegistrationIdDto, SendVerificationDto, VerifyOtpDto } from "./auth-dto";
 import { ResponseMessage } from "src/common/decorators/response-message-decorator";
+import { Public } from "src/common/decorators/public-decorator";
+import { Roles } from "src/common/decorators/roles-decorator";
+import { CurrentUser } from "src/common/decorators/current-user-decorator";
+import { PORTAL_ROLE_TYPES } from "src/common/constants/portal-role-types";
+import { JwtPayload } from "src/common/types/jwt-payload";
 import { FileFieldsInterceptor, FileInterceptor } from "@nestjs/platform-express";
 
 @Controller('v1/auth')
@@ -19,12 +26,37 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('register')
+    @Public()
     @ResponseMessage('User created')
     async registerUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUserDto) {
         return await this.authService.registerUser(data);
     }
 
+    @Post('login')
+    @Public()
+    @HttpCode(200)
+    @ResponseMessage('Login successful')
+    async login(@Body(new ZodValidationPipe(LoginSchema)) data: LoginDto) {
+        return await this.authService.login(data);
+    }
+
+    @Post('admin/login')
+    @Public()
+    @HttpCode(200)
+    @ResponseMessage('Admin login successful')
+    async adminLogin(@Body(new ZodValidationPipe(LoginSchema)) data: LoginDto) {
+        return await this.authService.adminLogin(data);
+    }
+
+    @Get('me')
+    @Roles(...PORTAL_ROLE_TYPES)
+    @ResponseMessage('Session profile')
+    async me(@CurrentUser() user: JwtPayload) {
+        return await this.authService.getMe(user);
+    }
+
     @Post('upload-id')
+    @Public()
     @ResponseMessage('ID uploaded')
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'front', maxCount: 1 },
@@ -44,6 +76,7 @@ export class AuthController {
     }
 
     @Post('verify-face')
+    @Public()
     @ResponseMessage('Face verification complete')
     @UseInterceptors(FileInterceptor('selfie'))
     async verifyFace(
@@ -63,6 +96,7 @@ export class AuthController {
     }
 
     @Post('register-from-session')
+    @Public()
     @ResponseMessage('User created')
     async registerFromSession(
         @Body(new ZodValidationPipe(RegisterFromSessionSchema)) data: RegisterFromSessionDto,
@@ -71,6 +105,7 @@ export class AuthController {
     }
 
     @Post('extract-id')
+    @Public()
     @ResponseMessage('ID fields extracted')
     async extractId(
         @Body(new ZodValidationPipe(RegistrationIdSchema)) body: RegistrationIdDto,
@@ -79,6 +114,7 @@ export class AuthController {
     }
 
     @Post('send-verification')
+    @Public()
     @ResponseMessage('Verification code sent')
     async sendVerification(
         @Body(new ZodValidationPipe(SendVerificationSchema)) body: SendVerificationDto,
@@ -87,6 +123,7 @@ export class AuthController {
     }
 
     @Post('verification-status')
+    @Public()
     @ResponseMessage('Verification status')
     async verificationStatus(
         @Body(new ZodValidationPipe(SendVerificationSchema)) body: SendVerificationDto,
@@ -95,6 +132,7 @@ export class AuthController {
     }
 
     @Post('verify-otp')
+    @Public()
     @ResponseMessage('Email verified')
     async verifyOtp(
         @Body(new ZodValidationPipe(VerifyOtpSchema)) body: VerifyOtpDto,

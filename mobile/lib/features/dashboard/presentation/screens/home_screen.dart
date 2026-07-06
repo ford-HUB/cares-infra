@@ -1,110 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/core/constants/app_copy.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/auth/presentation/widgets/animated_illustration.dart';
+import 'package:mobile/features/dashboard/domain/mock_profile.dart';
+import 'package:mobile/features/dashboard/presentation/screens/activity_tab_screen.dart';
+import 'package:mobile/features/dashboard/presentation/screens/programs_tab_screen.dart';
+import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
+import 'package:mobile/features/dashboard/presentation/screens/ranks_tab_screen.dart';
+import 'package:mobile/features/dashboard/presentation/screens/volunteer_home_tab.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 
-class HomeScreen extends StatelessWidget {
+/// Main authenticated shell — home landing, events, and bottom navigation.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     this.email,
+    this.firstName,
+    this.displayName,
+    this.points = 240,
   });
 
   final String? email;
+  final String? firstName;
+  final String? displayName;
+  final int points;
+
+  static String greetingFirstName(String? firstName) {
+    final trimmed = firstName?.trim() ?? '';
+    if (trimmed.isNotEmpty) return trimmed;
+    return 'Volunteer';
+  }
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentTab = 0;
+
+  String get _displayName =>
+      widget.displayName ??
+      HomeScreen.greetingFirstName(widget.firstName);
+
+  String get _firstName => HomeScreen.greetingFirstName(widget.firstName);
+
+  Set<String> get _userInterests {
+    final profile = MockProfiles.forUser(
+      displayName: _displayName,
+      email: widget.email,
+      points: widget.points,
+    );
+    return profile.interests.toSet();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final greetingEmail = email?.trim();
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppColors.primary,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          AppCopy.appName,
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-              const Center(
-                child: AnimatedIllustration(progress: 1, size: 120),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                greetingEmail != null && greetingEmail.isNotEmpty
-                    ? 'Welcome to CARES'
-                    : 'Welcome',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryDark,
-                    ),
-              ),
-              if (greetingEmail != null && greetingEmail.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  greetingEmail,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondary.withValues(alpha: 0.95),
-                  ),
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(
+              index: _currentTab,
+              children: [
+                VolunteerHomeTab(
+                  firstName: _firstName,
+                  points: widget.points,
+                ),
+                ProgramsTabScreen(userInterests: _userInterests),
+                const ActivityTabScreen(),
+                RanksTabScreen(
+                  displayName: _displayName,
+                  points: widget.points,
+                ),
+                ProfileTabScreen(
+                  displayName: _displayName,
+                  email: widget.email,
+                  points: widget.points,
                 ),
               ],
-              const SizedBox(height: 16),
-              Text(
-                'Your account is ready. Extension programs, volunteer activities, and updates will appear here as they become available.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: AppColors.secondary.withValues(alpha: 0.9),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.45),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.check_circle_outline,
-                      size: 22,
-                      color: AppColors.primaryDark,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        AppCopy.slogan,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-            ],
+            ),
           ),
-        ),
+          DashboardBottomNav(
+            currentIndex: _currentTab,
+            onTap: (index) => setState(() => _currentTab = index),
+          ),
+        ],
       ),
     );
   }

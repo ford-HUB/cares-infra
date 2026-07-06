@@ -1,0 +1,111 @@
+---
+description: React site — folder architecture, RHF, Zustand, Zod, routing (RBAC)
+globs: site/**
+alwaysApply: false
+---
+
+# Site (React + Vite)
+
+Follow the **existing** structure. Keep code readable, maintainable, and reusable.
+
+## File naming
+
+| Kind | Convention | Example |
+|------|------------|---------|
+| Routes, hooks, services, validators, store, **components**, **constants** | **kebab-case** | `public-routes.tsx`, `admin-login-form.tsx`, `mock-delays.ts` |
+| Pages | **kebab-case** | `login.tsx`, `request-access.tsx` |
+| Folders | **kebab-case** | `components/auth/`, `pages/public/` |
+
+Component and page **filenames** use kebab-case; exported React symbols stay **PascalCase** (e.g. `admin-login-form.tsx` exports `AdminLoginForm`).
+
+## Source layout (required)
+
+```
+site/src/
+├── components/              # reusable UI — shared across pages/modules
+│   └── {module}/            # feature module (auth, dashboard, …)
+│       ├── {feature}.tsx    # composed module component (kebab-case file)
+│       └── ui/              # small pieces used only inside this module
+│           └── {piece}.tsx
+├── hooks/                   # React Hook Form + UI operation logic
+├── store/                   # Zustand stores (state + orchestration)
+├── services/                # pure API call functions (no React)
+├── validators/              # Zod schemas + inferred types
+├── types/                   # shared interfaces & domain types (kebab-case per domain)
+├── constants/               # static values: routes, limits, durations, formatting
+├── config/                  # app wiring: nav menus, role-based redirect helpers
+├── routes/
+│   ├── main-router.tsx      # composes all route groups
+│   ├── public-routes.tsx    # unauthenticated / marketing pages
+│   ├── auth-routes.tsx      # login, register, verify, …
+│   └── permitted-routes.tsx # RBAC-protected routes
+├── pages/                   # route-level screens (thin — compose components)
+│   ├── public/
+│   ├── auth/
+│   └── …
+└── main.tsx
+```
+
+- New code goes in the correct layer. Do not put API calls in components or pages.
+- Shared widgets used by 2+ modules → `components/` (not duplicated per module).
+- Module-only small UI → `components/{module}/ui/`.
+
+## Layer responsibilities
+
+| Layer | Responsibility |
+|-------|----------------|
+| **pages/** | Route screens; compose `components/`; minimal logic |
+| **components/** | Presentational & composed UI; props in, callbacks out |
+| **components/{module}/ui/** | Tiny building blocks for one module only |
+| **hooks/** | RHF setup (`useForm`, resolvers, submit handlers); no direct `fetch` |
+| **store/** | Zustand slices; call `services/`; expose actions/selectors |
+| **services/** | HTTP/API functions only; return typed data; no React imports |
+| **validators/** | Zod schemas; export `z.infer<typeof Schema>` types |
+| **types/** | Shared interfaces, API payloads/responses, domain models — not in services/config/utils |
+| **constants/** | Static values and formatters: route paths, file limits, mock delays, locales, templates |
+| **config/** | Nav definitions and role-based redirect logic (imports from `constants/` where needed) |
+| **routes/** | `RouteObject[]` per access level; wire in `main-router.tsx` |
+
+## UI vs logic
+
+```tsx
+// BAD — API + form state inside a page/component
+const Login = () => {
+  const onSubmit = async () => { await fetch('/api/login', …); };
+};
+
+// GOOD — thin page, hook for RHF, store/service for API
+const Login = () => <LoginForm {...useLoginForm()} />;
+```
+
+- **Forms: React Hook Form** (`react-hook-form`) + Zod resolver (`@hookform/resolvers/zod`).
+- **State: Zustand** — global/session state and async orchestration via store actions.
+- **Validation: Zod** — schemas live in `validators/`; reuse in hooks and services.
+
+## Routing & RBAC
+
+- **`public-routes.tsx`** — no auth required (home, about, …).
+- **`auth-routes.tsx`** — sign-in flow; redirect if already authenticated.
+- **`permitted-routes.tsx`** — protected routes; enforce role/permission before render.
+- Register all groups in `main-router.tsx`; do not scatter route definitions in pages.
+
+## Dependencies
+
+Add via `package.json` when introducing each concern — do not invent a second solution:
+
+- `react-hook-form`, `@hookform/resolvers` — forms
+- `zustand` — client state
+- `zod` — validation
+- API client (e.g. `axios` or shared `fetch` wrapper) in `services/`
+
+## Environment
+
+- Use **`.env`** / `import.meta.env` for API base URL and public config.
+- Never hardcode secrets, tokens, or API keys in source.
+
+## Quality bar
+
+- Keep pages and composed components **under ~300 lines**; split into `ui/` or hooks.
+- Prefer composition over copy-paste; extract repeated UI to `components/`.
+- Types from Zod (`z.infer`) live in `validators/`; explicit shared interfaces live in `types/` (group by domain, kebab-case filenames). Component-local `*Props` may stay in the component file. Avoid `any`.
+- Static literals (route paths, timeouts, file-size limits, locale strings, email templates) and shared formatting helpers live in `constants/` (kebab-case per domain). Do not scatter magic numbers or inline `Intl`/`dayjs` formatters in pages or components.

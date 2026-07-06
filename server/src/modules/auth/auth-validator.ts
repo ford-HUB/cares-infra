@@ -78,3 +78,12 @@ export const VerifyOtpSchema = z
     otp: z.string().trim().length(6).regex(/^\d{6}$/),
   })
   .strict();
+
+export const LoginSchema = z
+  .object({
+    email: z.string().trim().email().transform((value) => value.toLowerCase()),
+    password: z.string().min(1),
+  })
+  .strict();
+
+export type LoginInput = z.infer<typeof LoginSchema>;

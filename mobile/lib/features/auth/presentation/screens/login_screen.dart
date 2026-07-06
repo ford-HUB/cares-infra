@@ -2,10 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_copy.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/data/auth_login_service.dart';
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/animated_illustration.dart';
 import 'package:mobile/features/auth/presentation/widgets/sun_weather_panel.dart';
+import 'package:mobile/features/dashboard/presentation/screens/home_screen.dart';
+import 'package:mobile/features/onboarding/data/onboarding_service.dart';
+import 'package:mobile/features/onboarding/presentation/widgets/interest_selection_dialog.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
@@ -23,6 +29,10 @@ class _LoginScreenState extends State<LoginScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSigningIn = false;
+
+  final AuthLoginService _authLoginService = AuthLoginService();
+  final OnboardingService _onboardingService = OnboardingService();
 
   @override
   void initState() {
@@ -52,6 +62,73 @@ class _LoginScreenState extends State<LoginScreen>
     if (t <= start) return 0;
     if (t >= end) return 1;
     return Curves.easeOutCubic.transform((t - start) / (end - start));
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _signIn() async {
+    if (_isSigningIn) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Please enter your email and password.');
+      return;
+    }
+
+    setState(() => _isSigningIn = true);
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    AuthSession.clear();
+
+    try {
+      final loginResult = await _authLoginService.login(
+        email: email,
+        password: password,
+      );
+      if (!mounted) return;
+
+      AuthSession.setAccessToken(loginResult.accessToken);
+
+      if (loginResult.isVolunteer && !loginResult.hasInterests) {
+        final interests = await showInterestSelectionDialog(context);
+        if (!mounted || interests == null || interests.isEmpty) return;
+
+        await _onboardingService.saveInterests(
+          interests: interests,
+        );
+      }
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (_) => HomeScreen(
+            email: loginResult.email,
+            firstName: loginResult.firstName,
+          ),
+        ),
+        (_) => false,
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      _showMessage(error.message);
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage('Sign in failed. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() => _isSigningIn = false);
+      }
+    }
   }
 
   @override
@@ -155,8 +232,17 @@ class _LoginScreenState extends State<LoginScreen>
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {},
-            child: const Text('Sign In'),
+            onPressed: _isSigningIn ? null : _signIn,
+            child: _isSigningIn
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Sign In'),
           ),
         ),
       ),
