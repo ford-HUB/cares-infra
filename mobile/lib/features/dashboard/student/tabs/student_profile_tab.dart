@@ -262,7 +262,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
             icon: const Icon(Icons.logout_rounded, size: 20),
             label: const Text('Log Out'),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.secondary,
+              foregroundColor: AppColors.error,
               minimumSize: const Size.fromHeight(44),
             ),
           ),

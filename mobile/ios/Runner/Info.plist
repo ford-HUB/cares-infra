@@ -67,9 +67,9 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required to capture verification documents and selfies.</string>
+	<string>CARES needs camera access to capture your school ID and face for registration.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo library access is required to upload verification documents.</string>
+	<string>CARES needs photo library access to upload your school ID.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is used to verify your attendance at event venues.</string>
 </dict>

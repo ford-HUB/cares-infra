@@ -4,23 +4,32 @@ services:
       context: ./server
       dockerfile: Dockerfile
       target: development
-    container_name: cares_local_server
+    container_name: local_server
     ports:
-      - '9000:9000'
+      - "9000:9000"
     env_file:
       - ./.env
     command: npm run start:dev
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FR_SERVICE_URL=http://fr-service:8001
+      - OCR_SERVICE_URL=http://ocr-service:8002
+      - UCID_SERVICE_URL=http://ucid-service:8003
     depends_on:
       - db
+      - redis
+      - fr-service
+      - ocr-service
+      - ucid-service
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
 
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: postgres_db
     env_file:
       - ./.env
@@ -29,9 +38,17 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   pgadmin:
     image: dpage/pgadmin4
@@ -45,5 +62,53 @@ services:
     depends_on:
       - db
 
+  fr-service:
+    build:
+      context: ./microservices/fr-service
+      dockerfile: Dockerfile
+    container_name: fr_service
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - MODEL_NAME=buffalo_l
+      - CTX_ID=-1
+      - DET_SIZE=640
+      - VERIFY_THRESHOLD=0.4
+      - EMBEDDING_DIM=512
+      - CORS_ORIGINS=*
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+  ocr-service:
+    build:
+      context: ./microservices/ocr-service
+      dockerfile: Dockerfile
+    container_name: ocr_service
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - CORS_ORIGINS=*
+    volumes:
+      - ./microservices/ocr-service/app:/app/app
+
+  ucid-service:
+    build:
+      context: ./microservices/ucid-service
+      dockerfile: Dockerfile
+    container_name: ucid_service
+    ports:
+      - "8003:8003"
+    environment:
+      - PORT=8003
+      - CORS_ORIGINS=*
+      - VALID_THRESHOLD=0.50
+    volumes:
+      - ./microservices/ucid-service/models:/app/models
+
 volumes:
   postgres_data:
+  redis_data:

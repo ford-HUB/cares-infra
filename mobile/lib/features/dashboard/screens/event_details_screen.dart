@@ -145,7 +145,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           children: [
             Icon(
               success ? Icons.location_on_rounded : Icons.location_off_rounded,
-              color: success ? AppColors.primary : AppColors.secondary,
+              color: success ? AppColors.primary : AppColors.error,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -602,9 +602,9 @@ class _CountdownChip extends StatelessWidget {
     final urgent = daysUntil <= 3;
     return _StatusChip(
       label: daysUntil == 0 ? 'Today' : 'In ${daysUntil}d',
-      color: urgent ? AppColors.secondary : AppColors.primary,
+      color: urgent ? AppColors.error : AppColors.primary,
       background: urgent
-          ? AppColors.secondary.withValues(alpha: 0.12)
+          ? AppColors.error.withValues(alpha: 0.12)
           : AppColors.inputFill,
     );
   }

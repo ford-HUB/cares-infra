@@ -82,10 +82,10 @@ class ImageUploadCard extends StatelessWidget {
                 ),
                 if (imagePath != null)
                   ListTile(
-                    leading: const Icon(Icons.delete_outline, color: AppColors.secondary),
+                    leading: const Icon(Icons.delete_outline, color: AppColors.error),
                     title: const Text(
                       'Remove Photo',
-                      style: TextStyle(color: AppColors.secondary),
+                      style: TextStyle(color: AppColors.error),
                     ),
                     onTap: () {
                       Navigator.pop(context);

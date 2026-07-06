@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./common"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  user_id            String             @id @default(uuid())
+  firstname          String
+  lastname           String
+  middle_name        String?
+  gender             GenderType         @default(OTHER)
+  age                Int
+  current_address    String
+  phone_number       String             @unique
+  avatar             String?
+  user_school_info   UserSchoolInfo[]
+  user_biometrics    UserBiometric[]
+  accounts           Account[]
+  user_verifications UserVerification[]
+  role               Role               @relation(fields: [role_id], references: [role_id])
+  role_id            String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model UserSchoolInfo {
+  user_school_info_id String     @id @default(uuid())
+  id_number           String     @unique
+  graduation_year     Int
+  graduation_month    Int
+  graduation_day      Int
+  department_id       String
+  department          Department @relation(fields: [department_id], references: [department_id])
+  major_id            String
+  major               Major      @relation(fields: [major_id], references: [major_id])
+  year_level_id       String
+  year_level          YearLevel  @relation(fields: [year_level_id], references: [year_level_id])
+  user_id             String
+  user                User       @relation(fields: [user_id], references: [user_id])
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Department {
+  department_id    String           @id @default(uuid())
+  name             String
+  user_school_info UserSchoolInfo[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Major {
+  major_id         String           @id @default(uuid())
+  name             String
+  user_school_info UserSchoolInfo[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model YearLevel {
+  year_level_id    String           @id @default(uuid())
+  name             String
+  user_school_info UserSchoolInfo[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model UserVerification {
+  user_verification_id String             @id @default(uuid())
+  user_id              String
+  user                 User               @relation(fields: [user_id], references: [user_id])
+  school_id_url        String
+  status               VerificationStatus @default(PENDING)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+enum EmbeddingType {
+  FACE
+  FINGERPRINT
+  IRIS
+}
+
+model UserBiometric {
+  user_biometric_id String        @id @default(uuid())
+  face_url          String
+  embedding         Json?
+  embedding_type    EmbeddingType @default(FACE)
+  isActive          Boolean       @default(true)
+  user_id           String
+  user              User          @relation(fields: [user_id], references: [user_id])
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+enum RoleType {
+  ADMIN
+  VOLUNTEER
+  DONOR
+  BENEFICIARY
+}
+
+model Role {
+  role_id   String   @id @default(uuid())
+  type      RoleType @default(VOLUNTEER)
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  account_id String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  user       User     @relation(fields: [user_id], references: [user_id])
+  user_id    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

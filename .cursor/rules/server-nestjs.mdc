@@ -1,0 +1,117 @@
+---
+description: NestJS server — module layout, layers, API contract, validation (strict)
+globs: server/**
+alwaysApply: false
+---
+
+# Server (NestJS)
+
+## kebab-case — always (non-negotiable)
+
+**Every** hand-written file under `server/` uses **kebab-case** filenames. This is the project standard — no exceptions for new or renamed files.
+
+| ✅ Correct | ❌ Wrong |
+|-----------|---------|
+| `auth-controller.ts` | `auth.controller.ts`, `AuthController.ts` |
+| `app-module.ts` | `app.module.ts`, `AppModule.ts` |
+| `response-transform-interceptor.ts` | `responseTransformInterceptor.ts` |
+| `http-exception-filter.ts` | `http-exception.filter.ts`, `httpException.filter.ts` |
+
+- **Folders**: kebab-case (`modules/auth/`, `common/pipes/`).
+- **Classes**: PascalCase in code (`AuthController`) — only the **file** is kebab-case.
+- **Imports**: paths must match kebab-case filenames (`from './auth-service'`, `from 'src/common/pipes/zod-validation-pipe'`).
+
+If Nest CLI scaffolds PascalCase or dot-notation files, **rename to kebab-case** before committing.
+
+---
+
+Follow the **existing** structure exactly. Do not introduce alternate patterns (class-validator-only DTOs, logic in controllers, or non-kebab-case filenames).
+
+## Source layout
+
+```
+server/src/
+├── main.ts                    # bootstrap: global prefix, CORS, global interceptor/filter
+├── app-module.ts              # root module, ConfigModule, middleware registration
+├── health-controller.ts       # app-level health (stays at src root)
+├── common/
+│   ├── decorators/            # response-message-decorator.ts (@ResponseMessage)
+│   ├── filters/               # http-exception-filter.ts → { ok: false, message, errors? }
+│   ├── interceptors/          # ResponseTransformInterceptor → { ok: true, message?, data }
+│   └── pipes/                 # ZodValidationPipe (primary), dto-validation-pipe if needed
+└── modules/
+    ├── middlewares/           # e.g. RequestLoggerMiddleware
+    ├── prisma/
+    │   ├── schema.prisma
+    │   ├── migrations/
+    │   ├── common/            # GENERATED — never hand-edit
+    │   ├── prisma-module.ts   # @Global()
+    │   └── prisma-service.ts
+    └── {feature}/             # one folder per domain (auth, …)
+        ├── {feature}-module.ts
+        ├── {feature}-controller.ts
+        ├── {feature}-service.ts
+        ├── {feature}-repository.ts
+        ├── {feature}-validator.ts    # Zod schemas + z.infer types
+        └── {feature}-dto.ts          # TypeScript interfaces for service/repo
+```
+
+## Layer responsibilities
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Controller** | HTTP routing, `@Body` + `ZodValidationPipe`, delegate to service, `@ResponseMessage` |
+| **Service** | Business rules (hashing, orchestration); no raw Prisma in controllers |
+| **Repository** | Prisma queries/transactions only |
+| **Validator** | Zod schemas (`.strict()`); export schemas used by pipes |
+| **DTO** | TypeScript interfaces aligned with validator output |
+
+```typescript
+// Controller — thin
+@Post('register')
+@ResponseMessage('User created')
+async createUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUserDto) {
+  return this.authService.createUser(data);
+}
+```
+
+## API contract
+
+- Global prefix: **`api`** (set in `main.ts`).
+- Version in controller path: `@Controller('v1/auth')` → `/api/v1/auth/...`.
+- Success body (interceptor): `{ ok: true, message?: string, data: T }`.
+- Error body (filter): `{ ok: false, message: string, errors?: unknown }`.
+- Use `@ResponseMessage('…')` on handlers that need a custom success message.
+
+## Validation
+
+- Define schemas in `{feature}-validator.ts` with **Zod**.
+- Validate request bodies with `new ZodValidationPipe(Schema)` on `@Body()`.
+- DTO interfaces in `{feature}-dto.ts` match validated shapes.
+
+## Config & secrets
+
+- `ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' })` in `app-module.ts`.
+- Read `process.env` / `ConfigService` for `PORT`, `DATABASE_URL`, etc.
+- Never commit or hardcode secrets, tokens, or connection strings.
+
+## Prisma
+
+- Schema: `server/src/modules/prisma/schema.prisma`.
+- Migrations: `server/src/modules/prisma/migrations/`.
+- Config: `server/prisma.config.ts`.
+- Import client from `modules/prisma/common/client` (generated).
+- Inject `PrismaService` in repositories only; keep `modules/prisma/common/**` generated.
+
+## Modules
+
+- Register feature modules in `app-module.ts` `imports`.
+- Export services from feature modules when other modules need them.
+- `PrismaModule` is `@Global()` — do not re-import Prisma in every feature unless required.
+
+## New features checklist
+
+1. Create `modules/{feature}/` with module, controller, service, repository, validator, dto.
+2. Wire `{feature}-module.ts` into `app-module.ts`.
+3. Use kebab-case filenames and existing common pipes/decorators/interceptors.
+4. Add Zod schemas before exposing new endpoints.

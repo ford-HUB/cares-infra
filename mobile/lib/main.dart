@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'core/theme/app_theme.dart';
-import 'features/onboarding/onboarding_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/services/camera_bootstrap.dart';
+import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/presentation/screens/app_flow.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -11,7 +14,13 @@ void main() {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const CaresApp());
+  await CameraBootstrap.preload();
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {
+    // Weather falls back gracefully when .env is missing.
+  }
+  runApp(const ProviderScope(child: CaresApp()));
 }
 
 class CaresApp extends StatelessWidget {
@@ -22,8 +31,8 @@ class CaresApp extends StatelessWidget {
     return MaterialApp(
       title: 'CARES',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const OnboardingScreen(),
+      theme: buildAppTheme(),
+      home: const AppFlow(),
     );
   }
 }

@@ -39,6 +39,12 @@ dependencies:
   geolocator: ^14.0.2
   uuid: ^4.5.3
   fl_chart: ^1.2.0
+  permission_handler: ^11.4.0
+  camera: ^0.11.1
+  google_mlkit_face_detection: ^0.13.1
+  flutter_riverpod: ^2.6.1
+  flutter_dotenv: ^5.2.1
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -63,10 +69,13 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - assets/images/cares_logo.png
+    - assets/images/transparent-logo.png
     - assets/images/onboarding_welcome.png
     - assets/images/onboarding_discover.png
     - assets/images/onboarding_impact.png
+    - assets/images/mascot/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

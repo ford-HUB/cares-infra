@@ -10,7 +10,9 @@ class AppColors {
   static const Color primary = Color(0xFF2D7634);
   static const Color primaryDark = Color(0xFF1F5F28);
   static const Color primaryLight = Color(0xFF3A9042);
+  static const Color secondary = Color(0xFF4CAF50);
   static const Color accentLight = Color(0xFFC1D8B9);
+  static const Color light = Color(0xFFA5D6A7);
 
   // Legacy aliases used across the app
   static const Color accent = Color(0xFF6E9E58);
@@ -19,13 +21,16 @@ class AppColors {
   static const Color accentGreen = Color(0xFF1F5F28);
 
   // Semantic
-  static const Color secondary = Color(0xFFC62828);
+  static const Color error = Color(0xFFC62828);
   static const Color accentOrange = Color(0xFFE65100);
+  static const Color heart = Color(0xFFE53935);
 
   // Fills & borders
   static const Color inputFill = Color(0xFFCFE8C8);
+  static const Color fieldFill = Colors.white;
   static const Color borderCard = Color(0xFFB7DDB5);
   static const Color borderLight = Color(0xFFCFE8C8);
+  static const Color fieldBorder = Color(0xFFC8E6C9);
   static const Color borderActive = Color(0xFF2D7634);
 
   // Text
@@ -35,6 +40,15 @@ class AppColors {
 
   static const double cardRadius = 18;
   static const double pillRadius = 999;
+
+  static const List<Color> communityRing = [
+    Color(0xFF7E57C2),
+    Color(0xFF42A5F5),
+    Color(0xFF66BB6A),
+    Color(0xFFFFCA28),
+    Color(0xFFEF5350),
+    Color(0xFF26A69A),
+  ];
 }
 
 /// Reusable surfaces matching the eco-friendly dashboard palette.
@@ -65,7 +79,7 @@ class AppTheme {
       seedColor: AppColors.primary,
       primary: AppColors.primary,
       onPrimary: Colors.white,
-      secondary: AppColors.accent,
+      secondary: AppColors.secondary,
       tertiary: AppColors.accentBright,
       surface: AppColors.surface,
       brightness: Brightness.light,
@@ -123,37 +137,41 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.inputFill,
+        fillColor: AppColors.fieldFill,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
         border: OutlineInputBorder(
           borderRadius: borderRadius,
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: AppColors.fieldBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: borderRadius,
-          borderSide: const BorderSide(color: AppColors.borderLight),
+          borderSide: const BorderSide(color: AppColors.fieldBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: borderRadius,
           borderSide: const BorderSide(
-            color: AppColors.borderActive,
+            color: AppColors.secondary,
             width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: borderRadius,
-          borderSide: const BorderSide(color: AppColors.secondary),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: borderRadius,
-          borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        hintStyle: const TextStyle(color: AppColors.textMuted),
+        hintStyle: const TextStyle(color: AppColors.light, fontSize: 15),
         floatingLabelStyle: const TextStyle(color: AppColors.primary),
+        prefixIconColor: AppColors.secondary,
+        suffixIconColor: AppColors.secondary,
       ),
     );
   }
 }
+
+ThemeData buildAppTheme() => AppTheme.light;
