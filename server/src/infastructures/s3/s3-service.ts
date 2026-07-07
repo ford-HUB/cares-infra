@@ -18,17 +18,18 @@ export class S3Service {
         });
     }
 
-    async uploadToS3(filename: string, buffer: Buffer): Promise<string> {
+    async uploadToS3(filename: string, buffer: Buffer, contentType?: string): Promise<string> {
         await this.s3.send(new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME as string,
             Key: filename,
             Body: buffer,
+            ...(contentType ? { ContentType: contentType } : {}),
         }));
 
         return this.buildObjectUrl(filename);
     }
 
-    async getObjectBuffer(keyOrUrl: string): Promise<Buffer> {
+    async getObject(keyOrUrl: string): Promise<{ buffer: Buffer; contentType: string }> {
         const key = this.resolveObjectKey(keyOrUrl);
         const response = await this.s3.send(new GetObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME as string,
@@ -40,7 +41,15 @@ export class S3Service {
             throw new Error(`S3 object is empty: ${key}`);
         }
 
-        return Buffer.from(await body.transformToByteArray());
+        return {
+            buffer: Buffer.from(await body.transformToByteArray()),
+            contentType: response.ContentType ?? 'application/octet-stream',
+        };
+    }
+
+    async getObjectBuffer(keyOrUrl: string): Promise<Buffer> {
+        const object = await this.getObject(keyOrUrl);
+        return object.buffer;
     }
 
     resolveObjectKey(keyOrUrl: string): string {

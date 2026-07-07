@@ -17,7 +17,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed:admin": "pnpm run build && node scripts/seed-admin.mjs",
+    "seed:events": "pnpm run build && node scripts/seed-events.mjs"
+  },
+  "prisma": {
+    "seed": "node scripts/seed-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1058.0",
@@ -33,6 +38,7 @@
     "dotenv": "^17.4.2",
     "handlebars": "^4.7.9",
     "ioredis": "^5.11.0",
+    "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.11",
     "pg": "^8.21.0",
@@ -49,6 +55,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.20.0",

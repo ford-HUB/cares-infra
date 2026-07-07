@@ -25,7 +25,7 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
   };
 
   bool _volunteerExpanded = false;
-  VolunteerType? _selectedVolunteerType;
+  VolunteerType _selectedVolunteerType = VolunteerType.student;
 
   void _onRoleSelected(RegistrationRoleType roleType) {
     if (roleType == RegistrationRoleType.volunteer) {
@@ -41,14 +41,11 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
   }
 
   void _startVolunteerRegistration() {
-    final type = _selectedVolunteerType;
-    if (type == null) return;
-
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => RegisterFlowScreen(
           roleType: RegistrationRoleType.volunteer,
-          volunteerType: type,
+          volunteerType: _selectedVolunteerType,
         ),
       ),
     );
@@ -99,14 +96,16 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
                   ),
                 )
                 .toList(),
-            onChanged: (value) => setState(() => _selectedVolunteerType = value),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _selectedVolunteerType = value);
+            },
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed:
-                  _selectedVolunteerType != null ? _startVolunteerRegistration : null,
+              onPressed: _startVolunteerRegistration,
               child: const Text('Continue to ID upload'),
             ),
           ),

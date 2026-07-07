@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/core/services/auth_session.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode, this.errors});
@@ -38,9 +39,14 @@ class ApiClient {
     return Uri.parse('$baseUrl$normalizedPath');
   }
 
-  Future<Map<String, dynamic>> getJson(String path) async {
+  Future<Map<String, dynamic>> getJson(
+    String path, {
+    bool authenticate = true,
+  }) async {
     return _guard(() async {
-      final response = await _client.get(uri(path)).timeout(const Duration(seconds: 30));
+      final response = await _client
+          .get(uri(path), headers: _jsonHeaders(authenticate: authenticate))
+          .timeout(const Duration(seconds: 30));
       return _parseResponse(response);
     }, path);
   }
@@ -49,12 +55,31 @@ class ApiClient {
     String path, {
     required Map<String, dynamic> body,
     Duration timeout = const Duration(seconds: 30),
+    bool authenticate = true,
   }) async {
     return _guard(() async {
       final response = await _client
           .post(
             uri(path),
-            headers: const {'Content-Type': 'application/json'},
+            headers: _jsonHeaders(authenticate: authenticate),
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+      return _parseResponse(response);
+    }, path);
+  }
+
+  Future<Map<String, dynamic>> putJson(
+    String path, {
+    required Map<String, dynamic> body,
+    Duration timeout = const Duration(seconds: 30),
+    bool authenticate = true,
+  }) async {
+    return _guard(() async {
+      final response = await _client
+          .put(
+            uri(path),
+            headers: _jsonHeaders(authenticate: authenticate),
             body: jsonEncode(body),
           )
           .timeout(timeout);
@@ -122,5 +147,18 @@ class ApiClient {
     }
 
     return body;
+  }
+
+  Map<String, String> _jsonHeaders({bool authenticate = true}) {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (!authenticate) {
+      return headers;
+    }
+
+    final token = AuthSession.accessToken;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
   }
 }

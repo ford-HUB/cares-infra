@@ -23,10 +23,17 @@ model User {
   current_address    String
   phone_number       String             @unique
   avatar             String?
+  portal_department  String?
+  address_street     String?
+  address_barangay   String?
+  address_city       String?
+  address_province   String?
+  signature_url      String?
   user_school_info   UserSchoolInfo[]
   user_biometrics    UserBiometric[]
   accounts           Account[]
   user_verifications UserVerification[]
+  user_interest      UserInterest?
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -110,7 +117,10 @@ model UserBiometric {
 }
 
 enum RoleType {
-  ADMIN
+  DIRECTOR
+  STAFF
+  COORDINATOR
+  ASSISTANT_COORDINATOR
   VOLUNTEER
   DONOR
   BENEFICIARY
@@ -132,4 +142,63 @@ model Account {
   user_id    String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+enum InterestCode {
+  ACADEMIC_ACTIVITIES
+  DONATION_DRIVES
+  ENVIRONMENT
+}
+
+model Interest {
+  interest_id String       @id @default(uuid())
+  code        InterestCode @unique
+  label       String
+  description String?
+  is_active   Boolean      @default(true)
+  sort_order  Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model UserInterest {
+  user_interest_id String   @id @default(uuid())
+  user_id          String   @unique
+  user             User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  selected         Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum EventStatus {
+  Upcoming
+  Ongoing
+  Completed
+  Cancelled
+}
+
+model Event {
+  event_id               Int         @id @default(autoincrement())
+  title                  String
+  description            String
+  event_started          DateTime
+  event_ended            DateTime
+  location               String
+  max_participants       Int
+  participants           Int         @default(0)
+  organizer_name         String
+  category               String
+  department             String?
+  specified_category     String?
+  images                 String[]    @default([])
+  status                 EventStatus @default(Upcoming)
+  funds_donation         Boolean     @default(false)
+  goods_donation         Boolean     @default(false)
+  goods_types            String[]    @default([])
+  beneficiary_applicable Boolean     @default(false)
+  max_beneficiaries      Int?
+  geojson                Json?
+  area_sqm               Float?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
 }

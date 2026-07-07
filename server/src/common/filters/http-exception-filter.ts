@@ -50,6 +50,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message: 'Internal server error',
     };
 
+    if (exception instanceof Error) {
+      console.error('[HttpExceptionFilter]', exception.message, exception.stack);
+    } else {
+      console.error('[HttpExceptionFilter]', exception);
+    }
+
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(body);
   }
 }

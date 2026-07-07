@@ -172,7 +172,10 @@ class _EmailVerificationScreenState
   void _goToHome() {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
-        builder: (_) => HomeScreen(email: widget.email),
+        builder: (_) => HomeScreen(
+          email: widget.email,
+          firstName: widget.ocrData.firstname,
+        ),
       ),
       (_) => false,
     );

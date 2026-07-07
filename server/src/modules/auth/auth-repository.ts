@@ -126,6 +126,47 @@ export class AuthRepository {
         });
     }
 
+    async findAccountForLogin(email: string) {
+        return this.prisma.account.findUnique({
+            where: { email },
+            select: {
+                email: true,
+                password: true,
+                user: {
+                    select: {
+                        user_id: true,
+                        firstname: true,
+                        lastname: true,
+                        role: {
+                            select: { type: true },
+                        },
+                        user_interest: {
+                            select: { user_interest_id: true },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    async findUserProfile(userId: string) {
+        return this.prisma.user.findUnique({
+            where: { user_id: userId },
+            select: {
+                user_id: true,
+                firstname: true,
+                lastname: true,
+                accounts: {
+                    select: { email: true },
+                    take: 1,
+                },
+                role: {
+                    select: { type: true },
+                },
+            },
+        });
+    }
+
     private async findOrCreateDepartment(
         tx: Prisma.TransactionClient,
         name: string,

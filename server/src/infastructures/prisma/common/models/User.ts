@@ -44,6 +44,12 @@ export type UserMinAggregateOutputType = {
   current_address: string | null
   phone_number: string | null
   avatar: string | null
+  portal_department: string | null
+  address_street: string | null
+  address_barangay: string | null
+  address_city: string | null
+  address_province: string | null
+  signature_url: string | null
   role_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +65,12 @@ export type UserMaxAggregateOutputType = {
   current_address: string | null
   phone_number: string | null
   avatar: string | null
+  portal_department: string | null
+  address_street: string | null
+  address_barangay: string | null
+  address_city: string | null
+  address_province: string | null
+  signature_url: string | null
   role_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -74,6 +86,12 @@ export type UserCountAggregateOutputType = {
   current_address: number
   phone_number: number
   avatar: number
+  portal_department: number
+  address_street: number
+  address_barangay: number
+  address_city: number
+  address_province: number
+  signature_url: number
   role_id: number
   createdAt: number
   updatedAt: number
@@ -99,6 +117,12 @@ export type UserMinAggregateInputType = {
   current_address?: true
   phone_number?: true
   avatar?: true
+  portal_department?: true
+  address_street?: true
+  address_barangay?: true
+  address_city?: true
+  address_province?: true
+  signature_url?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -114,6 +138,12 @@ export type UserMaxAggregateInputType = {
   current_address?: true
   phone_number?: true
   avatar?: true
+  portal_department?: true
+  address_street?: true
+  address_barangay?: true
+  address_city?: true
+  address_province?: true
+  signature_url?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -129,6 +159,12 @@ export type UserCountAggregateInputType = {
   current_address?: true
   phone_number?: true
   avatar?: true
+  portal_department?: true
+  address_street?: true
+  address_barangay?: true
+  address_city?: true
+  address_province?: true
+  signature_url?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -231,6 +267,12 @@ export type UserGroupByOutputType = {
   current_address: string
   phone_number: string
   avatar: string | null
+  portal_department: string | null
+  address_street: string | null
+  address_barangay: string | null
+  address_city: string | null
+  address_province: string | null
+  signature_url: string | null
   role_id: string
   createdAt: Date
   updatedAt: Date
@@ -269,6 +311,12 @@ export type UserWhereInput = {
   current_address?: Prisma.StringFilter<"User"> | string
   phone_number?: Prisma.StringFilter<"User"> | string
   avatar?: Prisma.StringNullableFilter<"User"> | string | null
+  portal_department?: Prisma.StringNullableFilter<"User"> | string | null
+  address_street?: Prisma.StringNullableFilter<"User"> | string | null
+  address_barangay?: Prisma.StringNullableFilter<"User"> | string | null
+  address_city?: Prisma.StringNullableFilter<"User"> | string | null
+  address_province?: Prisma.StringNullableFilter<"User"> | string | null
+  signature_url?: Prisma.StringNullableFilter<"User"> | string | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -276,6 +324,7 @@ export type UserWhereInput = {
   user_biometrics?: Prisma.UserBiometricListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   user_verifications?: Prisma.UserVerificationListRelationFilter
+  user_interest?: Prisma.XOR<Prisma.UserInterestNullableScalarRelationFilter, Prisma.UserInterestWhereInput> | null
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }
 
@@ -289,6 +338,12 @@ export type UserOrderByWithRelationInput = {
   current_address?: Prisma.SortOrder
   phone_number?: Prisma.SortOrder
   avatar?: Prisma.SortOrderInput | Prisma.SortOrder
+  portal_department?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_street?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_barangay?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_city?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_province?: Prisma.SortOrderInput | Prisma.SortOrder
+  signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -296,6 +351,7 @@ export type UserOrderByWithRelationInput = {
   user_biometrics?: Prisma.UserBiometricOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   user_verifications?: Prisma.UserVerificationOrderByRelationAggregateInput
+  user_interest?: Prisma.UserInterestOrderByWithRelationInput
   role?: Prisma.RoleOrderByWithRelationInput
 }
 
@@ -312,6 +368,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   age?: Prisma.IntFilter<"User"> | number
   current_address?: Prisma.StringFilter<"User"> | string
   avatar?: Prisma.StringNullableFilter<"User"> | string | null
+  portal_department?: Prisma.StringNullableFilter<"User"> | string | null
+  address_street?: Prisma.StringNullableFilter<"User"> | string | null
+  address_barangay?: Prisma.StringNullableFilter<"User"> | string | null
+  address_city?: Prisma.StringNullableFilter<"User"> | string | null
+  address_province?: Prisma.StringNullableFilter<"User"> | string | null
+  signature_url?: Prisma.StringNullableFilter<"User"> | string | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -319,6 +381,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   user_biometrics?: Prisma.UserBiometricListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   user_verifications?: Prisma.UserVerificationListRelationFilter
+  user_interest?: Prisma.XOR<Prisma.UserInterestNullableScalarRelationFilter, Prisma.UserInterestWhereInput> | null
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }, "user_id" | "phone_number">
 
@@ -332,6 +395,12 @@ export type UserOrderByWithAggregationInput = {
   current_address?: Prisma.SortOrder
   phone_number?: Prisma.SortOrder
   avatar?: Prisma.SortOrderInput | Prisma.SortOrder
+  portal_department?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_street?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_barangay?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_city?: Prisma.SortOrderInput | Prisma.SortOrder
+  address_province?: Prisma.SortOrderInput | Prisma.SortOrder
+  signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -355,6 +424,12 @@ export type UserScalarWhereWithAggregatesInput = {
   current_address?: Prisma.StringWithAggregatesFilter<"User"> | string
   phone_number?: Prisma.StringWithAggregatesFilter<"User"> | string
   avatar?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  portal_department?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  address_street?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  address_barangay?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  address_city?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  address_province?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  signature_url?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role_id?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -370,12 +445,19 @@ export type UserCreateInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -389,6 +471,12 @@ export type UserUncheckedCreateInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -396,6 +484,7 @@ export type UserUncheckedCreateInput = {
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -408,12 +497,19 @@ export type UserUpdateInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -427,6 +523,12 @@ export type UserUncheckedUpdateInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -434,6 +536,7 @@ export type UserUncheckedUpdateInput = {
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -446,6 +549,12 @@ export type UserCreateManyInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -461,6 +570,12 @@ export type UserUpdateManyMutationInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -475,6 +590,12 @@ export type UserUncheckedUpdateManyInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -490,6 +611,12 @@ export type UserCountOrderByAggregateInput = {
   current_address?: Prisma.SortOrder
   phone_number?: Prisma.SortOrder
   avatar?: Prisma.SortOrder
+  portal_department?: Prisma.SortOrder
+  address_street?: Prisma.SortOrder
+  address_barangay?: Prisma.SortOrder
+  address_city?: Prisma.SortOrder
+  address_province?: Prisma.SortOrder
+  signature_url?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -509,6 +636,12 @@ export type UserMaxOrderByAggregateInput = {
   current_address?: Prisma.SortOrder
   phone_number?: Prisma.SortOrder
   avatar?: Prisma.SortOrder
+  portal_department?: Prisma.SortOrder
+  address_street?: Prisma.SortOrder
+  address_barangay?: Prisma.SortOrder
+  address_city?: Prisma.SortOrder
+  address_province?: Prisma.SortOrder
+  signature_url?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -524,6 +657,12 @@ export type UserMinOrderByAggregateInput = {
   current_address?: Prisma.SortOrder
   phone_number?: Prisma.SortOrder
   avatar?: Prisma.SortOrder
+  portal_department?: Prisma.SortOrder
+  address_street?: Prisma.SortOrder
+  address_barangay?: Prisma.SortOrder
+  address_city?: Prisma.SortOrder
+  address_province?: Prisma.SortOrder
+  signature_url?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -670,6 +809,20 @@ export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountsInput, Prisma.UserUpdateWithoutAccountsInput>, Prisma.UserUncheckedUpdateWithoutAccountsInput>
 }
 
+export type UserCreateNestedOneWithoutUser_interestInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUser_interestInput, Prisma.UserUncheckedCreateWithoutUser_interestInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_interestInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutUser_interestNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUser_interestInput, Prisma.UserUncheckedCreateWithoutUser_interestInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_interestInput
+  upsert?: Prisma.UserUpsertWithoutUser_interestInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUser_interestInput, Prisma.UserUpdateWithoutUser_interestInput>, Prisma.UserUncheckedUpdateWithoutUser_interestInput>
+}
+
 export type UserCreateWithoutUser_school_infoInput = {
   user_id?: string
   firstname: string
@@ -680,11 +833,18 @@ export type UserCreateWithoutUser_school_infoInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -698,12 +858,19 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_school_infoInput = {
@@ -732,11 +899,18 @@ export type UserUpdateWithoutUser_school_infoInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -750,12 +924,19 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUser_verificationsInput = {
@@ -768,11 +949,18 @@ export type UserCreateWithoutUser_verificationsInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -786,12 +974,19 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_verificationsInput = {
@@ -820,11 +1015,18 @@ export type UserUpdateWithoutUser_verificationsInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -838,12 +1040,19 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUser_biometricsInput = {
@@ -856,11 +1065,18 @@ export type UserCreateWithoutUser_biometricsInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -874,12 +1090,19 @@ export type UserUncheckedCreateWithoutUser_biometricsInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_biometricsInput = {
@@ -908,11 +1131,18 @@ export type UserUpdateWithoutUser_biometricsInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -926,12 +1156,19 @@ export type UserUncheckedUpdateWithoutUser_biometricsInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -944,12 +1181,19 @@ export type UserCreateWithoutRoleInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -962,12 +1206,19 @@ export type UserUncheckedCreateWithoutRoleInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -1009,6 +1260,12 @@ export type UserScalarWhereInput = {
   current_address?: Prisma.StringFilter<"User"> | string
   phone_number?: Prisma.StringFilter<"User"> | string
   avatar?: Prisma.StringNullableFilter<"User"> | string | null
+  portal_department?: Prisma.StringNullableFilter<"User"> | string | null
+  address_street?: Prisma.StringNullableFilter<"User"> | string | null
+  address_barangay?: Prisma.StringNullableFilter<"User"> | string | null
+  address_city?: Prisma.StringNullableFilter<"User"> | string | null
+  address_province?: Prisma.StringNullableFilter<"User"> | string | null
+  signature_url?: Prisma.StringNullableFilter<"User"> | string | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -1024,11 +1281,18 @@ export type UserCreateWithoutAccountsInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1042,12 +1306,19 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1076,11 +1347,18 @@ export type UserUpdateWithoutAccountsInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1094,11 +1372,134 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutUser_interestInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutUser_interestInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutUser_interestInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUser_interestInput, Prisma.UserUncheckedCreateWithoutUser_interestInput>
+}
+
+export type UserUpsertWithoutUser_interestInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUser_interestInput, Prisma.UserUncheckedUpdateWithoutUser_interestInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUser_interestInput, Prisma.UserUncheckedCreateWithoutUser_interestInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUser_interestInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUser_interestInput, Prisma.UserUncheckedUpdateWithoutUser_interestInput>
+}
+
+export type UserUpdateWithoutUser_interestInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUser_interestInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -1112,6 +1513,12 @@ export type UserCreateManyRoleInput = {
   current_address: string
   phone_number: string
   avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1126,12 +1533,19 @@ export type UserUpdateWithoutRoleInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -1144,12 +1558,19 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -1162,6 +1583,12 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   current_address?: Prisma.StringFieldUpdateOperationsInput | string
   phone_number?: Prisma.StringFieldUpdateOperationsInput | string
   avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1234,6 +1661,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   current_address?: boolean
   phone_number?: boolean
   avatar?: boolean
+  portal_department?: boolean
+  address_street?: boolean
+  address_barangay?: boolean
+  address_city?: boolean
+  address_province?: boolean
+  signature_url?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1241,6 +1674,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   user_biometrics?: boolean | Prisma.User$user_biometricsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   user_verifications?: boolean | Prisma.User$user_verificationsArgs<ExtArgs>
+  user_interest?: boolean | Prisma.User$user_interestArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -1255,6 +1689,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   current_address?: boolean
   phone_number?: boolean
   avatar?: boolean
+  portal_department?: boolean
+  address_street?: boolean
+  address_barangay?: boolean
+  address_city?: boolean
+  address_province?: boolean
+  signature_url?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1271,6 +1711,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   current_address?: boolean
   phone_number?: boolean
   avatar?: boolean
+  portal_department?: boolean
+  address_street?: boolean
+  address_barangay?: boolean
+  address_city?: boolean
+  address_province?: boolean
+  signature_url?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1287,17 +1733,24 @@ export type UserSelectScalar = {
   current_address?: boolean
   phone_number?: boolean
   avatar?: boolean
+  portal_department?: boolean
+  address_street?: boolean
+  address_barangay?: boolean
+  address_city?: boolean
+  address_province?: boolean
+  signature_url?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "signature_url" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
   user_biometrics?: boolean | Prisma.User$user_biometricsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   user_verifications?: boolean | Prisma.User$user_verificationsArgs<ExtArgs>
+  user_interest?: boolean | Prisma.User$user_interestArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1315,6 +1768,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     user_biometrics: Prisma.$UserBiometricPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     user_verifications: Prisma.$UserVerificationPayload<ExtArgs>[]
+    user_interest: Prisma.$UserInterestPayload<ExtArgs> | null
     role: Prisma.$RolePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1327,6 +1781,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     current_address: string
     phone_number: string
     avatar: string | null
+    portal_department: string | null
+    address_street: string | null
+    address_barangay: string | null
+    address_city: string | null
+    address_province: string | null
+    signature_url: string | null
     role_id: string
     createdAt: Date
     updatedAt: Date
@@ -1728,6 +2188,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   user_biometrics<T extends Prisma.User$user_biometricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_biometricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserBiometricPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_verifications<T extends Prisma.User$user_verificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_verificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  user_interest<T extends Prisma.User$user_interestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_interestArgs<ExtArgs>>): Prisma.Prisma__UserInterestClient<runtime.Types.Result.GetResult<Prisma.$UserInterestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1767,6 +2228,12 @@ export interface UserFieldRefs {
   readonly current_address: Prisma.FieldRef<"User", 'String'>
   readonly phone_number: Prisma.FieldRef<"User", 'String'>
   readonly avatar: Prisma.FieldRef<"User", 'String'>
+  readonly portal_department: Prisma.FieldRef<"User", 'String'>
+  readonly address_street: Prisma.FieldRef<"User", 'String'>
+  readonly address_barangay: Prisma.FieldRef<"User", 'String'>
+  readonly address_city: Prisma.FieldRef<"User", 'String'>
+  readonly address_province: Prisma.FieldRef<"User", 'String'>
+  readonly signature_url: Prisma.FieldRef<"User", 'String'>
   readonly role_id: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -2264,6 +2731,25 @@ export type User$user_verificationsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.UserVerificationScalarFieldEnum | Prisma.UserVerificationScalarFieldEnum[]
+}
+
+/**
+ * User.user_interest
+ */
+export type User$user_interestArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserInterest
+   */
+  select?: Prisma.UserInterestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserInterest
+   */
+  omit?: Prisma.UserInterestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInterestInclude<ExtArgs> | null
+  where?: Prisma.UserInterestWhereInput
 }
 
 /**

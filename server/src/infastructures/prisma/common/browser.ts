@@ -62,3 +62,18 @@ export type Role = Prisma.RoleModel
  * 
  */
 export type Account = Prisma.AccountModel
+/**
+ * Model Interest
+ * 
+ */
+export type Interest = Prisma.InterestModel
+/**
+ * Model UserInterest
+ * 
+ */
+export type UserInterest = Prisma.UserInterestModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel
