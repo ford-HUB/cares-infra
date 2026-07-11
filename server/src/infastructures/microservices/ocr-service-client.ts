@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IdOcrResultDto } from 'src/modules/auth/auth-dto';
+import { IdOcrResultDto } from 'src/modules/auth/dto/auth-mobile-dto';
 import { toImageBlob } from 'src/common/utils/image-mime';
 
 interface OcrApiResponse {

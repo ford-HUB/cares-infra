@@ -1,5 +1,5 @@
 ---
-description: NestJS server — module layout, layers, API contract, validation (strict)
+description: NestJS server — feature folders, mobile/site split, layers, API contract, validation (strict)
 globs: server/**
 alwaysApply: false
 ---
@@ -12,49 +12,96 @@ alwaysApply: false
 
 | ✅ Correct | ❌ Wrong |
 |-----------|---------|
-| `auth-controller.ts` | `auth.controller.ts`, `AuthController.ts` |
+| `auth-mobile-controller.ts` | `auth.controller.ts`, `AuthController.ts` |
 | `app-module.ts` | `app.module.ts`, `AppModule.ts` |
 | `response-transform-interceptor.ts` | `responseTransformInterceptor.ts` |
-| `http-exception-filter.ts` | `http-exception.filter.ts`, `httpException.filter.ts` |
 
-- **Folders**: kebab-case (`modules/auth/`, `common/pipes/`).
-- **Classes**: PascalCase in code (`AuthController`) — only the **file** is kebab-case.
-- **Imports**: paths must match kebab-case filenames (`from './auth-service'`, `from 'src/common/pipes/zod-validation-pipe'`).
+- **Folders**: kebab-case (`modules/auth/`, `dto/` — never `DTO`).
+- **Classes**: PascalCase in code (`AuthMobileController`) — only the **file** is kebab-case.
+- **Imports**: paths must match kebab-case filenames.
 
 If Nest CLI scaffolds PascalCase or dot-notation files, **rename to kebab-case** before committing.
 
 ---
 
-Follow the **existing** structure exactly. Do not introduce alternate patterns (class-validator-only DTOs, logic in controllers, or non-kebab-case filenames).
+Follow the **existing** structure exactly. Do not introduce alternate patterns (flat feature files, class-validator-only DTOs, logic in controllers, or non-kebab-case filenames).
+
+## Feature naming
+
+- Feature folder names must describe the **domain**, not a vague flow.
+- ✅ `interests`, `auth`, `profile`, `events`, `account-settings`
+- ❌ `onboarding`, `misc`, `helpers`, `utils` as a feature module
 
 ## Source layout
 
 ```
 server/src/
-├── main.ts                    # bootstrap: global prefix, CORS, global interceptor/filter
-├── app-module.ts              # root module, ConfigModule, middleware registration
-├── health-controller.ts       # app-level health (stays at src root)
-├── common/
-│   ├── decorators/            # response-message-decorator.ts (@ResponseMessage)
-│   ├── filters/               # http-exception-filter.ts → { ok: false, message, errors? }
-│   ├── interceptors/          # ResponseTransformInterceptor → { ok: true, message?, data }
-│   └── pipes/                 # ZodValidationPipe (primary), dto-validation-pipe if needed
+├── main.ts
+├── app-module.ts              # imports parent feature modules from modules/{feature}/modules/
+├── health-controller.ts
+├── common/                    # decorators, filters, interceptors, pipes, guards
+├── middlewares/
+├── infastructures/            # prisma, redis, s3, jwt, nodemailer, microservices
 └── modules/
-    ├── middlewares/           # e.g. RequestLoggerMiddleware
-    ├── prisma/
-    │   ├── schema.prisma
-    │   ├── migrations/
-    │   ├── common/            # GENERATED — never hand-edit
-    │   ├── prisma-module.ts   # @Global()
-    │   └── prisma-service.ts
-    └── {feature}/             # one folder per domain (auth, …)
-        ├── {feature}-module.ts
-        ├── {feature}-controller.ts
-        ├── {feature}-service.ts
-        ├── {feature}-repository.ts
-        ├── {feature}-validator.ts    # Zod schemas + z.infer types
-        └── {feature}-dto.ts          # TypeScript interfaces for service/repo
+    └── {feature}/             # e.g. auth, interests, profile, events, account-settings
+        ├── controllers/
+        ├── dto/               # lowercase only
+        ├── modules/
+        ├── repositories/      # shared (not mobile/site split)
+        ├── services/
+        └── validators/
 ```
+
+## Feature module layout (required)
+
+Every feature uses **layer folders**. Client-facing layers are split by consumer:
+
+```
+modules/{feature}/
+├── controllers/
+│   ├── {feature}-mobile-controller.ts   # when mobile uses this feature
+│   └── {feature}-site-controller.ts     # when site/portal uses this feature
+├── dto/
+│   ├── {feature}-mobile-dto.ts
+│   └── {feature}-site-dto.ts
+├── validators/
+│   ├── {feature}-mobile-validator.ts
+│   └── {feature}-site-validator.ts
+├── services/
+│   ├── {feature}-mobile-service.ts
+│   └── {feature}-site-service.ts
+├── repositories/
+│   └── {feature}-repository.ts          # shared; do not split
+└── modules/
+    ├── {feature}-mobile-module.ts       # optional if no mobile surface
+    ├── {feature}-site-module.ts         # optional if no site surface
+    └── {feature}-module.ts              # thin parent: imports child module(s)
+```
+
+### Mobile vs site
+
+| Client | Suffix | Example |
+|--------|--------|---------|
+| Flutter app | `mobile` | `AuthMobileController`, `interests-mobile-service.ts` |
+| React portal (`site/`) | `site` | `ProfileSiteController`, `events-site-dto.ts` |
+
+- Only create the client side(s) that exist. Do not stub empty mobile/site files.
+- Both controllers may share `@Controller('v1/{feature}')` so routes stay stable.
+- Put endpoints in the client that owns them (e.g. portal admin login → site; volunteer login/register → mobile).
+- Repository stays **shared** and is provided by each child module that needs it.
+
+### Parent module wiring
+
+```typescript
+// modules/auth/modules/auth-module.ts
+@Module({
+  imports: [AuthMobileModule, AuthSiteModule],
+})
+export class AuthModule {}
+```
+
+- Register the **parent** in `app-module.ts`: `./modules/{feature}/modules/{feature}-module`.
+- Child modules own controllers/providers; parent only aggregates.
 
 ## Layer responsibilities
 
@@ -68,10 +115,11 @@ server/src/
 
 ```typescript
 // Controller — thin
-@Post('register')
-@ResponseMessage('User created')
-async createUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUserDto) {
-  return this.authService.createUser(data);
+@Post('login')
+@Public()
+@ResponseMessage('Login successful')
+async login(@Body(new ZodValidationPipe(LoginSchema)) data: LoginDto) {
+  return this.authMobileService.login(data);
 }
 ```
 
@@ -79,15 +127,16 @@ async createUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUser
 
 - Global prefix: **`api`** (set in `main.ts`).
 - Version in controller path: `@Controller('v1/auth')` → `/api/v1/auth/...`.
+- Prefer feature-named paths (`v1/interests`), not vague ones (`v1/onboarding`).
 - Success body (interceptor): `{ ok: true, message?: string, data: T }`.
 - Error body (filter): `{ ok: false, message: string, errors?: unknown }`.
 - Use `@ResponseMessage('…')` on handlers that need a custom success message.
 
 ## Validation
 
-- Define schemas in `{feature}-validator.ts` with **Zod**.
-- Validate request bodies with `new ZodValidationPipe(Schema)` on `@Body()`.
-- DTO interfaces in `{feature}-dto.ts` match validated shapes.
+- Schemas in `{feature}-{mobile|site}-validator.ts` with **Zod**.
+- Validate with `new ZodValidationPipe(Schema)` on `@Body()` / `@Param()`.
+- DTO interfaces in `{feature}-{mobile|site}-dto.ts` match validated shapes.
 
 ## Config & secrets
 
@@ -97,21 +146,16 @@ async createUser(@Body(new ZodValidationPipe(CreateUserSchema)) data: CreateUser
 
 ## Prisma
 
-- Schema: `server/src/modules/prisma/schema.prisma`.
-- Migrations: `server/src/modules/prisma/migrations/`.
-- Config: `server/prisma.config.ts`.
-- Import client from `modules/prisma/common/client` (generated).
-- Inject `PrismaService` in repositories only; keep `modules/prisma/common/**` generated.
-
-## Modules
-
-- Register feature modules in `app-module.ts` `imports`.
-- Export services from feature modules when other modules need them.
+- Schema: `server/src/infastructures/prisma/schema.prisma` (or project’s current prisma path).
+- Import client from `infastructures/prisma/common/client` (generated).
+- Inject `PrismaService` in repositories only; keep generated `common/**` untouched.
 - `PrismaModule` is `@Global()` — do not re-import Prisma in every feature unless required.
 
 ## New features checklist
 
-1. Create `modules/{feature}/` with module, controller, service, repository, validator, dto.
-2. Wire `{feature}-module.ts` into `app-module.ts`.
-3. Use kebab-case filenames and existing common pipes/decorators/interceptors.
-4. Add Zod schemas before exposing new endpoints.
+1. Create `modules/{feature}/` with layer folders above.
+2. Add only the needed client side(s): `mobile` and/or `site`.
+3. Keep repository shared; split controller/dto/validator/service/module by client.
+4. Add thin parent `{feature}-module.ts` and wire it into `app-module.ts`.
+5. Use kebab-case filenames and existing common pipes/decorators/interceptors.
+6. Add Zod schemas before exposing new endpoints.

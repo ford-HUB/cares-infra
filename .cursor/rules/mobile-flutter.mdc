@@ -29,7 +29,7 @@ lib/
 ├── core/           # constants, theme, utils, network, services
 ├── shared/         # widgets, components, models (cross-feature)
 ├── features/
-│   └── {feature}/  # auth, face_verification, onboarding, dashboard, settings
+│   └── {feature}/  # auth, interests, dashboard, settings
 │       ├── presentation/
 │       ├── data/
 │       └── domain/
