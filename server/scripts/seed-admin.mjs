@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { getDatabaseUrl } from "./database-url.mjs";
 import { PrismaClient } from "../dist/infastructures/prisma/common/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcrypt";
@@ -18,7 +19,7 @@ const seedEnvSchema = z.object({
 
 function readSeedEnv() {
   return {
-    DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_URL: getDatabaseUrl(),
     SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL,
     SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD,
     SEED_ADMIN_FIRSTNAME: process.env.SEED_ADMIN_FIRSTNAME,

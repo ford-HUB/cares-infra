@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { getDatabaseUrl } from "./database-url.mjs";
 import { PrismaClient } from "../dist/infastructures/prisma/common/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcrypt";
@@ -7,7 +8,7 @@ import jwt from "jsonwebtoken";
 const email = process.argv[2];
 const password = process.argv[3];
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg({ connectionString: getDatabaseUrl() });
 const prisma = new PrismaClient({ adapter });
 
 const account = await prisma.account.findUnique({

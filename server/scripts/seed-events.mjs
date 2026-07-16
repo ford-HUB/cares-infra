@@ -1,8 +1,9 @@
 import "dotenv/config";
+import { getDatabaseUrl } from "./database-url.mjs";
 import { PrismaClient } from "../dist/infastructures/prisma/common/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_URL = getDatabaseUrl();
 if (!DATABASE_URL) {
   console.error("DATABASE_URL is required");
   process.exit(1);

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { getDatabaseUrl } from "./database-url.mjs";
 import { PrismaClient } from "../dist/infastructures/prisma/common/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcrypt";
@@ -6,7 +7,7 @@ import bcrypt from "bcrypt";
 const email = "dyfordbonghanoy@gmail.com";
 const password = "TestLogin123!";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg({ connectionString: getDatabaseUrl() });
 const prisma = new PrismaClient({ adapter });
 
 const hash = await bcrypt.hash(password, 10);
