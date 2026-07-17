@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/media_permissions.dart';
+import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 enum IdCardSide { front, back }
@@ -12,12 +13,14 @@ enum IdCardSide { front, back }
 class RegisterIdUploadStep extends StatefulWidget {
   const RegisterIdUploadStep({
     super.key,
+    required this.roleType,
     required this.frontImage,
     required this.backImage,
     required this.onFrontPicked,
     required this.onBackPicked,
   });
 
+  final RegistrationRoleType roleType;
   final XFile? frontImage;
   final XFile? backImage;
   final ValueChanged<XFile> onFrontPicked;
@@ -37,6 +40,8 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
   bool get _backUploaded => widget.backImage != null;
   bool get _bothUploaded => _frontUploaded && _backUploaded;
   bool get _canFlip => _frontUploaded;
+  bool get _isBeneficiary =>
+      widget.roleType == RegistrationRoleType.beneficiary;
 
   IdCardSide get _activeSide => _showingBack ? IdCardSide.back : IdCardSide.front;
 
@@ -125,7 +130,7 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Upload your school ID',
+          _isBeneficiary ? 'Upload your valid ID' : 'Upload your school ID',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.primaryDark,
@@ -133,9 +138,13 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
         ),
         const SizedBox(height: 8),
         Text(
-          _frontUploaded && !_showingBack
-              ? 'Front uploaded — flip the card to add the back.'
-              : 'Upload the front first, then flip to upload the back.',
+          _isBeneficiary
+              ? 'Upload a clear photo of a government-issued or other accepted valid ID '
+                  '(e.g. National ID, Driver\'s License, Passport, Postal ID, or SSS/UMID). '
+                  'Include the front first, then flip to add the back when your ID has two sides.'
+              : _frontUploaded && !_showingBack
+                  ? 'Front uploaded — flip the card to add the back.'
+                  : 'Upload the front first, then flip to upload the back.',
           style: TextStyle(
             fontSize: 14,
             height: 1.45,

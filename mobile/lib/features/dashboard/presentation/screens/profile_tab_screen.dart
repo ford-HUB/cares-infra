@@ -166,6 +166,8 @@ class _ProfileHeader extends StatelessWidget {
               children: [
                 Text(
                   profile.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -175,6 +177,8 @@ class _ProfileHeader extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   profile.email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -182,7 +186,10 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -202,7 +209,6 @@ class _ProfileHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Text(
                       'Member since ${profile.memberSince}',
                       style: TextStyle(
@@ -343,12 +349,14 @@ class _SkillRow extends StatelessWidget {
             color: AppColors.primary,
           ),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryDark,
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryDark,
+              ),
             ),
           ),
         ],

@@ -33,6 +33,17 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
       return;
     }
 
+    if (roleType == RegistrationRoleType.beneficiary) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const RegisterFlowScreen(
+            roleType: RegistrationRoleType.beneficiary,
+          ),
+        ),
+      );
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => RegisterRolePlaceholderScreen(roleType: roleType),

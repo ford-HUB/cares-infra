@@ -20,6 +20,7 @@ import { CurrentUser } from "src/common/decorators/current-user-decorator";
 import { PORTAL_ROLE_TYPES } from "src/common/constants/portal-role-types";
 import { JwtPayload } from "src/common/types/jwt-payload";
 import { FileFieldsInterceptor, FileInterceptor } from "@nestjs/platform-express";
+import { RoleType } from "../../infastructures/prisma/common/client";
 
 @Controller('v1/auth')
 export class AuthController {
@@ -64,6 +65,7 @@ export class AuthController {
     ]))
     async uploadID(
         @UploadedFiles() files: { front?: Express.Multer.File[]; back?: Express.Multer.File[] },
+        @Body('roleType') roleType?: string,
     ) {
         const front = files.front?.[0];
         const back = files.back?.[0];
@@ -72,7 +74,12 @@ export class AuthController {
             throw new BadRequestException('Front and back ID images are required');
         }
 
-        return await this.authService.uploadID(front, back);
+        const parsedRoleType =
+            roleType && Object.values(RoleType).includes(roleType as RoleType)
+                ? (roleType as RoleType)
+                : undefined;
+
+        return await this.authService.uploadID(front, back, parsedRoleType);
     }
 
     @Post('verify-face')

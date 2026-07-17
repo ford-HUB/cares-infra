@@ -13,13 +13,19 @@ class AuthRegistrationService {
   Future<UploadIdResponse> uploadId({
     required XFile front,
     required XFile back,
+    String? roleType,
   }) async {
     final frontBytes = await front.readAsBytes();
     final backBytes = await back.readAsBytes();
 
+    final fields = <String, String>{};
+    if (roleType != null && roleType.isNotEmpty) {
+      fields['roleType'] = roleType;
+    }
+
     final response = await _api.postMultipart(
       '/auth/upload-id',
-      fields: const {},
+      fields: fields,
       files: [
         http.MultipartFile.fromBytes(
           'front',

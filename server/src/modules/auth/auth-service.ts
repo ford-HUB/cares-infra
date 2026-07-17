@@ -189,31 +189,37 @@ export class AuthService {
 
         back: Express.Multer.File,
 
+        roleType?: RoleType,
+
     ): Promise<UploadIdResponseDto> {
 
-        let validation : any;
-        try {
-            validation = await this.ucidServiceClient.validateId(
-                front.buffer,
-                front.originalname,
-                front.mimetype,
-                back.buffer,
-                back.originalname,
-                back.mimetype,
-            );
-        } catch (error) {
-            const detail = error instanceof Error ? error.message : 'ID validation failed';
-            throw new BadGatewayException(
-                detail.includes('not ready') || detail.includes('not trained')
-                    ? detail
-                    : 'ID validation service is unavailable. Please try again shortly.',
-            );
-        }
+        const requiresUclmValidation = roleType !== RoleType.BENEFICIARY;
 
-        if (!validation.isValid) {
-            throw new BadRequestException(
-                validation.message ?? 'Uploaded images are not valid UCLM ID cards',
-            );
+        if (requiresUclmValidation) {
+            let validation: any;
+            try {
+                validation = await this.ucidServiceClient.validateId(
+                    front.buffer,
+                    front.originalname,
+                    front.mimetype,
+                    back.buffer,
+                    back.originalname,
+                    back.mimetype,
+                );
+            } catch (error) {
+                const detail = error instanceof Error ? error.message : 'ID validation failed';
+                throw new BadGatewayException(
+                    detail.includes('not ready') || detail.includes('not trained')
+                        ? detail
+                        : 'ID validation service is unavailable. Please try again shortly.',
+                );
+            }
+
+            if (!validation.isValid) {
+                throw new BadRequestException(
+                    validation.message ?? 'Uploaded images are not valid UCLM ID cards',
+                );
+            }
         }
 
         const registrationId = randomUUID();

@@ -77,9 +77,7 @@ export function PortalHeader({
               placeholder="Search or type command..."
               className="w-full rounded-lg border border-gray-300 py-2.5 pr-4 pl-10 text-base focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-400">
-              Ctrl K
-            </span>
+
           </div>
         </div>
 

@@ -11,7 +11,7 @@ Please complete the details below using this exact prefix format. Attach a clear
 FIRST NAME:
 MIDDLE NAME:
 LAST NAME:
-REQUESTED ROLE: (Staff / Coordinator / Assistant Coordinator)
+REQUESTED ROLE: ( Coordinator / Director)
 DEPARTMENT:
 ID FOR VERIFICATION: (ID number — attach ID document below)
 

@@ -142,6 +142,9 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
     required String email,
     required String password,
   }) {
+    final normalizedId = RegisterOcrRawParser.normalizeIdNumber(idNumber);
+    final isBeneficiary = roleType == 'BENEFICIARY';
+
     return {
       'registrationId': registrationId,
       'firstname': firstname,
@@ -156,17 +159,27 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
         'email': email,
         'password': password,
       },
-      'school_info': {
-        'id_number': RegisterOcrRawParser.normalizeIdNumber(idNumber),
-        'graduation_year': graduationYear,
-        'graduation_month': graduationMonth,
-        'graduation_day': graduationDay,
-        'department': {'name': departmentName},
-        'major': {'name': majorName.isEmpty ? departmentName : majorName},
-        'year_level': {
-          'name': yearLevelName.isEmpty ? 'N/A' : yearLevelName,
-        },
-      },
+      'school_info': isBeneficiary
+          ? {
+              'id_number': normalizedId,
+              'graduation_year': 2000,
+              'graduation_month': 1,
+              'graduation_day': 1,
+              'department': {'name': 'N/A'},
+              'major': {'name': 'N/A'},
+              'year_level': {'name': 'N/A'},
+            }
+          : {
+              'id_number': normalizedId,
+              'graduation_year': graduationYear,
+              'graduation_month': graduationMonth,
+              'graduation_day': graduationDay,
+              'department': {'name': departmentName},
+              'major': {'name': majorName.isEmpty ? departmentName : majorName},
+              'year_level': {
+                'name': yearLevelName.isEmpty ? 'N/A' : yearLevelName,
+              },
+            },
     };
   }
 
