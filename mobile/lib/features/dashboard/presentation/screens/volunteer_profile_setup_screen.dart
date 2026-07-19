@@ -3,11 +3,11 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/volunteer_profile_service.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/selectable_options_section.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/selection_section_card.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile_form_sections.dart';
 import 'package:mobile/features/onboarding/data/onboarding_service.dart';
 import 'package:mobile/features/onboarding/domain/user_interest.dart';
 
+/// Onboarding flow for volunteers who have not yet finished setting up their profile.
 class VolunteerProfileSetupScreen extends StatefulWidget {
   const VolunteerProfileSetupScreen({
     super.key,
@@ -183,7 +183,7 @@ class _VolunteerProfileSetupScreenState
         elevation: 0,
         foregroundColor: AppColors.primaryDark,
         title: const Text(
-          'Volunteer Profile',
+          'Complete Your Profile',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
@@ -219,38 +219,20 @@ class _VolunteerProfileSetupScreenState
                               ),
                             ),
                             const SizedBox(height: 24),
-                            SelectableOptionsSection(
-                              title: 'Interests',
-                              subtitle: 'What areas are you passionate about?',
-                              options: _interestOptions,
-                              selected: _selectedInterests
+                            VolunteerProfileFormSections(
+                              interestOptions: _interestOptions,
+                              selectedInterestLabels: _selectedInterests
                                   .map((interest) => interest.label)
                                   .toSet(),
-                              onToggle: _toggleInterestByLabel,
-                              emptyMessage: 'No interests available right now.',
-                            ),
-                            const SizedBox(height: 16),
-                            SelectableOptionsSection(
-                              title: 'Skills',
-                              subtitle: 'What can you contribute?',
-                              options: VolunteerProfileOptions.skills,
-                              selected: _selectedSkills,
-                              onToggle: (value) =>
+                              selectedSkills: _selectedSkills,
+                              selectedAvailability: _selectedAvailability,
+                              hoursPerWeek: _hoursPerWeek,
+                              onToggleInterest: _toggleInterestByLabel,
+                              onToggleSkill: (value) =>
                                   _toggleString(_selectedSkills, value),
-                            ),
-                            const SizedBox(height: 16),
-                            SelectionSectionCard(
-                              title: 'Availability',
-                              subtitle: 'When do you prefer to volunteer?',
-                              options: VolunteerProfileOptions.availability,
-                              selected: _selectedAvailability,
-                              onToggle: (value) =>
+                              onToggleAvailability: (value) =>
                                   _toggleString(_selectedAvailability, value),
-                            ),
-                            const SizedBox(height: 16),
-                            _HoursSection(
-                              selectedHours: _hoursPerWeek,
-                              onChanged: (value) =>
+                              onHoursChanged: (value) =>
                                   setState(() => _hoursPerWeek = value),
                             ),
                           ],
@@ -272,85 +254,12 @@ class _VolunteerProfileSetupScreenState
                                     color: Colors.white,
                                   ),
                                 )
-                              : const Text('Save Profile'),
+                              : const Text('Complete Profile'),
                         ),
                       ),
                     ),
                   ],
                 ),
-    );
-  }
-}
-
-class _HoursSection extends StatelessWidget {
-  const _HoursSection({
-    required this.selectedHours,
-    required this.onChanged,
-  });
-
-  final int? selectedHours;
-  final ValueChanged<int?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.fieldBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Hours per week',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primaryDark,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Optional — helps coordinators plan assignments.',
-            style: TextStyle(
-              fontSize: 12,
-              height: 1.35,
-              color: AppColors.secondary.withValues(alpha: 0.95),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: VolunteerProfileOptions.hoursPerWeek.map((hours) {
-              final isSelected = selectedHours == hours;
-              return FilterChip(
-                label: Text('$hours hrs'),
-                selected: isSelected,
-                onSelected: (_) => onChanged(isSelected ? null : hours),
-                selectedColor: AppColors.primary.withValues(alpha: 0.14),
-                checkmarkColor: AppColors.primaryDark,
-                labelStyle: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? AppColors.primaryDark
-                      : AppColors.secondary.withValues(alpha: 0.95),
-                ),
-                side: BorderSide(
-                  color: isSelected ? AppColors.primary : AppColors.fieldBorder,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
     );
   }
 }

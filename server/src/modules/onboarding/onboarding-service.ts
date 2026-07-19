@@ -7,6 +7,8 @@ import {
 import { InterestCode, Prisma, RoleType } from "../../infastructures/prisma/common/client";
 import {
     SaveVolunteerProfileDto,
+    UpdateVolunteerAccountProfileDto,
+    VolunteerAccountProfileDto,
     VolunteerProfileResponseDto,
 } from "./onboarding-dto";
 import { OnboardingRepository } from "./onboarding-repository";
@@ -74,5 +76,50 @@ export class OnboardingService {
         }
 
         return isVolunteerProfileComplete(parseVolunteerProfilePayload(row.selected));
+    }
+
+    async getVolunteerAccountProfile(userId: string): Promise<VolunteerAccountProfileDto> {
+        const user = await this.onboardingRepository.findUserWithRole(userId);
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (user.role.type !== RoleType.VOLUNTEER) {
+            throw new ForbiddenException("Only volunteers can access account profile");
+        }
+
+        const profile = await this.onboardingRepository.findVolunteerAccountProfile(userId);
+        if (!profile) {
+            throw new NotFoundException("User not found");
+        }
+
+        const schoolInfo = profile.user_school_info[0];
+
+        return {
+            firstname: profile.firstname,
+            lastname: profile.lastname,
+            email: profile.accounts[0]?.email ?? "",
+            phone_number: profile.phone_number,
+            id_number: schoolInfo?.id_number ?? null,
+            department: schoolInfo?.department.name ?? null,
+            course: schoolInfo?.major.name ?? null,
+        };
+    }
+
+    async updateVolunteerAccountProfile(
+        userId: string,
+        data: UpdateVolunteerAccountProfileDto,
+    ): Promise<VolunteerAccountProfileDto> {
+        const user = await this.onboardingRepository.findUserWithRole(userId);
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (user.role.type !== RoleType.VOLUNTEER) {
+            throw new ForbiddenException("Only volunteers can update account profile");
+        }
+
+        await this.onboardingRepository.updateVolunteerAccountProfile(userId, data);
+        return this.getVolunteerAccountProfile(userId);
     }
 }

@@ -7,9 +7,9 @@ import { isPortalRole, PORTAL_ROLE_TYPES } from "src/common/constants/portal-rol
 import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
 import { RoleType } from "../../infastructures/prisma/common/client";
 import { JwtPayload } from "src/common/types/jwt-payload";
-import { SaveVolunteerProfileDto } from "./onboarding-dto";
+import { SaveVolunteerProfileDto, UpdateVolunteerAccountProfileDto } from "./onboarding-dto";
 import { OnboardingService } from "./onboarding-service";
-import { SaveUserInterestsSchema, SaveVolunteerProfileSchema, UserIdParamSchema } from "./onboarding-validator";
+import { SaveUserInterestsSchema, SaveVolunteerProfileSchema, UpdateVolunteerAccountProfileSchema, UserIdParamSchema } from "./onboarding-validator";
 
 @Controller("v1/onboarding")
 export class OnboardingController {
@@ -47,6 +47,23 @@ export class OnboardingController {
     @ResponseMessage("Volunteer profile")
     async getMyVolunteerProfile(@CurrentUser() user: JwtPayload) {
         return this.onboardingService.getVolunteerProfile(user.sub);
+    }
+
+    @Get("volunteer-account")
+    @Roles(RoleType.VOLUNTEER)
+    @ResponseMessage("Volunteer account profile")
+    async getMyVolunteerAccount(@CurrentUser() user: JwtPayload) {
+        return this.onboardingService.getVolunteerAccountProfile(user.sub);
+    }
+
+    @Put("volunteer-account")
+    @Roles(RoleType.VOLUNTEER)
+    @ResponseMessage("Volunteer account profile updated")
+    async updateMyVolunteerAccount(
+        @CurrentUser() user: JwtPayload,
+        @Body(new ZodValidationPipe(UpdateVolunteerAccountProfileSchema)) data: UpdateVolunteerAccountProfileDto,
+    ) {
+        return this.onboardingService.updateVolunteerAccountProfile(user.sub, data);
     }
 
     @Get("interests/:userId")

@@ -9,7 +9,7 @@ class VolunteerHomeTab extends StatelessWidget {
   const VolunteerHomeTab({
     super.key,
     required this.firstName,
-    this.points = 240,
+    this.points = 0,
     this.serviceHours = 0,
     this.activities = 0,
     this.showProfileCompletionCard = true,
@@ -32,10 +32,7 @@ class VolunteerHomeTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeHeader(
-              firstName: firstName,
-              points: points,
-            ),
+            HomeHeader(firstName: firstName, points: points),
             const SizedBox(height: 22),
             FeaturedEventsCarousel(events: MockEvents.featured),
             const SizedBox(height: 22),

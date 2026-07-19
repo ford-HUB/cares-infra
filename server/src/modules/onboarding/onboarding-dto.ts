@@ -33,3 +33,21 @@ export interface SaveUserInterestsDto {
 export interface UserInterestsResponseDto {
     selected: InterestCode[] | null;
 }
+
+export interface VolunteerAccountProfileDto {
+    firstname: string;
+    lastname: string;
+    email: string;
+    phone_number: string;
+    id_number: string | null;
+    department: string | null;
+    course: string | null;
+}
+
+export interface UpdateVolunteerAccountProfileDto {
+    firstname: string;
+    lastname: string;
+    phone_number: string;
+    department?: string;
+    course?: string;
+}

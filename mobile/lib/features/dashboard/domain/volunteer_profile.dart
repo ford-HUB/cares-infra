@@ -64,7 +64,7 @@ class VolunteerProfile {
 
   String get availabilityLabel {
     if (availability.isEmpty) return 'Not set';
-    final parts = availability.toList()..sort();
+    final parts = VolunteerProfileOptions.sortAvailabilityDays(availability.toList());
     final hours = hoursPerWeek;
     if (hours != null) {
       return '${parts.join(' · ')} · $hours hrs/week';
@@ -133,13 +133,27 @@ abstract final class VolunteerProfileOptions {
       skills.map((skill) => skill.label).toList();
 
   static const availability = [
-    'Weekends',
-    'Weekdays',
-    'Evenings',
-    'Flexible',
-    'On-site',
-    'Remote',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
   ];
+
+  static List<String> sortAvailabilityDays(List<String> days) {
+    final sorted = List<String>.from(days);
+    sorted.sort((a, b) {
+      final aIndex = availability.indexOf(a);
+      final bIndex = availability.indexOf(b);
+      if (aIndex == -1 && bIndex == -1) return a.compareTo(b);
+      if (aIndex == -1) return 1;
+      if (bIndex == -1) return -1;
+      return aIndex.compareTo(bIndex);
+    });
+    return sorted;
+  }
 
   static const hoursPerWeek = [2, 4, 6, 8, 10];
 }

@@ -156,9 +156,13 @@ class ProfileTabScreen extends StatelessWidget {
 
                   _ProfileHeader(profile: profile),
 
-                  const SizedBox(height: 16),
+                  if (!profileComplete) ...[
 
-                  _CompletionBanner(percent: profile.profileCompletionPercent),
+                    const SizedBox(height: 16),
+
+                    _CompletionBanner(percent: profile.profileCompletionPercent),
+
+                  ],
 
                   const SizedBox(height: 16),
 
@@ -258,7 +262,7 @@ class ProfileTabScreen extends StatelessWidget {
 
                     icon: Icons.edit_outlined,
 
-                    label: profileComplete ? 'Edit profile' : 'Complete profile',
+                    label: 'Edit Profile',
 
                     onTap: onEditProfile ??
 
@@ -266,7 +270,7 @@ class ProfileTabScreen extends StatelessWidget {
 
                               context,
 
-                              'Profile setup coming soon.',
+                              'Profile editing coming soon.',
 
                             ),
 

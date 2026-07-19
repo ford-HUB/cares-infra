@@ -32,3 +32,15 @@ export const UserIdParamSchema = z
         userId: z.uuid(),
     })
     .strict();
+
+export const UpdateVolunteerAccountProfileSchema = z
+    .object({
+        firstname: z.string().trim().min(1).max(80),
+        lastname: z.string().trim().min(1).max(80),
+        phone_number: z.string().trim().min(7).max(25),
+        department: z.string().trim().min(1).max(120).optional(),
+        course: z.string().trim().min(1).max(120).optional(),
+    })
+    .strict();
+
+export type UpdateVolunteerAccountProfileInput = z.infer<typeof UpdateVolunteerAccountProfileSchema>;

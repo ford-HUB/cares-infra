@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InterestCode, Prisma } from "../../infastructures/prisma/common/client";
 import { PrismaService } from "../../infastructures/prisma/prisma-service";
+import { UpdateVolunteerAccountProfileDto } from "./onboarding-dto";
 
 @Injectable()
 export class OnboardingRepository {
@@ -72,5 +73,125 @@ export class OnboardingRepository {
             select: { user_interest_id: true },
         });
         return row !== null;
+    }
+
+    async findVolunteerAccountProfile(userId: string) {
+        return this.prisma.user.findUnique({
+            where: { user_id: userId },
+            select: {
+                firstname: true,
+                lastname: true,
+                phone_number: true,
+                accounts: {
+                    select: { email: true },
+                    take: 1,
+                },
+                user_school_info: {
+                    take: 1,
+                    orderBy: { createdAt: "desc" },
+                    select: {
+                        id_number: true,
+                        department: { select: { name: true } },
+                        major: { select: { name: true } },
+                    },
+                },
+            },
+        });
+    }
+
+    async updateVolunteerAccountProfile(
+        userId: string,
+        data: UpdateVolunteerAccountProfileDto,
+    ) {
+        return this.prisma.$transaction(async (tx) => {
+            const existing = await tx.user.findUnique({
+                where: { user_id: userId },
+                select: {
+                    user_id: true,
+                    user_school_info: {
+                        take: 1,
+                        orderBy: { createdAt: "desc" },
+                        select: { user_school_info_id: true },
+                    },
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundException("User not found");
+            }
+
+            await tx.user.update({
+                where: { user_id: userId },
+                data: {
+                    firstname: data.firstname,
+                    lastname: data.lastname,
+                    phone_number: data.phone_number,
+                },
+            });
+
+            const schoolInfo = existing.user_school_info[0];
+            if (schoolInfo && (data.department || data.course)) {
+                const updateData: Prisma.UserSchoolInfoUpdateInput = {};
+
+                if (data.department) {
+                    const department = await this.findOrCreateDepartment(tx, data.department);
+                    updateData.department = {
+                        connect: { department_id: department.department_id },
+                    };
+                }
+
+                if (data.course) {
+                    const major = await this.findOrCreateMajor(tx, data.course);
+                    updateData.major = {
+                        connect: { major_id: major.major_id },
+                    };
+                }
+
+                await tx.userSchoolInfo.update({
+                    where: { user_school_info_id: schoolInfo.user_school_info_id },
+                    data: updateData,
+                });
+            }
+        });
+    }
+
+    private async findOrCreateDepartment(
+        tx: Prisma.TransactionClient,
+        name: string,
+    ) {
+        const normalizedName = name.trim();
+        const existing = await tx.department.findFirst({
+            where: { name: normalizedName },
+            select: { department_id: true },
+        });
+
+        if (existing) {
+            return existing;
+        }
+
+        return tx.department.create({
+            data: { name: normalizedName },
+            select: { department_id: true },
+        });
+    }
+
+    private async findOrCreateMajor(
+        tx: Prisma.TransactionClient,
+        name: string,
+    ) {
+        const normalizedName = name.trim();
+        const existing = await tx.major.findFirst({
+            where: { name: normalizedName },
+            select: { major_id: true },
+        });
+
+        if (existing) {
+            return existing;
+        }
+
+        return tx.major.create({
+            data: { name: normalizedName },
+            select: { major_id: true },
+        });
     }
 }

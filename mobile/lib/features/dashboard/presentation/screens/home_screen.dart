@@ -8,6 +8,7 @@ import 'package:mobile/features/dashboard/presentation/screens/programs_tab_scre
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/ranks_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/volunteer_home_tab.dart';
+import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_edit_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_setup_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
@@ -105,6 +106,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _openProfileEdit() async {
+    final result = await Navigator.of(context).push<VolunteerProfileEditResult>(
+      MaterialPageRoute(
+        builder: (_) => VolunteerProfileEditScreen(
+          initialProfile: _volunteerProfile,
+          fallbackEmail: widget.email,
+          fallbackFirstName: widget.firstName,
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    setState(() {
+      _volunteerProfile = result.profile;
+      _profileComplete = result.profile.profileComplete;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   points: widget.points,
                   volunteerProfile: _volunteerProfile,
                   profileComplete: _profileComplete,
-                  onEditProfile: _openProfileSetup,
+                  onEditProfile: _openProfileEdit,
                 ),
               ],
             ),
