@@ -16,6 +16,17 @@ export const SaveUserInterestsSchema = z
 
 export type SaveUserInterestsInput = z.infer<typeof SaveUserInterestsSchema>;
 
+export const SaveVolunteerProfileSchema = z
+    .object({
+        interests: z.array(InterestCodeSchema).min(1),
+        skills: z.array(z.string().trim().min(1).max(80)).min(1).max(20),
+        availability: z.array(z.string().trim().min(1).max(80)).min(1).max(10),
+        hours_per_week: z.number().int().min(1).max(40).optional(),
+    })
+    .strict();
+
+export type SaveVolunteerProfileInput = z.infer<typeof SaveVolunteerProfileSchema>;
+
 export const UserIdParamSchema = z
     .object({
         userId: z.uuid(),

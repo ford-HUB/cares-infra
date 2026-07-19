@@ -7,9 +7,9 @@ import { isPortalRole, PORTAL_ROLE_TYPES } from "src/common/constants/portal-rol
 import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
 import { RoleType } from "../../infastructures/prisma/common/client";
 import { JwtPayload } from "src/common/types/jwt-payload";
-import { SaveUserInterestsDto } from "./onboarding-dto";
+import { SaveVolunteerProfileDto } from "./onboarding-dto";
 import { OnboardingService } from "./onboarding-service";
-import { SaveUserInterestsSchema, UserIdParamSchema } from "./onboarding-validator";
+import { SaveUserInterestsSchema, SaveVolunteerProfileSchema, UserIdParamSchema } from "./onboarding-validator";
 
 @Controller("v1/onboarding")
 export class OnboardingController {
@@ -27,9 +27,26 @@ export class OnboardingController {
     @ResponseMessage("Interests saved")
     async saveUserInterests(
         @CurrentUser() user: JwtPayload,
-        @Body(new ZodValidationPipe(SaveUserInterestsSchema)) data: SaveUserInterestsDto,
+        @Body(new ZodValidationPipe(SaveUserInterestsSchema)) data: { selected: SaveVolunteerProfileDto["interests"] },
     ) {
         return this.onboardingService.saveUserInterests(user.sub, data.selected);
+    }
+
+    @Put("volunteer-profile")
+    @Roles(RoleType.VOLUNTEER)
+    @ResponseMessage("Volunteer profile saved")
+    async saveVolunteerProfile(
+        @CurrentUser() user: JwtPayload,
+        @Body(new ZodValidationPipe(SaveVolunteerProfileSchema)) data: SaveVolunteerProfileDto,
+    ) {
+        return this.onboardingService.saveVolunteerProfile(user.sub, data);
+    }
+
+    @Get("volunteer-profile")
+    @Roles(RoleType.VOLUNTEER)
+    @ResponseMessage("Volunteer profile")
+    async getMyVolunteerProfile(@CurrentUser() user: JwtPayload) {
+        return this.onboardingService.getVolunteerProfile(user.sub);
     }
 
     @Get("interests/:userId")

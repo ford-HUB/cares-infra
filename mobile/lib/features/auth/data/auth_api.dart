@@ -51,18 +51,12 @@ class AuthApi {
     }
     if (data.selfieImagePath != null) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'selfieImage',
-          data.selfieImagePath!,
-        ),
+        await http.MultipartFile.fromPath('selfieImage', data.selfieImagePath!),
       );
     }
     if (data.facePicturePath != null) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'facePicture',
-          data.facePicturePath!,
-        ),
+        await http.MultipartFile.fromPath('facePicture', data.facePicturePath!),
       );
     }
 
@@ -96,7 +90,8 @@ class AuthApi {
       return body ?? <String, dynamic>{};
     }
 
-    final message = _extractErrorMessage(body) ??
+    final message =
+        _extractErrorMessage(body) ??
         'Request failed with status ${response.statusCode}';
     throw ApiException(message, statusCode: response.statusCode);
   }
@@ -117,21 +112,21 @@ class AuthApi {
   }
 
   String? _accountTypeValue(AccountType? type) => switch (type) {
-        AccountType.regularUser => 'regularUser',
-        AccountType.beneficiary => 'beneficiary',
-        null => null,
-      };
+    AccountType.regularUser => 'regularUser',
+    AccountType.beneficiary => 'beneficiary',
+    null => null,
+  };
 
   String? _beneficiaryTypeValue(BeneficiaryType? type) => switch (type) {
-        BeneficiaryType.individual => 'individual',
-        BeneficiaryType.organizationMember => 'organizationMember',
-        null => null,
-      };
+    BeneficiaryType.individual => 'individual',
+    BeneficiaryType.organizationMember => 'organizationMember',
+    null => null,
+  };
 
   String? _userRoleValue(UserRole? role) => switch (role) {
-        UserRole.student => 'student',
-        UserRole.staff => 'staff',
-        UserRole.faculty => 'faculty',
-        null => null,
-      };
+    UserRole.student => 'student',
+    UserRole.staff => 'staff',
+    UserRole.faculty => 'faculty',
+    null => null,
+  };
 }

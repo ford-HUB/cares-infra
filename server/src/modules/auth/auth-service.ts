@@ -46,6 +46,10 @@ import { NodemailerService } from "src/infastructures/nodemailer/nodemailer-serv
 import { JwtService } from "src/infastructures/jwt/jwt-service";
 import { JwtPayload } from "src/common/types/jwt-payload";
 import { isPortalRole } from "src/common/constants/portal-role-types";
+import {
+    isVolunteerProfileComplete,
+    parseVolunteerProfilePayload,
+} from "../onboarding/volunteer-profile-utils";
 
 
 
@@ -113,12 +117,16 @@ export class AuthService {
             throw new UnauthorizedException("Invalid email or password");
         }
 
+        const volunteerProfile = parseVolunteerProfilePayload(
+            account.user.user_interest?.selected ?? null,
+        );
+
         return {
             user_id: account.user.user_id,
             role_type: account.user.role.type,
             email: account.email,
             firstname: account.user.firstname,
-            has_interests: account.user.user_interest !== null,
+            has_interests: isVolunteerProfileComplete(volunteerProfile),
             access_token: this.jwtService.sign({
                 sub: account.user.user_id,
                 email: account.email,
@@ -149,13 +157,17 @@ export class AuthService {
             throw new ForbiddenException("This portal is for administrators only");
         }
 
+        const volunteerProfile = parseVolunteerProfilePayload(
+            account.user.user_interest?.selected ?? null,
+        );
+
         return {
             user_id: account.user.user_id,
             role_type: account.user.role.type,
             email: account.email,
             firstname: account.user.firstname,
             lastname: account.user.lastname,
-            has_interests: account.user.user_interest !== null,
+            has_interests: isVolunteerProfileComplete(volunteerProfile),
             access_token: this.jwtService.sign({
                 sub: account.user.user_id,
                 email: account.email,

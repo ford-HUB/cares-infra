@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { InterestCode } from "../../infastructures/prisma/common/client";
+import { InterestCode, Prisma } from "../../infastructures/prisma/common/client";
 import { PrismaService } from "../../infastructures/prisma/prisma-service";
 
 @Injectable()
@@ -41,7 +41,7 @@ export class OnboardingRepository {
         });
     }
 
-    async upsertUserInterests(userId: string, selected: InterestCode[]) {
+    async upsertUserInterests(userId: string, selected: Prisma.InputJsonValue) {
         return this.prisma.userInterest.upsert({
             where: { user_id: userId },
             create: {

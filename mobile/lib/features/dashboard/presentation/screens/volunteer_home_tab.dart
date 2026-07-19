@@ -12,12 +12,16 @@ class VolunteerHomeTab extends StatelessWidget {
     this.points = 240,
     this.serviceHours = 0,
     this.activities = 0,
+    this.showProfileCompletionCard = true,
+    this.onCompleteProfile,
   });
 
   final String firstName;
   final int points;
   final int serviceHours;
   final int activities;
+  final bool showProfileCompletionCard;
+  final VoidCallback? onCompleteProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -40,17 +44,10 @@ class VolunteerHomeTab extends StatelessWidget {
               activities: activities,
               points: points,
             ),
-            const SizedBox(height: 16),
-            ProfileCompletionCard(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Profile completion coming soon.'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-            ),
+            if (showProfileCompletionCard) ...[
+              const SizedBox(height: 16),
+              ProfileCompletionCard(onTap: onCompleteProfile),
+            ],
           ],
         ),
       ),

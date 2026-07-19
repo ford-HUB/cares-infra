@@ -141,7 +141,7 @@ export class AuthRepository {
                             select: { type: true },
                         },
                         user_interest: {
-                            select: { user_interest_id: true },
+                            select: { user_interest_id: true, selected: true },
                         },
                     },
                 },
