@@ -114,10 +114,7 @@ class _ProgramGallerySliderState extends State<ProgramGallerySlider> {
 }
 
 class _GalleryCard extends StatelessWidget {
-  const _GalleryCard({
-    required this.program,
-    required this.onTap,
-  });
+  const _GalleryCard({required this.program, required this.onTap});
 
   final MockProgram program;
   final VoidCallback onTap;
@@ -160,7 +157,10 @@ class _GalleryCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(20),

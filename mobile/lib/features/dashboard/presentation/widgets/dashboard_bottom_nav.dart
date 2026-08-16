@@ -77,11 +77,7 @@ class _NavItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
           children: [
-            Icon(
-              tab.icon,
-              size: 22,
-              color: DashboardNavColors.itemColor,
-            ),
+            Icon(tab.icon, size: 22, color: DashboardNavColors.itemColor),
             const SizedBox(height: 2),
             Text(
               tab.label,

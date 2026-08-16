@@ -6,20 +6,27 @@ import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
 class AuthRegistrationService {
-  AuthRegistrationService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+  AuthRegistrationService({ApiClient? apiClient})
+    : _api = apiClient ?? ApiClient();
 
   final ApiClient _api;
 
   Future<UploadIdResponse> uploadId({
     required XFile front,
     required XFile back,
+    String? roleType,
   }) async {
     final frontBytes = await front.readAsBytes();
     final backBytes = await back.readAsBytes();
 
+    final fields = <String, String>{};
+    if (roleType != null && roleType.isNotEmpty) {
+      fields['roleType'] = roleType;
+    }
+
     final response = await _api.postMultipart(
       '/auth/upload-id',
-      fields: const {},
+      fields: fields,
       files: [
         http.MultipartFile.fromBytes(
           'front',
@@ -58,7 +65,9 @@ class AuthRegistrationService {
       ],
     );
 
-    return VerifyFaceResponse.fromJson(response['data'] as Map<String, dynamic>);
+    return VerifyFaceResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
   }
 
   Future<ExtractIdResponse> extractId({required String registrationId}) async {
@@ -91,34 +100,36 @@ class AuthRegistrationService {
     return response['data'] as Map<String, dynamic>? ?? {};
   }
 
-  Future<SendVerificationResponse> sendVerificationCode({required String email}) async {
+  Future<SendVerificationResponse> sendVerificationCode({
+    required String email,
+  }) async {
     final response = await _api.postJson(
       '/auth/send-verification',
       body: {'email': email.trim()},
     );
 
-    return SendVerificationResponse.fromJson(response['data'] as Map<String, dynamic>);
+    return SendVerificationResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
   }
 
-  Future<VerificationStatusResponse> getVerificationStatus({required String email}) async {
+  Future<VerificationStatusResponse> getVerificationStatus({
+    required String email,
+  }) async {
     final response = await _api.postJson(
       '/auth/verification-status',
       body: {'email': email.trim()},
     );
 
-    return VerificationStatusResponse.fromJson(response['data'] as Map<String, dynamic>);
+    return VerificationStatusResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
   }
 
-  Future<void> verifyOtp({
-    required String email,
-    required String otp,
-  }) async {
+  Future<void> verifyOtp({required String email, required String otp}) async {
     await _api.postJson(
       '/auth/verify-otp',
-      body: {
-        'email': email.trim(),
-        'otp': otp.trim(),
-      },
+      body: {'email': email.trim(), 'otp': otp.trim()},
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/media_permissions.dart';
+import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 enum IdCardSide { front, back }
@@ -12,12 +13,14 @@ enum IdCardSide { front, back }
 class RegisterIdUploadStep extends StatefulWidget {
   const RegisterIdUploadStep({
     super.key,
+    required this.roleType,
     required this.frontImage,
     required this.backImage,
     required this.onFrontPicked,
     required this.onBackPicked,
   });
 
+  final RegistrationRoleType roleType;
   final XFile? frontImage;
   final XFile? backImage;
   final ValueChanged<XFile> onFrontPicked;
@@ -37,8 +40,11 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
   bool get _backUploaded => widget.backImage != null;
   bool get _bothUploaded => _frontUploaded && _backUploaded;
   bool get _canFlip => _frontUploaded;
+  bool get _isBeneficiary =>
+      widget.roleType == RegistrationRoleType.beneficiary;
 
-  IdCardSide get _activeSide => _showingBack ? IdCardSide.back : IdCardSide.front;
+  IdCardSide get _activeSide =>
+      _showingBack ? IdCardSide.back : IdCardSide.front;
 
   void _flipCard() => _flippableKey.currentState?.flip();
 
@@ -125,15 +131,19 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Upload your school ID',
+          _isBeneficiary ? 'Upload your valid ID' : 'Upload your school ID',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.primaryDark,
-              ),
+            fontWeight: FontWeight.w800,
+            color: AppColors.primaryDark,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
-          _frontUploaded && !_showingBack
+          _isBeneficiary
+              ? 'Upload a clear photo of a government-issued or other accepted valid ID '
+                    '(e.g. National ID, Driver\'s License, Passport, Postal ID, or SSS/UMID). '
+                    'Include the front first, then flip to add the back when your ID has two sides.'
+              : _frontUploaded && !_showingBack
               ? 'Front uploaded — flip the card to add the back.'
               : 'Upload the front first, then flip to upload the back.',
           style: TextStyle(
@@ -152,9 +162,7 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
                 onPressed: _showIdPreviewModal,
                 icon: const Icon(Icons.visibility_outlined, size: 20),
                 label: Text(_backUploaded ? 'View ID' : 'Preview front'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                ),
+                style: TextButton.styleFrom(foregroundColor: AppColors.primary),
               ),
           ],
         ),
@@ -186,8 +194,12 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
           Center(
             child: TextButton.icon(
               onPressed: _flipCard,
-              icon: Icon(_showingBack ? Icons.flip_to_front : Icons.flip_to_back),
-              label: Text(_showingBack ? 'Show front side' : 'Flip to back side'),
+              icon: Icon(
+                _showingBack ? Icons.flip_to_front : Icons.flip_to_back,
+              ),
+              label: Text(
+                _showingBack ? 'Show front side' : 'Flip to back side',
+              ),
               style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             ),
           ),
@@ -197,7 +209,9 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _pickingSide != null ? null : () => _pick(ImageSource.camera),
+                onPressed: _pickingSide != null
+                    ? null
+                    : () => _pick(ImageSource.camera),
                 icon: const Icon(Icons.photo_camera_outlined),
                 label: const Text('Camera'),
                 style: OutlinedButton.styleFrom(
@@ -210,7 +224,9 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
             const SizedBox(width: 12),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _pickingSide != null ? null : () => _pick(ImageSource.gallery),
+                onPressed: _pickingSide != null
+                    ? null
+                    : () => _pick(ImageSource.gallery),
                 icon: const Icon(Icons.photo_library_outlined),
                 label: const Text('Gallery'),
                 style: OutlinedButton.styleFrom(
@@ -229,11 +245,17 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
             decoration: BoxDecoration(
               color: AppColors.secondary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.secondary.withValues(alpha: 0.35)),
+              border: Border.all(
+                color: AppColors.secondary.withValues(alpha: 0.35),
+              ),
             ),
             child: const Row(
               children: [
-                Icon(Icons.verified_outlined, color: AppColors.primary, size: 22),
+                Icon(
+                  Icons.verified_outlined,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -370,7 +392,9 @@ class FlippableIdCardState extends State<FlippableIdCard>
     if (controller == null || animation == null) {
       return const AspectRatio(
         aspectRatio: 1.58,
-        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       );
     }
 
@@ -397,7 +421,8 @@ class FlippableIdCardState extends State<FlippableIdCard>
                         side: IdCardSide.back,
                         image: widget.backImage,
                         isLoading:
-                            widget.isLoading && widget.loadingSide == IdCardSide.back,
+                            widget.isLoading &&
+                            widget.loadingSide == IdCardSide.back,
                         canFlipHint: widget.canFlip,
                       ),
                     )
@@ -405,7 +430,8 @@ class FlippableIdCardState extends State<FlippableIdCard>
                       side: IdCardSide.front,
                       image: widget.frontImage,
                       isLoading:
-                          widget.isLoading && widget.loadingSide == IdCardSide.front,
+                          widget.isLoading &&
+                          widget.loadingSide == IdCardSide.front,
                       canFlipHint: widget.canFlip && widget.frontImage != null,
                     ),
             ),
@@ -500,14 +526,21 @@ class _CardFace extends StatelessWidget {
               const Positioned(
                 top: 10,
                 right: 10,
-                child: Icon(Icons.check_circle, color: AppColors.secondary, size: 24),
+                child: Icon(
+                  Icons.check_circle,
+                  color: AppColors.secondary,
+                  size: 24,
+                ),
               ),
             if (canFlipHint && hasImage && isFront)
               Positioned(
                 bottom: 10,
                 right: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
@@ -563,10 +596,7 @@ class _SideBadge extends StatelessWidget {
 }
 
 class _IdPreviewDialog extends StatelessWidget {
-  const _IdPreviewDialog({
-    required this.frontImage,
-    this.backImage,
-  });
+  const _IdPreviewDialog({required this.frontImage, this.backImage});
 
   final XFile frontImage;
   final XFile? backImage;
@@ -607,17 +637,11 @@ class _IdPreviewDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
-                    child: _PreviewPanel(
-                      label: 'Front',
-                      image: frontImage,
-                    ),
+                    child: _PreviewPanel(label: 'Front', image: frontImage),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _PreviewPanel(
-                      label: 'Back',
-                      image: backImage,
-                    ),
+                    child: _PreviewPanel(label: 'Back', image: backImage),
                   ),
                 ],
               ),
@@ -638,10 +662,7 @@ class _IdPreviewDialog extends StatelessWidget {
 }
 
 class _PreviewPanel extends StatelessWidget {
-  const _PreviewPanel({
-    required this.label,
-    this.image,
-  });
+  const _PreviewPanel({required this.label, this.image});
 
   final String label;
   final XFile? image;
@@ -668,7 +689,9 @@ class _PreviewPanel extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: image != null ? AppColors.secondary : AppColors.fieldBorder,
+                color: image != null
+                    ? AppColors.secondary
+                    : AppColors.fieldBorder,
               ),
             ),
             child: ClipRRect(

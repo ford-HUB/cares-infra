@@ -17,7 +17,8 @@ class RegisterTypeSelectionScreen extends StatefulWidget {
       _RegisterTypeSelectionScreenState();
 }
 
-class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScreen> {
+class _RegisterTypeSelectionScreenState
+    extends State<RegisterTypeSelectionScreen> {
   static const _roleAccents = {
     RegistrationRoleType.volunteer: AppColors.primary,
     RegistrationRoleType.donor: AppColors.heart,
@@ -30,6 +31,17 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
   void _onRoleSelected(RegistrationRoleType roleType) {
     if (roleType == RegistrationRoleType.volunteer) {
       setState(() => _volunteerExpanded = !_volunteerExpanded);
+      return;
+    }
+
+    if (roleType == RegistrationRoleType.beneficiary) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const RegisterFlowScreen(
+            roleType: RegistrationRoleType.beneficiary,
+          ),
+        ),
+      );
       return;
     }
 
@@ -71,17 +83,12 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
           DropdownButtonFormField<VolunteerType>(
             isExpanded: true,
             initialValue: _selectedVolunteerType,
-            decoration: const InputDecoration(
-              hintText: 'Select type',
-            ),
+            decoration: const InputDecoration(hintText: 'Select type'),
             items: VolunteerType.values
                 .map(
                   (type) => DropdownMenuItem(
                     value: type,
-                    child: Text(
-                      type.label,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(type.label, overflow: TextOverflow.ellipsis),
                   ),
                 )
                 .toList(),
@@ -89,10 +96,7 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
                 .map(
                   (type) => Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      type.label,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(type.label, overflow: TextOverflow.ellipsis),
                   ),
                 )
                 .toList(),
@@ -133,9 +137,7 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Center(
-                child: AnimatedIllustration(progress: 1, size: 100),
-              ),
+              const Center(child: AnimatedIllustration(progress: 1, size: 100)),
               const SizedBox(height: 20),
               const Text(
                 'How are you joining CARES?',
@@ -163,7 +165,8 @@ class _RegisterTypeSelectionScreenState extends State<RegisterTypeSelectionScree
                   roleType: roleType,
                   accentColor: _roleAccents[roleType]!,
                   isExpanded:
-                      roleType == RegistrationRoleType.volunteer && _volunteerExpanded,
+                      roleType == RegistrationRoleType.volunteer &&
+                      _volunteerExpanded,
                   expandedChild: roleType == RegistrationRoleType.volunteer
                       ? _volunteerExpandedContent()
                       : null,

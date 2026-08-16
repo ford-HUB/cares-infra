@@ -4,10 +4,7 @@ import 'package:mobile/features/dashboard/domain/mock_program.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/program_event_card.dart';
 
 class ProgramDetailScreen extends StatefulWidget {
-  const ProgramDetailScreen({
-    super.key,
-    required this.program,
-  });
+  const ProgramDetailScreen({super.key, required this.program});
 
   final MockProgram program;
 
@@ -84,7 +81,11 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        for (var i = 0; i < program.galleryImageUrls.length; i++)
+                        for (
+                          var i = 0;
+                          i < program.galleryImageUrls.length;
+                          i++
+                        )
                           Container(
                             margin: const EdgeInsets.symmetric(horizontal: 3),
                             width: i == _galleryPage ? 16 : 6,

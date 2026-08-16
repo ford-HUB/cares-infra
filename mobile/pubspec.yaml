@@ -35,6 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   image_picker: ^1.1.2
+  qr_flutter: ^4.1.0
+  geolocator: ^14.0.2
+  uuid: ^4.5.3
+  fl_chart: ^1.2.0
   permission_handler: ^11.4.0
   camera: ^0.11.1
   google_mlkit_face_detection: ^0.13.1
@@ -66,7 +70,11 @@ flutter:
 
   assets:
     - .env
+    - assets/images/cares_logo.png
     - assets/images/transparent-logo.png
+    - assets/images/onboarding_welcome.png
+    - assets/images/onboarding_discover.png
+    - assets/images/onboarding_impact.png
     - assets/images/mascot/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -80,9 +80,7 @@ class RanksTabScreen extends StatelessWidget {
               itemCount: MockRanks.leaderboard.length,
               separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                return _LeaderboardRow(
-                  entry: MockRanks.leaderboard[index],
-                );
+                return _LeaderboardRow(entry: MockRanks.leaderboard[index]);
               },
             ),
           ),
@@ -216,11 +214,11 @@ class _LeaderboardRow extends StatelessWidget {
   final MockLeaderboardEntry entry;
 
   Color? _medalColor(int rank) => switch (rank) {
-        1 => const Color(0xFFFFD700),
-        2 => const Color(0xFFC0C0C0),
-        3 => const Color(0xFFCD7F32),
-        _ => null,
-      };
+    1 => const Color(0xFFFFD700),
+    2 => const Color(0xFFC0C0C0),
+    3 => const Color(0xFFCD7F32),
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -230,9 +228,7 @@ class _LeaderboardRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isUser
-            ? AppColors.light.withValues(alpha: 0.45)
-            : Colors.white,
+        color: isUser ? AppColors.light.withValues(alpha: 0.45) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isUser ? AppColors.primary : AppColors.fieldBorder,
@@ -256,8 +252,9 @@ class _LeaderboardRow extends StatelessWidget {
           ),
           CircleAvatar(
             radius: 18,
-            backgroundColor:
-                isUser ? AppColors.primaryDark : AppColors.secondary,
+            backgroundColor: isUser
+                ? AppColors.primaryDark
+                : AppColors.secondary,
             child: Text(
               entry.displayName.isNotEmpty
                   ? entry.displayName[0].toUpperCase()

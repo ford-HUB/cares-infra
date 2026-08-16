@@ -10,8 +10,6 @@ import 'package:mobile/features/auth/presentation/screens/register_type_selectio
 import 'package:mobile/features/auth/presentation/widgets/animated_illustration.dart';
 import 'package:mobile/features/auth/presentation/widgets/sun_weather_panel.dart';
 import 'package:mobile/features/dashboard/presentation/screens/home_screen.dart';
-import 'package:mobile/features/onboarding/data/onboarding_service.dart';
-import 'package:mobile/features/onboarding/presentation/widgets/interest_selection_dialog.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
@@ -32,7 +30,6 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isSigningIn = false;
 
   final AuthLoginService _authLoginService = AuthLoginService();
-  final OnboardingService _onboardingService = OnboardingService();
 
   @override
   void initState() {
@@ -66,10 +63,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -98,15 +92,6 @@ class _LoginScreenState extends State<LoginScreen>
 
       AuthSession.setAccessToken(loginResult.accessToken);
 
-      if (loginResult.isVolunteer && !loginResult.hasInterests) {
-        final interests = await showInterestSelectionDialog(context);
-        if (!mounted || interests == null || interests.isEmpty) return;
-
-        await _onboardingService.saveInterests(
-          interests: interests,
-        );
-      }
-
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
@@ -114,6 +99,7 @@ class _LoginScreenState extends State<LoginScreen>
           builder: (_) => HomeScreen(
             email: loginResult.email,
             firstName: loginResult.firstName,
+            profileComplete: loginResult.hasInterests,
           ),
         ),
         (_) => false,
@@ -250,9 +236,7 @@ class _LoginScreenState extends State<LoginScreen>
     ];
 
     return Column(
-      children: fields
-          .expand((w) => [w, const SizedBox(height: 14)])
-          .toList()
+      children: fields.expand((w) => [w, const SizedBox(height: 14)]).toList()
         ..removeLast(),
     );
   }
@@ -368,10 +352,7 @@ class _LoginBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CustomPaint(
-      painter: _LoginBgPainter(),
-      size: Size.infinite,
-    );
+    return const CustomPaint(painter: _LoginBgPainter(), size: Size.infinite);
   }
 }
 
