@@ -4,8 +4,8 @@ import { EventsRepository } from '../repositories/events-repository';
 import { EventsSiteService } from '../services/events-site-service';
 
 @Module({
-    controllers: [EventsSiteController],
-    providers: [EventsSiteService, EventsRepository],
-    exports: [EventsSiteService],
+  controllers: [EventsSiteController],
+  providers: [EventsSiteService, EventsRepository],
+  exports: [EventsSiteService],
 })
 export class EventsSiteModule {}

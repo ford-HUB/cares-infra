@@ -5,9 +5,9 @@ import { AuthRepository } from '../repositories/auth-repository';
 import { NodemailerModule } from 'src/infastructures/nodemailer/nodemailer-module';
 
 @Module({
-    imports: [NodemailerModule],
-    controllers: [AuthMobileController],
-    providers: [AuthMobileService, AuthRepository],
-    exports: [AuthMobileService],
+  imports: [NodemailerModule],
+  controllers: [AuthMobileController],
+  providers: [AuthMobileService, AuthRepository],
+  exports: [AuthMobileService],
 })
 export class AuthMobileModule {}

@@ -49,3 +49,51 @@ Desktop.ini
 # Docker local overrides
 docker-compose.override.yaml
 docker-compose.override.yml
+
+# Python (microservices/*)
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ML weights & training data — never commit real ID photos or model binaries
+*.keras
+*.h5
+*.onnx
+*.pb
+*.tflite
+*.pkl
+microservices/**/datasets.zip
+microservices/**/datasets/**/*.jpg
+microservices/**/datasets/**/*.jpeg
+microservices/**/datasets/**/*.png
+microservices/**/datasets/**/*.webp
+microservices/**/datasets/**/*.bmp
+microservices/**/datasets/**/*.gif
+microservices/**/datasets/**/*.tiff
+!**/.gitkeep
+
+# Flutter / Dart (mobile/)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.iml
+
+# Archives & scratch
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Claude Code — skills and CLAUDE.md rules are committed; local overrides are not
+.claude/settings.local.json
+.claude/*.local.json
+
+CLAUDE.md
+
+.claude

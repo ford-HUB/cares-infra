@@ -1,34 +1,24 @@
-import { GenderType, RoleType } from '../../../infastructures/prisma/common/client';
+import { z } from 'zod';
+import { GenderType } from '../../../infastructures/prisma/common/client';
+import {
+  PortalProfileResponseSchema,
+  UpdatePortalProfileSchema,
+} from '../validators/profile-site-validator';
 
 export type ProfileAssetKind = 'avatar' | 'signature';
 
-export interface PortalProfileDto {
-    firstname: string;
-    lastname: string;
-    email: string;
-    has_profile_image: boolean;
-    has_signature: boolean;
-    department: string | null;
-    phone_number: string;
-    gender: GenderType;
-    address: {
-        street: string | null;
-        barangay: string | null;
-        city: string | null;
-        province: string | null;
-    };
-    role_type: RoleType;
-    profile_complete: boolean;
-}
+export type PortalProfileDto = z.infer<typeof PortalProfileResponseSchema>;
+export type UpdatePortalProfileDto = z.infer<typeof UpdatePortalProfileSchema>;
 
-export interface UpdatePortalProfileDto {
-    firstname: string;
-    lastname: string;
-    phone_number: string;
-    gender: GenderType;
-    department: string | null;
-    address_street: string;
-    address_barangay: string;
-    address_city: string;
-    address_province: string;
+/** Repository-facing shape — `department` is resolved to null for directors before persisting. */
+export interface PersistPortalProfileDto {
+  firstname: string;
+  lastname: string;
+  phone_number: string;
+  gender: GenderType;
+  department: string | null;
+  address_street: string;
+  address_barangay: string;
+  address_city: string;
+  address_province: string;
 }

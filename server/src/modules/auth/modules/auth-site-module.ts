@@ -4,8 +4,8 @@ import { AuthSiteController } from '../controllers/auth-site-controller';
 import { AuthRepository } from '../repositories/auth-repository';
 
 @Module({
-    controllers: [AuthSiteController],
-    providers: [AuthSiteService, AuthRepository],
-    exports: [AuthSiteService],
+  controllers: [AuthSiteController],
+  providers: [AuthSiteService, AuthRepository],
+  exports: [AuthSiteService],
 })
 export class AuthSiteModule {}

@@ -1,23 +1,31 @@
-import { z } from "zod";
-import { InterestCode } from "../../../infastructures/prisma/common/client";
+import { z } from 'zod';
+import { InterestCode } from '../../../infastructures/prisma/common/client';
 
-const enumFromConst = <T extends Record<string, string>>(e: T) => {
-    const values = Object.values(e);
-    return z.enum(values as [string, ...string[]]);
-};
-
-const InterestCodeSchema = enumFromConst(InterestCode);
+const InterestCodeSchema = z.enum(InterestCode);
 
 export const SaveUserInterestsSchema = z
-    .object({
-        selected: z.array(InterestCodeSchema).min(1),
-    })
-    .strict();
+  .object({
+    selected: z.array(InterestCodeSchema).min(1),
+  })
+  .strict();
 
-export type SaveUserInterestsInput = z.infer<typeof SaveUserInterestsSchema>;
+export const UserIdParamSchema = z.uuid();
 
-export const UserIdParamSchema = z
-    .object({
-        userId: z.uuid(),
-    })
-    .strict();
+export const InterestCatalogItemSchema = z.object({
+  code: InterestCodeSchema,
+  label: z.string(),
+  description: z.string().nullable(),
+  sort_order: z.number(),
+});
+
+export const InterestCatalogResponseSchema = z.array(InterestCatalogItemSchema);
+
+export const SaveUserInterestsResponseSchema = z.object({
+  user_interest_id: z.string(),
+  user_id: z.string(),
+  selected: z.array(InterestCodeSchema),
+});
+
+export const UserInterestsResponseSchema = z.object({
+  selected: z.array(InterestCodeSchema).nullable(),
+});

@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app-module';
 import { Reflector } from '@nestjs/core';
-import { ResponseTransformInterceptor } from './common/interceptors/response-transform-interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception-filter';
+import { ResponseTransformInterceptor } from './shared/interceptors/response-transform-interceptor';
+import { HttpExceptionFilter } from './shared/filters/http-exception-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,10 +10,7 @@ async function bootstrap() {
 
   const corsOrigins = process.env.CORS_ORIGINS?.split(',')
     .map((origin) => origin.trim())
-    .filter(Boolean) ?? [
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-    ];
+    .filter(Boolean) ?? ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
   app.enableCors({
     origin: corsOrigins,
@@ -26,7 +23,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
-  console.log(`Server is running at http://localhost:${process.env.PORT ?? 3000}`);
+  console.log(
+    `Server is running at http://localhost:${process.env.PORT ?? 3000}`,
+  );
 }
 
 bootstrap();

@@ -1,145 +1,63 @@
-import { EmbeddingType, GenderType, RoleType } from "../../../infastructures/prisma/common/client";
+import { z } from 'zod';
+import {
+  CreateUserSchema,
+  ExtractIdResponseSchema,
+  IdOcrResultSchema,
+  LoginResponseSchema,
+  LoginSchema,
+  RegisterFromSessionSchema,
+  RegisterUserResponseSchema,
+  RegistrationIdSchema,
+  RegistrationStepSchema,
+  SendVerificationResponseSchema,
+  SendVerificationSchema,
+  UploadIdResponseSchema,
+  VerificationStatusResponseSchema,
+  VerifyFaceResponseSchema,
+  VerifyOtpResponseSchema,
+  VerifyOtpSchema,
+} from '../validators/auth-mobile-validator';
 
-export interface CreateUserAccountDto {
-    email: string;
-    password: string;
-}
+export type CreateUserDto = z.infer<typeof CreateUserSchema>;
+export type CreateUserAccountDto = CreateUserDto['account'];
+export type UserSchoolInfoDto = CreateUserDto['school_info'];
+export type BiometricDto = CreateUserDto['biometric'];
+export type DepartmentDto = UserSchoolInfoDto['department'];
+export type MajorDto = UserSchoolInfoDto['major'];
+export type YearLevelDto = UserSchoolInfoDto['year_level'];
 
-export interface BiometricDto {
-    face_url: string;
-    embedding: number[];
-    embedding_type: EmbeddingType;
-    isActive: boolean;
-}
+export type RegistrationIdDto = z.infer<typeof RegistrationIdSchema>;
+export type RegisterFromSessionDto = z.infer<typeof RegisterFromSessionSchema>;
+export type SendVerificationDto = z.infer<typeof SendVerificationSchema>;
+export type VerifyOtpDto = z.infer<typeof VerifyOtpSchema>;
+export type LoginDto = z.infer<typeof LoginSchema>;
 
-export interface UserSchoolInfoDto {
-    id_number: string;
-    graduation_year: number;
-    graduation_month: number;
-    graduation_day: number;
-    department: DepartmentDto;
-    major: MajorDto;
-    year_level: YearLevelDto;
-}
+export type RegistrationStep = z.infer<typeof RegistrationStepSchema>;
+export type IdOcrResultDto = z.infer<typeof IdOcrResultSchema>;
+export type RegisterUserResponseDto = z.infer<
+  typeof RegisterUserResponseSchema
+>;
+export type LoginResponseDto = z.infer<typeof LoginResponseSchema>;
+export type UploadIdResponseDto = z.infer<typeof UploadIdResponseSchema>;
+export type VerifyFaceResponseDto = z.infer<typeof VerifyFaceResponseSchema>;
+export type ExtractIdResponseDto = z.infer<typeof ExtractIdResponseSchema>;
+export type SendVerificationResponseDto = z.infer<
+  typeof SendVerificationResponseSchema
+>;
+export type VerificationStatusResponseDto = z.infer<
+  typeof VerificationStatusResponseSchema
+>;
+export type VerifyOtpResponseDto = z.infer<typeof VerifyOtpResponseSchema>;
 
-export interface CreateUserDto {
-    firstname: string;
-    lastname: string;
-    middle_name: string;
-    role_type: RoleType;
-    gender: GenderType;
-    age: number;
-    current_address: string;
-    phone_number: string;
-    avatar?: string;
-    account: CreateUserAccountDto;
-    school_info: UserSchoolInfoDto;
-    biometric: BiometricDto;
-}
-
-export interface DepartmentDto {
-    name: string;
-}
-
-export interface MajorDto {
-    name: string;
-}
-
-export interface YearLevelDto {
-    name: string;
-}
-
-export type RegistrationStep = 'id_uploaded' | 'face_verified' | 'ocr_completed';
-
-export interface IdOcrResultDto {
-    firstname: string;
-    lastname: string;
-    middleName: string;
-    gender: string;
-    age: number;
-    currentAddress: string;
-    phoneNumber: string;
-    idNumber: string;
-    departmentName: string;
-    majorName: string;
-    yearLevelName: string;
-    graduationYear: number;
-    graduationMonth: number;
-    graduationDay: number;
-    volunteerType: string;
-    rawTextFront?: string;
-    rawTextBack?: string;
-}
-
+/** Redis-only registration state — never serialized to a client, so it has no schema. */
 export interface RegistrationSessionDto {
-    idFrontImageUrl: string;
-    idBackImageUrl: string;
-    selfieUrl: string | null;
-    faceMatch: boolean | null;
-    faceSimilarity: number | null;
-    selfieEmbedding: number[] | null;
-    ocrData: IdOcrResultDto | null;
-    step: RegistrationStep;
-    createdAt: number;
-}
-
-export interface UploadIdResponseDto {
-    registrationId: string;
-}
-
-export interface VerifyFaceResponseDto {
-    registrationId: string;
-    match: boolean;
-    similarity: number;
-    threshold: number;
-    step: RegistrationStep;
-    message: string;
-}
-
-export interface ExtractIdResponseDto {
-    registrationId: string;
-    step: RegistrationStep;
-    ocrData: IdOcrResultDto;
-}
-
-export interface RegistrationIdDto {
-    registrationId: string;
-}
-
-export interface RegisterFromSessionDto {
-    registrationId: string;
-    firstname: string;
-    lastname: string;
-    middle_name: string;
-    role_type: RoleType;
-    gender: GenderType;
-    age: number;
-    current_address: string;
-    phone_number: string;
-    avatar?: string;
-    account: CreateUserAccountDto;
-    school_info: UserSchoolInfoDto;
-}
-
-export interface SendVerificationDto {
-    email: string;
-}
-
-export interface VerifyOtpDto {
-    email: string;
-    otp: string;
-}
-
-export interface LoginDto {
-    email: string;
-    password: string;
-}
-
-export interface LoginResponseDto {
-    user_id: string;
-    role_type: RoleType;
-    email: string;
-    firstname: string;
-    has_interests: boolean;
-    access_token: string;
+  idFrontImageUrl: string;
+  idBackImageUrl: string;
+  selfieUrl: string | null;
+  faceMatch: boolean | null;
+  faceSimilarity: number | null;
+  selfieEmbedding: number[] | null;
+  ocrData: IdOcrResultDto | null;
+  step: RegistrationStep;
+  createdAt: number;
 }

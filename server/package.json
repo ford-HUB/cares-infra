@@ -18,11 +18,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed:admin": "pnpm run build && node scripts/seed-admin.mjs",
-    "seed:events": "pnpm run build && node scripts/seed-events.mjs"
-  },
-  "prisma": {
-    "seed": "node scripts/seed-admin.mjs"
+    "seed": "pnpm run build && node dist/infastructures/prisma/seed.js",
+    "seed:admin": "pnpm run seed admin",
+    "seed:events": "pnpm run seed events"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1058.0",
@@ -38,6 +36,7 @@
     "ioredis": "^5.11.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
+    "nest-zod": "^2.1.0",
     "nodemailer": "^8.0.11",
     "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",

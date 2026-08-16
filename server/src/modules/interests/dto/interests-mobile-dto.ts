@@ -1,16 +1,16 @@
-import { InterestCode } from "../../../infastructures/prisma/common/client";
+import { z } from 'zod';
+import {
+  InterestCatalogItemSchema,
+  SaveUserInterestsResponseSchema,
+  SaveUserInterestsSchema,
+  UserInterestsResponseSchema,
+} from '../validators/interests-mobile-validator';
 
-export interface InterestCatalogItemDto {
-    code: InterestCode;
-    label: string;
-    description: string | null;
-    sort_order: number;
-}
-
-export interface SaveUserInterestsDto {
-    selected: InterestCode[];
-}
-
-export interface UserInterestsResponseDto {
-    selected: InterestCode[] | null;
-}
+export type InterestCatalogItemDto = z.infer<typeof InterestCatalogItemSchema>;
+export type SaveUserInterestsDto = z.infer<typeof SaveUserInterestsSchema>;
+export type SaveUserInterestsResponseDto = z.infer<
+  typeof SaveUserInterestsResponseSchema
+>;
+export type UserInterestsResponseDto = z.infer<
+  typeof UserInterestsResponseSchema
+>;

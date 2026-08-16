@@ -4,8 +4,8 @@ import { ProfileRepository } from '../repositories/profile-repository';
 import { ProfileSiteService } from '../services/profile-site-service';
 
 @Module({
-    controllers: [ProfileSiteController],
-    providers: [ProfileSiteService, ProfileRepository],
-    exports: [ProfileSiteService],
+  controllers: [ProfileSiteController],
+  providers: [ProfileSiteService, ProfileRepository],
+  exports: [ProfileSiteService],
 })
 export class ProfileSiteModule {}

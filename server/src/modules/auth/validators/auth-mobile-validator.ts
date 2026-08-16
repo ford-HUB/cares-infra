@@ -1,19 +1,18 @@
-import { z } from "zod";
-import { EmbeddingType, GenderType, RoleType } from "../../../infastructures/prisma/common/client";
-
-const enumFromConst = <T extends Record<string, string>>(e: T) => {
-  const values = Object.values(e);
-  return z.enum(values as [string, ...string[]]);
-};
+import { z } from 'zod';
+import {
+  EmbeddingType,
+  GenderType,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 
 export const CreateUserSchema = z
   .object({
     firstname: z.string().trim().min(1),
     lastname: z.string().trim().min(1),
-    middle_name: z.string().trim().optional().default(""),
+    middle_name: z.string().trim().optional().default(''),
 
-    role_type: enumFromConst(RoleType),
-    gender: enumFromConst(GenderType),
+    role_type: z.enum(RoleType),
+    gender: z.enum(GenderType),
 
     age: z.number().int().min(1).max(150),
     current_address: z.string().trim().min(1),
@@ -44,13 +43,11 @@ export const CreateUserSchema = z
     biometric: z.object({
       face_url: z.string().trim().url(),
       embedding: z.array(z.number().finite()).length(512),
-      embedding_type: enumFromConst(EmbeddingType),
+      embedding_type: z.enum(EmbeddingType),
       isActive: z.boolean().default(true),
     }),
   })
   .strict();
-
-export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 
 export const RegistrationIdSchema = z
   .object({
@@ -58,13 +55,13 @@ export const RegistrationIdSchema = z
   })
   .strict();
 
-export const RegisterFromSessionSchema = CreateUserSchema.omit({ biometric: true })
+export const RegisterFromSessionSchema = CreateUserSchema.omit({
+  biometric: true,
+})
   .extend({
     registrationId: z.uuid(),
   })
   .strict();
-
-export type RegisterFromSessionInput = z.infer<typeof RegisterFromSessionSchema>;
 
 export const SendVerificationSchema = z
   .object({
@@ -75,15 +72,102 @@ export const SendVerificationSchema = z
 export const VerifyOtpSchema = z
   .object({
     email: z.string().trim().email(),
-    otp: z.string().trim().length(6).regex(/^\d{6}$/),
+    otp: z
+      .string()
+      .trim()
+      .length(6)
+      .regex(/^\d{6}$/),
   })
   .strict();
 
 export const LoginSchema = z
   .object({
-    email: z.string().trim().email().transform((value) => value.toLowerCase()),
+    email: z
+      .string()
+      .trim()
+      .email()
+      .transform((value) => value.toLowerCase()),
     password: z.string().min(1),
   })
   .strict();
 
-export type LoginInput = z.infer<typeof LoginSchema>;
+export const RegistrationStepSchema = z.enum([
+  'id_uploaded',
+  'face_verified',
+  'ocr_completed',
+]);
+
+export const RegisterUserResponseSchema = z.object({
+  user_id: z.string(),
+  account_id: z.string(),
+  user_biometric_id: z.string(),
+});
+
+export const LoginResponseSchema = z.object({
+  user_id: z.string(),
+  role_type: z.enum(RoleType),
+  email: z.string(),
+  firstname: z.string(),
+  has_interests: z.boolean(),
+  access_token: z.string(),
+});
+
+export const UploadIdResponseSchema = z.object({
+  registrationId: z.string(),
+});
+
+export const VerifyFaceResponseSchema = z.object({
+  registrationId: z.string(),
+  match: z.boolean(),
+  similarity: z.number(),
+  threshold: z.number(),
+  step: RegistrationStepSchema,
+  message: z.string(),
+});
+
+export const IdOcrResultSchema = z.object({
+  firstname: z.string(),
+  lastname: z.string(),
+  middleName: z.string(),
+  gender: z.string(),
+  age: z.number(),
+  currentAddress: z.string(),
+  phoneNumber: z.string(),
+  idNumber: z.string(),
+  departmentName: z.string(),
+  majorName: z.string(),
+  yearLevelName: z.string(),
+  graduationYear: z.number(),
+  graduationMonth: z.number(),
+  graduationDay: z.number(),
+  volunteerType: z.string(),
+  rawTextFront: z.string().optional(),
+  rawTextBack: z.string().optional(),
+});
+
+export const ExtractIdResponseSchema = z.object({
+  registrationId: z.string(),
+  step: RegistrationStepSchema,
+  ocrData: IdOcrResultSchema,
+});
+
+export const SendVerificationResponseSchema = z.object({
+  email: z.string(),
+  sent: z.boolean(),
+  reused: z.boolean(),
+  verified: z.boolean(),
+  expiresInSeconds: z.number(),
+});
+
+export const VerificationStatusResponseSchema = z.object({
+  email: z.string(),
+  hasActiveCode: z.boolean(),
+  verified: z.boolean(),
+  expiresInSeconds: z.number(),
+});
+
+export const VerifyOtpResponseSchema = z.object({
+  email: z.string(),
+  verified: z.boolean(),
+  expiresInSeconds: z.number(),
+});

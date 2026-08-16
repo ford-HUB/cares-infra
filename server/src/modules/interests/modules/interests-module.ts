@@ -1,8 +1,8 @@
-import { Module } from "@nestjs/common";
-import { InterestsMobileModule } from "./interests-mobile-module";
+import { Module } from '@nestjs/common';
+import { InterestsMobileModule } from './interests-mobile-module';
 
 @Module({
-    imports: [InterestsMobileModule],
-    exports: [InterestsMobileModule],
+  imports: [InterestsMobileModule],
+  exports: [InterestsMobileModule],
 })
 export class InterestsModule {}

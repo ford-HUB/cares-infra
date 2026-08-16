@@ -5,7 +5,7 @@ import { UcidServiceClient } from './ucid-service-client';
 
 @Global()
 @Module({
-    providers: [FrServiceClient, OcrServiceClient, UcidServiceClient],
-    exports: [FrServiceClient, OcrServiceClient, UcidServiceClient],
+  providers: [FrServiceClient, OcrServiceClient, UcidServiceClient],
+  exports: [FrServiceClient, OcrServiceClient, UcidServiceClient],
 })
 export class MicroservicesModule {}

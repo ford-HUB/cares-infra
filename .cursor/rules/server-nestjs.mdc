@@ -29,7 +29,7 @@ Follow the **existing** structure exactly. Do not introduce alternate patterns (
 ## Feature naming
 
 - Feature folder names must describe the **domain**, not a vague flow.
-- ✅ `interests`, `auth`, `profile`, `events`, `account-settings`
+- ✅ `interests`, `auth`, `profile`, `events`, `settings`
 - ❌ `onboarding`, `misc`, `helpers`, `utils` as a feature module
 
 ## Source layout
@@ -39,11 +39,11 @@ server/src/
 ├── main.ts
 ├── app-module.ts              # imports parent feature modules from modules/{feature}/modules/
 ├── health-controller.ts
-├── common/                    # decorators, filters, interceptors, pipes, guards
-├── middlewares/
-├── infastructures/            # prisma, redis, s3, jwt, nodemailer, microservices
+├── shared/                    # constants, decorators, filters, guards, interceptors,
+│                              # middlewares, pipes, templates, types, utils
+├── infastructures/            # prisma, redis, s3, jwt (incl. jwt-middleware), nodemailer, microservices
 └── modules/
-    └── {feature}/             # e.g. auth, interests, profile, events, account-settings
+    └── {feature}/             # e.g. auth, interests, profile, events, settings
         ├── controllers/
         ├── dto/               # lowercase only
         ├── modules/
@@ -90,6 +90,40 @@ modules/{feature}/
 - Put endpoints in the client that owns them (e.g. portal admin login → site; volunteer login/register → mobile).
 - Repository stays **shared** and is provided by each child module that needs it.
 
+### Sub-features and role folders
+
+A feature that holds several distinct areas nests them one level deep, and each area
+splits by **role** rather than by `mobile`/`site`. `settings` is the live example:
+
+```
+modules/settings/
+├── modules/settings-module.ts                        # thin parent; app-module.ts imports this
+└── account/                                          # sub-feature
+    ├── modules/account-settings-module.ts            # thin parent; imports the role module(s)
+    ├── repositories/
+    │   └── account-settings-repository.ts            # shared across every role
+    └── admin/                                        # role folder
+        ├── controllers/account-settings-admin-controller.ts
+        ├── dto/account-settings-admin-dto.ts
+        ├── validators/account-settings-admin-validator.ts
+        ├── services/account-settings-admin-service.ts
+        └── modules/account-settings-admin-module.ts
+```
+
+- Nest **only** when a feature genuinely has more than one area. A single-area feature stays flat (`modules/events/`).
+- The role folder names the audience and its name replaces the `mobile`/`site` suffix in filenames.
+
+| Role folder | Covers | Example file |
+|-------------|--------|--------------|
+| `admin` | portal roles in `PORTAL_ROLE_TYPES` (director, staff, coordinators) | `account-settings-admin-service.ts` |
+| `volunteer` | Flutter app users | `account-settings-volunteer-service.ts` |
+
+- Name the role even when only one exists — the folder documents who the code serves.
+- Give roles **separate folders only when their behavior actually differs**. Roles sharing identical logic share one folder; duplicating it is exactly the bulk this layout prevents. Split out later, when one diverges.
+- `repositories/` stays at the **sub-feature** level, above the role folders — it is role-agnostic Prisma access that a second role must reuse, not copy.
+- Both parents are thin; only the role module declares controllers and providers.
+- Nesting does **not** change routes: `settings/account/admin` still serves `/api/v1/account`.
+
 ### Parent module wiring
 
 ```typescript
@@ -107,18 +141,19 @@ export class AuthModule {}
 
 | Layer | Responsibility |
 |-------|----------------|
-| **Controller** | HTTP routing, `@Body` + `ZodValidationPipe`, delegate to service, `@ResponseMessage` |
+| **Controller** | HTTP routing, `@ZBody`/`@ZParam`/`@ZQuery` + `@ZSerialize`, delegate to service, `@ResponseMessage` |
 | **Service** | Business rules (hashing, orchestration); no raw Prisma in controllers |
 | **Repository** | Prisma queries/transactions only |
-| **Validator** | Zod schemas (`.strict()`); export schemas used by pipes |
-| **DTO** | TypeScript interfaces aligned with validator output |
+| **Validator** | Zod schemas only — `.strict()` requests plus a `*ResponseSchema` per endpoint |
+| **DTO** | `z.infer` aliases off the validator's schemas |
 
 ```typescript
 // Controller — thin
 @Post('login')
 @Public()
 @ResponseMessage('Login successful')
-async login(@Body(new ZodValidationPipe(LoginSchema)) data: LoginDto) {
+@ZSerialize(LoginResponseSchema)
+async login(@ZBody(LoginSchema) data: LoginDto): Promise<LoginResponseDto> {
   return this.authMobileService.login(data);
 }
 ```
@@ -135,8 +170,10 @@ async login(@Body(new ZodValidationPipe(LoginSchema)) data: LoginDto) {
 ## Validation
 
 - Schemas in `{feature}-{mobile|site}-validator.ts` with **Zod**.
-- Validate with `new ZodValidationPipe(Schema)` on `@Body()` / `@Param()`.
-- DTO interfaces in `{feature}-{mobile|site}-dto.ts` match validated shapes.
+- Validate with **nest-zod**: `@ZBody(Schema)`, `@ZParam('id', Schema)`, `@ZQuery(Schema)`.
+  There are no hand-rolled validation pipes.
+- Serialize responses with `@ZSerialize(ResponseSchema)` — it strips keys the schema omits.
+- DTO types in `{feature}-{mobile|site}-dto.ts` are `z.infer` aliases of those schemas.
 
 ## Config & secrets
 

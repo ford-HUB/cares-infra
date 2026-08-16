@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { ResponseMessage } from './common/decorators/response-message-decorator';
-import { Public } from './common/decorators/public-decorator';
+import { ResponseMessage } from './shared/decorators/response-message-decorator';
+import { Public } from './shared/decorators/public-decorator';
 
 @Controller('health')
 @Public()
@@ -14,4 +14,3 @@ export class HealthController {
     };
   }
 }
-

@@ -1,48 +1,70 @@
-import { Body, Controller, ForbiddenException, Get, Param, Put } from "@nestjs/common";
-import { ResponseMessage } from "src/common/decorators/response-message-decorator";
-import { Public } from "src/common/decorators/public-decorator";
-import { Roles } from "src/common/decorators/roles-decorator";
-import { CurrentUser } from "src/common/decorators/current-user-decorator";
-import { isPortalRole, PORTAL_ROLE_TYPES } from "src/common/constants/portal-role-types";
-import { ZodValidationPipe } from "src/common/pipes/zod-validation-pipe";
-import { RoleType } from "../../../infastructures/prisma/common/client";
-import { JwtPayload } from "src/common/types/jwt-payload";
-import { SaveUserInterestsDto } from "../dto/interests-mobile-dto";
-import { InterestsMobileService } from "../services/interests-mobile-service";
-import { SaveUserInterestsSchema, UserIdParamSchema } from "../validators/interests-mobile-validator";
+import { Controller, ForbiddenException, Get, Put } from '@nestjs/common';
+import { ZBody, ZParam, ZSerialize } from 'nest-zod';
+import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
+import { Public } from 'src/shared/decorators/public-decorator';
+import { Roles } from 'src/shared/decorators/roles-decorator';
+import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
+import {
+  isPortalRole,
+  PORTAL_ROLE_TYPES,
+} from 'src/shared/constants/portal-role-types';
+import { RoleType } from '../../../infastructures/prisma/common/client';
+import type { JwtPayload } from 'src/shared/types/jwt-payload';
+import type {
+  InterestCatalogItemDto,
+  SaveUserInterestsDto,
+  SaveUserInterestsResponseDto,
+  UserInterestsResponseDto,
+} from '../dto/interests-mobile-dto';
+import { InterestsMobileService } from '../services/interests-mobile-service';
+import {
+  InterestCatalogResponseSchema,
+  SaveUserInterestsResponseSchema,
+  SaveUserInterestsSchema,
+  UserIdParamSchema,
+  UserInterestsResponseSchema,
+} from '../validators/interests-mobile-validator';
 
-@Controller("v1/interests")
+@Controller('v1/interests')
 export class InterestsMobileController {
-    constructor(private readonly interestsMobileService: InterestsMobileService) {}
+  constructor(
+    private readonly interestsMobileService: InterestsMobileService,
+  ) {}
 
-    @Get()
-    @Public()
-    @ResponseMessage("Interest catalog")
-    async listInterests() {
-        return this.interestsMobileService.listInterests();
+  @Get()
+  @Public()
+  @ResponseMessage('Interest catalog')
+  @ZSerialize(InterestCatalogResponseSchema)
+  async listInterests(): Promise<InterestCatalogItemDto[]> {
+    return this.interestsMobileService.listInterests();
+  }
+
+  @Put()
+  @Roles(RoleType.VOLUNTEER)
+  @ResponseMessage('Interests saved')
+  @ZSerialize(SaveUserInterestsResponseSchema)
+  async saveUserInterests(
+    @CurrentUser() user: JwtPayload,
+    @ZBody(SaveUserInterestsSchema) data: SaveUserInterestsDto,
+  ): Promise<SaveUserInterestsResponseDto> {
+    return this.interestsMobileService.saveUserInterests(
+      user.sub,
+      data.selected,
+    );
+  }
+
+  @Get(':userId')
+  @Roles(RoleType.VOLUNTEER, ...PORTAL_ROLE_TYPES)
+  @ResponseMessage('User interests')
+  @ZSerialize(UserInterestsResponseSchema)
+  async getUserInterests(
+    @CurrentUser() user: JwtPayload,
+    @ZParam('userId', UserIdParamSchema) userId: string,
+  ): Promise<UserInterestsResponseDto> {
+    if (!isPortalRole(user.role_type) && user.sub !== userId) {
+      throw new ForbiddenException('You can only view your own interests');
     }
 
-    @Put()
-    @Roles(RoleType.VOLUNTEER)
-    @ResponseMessage("Interests saved")
-    async saveUserInterests(
-        @CurrentUser() user: JwtPayload,
-        @Body(new ZodValidationPipe(SaveUserInterestsSchema)) data: SaveUserInterestsDto,
-    ) {
-        return this.interestsMobileService.saveUserInterests(user.sub, data.selected);
-    }
-
-    @Get(":userId")
-    @Roles(RoleType.VOLUNTEER, ...PORTAL_ROLE_TYPES)
-    @ResponseMessage("User interests")
-    async getUserInterests(
-        @CurrentUser() user: JwtPayload,
-        @Param(new ZodValidationPipe(UserIdParamSchema)) params: { userId: string },
-    ) {
-        if (!isPortalRole(user.role_type) && user.sub !== params.userId) {
-            throw new ForbiddenException("You can only view your own interests");
-        }
-
-        return this.interestsMobileService.getUserInterests(params.userId);
-    }
+    return this.interestsMobileService.getUserInterests(userId);
+  }
 }
