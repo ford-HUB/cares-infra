@@ -1,19 +1,19 @@
 import { MOCK_API_DELAY_MS, delay } from '../constants/durations'
-import { USE_MOCK_API } from './api-client'
-import { mockDepartmentOverview, mockStaffOverview } from './mock-data'
+import type { AdminOverviewData, DepartmentOverviewData } from '../types/overview'
+import type { ApiResponse } from '../types/portal-roles'
+import { mockDepartmentOverview, mockAdminOverview } from './mock-data'
 
-export async function getStaffOverview() {
-  if (USE_MOCK_API) {
-    await delay(MOCK_API_DELAY_MS.default)
-    return { success: true as const, data: mockStaffOverview }
-  }
-  return { success: false as const, message: 'Backend not wired', data: null }
+// Fixtures until the overview endpoints land — the return type is already the portal's
+// ApiResponse envelope so the swap to an `apiClient` call is a body-only change.
+
+export async function getAdminOverview(): Promise<ApiResponse<AdminOverviewData>> {
+  await delay(MOCK_API_DELAY_MS.default)
+  return { success: true, data: mockAdminOverview }
 }
 
-export async function getDepartmentOverview() {
-  if (USE_MOCK_API) {
-    await delay(MOCK_API_DELAY_MS.default)
-    return { success: true as const, data: mockDepartmentOverview }
-  }
-  return { success: false as const, message: 'Backend not wired', data: null }
+export async function getDepartmentOverview(): Promise<
+  ApiResponse<DepartmentOverviewData>
+> {
+  await delay(MOCK_API_DELAY_MS.default)
+  return { success: true, data: mockDepartmentOverview }
 }

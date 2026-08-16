@@ -1,5 +1,5 @@
 import { AuthSiteService } from '../services/auth-site-service';
-import { Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Controller, Get, HttpCode, Ip, Post } from '@nestjs/common';
 import { ZBody, ZSerialize } from 'nest-zod';
 import {
   AdminLoginResponseSchema,
@@ -29,8 +29,9 @@ export class AuthSiteController {
   @ZSerialize(AdminLoginResponseSchema)
   async adminLogin(
     @ZBody(LoginSchema) data: LoginDto,
+    @Ip() ipAddress: string,
   ): Promise<AdminLoginResponseDto> {
-    return await this.authSiteService.adminLogin(data);
+    return await this.authSiteService.adminLogin(data, ipAddress);
   }
 
   @Get('me')

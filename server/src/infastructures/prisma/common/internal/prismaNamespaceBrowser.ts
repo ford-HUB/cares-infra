@@ -58,10 +58,19 @@ export const ModelName = {
   UserVerification: 'UserVerification',
   UserBiometric: 'UserBiometric',
   Role: 'Role',
+  RolePermissionDefault: 'RolePermissionDefault',
+  UserPermissionOverride: 'UserPermissionOverride',
+  UserActionSuspension: 'UserActionSuspension',
+  BlockedIp: 'BlockedIp',
   Account: 'Account',
+  GmailConnection: 'GmailConnection',
   Interest: 'Interest',
   UserInterest: 'UserInterest',
-  Event: 'Event'
+  Event: 'Event',
+  Conversation: 'Conversation',
+  ConversationParticipant: 'ConversationParticipant',
+  ChatMessage: 'ChatMessage',
+  ChatAttachment: 'ChatAttachment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -96,6 +105,10 @@ export const UserScalarFieldEnum = {
   address_city: 'address_city',
   address_province: 'address_province',
   signature_url: 'signature_url',
+  is_restricted: 'is_restricted',
+  restricted_at: 'restricted_at',
+  restriction_reason: 'restriction_reason',
+  last_login_ip: 'last_login_ip',
   role_id: 'role_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -187,6 +200,60 @@ export const RoleScalarFieldEnum = {
 export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
 
 
+export const RolePermissionDefaultScalarFieldEnum = {
+  role_permission_default_id: 'role_permission_default_id',
+  role_type: 'role_type',
+  permission: 'permission',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RolePermissionDefaultScalarFieldEnum = (typeof RolePermissionDefaultScalarFieldEnum)[keyof typeof RolePermissionDefaultScalarFieldEnum]
+
+
+export const UserPermissionOverrideScalarFieldEnum = {
+  user_permission_override_id: 'user_permission_override_id',
+  user_id: 'user_id',
+  permission: 'permission',
+  effect: 'effect',
+  reason: 'reason',
+  granted_by_user_id: 'granted_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPermissionOverrideScalarFieldEnum = (typeof UserPermissionOverrideScalarFieldEnum)[keyof typeof UserPermissionOverrideScalarFieldEnum]
+
+
+export const UserActionSuspensionScalarFieldEnum = {
+  user_action_suspension_id: 'user_action_suspension_id',
+  user_id: 'user_id',
+  permission: 'permission',
+  reason: 'reason',
+  issued_by_user_id: 'issued_by_user_id',
+  expires_at: 'expires_at',
+  lifted_at: 'lifted_at',
+  lifted_by_user_id: 'lifted_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserActionSuspensionScalarFieldEnum = (typeof UserActionSuspensionScalarFieldEnum)[keyof typeof UserActionSuspensionScalarFieldEnum]
+
+
+export const BlockedIpScalarFieldEnum = {
+  blocked_ip_id: 'blocked_ip_id',
+  ip_address: 'ip_address',
+  reason: 'reason',
+  user_id: 'user_id',
+  blocked_by_user_id: 'blocked_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BlockedIpScalarFieldEnum = (typeof BlockedIpScalarFieldEnum)[keyof typeof BlockedIpScalarFieldEnum]
+
+
 export const AccountScalarFieldEnum = {
   account_id: 'account_id',
   email: 'email',
@@ -197,6 +264,22 @@ export const AccountScalarFieldEnum = {
 } as const
 
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+export const GmailConnectionScalarFieldEnum = {
+  gmail_connection_id: 'gmail_connection_id',
+  user_id: 'user_id',
+  google_sub: 'google_sub',
+  email: 'email',
+  scope: 'scope',
+  access_token: 'access_token',
+  refresh_token: 'refresh_token',
+  access_expires_at: 'access_expires_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GmailConnectionScalarFieldEnum = (typeof GmailConnectionScalarFieldEnum)[keyof typeof GmailConnectionScalarFieldEnum]
 
 
 export const InterestScalarFieldEnum = {
@@ -251,6 +334,51 @@ export const EventScalarFieldEnum = {
 } as const
 
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const ConversationScalarFieldEnum = {
+  conversation_id: 'conversation_id',
+  last_message_at: 'last_message_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum]
+
+
+export const ConversationParticipantScalarFieldEnum = {
+  conversation_participant_id: 'conversation_participant_id',
+  conversation_id: 'conversation_id',
+  user_id: 'user_id',
+  last_read_at: 'last_read_at',
+  createdAt: 'createdAt'
+} as const
+
+export type ConversationParticipantScalarFieldEnum = (typeof ConversationParticipantScalarFieldEnum)[keyof typeof ConversationParticipantScalarFieldEnum]
+
+
+export const ChatMessageScalarFieldEnum = {
+  message_id: 'message_id',
+  conversation_id: 'conversation_id',
+  sender_id: 'sender_id',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
+
+
+export const ChatAttachmentScalarFieldEnum = {
+  attachment_id: 'attachment_id',
+  message_id: 'message_id',
+  name: 'name',
+  size: 'size',
+  mime_type: 'mime_type',
+  url: 'url',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatAttachmentScalarFieldEnum = (typeof ChatAttachmentScalarFieldEnum)[keyof typeof ChatAttachmentScalarFieldEnum]
 
 
 export const SortOrder = {

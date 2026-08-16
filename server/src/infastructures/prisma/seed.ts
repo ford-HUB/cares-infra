@@ -1,12 +1,14 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './common/client';
+import { seedAccessControl } from './seeders/access-control-seeder';
 import { seedAdmin } from './seeders/admin-seeder';
 import { seedEvents } from './seeders/events-seeder';
 
 const SEEDERS = {
   admin: seedAdmin,
   events: seedEvents,
+  'access-control': seedAccessControl,
 } as const;
 
 type SeederName = keyof typeof SEEDERS;

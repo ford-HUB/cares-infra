@@ -1,14 +1,36 @@
-import { useState } from 'react'
-import type { PortalNavConfig } from '../../types/nav'
-import type { StaffRole } from '../../types/staff-roles'
+import { useMemo, useState } from 'react'
+import type { NavItem, PortalNavConfig } from '../../types/nav'
+import type { PortalRole } from '../../types/portal-roles'
 import { ExpandableNavGroup } from './ui/expandable-nav-group'
 import { MenuItem } from './ui/menu-item'
+import { NavSectionLabel } from './ui/nav-section-label'
+
+/**
+ * Keeps only what the role may see, then drops any section heading left with no
+ * item under it.
+ */
+function visibleNavItems(items: NavItem[], userRole?: PortalRole): NavItem[] {
+  const allowed = (roles?: PortalRole[]) =>
+    !roles || (!!userRole && roles.includes(userRole))
+
+  const permitted = items.filter((item) => {
+    if (!allowed(item.roles)) return false
+    if (item.type === 'group') return item.children.some((child) => allowed(child.roles))
+    return true
+  })
+
+  return permitted.filter(
+    (item, index) =>
+      item.type !== 'section' ||
+      (permitted[index + 1] !== undefined && permitted[index + 1].type !== 'section'),
+  )
+}
 
 interface PortalSidebarProps {
   config: PortalNavConfig
   title?: string
   collapsed: boolean
-  userRole?: StaffRole
+  userRole?: PortalRole
 }
 
 export function PortalSidebar({
@@ -25,47 +47,46 @@ export function PortalSidebar({
     setExpandedGroups((prev) => ({ ...prev, [label]: !prev[label] }))
   }
 
-  const visibleItems = config.items.filter((item) => {
-    if (item.type === 'link') {
-      return !item.roles || (userRole && item.roles.includes(userRole))
-    }
-    if (item.roles && userRole && !item.roles.includes(userRole)) return false
-    if (item.type === 'group') {
-      return item.children.some(
-        (child) => !child.roles || (userRole && child.roles.includes(userRole)),
-      )
-    }
-    return true
-  })
+  const visibleItems = useMemo(
+    () => visibleNavItems(config.items, userRole),
+    [config.items, userRole],
+  )
+
+  const firstSectionLabel = visibleItems.find((item) => item.type === 'section')?.label
 
   return (
     <aside
       className={[
         'flex h-screen shrink-0 flex-col bg-[var(--cares-sidebar)] text-white transition-all duration-300',
-        collapsed ? 'w-20' : 'w-72',
+        collapsed ? 'w-16' : 'w-60',
       ].join(' ')}
     >
-      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-5">
+      <div className="flex items-center gap-2.5 border-b border-white/10 px-3 py-4">
         <img
           src="/transparent-logo.png"
           alt="CARES"
-          className={`shrink-0 object-contain ${collapsed ? 'h-8 w-8' : 'h-10 w-10'}`}
+          className={`shrink-0 object-contain ${collapsed ? 'h-7 w-7' : 'h-8 w-8'}`}
         />
         {!collapsed && (
-          <span className="text-xl leading-tight font-bold">
+          <span className="text-sm leading-tight font-bold">
             {title ?? config.portalTitle}
           </span>
         )}
       </div>
 
-      <nav className="scrollbar-hide flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {!collapsed && (
-          <p className="mb-3 px-3 text-xs font-semibold tracking-wider text-white/50 uppercase">
-            Menu
-          </p>
-        )}
-
+      <nav className="scrollbar-hide flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         {visibleItems.map((item) => {
+          if (item.type === 'section') {
+            return (
+              <NavSectionLabel
+                key={`section:${item.label}`}
+                label={item.label}
+                collapsed={collapsed}
+                first={item.label === firstSectionLabel}
+              />
+            )
+          }
+
           if (item.type === 'link') {
             return (
               <MenuItem

@@ -7,6 +7,7 @@ export interface PortalProfileApiResponse {
   department: string | null
   phone_number: string
   gender: string
+  age: number
   profile_complete: boolean
   address: {
     street: string | null

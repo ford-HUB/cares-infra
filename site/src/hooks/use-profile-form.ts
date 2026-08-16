@@ -50,6 +50,7 @@ export function useProfileForm({ profile, isDirector, onSuccess }: UseProfileFor
       lastname: profile.lastname ?? '',
       phone_number: profile.phone_number ?? profile.phone ?? '',
       gender: mapGenderToForm(profile.gender),
+      age: profile.age ?? profileFormDefaultValues.age,
       address_street: profile.address?.street ?? '',
       address_barangay: profile.address?.barangay ?? '',
       address_city: profile.address?.city ?? '',

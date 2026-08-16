@@ -18,6 +18,10 @@ import { InterestsModule } from './modules/interests/modules/interests-module';
 import { ProfileModule } from './modules/profile/modules/profile-module';
 import { SettingsModule } from './modules/settings/modules/settings-module';
 import { EventsModule } from './modules/events/modules/events-module';
+import { UsersModule } from './modules/users/modules/users-module';
+import { AccessControlModule } from './modules/access-control/modules/access-control-module';
+import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
+import { ChatModule } from './modules/chat/modules/chat-module';
 import { JwtModule } from './infastructures/jwt/jwt-module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth-guard';
 import { RolesGuard } from './shared/guards/roles-guard';
@@ -38,6 +42,10 @@ import { RolesGuard } from './shared/guards/roles-guard';
     ProfileModule,
     SettingsModule,
     EventsModule,
+    UsersModule,
+    AccessControlModule,
+    MailboxModule,
+    ChatModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -63,6 +71,9 @@ export class AppModule implements NestModule {
         { path: 'health', method: RequestMethod.GET },
         { path: 'v1/auth/*path', method: RequestMethod.ALL },
         { path: 'v1/interests', method: RequestMethod.GET },
+        // Google consent legs are browser redirects; they authenticate by OAuth state.
+        { path: 'v1/mailbox/google', method: RequestMethod.GET },
+        { path: 'v1/mailbox/google/callback', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*path', method: RequestMethod.ALL });
   }

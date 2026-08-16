@@ -10,6 +10,11 @@ export const UpdatePortalProfileSchema = z
     lastname: z.string().trim().min(1, 'Last name is required').max(80),
     phone_number: z.string().trim().min(7, 'Phone number is required').max(25),
     gender: z.enum(GenderType),
+    age: z.coerce
+      .number()
+      .int('Age must be a whole number')
+      .min(18, 'Age must be at least 18')
+      .max(120, 'Age must be 120 or below'),
     department: z.string().trim().max(120).optional(),
     address_street: z.string().trim().min(1, 'Street is required').max(200),
     address_barangay: z.string().trim().min(1, 'Barangay is required').max(120),
@@ -27,6 +32,7 @@ export const PortalProfileResponseSchema = z.object({
   department: z.string().nullable(),
   phone_number: z.string(),
   gender: z.enum(GenderType),
+  age: z.number(),
   address: z.object({
     street: z.string().nullable(),
     barangay: z.string().nullable(),

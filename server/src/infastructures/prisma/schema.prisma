@@ -29,11 +29,21 @@ model User {
   address_city       String?
   address_province   String?
   signature_url      String?
+  is_restricted      Boolean            @default(false)
+  restricted_at      DateTime?
+  restriction_reason String?
+  last_login_ip      String?
+  blocked_ips        BlockedIp[]
+  permission_overrides UserPermissionOverride[]
+  action_suspensions   UserActionSuspension[]
   user_school_info   UserSchoolInfo[]
   user_biometrics    UserBiometric[]
   accounts           Account[]
   user_verifications UserVerification[]
   user_interest      UserInterest?
+  gmail_connection   GmailConnection?
+  chat_participants  ConversationParticipant[]
+  chat_messages      ChatMessage[]
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -117,10 +127,9 @@ model UserBiometric {
 }
 
 enum RoleType {
+  ADMIN
   DIRECTOR
-  STAFF
   COORDINATOR
-  ASSISTANT_COORDINATOR
   VOLUNTEER
   DONOR
   BENEFICIARY
@@ -134,6 +143,107 @@ model Role {
   updatedAt DateTime @updatedAt
 }
 
+/// Every action the portal can gate. Grouped `{MODULE}_{ACTION}`; the labels and
+/// module grouping the portal renders live in shared/constants/permission-catalog.ts.
+enum PermissionKey {
+  USERS_VIEW
+  USERS_RESTRICT
+  USERS_BLOCK_IP
+  USERS_EXPORT
+  ACCESS_CONTROL_VIEW
+  ACCESS_CONTROL_MANAGE
+  EVENTS_VIEW
+  EVENTS_CREATE
+  EVENTS_UPDATE
+  EVENTS_DELETE
+  EVENTS_PUBLISH
+  ATTENDANCE_VIEW
+  ATTENDANCE_RECORD
+  ATTENDANCE_EXPORT
+  CERTIFICATES_VIEW
+  CERTIFICATES_TEMPLATE_MANAGE
+  CERTIFICATES_ISSUE
+  DONATIONS_VIEW
+  DONATIONS_RECORD
+  REPORTS_VIEW
+  REPORTS_PUBLISH
+  SECURITY_AUDIT_VIEW
+  SECURITY_SESSION_REVOKE
+  SECURITY_POLICY_MANAGE
+  SYSTEM_PERFORMANCE_VIEW
+  SYSTEM_NOTICE_MANAGE
+  SYSTEM_SERVICE_MANAGE
+  SYSTEM_MAINTENANCE_MANAGE
+  CHAT_ACCESS
+  MAIL_ACCESS
+  SUPPORT_TICKET_MANAGE
+}
+
+/// Baseline rights every user of a role inherits. Keyed by `RoleType` rather than
+/// `role_id` because `Role` has no unique constraint on `type` — see the admin seeder.
+model RolePermissionDefault {
+  role_permission_default_id String        @id @default(uuid())
+  role_type                  RoleType
+  permission                 PermissionKey
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
+
+  @@unique([role_type, permission])
+}
+
+enum PermissionOverrideEffect {
+  GRANT
+  REVOKE
+}
+
+/// A per-user departure from the role baseline. Only rows that actually differ from
+/// the role default are stored, so an untouched user has none.
+model UserPermissionOverride {
+  user_permission_override_id String                   @id @default(uuid())
+  user                        User                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id                     String
+  permission                  PermissionKey
+  effect                      PermissionOverrideEffect
+  reason                      String?
+  granted_by_user_id          String
+  createdAt                   DateTime                 @default(now())
+  updatedAt                   DateTime                 @updatedAt
+
+  @@unique([user_id, permission])
+  @@index([user_id])
+}
+
+/// A violation-driven suspension of one action. Layers *over* the granted rights: the
+/// grant is preserved so lifting the suspension restores the original scope.
+model UserActionSuspension {
+  user_action_suspension_id String        @id @default(uuid())
+  user                      User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id                   String
+  permission                PermissionKey
+  reason                    String
+  issued_by_user_id         String
+  /// Null means indefinite — it stays in force until an admin lifts it.
+  expires_at                DateTime?
+  lifted_at                 DateTime?
+  lifted_by_user_id         String?
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+
+  @@index([user_id])
+}
+
+model BlockedIp {
+  blocked_ip_id      String   @id @default(uuid())
+  ip_address         String   @unique
+  reason             String?
+  /// The account the block originated from — null for a manually entered address.
+  user_id            String?
+  user               User?    @relation(fields: [user_id], references: [user_id])
+  blocked_by_user_id String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 model Account {
   account_id String   @id @default(uuid())
   email      String   @unique
@@ -142,6 +252,24 @@ model Account {
   user_id    String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+/// One linked Google mailbox per portal user. Tokens are issued by Google OAuth and
+/// refreshed server-side; disconnecting deletes the row so nothing stale is kept.
+model GmailConnection {
+  gmail_connection_id String   @id @default(uuid())
+  user                User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id             String   @unique
+  google_sub          String
+  email               String
+  /// Granted scopes, space separated, exactly as Google returned them.
+  scope               String
+  access_token        String
+  /// Google only returns this on the first consent, so it is never overwritten with null.
+  refresh_token       String
+  access_expires_at   DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 enum InterestCode {
@@ -201,4 +329,55 @@ model Event {
   area_sqm               Float?
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
+}
+
+/// Direct (1:1) portal messaging. Participants are portal staff — volunteers use
+/// the mobile app and are not addressable here.
+model Conversation {
+  conversation_id String                    @id @default(uuid())
+  participants    ConversationParticipant[]
+  messages        ChatMessage[]
+  /// Mirrors the newest message so the contact list can sort without a join.
+  last_message_at DateTime?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+}
+
+model ConversationParticipant {
+  conversation_participant_id String       @id @default(uuid())
+  conversation_id             String
+  conversation                Conversation @relation(fields: [conversation_id], references: [conversation_id], onDelete: Cascade)
+  user_id                     String
+  user                        User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  /// Everything sent after this timestamp counts as unread for this participant.
+  last_read_at                DateTime?
+  createdAt                   DateTime     @default(now())
+
+  @@unique([conversation_id, user_id])
+  @@index([user_id])
+}
+
+model ChatMessage {
+  message_id      String           @id @default(uuid())
+  conversation_id String
+  conversation    Conversation     @relation(fields: [conversation_id], references: [conversation_id], onDelete: Cascade)
+  sender_id       String
+  sender          User             @relation(fields: [sender_id], references: [user_id], onDelete: Cascade)
+  body            String
+  attachments     ChatAttachment[]
+  createdAt       DateTime         @default(now())
+
+  @@index([conversation_id, createdAt])
+}
+
+model ChatAttachment {
+  attachment_id String      @id @default(uuid())
+  message_id    String
+  message       ChatMessage @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
+  name          String
+  size          Int
+  mime_type     String
+  /// S3 object URL; streamed back through the API, never exposed as a public link.
+  url           String
+  createdAt     DateTime    @default(now())
 }

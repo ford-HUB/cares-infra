@@ -1,5 +1,5 @@
 import { TOKEN_KEY } from '../constants/session'
-import { apiClient, parseApiError, USE_MOCK_API } from './api-client'
+import { apiClient, parseApiError } from './api-client'
 import { persistSession } from './auth-service'
 import { useAuthStore } from '../store/auth-store'
 
@@ -14,17 +14,6 @@ export interface ChangePasswordPayload {
 }
 
 export async function changeAccountEmail(payload: ChangeEmailPayload) {
-  if (USE_MOCK_API) {
-    const user = useAuthStore.getState().user
-    if (user) {
-      persistSession({ ...user, email: payload.new_email.toLowerCase() })
-      useAuthStore.setState({
-        user: { ...user, email: payload.new_email.toLowerCase() },
-      })
-    }
-    return { success: true as const, message: 'Email updated (mock)' }
-  }
-
   try {
     const { data: body } = await apiClient.put<{
       ok: true
@@ -50,10 +39,6 @@ export async function changeAccountEmail(payload: ChangeEmailPayload) {
 }
 
 export async function changeAccountPassword(payload: ChangePasswordPayload) {
-  if (USE_MOCK_API) {
-    return { success: true as const, message: 'Password updated (mock)' }
-  }
-
   try {
     await apiClient.put('/api/v1/account/password', {
       current_password: payload.current_password,

@@ -128,7 +128,7 @@ export function ProfileFormModal({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <label htmlFor="phone_number" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Phone number
@@ -151,9 +151,26 @@ export function ProfileFormModal({
                   className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
                   {...register('gender')}
                 >
+                  <option value="O">Other</option>
                   <option value="F">Female</option>
                   <option value="M">Male</option>
                 </select>
+              </div>
+              <div>
+                <label htmlFor="age" className="mb-0.5 block text-xs font-medium text-gray-700">
+                  Age
+                </label>
+                <input
+                  id="age"
+                  type="number"
+                  min={18}
+                  max={120}
+                  className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+                  {...register('age', { valueAsNumber: true })}
+                />
+                {errors.age && (
+                  <p className="mt-0.5 text-[10px] text-red-600">{errors.age.message}</p>
+                )}
               </div>
             </div>
 

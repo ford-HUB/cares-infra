@@ -19,6 +19,7 @@ export interface MeApiResponse {
   firstname: string
   lastname: string
   role_type: string
+  is_protected: boolean
 }
 
 export interface BackendSuccess<T> {

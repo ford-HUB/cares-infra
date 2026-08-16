@@ -1,29 +1,4 @@
 import type { NotificationFeed } from '../types/notification'
-import type { AuthUser } from '../types/staff-roles'
-
-export const mockDirectorUser: AuthUser = {
-  id: 'dir-1',
-  email: 'director@uclm.edu.ph',
-  role: 'director',
-  firstName: 'Maria',
-  lastName: 'Santos',
-}
-
-export const mockStaffUser: AuthUser = {
-  id: 'staff-1',
-  email: 'ana.lopez@uclm.edu.ph',
-  role: 'staff',
-  firstName: 'Ana',
-  lastName: 'Lopez',
-}
-
-export const mockCoordinatorUser: AuthUser = {
-  id: 'coord-1',
-  email: 'coord@uclm.edu.ph',
-  role: 'coordinator',
-  firstName: 'Juan',
-  lastName: 'Reyes',
-}
 
 export const mockNotifications: NotificationFeed = {
   summary: { total: 5, unread: 2, read: 3 },
@@ -71,7 +46,7 @@ export const mockNotifications: NotificationFeed = {
   ],
 }
 
-export const mockStaffOverview = {
+export const mockAdminOverview = {
   stats: {
     totalVolunteers: 128,
     totalStudents: 450,

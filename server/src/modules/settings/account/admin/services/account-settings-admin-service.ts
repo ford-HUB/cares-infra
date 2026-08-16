@@ -1,11 +1,14 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '../../../../../infastructures/jwt/jwt-service';
 import { isPortalRole } from 'src/shared/constants/portal-role-types';
+import { isProtectedAdminEmail } from 'src/shared/constants/protected-admin';
 import {
   ChangeEmailDto,
   ChangeEmailResponseDto,
@@ -13,12 +16,15 @@ import {
   ChangePasswordResponseDto,
 } from '../dto/account-settings-admin-dto';
 import { AccountSettingsRepository } from '../../repositories/account-settings-repository';
+import { ProfileCacheService } from '../../../../profile/services/profile-cache-service';
 
 @Injectable()
 export class AccountSettingsAdminService {
   constructor(
     private readonly accountSettingsRepository: AccountSettingsRepository,
     private readonly jwtService: JwtService,
+    private readonly profileCacheService: ProfileCacheService,
+    private readonly configService: ConfigService,
   ) {}
 
   async changeEmail(
@@ -29,6 +35,14 @@ export class AccountSettingsAdminService {
       await this.accountSettingsRepository.findAccountByUserId(userId);
     if (!account || !isPortalRole(account.user.role.type)) {
       throw new UnauthorizedException('Account not found');
+    }
+
+    // The root account's sign-in address is fixed — changing it is the one edit that
+    // could leave the portal with no reachable administrator.
+    if (isProtectedAdminEmail(account.email, this.configService)) {
+      throw new ForbiddenException(
+        'The sign-in email of the root administrator account cannot be changed',
+      );
     }
 
     await this.verifyCurrentPassword(data.current_password, account.password);
@@ -50,6 +64,9 @@ export class AccountSettingsAdminService {
       account.account_id,
       newEmail,
     );
+
+    // The portal profile row carries this email, so the cached copy is now wrong.
+    await this.profileCacheService.invalidateProfile(userId);
 
     return {
       email: updated.email,

@@ -9,6 +9,11 @@
         "include": "shared/templates/**/*",
         "outDir": "dist",
         "watchAssets": true
+      },
+      {
+        "include": "infastructures/prisma/common/package.json",
+        "outDir": "dist",
+        "watchAssets": true
       }
     ]
   }

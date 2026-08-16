@@ -10,7 +10,8 @@ export interface ProfileInfo {
   department?: string
   phone?: string
   phone_number?: string
-  gender?: 'M' | 'F'
+  gender?: 'M' | 'F' | 'O'
+  age?: number
   address?: {
     street?: string
     barangay?: string

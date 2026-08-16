@@ -1,9 +1,5 @@
 import type { RouteObject } from 'react-router-dom'
-import { directorRoutes } from './director-routes'
-import { staffRoutes } from './staff-routes'
+import { adminRoutes } from './admin-routes'
 
-/** RBAC-protected portal routes — director and staff/coordinator dashboards. */
-export const permittedRoutes: RouteObject[] = [
-  ...directorRoutes,
-  ...staffRoutes,
-]
+/** RBAC-protected portal routes — one admin UI shared by admin, director and coordinator. */
+export const permittedRoutes: RouteObject[] = [...adminRoutes]

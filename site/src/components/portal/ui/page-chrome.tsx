@@ -21,7 +21,7 @@ export function StatCard({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
           {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
         </div>
         <div className={`rounded-lg p-3 ${color}`}>
@@ -40,10 +40,10 @@ interface InlinePageHeaderProps {
 
 export function InlinePageHeader({ title, description, action }: InlinePageHeaderProps) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="mb-1 text-3xl font-bold text-gray-900">{title}</h1>
-        {description && <p className="text-gray-600">{description}</p>}
+        <h1 className="mb-1 text-xl font-bold text-gray-900">{title}</h1>
+        {description && <p className="text-sm text-gray-600">{description}</p>}
       </div>
       {action}
     </div>
@@ -61,7 +61,7 @@ export function SectionCard({ title, icon: Icon, action, children }: SectionCard
   return (
     <div className="rounded-lg bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
         <div className="flex items-center gap-3">
           {action}
           {Icon && <Icon className="h-5 w-5 text-blue-600" />}
@@ -124,16 +124,9 @@ export function GradientMetricTile({
   )
 }
 
-export function LoadingState({ message = 'Loading...' }: { message?: string }) {
-  return (
-    <div className="flex h-64 items-center justify-center">
-      <div className="text-center">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
-        <p className="mt-4 text-gray-600">{message}</p>
-      </div>
-    </div>
-  )
-}
+// `LoadingState` (a centred spinner) lived here until both of its callers — the admin
+// dashboard and the profile page — moved to layout-matching skeletons. See the
+// `site-loading-skeletons` skill before adding a spinner back.
 
 export function StatusPill({
   status,
@@ -145,6 +138,7 @@ export function StatusPill({
     inactive: 'bg-gray-100 text-gray-800',
     pending: 'bg-blue-100 text-blue-800',
     deactivated: 'bg-amber-100 text-amber-800',
+    restricted: 'bg-red-100 text-red-800',
   }
 
   const label = status.charAt(0).toUpperCase() + status.slice(1)

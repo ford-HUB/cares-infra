@@ -2,12 +2,16 @@ import {
   BadRequestException,
   Controller,
   Get,
+  HttpStatus,
   Put,
+  Req,
+  Res,
   StreamableFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import type { Request, Response } from 'express';
 import { ZBody, ZSerialize } from 'nest-zod';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
@@ -16,6 +20,7 @@ import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   PortalProfileDto,
+  ProfileAssetKind,
   UpdatePortalProfileDto,
 } from '../dto/profile-site-dto';
 import { ProfileSiteService } from '../services/profile-site-service';
@@ -75,24 +80,46 @@ export class ProfileSiteController {
 
   @Get('me/avatar')
   @Roles(...PORTAL_ROLE_TYPES)
-  async getAvatar(@CurrentUser() user: JwtPayload) {
-    const asset = await this.profileSiteService.getProfileAsset(
-      user.sub,
-      'avatar',
-    );
-    return new StreamableFile(asset.buffer, {
-      type: asset.contentType,
-      disposition: 'inline',
-    });
+  async getAvatar(
+    @CurrentUser() user: JwtPayload,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.sendProfileAsset(user.sub, 'avatar', request, response);
   }
 
   @Get('me/signature')
   @Roles(...PORTAL_ROLE_TYPES)
-  async getSignature(@CurrentUser() user: JwtPayload) {
-    const asset = await this.profileSiteService.getProfileAsset(
-      user.sub,
-      'signature',
-    );
+  async getSignature(
+    @CurrentUser() user: JwtPayload,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.sendProfileAsset(user.sub, 'signature', request, response);
+  }
+
+  /**
+   * Assets are private but revalidatable: `no-cache` makes the browser ask every time,
+   * and the content-hash ETag lets it answer 304 without re-sending the image. That is
+   * what stops the navbar avatar re-downloading on every portal refresh — Redis only
+   * removes the S3 round-trip behind it.
+   */
+  private async sendProfileAsset(
+    userId: string,
+    kind: ProfileAssetKind,
+    request: Request,
+    response: Response,
+  ): Promise<StreamableFile | undefined> {
+    const asset = await this.profileSiteService.getProfileAsset(userId, kind);
+
+    response.setHeader('ETag', asset.etag);
+    response.setHeader('Cache-Control', 'private, no-cache');
+
+    if (request.headers['if-none-match'] === asset.etag) {
+      response.status(HttpStatus.NOT_MODIFIED);
+      return undefined;
+    }
+
     return new StreamableFile(asset.buffer, {
       type: asset.contentType,
       disposition: 'inline',

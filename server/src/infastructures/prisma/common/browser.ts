@@ -57,10 +57,39 @@ export type UserBiometric = Prisma.UserBiometricModel
  */
 export type Role = Prisma.RoleModel
 /**
+ * Model RolePermissionDefault
+ * Baseline rights every user of a role inherits. Keyed by `RoleType` rather than
+ * `role_id` because `Role` has no unique constraint on `type` — see the admin seeder.
+ */
+export type RolePermissionDefault = Prisma.RolePermissionDefaultModel
+/**
+ * Model UserPermissionOverride
+ * A per-user departure from the role baseline. Only rows that actually differ from
+ * the role default are stored, so an untouched user has none.
+ */
+export type UserPermissionOverride = Prisma.UserPermissionOverrideModel
+/**
+ * Model UserActionSuspension
+ * A violation-driven suspension of one action. Layers *over* the granted rights: the
+ * grant is preserved so lifting the suspension restores the original scope.
+ */
+export type UserActionSuspension = Prisma.UserActionSuspensionModel
+/**
+ * Model BlockedIp
+ * 
+ */
+export type BlockedIp = Prisma.BlockedIpModel
+/**
  * Model Account
  * 
  */
 export type Account = Prisma.AccountModel
+/**
+ * Model GmailConnection
+ * One linked Google mailbox per portal user. Tokens are issued by Google OAuth and
+ * refreshed server-side; disconnecting deletes the row so nothing stale is kept.
+ */
+export type GmailConnection = Prisma.GmailConnectionModel
 /**
  * Model Interest
  * 
@@ -76,3 +105,24 @@ export type UserInterest = Prisma.UserInterestModel
  * 
  */
 export type Event = Prisma.EventModel
+/**
+ * Model Conversation
+ * Direct (1:1) portal messaging. Participants are portal staff — volunteers use
+ * the mobile app and are not addressable here.
+ */
+export type Conversation = Prisma.ConversationModel
+/**
+ * Model ConversationParticipant
+ * 
+ */
+export type ConversationParticipant = Prisma.ConversationParticipantModel
+/**
+ * Model ChatMessage
+ * 
+ */
+export type ChatMessage = Prisma.ChatMessageModel
+/**
+ * Model ChatAttachment
+ * 
+ */
+export type ChatAttachment = Prisma.ChatAttachmentModel

@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { PersistPortalProfileDto } from '../dto/profile-site-dto';
 
+/** The row shape the portal profile endpoints read — also what the cache stores. */
+export type PortalProfileRow = NonNullable<
+  Awaited<ReturnType<ProfileRepository['findPortalProfile']>>
+>;
+
 @Injectable()
 export class ProfileRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -14,6 +19,7 @@ export class ProfileRepository {
         firstname: true,
         lastname: true,
         gender: true,
+        age: true,
         phone_number: true,
         avatar: true,
         portal_department: true,
@@ -47,6 +53,7 @@ export class ProfileRepository {
         lastname: data.lastname,
         phone_number: data.phone_number,
         gender: data.gender,
+        age: data.age,
         portal_department: data.department,
         address_street: data.address_street,
         address_barangay: data.address_barangay,

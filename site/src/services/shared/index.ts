@@ -1,7 +1,6 @@
 /**
  * Shared domain services migrated from Capstone `services/common/*`.
- * Each function returns mock data when VITE_USE_MOCK_API=true (default).
- * Replace mock branches with apiClient calls when backend is wired.
+ * These still return fixtures — replace each with apiClient calls as the backend lands.
  */
 
 export * from './attendance-service'

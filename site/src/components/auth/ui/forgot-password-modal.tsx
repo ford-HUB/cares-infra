@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { requestStaffPasswordReset } from '../../../services/forgot-password-service'
+import { requestPortalPasswordReset } from '../../../services/forgot-password-service'
 import {
   forgotPasswordSchema,
   type ForgotPasswordValues,
@@ -29,7 +29,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
   if (!open) return null
 
   const onSubmit = handleSubmit(async (values) => {
-    const res = await requestStaffPasswordReset(values.email)
+    const res = await requestPortalPasswordReset(values.email)
     if (res.success) {
       setSent(true)
       toast.success(res.message)

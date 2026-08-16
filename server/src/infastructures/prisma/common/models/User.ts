@@ -49,6 +49,10 @@ export type UserMinAggregateOutputType = {
   address_city: string | null
   address_province: string | null
   signature_url: string | null
+  is_restricted: boolean | null
+  restricted_at: Date | null
+  restriction_reason: string | null
+  last_login_ip: string | null
   role_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -70,6 +74,10 @@ export type UserMaxAggregateOutputType = {
   address_city: string | null
   address_province: string | null
   signature_url: string | null
+  is_restricted: boolean | null
+  restricted_at: Date | null
+  restriction_reason: string | null
+  last_login_ip: string | null
   role_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -91,6 +99,10 @@ export type UserCountAggregateOutputType = {
   address_city: number
   address_province: number
   signature_url: number
+  is_restricted: number
+  restricted_at: number
+  restriction_reason: number
+  last_login_ip: number
   role_id: number
   createdAt: number
   updatedAt: number
@@ -122,6 +134,10 @@ export type UserMinAggregateInputType = {
   address_city?: true
   address_province?: true
   signature_url?: true
+  is_restricted?: true
+  restricted_at?: true
+  restriction_reason?: true
+  last_login_ip?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -143,6 +159,10 @@ export type UserMaxAggregateInputType = {
   address_city?: true
   address_province?: true
   signature_url?: true
+  is_restricted?: true
+  restricted_at?: true
+  restriction_reason?: true
+  last_login_ip?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -164,6 +184,10 @@ export type UserCountAggregateInputType = {
   address_city?: true
   address_province?: true
   signature_url?: true
+  is_restricted?: true
+  restricted_at?: true
+  restriction_reason?: true
+  last_login_ip?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -272,6 +296,10 @@ export type UserGroupByOutputType = {
   address_city: string | null
   address_province: string | null
   signature_url: string | null
+  is_restricted: boolean
+  restricted_at: Date | null
+  restriction_reason: string | null
+  last_login_ip: string | null
   role_id: string
   createdAt: Date
   updatedAt: Date
@@ -316,14 +344,24 @@ export type UserWhereInput = {
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
   signature_url?: Prisma.StringNullableFilter<"User"> | string | null
+  is_restricted?: Prisma.BoolFilter<"User"> | boolean
+  restricted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  restriction_reason?: Prisma.StringNullableFilter<"User"> | string | null
+  last_login_ip?: Prisma.StringNullableFilter<"User"> | string | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  blocked_ips?: Prisma.BlockedIpListRelationFilter
+  permission_overrides?: Prisma.UserPermissionOverrideListRelationFilter
+  action_suspensions?: Prisma.UserActionSuspensionListRelationFilter
   user_school_info?: Prisma.UserSchoolInfoListRelationFilter
   user_biometrics?: Prisma.UserBiometricListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   user_verifications?: Prisma.UserVerificationListRelationFilter
   user_interest?: Prisma.XOR<Prisma.UserInterestNullableScalarRelationFilter, Prisma.UserInterestWhereInput> | null
+  gmail_connection?: Prisma.XOR<Prisma.GmailConnectionNullableScalarRelationFilter, Prisma.GmailConnectionWhereInput> | null
+  chat_participants?: Prisma.ConversationParticipantListRelationFilter
+  chat_messages?: Prisma.ChatMessageListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }
 
@@ -343,14 +381,24 @@ export type UserOrderByWithRelationInput = {
   address_city?: Prisma.SortOrderInput | Prisma.SortOrder
   address_province?: Prisma.SortOrderInput | Prisma.SortOrder
   signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_restricted?: Prisma.SortOrder
+  restricted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  restriction_reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_login_ip?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  blocked_ips?: Prisma.BlockedIpOrderByRelationAggregateInput
+  permission_overrides?: Prisma.UserPermissionOverrideOrderByRelationAggregateInput
+  action_suspensions?: Prisma.UserActionSuspensionOrderByRelationAggregateInput
   user_school_info?: Prisma.UserSchoolInfoOrderByRelationAggregateInput
   user_biometrics?: Prisma.UserBiometricOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   user_verifications?: Prisma.UserVerificationOrderByRelationAggregateInput
   user_interest?: Prisma.UserInterestOrderByWithRelationInput
+  gmail_connection?: Prisma.GmailConnectionOrderByWithRelationInput
+  chat_participants?: Prisma.ConversationParticipantOrderByRelationAggregateInput
+  chat_messages?: Prisma.ChatMessageOrderByRelationAggregateInput
   role?: Prisma.RoleOrderByWithRelationInput
 }
 
@@ -373,14 +421,24 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
   signature_url?: Prisma.StringNullableFilter<"User"> | string | null
+  is_restricted?: Prisma.BoolFilter<"User"> | boolean
+  restricted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  restriction_reason?: Prisma.StringNullableFilter<"User"> | string | null
+  last_login_ip?: Prisma.StringNullableFilter<"User"> | string | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  blocked_ips?: Prisma.BlockedIpListRelationFilter
+  permission_overrides?: Prisma.UserPermissionOverrideListRelationFilter
+  action_suspensions?: Prisma.UserActionSuspensionListRelationFilter
   user_school_info?: Prisma.UserSchoolInfoListRelationFilter
   user_biometrics?: Prisma.UserBiometricListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   user_verifications?: Prisma.UserVerificationListRelationFilter
   user_interest?: Prisma.XOR<Prisma.UserInterestNullableScalarRelationFilter, Prisma.UserInterestWhereInput> | null
+  gmail_connection?: Prisma.XOR<Prisma.GmailConnectionNullableScalarRelationFilter, Prisma.GmailConnectionWhereInput> | null
+  chat_participants?: Prisma.ConversationParticipantListRelationFilter
+  chat_messages?: Prisma.ChatMessageListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }, "user_id" | "phone_number">
 
@@ -400,6 +458,10 @@ export type UserOrderByWithAggregationInput = {
   address_city?: Prisma.SortOrderInput | Prisma.SortOrder
   address_province?: Prisma.SortOrderInput | Prisma.SortOrder
   signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_restricted?: Prisma.SortOrder
+  restricted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  restriction_reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_login_ip?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -429,6 +491,10 @@ export type UserScalarWhereWithAggregatesInput = {
   address_city?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   address_province?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   signature_url?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  is_restricted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  restricted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  restriction_reason?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  last_login_ip?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role_id?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -450,13 +516,23 @@ export type UserCreateInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -476,14 +552,24 @@ export type UserUncheckedCreateInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserUpdateInput = {
@@ -502,13 +588,23 @@ export type UserUpdateInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -528,14 +624,24 @@ export type UserUncheckedUpdateInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -554,6 +660,10 @@ export type UserCreateManyInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -575,6 +685,10 @@ export type UserUpdateManyMutationInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -595,6 +709,10 @@ export type UserUncheckedUpdateManyInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -616,6 +734,10 @@ export type UserCountOrderByAggregateInput = {
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
   signature_url?: Prisma.SortOrder
+  is_restricted?: Prisma.SortOrder
+  restricted_at?: Prisma.SortOrder
+  restriction_reason?: Prisma.SortOrder
+  last_login_ip?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -641,6 +763,10 @@ export type UserMaxOrderByAggregateInput = {
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
   signature_url?: Prisma.SortOrder
+  is_restricted?: Prisma.SortOrder
+  restricted_at?: Prisma.SortOrder
+  restriction_reason?: Prisma.SortOrder
+  last_login_ip?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -662,6 +788,10 @@ export type UserMinOrderByAggregateInput = {
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
   signature_url?: Prisma.SortOrder
+  is_restricted?: Prisma.SortOrder
+  restricted_at?: Prisma.SortOrder
+  restriction_reason?: Prisma.SortOrder
+  last_login_ip?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -686,6 +816,11 @@ export type UserOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -704,6 +839,14 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -794,6 +937,50 @@ export type UserUncheckedUpdateManyWithoutRoleNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
+export type UserCreateNestedOneWithoutPermission_overridesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPermission_overridesInput, Prisma.UserUncheckedCreateWithoutPermission_overridesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermission_overridesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPermission_overridesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPermission_overridesInput, Prisma.UserUncheckedCreateWithoutPermission_overridesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermission_overridesInput
+  upsert?: Prisma.UserUpsertWithoutPermission_overridesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPermission_overridesInput, Prisma.UserUpdateWithoutPermission_overridesInput>, Prisma.UserUncheckedUpdateWithoutPermission_overridesInput>
+}
+
+export type UserCreateNestedOneWithoutAction_suspensionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAction_suspensionsInput, Prisma.UserUncheckedCreateWithoutAction_suspensionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAction_suspensionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAction_suspensionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAction_suspensionsInput, Prisma.UserUncheckedCreateWithoutAction_suspensionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAction_suspensionsInput
+  upsert?: Prisma.UserUpsertWithoutAction_suspensionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAction_suspensionsInput, Prisma.UserUpdateWithoutAction_suspensionsInput>, Prisma.UserUncheckedUpdateWithoutAction_suspensionsInput>
+}
+
+export type UserCreateNestedOneWithoutBlocked_ipsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBlocked_ipsInput, Prisma.UserUncheckedCreateWithoutBlocked_ipsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBlocked_ipsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutBlocked_ipsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBlocked_ipsInput, Prisma.UserUncheckedCreateWithoutBlocked_ipsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBlocked_ipsInput
+  upsert?: Prisma.UserUpsertWithoutBlocked_ipsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBlocked_ipsInput, Prisma.UserUpdateWithoutBlocked_ipsInput>, Prisma.UserUncheckedUpdateWithoutBlocked_ipsInput>
+}
+
 export type UserCreateNestedOneWithoutAccountsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAccountsInput, Prisma.UserUncheckedCreateWithoutAccountsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountsInput
@@ -808,6 +995,20 @@ export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountsInput, Prisma.UserUpdateWithoutAccountsInput>, Prisma.UserUncheckedUpdateWithoutAccountsInput>
 }
 
+export type UserCreateNestedOneWithoutGmail_connectionInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGmail_connectionInput, Prisma.UserUncheckedCreateWithoutGmail_connectionInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGmail_connectionInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutGmail_connectionNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGmail_connectionInput, Prisma.UserUncheckedCreateWithoutGmail_connectionInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGmail_connectionInput
+  upsert?: Prisma.UserUpsertWithoutGmail_connectionInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGmail_connectionInput, Prisma.UserUpdateWithoutGmail_connectionInput>, Prisma.UserUncheckedUpdateWithoutGmail_connectionInput>
+}
+
 export type UserCreateNestedOneWithoutUser_interestInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutUser_interestInput, Prisma.UserUncheckedCreateWithoutUser_interestInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_interestInput
@@ -820,6 +1021,34 @@ export type UserUpdateOneRequiredWithoutUser_interestNestedInput = {
   upsert?: Prisma.UserUpsertWithoutUser_interestInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUser_interestInput, Prisma.UserUpdateWithoutUser_interestInput>, Prisma.UserUncheckedUpdateWithoutUser_interestInput>
+}
+
+export type UserCreateNestedOneWithoutChat_participantsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutChat_participantsInput, Prisma.UserUncheckedCreateWithoutChat_participantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutChat_participantsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutChat_participantsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutChat_participantsInput, Prisma.UserUncheckedCreateWithoutChat_participantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutChat_participantsInput
+  upsert?: Prisma.UserUpsertWithoutChat_participantsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutChat_participantsInput, Prisma.UserUpdateWithoutChat_participantsInput>, Prisma.UserUncheckedUpdateWithoutChat_participantsInput>
+}
+
+export type UserCreateNestedOneWithoutChat_messagesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutChat_messagesInput, Prisma.UserUncheckedCreateWithoutChat_messagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutChat_messagesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutChat_messagesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutChat_messagesInput, Prisma.UserUncheckedCreateWithoutChat_messagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutChat_messagesInput
+  upsert?: Prisma.UserUpsertWithoutChat_messagesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutChat_messagesInput, Prisma.UserUpdateWithoutChat_messagesInput>, Prisma.UserUncheckedUpdateWithoutChat_messagesInput>
 }
 
 export type UserCreateWithoutUser_school_infoInput = {
@@ -838,12 +1067,22 @@ export type UserCreateWithoutUser_school_infoInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -863,13 +1102,23 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserCreateOrConnectWithoutUser_school_infoInput = {
@@ -904,12 +1153,22 @@ export type UserUpdateWithoutUser_school_infoInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -929,13 +1188,23 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserCreateWithoutUser_verificationsInput = {
@@ -954,12 +1223,22 @@ export type UserCreateWithoutUser_verificationsInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -979,13 +1258,23 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserCreateOrConnectWithoutUser_verificationsInput = {
@@ -1020,12 +1309,22 @@ export type UserUpdateWithoutUser_verificationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1045,13 +1344,23 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserCreateWithoutUser_biometricsInput = {
@@ -1070,12 +1379,22 @@ export type UserCreateWithoutUser_biometricsInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1095,13 +1414,23 @@ export type UserUncheckedCreateWithoutUser_biometricsInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserCreateOrConnectWithoutUser_biometricsInput = {
@@ -1136,12 +1465,22 @@ export type UserUpdateWithoutUser_biometricsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1161,13 +1500,23 @@ export type UserUncheckedUpdateWithoutUser_biometricsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -1186,13 +1535,23 @@ export type UserCreateWithoutRoleInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -1211,13 +1570,23 @@ export type UserUncheckedCreateWithoutRoleInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -1265,9 +1634,481 @@ export type UserScalarWhereInput = {
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
   signature_url?: Prisma.StringNullableFilter<"User"> | string | null
+  is_restricted?: Prisma.BoolFilter<"User"> | boolean
+  restricted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  restriction_reason?: Prisma.StringNullableFilter<"User"> | string | null
+  last_login_ip?: Prisma.StringNullableFilter<"User"> | string | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+}
+
+export type UserCreateWithoutPermission_overridesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutPermission_overridesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+}
+
+export type UserCreateOrConnectWithoutPermission_overridesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPermission_overridesInput, Prisma.UserUncheckedCreateWithoutPermission_overridesInput>
+}
+
+export type UserUpsertWithoutPermission_overridesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPermission_overridesInput, Prisma.UserUncheckedUpdateWithoutPermission_overridesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPermission_overridesInput, Prisma.UserUncheckedCreateWithoutPermission_overridesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPermission_overridesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPermission_overridesInput, Prisma.UserUncheckedUpdateWithoutPermission_overridesInput>
+}
+
+export type UserUpdateWithoutPermission_overridesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPermission_overridesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+}
+
+export type UserCreateWithoutAction_suspensionsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutAction_suspensionsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+}
+
+export type UserCreateOrConnectWithoutAction_suspensionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAction_suspensionsInput, Prisma.UserUncheckedCreateWithoutAction_suspensionsInput>
+}
+
+export type UserUpsertWithoutAction_suspensionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAction_suspensionsInput, Prisma.UserUncheckedUpdateWithoutAction_suspensionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAction_suspensionsInput, Prisma.UserUncheckedCreateWithoutAction_suspensionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAction_suspensionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAction_suspensionsInput, Prisma.UserUncheckedUpdateWithoutAction_suspensionsInput>
+}
+
+export type UserUpdateWithoutAction_suspensionsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+}
+
+export type UserCreateWithoutBlocked_ipsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutBlocked_ipsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+}
+
+export type UserCreateOrConnectWithoutBlocked_ipsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBlocked_ipsInput, Prisma.UserUncheckedCreateWithoutBlocked_ipsInput>
+}
+
+export type UserUpsertWithoutBlocked_ipsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBlocked_ipsInput, Prisma.UserUncheckedUpdateWithoutBlocked_ipsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBlocked_ipsInput, Prisma.UserUncheckedCreateWithoutBlocked_ipsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBlocked_ipsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBlocked_ipsInput, Prisma.UserUncheckedUpdateWithoutBlocked_ipsInput>
+}
+
+export type UserUpdateWithoutBlocked_ipsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -1286,12 +2127,22 @@ export type UserCreateWithoutAccountsInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1311,13 +2162,23 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1352,12 +2213,22 @@ export type UserUpdateWithoutAccountsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1377,13 +2248,179 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+}
+
+export type UserCreateWithoutGmail_connectionInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutGmail_connectionInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+}
+
+export type UserCreateOrConnectWithoutGmail_connectionInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutGmail_connectionInput, Prisma.UserUncheckedCreateWithoutGmail_connectionInput>
+}
+
+export type UserUpsertWithoutGmail_connectionInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutGmail_connectionInput, Prisma.UserUncheckedUpdateWithoutGmail_connectionInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutGmail_connectionInput, Prisma.UserUncheckedCreateWithoutGmail_connectionInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutGmail_connectionInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutGmail_connectionInput, Prisma.UserUncheckedUpdateWithoutGmail_connectionInput>
+}
+
+export type UserUpdateWithoutGmail_connectionInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutGmail_connectionInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserCreateWithoutUser_interestInput = {
@@ -1402,12 +2439,22 @@ export type UserCreateWithoutUser_interestInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1427,13 +2474,23 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
 }
 
 export type UserCreateOrConnectWithoutUser_interestInput = {
@@ -1468,12 +2525,22 @@ export type UserUpdateWithoutUser_interestInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1493,13 +2560,335 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+}
+
+export type UserCreateWithoutChat_participantsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutChat_participantsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+}
+
+export type UserCreateOrConnectWithoutChat_participantsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutChat_participantsInput, Prisma.UserUncheckedCreateWithoutChat_participantsInput>
+}
+
+export type UserUpsertWithoutChat_participantsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutChat_participantsInput, Prisma.UserUncheckedUpdateWithoutChat_participantsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutChat_participantsInput, Prisma.UserUncheckedCreateWithoutChat_participantsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutChat_participantsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutChat_participantsInput, Prisma.UserUncheckedUpdateWithoutChat_participantsInput>
+}
+
+export type UserUpdateWithoutChat_participantsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutChat_participantsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+}
+
+export type UserCreateWithoutChat_messagesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutChat_messagesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutChat_messagesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutChat_messagesInput, Prisma.UserUncheckedCreateWithoutChat_messagesInput>
+}
+
+export type UserUpsertWithoutChat_messagesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutChat_messagesInput, Prisma.UserUncheckedUpdateWithoutChat_messagesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutChat_messagesInput, Prisma.UserUncheckedCreateWithoutChat_messagesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutChat_messagesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutChat_messagesInput, Prisma.UserUncheckedUpdateWithoutChat_messagesInput>
+}
+
+export type UserUpdateWithoutChat_messagesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutChat_messagesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyRoleInput = {
@@ -1518,6 +2907,10 @@ export type UserCreateManyRoleInput = {
   address_city?: string | null
   address_province?: string | null
   signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1538,13 +2931,23 @@ export type UserUpdateWithoutRoleInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -1563,13 +2966,23 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -1588,6 +3001,10 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1598,17 +3015,27 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
  */
 
 export type UserCountOutputType = {
+  blocked_ips: number
+  permission_overrides: number
+  action_suspensions: number
   user_school_info: number
   user_biometrics: number
   accounts: number
   user_verifications: number
+  chat_participants: number
+  chat_messages: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  blocked_ips?: boolean | UserCountOutputTypeCountBlocked_ipsArgs
+  permission_overrides?: boolean | UserCountOutputTypeCountPermission_overridesArgs
+  action_suspensions?: boolean | UserCountOutputTypeCountAction_suspensionsArgs
   user_school_info?: boolean | UserCountOutputTypeCountUser_school_infoArgs
   user_biometrics?: boolean | UserCountOutputTypeCountUser_biometricsArgs
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
   user_verifications?: boolean | UserCountOutputTypeCountUser_verificationsArgs
+  chat_participants?: boolean | UserCountOutputTypeCountChat_participantsArgs
+  chat_messages?: boolean | UserCountOutputTypeCountChat_messagesArgs
 }
 
 /**
@@ -1619,6 +3046,27 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBlocked_ipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BlockedIpWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPermission_overridesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserPermissionOverrideWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAction_suspensionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserActionSuspensionWhereInput
 }
 
 /**
@@ -1649,6 +3097,20 @@ export type UserCountOutputTypeCountUser_verificationsArgs<ExtArgs extends runti
   where?: Prisma.UserVerificationWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountChat_participantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConversationParticipantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountChat_messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ChatMessageWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_id?: boolean
@@ -1666,14 +3128,24 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   address_city?: boolean
   address_province?: boolean
   signature_url?: boolean
+  is_restricted?: boolean
+  restricted_at?: boolean
+  restriction_reason?: boolean
+  last_login_ip?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  blocked_ips?: boolean | Prisma.User$blocked_ipsArgs<ExtArgs>
+  permission_overrides?: boolean | Prisma.User$permission_overridesArgs<ExtArgs>
+  action_suspensions?: boolean | Prisma.User$action_suspensionsArgs<ExtArgs>
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
   user_biometrics?: boolean | Prisma.User$user_biometricsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   user_verifications?: boolean | Prisma.User$user_verificationsArgs<ExtArgs>
   user_interest?: boolean | Prisma.User$user_interestArgs<ExtArgs>
+  gmail_connection?: boolean | Prisma.User$gmail_connectionArgs<ExtArgs>
+  chat_participants?: boolean | Prisma.User$chat_participantsArgs<ExtArgs>
+  chat_messages?: boolean | Prisma.User$chat_messagesArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -1694,6 +3166,10 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address_city?: boolean
   address_province?: boolean
   signature_url?: boolean
+  is_restricted?: boolean
+  restricted_at?: boolean
+  restriction_reason?: boolean
+  last_login_ip?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1716,6 +3192,10 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address_city?: boolean
   address_province?: boolean
   signature_url?: boolean
+  is_restricted?: boolean
+  restricted_at?: boolean
+  restriction_reason?: boolean
+  last_login_ip?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1738,18 +3218,28 @@ export type UserSelectScalar = {
   address_city?: boolean
   address_province?: boolean
   signature_url?: boolean
+  is_restricted?: boolean
+  restricted_at?: boolean
+  restriction_reason?: boolean
+  last_login_ip?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "signature_url" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "signature_url" | "is_restricted" | "restricted_at" | "restriction_reason" | "last_login_ip" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  blocked_ips?: boolean | Prisma.User$blocked_ipsArgs<ExtArgs>
+  permission_overrides?: boolean | Prisma.User$permission_overridesArgs<ExtArgs>
+  action_suspensions?: boolean | Prisma.User$action_suspensionsArgs<ExtArgs>
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
   user_biometrics?: boolean | Prisma.User$user_biometricsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   user_verifications?: boolean | Prisma.User$user_verificationsArgs<ExtArgs>
   user_interest?: boolean | Prisma.User$user_interestArgs<ExtArgs>
+  gmail_connection?: boolean | Prisma.User$gmail_connectionArgs<ExtArgs>
+  chat_participants?: boolean | Prisma.User$chat_participantsArgs<ExtArgs>
+  chat_messages?: boolean | Prisma.User$chat_messagesArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1763,11 +3253,17 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    blocked_ips: Prisma.$BlockedIpPayload<ExtArgs>[]
+    permission_overrides: Prisma.$UserPermissionOverridePayload<ExtArgs>[]
+    action_suspensions: Prisma.$UserActionSuspensionPayload<ExtArgs>[]
     user_school_info: Prisma.$UserSchoolInfoPayload<ExtArgs>[]
     user_biometrics: Prisma.$UserBiometricPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     user_verifications: Prisma.$UserVerificationPayload<ExtArgs>[]
     user_interest: Prisma.$UserInterestPayload<ExtArgs> | null
+    gmail_connection: Prisma.$GmailConnectionPayload<ExtArgs> | null
+    chat_participants: Prisma.$ConversationParticipantPayload<ExtArgs>[]
+    chat_messages: Prisma.$ChatMessagePayload<ExtArgs>[]
     role: Prisma.$RolePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1786,6 +3282,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     address_city: string | null
     address_province: string | null
     signature_url: string | null
+    is_restricted: boolean
+    restricted_at: Date | null
+    restriction_reason: string | null
+    last_login_ip: string | null
     role_id: string
     createdAt: Date
     updatedAt: Date
@@ -2183,11 +3683,17 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  blocked_ips<T extends Prisma.User$blocked_ipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$blocked_ipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BlockedIpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  permission_overrides<T extends Prisma.User$permission_overridesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permission_overridesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPermissionOverridePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  action_suspensions<T extends Prisma.User$action_suspensionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$action_suspensionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserActionSuspensionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_school_info<T extends Prisma.User$user_school_infoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_school_infoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSchoolInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_biometrics<T extends Prisma.User$user_biometricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_biometricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserBiometricPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_verifications<T extends Prisma.User$user_verificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_verificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_interest<T extends Prisma.User$user_interestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_interestArgs<ExtArgs>>): Prisma.Prisma__UserInterestClient<runtime.Types.Result.GetResult<Prisma.$UserInterestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  gmail_connection<T extends Prisma.User$gmail_connectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gmail_connectionArgs<ExtArgs>>): Prisma.Prisma__GmailConnectionClient<runtime.Types.Result.GetResult<Prisma.$GmailConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  chat_participants<T extends Prisma.User$chat_participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$chat_participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  chat_messages<T extends Prisma.User$chat_messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$chat_messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2233,6 +3739,10 @@ export interface UserFieldRefs {
   readonly address_city: Prisma.FieldRef<"User", 'String'>
   readonly address_province: Prisma.FieldRef<"User", 'String'>
   readonly signature_url: Prisma.FieldRef<"User", 'String'>
+  readonly is_restricted: Prisma.FieldRef<"User", 'Boolean'>
+  readonly restricted_at: Prisma.FieldRef<"User", 'DateTime'>
+  readonly restriction_reason: Prisma.FieldRef<"User", 'String'>
+  readonly last_login_ip: Prisma.FieldRef<"User", 'String'>
   readonly role_id: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -2637,6 +4147,78 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
+ * User.blocked_ips
+ */
+export type User$blocked_ipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BlockedIp
+   */
+  select?: Prisma.BlockedIpSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BlockedIp
+   */
+  omit?: Prisma.BlockedIpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BlockedIpInclude<ExtArgs> | null
+  where?: Prisma.BlockedIpWhereInput
+  orderBy?: Prisma.BlockedIpOrderByWithRelationInput | Prisma.BlockedIpOrderByWithRelationInput[]
+  cursor?: Prisma.BlockedIpWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BlockedIpScalarFieldEnum | Prisma.BlockedIpScalarFieldEnum[]
+}
+
+/**
+ * User.permission_overrides
+ */
+export type User$permission_overridesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPermissionOverride
+   */
+  select?: Prisma.UserPermissionOverrideSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPermissionOverride
+   */
+  omit?: Prisma.UserPermissionOverrideOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPermissionOverrideInclude<ExtArgs> | null
+  where?: Prisma.UserPermissionOverrideWhereInput
+  orderBy?: Prisma.UserPermissionOverrideOrderByWithRelationInput | Prisma.UserPermissionOverrideOrderByWithRelationInput[]
+  cursor?: Prisma.UserPermissionOverrideWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserPermissionOverrideScalarFieldEnum | Prisma.UserPermissionOverrideScalarFieldEnum[]
+}
+
+/**
+ * User.action_suspensions
+ */
+export type User$action_suspensionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserActionSuspension
+   */
+  select?: Prisma.UserActionSuspensionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserActionSuspension
+   */
+  omit?: Prisma.UserActionSuspensionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserActionSuspensionInclude<ExtArgs> | null
+  where?: Prisma.UserActionSuspensionWhereInput
+  orderBy?: Prisma.UserActionSuspensionOrderByWithRelationInput | Prisma.UserActionSuspensionOrderByWithRelationInput[]
+  cursor?: Prisma.UserActionSuspensionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserActionSuspensionScalarFieldEnum | Prisma.UserActionSuspensionScalarFieldEnum[]
+}
+
+/**
  * User.user_school_info
  */
 export type User$user_school_infoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2749,6 +4331,73 @@ export type User$user_interestArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   include?: Prisma.UserInterestInclude<ExtArgs> | null
   where?: Prisma.UserInterestWhereInput
+}
+
+/**
+ * User.gmail_connection
+ */
+export type User$gmail_connectionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GmailConnection
+   */
+  select?: Prisma.GmailConnectionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GmailConnection
+   */
+  omit?: Prisma.GmailConnectionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GmailConnectionInclude<ExtArgs> | null
+  where?: Prisma.GmailConnectionWhereInput
+}
+
+/**
+ * User.chat_participants
+ */
+export type User$chat_participantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConversationParticipant
+   */
+  select?: Prisma.ConversationParticipantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConversationParticipant
+   */
+  omit?: Prisma.ConversationParticipantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationParticipantInclude<ExtArgs> | null
+  where?: Prisma.ConversationParticipantWhereInput
+  orderBy?: Prisma.ConversationParticipantOrderByWithRelationInput | Prisma.ConversationParticipantOrderByWithRelationInput[]
+  cursor?: Prisma.ConversationParticipantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConversationParticipantScalarFieldEnum | Prisma.ConversationParticipantScalarFieldEnum[]
+}
+
+/**
+ * User.chat_messages
+ */
+export type User$chat_messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ChatMessage
+   */
+  select?: Prisma.ChatMessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ChatMessage
+   */
+  omit?: Prisma.ChatMessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ChatMessageInclude<ExtArgs> | null
+  where?: Prisma.ChatMessageWhereInput
+  orderBy?: Prisma.ChatMessageOrderByWithRelationInput | Prisma.ChatMessageOrderByWithRelationInput[]
+  cursor?: Prisma.ChatMessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ChatMessageScalarFieldEnum | Prisma.ChatMessageScalarFieldEnum[]
 }
 
 /**

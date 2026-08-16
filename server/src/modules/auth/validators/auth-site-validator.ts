@@ -31,4 +31,6 @@ export const MeResponseSchema = z.object({
   firstname: z.string(),
   lastname: z.string(),
   role_type: z.enum(RoleType),
+  /** The root operator account — its sign-in email is fixed. */
+  is_protected: z.boolean(),
 });

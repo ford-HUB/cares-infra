@@ -3,11 +3,11 @@ import { ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { REQUEST_ACCESS_PATH } from '../../constants/routes'
-import type { StaffLoginFormValues } from '../../validators/staff-login-schema'
+import type { AdminLoginFormValues } from '../../validators/admin-login-schema'
 import { ForgotPasswordModal } from './ui/forgot-password-modal'
 
 interface AdminLoginFormProps {
-  form: UseFormReturn<StaffLoginFormValues>
+  form: UseFormReturn<AdminLoginFormValues>
   onSubmit: () => void
   loading: boolean
 }
@@ -108,7 +108,7 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
                 </h2>
               </div>
               <p className="mb-3 text-xs text-[var(--cares-muted)]">
-                Staff and coordinator access requires administrator approval. Submit a
+                Director and coordinator access requires administrator approval. Submit a
                 request with your details and ID verification.
               </p>
               <Link

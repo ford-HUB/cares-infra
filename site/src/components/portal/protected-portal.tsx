@@ -2,10 +2,10 @@ import { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { getPostLoginPath, LOGIN_PATH } from '../../config/auth-redirect'
 import { useAuthStore } from '../../store/auth-store'
-import type { StaffRole } from '../../types/staff-roles'
+import type { PortalRole } from '../../types/portal-roles'
 
 interface ProtectedPortalProps {
-  roles: StaffRole[]
+  roles: PortalRole[]
 }
 
 export function ProtectedPortal({ roles }: ProtectedPortalProps) {

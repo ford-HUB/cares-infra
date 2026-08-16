@@ -422,10 +422,6 @@ export type EnumEmbeddingTypeFieldUpdateOperationsInput = {
   set?: $Enums.EmbeddingType
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type UserBiometricCreateWithoutUserInput = {
   user_biometric_id?: string
   face_url: string

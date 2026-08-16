@@ -135,6 +135,8 @@ export class AuthRepository {
             user_id: true,
             firstname: true,
             lastname: true,
+            is_restricted: true,
+            restriction_reason: true,
             role: {
               select: { type: true },
             },
@@ -144,6 +146,21 @@ export class AuthRepository {
           },
         },
       },
+    });
+  }
+
+  async recordLoginIp(userId: string, ipAddress: string) {
+    return this.prisma.user.update({
+      where: { user_id: userId },
+      data: { last_login_ip: ipAddress },
+      select: { user_id: true },
+    });
+  }
+
+  async findBlockedIp(ipAddress: string) {
+    return this.prisma.blockedIp.findUnique({
+      where: { ip_address: ipAddress },
+      select: { ip_address: true },
     });
   }
 

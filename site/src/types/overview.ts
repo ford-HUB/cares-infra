@@ -1,4 +1,4 @@
-export interface StaffOverviewData {
+export interface AdminOverviewData {
   stats: {
     totalVolunteers: number
     totalStudents: number
@@ -27,9 +27,9 @@ export interface DepartmentOverviewData {
   recentSubmissions: number
 }
 
-export type OverviewData = StaffOverviewData | DepartmentOverviewData
+export type OverviewData = AdminOverviewData | DepartmentOverviewData
 
-export function isStaffOverview(data: OverviewData): data is StaffOverviewData {
+export function isAdminOverview(data: OverviewData): data is AdminOverviewData {
   return 'stats' in data
 }
 

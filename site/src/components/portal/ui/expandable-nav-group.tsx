@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import type { StaffRole } from '../../../types/staff-roles'
+import type { PortalRole } from '../../../types/portal-roles'
 
 interface ExpandableNavGroupProps {
   icon: LucideIcon
@@ -9,8 +9,8 @@ interface ExpandableNavGroupProps {
   collapsed: boolean
   expanded: boolean
   onToggle: () => void
-  children: { label: string; to: string; roles?: StaffRole[] }[]
-  userRole?: StaffRole
+  children: { label: string; to: string; roles?: PortalRole[] }[]
+  userRole?: PortalRole
 }
 
 export function ExpandableNavGroup({
@@ -35,13 +35,13 @@ export function ExpandableNavGroup({
         onClick={onToggle}
         aria-expanded={expanded}
         className={[
-          'flex w-full items-center gap-3 rounded-[var(--cares-radius)] px-3 py-2.5 text-left text-base transition-colors',
+          'flex w-full items-center gap-3 rounded-[var(--cares-radius)] px-3 py-2 text-left text-sm transition-colors',
           expanded
             ? 'bg-[var(--cares-sidebar-active)] text-white'
             : 'text-[var(--cares-sidebar-muted)] hover:bg-[var(--cares-sidebar-active)]/60 hover:text-white',
         ].join(' ')}
       >
-        <Icon className="h-5 w-5 shrink-0" />
+        <Icon className="h-[18px] w-[18px] shrink-0" />
         {!collapsed && (
           <>
             <span className="flex-1">{label}</span>
@@ -65,7 +65,7 @@ export function ExpandableNavGroup({
               end
               className={({ isActive }) =>
                 [
-                  'block rounded-md px-3 py-2 text-sm transition-colors',
+                  'block rounded-md px-3 py-1.5 text-[13px] transition-colors',
                   isActive
                     ? 'bg-[var(--cares-sidebar-active)] text-white'
                     : 'text-[var(--cares-sidebar-muted)] hover:text-white',

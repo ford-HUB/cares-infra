@@ -24,6 +24,13 @@ export function isPortalProfileComplete(
   return true
 }
 
-export function mapGenderToForm(gender?: ProfileInfo['gender']): 'M' | 'F' {
-  return gender === 'M' ? 'M' : 'F'
+export function mapGenderToForm(gender?: ProfileInfo['gender']): 'M' | 'F' | 'O' {
+  if (gender === 'M' || gender === 'F') return gender
+  return 'O'
+}
+
+export function genderLabel(gender?: ProfileInfo['gender']): string {
+  if (gender === 'M') return 'Male'
+  if (gender === 'F') return 'Female'
+  return 'Other'
 }

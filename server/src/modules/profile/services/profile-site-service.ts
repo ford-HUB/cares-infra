@@ -13,7 +13,14 @@ import {
   ProfileAssetKind,
   UpdatePortalProfileDto,
 } from '../dto/profile-site-dto';
-import { ProfileRepository } from '../repositories/profile-repository';
+import {
+  ProfileRepository,
+  type PortalProfileRow,
+} from '../repositories/profile-repository';
+import {
+  ProfileCacheService,
+  type CachedProfileAsset,
+} from './profile-cache-service';
 import {
   PORTAL_PROFILE_ALLOWED_IMAGE_MIMES,
   PORTAL_PROFILE_MAX_IMAGE_BYTES,
@@ -25,15 +32,11 @@ export class ProfileSiteService {
   constructor(
     private readonly profileRepository: ProfileRepository,
     private readonly s3Service: S3Service,
+    private readonly profileCacheService: ProfileCacheService,
   ) {}
 
   async getMyProfile(userId: string): Promise<PortalProfileDto> {
-    const user = await this.profileRepository.findPortalProfile(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return this.mapToDto(user);
+    return this.mapToDto(await this.loadProfile(userId));
   }
 
   async updateMyProfile(
@@ -94,19 +97,36 @@ export class ProfileSiteService {
 
     await this.profileRepository.updatePortalProfile(userId, payload);
 
+    // Invalidate before re-reading: the cached row is stale the moment the write lands,
+    // and a replaced S3 object must not keep serving the old bytes.
+    await this.profileCacheService.invalidateProfile(userId);
+    if (avatarUrl !== undefined) {
+      await this.profileCacheService.invalidateAsset(userId, 'avatar');
+    }
+    if (signatureUrl !== undefined) {
+      await this.profileCacheService.invalidateAsset(userId, 'signature');
+    }
+
     const updated = await this.profileRepository.findPortalProfile(userId);
     if (!updated) {
       throw new NotFoundException('User not found');
     }
 
+    await this.profileCacheService.setProfile(userId, updated);
+
     return this.mapToDto(updated);
   }
 
-  async getProfileAsset(userId: string, kind: ProfileAssetKind) {
-    const user = await this.profileRepository.findPortalProfile(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+  async getProfileAsset(
+    userId: string,
+    kind: ProfileAssetKind,
+  ): Promise<CachedProfileAsset> {
+    const cached = await this.profileCacheService.getAsset(userId, kind);
+    if (cached) {
+      return cached;
     }
+
+    const user = await this.loadProfile(userId);
 
     const storedUrl = kind === 'avatar' ? user.avatar : user.signature_url;
     if (!storedUrl) {
@@ -115,7 +135,30 @@ export class ProfileSiteService {
       );
     }
 
-    return this.s3Service.getObject(storedUrl);
+    const asset = await this.s3Service.getObject(storedUrl);
+
+    return this.profileCacheService.setAsset(userId, kind, asset);
+  }
+
+  /**
+   * Read-through for the profile row. The portal shell reads it on every refresh —
+   * once for `/profile/me` and again behind the navbar avatar — so the cache also
+   * collapses those two into one query.
+   */
+  private async loadProfile(userId: string): Promise<PortalProfileRow> {
+    const cached = await this.profileCacheService.getProfile(userId);
+    if (cached) {
+      return cached;
+    }
+
+    const user = await this.profileRepository.findPortalProfile(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.profileCacheService.setProfile(userId, user);
+
+    return user;
   }
 
   private async uploadImage(
@@ -150,11 +193,7 @@ export class ProfileSiteService {
     return this.s3Service.uploadToS3(key, file.buffer, mime);
   }
 
-  private mapToDto(
-    user: NonNullable<
-      Awaited<ReturnType<ProfileRepository['findPortalProfile']>>
-    >,
-  ): PortalProfileDto {
+  private mapToDto(user: PortalProfileRow): PortalProfileDto {
     const email = user.accounts[0]?.email ?? '';
     const isDirector = user.role.type === RoleType.DIRECTOR;
     const hasCoreFields = isDirector
@@ -176,6 +215,7 @@ export class ProfileSiteService {
       department: user.portal_department,
       phone_number: user.phone_number,
       gender: user.gender,
+      age: user.age,
       address: {
         street: user.address_street,
         barangay: user.address_barangay,

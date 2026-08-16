@@ -97,6 +97,24 @@ Add via `package.json` when introducing each concern — do not invent a second 
 - `zustand` — client state
 - `zod` — validation
 - API client (e.g. `axios` or shared `fetch` wrapper) in `services/`
+- `shadcn/ui` (radix base) — generated primitives in `src/components/ui/`, imported via
+  the `@/*` alias. That directory belongs to the shadcn CLI and is **not** the same as
+  `components/{module}/ui/` (module-local pieces). Add with
+  `cmd.exe /c "cd /d C:\DE4RD\cares-infra\site && pnpm dlx shadcn@latest add <name> --yes"`.
+  Its theme tokens alias onto the `--cares-*` palette in `index.css` — never give a
+  shadcn token its own literal colour, and no `dark:` classes (the portal is light-only).
+
+## Loading states
+
+- First load of a known layout → a `*-skeleton.tsx` mirror built from the `Skeleton`
+  primitive, placed beside the component it mirrors in `components/{module}/ui/`
+  (portal-wide ones in `components/portal/ui/`). No hand-rolled `animate-pulse` divs.
+- Refetch/pagination keeps the existing data on screen; gate the skeleton on first load
+  (`loading && items.length === 0`). User-initiated actions get an in-button spinner.
+- Skeleton dimensions and counts come from the same constants/props as the real
+  component so the swap causes no layout jump.
+- Gate redirects on `auth-store`'s `initialized`, rendering a skeleton while
+  `checkAuth()` is in flight.
 
 ## Environment
 

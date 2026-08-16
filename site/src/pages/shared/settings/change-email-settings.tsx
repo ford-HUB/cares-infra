@@ -12,6 +12,7 @@ export function ChangeEmailSettingsPage() {
       onSubmit={changeEmail.onSubmit}
       submitting={changeEmail.submitting}
       currentEmail={user?.email}
+      locked={user?.isProtected ?? false}
     />
   )
 }

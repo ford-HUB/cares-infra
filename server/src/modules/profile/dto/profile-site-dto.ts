@@ -16,6 +16,7 @@ export interface PersistPortalProfileDto {
   lastname: string;
   phone_number: string;
   gender: GenderType;
+  age: number;
   department: string | null;
   address_street: string;
   address_barangay: string;

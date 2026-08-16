@@ -15,6 +15,9 @@ const SeedAdminEnvSchema = z.object({
     .trim()
     .min(1)
     .default('University of Cebu – LM'),
+  SEED_ADMIN_ROLE: z
+    .enum([RoleType.ADMIN, RoleType.DIRECTOR, RoleType.COORDINATOR])
+    .default(RoleType.DIRECTOR),
 });
 
 type SeedAdminEnv = z.infer<typeof SeedAdminEnvSchema>;
@@ -27,6 +30,7 @@ const readSeedEnv = (): SeedAdminEnv => {
     SEED_ADMIN_LASTNAME: process.env.SEED_ADMIN_LASTNAME,
     SEED_ADMIN_PHONE: process.env.SEED_ADMIN_PHONE,
     SEED_ADMIN_ADDRESS: process.env.SEED_ADMIN_ADDRESS,
+    SEED_ADMIN_ROLE: process.env.SEED_ADMIN_ROLE,
   });
 
   if (!parsed.success) {
@@ -48,26 +52,26 @@ const resolvePhone = (email: string, explicitPhone?: string): string => {
   return `seed-${slug || 'admin'}`.slice(0, 25);
 };
 
-const findOrCreateDirectorRole = async (prisma: PrismaClient) => {
+const findOrCreateRole = async (prisma: PrismaClient, type: RoleType) => {
   const existing = await prisma.role.findFirst({
-    where: { type: RoleType.DIRECTOR },
+    where: { type },
     select: { role_id: true },
   });
 
   return (
     existing ??
     (await prisma.role.create({
-      data: { type: RoleType.DIRECTOR },
+      data: { type },
       select: { role_id: true },
     }))
   );
 };
 
-/** Creates the first director account, or resets its password and role if the email already exists. */
+/** Creates the first portal account, or resets its password and role if the email already exists. */
 export const seedAdmin = async (prisma: PrismaClient): Promise<void> => {
   const env = readSeedEnv();
   const email = env.SEED_ADMIN_EMAIL.toLowerCase();
-  const role = await findOrCreateDirectorRole(prisma);
+  const role = await findOrCreateRole(prisma, env.SEED_ADMIN_ROLE);
   const passwordHash = await bcrypt.hash(env.SEED_ADMIN_PASSWORD, 10);
 
   const existingAccount = await prisma.account.findUnique({
@@ -87,7 +91,7 @@ export const seedAdmin = async (prisma: PrismaClient): Promise<void> => {
       }),
     ]);
 
-    console.log(`Updated director account: ${email}`);
+    console.log(`Updated ${env.SEED_ADMIN_ROLE} account: ${email}`);
     return;
   }
 
@@ -108,5 +112,5 @@ export const seedAdmin = async (prisma: PrismaClient): Promise<void> => {
     },
   });
 
-  console.log(`Created director account: ${email}`);
+  console.log(`Created ${env.SEED_ADMIN_ROLE} account: ${email}`);
 };

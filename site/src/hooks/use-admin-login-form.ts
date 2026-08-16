@@ -5,9 +5,9 @@ import toast from 'react-hot-toast'
 import { getPostLoginPath } from '../config/auth-redirect'
 import { useAuthStore } from '../store/auth-store'
 import {
-  staffLoginSchema,
-  type StaffLoginFormValues,
-} from '../validators/staff-login-schema'
+  adminLoginSchema,
+  type AdminLoginFormValues,
+} from '../validators/admin-login-schema'
 
 export function useAdminLoginForm() {
   const loginUser = useAuthStore((s) => s.login)
@@ -16,8 +16,8 @@ export function useAdminLoginForm() {
   const clearError = useAuthStore((s) => s.clearError)
   const navigate = useNavigate()
 
-  const form = useForm<StaffLoginFormValues>({
-    resolver: zodResolver(staffLoginSchema),
+  const form = useForm<AdminLoginFormValues>({
+    resolver: zodResolver(adminLoginSchema),
     defaultValues: { email: '', password: '' },
   })
 

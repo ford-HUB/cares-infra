@@ -1,25 +1,20 @@
-import type { StaffRole } from '../types/staff-roles'
+import type { PortalRole } from '../types/portal-roles'
 
-export type PortalRoleType =
-  | 'DIRECTOR'
-  | 'STAFF'
-  | 'COORDINATOR'
-  | 'ASSISTANT_COORDINATOR'
+export type PortalRoleType = 'ADMIN' | 'DIRECTOR' | 'COORDINATOR'
 
-const ROLE_TYPE_TO_STAFF_ROLE: Record<PortalRoleType, StaffRole> = {
+const ROLE_TYPE_TO_PORTAL_ROLE: Record<PortalRoleType, PortalRole> = {
+  ADMIN: 'admin',
   DIRECTOR: 'director',
-  STAFF: 'staff',
   COORDINATOR: 'coordinator',
-  ASSISTANT_COORDINATOR: 'assistant_coordinator',
 }
 
 export function isPortalRoleType(roleType: string): roleType is PortalRoleType {
-  return roleType in ROLE_TYPE_TO_STAFF_ROLE
+  return roleType in ROLE_TYPE_TO_PORTAL_ROLE
 }
 
-export function mapRoleTypeToStaffRole(roleType: string): StaffRole {
+export function mapRoleTypeToPortalRole(roleType: string): PortalRole {
   if (isPortalRoleType(roleType)) {
-    return ROLE_TYPE_TO_STAFF_ROLE[roleType]
+    return ROLE_TYPE_TO_PORTAL_ROLE[roleType]
   }
-  return 'staff'
+  return 'coordinator'
 }

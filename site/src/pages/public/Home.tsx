@@ -8,7 +8,7 @@ export default function Home() {
       <div>
         <h1 className="text-3xl font-bold text-gray-900">CARES Administrator Portal</h1>
         <p className="mt-2 max-w-lg text-base text-gray-600">
-          Sign in once as Director, Staff, Coordinator, or Assistant Coordinator. Backend
+          Sign in once as Admin, Director, or Coordinator. Backend
           wiring is deferred — mock services are enabled by default.
         </p>
       </div>

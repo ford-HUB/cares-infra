@@ -1,22 +1,21 @@
 import { Outlet } from 'react-router-dom'
 import { useEffect } from 'react'
 import type { PortalNavConfig } from '../../types/nav'
+import { useChatRealtime } from '../../hooks/use-chat-realtime'
 import { usePortalLayout } from '../../hooks/use-portal-layout'
 import { useAuthStore } from '../../store/auth-store'
 import { useProfileStore } from '../../store/profile-store'
-import type { PortalKind } from '../../types/staff-roles'
 import { PortalHeader } from './portal-header'
 import { PortalSidebar } from './portal-sidebar'
 
 interface PortalLayoutProps {
-  portal: PortalKind
   nav: PortalNavConfig
   title?: string
 }
 
-export function PortalLayout({ portal, nav, title }: PortalLayoutProps) {
+export function PortalLayout({ nav, title }: PortalLayoutProps) {
   const user = useAuthStore((s) => s.user)
-  const fetchPortalProfile = useProfileStore((s) => s.fetchPortalProfile)
+  const ensureProfile = useProfileStore((s) => s.ensureProfile)
   const {
     isMobile,
     sidebarCollapsed,
@@ -26,11 +25,13 @@ export function PortalLayout({ portal, nav, title }: PortalLayoutProps) {
     onSidebarLeave,
   } = usePortalLayout()
 
+  useChatRealtime()
+
   useEffect(() => {
     if (user) {
-      void fetchPortalProfile(portal)
+      void ensureProfile()
     }
-  }, [fetchPortalProfile, portal, user])
+  }, [ensureProfile, user])
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--cares-bg)]">
@@ -45,7 +46,6 @@ export function PortalLayout({ portal, nav, title }: PortalLayoutProps) {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <PortalHeader
-          portal={portal}
           isMobile={isMobile}
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}

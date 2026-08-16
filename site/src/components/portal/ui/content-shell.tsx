@@ -20,6 +20,6 @@ export function ContentShell({
     )
 
   return (
-    <div className={`min-h-full bg-gray-50 p-6 ${className}`}>{inner}</div>
+    <div className={`min-h-full bg-gray-50 p-5 text-sm ${className}`}>{inner}</div>
   )
 }

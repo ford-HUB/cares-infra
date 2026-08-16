@@ -1,11 +1,9 @@
 import axios, { isAxiosError } from 'axios'
 import { TOKEN_KEY } from '../constants/session'
 import type { BackendError } from '../types/auth'
-import type { ApiResponse } from '../types/staff-roles'
+import type { ApiResponse } from '../types/portal-roles'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-
-export const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'
 
 export const apiClient = axios.create({
   baseURL,

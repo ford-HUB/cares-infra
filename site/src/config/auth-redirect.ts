@@ -1,20 +1,14 @@
-import { STAFF_ROLES } from '../constants/auth'
-import {
-  DIRECTOR_OVERVIEW_PATH,
-  STAFF_DASHBOARD_PATH,
-} from '../constants/routes'
-import type { PortalKind, StaffRole } from '../types/staff-roles'
+import { PORTAL_ROLES } from '../constants/auth'
+import { ADMIN_OVERVIEW_PATH } from '../constants/routes'
+import type { PortalRole } from '../types/portal-roles'
 
-export function getPortalForRole(role: StaffRole): PortalKind {
-  return role === 'director' ? 'director' : 'staff'
+/** Every portal role shares the admin UI; access differs per nav item, not per portal. */
+export function getPostLoginPath(_role: PortalRole): string {
+  return ADMIN_OVERVIEW_PATH
 }
 
-export function getPostLoginPath(role: StaffRole): string {
-  return role === 'director' ? DIRECTOR_OVERVIEW_PATH : STAFF_DASHBOARD_PATH
-}
-
-export function isStaffRole(role: StaffRole): boolean {
-  return STAFF_ROLES.includes(role)
+export function isPortalRole(role: PortalRole): boolean {
+  return PORTAL_ROLES.includes(role)
 }
 
 export { LOGIN_PATH } from '../constants/routes'
