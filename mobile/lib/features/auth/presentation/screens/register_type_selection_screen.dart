@@ -3,6 +3,7 @@ import 'package:mobile/core/constants/app_copy.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
+import 'package:mobile/features/auth/presentation/screens/register_donor_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_flow_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_role_placeholder_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/animated_illustration.dart';
@@ -40,6 +41,15 @@ class _RegisterTypeSelectionScreenState
           builder: (_) => const RegisterFlowScreen(
             roleType: RegistrationRoleType.beneficiary,
           ),
+        ),
+      );
+      return;
+    }
+
+    if (roleType == RegistrationRoleType.donor) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const RegisterDonorScreen(),
         ),
       );
       return;

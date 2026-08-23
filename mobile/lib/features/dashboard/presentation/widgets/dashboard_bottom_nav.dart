@@ -24,10 +24,16 @@ class DashboardBottomNav extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.eventsTabLabel,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+
+  /// Overrides the label of [DashboardTab.events] without changing the
+  /// shared layout, icons, or navigation order (e.g. 'Campaigns' for the
+  /// donor dashboard vs the default 'Programs' for volunteers).
+  final String? eventsTabLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +50,9 @@ class DashboardBottomNav extends StatelessWidget {
                 Expanded(
                   child: _NavItem(
                     tab: DashboardTab.values[i],
+                    label: DashboardTab.values[i] == DashboardTab.events
+                        ? (eventsTabLabel ?? DashboardTab.values[i].label)
+                        : DashboardTab.values[i].label,
                     selected: currentIndex == i,
                     onTap: () => onTap(i),
                   ),
@@ -59,11 +68,13 @@ class DashboardBottomNav extends StatelessWidget {
 class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.tab,
+    required this.label,
     required this.selected,
     required this.onTap,
   });
 
   final DashboardTab tab;
+  final String label;
   final bool selected;
   final VoidCallback onTap;
 
@@ -80,7 +91,7 @@ class _NavItem extends StatelessWidget {
             Icon(tab.icon, size: 22, color: DashboardNavColors.itemColor),
             const SizedBox(height: 2),
             Text(
-              tab.label,
+              label,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

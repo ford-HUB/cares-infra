@@ -6,14 +6,24 @@ import '../data/mock_donations.dart';
 import '../widgets/donation_dialogs.dart';
 
 class DonationDetailsScreen extends StatefulWidget {
-  const DonationDetailsScreen({super.key, required this.donation});
+  const DonationDetailsScreen({
+    super.key,
+    required this.donation,
+    this.donorEmail,
+  });
 
   final CaresDonation donation;
+  final String? donorEmail;
 
-  static void open(BuildContext context, CaresDonation donation) {
+  static void open(
+    BuildContext context,
+    CaresDonation donation, {
+    String? donorEmail,
+  }) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => DonationDetailsScreen(donation: donation),
+        builder: (_) =>
+            DonationDetailsScreen(donation: donation, donorEmail: donorEmail),
       ),
     );
   }
@@ -36,8 +46,9 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
 
     if (confirmed != true || !mounted) return;
 
-    final email =
-        StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+    final email = widget.donorEmail ??
+        StaticUserSession.instance.currentUser?.email ??
+        'guest@cares.local';
     DonationStore.instance.recordDonation(
       donationId: widget.donation.id,
       campaignTitle: widget.donation.title,

@@ -183,7 +183,7 @@ Future<bool> showDonationConfirmationDialog(
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () => Navigator.of(ctx).pop(true),
-                    icon: const Icon(Icons.favorite_rounded, size: 18),
+                    icon: const Icon(Icons.favorite_rounded, size: 15),
                     label: const Text(
                       'Confirm',
                       style: TextStyle(fontWeight: FontWeight.w700),
