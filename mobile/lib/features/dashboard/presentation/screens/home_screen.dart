@@ -4,7 +4,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/volunteer_profile_service.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 import 'package:mobile/features/dashboard/presentation/screens/activity_tab_screen.dart';
-import 'package:mobile/features/dashboard/presentation/screens/programs_tab_screen.dart';
+import 'package:mobile/features/dashboard/presentation/screens/events_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/ranks_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/volunteer_home_tab.dart';
@@ -52,9 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
       widget.displayName ?? HomeScreen.greetingFirstName(widget.firstName);
 
   String get _firstName => HomeScreen.greetingFirstName(widget.firstName);
-
-  Set<String> get _userInterests =>
-      _volunteerProfile?.interestLabels.toSet() ?? const {};
 
   @override
   void initState() {
@@ -140,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       !_isLoadingProfile && !_profileComplete,
                   onCompleteProfile: _openProfileSetup,
                 ),
-                ProgramsTabScreen(userInterests: _userInterests),
+                const EventsTabScreen(),
                 const ActivityTabScreen(),
                 RanksTabScreen(
                   displayName: _displayName,
