@@ -9,15 +9,19 @@ class VolunteerHomeTab extends StatelessWidget {
   const VolunteerHomeTab({
     super.key,
     required this.firstName,
-    this.points = 240,
+    this.points = 0,
     this.serviceHours = 0,
     this.activities = 0,
+    this.showProfileCompletionCard = true,
+    this.onCompleteProfile,
   });
 
   final String firstName;
   final int points;
   final int serviceHours;
   final int activities;
+  final bool showProfileCompletionCard;
+  final VoidCallback? onCompleteProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +32,7 @@ class VolunteerHomeTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeHeader(
-              firstName: firstName,
-              points: points,
-            ),
+            HomeHeader(firstName: firstName, points: points),
             const SizedBox(height: 22),
             FeaturedEventsCarousel(events: MockEvents.featured),
             const SizedBox(height: 22),
@@ -40,17 +41,10 @@ class VolunteerHomeTab extends StatelessWidget {
               activities: activities,
               points: points,
             ),
-            const SizedBox(height: 16),
-            ProfileCompletionCard(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Profile completion coming soon.'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-            ),
+            if (showProfileCompletionCard) ...[
+              const SizedBox(height: 16),
+              ProfileCompletionCard(onTap: onCompleteProfile),
+            ],
           ],
         ),
       ),

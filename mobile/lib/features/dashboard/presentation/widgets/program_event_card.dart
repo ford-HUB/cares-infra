@@ -3,11 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/domain/mock_program.dart';
 
 class ProgramEventCard extends StatelessWidget {
-  const ProgramEventCard({
-    super.key,
-    required this.event,
-    this.onTap,
-  });
+  const ProgramEventCard({super.key, required this.event, this.onTap});
 
   final MockProgramEvent event;
   final VoidCallback? onTap;
@@ -209,10 +205,7 @@ class ProgramEventCard extends StatelessWidget {
 }
 
 class _MetaChip extends StatelessWidget {
-  const _MetaChip({
-    required this.icon,
-    required this.label,
-  });
+  const _MetaChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;

@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 class ProfileCompletionCard extends StatelessWidget {
-  const ProfileCompletionCard({
-    super.key,
-    this.onTap,
-  });
+  const ProfileCompletionCard({super.key, this.onTap});
 
   final VoidCallback? onTap;
 

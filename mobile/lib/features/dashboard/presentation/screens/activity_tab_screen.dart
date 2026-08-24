@@ -137,10 +137,10 @@ class _ActivityCard extends StatelessWidget {
   final MockActivityEntry entry;
 
   Color _statusColor(ActivityStatus status) => switch (status) {
-        ActivityStatus.completed => AppColors.primary,
-        ActivityStatus.registered => const Color(0xFF1976D2),
-        ActivityStatus.cancelled => AppColors.heart,
-      };
+    ActivityStatus.completed => AppColors.primary,
+    ActivityStatus.registered => const Color(0xFF1976D2),
+    ActivityStatus.cancelled => AppColors.heart,
+  };
 
   @override
   Widget build(BuildContext context) {

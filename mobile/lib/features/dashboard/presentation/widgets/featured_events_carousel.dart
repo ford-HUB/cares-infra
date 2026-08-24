@@ -3,10 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/domain/mock_event.dart';
 
 class FeaturedEventsCarousel extends StatefulWidget {
-  const FeaturedEventsCarousel({
-    super.key,
-    required this.events,
-  });
+  const FeaturedEventsCarousel({super.key, required this.events});
 
   final List<MockEvent> events;
 
@@ -83,21 +80,21 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
                     return _EventCard(event: widget.events[index]);
                   },
                 ),
-              Positioned(
-                left: 4,
-                child: _CarouselArrow(
-                  icon: Icons.chevron_left,
-                  onTap: () => _goToPage(_currentPage - 1),
+                Positioned(
+                  left: 4,
+                  child: _CarouselArrow(
+                    icon: Icons.chevron_left,
+                    onTap: () => _goToPage(_currentPage - 1),
+                  ),
                 ),
-              ),
-              Positioned(
-                right: 4,
-                child: _CarouselArrow(
-                  icon: Icons.chevron_right,
-                  onTap: () => _goToPage(_currentPage + 1),
+                Positioned(
+                  right: 4,
+                  child: _CarouselArrow(
+                    icon: Icons.chevron_right,
+                    onTap: () => _goToPage(_currentPage + 1),
+                  ),
                 ),
-              ),
-            ],
+              ],
             ),
           ),
         ),
@@ -126,10 +123,7 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
 }
 
 class _CarouselArrow extends StatelessWidget {
-  const _CarouselArrow({
-    required this.icon,
-    required this.onTap,
-  });
+  const _CarouselArrow({required this.icon, required this.onTap});
 
   final IconData icon;
   final VoidCallback onTap;
@@ -209,8 +203,10 @@ class _EventCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
@@ -237,8 +233,11 @@ class _EventCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined,
-                        size: 14, color: Colors.white70),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: Colors.white70,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       event.date,
@@ -249,8 +248,11 @@ class _EventCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Icon(Icons.location_on_outlined,
-                        size: 14, color: Colors.white70),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Colors.white70,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(

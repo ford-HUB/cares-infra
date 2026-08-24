@@ -100,10 +100,7 @@ class _ProgramCardsSliderState extends State<ProgramCardsSlider> {
 }
 
 class _ProgramCard extends StatelessWidget {
-  const _ProgramCard({
-    required this.program,
-    required this.onTap,
-  });
+  const _ProgramCard({required this.program, required this.onTap});
 
   final MockProgram program;
   final VoidCallback onTap;

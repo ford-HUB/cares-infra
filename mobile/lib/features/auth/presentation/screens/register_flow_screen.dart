@@ -21,11 +21,14 @@ class RegisterFlowScreen extends ConsumerStatefulWidget {
   const RegisterFlowScreen({
     super.key,
     required this.roleType,
-    required this.volunteerType,
-  });
+    this.volunteerType,
+  }) : assert(
+         roleType != RegistrationRoleType.volunteer || volunteerType != null,
+         'volunteerType is required for volunteer registration',
+       );
 
   final RegistrationRoleType roleType;
-  final VolunteerType volunteerType;
+  final VolunteerType? volunteerType;
 
   @override
   ConsumerState<RegisterFlowScreen> createState() => _RegisterFlowScreenState();
@@ -55,16 +58,34 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   String _password = '';
   String _confirmPassword = '';
 
+  bool get _isBeneficiary =>
+      widget.roleType == RegistrationRoleType.beneficiary;
+
+  String get _flowTitle => _isBeneficiary
+      ? '${widget.roleType.title} registration'
+      : '${widget.volunteerType!.label} registration';
+
   @override
   void initState() {
     super.initState();
     _ocrData = RegisterOcrSample.empty(
-      volunteerType: widget.volunteerType.apiValue,
+      volunteerType: widget.volunteerType?.apiValue ?? '',
     );
   }
 
   bool get _ocrDataValid {
-    final baseValid = _ocrData.firstname.trim().isNotEmpty &&
+    if (_isBeneficiary) {
+      return _ocrData.firstname.trim().isNotEmpty &&
+          _ocrData.lastname.trim().isNotEmpty &&
+          _ocrData.gender.trim().isNotEmpty &&
+          _ocrData.age > 0 &&
+          _ocrData.currentAddress.trim().isNotEmpty &&
+          _ocrData.phoneNumber.trim().length >= 7 &&
+          _ocrData.idNumber.trim().isNotEmpty;
+    }
+
+    final baseValid =
+        _ocrData.firstname.trim().isNotEmpty &&
         _ocrData.lastname.trim().isNotEmpty &&
         _ocrData.age > 0 &&
         _ocrData.currentAddress.trim().isNotEmpty &&
@@ -74,28 +95,31 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     final volunteerType =
         VolunteerTypeX.fromApiValue(_ocrData.volunteerType) ??
-            widget.volunteerType;
+        widget.volunteerType!;
 
     return switch (volunteerType) {
-      VolunteerType.student => baseValid &&
-          _ocrData.majorName.trim().isNotEmpty &&
-          _ocrData.yearLevelName.trim().isNotEmpty &&
-          _ocrData.graduationYear >= 1900 &&
-          _ocrData.graduationMonth >= 1 &&
-          _ocrData.graduationMonth <= 12 &&
-          _ocrData.graduationDay >= 1 &&
-          _ocrData.graduationDay <= 31,
+      VolunteerType.student =>
+        baseValid &&
+            _ocrData.majorName.trim().isNotEmpty &&
+            _ocrData.yearLevelName.trim().isNotEmpty &&
+            _ocrData.graduationYear >= 1900 &&
+            _ocrData.graduationMonth >= 1 &&
+            _ocrData.graduationMonth <= 12 &&
+            _ocrData.graduationDay >= 1 &&
+            _ocrData.graduationDay <= 31,
       VolunteerType.staff => baseValid,
-      VolunteerType.alumni => baseValid &&
-          _ocrData.majorName.trim().isNotEmpty &&
-          _ocrData.graduationYear >= 1900,
+      VolunteerType.alumni =>
+        baseValid &&
+            _ocrData.majorName.trim().isNotEmpty &&
+            _ocrData.graduationYear >= 1900,
     };
   }
 
   bool get _accountValid {
     final emailOk = _email.contains('@') && _email.contains('.');
     final passwordOk = _password.length >= 8;
-    final matchOk = _password == _confirmPassword && _confirmPassword.isNotEmpty;
+    final matchOk =
+        _password == _confirmPassword && _confirmPassword.isNotEmpty;
     return emailOk && passwordOk && matchOk;
   }
 
@@ -137,10 +161,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -171,7 +192,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
-      final sendResult = await service.sendVerificationCode(email: _email.trim());
+      final sendResult = await service.sendVerificationCode(
+        email: _email.trim(),
+      );
       if (!mounted) return;
 
       setState(() => _isSubmitting = false);
@@ -225,7 +248,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
-      final response = await service.uploadId(front: front, back: back);
+      final response = await service.uploadId(
+        front: front,
+        back: back,
+        roleType: widget.roleType.apiValue,
+      );
       if (!mounted) return;
 
       setState(() {
@@ -236,11 +263,16 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      _showError(e is ApiException ? e.message : 'Failed to upload ID images: $e');
+      _showError(
+        e is ApiException ? e.message : 'Failed to upload ID images: $e',
+      );
     }
   }
 
-  Future<void> _onFaceVerified(FaceCaptureSet captures, double similarity) async {
+  Future<void> _onFaceVerified(
+    FaceCaptureSet captures,
+    double similarity,
+  ) async {
     setState(() {
       _faceCaptures = captures;
       _step = 2;
@@ -277,17 +309,22 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       final response = await service.extractId(registrationId: registrationId);
       if (!mounted) return;
 
+      var ocrData = response.ocrData.enrichFromRawText();
+      final volunteerType = widget.volunteerType;
+      if (volunteerType != null) {
+        ocrData = ocrData.copyWith(volunteerType: volunteerType.apiValue);
+      }
+
       setState(() {
         _ocrExtracting = false;
         _ocrExtractSucceeded = true;
-        _ocrData = response.ocrData
-            .copyWith(volunteerType: widget.volunteerType.apiValue)
-            .enrichFromRawText();
+        _ocrData = ocrData;
       });
     } catch (e) {
       if (!mounted) return;
-      final message =
-          e is ApiException ? e.message : 'Failed to extract ID details.';
+      final message = e is ApiException
+          ? e.message
+          : 'Failed to extract ID details.';
       setState(() {
         _ocrExtracting = false;
         _ocrExtractFailed = true;
@@ -328,7 +365,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         elevation: 0,
         foregroundColor: AppColors.primary,
         title: Text(
-          '${widget.volunteerType.label} registration',
+          _flowTitle,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         leading: IconButton(
@@ -379,6 +416,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       case 0:
         return RegisterIdUploadStep(
           key: const ValueKey('id'),
+          roleType: widget.roleType,
           frontImage: _idFrontImage,
           backImage: _idBackImage,
           onFrontPicked: (file) => setState(() => _idFrontImage = file),
@@ -388,7 +426,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         if (registrationId == null) {
           return const Center(
             key: ValueKey('face-missing-session'),
-            child: Text('Missing registration session. Go back and upload your ID again.'),
+            child: Text(
+              'Missing registration session. Go back and upload your ID again.',
+            ),
           );
         }
 
@@ -397,7 +437,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           key: const ValueKey('face'),
           registrationId: registrationId,
           captures: _faceCaptures,
-          onCapturesChanged: (captures) => setState(() => _faceCaptures = captures),
+          onCapturesChanged: (captures) =>
+              setState(() => _faceCaptures = captures),
           verifySelfie: (selfie) => service.verifyFace(
             registrationId: registrationId,
             selfie: selfie,
@@ -409,6 +450,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         return RegisterOcrReviewStep(
           key: const ValueKey('ocr-review'),
           data: _ocrData,
+          roleType: widget.roleType,
           volunteerType: widget.volunteerType,
           isExtracting: _ocrExtracting,
           extractFailed: _ocrExtractFailed,
