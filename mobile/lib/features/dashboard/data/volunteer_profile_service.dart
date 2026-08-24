@@ -1,19 +1,19 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
-import 'package:mobile/features/onboarding/data/onboarding_service.dart';
+import 'package:mobile/features/interests/data/interests_service.dart';
 
 class VolunteerProfileService {
   VolunteerProfileService({
     ApiClient? apiClient,
-    OnboardingService? onboardingService,
+    InterestsService? interestsService,
   })  : _api = apiClient ?? ApiClient(),
-        _onboardingService = onboardingService ?? OnboardingService();
+        _interestsService = interestsService ?? InterestsService();
 
   final ApiClient _api;
-  final OnboardingService _onboardingService;
+  final InterestsService _interestsService;
 
   Future<List<InterestCatalogItem>> fetchInterestCatalog() {
-    return _onboardingService.fetchInterests();
+    return _interestsService.fetchInterests();
   }
 
   Future<VolunteerProfile> fetchProfile() async {

@@ -4,7 +4,7 @@ import '../../core/session/static_user_session.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_branding_header.dart';
 import '../../shared/widgets/auth_text_field.dart';
-import '../onboarding/onboarding_screen.dart';
+import '../interests/onboarding_screen.dart';
 import 'registration/registration_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {

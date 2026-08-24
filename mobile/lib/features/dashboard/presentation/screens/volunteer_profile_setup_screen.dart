@@ -4,8 +4,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/volunteer_profile_service.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile_form_sections.dart';
-import 'package:mobile/features/onboarding/data/onboarding_service.dart';
-import 'package:mobile/features/onboarding/domain/user_interest.dart';
+import 'package:mobile/features/interests/data/interests_service.dart';
+import 'package:mobile/features/interests/domain/user_interest.dart';
 
 /// Onboarding flow for volunteers who have not yet finished setting up their profile.
 class VolunteerProfileSetupScreen extends StatefulWidget {

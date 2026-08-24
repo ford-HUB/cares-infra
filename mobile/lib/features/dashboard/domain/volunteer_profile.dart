@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/features/onboarding/domain/user_interest.dart';
+import 'package:mobile/features/interests/domain/user_interest.dart';
 
 class ProfileSelectableOption {
   const ProfileSelectableOption({

@@ -8,8 +8,8 @@ import 'package:mobile/features/dashboard/domain/volunteer_account_profile.dart'
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/personal_information_section.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile_form_sections.dart';
-import 'package:mobile/features/onboarding/data/onboarding_service.dart';
-import 'package:mobile/features/onboarding/domain/user_interest.dart';
+import 'package:mobile/features/interests/data/interests_service.dart';
+import 'package:mobile/features/interests/domain/user_interest.dart';
 
 /// Post-onboarding profile management — view and edit all volunteer information.
 class VolunteerProfileEditScreen extends StatefulWidget {
