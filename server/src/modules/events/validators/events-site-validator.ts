@@ -104,6 +104,11 @@ export const EventIdParamSchema = z
   .transform((v) => (typeof v === 'string' ? Number(v) : v))
   .pipe(z.number().int().positive());
 
+export const EventImageIndexParamSchema = z
+  .union([z.string(), z.number()])
+  .transform((v) => (typeof v === 'string' ? Number(v) : v))
+  .pipe(z.number().int().min(0).max(EVENT_MAX_IMAGE_COUNT - 1));
+
 export const EventResponseSchema = z.object({
   event_id: z.number(),
   title: z.string(),

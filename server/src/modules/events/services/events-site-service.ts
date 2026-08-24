@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { EventStatus } from '../../../infastructures/prisma/common/client';
 import { resolveImageMimeType } from '../../../shared/utils/image-mime';
 import { S3Service } from '../../../infastructures/s3/s3-service';
@@ -39,6 +40,34 @@ export class EventsSiteService {
   async listEvents(): Promise<EventDto[]> {
     const events = await this.eventsRepository.findAll();
     return events.map((event) => this.mapToDto(event));
+  }
+
+  /**
+   * The event images live in a private bucket, so their S3 URLs cannot be put in an
+   * `<img src>` — the portal reads them through here instead. `no-cache` plus a
+   * content-hash ETag lets the browser revalidate cheaply rather than re-download a
+   * thumbnail on every table render.
+   */
+  async getEventImage(
+    id: number,
+    index: number,
+  ): Promise<{ buffer: Buffer; contentType: string; etag: string }> {
+    const event = await this.eventsRepository.findById(id);
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    const storedUrl = event.images[index];
+    if (!storedUrl) {
+      throw new NotFoundException('Event image not found');
+    }
+
+    const asset = await this.s3Service.getObject(storedUrl);
+
+    return {
+      ...asset,
+      etag: `"${createHash('sha1').update(asset.buffer).digest('hex')}"`,
+    };
   }
 
   async createEvent(

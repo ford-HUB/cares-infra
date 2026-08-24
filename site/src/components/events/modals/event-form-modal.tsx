@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { Geometry } from 'geojson'
 import { CalendarClock, ImagePlus, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import {
@@ -18,6 +18,7 @@ import type { CreateEventPayload, EventCategory } from '../../../types/event'
 import { eventFormSchema, type EventFormValues } from '../../../validators/event-schema'
 import { AddressAutocomplete } from '../ui/address-autocomplete'
 import { BeneficiaryDonationPanel } from '../ui/beneficiary-donation-panel'
+import { EventImage } from '../ui/event-image'
 import { EventMapDraw } from '../map/event-map-draw'
 
 interface EventFormModalProps {
@@ -117,6 +118,15 @@ export function EventFormModal({
   }
 
   const eventImages = watch('event_images')
+
+  // Already-uploaded photos are private S3 URLs, so they are previewed through the
+  // authenticated route by their position in the event's stored list. That position
+  // is fixed at open time — removing one here must not renumber the others.
+  const storedImageIndex = useRef(
+    new Map((defaultValues?.event_images ?? []).flatMap((img, index) =>
+      typeof img === 'string' ? [[img, index] as const] : [],
+    )),
+  )
 
   useEffect(() => {
     const urls = (eventImages ?? []).map((img) =>
@@ -238,7 +248,20 @@ export function EventFormModal({
                   key={url}
                   className="relative h-28 overflow-hidden rounded-lg border border-gray-200"
                 >
-                  <img src={url} alt={`Event ${index + 1}`} className="h-full w-full object-cover" />
+                  {eventId !== undefined && storedImageIndex.current.has(url) ? (
+                    <EventImage
+                      eventId={eventId}
+                      index={storedImageIndex.current.get(url) as number}
+                      alt={`Event ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={url}
+                      alt={`Event ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => removeImageAt(index)}

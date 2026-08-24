@@ -2,13 +2,18 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Patch,
   Post,
   Put,
+  Req,
+  Res,
+  StreamableFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import type { Request, Response } from 'express';
 import { ZBody, ZParam, ZSerialize } from 'nest-zod';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
@@ -31,6 +36,7 @@ import {
   DeleteEventResponseSchema,
   EVENT_MAX_IMAGE_COUNT,
   EventIdParamSchema,
+  EventImageIndexParamSchema,
   EventListResponseSchema,
   EventResponseSchema,
   UpdateDonationsSchema,
@@ -47,6 +53,33 @@ export class EventsSiteController {
   @ZSerialize(EventListResponseSchema)
   async listEvents(): Promise<EventDto[]> {
     return this.eventsSiteService.listEvents();
+  }
+
+  /**
+   * Event images sit in a private bucket, so the portal cannot point an `<img>` at the
+   * stored S3 URL — it fetches the bytes through this authenticated route instead.
+   */
+  @Get(':id/images/:index')
+  async getEventImage(
+    @ZParam('id', EventIdParamSchema) id: number,
+    @ZParam('index', EventImageIndexParamSchema) index: number,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<StreamableFile | undefined> {
+    const image = await this.eventsSiteService.getEventImage(id, index);
+
+    response.setHeader('ETag', image.etag);
+    response.setHeader('Cache-Control', 'private, no-cache');
+
+    if (request.headers['if-none-match'] === image.etag) {
+      response.status(HttpStatus.NOT_MODIFIED);
+      return undefined;
+    }
+
+    return new StreamableFile(image.buffer, {
+      type: image.contentType,
+      disposition: 'inline',
+    });
   }
 
   @Post()

@@ -1,5 +1,6 @@
 import { CalendarDays, ImageOff, MapPin, Users, X } from 'lucide-react'
 import type { EventTableRow } from '../../../types/event'
+import { EventImage } from './event-image'
 import { EventStatusBadge } from './event-status-badge'
 
 interface EventMapCardProps {
@@ -18,6 +19,14 @@ function fillPercent(current: number, max: number): number {
  * Floating card shown over the map when a pin is clicked: the event photo,
  * where and when it runs, and how many volunteers have joined.
  */
+function MissingPhoto() {
+  return (
+    <div className="flex h-full w-full items-center justify-center text-gray-400">
+      <ImageOff size={24} />
+    </div>
+  )
+}
+
 export function EventMapCard({ event, onClose, onViewDetails }: EventMapCardProps) {
   const filled = fillPercent(event.currentParticipants, event.maxParticipants)
 
@@ -25,11 +34,15 @@ export function EventMapCard({ event, onClose, onViewDetails }: EventMapCardProp
     <div className="pointer-events-auto w-72 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
       <div className="relative h-32 w-full bg-gray-100">
         {event.event_image ? (
-          <img src={event.event_image} alt={event.title} className="h-full w-full object-cover" />
+          <EventImage
+            eventId={event.event_id}
+            index={0}
+            alt={event.title}
+            className="h-full w-full object-cover"
+            fallback={<MissingPhoto />}
+          />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-gray-400">
-            <ImageOff size={24} />
-          </div>
+          <MissingPhoto />
         )}
         <button
           type="button"

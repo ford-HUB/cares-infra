@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { X } from 'lucide-react'
 import type { EventTableRow } from '../../../types/event'
+import { EventImage } from '../ui/event-image'
 import { EventStatusBadge } from '../ui/event-status-badge'
 
 interface EventDetailModalProps {
@@ -29,9 +30,10 @@ export function EventDetailModal({ event, onClose }: EventDetailModalProps) {
         {images.length > 0 && (
           <div className={`mb-4 grid gap-2 ${images.length > 1 ? 'grid-cols-3' : 'grid-cols-1'}`}>
             {images.map((src, i) => (
-              <img
+              <EventImage
                 key={src + i}
-                src={src}
+                eventId={event.event_id}
+                index={i}
                 alt={`${event.title} ${i + 1}`}
                 className="h-28 w-full rounded-lg object-cover"
               />

@@ -28,6 +28,7 @@ import { DeleteEventModal } from './modals/delete-event-modal'
 import { EventDetailModal, formatEventRow } from './modals/event-detail-modal'
 import { EventFormModal } from './modals/event-form-modal'
 import { FilterDropdown } from './ui/event-filter-dropdown'
+import { EventImage } from './ui/event-image'
 import { EventStatusBadge } from './ui/event-status-badge'
 
 type SortKey = 'event_id' | 'title' | 'location' | 'type' | 'status' | 'date'
@@ -36,6 +37,15 @@ interface ActionMenuState {
   eventId: number
   top: number
   right: number
+}
+
+/** The thumbnail's empty box, shared by "no photo" and a photo that failed to load. */
+function EventImagePlaceholder() {
+  return (
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+      —
+    </div>
+  )
 }
 
 export function ManageEvents() {
@@ -345,15 +355,15 @@ export function ManageEvents() {
                       <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-900">
                         <div className="flex items-center gap-3">
                           {event.event_image ? (
-                            <img
-                              src={event.event_image}
+                            <EventImage
+                              eventId={event.event_id}
+                              index={0}
                               alt=""
                               className="h-9 w-9 shrink-0 rounded-md object-cover"
+                              fallback={<EventImagePlaceholder />}
                             />
                           ) : (
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
-                              —
-                            </div>
+                            <EventImagePlaceholder />
                           )}
                           <button
                             type="button"

@@ -51,7 +51,17 @@ export const eventFormSchema = z
       )
       .default([]),
     beneficiary_applicable: z.boolean().default(false),
-    max_beneficiaries: z.coerce.number().optional(),
+    // Genuinely optional: an untouched number input submits '', which z.coerce would
+    // otherwise turn into 0 and fail the positive check.
+    max_beneficiaries: z.preprocess(
+      (value) =>
+        value === '' || value === null || value === undefined ? undefined : value,
+      z.coerce
+        .number()
+        .int('Max beneficiaries must be a whole number')
+        .positive('Max beneficiaries must be a positive number')
+        .optional(),
+    ),
     funds_donation: z.boolean().default(false),
     goods_donation: z.boolean().default(false),
     goods_types: z.array(z.string()).default([]),
@@ -78,19 +88,6 @@ export const eventFormSchema = z
       data.category !== 'Others' ||
       Boolean(data.specified_category && data.specified_category.trim().length >= 2),
     { message: 'Please specify a category name', path: ['specified_category'] },
-  )
-  .refine(
-    (data) => {
-      // Optional, but if provided it must be a positive number.
-      if (data.max_beneficiaries === undefined || Number.isNaN(data.max_beneficiaries)) {
-        return true
-      }
-      return data.max_beneficiaries > 0
-    },
-    {
-      message: 'Max beneficiaries must be a positive number',
-      path: ['max_beneficiaries'],
-    },
   )
   .refine(
     (data) => {
