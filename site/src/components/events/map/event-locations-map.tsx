@@ -7,6 +7,7 @@ import {
 } from '../../../constants/event'
 import { EVENT_PIN_ACCENTS } from '../../../constants/event-map'
 import { GEOAPIFY_API_KEY, geoapifyRasterTileUrl } from '../../../constants/geoapify'
+import { apiClient } from '../../../services/api-client'
 import type { EventMapPin } from '../../../types/event'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -46,8 +47,15 @@ function geoapifyStyle(): mapboxgl.StyleSpecification {
 /**
  * Build the marker DOM for one event: a round thumbnail of the event image
  * (or a photo icon when there is none) on a status-coloured teardrop.
+ *
+ * The photo sits in a private bucket, so it cannot be pointed at directly — the
+ * bytes come through the authenticated route as a blob. `registerObjectUrl` hands
+ * the URL back so the caller can revoke it when the marker goes away.
  */
-function createPinElement(pin: EventMapPin): HTMLButtonElement {
+function createPinElement(
+  pin: EventMapPin,
+  registerObjectUrl: (eventId: number, url: string) => void,
+): HTMLButtonElement {
   const accent = EVENT_PIN_ACCENTS[pin.status] ?? EVENT_PIN_ACCENTS.Completed
 
   const button = document.createElement('button')
@@ -60,19 +68,23 @@ function createPinElement(pin: EventMapPin): HTMLButtonElement {
   const bubble = document.createElement('span')
   bubble.className = 'cares-event-pin__bubble'
 
-  if (pin.imageUrl) {
-    const image = document.createElement('img')
-    image.src = pin.imageUrl
-    image.alt = ''
-    image.className = 'cares-event-pin__image'
-    // A broken/expired image URL falls back to the icon rather than a torn pin.
-    image.onerror = () => {
-      image.remove()
-      bubble.innerHTML = FALLBACK_PIN_ICON
-    }
-    bubble.appendChild(image)
-  } else {
-    bubble.innerHTML = FALLBACK_PIN_ICON
+  bubble.innerHTML = FALLBACK_PIN_ICON
+
+  if (pin.hasImage) {
+    void apiClient
+      .get(`/api/v1/events/${pin.eventId}/images/0`, { responseType: 'blob' })
+      .then((response: { data: Blob }) => {
+        const objectUrl = URL.createObjectURL(response.data)
+        registerObjectUrl(pin.eventId, objectUrl)
+
+        const image = document.createElement('img')
+        image.src = objectUrl
+        image.alt = ''
+        image.className = 'cares-event-pin__image'
+        bubble.replaceChildren(image)
+      })
+      // A photo that cannot be read leaves the icon already in the bubble.
+      .catch(() => undefined)
   }
 
   const count = document.createElement('span')
@@ -92,7 +104,15 @@ export function EventLocationsMap({
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<Map<number, mapboxgl.Marker>>(new Map())
+  const pinImageUrlsRef = useRef<Map<number, string>>(new Map())
   const onSelectRef = useRef(onSelect)
+
+  const releasePinImage = (eventId: number) => {
+    const objectUrl = pinImageUrlsRef.current.get(eventId)
+    if (!objectUrl) return
+    URL.revokeObjectURL(objectUrl)
+    pinImageUrlsRef.current.delete(eventId)
+  }
 
   useEffect(() => {
     onSelectRef.current = onSelect
@@ -115,9 +135,12 @@ export function EventLocationsMap({
     mapRef.current = map
 
     const markers = markersRef.current
+    const pinImageUrls = pinImageUrlsRef.current
     return () => {
       markers.forEach((marker) => marker.remove())
       markers.clear()
+      pinImageUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
+      pinImageUrls.clear()
       map.remove()
       mapRef.current = null
     }
@@ -136,6 +159,7 @@ export function EventLocationsMap({
       if (nextIds.has(eventId)) return
       marker.remove()
       markers.delete(eventId)
+      releasePinImage(eventId)
     })
 
     pins.forEach((pin) => {
@@ -144,7 +168,10 @@ export function EventLocationsMap({
         existing.setLngLat(pin.center)
         return
       }
-      const element = createPinElement(pin)
+      const element = createPinElement(pin, (eventId, objectUrl) => {
+        releasePinImage(eventId)
+        pinImageUrlsRef.current.set(eventId, objectUrl)
+      })
       element.addEventListener('click', (event) => {
         event.stopPropagation()
         onSelectRef.current(pin.eventId)

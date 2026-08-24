@@ -52,7 +52,7 @@ export function EventMap() {
             title: row.title,
             status: row.status,
             participants: row.currentParticipants,
-            imageUrl: row.event_image,
+            hasImage: Boolean(row.event_image),
             center,
           },
         ]

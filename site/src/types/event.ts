@@ -105,7 +105,8 @@ export interface EventMapPin {
   title: string
   status: EventStatus
   participants: number
-  imageUrl?: string
+  /** Whether the event has a photo to pull through the authenticated image route. */
+  hasImage: boolean
   /** `[lng, lat]` — the centre of the event's drawn area. */
   center: [number, number]
 }
