@@ -6,8 +6,21 @@ import { AdminDashboard } from '../pages/admin/admin-dashboard'
 import { AdminProfile } from '../pages/admin/admin-profile'
 import { AdminSettingsLayout } from '../pages/admin/admin-settings'
 import { AccessControlPage } from '../pages/admin/access-control'
+import { AttendanceLogPage } from '../pages/admin/attendance-log'
+import { AuditLogsPage } from '../pages/admin/audit-logs'
+import { EventAttendeesPage } from '../pages/admin/event-attendees'
+import { EventCalendarPage } from '../pages/admin/event-calendar'
+import { InternalDonationTrackingPage } from '../pages/admin/internal-donation-tracking'
+import { EventMapPage } from '../pages/shared/event-map-page'
+import { ActiveSessionsPage } from '../pages/admin/active-sessions'
+import { LoginActivityPage } from '../pages/admin/login-activity'
 import { MailInboxPage } from '../pages/admin/mail-inbox'
 import { ManageUsersPage } from '../pages/admin/manage-users'
+import { RankingCustomizationPage } from '../pages/admin/ranking-customization'
+import { RankingsPage } from '../pages/admin/rankings'
+import { SecurityPoliciesPage } from '../pages/admin/security-policies'
+import { SupportTicketsPage } from '../pages/admin/support-tickets'
+import { UserRequestPage } from '../pages/admin/user-request'
 import { ChatPage } from '../pages/shared/chat-page'
 import { createPlaceholderPage } from '../pages/shared/create-placeholder-page'
 import { ManageEventsPage } from '../pages/shared/manage-events-page'
@@ -16,22 +29,11 @@ import { settingsChildRoutes } from './settings-child-routes'
 
 const Statistics = createPlaceholderPage('Statistics', 'Charts and analytics for CARES programs.')
 const SystemPerformance = createPlaceholderPage('System Performance', 'Server and application performance metrics.')
-const UserRequest = createPlaceholderPage('User Request', 'Review portal access and account requests.')
-const SupportTickets = createPlaceholderPage('Support Tickets', 'Track and resolve portal support requests.')
-const AuditLogs = createPlaceholderPage('Audit Logs', 'Immutable trail of privileged actions across the portal.')
-const LoginActivity = createPlaceholderPage('Login Activity', 'Sign-in attempts, failures, and lockouts.')
-const ActiveSessions = createPlaceholderPage('Active Sessions', 'Signed-in devices, with the option to revoke.')
-const SecurityPolicies = createPlaceholderPage('Security Policies', 'Password rules, MFA, and session timeouts.')
 const BackupRecovery = createPlaceholderPage('Backup & Recovery', 'Database backup schedule and restore points.')
 const SystemNotices = createPlaceholderPage('System Notices', 'Portal-wide announcements and system alerts.')
 const SystemServices = createPlaceholderPage('System Services', 'Status and controls for CARES backend services.')
 const Maintenance = createPlaceholderPage('Maintenance', 'System maintenance mode and housekeeping tasks.')
 const PostRequirements = createPlaceholderPage('Post Monthly Report', 'Publish monthly reporting requirements.')
-const InternalDonationTracking = createPlaceholderPage('Inter Donation Tracking', 'Track internal donation flows.')
-const AttendanceLog = createPlaceholderPage('Attendance Log', 'View and export event attendance records.')
-const EventAttendees = createPlaceholderPage('Event Attendees', 'List of attendees per event.')
-const EventParticipants = createPlaceholderPage('Event Participants', 'List of participants per event.')
-const EventCalendar = createPlaceholderPage('Event Calendar', 'Calendar view of scheduled events.')
 const TemplatePage = createPlaceholderPage('Certificate Templates', 'Manage certificate template categories.')
 const DeployedCertificateTemplates = createPlaceholderPage(
   'Deployed Certificate Templates',
@@ -52,11 +54,6 @@ export const adminRoutes: RouteObject[] = [
           { path: 'system-performance', element: <SystemPerformance /> },
           { path: 'profile', element: <AdminProfile /> },
           { path: 'chat', element: <ChatPage /> },
-          { path: 'support-tickets', element: <SupportTickets /> },
-          { path: 'audit-logs', element: <AuditLogs /> },
-          { path: 'login-activity', element: <LoginActivity /> },
-          { path: 'active-sessions', element: <ActiveSessions /> },
-          { path: 'security-policies', element: <SecurityPolicies /> },
           { path: 'backup-recovery', element: <BackupRecovery /> },
           { path: 'system-notices', element: <SystemNotices /> },
           { path: 'system-services', element: <SystemServices /> },
@@ -67,23 +64,38 @@ export const adminRoutes: RouteObject[] = [
             children: settingsChildRoutes,
           },
           { path: 'manage-users', element: <ManageUsersPage /> },
-          { path: 'user-request', element: <UserRequest /> },
+          { path: 'user-request', element: <UserRequestPage /> },
           {
             // Admin-only, nested so the rest of the portal keeps PORTAL_ROLES.
             element: <ProtectedPortal roles={ADMIN_ONLY_ROLES} />,
             children: [
               { path: 'access-control', element: <AccessControlPage /> },
+              // The policy decides who can sign in at all, matching the server's
+              // @Roles(ADMIN) on /api/v1/security-policy.
+              { path: 'security-policies', element: <SecurityPoliciesPage /> },
+              // The sign-in trail exposes every account's IPs — admin-only, matching
+              // the server's @Roles(ADMIN) on /api/v1/login-activity.
+              { path: 'login-activity', element: <LoginActivityPage /> },
+              // The nav lists Audit Logs under admin-only Security, so the route matches.
+              { path: 'audit-logs', element: <AuditLogsPage /> },
+              // Every account's signed-in devices are listed and revocable here,
+              // matching the server's @Roles(ADMIN) on /api/v1/sessions.
+              { path: 'active-sessions', element: <ActiveSessionsPage /> },
               // Each admin links their own Google mailbox; it is not a shared inbox.
               { path: 'mail-inbox', element: <MailInboxPage /> },
+              // The nav shows Support Tickets to admins only; the route matches.
+              { path: 'support-tickets', element: <SupportTicketsPage /> },
             ],
           },
           { path: 'post-requirements', element: <PostRequirements /> },
-          { path: 'internal-donation-tracking', element: <InternalDonationTracking /> },
+          { path: 'internal-donation-tracking', element: <InternalDonationTrackingPage /> },
           { path: 'event-list', element: <ManageEventsPage /> },
-          { path: 'attendance-log', element: <AttendanceLog /> },
-          { path: 'event-attendees', element: <EventAttendees /> },
-          { path: 'event-participants', element: <EventParticipants /> },
-          { path: 'event-calendar', element: <EventCalendar /> },
+          { path: 'attendance-log', element: <AttendanceLogPage /> },
+          { path: 'event-attendees', element: <EventAttendeesPage /> },
+          { path: 'event-map', element: <EventMapPage /> },
+          { path: 'event-calendar', element: <EventCalendarPage /> },
+          { path: 'rankings', element: <RankingsPage /> },
+          { path: 'ranking-customization', element: <RankingCustomizationPage /> },
           { path: 'templates-list', element: <TemplatePage /> },
           { path: 'deployed-certificate-templates', element: <DeployedCertificateTemplates /> },
           { path: 'notifications', element: <NotificationsPage /> },

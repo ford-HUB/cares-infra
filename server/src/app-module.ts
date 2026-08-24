@@ -20,11 +20,17 @@ import { SettingsModule } from './modules/settings/modules/settings-module';
 import { EventsModule } from './modules/events/modules/events-module';
 import { UsersModule } from './modules/users/modules/users-module';
 import { AccessControlModule } from './modules/access-control/modules/access-control-module';
+import { LoginActivityModule } from './modules/login-activity/modules/login-activity-module';
+import { SessionsModule } from './modules/sessions/modules/sessions-module';
+import { AuditLogsModule } from './modules/audit-logs/modules/audit-logs-module';
+import { SecurityPolicyModule } from './modules/security-policy/modules/security-policy-module';
+import { SupportTicketsModule } from './modules/support-tickets/modules/support-tickets-module';
 import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
 import { ChatModule } from './modules/chat/modules/chat-module';
 import { JwtModule } from './infastructures/jwt/jwt-module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth-guard';
 import { RolesGuard } from './shared/guards/roles-guard';
+import { SessionGuard } from './shared/guards/session-guard';
 
 @Module({
   imports: [
@@ -44,6 +50,11 @@ import { RolesGuard } from './shared/guards/roles-guard';
     EventsModule,
     UsersModule,
     AccessControlModule,
+    LoginActivityModule,
+    SessionsModule,
+    AuditLogsModule,
+    SecurityPolicyModule,
+    SupportTicketsModule,
     MailboxModule,
     ChatModule,
   ],
@@ -52,6 +63,11 @@ import { RolesGuard } from './shared/guards/roles-guard';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      // After JwtAuthGuard: it needs the decoded token this guard checks against Redis.
+      provide: APP_GUARD,
+      useClass: SessionGuard,
     },
     {
       provide: APP_GUARD,

@@ -12,6 +12,12 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ZBody, ZParam, ZSerialize } from 'nest-zod';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
+import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
+import {
+  RequestContext,
+  type RequestContextDto,
+} from 'src/shared/decorators/request-context-decorator';
+import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type {
   CreateEventDto,
@@ -48,10 +54,12 @@ export class EventsSiteController {
   @ZSerialize(EventResponseSchema)
   @UseInterceptors(FilesInterceptor('event_images', EVENT_MAX_IMAGE_COUNT))
   async createEvent(
+    @CurrentUser() caller: JwtPayload,
     @ZBody(CreateEventSchema) data: CreateEventDto,
+    @RequestContext() context: RequestContextDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<EventDto> {
-    return this.eventsSiteService.createEvent(data, files);
+    return this.eventsSiteService.createEvent(caller, data, files, context);
   }
 
   @Put(':id')
@@ -59,37 +67,47 @@ export class EventsSiteController {
   @ZSerialize(EventResponseSchema)
   @UseInterceptors(FilesInterceptor('event_images', EVENT_MAX_IMAGE_COUNT))
   async updateEvent(
+    @CurrentUser() caller: JwtPayload,
     @ZParam('id', EventIdParamSchema) id: number,
     @ZBody(UpdateEventSchema) data: UpdateEventDto,
+    @RequestContext() context: RequestContextDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<EventDto> {
-    return this.eventsSiteService.updateEvent(id, data, files);
+    return this.eventsSiteService.updateEvent(caller, id, data, files, context);
   }
 
   @Patch(':id/donations')
   @ResponseMessage('Donation options updated')
   @ZSerialize(EventResponseSchema)
   async updateDonations(
+    @CurrentUser() caller: JwtPayload,
     @ZParam('id', EventIdParamSchema) id: number,
     @ZBody(UpdateDonationsSchema) data: UpdateDonationsDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<EventDto> {
-    return this.eventsSiteService.updateDonations(id, data);
+    return this.eventsSiteService.updateDonations(caller, id, data, context);
   }
 
   @Patch(':id/cancel')
   @ResponseMessage('Event cancelled')
   @ZSerialize(EventResponseSchema)
   async cancelEvent(
+    @CurrentUser() caller: JwtPayload,
     @ZParam('id', EventIdParamSchema) id: number,
+    @RequestContext() context: RequestContextDto,
   ): Promise<EventDto> {
-    return this.eventsSiteService.cancelEvent(id);
+    return this.eventsSiteService.cancelEvent(caller, id, context);
   }
 
   @Delete(':id')
   @ResponseMessage('Event deleted')
   @ZSerialize(DeleteEventResponseSchema)
-  async deleteEvent(@ZParam('id', EventIdParamSchema) id: number) {
-    await this.eventsSiteService.deleteEvent(id);
+  async deleteEvent(
+    @CurrentUser() caller: JwtPayload,
+    @ZParam('id', EventIdParamSchema) id: number,
+    @RequestContext() context: RequestContextDto,
+  ) {
+    await this.eventsSiteService.deleteEvent(caller, id, context);
     return { deleted: true };
   }
 }

@@ -4,6 +4,14 @@ const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 
+/**
+ * Gmail answers 429 for a burst of concurrent calls even when the daily quota is
+ * nowhere near spent, so a rejected call is worth retrying after a short pause.
+ */
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+const RETRY_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 300;
+
 /** Scopes the portal asks for: read + label changes, send, and the account identity. */
 export const GMAIL_OAUTH_SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
@@ -184,7 +192,26 @@ export class GmailApiClient {
     });
   }
 
+  /** Retries the transient statuses with a widening pause; anything else throws at once. */
   private async request<T>(
+    accessToken: string,
+    path: string,
+    init?: { method?: string; body?: unknown },
+  ): Promise<T> {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await this.send<T>(accessToken, path, init);
+      } catch (error) {
+        const retryable =
+          error instanceof GmailApiError && RETRY_STATUSES.has(error.status);
+        if (!retryable || attempt >= RETRY_ATTEMPTS - 1) throw error;
+
+        await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
+      }
+    }
+  }
+
+  private async send<T>(
     accessToken: string,
     path: string,
     init?: { method?: string; body?: unknown },
@@ -217,6 +244,10 @@ export class GmailApiClient {
     }
     return body?.error?.message ?? fallback;
   }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** Carries Google's HTTP status so the service can tell "token dead" from "Gmail is down". */

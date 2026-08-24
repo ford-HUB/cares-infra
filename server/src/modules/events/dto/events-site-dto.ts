@@ -33,4 +33,6 @@ export interface PersistEventDto {
   max_beneficiaries: number | null;
   geojson: unknown | null;
   area_sqm: number | null;
+  marker_lat: number | null;
+  marker_lng: number | null;
 }

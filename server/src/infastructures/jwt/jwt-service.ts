@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'src/shared/types/jwt-payload';
+import { DurationUtils } from 'src/shared/utils/duration-utils';
 
 @Injectable()
 export class JwtService implements OnModuleInit {
@@ -27,6 +28,29 @@ export class JwtService implements OnModuleInit {
 
   private get expiresIn(): string {
     return this.configService.get<string>('JWT_EXPIRES_IN') ?? '7d';
+  }
+
+  /**
+   * The same lifetime as `expiresIn`, in seconds, so a session record in Redis can be
+   * given a TTL that expires exactly when its token does.
+   */
+  get expiresInSeconds(): number {
+    const value = this.expiresIn.trim();
+    const match = /^(\d+)\s*(s|m|h|d)?$/i.exec(value);
+    if (!match) {
+      throw new Error(`JWT_EXPIRES_IN is not a supported duration: ${value}`);
+    }
+
+    const amount = Number(match[1]);
+    const unit = (match[2] ?? 's').toLowerCase();
+    const seconds: Record<string, number> = {
+      s: 1,
+      m: DurationUtils.ONE_MINUTE,
+      h: DurationUtils.ONE_HOUR,
+      d: DurationUtils.ONE_DAY,
+    };
+
+    return amount * seconds[unit];
   }
 
   sign(payload: JwtPayload): string {
@@ -55,6 +79,7 @@ export class JwtService implements OnModuleInit {
         sub: payload.sub,
         email: payload.email,
         role_type: payload.role_type,
+        sid: payload.sid,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {

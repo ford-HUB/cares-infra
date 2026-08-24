@@ -18,7 +18,29 @@ export const USER_STATUS_FILTERS: { value: UserStatusFilter; label: string }[] =
   { value: 'active', label: 'Active' },
   { value: 'pending', label: 'Pending' },
   { value: 'restricted', label: 'Restricted' },
+  { value: 'expired', label: 'Expired' },
 ]
+
+/** Roles an administrator can provision from the portal — volunteers sign up in the app. */
+export const PROVISIONABLE_ROLES = [
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'DIRECTOR', label: 'Director' },
+  { value: 'COORDINATOR', label: 'Coordinator' },
+] as const
+
+/** Mirrors CREDENTIAL_MIN_HOURS/MAX_HOURS on the server — a stricter range is a 400. */
+export const CREDENTIAL_MIN_HOURS = 1
+export const CREDENTIAL_MAX_HOURS = 24 * 90
+export const CREDENTIAL_DEFAULT_HOURS = 72
+
+export const CREDENTIAL_LIFETIME_OPTIONS = [
+  { value: 24, label: '24 hours' },
+  { value: 48, label: '2 days' },
+  { value: CREDENTIAL_DEFAULT_HOURS, label: '3 days' },
+  { value: 24 * 7, label: '7 days' },
+  { value: 24 * 14, label: '14 days' },
+  { value: 24 * 30, label: '30 days' },
+] as const
 
 export const USER_COLUMNS = [
   { key: 'name', label: 'Full Name', width: 'w-[24%]' },

@@ -9,11 +9,13 @@ import {
   MessageSquare,
   Server,
   ShieldCheck,
+  Trophy,
   Users,
 } from 'lucide-react'
 import {
   ADMIN_BASE_PATH,
   ADMIN_CHAT_PATH,
+  ADMIN_EVENT_MAP_PATH,
   ADMIN_MAIL_INBOX_PATH,
   ADMIN_MAINTENANCE_PATH,
   ADMIN_SUPPORT_TICKETS_PATH,
@@ -59,7 +61,15 @@ export const adminNav: PortalNavConfig = {
       // Each admin links a personal Google mailbox — nothing here is shared.
       roles: ['admin'],
     },
-    { type: 'link', label: 'Support Tickets', to: ADMIN_SUPPORT_TICKETS_PATH, icon: LifeBuoy },
+    {
+      type: 'link',
+      label: 'Support Tickets',
+      to: ADMIN_SUPPORT_TICKETS_PATH,
+      icon: LifeBuoy,
+      // Tickets come in from every portal and the mobile app; only the system
+      // operator triages them.
+      roles: ['admin'],
+    },
 
     { type: 'section', label: 'Management' },
     {
@@ -91,7 +101,7 @@ export const adminNav: PortalNavConfig = {
       children: [
         { label: 'Event', to: '/admin/event-list' },
         { label: 'Attendees', to: '/admin/event-attendees' },
-        { label: 'Participants', to: '/admin/event-participants' },
+        { label: 'Map', to: ADMIN_EVENT_MAP_PATH },
         { label: 'Calendar', to: '/admin/event-calendar' },
       ],
     },
@@ -103,6 +113,16 @@ export const adminNav: PortalNavConfig = {
       children: [
         { label: 'Templates', to: '/admin/templates-list' },
         { label: 'Deployed Templates', to: '/admin/deployed-certificate-templates' },
+      ],
+    },
+    {
+      type: 'group',
+      label: 'Rankings',
+      icon: Trophy,
+      roles: OPERATIONS_ROLES,
+      children: [
+        { label: 'Ranking', to: '/admin/rankings' },
+        { label: 'Customization', to: '/admin/ranking-customization' },
       ],
     },
     {

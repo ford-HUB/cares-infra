@@ -26,6 +26,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "pnpm run build && node dist/infastructures/prisma/seed.js",
     "seed:admin": "pnpm run seed admin",
+    "seed:director": "pnpm run seed director",
     "seed:events": "pnpm run seed events",
     "seed:access-control": "pnpm run seed access-control"
   },

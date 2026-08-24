@@ -92,6 +92,71 @@ export const PermissionOverrideEffect = {
 export type PermissionOverrideEffect = (typeof PermissionOverrideEffect)[keyof typeof PermissionOverrideEffect]
 
 
+export const LoginOutcome = {
+  SUCCESS: 'SUCCESS',
+  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+  BLOCKED_IP: 'BLOCKED_IP',
+  RESTRICTED_ACCOUNT: 'RESTRICTED_ACCOUNT',
+  ROLE_NOT_ALLOWED: 'ROLE_NOT_ALLOWED',
+  LOCKED_OUT: 'LOCKED_OUT',
+  OUTSIDE_LOGIN_HOURS: 'OUTSIDE_LOGIN_HOURS',
+  IP_NOT_ALLOWED: 'IP_NOT_ALLOWED',
+  CREDENTIAL_EXPIRED: 'CREDENTIAL_EXPIRED'
+} as const
+
+export type LoginOutcome = (typeof LoginOutcome)[keyof typeof LoginOutcome]
+
+
+export const LoginSource = {
+  PORTAL: 'PORTAL',
+  MOBILE: 'MOBILE'
+} as const
+
+export type LoginSource = (typeof LoginSource)[keyof typeof LoginSource]
+
+
+export const AuditCategory = {
+  AUTHENTICATION: 'AUTHENTICATION',
+  ACCESS_CONTROL: 'ACCESS_CONTROL',
+  USER_MANAGEMENT: 'USER_MANAGEMENT',
+  VERIFICATION: 'VERIFICATION',
+  EVENT: 'EVENT',
+  CERTIFICATE: 'CERTIFICATE',
+  COMMUNICATION: 'COMMUNICATION',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type AuditCategory = (typeof AuditCategory)[keyof typeof AuditCategory]
+
+
+export const AuditSeverity = {
+  INFO: 'INFO',
+  NOTICE: 'NOTICE',
+  WARNING: 'WARNING',
+  CRITICAL: 'CRITICAL'
+} as const
+
+export type AuditSeverity = (typeof AuditSeverity)[keyof typeof AuditSeverity]
+
+
+export const AuditOutcome = {
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE',
+  DENIED: 'DENIED'
+} as const
+
+export type AuditOutcome = (typeof AuditOutcome)[keyof typeof AuditOutcome]
+
+
+export const AuditSource = {
+  PORTAL: 'PORTAL',
+  MOBILE: 'MOBILE',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type AuditSource = (typeof AuditSource)[keyof typeof AuditSource]
+
+
 export const InterestCode = {
   ACADEMIC_ACTIVITIES: 'ACADEMIC_ACTIVITIES',
   DONATION_DRIVES: 'DONATION_DRIVES',
@@ -109,3 +174,46 @@ export const EventStatus = {
 } as const
 
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]
+
+
+export const SupportTicketPriority = {
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW'
+} as const
+
+export type SupportTicketPriority = (typeof SupportTicketPriority)[keyof typeof SupportTicketPriority]
+
+
+export const SupportTicketStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  UNDER_VERIFICATION: 'UNDER_VERIFICATION',
+  CLIENT_FEEDBACK: 'CLIENT_FEEDBACK',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type SupportTicketStatus = (typeof SupportTicketStatus)[keyof typeof SupportTicketStatus]
+
+
+export const SupportTicketType = {
+  BUG: 'BUG',
+  LOGIN: 'LOGIN',
+  ACCOUNT: 'ACCOUNT',
+  VERIFICATION: 'VERIFICATION',
+  EVENT: 'EVENT',
+  MOBILE_APP: 'MOBILE_APP',
+  FEATURE_REQUEST: 'FEATURE_REQUEST',
+  OTHER: 'OTHER'
+} as const
+
+export type SupportTicketType = (typeof SupportTicketType)[keyof typeof SupportTicketType]
+
+
+export const SupportTicketAuthorType = {
+  STAFF: 'STAFF',
+  REQUESTER: 'REQUESTER'
+} as const
+
+export type SupportTicketAuthorType = (typeof SupportTicketAuthorType)[keyof typeof SupportTicketAuthorType]

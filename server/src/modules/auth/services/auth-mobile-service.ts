@@ -15,6 +15,7 @@ import {
   BadGatewayException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -30,6 +31,10 @@ import { DurationUtils } from '../../../shared/utils/duration-utils';
 import { TemplateUtils } from 'src/shared/utils/templete-utils';
 import { NodemailerService } from 'src/infastructures/nodemailer/nodemailer-service';
 import { JwtService } from 'src/infastructures/jwt/jwt-service';
+import { LoginActivityRecorder } from 'src/modules/login-activity/services/login-activity-recorder';
+import { SessionRegistry } from 'src/modules/sessions/services/session-registry';
+import { LoginPolicyEnforcer } from 'src/modules/security-policy/services/login-policy-enforcer';
+import type { JwtPayload } from 'src/shared/types/jwt-payload';
 
 @Injectable()
 export class AuthMobileService {
@@ -42,9 +47,16 @@ export class AuthMobileService {
     private readonly ucidServiceClient: UcidServiceClient,
     private readonly nodemailerService: NodemailerService,
     private readonly jwtService: JwtService,
+    private readonly loginActivityRecorder: LoginActivityRecorder,
+    private readonly sessionRegistry: SessionRegistry,
+    private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
   ) {}
 
   async registerUser(data: CreateUserDto) {
+    await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(
+      data.account.password,
+    );
+
     const hashedPassword = await bcrypt.hash(data.account.password, 10);
     return this.authRepository.createUser({
       ...data,
@@ -55,10 +67,25 @@ export class AuthMobileService {
     });
   }
 
-  async login(data: LoginDto): Promise<LoginResponseDto> {
+  async login(
+    data: LoginDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<LoginResponseDto> {
     const email = data.email.trim().toLowerCase();
+    const attempt = { email, ipAddress, userAgent, source: 'MOBILE' as const };
+
+    // Lockout only, on this side — see `LoginPolicyEnforcer` for why the hours and
+    // allowlist rules stop at the portal.
+    await this.loginPolicyEnforcer.assertLoginAllowed(attempt);
+
     const account = await this.authRepository.findAccountForLogin(email);
     if (!account) {
+      await this.loginActivityRecorder.record({
+        ...attempt,
+        outcome: 'INVALID_CREDENTIALS',
+        failureReason: 'No account matches this email',
+      });
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -66,12 +93,55 @@ export class AuthMobileService {
     try {
       passwordMatches = await bcrypt.compare(data.password, account.password);
     } catch {
-      throw new UnauthorizedException('Invalid email or password');
+      passwordMatches = false;
     }
 
     if (!passwordMatches) {
+      await this.loginActivityRecorder.record({
+        ...attempt,
+        userId: account.user.user_id,
+        outcome: 'INVALID_CREDENTIALS',
+        failureReason: 'Incorrect password',
+      });
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    // A credential an administrator issued expires wherever it is presented, not just
+    // on the portal it was minted for.
+    if (
+      account.credential_expires_at &&
+      account.credential_expires_at.getTime() <= Date.now()
+    ) {
+      const message =
+        'These temporary credentials have expired — ask an administrator to issue new ones';
+      await this.loginActivityRecorder.record({
+        ...attempt,
+        userId: account.user.user_id,
+        outcome: 'CREDENTIAL_EXPIRED',
+        failureReason: message,
+      });
+      throw new ForbiddenException(message);
+    }
+
+    if (ipAddress) {
+      await this.authRepository.recordLoginIp(account.user.user_id, ipAddress);
+    }
+
+    await this.loginActivityRecorder.record({
+      ...attempt,
+      userId: account.user.user_id,
+      outcome: 'SUCCESS',
+    });
+
+    // The session is what makes this token revocable — see `SessionGuard`.
+    const session = await this.sessionRegistry.create({
+      userId: account.user.user_id,
+      email: account.email,
+      roleType: account.user.role.type,
+      source: 'MOBILE',
+      ipAddress,
+      userAgent,
+    });
 
     return {
       user_id: account.user.user_id,
@@ -83,8 +153,16 @@ export class AuthMobileService {
         sub: account.user.user_id,
         email: account.email,
         role_type: account.user.role.type,
+        sid: session.session_id,
       }),
     };
+  }
+
+  /** Ends only the calling device's session; other devices stay signed in. */
+  async logout(user: JwtPayload): Promise<void> {
+    if (user.sid) {
+      await this.sessionRegistry.revoke(user.sid);
+    }
   }
 
   async uploadID(

@@ -3,10 +3,14 @@ import {
   MANAGE_USERS_PAGE_SIZE,
 } from '../constants/manage-users'
 import type {
+  IssuedCredentials,
   ManagedUser,
   ManagedUserDetail,
+  ManagedUserStatus,
   ManageUsersQuery,
   ManageUsersResult,
+  ProvisionUserPayload,
+  ProvisionUserResult,
 } from '../types/manage-users'
 import { apiClient, parseApiError } from './api-client'
 
@@ -17,11 +21,23 @@ interface ManagedUserApiResponse {
   email: string
   role_type: string
   department: string | null
-  status: 'active' | 'restricted' | 'pending'
+  status: ManagedUserStatus
   restriction_reason: string | null
   last_login_ip: string | null
   blocked_ips: string[]
+  credential_expires_at: string | null
   created_at: string
+}
+
+interface IssuedCredentialsApiResponse {
+  email: string
+  password: string
+  expires_at: string
+}
+
+interface ProvisionedUserApiResponse {
+  user: ManagedUserApiResponse
+  credentials: IssuedCredentialsApiResponse
 }
 
 interface ManagedUserListApiResponse {
@@ -43,24 +59,57 @@ function mapApiUser(data: ManagedUserApiResponse): ManagedUser {
     restrictionReason: data.restriction_reason ?? undefined,
     lastLoginIp: data.last_login_ip ?? undefined,
     blockedIps: data.blocked_ips,
+    credentialExpiresAt: data.credential_expires_at ?? undefined,
   }
 }
 
-async function fetchUserPage(query: ManageUsersQuery, page: number) {
+function mapApiCredentials(
+  data: IssuedCredentialsApiResponse,
+): IssuedCredentials {
+  return {
+    email: data.email,
+    password: data.password,
+    expiresAt: data.expires_at,
+  }
+}
+
+async function fetchUserPage(
+  query: ManageUsersQuery,
+  page: number,
+  options: { pageSize?: number; signal?: AbortSignal } = {},
+) {
   const { data: body } = await apiClient.get<{
     ok: true
     data: ManagedUserListApiResponse
   }>('/api/v1/users', {
+    signal: options.signal,
     params: {
       ...(query.search ? { search: query.search } : {}),
       role: query.role && query.role !== 'all' ? query.role.toUpperCase() : 'all',
       status: query.status ?? 'all',
       page,
-      page_size: MANAGE_USERS_PAGE_SIZE,
+      page_size: options.pageSize ?? MANAGE_USERS_PAGE_SIZE,
     },
   })
 
   return body.data
+}
+
+/**
+ * One page of name/email matches for a typeahead. Suggestions are a convenience, so a
+ * failed or aborted lookup resolves to nothing rather than surfacing an error.
+ */
+export async function searchUserDirectory(
+  search: string,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<ManagedUser[]> {
+  try {
+    const page = await fetchUserPage({ search }, 1, { pageSize: limit, signal })
+    return page.items.map(mapApiUser)
+  } catch {
+    return []
+  }
 }
 
 export async function listManagedUsers(
@@ -249,6 +298,65 @@ export async function getManagedUserDetail(id: string): Promise<{
       data: ManagedUserDetailApiResponse
     }>(`/api/v1/users/${id}`)
     return { success: true, detail: mapApiUserDetail(body.data) }
+  } catch (error) {
+    return { success: false, message: parseApiError(error) }
+  }
+}
+
+/**
+ * Creates a portal account and returns the credential to hand over. The password comes
+ * back in plaintext here and nowhere else — it is hashed server-side, so a caller that
+ * discards this response has to re-issue rather than look it up.
+ */
+export async function provisionManagedUser(
+  payload: ProvisionUserPayload,
+): Promise<ProvisionUserResult> {
+  try {
+    const { data: body } = await apiClient.post<{
+      ok: true
+      data: ProvisionedUserApiResponse
+    }>('/api/v1/users', {
+      mode: payload.mode,
+      firstname: payload.firstName,
+      lastname: payload.lastName,
+      ...(payload.email ? { email: payload.email } : {}),
+      role_type: payload.role,
+      ...(payload.department ? { department: payload.department } : {}),
+      ...(payload.phoneNumber ? { phone_number: payload.phoneNumber } : {}),
+      ...(payload.permissions ? { permissions: payload.permissions } : {}),
+      expires_in_hours: payload.expiresInHours,
+    })
+
+    return {
+      success: true,
+      message: 'Account created',
+      user: mapApiUser(body.data.user),
+      credentials: mapApiCredentials(body.data.credentials),
+    }
+  } catch (error) {
+    return { success: false, message: parseApiError(error) }
+  }
+}
+
+/** Replaces the credential on an existing account; the sign-in email stays as it was. */
+export async function reissueManagedUserCredentials(
+  id: string,
+  expiresInHours: number,
+): Promise<ProvisionUserResult> {
+  try {
+    const { data: body } = await apiClient.post<{
+      ok: true
+      data: ProvisionedUserApiResponse
+    }>(`/api/v1/users/${id}/reissue-credentials`, {
+      expires_in_hours: expiresInHours,
+    })
+
+    return {
+      success: true,
+      message: 'New credentials issued',
+      user: mapApiUser(body.data.user),
+      credentials: mapApiCredentials(body.data.credentials),
+    }
   } catch (error) {
     return { success: false, message: parseApiError(error) }
   }

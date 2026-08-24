@@ -33,7 +33,7 @@ export class AccountSettingsAdminController {
     @CurrentUser() user: JwtPayload,
     @ZBody(ChangeEmailSchema) data: ChangeEmailDto,
   ): Promise<ChangeEmailResponseDto> {
-    return this.accountSettingsAdminService.changeEmail(user.sub, data);
+    return this.accountSettingsAdminService.changeEmail(user, data);
   }
 
   @Put('password')

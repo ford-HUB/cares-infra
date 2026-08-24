@@ -34,6 +34,8 @@ model User {
   restriction_reason String?
   last_login_ip      String?
   blocked_ips        BlockedIp[]
+  login_activities   LoginActivity[]
+  audit_logs         AuditLog[]
   permission_overrides UserPermissionOverride[]
   action_suspensions   UserActionSuspension[]
   user_school_info   UserSchoolInfo[]
@@ -44,6 +46,9 @@ model User {
   gmail_connection   GmailConnection?
   chat_participants  ConversationParticipant[]
   chat_messages      ChatMessage[]
+  support_tickets          SupportTicket[]      @relation("SupportTicketRequester")
+  assigned_support_tickets SupportTicket[]      @relation("SupportTicketAssignee")
+  support_ticket_replies   SupportTicketReply[] @relation("SupportTicketReplyAuthor")
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -244,10 +249,181 @@ model BlockedIp {
   updatedAt          DateTime @updatedAt
 }
 
+/// Portal-wide security settings, held as exactly one row: `singleton` is pinned to
+/// true and unique, so an upsert can never create a second policy. Every field has a
+/// default here that matches the fallback the server applies when the row is missing.
+model SecurityPolicy {
+  security_policy_id String  @id @default(uuid())
+  singleton          Boolean @unique @default(true)
+
+  password_min_length        Int     @default(8)
+  password_require_uppercase Boolean @default(true)
+  password_require_lowercase Boolean @default(true)
+  password_require_number    Boolean @default(true)
+  password_require_symbol    Boolean @default(false)
+
+  lockout_enabled      Boolean @default(true)
+  lockout_max_attempts Int     @default(5)
+  /// How far back failed attempts are counted, in minutes.
+  lockout_window_minutes Int   @default(15)
+  /// Minutes a lock is held. 0 means it stays until an administrator lifts it.
+  lockout_duration_minutes Int @default(30)
+
+  /// Minutes of inactivity before a session is refused. 0 disables the check.
+  session_idle_timeout_minutes Int @default(0)
+  /// Hours a session may live regardless of activity. 0 leaves it to the token's own expiry.
+  session_max_duration_hours   Int @default(0)
+  /// Devices one account may hold at once. 0 means unlimited.
+  max_concurrent_sessions      Int @default(0)
+
+  login_hours_enabled Boolean @default(false)
+  /// Minutes past midnight, server time. A start after the end wraps over midnight.
+  login_hours_start_minute Int @default(0)
+  login_hours_end_minute   Int @default(1440)
+
+  /// Addresses allowed to sign in. Empty means no allowlist — see BlockedIp for the denylist.
+  ip_allowlist String[] @default([])
+
+  updated_by_user_id String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+/// Why a sign-in attempt ended the way it did. Anything other than SUCCESS is a
+/// refusal the portal's login-activity page renders as a failed attempt.
+enum LoginOutcome {
+  SUCCESS
+  INVALID_CREDENTIALS
+  BLOCKED_IP
+  RESTRICTED_ACCOUNT
+  ROLE_NOT_ALLOWED
+  /// Refused by a SecurityPolicy rule rather than by the credentials themselves.
+  LOCKED_OUT
+  OUTSIDE_LOGIN_HOURS
+  IP_NOT_ALLOWED
+  /// The temporary credential an administrator issued has passed its expiry.
+  CREDENTIAL_EXPIRED
+}
+
+/// Which client the attempt came from — the React portal or the Flutter app.
+enum LoginSource {
+  PORTAL
+  MOBILE
+}
+
+/// One row per sign-in attempt, successful or not. Append-only: nothing updates or
+/// deletes a row, so the trail stays reviewable. `user_id` is null when the email
+/// matched no account, which is why the typed email is stored alongside it.
+model LoginActivity {
+  login_activity_id String       @id @default(uuid())
+  /// Null when no account matched the submitted email.
+  user_id           String?
+  user              User?        @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  /// The email exactly as submitted (lowercased), kept even when no account matched.
+  email             String
+  ip_address        String
+  user_agent        String?
+  source            LoginSource
+  outcome           LoginOutcome
+  /// The message the client was shown; null on a successful sign-in.
+  failure_reason    String?
+  createdAt         DateTime     @default(now())
+
+  @@index([user_id])
+  @@index([createdAt])
+  @@index([ip_address])
+  @@index([email])
+}
+
+/// Which area of CARES produced the entry. Drives the portal's category filter.
+enum AuditCategory {
+  AUTHENTICATION
+  ACCESS_CONTROL
+  USER_MANAGEMENT
+  VERIFICATION
+  EVENT
+  CERTIFICATE
+  COMMUNICATION
+  SYSTEM
+}
+
+/// How much attention the entry deserves on review, independent of its outcome.
+enum AuditSeverity {
+  INFO
+  NOTICE
+  WARNING
+  CRITICAL
+}
+
+/// Whether the action went through. DENIED is a permission refusal, not a server error.
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+  DENIED
+}
+
+/// Which client wrote the entry — the React portal, the Flutter app, or a background job.
+enum AuditSource {
+  PORTAL
+  MOBILE
+  SYSTEM
+}
+
+/// One row per privileged action. Append-only: nothing updates or deletes a row, so
+/// the trail stays reviewable. The actor's name, email, and role are denormalised at
+/// write time so a later rename or role change cannot rewrite history.
+model AuditLog {
+  audit_log_id  String        @id @default(uuid())
+  /// Machine key, e.g. `access-control.permission.revoked` — stable across wording changes.
+  action        String
+  /// The sentence the portal renders in the grid.
+  description   String
+  category      AuditCategory
+  severity      AuditSeverity @default(INFO)
+  outcome       AuditOutcome  @default(SUCCESS)
+  /// Null for background jobs, and for actors whose account was later deleted.
+  actor_user_id String?
+  actor_user    User?         @relation(fields: [actor_user_id], references: [user_id], onDelete: SetNull)
+  actor_name    String
+  actor_email   String
+  /// Null when the actor is the system rather than an account.
+  actor_role    RoleType?
+  /// What the action was performed on — `user`, `event`, `certificate`, `system`, …
+  target_type   String
+  target_label  String
+  /// Null when the target is not a single record (a route, a role baseline, a service).
+  target_id     String?
+  ip_address    String
+  user_agent    String?
+  source        AuditSource   @default(PORTAL)
+  /// Correlates every entry written by one request.
+  request_id    String?
+  /// Operator-supplied justification, when the action asks for one.
+  reason        String?
+  /// Field-level before/after pairs: `[{ field, before, after }]`.
+  changes       Json          @default("[]")
+  /// Free-form context — counts, service scores, template names.
+  metadata      Json          @default("{}")
+  createdAt     DateTime      @default(now())
+
+  @@index([actor_user_id])
+  @@index([createdAt])
+  @@index([category])
+  @@index([severity])
+  @@index([outcome])
+  @@index([action])
+}
+
 model Account {
   account_id String   @id @default(uuid())
   email      String   @unique
   password   String
+  /// Set when an administrator provisioned this account with temporary credentials.
+  /// Sign-in is refused once it passes; null means the password does not expire, which
+  /// is what a self-registered account and a completed hand-over both look like.
+  credential_expires_at DateTime?
+  /// The administrator who issued the credential in force — null for self-registration.
+  provisioned_by_user_id String?
   user       User     @relation(fields: [user_id], references: [user_id])
   user_id    String
   createdAt  DateTime @default(now())
@@ -327,6 +503,9 @@ model Event {
   max_beneficiaries      Int?
   geojson                Json?
   area_sqm               Float?
+  /// Pin the operator dropped inside the geofence — the exact meeting spot.
+  marker_lat             Float?
+  marker_lng             Float?
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
 }
@@ -380,4 +559,86 @@ model ChatAttachment {
   /// S3 object URL; streamed back through the API, never exposed as a public link.
   url           String
   createdAt     DateTime    @default(now())
+}
+
+/// Priority doubles as the portal's triage bucket: HIGH = Issue, MEDIUM = Support,
+/// LOW = Feature. One axis, so a ticket cannot be an "Issue" with low priority.
+enum SupportTicketPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  /// Fix is in — waiting for the requester to confirm it works on their side.
+  UNDER_VERIFICATION
+  /// Blocked on the requester: more detail or a decision is needed from them.
+  CLIENT_FEEDBACK
+  RESOLVED
+  CLOSED
+}
+
+/// What the reporter says went wrong; drives triage routing in the portal.
+enum SupportTicketType {
+  BUG
+  LOGIN
+  ACCOUNT
+  VERIFICATION
+  EVENT
+  MOBILE_APP
+  FEATURE_REQUEST
+  OTHER
+}
+
+/// Which side of a thread a reply sits on.
+enum SupportTicketAuthorType {
+  STAFF
+  REQUESTER
+}
+
+/// A reported problem or request. `reference_number` is the tracking number shown to
+/// the requester — sequential and never reused, which is why it is a DB sequence
+/// rather than a count of rows.
+model SupportTicket {
+  support_ticket_id String                @id @default(uuid())
+  reference_number  Int                   @unique @default(autoincrement())
+  subject           String
+  description       String
+  type              SupportTicketType
+  status            SupportTicketStatus   @default(OPEN)
+  priority          SupportTicketPriority @default(MEDIUM)
+  requester_id      String
+  requester         User                  @relation("SupportTicketRequester", fields: [requester_id], references: [user_id], onDelete: Cascade)
+  /// Null while the ticket is unassigned; cleared rather than deleted if the staff
+  /// account goes away, so the ticket itself survives.
+  assignee_id       String?
+  assignee          User?                 @relation("SupportTicketAssignee", fields: [assignee_id], references: [user_id], onDelete: SetNull)
+  source            LoginSource
+  replies           SupportTicketReply[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([requester_id])
+  @@index([assignee_id])
+  @@index([updatedAt])
+}
+
+model SupportTicketReply {
+  support_ticket_reply_id String                  @id @default(uuid())
+  support_ticket_id       String
+  ticket                  SupportTicket           @relation(fields: [support_ticket_id], references: [support_ticket_id], onDelete: Cascade)
+  /// Null once the author's account is removed; the thread keeps the message.
+  author_id               String?
+  author                  User?                   @relation("SupportTicketReplyAuthor", fields: [author_id], references: [user_id], onDelete: SetNull)
+  /// Snapshot of the name shown in the thread, so a deleted author still reads right.
+  author_name             String
+  author_type             SupportTicketAuthorType
+  body                    String
+  createdAt               DateTime                @default(now())
+
+  @@index([support_ticket_id, createdAt])
 }

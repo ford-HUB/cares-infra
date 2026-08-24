@@ -75,7 +75,9 @@ export class AccessControlRepository {
   async listUsers(filter: ListAccessUsersFilter) {
     const where = buildWhere(filter);
 
-    const [rows, total] = await this.prisma.$transaction([
+    // Two independent reads, so they run concurrently rather than holding a
+    // transaction slot open — a paged read needs no atomicity.
+    const [rows, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         select: accessUserSelect,
@@ -187,6 +189,10 @@ export class AccessControlRepository {
         user_action_suspension_id: true,
         user_id: true,
         lifted_at: true,
+        // Both are read for the audit entry: lifting a suspension has to say which
+        // action came back, and why it was suspended in the first place.
+        permission: true,
+        reason: true,
       },
     });
   }

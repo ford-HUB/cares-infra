@@ -352,6 +352,8 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   blocked_ips?: Prisma.BlockedIpListRelationFilter
+  login_activities?: Prisma.LoginActivityListRelationFilter
+  audit_logs?: Prisma.AuditLogListRelationFilter
   permission_overrides?: Prisma.UserPermissionOverrideListRelationFilter
   action_suspensions?: Prisma.UserActionSuspensionListRelationFilter
   user_school_info?: Prisma.UserSchoolInfoListRelationFilter
@@ -362,6 +364,9 @@ export type UserWhereInput = {
   gmail_connection?: Prisma.XOR<Prisma.GmailConnectionNullableScalarRelationFilter, Prisma.GmailConnectionWhereInput> | null
   chat_participants?: Prisma.ConversationParticipantListRelationFilter
   chat_messages?: Prisma.ChatMessageListRelationFilter
+  support_tickets?: Prisma.SupportTicketListRelationFilter
+  assigned_support_tickets?: Prisma.SupportTicketListRelationFilter
+  support_ticket_replies?: Prisma.SupportTicketReplyListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }
 
@@ -389,6 +394,8 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   blocked_ips?: Prisma.BlockedIpOrderByRelationAggregateInput
+  login_activities?: Prisma.LoginActivityOrderByRelationAggregateInput
+  audit_logs?: Prisma.AuditLogOrderByRelationAggregateInput
   permission_overrides?: Prisma.UserPermissionOverrideOrderByRelationAggregateInput
   action_suspensions?: Prisma.UserActionSuspensionOrderByRelationAggregateInput
   user_school_info?: Prisma.UserSchoolInfoOrderByRelationAggregateInput
@@ -399,6 +406,9 @@ export type UserOrderByWithRelationInput = {
   gmail_connection?: Prisma.GmailConnectionOrderByWithRelationInput
   chat_participants?: Prisma.ConversationParticipantOrderByRelationAggregateInput
   chat_messages?: Prisma.ChatMessageOrderByRelationAggregateInput
+  support_tickets?: Prisma.SupportTicketOrderByRelationAggregateInput
+  assigned_support_tickets?: Prisma.SupportTicketOrderByRelationAggregateInput
+  support_ticket_replies?: Prisma.SupportTicketReplyOrderByRelationAggregateInput
   role?: Prisma.RoleOrderByWithRelationInput
 }
 
@@ -429,6 +439,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   blocked_ips?: Prisma.BlockedIpListRelationFilter
+  login_activities?: Prisma.LoginActivityListRelationFilter
+  audit_logs?: Prisma.AuditLogListRelationFilter
   permission_overrides?: Prisma.UserPermissionOverrideListRelationFilter
   action_suspensions?: Prisma.UserActionSuspensionListRelationFilter
   user_school_info?: Prisma.UserSchoolInfoListRelationFilter
@@ -439,6 +451,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   gmail_connection?: Prisma.XOR<Prisma.GmailConnectionNullableScalarRelationFilter, Prisma.GmailConnectionWhereInput> | null
   chat_participants?: Prisma.ConversationParticipantListRelationFilter
   chat_messages?: Prisma.ChatMessageListRelationFilter
+  support_tickets?: Prisma.SupportTicketListRelationFilter
+  assigned_support_tickets?: Prisma.SupportTicketListRelationFilter
+  support_ticket_replies?: Prisma.SupportTicketReplyListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }, "user_id" | "phone_number">
 
@@ -523,6 +538,8 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -533,6 +550,9 @@ export type UserCreateInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -560,6 +580,8 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -570,6 +592,9 @@ export type UserUncheckedCreateInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUpdateInput = {
@@ -595,6 +620,8 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -605,6 +632,9 @@ export type UserUpdateInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -632,6 +662,8 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -642,6 +674,9 @@ export type UserUncheckedUpdateInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -981,6 +1016,38 @@ export type UserUpdateOneWithoutBlocked_ipsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBlocked_ipsInput, Prisma.UserUpdateWithoutBlocked_ipsInput>, Prisma.UserUncheckedUpdateWithoutBlocked_ipsInput>
 }
 
+export type UserCreateNestedOneWithoutLogin_activitiesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLogin_activitiesInput, Prisma.UserUncheckedCreateWithoutLogin_activitiesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLogin_activitiesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutLogin_activitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLogin_activitiesInput, Prisma.UserUncheckedCreateWithoutLogin_activitiesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLogin_activitiesInput
+  upsert?: Prisma.UserUpsertWithoutLogin_activitiesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLogin_activitiesInput, Prisma.UserUpdateWithoutLogin_activitiesInput>, Prisma.UserUncheckedUpdateWithoutLogin_activitiesInput>
+}
+
+export type UserCreateNestedOneWithoutAudit_logsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAudit_logsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutAudit_logsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAudit_logsInput
+  upsert?: Prisma.UserUpsertWithoutAudit_logsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAudit_logsInput, Prisma.UserUpdateWithoutAudit_logsInput>, Prisma.UserUncheckedUpdateWithoutAudit_logsInput>
+}
+
 export type UserCreateNestedOneWithoutAccountsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAccountsInput, Prisma.UserUncheckedCreateWithoutAccountsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountsInput
@@ -1051,6 +1118,52 @@ export type UserUpdateOneRequiredWithoutChat_messagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutChat_messagesInput, Prisma.UserUpdateWithoutChat_messagesInput>, Prisma.UserUncheckedUpdateWithoutChat_messagesInput>
 }
 
+export type UserCreateNestedOneWithoutSupport_ticketsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticketsInput, Prisma.UserUncheckedCreateWithoutSupport_ticketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupport_ticketsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutAssigned_support_ticketsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssigned_support_ticketsInput, Prisma.UserUncheckedCreateWithoutAssigned_support_ticketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssigned_support_ticketsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSupport_ticketsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticketsInput, Prisma.UserUncheckedCreateWithoutSupport_ticketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupport_ticketsInput
+  upsert?: Prisma.UserUpsertWithoutSupport_ticketsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSupport_ticketsInput, Prisma.UserUpdateWithoutSupport_ticketsInput>, Prisma.UserUncheckedUpdateWithoutSupport_ticketsInput>
+}
+
+export type UserUpdateOneWithoutAssigned_support_ticketsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssigned_support_ticketsInput, Prisma.UserUncheckedCreateWithoutAssigned_support_ticketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssigned_support_ticketsInput
+  upsert?: Prisma.UserUpsertWithoutAssigned_support_ticketsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAssigned_support_ticketsInput, Prisma.UserUpdateWithoutAssigned_support_ticketsInput>, Prisma.UserUncheckedUpdateWithoutAssigned_support_ticketsInput>
+}
+
+export type UserCreateNestedOneWithoutSupport_ticket_repliesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticket_repliesInput, Prisma.UserUncheckedCreateWithoutSupport_ticket_repliesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupport_ticket_repliesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSupport_ticket_repliesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticket_repliesInput, Prisma.UserUncheckedCreateWithoutSupport_ticket_repliesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupport_ticket_repliesInput
+  upsert?: Prisma.UserUpsertWithoutSupport_ticket_repliesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSupport_ticket_repliesInput, Prisma.UserUpdateWithoutSupport_ticket_repliesInput>, Prisma.UserUncheckedUpdateWithoutSupport_ticket_repliesInput>
+}
+
 export type UserCreateWithoutUser_school_infoInput = {
   user_id?: string
   firstname: string
@@ -1074,6 +1187,8 @@ export type UserCreateWithoutUser_school_infoInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
@@ -1083,6 +1198,9 @@ export type UserCreateWithoutUser_school_infoInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1110,6 +1228,8 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
@@ -1119,6 +1239,9 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutUser_school_infoInput = {
@@ -1160,6 +1283,8 @@ export type UserUpdateWithoutUser_school_infoInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
@@ -1169,6 +1294,9 @@ export type UserUpdateWithoutUser_school_infoInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1196,6 +1324,8 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
@@ -1205,6 +1335,9 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutUser_verificationsInput = {
@@ -1230,6 +1363,8 @@ export type UserCreateWithoutUser_verificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -1239,6 +1374,9 @@ export type UserCreateWithoutUser_verificationsInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1266,6 +1404,8 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -1275,6 +1415,9 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutUser_verificationsInput = {
@@ -1316,6 +1459,8 @@ export type UserUpdateWithoutUser_verificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -1325,6 +1470,9 @@ export type UserUpdateWithoutUser_verificationsInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1352,6 +1500,8 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -1361,6 +1511,9 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutUser_biometricsInput = {
@@ -1386,6 +1539,8 @@ export type UserCreateWithoutUser_biometricsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -1395,6 +1550,9 @@ export type UserCreateWithoutUser_biometricsInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1422,6 +1580,8 @@ export type UserUncheckedCreateWithoutUser_biometricsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -1431,6 +1591,9 @@ export type UserUncheckedCreateWithoutUser_biometricsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutUser_biometricsInput = {
@@ -1472,6 +1635,8 @@ export type UserUpdateWithoutUser_biometricsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -1481,6 +1646,9 @@ export type UserUpdateWithoutUser_biometricsInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1508,6 +1676,8 @@ export type UserUncheckedUpdateWithoutUser_biometricsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -1517,6 +1687,9 @@ export type UserUncheckedUpdateWithoutUser_biometricsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -1542,6 +1715,8 @@ export type UserCreateWithoutRoleInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -1552,6 +1727,9 @@ export type UserCreateWithoutRoleInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -1577,6 +1755,8 @@ export type UserUncheckedCreateWithoutRoleInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -1587,6 +1767,9 @@ export type UserUncheckedCreateWithoutRoleInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -1666,6 +1849,8 @@ export type UserCreateWithoutPermission_overridesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
@@ -1675,6 +1860,9 @@ export type UserCreateWithoutPermission_overridesInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1702,6 +1890,8 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
@@ -1711,6 +1901,9 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutPermission_overridesInput = {
@@ -1752,6 +1945,8 @@ export type UserUpdateWithoutPermission_overridesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
@@ -1761,6 +1956,9 @@ export type UserUpdateWithoutPermission_overridesInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1788,6 +1986,8 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
@@ -1797,6 +1997,9 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutAction_suspensionsInput = {
@@ -1822,6 +2025,8 @@ export type UserCreateWithoutAction_suspensionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
@@ -1831,6 +2036,9 @@ export type UserCreateWithoutAction_suspensionsInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1858,6 +2066,8 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
   user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
@@ -1867,6 +2077,9 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutAction_suspensionsInput = {
@@ -1908,6 +2121,8 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
@@ -1917,6 +2132,9 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1944,6 +2162,8 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
@@ -1953,6 +2173,9 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutBlocked_ipsInput = {
@@ -1977,6 +2200,8 @@ export type UserCreateWithoutBlocked_ipsInput = {
   last_login_ip?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -1987,6 +2212,9 @@ export type UserCreateWithoutBlocked_ipsInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2013,6 +2241,8 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -2023,6 +2253,9 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutBlocked_ipsInput = {
@@ -2063,6 +2296,8 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2073,6 +2308,9 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2099,6 +2337,8 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2109,6 +2349,361 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutLogin_activitiesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutLogin_activitiesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutLogin_activitiesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLogin_activitiesInput, Prisma.UserUncheckedCreateWithoutLogin_activitiesInput>
+}
+
+export type UserUpsertWithoutLogin_activitiesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLogin_activitiesInput, Prisma.UserUncheckedUpdateWithoutLogin_activitiesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLogin_activitiesInput, Prisma.UserUncheckedCreateWithoutLogin_activitiesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLogin_activitiesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLogin_activitiesInput, Prisma.UserUncheckedUpdateWithoutLogin_activitiesInput>
+}
+
+export type UserUpdateWithoutLogin_activitiesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutAudit_logsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutAudit_logsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutAudit_logsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+}
+
+export type UserUpsertWithoutAudit_logsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAudit_logsInput, Prisma.UserUncheckedUpdateWithoutAudit_logsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAudit_logsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAudit_logsInput, Prisma.UserUncheckedUpdateWithoutAudit_logsInput>
+}
+
+export type UserUpdateWithoutAudit_logsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAudit_logsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -2134,6 +2729,8 @@ export type UserCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -2143,6 +2740,9 @@ export type UserCreateWithoutAccountsInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2170,6 +2770,8 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -2179,6 +2781,9 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -2220,6 +2825,8 @@ export type UserUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2229,6 +2836,9 @@ export type UserUpdateWithoutAccountsInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2256,6 +2866,8 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2265,6 +2877,9 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutGmail_connectionInput = {
@@ -2290,6 +2905,8 @@ export type UserCreateWithoutGmail_connectionInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -2299,6 +2916,9 @@ export type UserCreateWithoutGmail_connectionInput = {
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2326,6 +2946,8 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -2335,6 +2957,9 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutGmail_connectionInput = {
@@ -2376,6 +3001,8 @@ export type UserUpdateWithoutGmail_connectionInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2385,6 +3012,9 @@ export type UserUpdateWithoutGmail_connectionInput = {
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2412,6 +3042,8 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2421,6 +3053,9 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutUser_interestInput = {
@@ -2446,6 +3081,8 @@ export type UserCreateWithoutUser_interestInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -2455,6 +3092,9 @@ export type UserCreateWithoutUser_interestInput = {
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2482,6 +3122,8 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -2491,6 +3133,9 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutUser_interestInput = {
@@ -2532,6 +3177,8 @@ export type UserUpdateWithoutUser_interestInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2541,6 +3188,9 @@ export type UserUpdateWithoutUser_interestInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2568,6 +3218,8 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2577,6 +3229,9 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutChat_participantsInput = {
@@ -2602,6 +3257,8 @@ export type UserCreateWithoutChat_participantsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -2611,6 +3268,9 @@ export type UserCreateWithoutChat_participantsInput = {
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2638,6 +3298,8 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -2647,6 +3309,9 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutChat_participantsInput = {
@@ -2688,6 +3353,8 @@ export type UserUpdateWithoutChat_participantsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2697,6 +3364,9 @@ export type UserUpdateWithoutChat_participantsInput = {
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2724,6 +3394,8 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2733,6 +3405,9 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutChat_messagesInput = {
@@ -2758,6 +3433,8 @@ export type UserCreateWithoutChat_messagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
@@ -2767,6 +3444,9 @@ export type UserCreateWithoutChat_messagesInput = {
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2794,6 +3474,8 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
@@ -2803,6 +3485,9 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutChat_messagesInput = {
@@ -2844,6 +3529,8 @@ export type UserUpdateWithoutChat_messagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2853,6 +3540,9 @@ export type UserUpdateWithoutChat_messagesInput = {
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2880,6 +3570,8 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2889,6 +3581,537 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutSupport_ticketsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutSupport_ticketsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutSupport_ticketsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticketsInput, Prisma.UserUncheckedCreateWithoutSupport_ticketsInput>
+}
+
+export type UserCreateWithoutAssigned_support_ticketsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutAssigned_support_ticketsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssigned_support_ticketsInput, Prisma.UserUncheckedCreateWithoutAssigned_support_ticketsInput>
+}
+
+export type UserUpsertWithoutSupport_ticketsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSupport_ticketsInput, Prisma.UserUncheckedUpdateWithoutSupport_ticketsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticketsInput, Prisma.UserUncheckedCreateWithoutSupport_ticketsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSupport_ticketsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSupport_ticketsInput, Prisma.UserUncheckedUpdateWithoutSupport_ticketsInput>
+}
+
+export type UserUpdateWithoutSupport_ticketsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserUpsertWithoutAssigned_support_ticketsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAssigned_support_ticketsInput, Prisma.UserUncheckedUpdateWithoutAssigned_support_ticketsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssigned_support_ticketsInput, Prisma.UserUncheckedCreateWithoutAssigned_support_ticketsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAssigned_support_ticketsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAssigned_support_ticketsInput, Prisma.UserUncheckedUpdateWithoutAssigned_support_ticketsInput>
+}
+
+export type UserUpdateWithoutAssigned_support_ticketsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutSupport_ticket_repliesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  signature_url?: string | null
+  is_restricted?: boolean
+  restricted_at?: Date | string | null
+  restriction_reason?: string | null
+  last_login_ip?: string | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+}
+
+export type UserCreateOrConnectWithoutSupport_ticket_repliesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticket_repliesInput, Prisma.UserUncheckedCreateWithoutSupport_ticket_repliesInput>
+}
+
+export type UserUpsertWithoutSupport_ticket_repliesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSupport_ticket_repliesInput, Prisma.UserUncheckedUpdateWithoutSupport_ticket_repliesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupport_ticket_repliesInput, Prisma.UserUncheckedCreateWithoutSupport_ticket_repliesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSupport_ticket_repliesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSupport_ticket_repliesInput, Prisma.UserUncheckedUpdateWithoutSupport_ticket_repliesInput>
+}
+
+export type UserUpdateWithoutSupport_ticket_repliesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
 }
 
 export type UserCreateManyRoleInput = {
@@ -2938,6 +4161,8 @@ export type UserUpdateWithoutRoleInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
@@ -2948,6 +4173,9 @@ export type UserUpdateWithoutRoleInput = {
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -2973,6 +4201,8 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
@@ -2983,6 +4213,9 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -3016,6 +4249,8 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
 
 export type UserCountOutputType = {
   blocked_ips: number
+  login_activities: number
+  audit_logs: number
   permission_overrides: number
   action_suspensions: number
   user_school_info: number
@@ -3024,10 +4259,15 @@ export type UserCountOutputType = {
   user_verifications: number
   chat_participants: number
   chat_messages: number
+  support_tickets: number
+  assigned_support_tickets: number
+  support_ticket_replies: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   blocked_ips?: boolean | UserCountOutputTypeCountBlocked_ipsArgs
+  login_activities?: boolean | UserCountOutputTypeCountLogin_activitiesArgs
+  audit_logs?: boolean | UserCountOutputTypeCountAudit_logsArgs
   permission_overrides?: boolean | UserCountOutputTypeCountPermission_overridesArgs
   action_suspensions?: boolean | UserCountOutputTypeCountAction_suspensionsArgs
   user_school_info?: boolean | UserCountOutputTypeCountUser_school_infoArgs
@@ -3036,6 +4276,9 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   user_verifications?: boolean | UserCountOutputTypeCountUser_verificationsArgs
   chat_participants?: boolean | UserCountOutputTypeCountChat_participantsArgs
   chat_messages?: boolean | UserCountOutputTypeCountChat_messagesArgs
+  support_tickets?: boolean | UserCountOutputTypeCountSupport_ticketsArgs
+  assigned_support_tickets?: boolean | UserCountOutputTypeCountAssigned_support_ticketsArgs
+  support_ticket_replies?: boolean | UserCountOutputTypeCountSupport_ticket_repliesArgs
 }
 
 /**
@@ -3053,6 +4296,20 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountBlocked_ipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.BlockedIpWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountLogin_activitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LoginActivityWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAudit_logsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditLogWhereInput
 }
 
 /**
@@ -3111,6 +4368,27 @@ export type UserCountOutputTypeCountChat_messagesArgs<ExtArgs extends runtime.Ty
   where?: Prisma.ChatMessageWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSupport_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SupportTicketWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAssigned_support_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SupportTicketWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSupport_ticket_repliesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SupportTicketReplyWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_id?: boolean
@@ -3136,6 +4414,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   blocked_ips?: boolean | Prisma.User$blocked_ipsArgs<ExtArgs>
+  login_activities?: boolean | Prisma.User$login_activitiesArgs<ExtArgs>
+  audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   permission_overrides?: boolean | Prisma.User$permission_overridesArgs<ExtArgs>
   action_suspensions?: boolean | Prisma.User$action_suspensionsArgs<ExtArgs>
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
@@ -3146,6 +4426,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   gmail_connection?: boolean | Prisma.User$gmail_connectionArgs<ExtArgs>
   chat_participants?: boolean | Prisma.User$chat_participantsArgs<ExtArgs>
   chat_messages?: boolean | Prisma.User$chat_messagesArgs<ExtArgs>
+  support_tickets?: boolean | Prisma.User$support_ticketsArgs<ExtArgs>
+  assigned_support_tickets?: boolean | Prisma.User$assigned_support_ticketsArgs<ExtArgs>
+  support_ticket_replies?: boolean | Prisma.User$support_ticket_repliesArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -3230,6 +4513,8 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "signature_url" | "is_restricted" | "restricted_at" | "restriction_reason" | "last_login_ip" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   blocked_ips?: boolean | Prisma.User$blocked_ipsArgs<ExtArgs>
+  login_activities?: boolean | Prisma.User$login_activitiesArgs<ExtArgs>
+  audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   permission_overrides?: boolean | Prisma.User$permission_overridesArgs<ExtArgs>
   action_suspensions?: boolean | Prisma.User$action_suspensionsArgs<ExtArgs>
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
@@ -3240,6 +4525,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   gmail_connection?: boolean | Prisma.User$gmail_connectionArgs<ExtArgs>
   chat_participants?: boolean | Prisma.User$chat_participantsArgs<ExtArgs>
   chat_messages?: boolean | Prisma.User$chat_messagesArgs<ExtArgs>
+  support_tickets?: boolean | Prisma.User$support_ticketsArgs<ExtArgs>
+  assigned_support_tickets?: boolean | Prisma.User$assigned_support_ticketsArgs<ExtArgs>
+  support_ticket_replies?: boolean | Prisma.User$support_ticket_repliesArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -3254,6 +4542,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     blocked_ips: Prisma.$BlockedIpPayload<ExtArgs>[]
+    login_activities: Prisma.$LoginActivityPayload<ExtArgs>[]
+    audit_logs: Prisma.$AuditLogPayload<ExtArgs>[]
     permission_overrides: Prisma.$UserPermissionOverridePayload<ExtArgs>[]
     action_suspensions: Prisma.$UserActionSuspensionPayload<ExtArgs>[]
     user_school_info: Prisma.$UserSchoolInfoPayload<ExtArgs>[]
@@ -3264,6 +4554,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     gmail_connection: Prisma.$GmailConnectionPayload<ExtArgs> | null
     chat_participants: Prisma.$ConversationParticipantPayload<ExtArgs>[]
     chat_messages: Prisma.$ChatMessagePayload<ExtArgs>[]
+    support_tickets: Prisma.$SupportTicketPayload<ExtArgs>[]
+    assigned_support_tickets: Prisma.$SupportTicketPayload<ExtArgs>[]
+    support_ticket_replies: Prisma.$SupportTicketReplyPayload<ExtArgs>[]
     role: Prisma.$RolePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -3684,6 +4977,8 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   blocked_ips<T extends Prisma.User$blocked_ipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$blocked_ipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BlockedIpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  login_activities<T extends Prisma.User$login_activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$login_activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoginActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  audit_logs<T extends Prisma.User$audit_logsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   permission_overrides<T extends Prisma.User$permission_overridesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permission_overridesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPermissionOverridePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   action_suspensions<T extends Prisma.User$action_suspensionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$action_suspensionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserActionSuspensionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_school_info<T extends Prisma.User$user_school_infoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_school_infoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSchoolInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3694,6 +4989,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   gmail_connection<T extends Prisma.User$gmail_connectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gmail_connectionArgs<ExtArgs>>): Prisma.Prisma__GmailConnectionClient<runtime.Types.Result.GetResult<Prisma.$GmailConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   chat_participants<T extends Prisma.User$chat_participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$chat_participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chat_messages<T extends Prisma.User$chat_messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$chat_messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  support_tickets<T extends Prisma.User$support_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$support_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assigned_support_tickets<T extends Prisma.User$assigned_support_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assigned_support_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  support_ticket_replies<T extends Prisma.User$support_ticket_repliesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$support_ticket_repliesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -4171,6 +5469,54 @@ export type User$blocked_ipsArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
+ * User.login_activities
+ */
+export type User$login_activitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LoginActivity
+   */
+  select?: Prisma.LoginActivitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LoginActivity
+   */
+  omit?: Prisma.LoginActivityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LoginActivityInclude<ExtArgs> | null
+  where?: Prisma.LoginActivityWhereInput
+  orderBy?: Prisma.LoginActivityOrderByWithRelationInput | Prisma.LoginActivityOrderByWithRelationInput[]
+  cursor?: Prisma.LoginActivityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LoginActivityScalarFieldEnum | Prisma.LoginActivityScalarFieldEnum[]
+}
+
+/**
+ * User.audit_logs
+ */
+export type User$audit_logsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AuditLog
+   */
+  select?: Prisma.AuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AuditLog
+   */
+  omit?: Prisma.AuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditLogInclude<ExtArgs> | null
+  where?: Prisma.AuditLogWhereInput
+  orderBy?: Prisma.AuditLogOrderByWithRelationInput | Prisma.AuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.AuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
+}
+
+/**
  * User.permission_overrides
  */
 export type User$permission_overridesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4398,6 +5744,78 @@ export type User$chat_messagesArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.ChatMessageScalarFieldEnum | Prisma.ChatMessageScalarFieldEnum[]
+}
+
+/**
+ * User.support_tickets
+ */
+export type User$support_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SupportTicket
+   */
+  select?: Prisma.SupportTicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SupportTicket
+   */
+  omit?: Prisma.SupportTicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupportTicketInclude<ExtArgs> | null
+  where?: Prisma.SupportTicketWhereInput
+  orderBy?: Prisma.SupportTicketOrderByWithRelationInput | Prisma.SupportTicketOrderByWithRelationInput[]
+  cursor?: Prisma.SupportTicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SupportTicketScalarFieldEnum | Prisma.SupportTicketScalarFieldEnum[]
+}
+
+/**
+ * User.assigned_support_tickets
+ */
+export type User$assigned_support_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SupportTicket
+   */
+  select?: Prisma.SupportTicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SupportTicket
+   */
+  omit?: Prisma.SupportTicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupportTicketInclude<ExtArgs> | null
+  where?: Prisma.SupportTicketWhereInput
+  orderBy?: Prisma.SupportTicketOrderByWithRelationInput | Prisma.SupportTicketOrderByWithRelationInput[]
+  cursor?: Prisma.SupportTicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SupportTicketScalarFieldEnum | Prisma.SupportTicketScalarFieldEnum[]
+}
+
+/**
+ * User.support_ticket_replies
+ */
+export type User$support_ticket_repliesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SupportTicketReply
+   */
+  select?: Prisma.SupportTicketReplySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SupportTicketReply
+   */
+  omit?: Prisma.SupportTicketReplyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupportTicketReplyInclude<ExtArgs> | null
+  where?: Prisma.SupportTicketReplyWhereInput
+  orderBy?: Prisma.SupportTicketReplyOrderByWithRelationInput | Prisma.SupportTicketReplyOrderByWithRelationInput[]
+  cursor?: Prisma.SupportTicketReplyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SupportTicketReplyScalarFieldEnum | Prisma.SupportTicketReplyScalarFieldEnum[]
 }
 
 /**

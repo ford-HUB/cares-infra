@@ -31,6 +31,8 @@ export type EventAvgAggregateOutputType = {
   participants: number | null
   max_beneficiaries: number | null
   area_sqm: number | null
+  marker_lat: number | null
+  marker_lng: number | null
 }
 
 export type EventSumAggregateOutputType = {
@@ -39,6 +41,8 @@ export type EventSumAggregateOutputType = {
   participants: number | null
   max_beneficiaries: number | null
   area_sqm: number | null
+  marker_lat: number | null
+  marker_lng: number | null
 }
 
 export type EventMinAggregateOutputType = {
@@ -60,6 +64,8 @@ export type EventMinAggregateOutputType = {
   beneficiary_applicable: boolean | null
   max_beneficiaries: number | null
   area_sqm: number | null
+  marker_lat: number | null
+  marker_lng: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -83,6 +89,8 @@ export type EventMaxAggregateOutputType = {
   beneficiary_applicable: boolean | null
   max_beneficiaries: number | null
   area_sqm: number | null
+  marker_lat: number | null
+  marker_lng: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -109,6 +117,8 @@ export type EventCountAggregateOutputType = {
   max_beneficiaries: number
   geojson: number
   area_sqm: number
+  marker_lat: number
+  marker_lng: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -121,6 +131,8 @@ export type EventAvgAggregateInputType = {
   participants?: true
   max_beneficiaries?: true
   area_sqm?: true
+  marker_lat?: true
+  marker_lng?: true
 }
 
 export type EventSumAggregateInputType = {
@@ -129,6 +141,8 @@ export type EventSumAggregateInputType = {
   participants?: true
   max_beneficiaries?: true
   area_sqm?: true
+  marker_lat?: true
+  marker_lng?: true
 }
 
 export type EventMinAggregateInputType = {
@@ -150,6 +164,8 @@ export type EventMinAggregateInputType = {
   beneficiary_applicable?: true
   max_beneficiaries?: true
   area_sqm?: true
+  marker_lat?: true
+  marker_lng?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -173,6 +189,8 @@ export type EventMaxAggregateInputType = {
   beneficiary_applicable?: true
   max_beneficiaries?: true
   area_sqm?: true
+  marker_lat?: true
+  marker_lng?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -199,6 +217,8 @@ export type EventCountAggregateInputType = {
   max_beneficiaries?: true
   geojson?: true
   area_sqm?: true
+  marker_lat?: true
+  marker_lng?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -312,6 +332,8 @@ export type EventGroupByOutputType = {
   max_beneficiaries: number | null
   geojson: runtime.JsonValue | null
   area_sqm: number | null
+  marker_lat: number | null
+  marker_lng: number | null
   createdAt: Date
   updatedAt: Date
   _count: EventCountAggregateOutputType | null
@@ -361,6 +383,8 @@ export type EventWhereInput = {
   max_beneficiaries?: Prisma.IntNullableFilter<"Event"> | number | null
   geojson?: Prisma.JsonNullableFilter<"Event">
   area_sqm?: Prisma.FloatNullableFilter<"Event"> | number | null
+  marker_lat?: Prisma.FloatNullableFilter<"Event"> | number | null
+  marker_lng?: Prisma.FloatNullableFilter<"Event"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
 }
@@ -387,6 +411,8 @@ export type EventOrderByWithRelationInput = {
   max_beneficiaries?: Prisma.SortOrderInput | Prisma.SortOrder
   geojson?: Prisma.SortOrderInput | Prisma.SortOrder
   area_sqm?: Prisma.SortOrderInput | Prisma.SortOrder
+  marker_lat?: Prisma.SortOrderInput | Prisma.SortOrder
+  marker_lng?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -416,6 +442,8 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   max_beneficiaries?: Prisma.IntNullableFilter<"Event"> | number | null
   geojson?: Prisma.JsonNullableFilter<"Event">
   area_sqm?: Prisma.FloatNullableFilter<"Event"> | number | null
+  marker_lat?: Prisma.FloatNullableFilter<"Event"> | number | null
+  marker_lng?: Prisma.FloatNullableFilter<"Event"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
 }, "event_id">
@@ -442,6 +470,8 @@ export type EventOrderByWithAggregationInput = {
   max_beneficiaries?: Prisma.SortOrderInput | Prisma.SortOrder
   geojson?: Prisma.SortOrderInput | Prisma.SortOrder
   area_sqm?: Prisma.SortOrderInput | Prisma.SortOrder
+  marker_lat?: Prisma.SortOrderInput | Prisma.SortOrder
+  marker_lng?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EventCountOrderByAggregateInput
@@ -476,6 +506,8 @@ export type EventScalarWhereWithAggregatesInput = {
   max_beneficiaries?: Prisma.IntNullableWithAggregatesFilter<"Event"> | number | null
   geojson?: Prisma.JsonNullableWithAggregatesFilter<"Event">
   area_sqm?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
+  marker_lat?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
+  marker_lng?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
 }
@@ -501,6 +533,8 @@ export type EventCreateInput = {
   max_beneficiaries?: number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -527,6 +561,8 @@ export type EventUncheckedCreateInput = {
   max_beneficiaries?: number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -552,6 +588,8 @@ export type EventUpdateInput = {
   max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -578,6 +616,8 @@ export type EventUncheckedUpdateInput = {
   max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -604,6 +644,8 @@ export type EventCreateManyInput = {
   max_beneficiaries?: number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -629,6 +671,8 @@ export type EventUpdateManyMutationInput = {
   max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -655,16 +699,10 @@ export type EventUncheckedUpdateManyInput = {
   max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type StringNullableListFilter<$PrismaModel = never> = {
-  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
-  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
-  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
-  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
-  isEmpty?: boolean
 }
 
 export type EventCountOrderByAggregateInput = {
@@ -689,6 +727,8 @@ export type EventCountOrderByAggregateInput = {
   max_beneficiaries?: Prisma.SortOrder
   geojson?: Prisma.SortOrder
   area_sqm?: Prisma.SortOrder
+  marker_lat?: Prisma.SortOrder
+  marker_lng?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -699,6 +739,8 @@ export type EventAvgOrderByAggregateInput = {
   participants?: Prisma.SortOrder
   max_beneficiaries?: Prisma.SortOrder
   area_sqm?: Prisma.SortOrder
+  marker_lat?: Prisma.SortOrder
+  marker_lng?: Prisma.SortOrder
 }
 
 export type EventMaxOrderByAggregateInput = {
@@ -720,6 +762,8 @@ export type EventMaxOrderByAggregateInput = {
   beneficiary_applicable?: Prisma.SortOrder
   max_beneficiaries?: Prisma.SortOrder
   area_sqm?: Prisma.SortOrder
+  marker_lat?: Prisma.SortOrder
+  marker_lng?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -743,6 +787,8 @@ export type EventMinOrderByAggregateInput = {
   beneficiary_applicable?: Prisma.SortOrder
   max_beneficiaries?: Prisma.SortOrder
   area_sqm?: Prisma.SortOrder
+  marker_lat?: Prisma.SortOrder
+  marker_lng?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -753,6 +799,8 @@ export type EventSumOrderByAggregateInput = {
   participants?: Prisma.SortOrder
   max_beneficiaries?: Prisma.SortOrder
   area_sqm?: Prisma.SortOrder
+  marker_lat?: Prisma.SortOrder
+  marker_lng?: Prisma.SortOrder
 }
 
 export type EventCreateimagesInput = {
@@ -817,6 +865,8 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   max_beneficiaries?: boolean
   geojson?: boolean
   area_sqm?: boolean
+  marker_lat?: boolean
+  marker_lng?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["event"]>
@@ -843,6 +893,8 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   max_beneficiaries?: boolean
   geojson?: boolean
   area_sqm?: boolean
+  marker_lat?: boolean
+  marker_lng?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["event"]>
@@ -869,6 +921,8 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   max_beneficiaries?: boolean
   geojson?: boolean
   area_sqm?: boolean
+  marker_lat?: boolean
+  marker_lng?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["event"]>
@@ -895,11 +949,13 @@ export type EventSelectScalar = {
   max_beneficiaries?: boolean
   geojson?: boolean
   area_sqm?: boolean
+  marker_lat?: boolean
+  marker_lng?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"event_id" | "title" | "description" | "event_started" | "event_ended" | "location" | "max_participants" | "participants" | "organizer_name" | "category" | "department" | "specified_category" | "images" | "status" | "funds_donation" | "goods_donation" | "goods_types" | "beneficiary_applicable" | "max_beneficiaries" | "geojson" | "area_sqm" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"event_id" | "title" | "description" | "event_started" | "event_ended" | "location" | "max_participants" | "participants" | "organizer_name" | "category" | "department" | "specified_category" | "images" | "status" | "funds_donation" | "goods_donation" | "goods_types" | "beneficiary_applicable" | "max_beneficiaries" | "geojson" | "area_sqm" | "marker_lat" | "marker_lng" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 
 export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Event"
@@ -926,6 +982,11 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     max_beneficiaries: number | null
     geojson: runtime.JsonValue | null
     area_sqm: number | null
+    /**
+     * Pin the operator dropped inside the geofence — the exact meeting spot.
+     */
+    marker_lat: number | null
+    marker_lng: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["event"]>
@@ -1372,6 +1433,8 @@ export interface EventFieldRefs {
   readonly max_beneficiaries: Prisma.FieldRef<"Event", 'Int'>
   readonly geojson: Prisma.FieldRef<"Event", 'Json'>
   readonly area_sqm: Prisma.FieldRef<"Event", 'Float'>
+  readonly marker_lat: Prisma.FieldRef<"Event", 'Float'>
+  readonly marker_lng: Prisma.FieldRef<"Event", 'Float'>
   readonly createdAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Event", 'DateTime'>
 }

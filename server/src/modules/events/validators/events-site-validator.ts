@@ -81,6 +81,8 @@ export const CreateEventSchema = z
     event_images_existing: stringArrayFromAny,
     geojson: geojsonFromString,
     area_sqm: optionalNumberFromString,
+    marker_lat: optionalNumberFromString,
+    marker_lng: optionalNumberFromString,
   })
   .refine((data) => new Date(data.event_ended) > new Date(data.event_started), {
     message: 'End must be after start',
@@ -125,6 +127,8 @@ export const EventResponseSchema = z.object({
   max_beneficiaries: z.number().optional(),
   geojson: z.unknown().nullable(),
   area_sqm: z.number().nullable(),
+  marker_lat: z.number().nullable(),
+  marker_lng: z.number().nullable(),
 });
 
 export const EventListResponseSchema = z.array(EventResponseSchema);

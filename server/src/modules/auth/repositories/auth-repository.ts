@@ -130,6 +130,7 @@ export class AuthRepository {
       select: {
         email: true,
         password: true,
+        credential_expires_at: true,
         user: {
           select: {
             user_id: true,

@@ -38,6 +38,12 @@ export interface MailDetail extends MailSummary {
   attachments: MailAttachment[]
 }
 
+/** One entry in the composer's recipient suggestions. */
+export interface MailContact {
+  name: string
+  email: string
+}
+
 export interface MailListPage {
   messages: MailSummary[]
   nextPageToken: string | null

@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '../../../../../infastructures/jwt/jwt-service';
+import type { JwtPayload } from '../../../../../shared/types/jwt-payload';
 import { isPortalRole } from 'src/shared/constants/portal-role-types';
 import { isProtectedAdminEmail } from 'src/shared/constants/protected-admin';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../dto/account-settings-admin-dto';
 import { AccountSettingsRepository } from '../../repositories/account-settings-repository';
 import { ProfileCacheService } from '../../../../profile/services/profile-cache-service';
+import { LoginPolicyEnforcer } from '../../../../security-policy/services/login-policy-enforcer';
 
 @Injectable()
 export class AccountSettingsAdminService {
@@ -25,12 +27,14 @@ export class AccountSettingsAdminService {
     private readonly jwtService: JwtService,
     private readonly profileCacheService: ProfileCacheService,
     private readonly configService: ConfigService,
+    private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
   ) {}
 
   async changeEmail(
-    userId: string,
+    caller: JwtPayload,
     data: ChangeEmailDto,
   ): Promise<ChangeEmailResponseDto> {
+    const userId = caller.sub;
     const account =
       await this.accountSettingsRepository.findAccountByUserId(userId);
     if (!account || !isPortalRole(account.user.role.type)) {
@@ -74,6 +78,8 @@ export class AccountSettingsAdminService {
         sub: userId,
         email: updated.email,
         role_type: account.user.role.type,
+        // Same device, same session — only the address on the token changed.
+        sid: caller.sid,
       }),
     };
   }
@@ -89,6 +95,7 @@ export class AccountSettingsAdminService {
     }
 
     await this.verifyCurrentPassword(data.current_password, account.password);
+    await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(data.new_password);
 
     const hashedPassword = await bcrypt.hash(data.new_password, 10);
     await this.accountSettingsRepository.updatePassword(

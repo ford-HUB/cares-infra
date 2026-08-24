@@ -57,6 +57,8 @@ export const eventFormSchema = z
     goods_types: z.array(z.string()).default([]),
     geojson: z.unknown().optional().nullable(),
     area_sqm: z.number().optional().nullable(),
+    marker_lat: z.number().optional().nullable(),
+    marker_lng: z.number().optional().nullable(),
   })
   .refine(
     (data) => {

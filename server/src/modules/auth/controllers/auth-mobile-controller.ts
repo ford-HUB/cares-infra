@@ -3,7 +3,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Headers,
   HttpCode,
+  Ip,
   Post,
   UploadedFile,
   UploadedFiles,
@@ -44,6 +46,8 @@ import type {
 } from '../dto/auth-mobile-dto';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Public } from 'src/shared/decorators/public-decorator';
+import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
+import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
@@ -68,8 +72,19 @@ export class AuthMobileController {
   @HttpCode(200)
   @ResponseMessage('Login successful')
   @ZSerialize(LoginResponseSchema)
-  async login(@ZBody(LoginSchema) data: LoginDto): Promise<LoginResponseDto> {
-    return await this.authMobileService.login(data);
+  async login(
+    @ZBody(LoginSchema) data: LoginDto,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<LoginResponseDto> {
+    return await this.authMobileService.login(data, ipAddress, userAgent);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  @ResponseMessage('Signed out')
+  async logout(@CurrentUser() user: JwtPayload): Promise<void> {
+    await this.authMobileService.logout(user);
   }
 
   @Post('upload-id')

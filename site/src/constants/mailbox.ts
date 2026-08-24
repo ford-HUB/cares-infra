@@ -27,6 +27,11 @@ export const MAILBOX_FOLDERS: {
 /** Rows drawn by the list skeleton — matches a typical first page above the fold. */
 export const MAILBOX_SKELETON_ROWS = 8
 
+/** Recipient autocomplete: how much has to be typed, and how long to wait after it. */
+export const MAILBOX_CONTACT_MIN_CHARS = 2
+export const MAILBOX_CONTACT_DEBOUNCE_MS = 250
+export const MAILBOX_CONTACT_SUGGESTION_LIMIT = 6
+
 export const MAILBOX_SEARCH_PLACEHOLDER = 'Search mail'
 export const MAILBOX_COMPOSER_PLACEHOLDER = 'Write your message…'
 

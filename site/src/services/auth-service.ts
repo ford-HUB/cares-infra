@@ -71,6 +71,14 @@ export async function getSession(): Promise<ApiResponse<AuthUser>> {
 }
 
 export async function logoutSession(): Promise<void> {
+  try {
+    // Ends the server-side session too, so the token cannot be replayed and the device
+    // stops appearing under Active Sessions. A failure here still clears this tab.
+    await apiClient.post('/api/v1/auth/admin/logout')
+  } catch {
+    // Already signed out, or the API is unreachable — either way, sign out locally.
+  }
+
   clearSession()
 }
 

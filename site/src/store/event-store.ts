@@ -13,6 +13,8 @@ import {
 interface EventState {
   events: CaresEvent[]
   loading: boolean
+  /** False until the first fetch settles, so the mount render isn't read as "no events". */
+  initialized: boolean
   error: string | null
   fetchEvents: () => Promise<void>
   addEvent: (payload: CreateEventPayload) => Promise<boolean>
@@ -25,15 +27,16 @@ interface EventState {
 export const useEventStore = create<EventState>((set, get) => ({
   events: [],
   loading: false,
+  initialized: false,
   error: null,
 
   fetchEvents: async () => {
     set({ loading: true, error: null })
     const res = await listEvents()
     if (res.success && res.data) {
-      set({ events: res.data, loading: false })
+      set({ events: res.data, loading: false, initialized: true })
     } else {
-      set({ error: res.message ?? 'Failed to load events', loading: false })
+      set({ error: res.message ?? 'Failed to load events', loading: false, initialized: true })
     }
   },
 

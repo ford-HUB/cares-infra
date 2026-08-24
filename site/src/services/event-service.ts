@@ -55,6 +55,10 @@ function buildFormData(payload: CreateEventPayload): FormData {
   if (payload.area_sqm != null) {
     formData.append('area_sqm', String(payload.area_sqm))
   }
+  if (payload.marker_lat != null && payload.marker_lng != null) {
+    formData.append('marker_lat', String(payload.marker_lat))
+    formData.append('marker_lng', String(payload.marker_lng))
+  }
   return formData
 }
 

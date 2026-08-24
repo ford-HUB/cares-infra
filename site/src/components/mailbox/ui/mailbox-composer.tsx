@@ -1,11 +1,13 @@
 import { Loader2, Send, X } from 'lucide-react'
+import { Controller } from 'react-hook-form'
 import { MAILBOX_COMPOSER_PLACEHOLDER } from '../../../constants/mailbox'
 import type { useMailComposer } from '../../../hooks/use-mail-composer'
+import { MailboxRecipientField } from './mailbox-recipient-field'
 
 type MailboxComposerProps = ReturnType<typeof useMailComposer>
 
 const fieldClass =
-  'w-full rounded-[var(--cares-radius)] border border-[var(--cares-border)] bg-[var(--cares-bg)] px-2.5 py-1.5 text-xs text-[var(--cares-body)] outline-none focus:border-[var(--cares-primary)]'
+  'w-full rounded-[var(--cares-radius)] border border-[var(--cares-border)] bg-gray-100 px-2.5 py-1.5 text-xs text-[var(--cares-body)] outline-none focus:border-[var(--cares-primary)]'
 
 export function MailboxComposer({
   form,
@@ -40,11 +42,18 @@ export function MailboxComposer({
 
         <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
           <div>
-            <input
-              {...form.register('to')}
-              placeholder="To"
-              autoComplete="off"
-              className={fieldClass}
+            <Controller
+              control={form.control}
+              name="to"
+              render={({ field }) => (
+                <MailboxRecipientField
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  placeholder="To"
+                  className={fieldClass}
+                />
+              )}
             />
             {errors.to && (
               <p className="mt-1 text-[11px] text-red-600">{errors.to.message}</p>
@@ -52,11 +61,18 @@ export function MailboxComposer({
           </div>
 
           <div>
-            <input
-              {...form.register('cc')}
-              placeholder="Cc (optional)"
-              autoComplete="off"
-              className={fieldClass}
+            <Controller
+              control={form.control}
+              name="cc"
+              render={({ field }) => (
+                <MailboxRecipientField
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  placeholder="Cc (optional)"
+                  className={fieldClass}
+                />
+              )}
             />
             {errors.cc && (
               <p className="mt-1 text-[11px] text-red-600">{errors.cc.message}</p>

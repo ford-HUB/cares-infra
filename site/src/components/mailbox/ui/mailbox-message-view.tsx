@@ -78,7 +78,10 @@ export function MailboxMessageView({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      {/* HTML mail scrolls inside its own frame; plain text scrolls in this pane. */}
+      <div
+        className={`min-h-0 flex-1 ${message.bodyHtml ? 'overflow-hidden' : 'overflow-y-auto'}`}
+      >
         {message.bodyHtml ? (
           /**
            * Mail is third-party HTML. It is sanitised on the server and then rendered in
@@ -89,7 +92,7 @@ export function MailboxMessageView({
             title={`Message: ${message.subject}`}
             sandbox=""
             srcDoc={message.bodyHtml}
-            className="h-full min-h-[320px] w-full border-0 bg-white"
+            className="block h-full w-full border-0 bg-white"
           />
         ) : (
           <pre className="whitespace-pre-wrap break-words p-4 font-sans text-xs leading-relaxed text-[var(--cares-body)]">

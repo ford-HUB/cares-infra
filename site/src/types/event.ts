@@ -38,6 +38,9 @@ export interface CaresEvent {
   max_beneficiaries?: number
   geojson?: Geometry | null
   area_sqm?: number | null
+  /** Pin inside the geofence marking the exact meeting spot. */
+  marker_lat?: number | null
+  marker_lng?: number | null
 }
 
 export interface EventTableRow {
@@ -91,4 +94,18 @@ export interface CreateEventPayload {
   goods_types?: string[]
   geojson?: Geometry | null
   area_sqm?: number | null
+  /** Pin inside the geofence marking the exact meeting spot. */
+  marker_lat?: number | null
+  marker_lng?: number | null
+}
+
+/** One event reduced to what the event map needs to draw and label a marker. */
+export interface EventMapPin {
+  eventId: number
+  title: string
+  status: EventStatus
+  participants: number
+  imageUrl?: string
+  /** `[lng, lat]` — the centre of the event's drawn area. */
+  center: [number, number]
 }

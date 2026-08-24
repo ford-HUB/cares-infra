@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { ManageUsersTable } from '../../components/manage-users/manage-users-table'
 import { ManageUsersToolbar } from '../../components/manage-users/manage-users-toolbar'
+import { AddUserModal } from '../../components/manage-users/ui/add-user-modal'
 import { BlockIpModal } from '../../components/manage-users/ui/block-ip-modal'
+import { ReissueCredentialsModal } from '../../components/manage-users/ui/reissue-credentials-modal'
 import { RestrictUserModal } from '../../components/manage-users/ui/restrict-user-modal'
 import { UserDetailsModal } from '../../components/manage-users/ui/user-details-modal'
 import { ContentShell } from '../../components/portal/ui/content-shell'
@@ -11,9 +13,15 @@ import {
   USER_STATUS_FILTER_ALL,
   type UserStatusFilter,
 } from '../../constants/manage-users'
+import { useProvisionUserForm } from '../../hooks/use-provision-user-form'
+import { usePortalRole } from '../../store/auth-store'
 import { useManageUsersStore } from '../../store/manage-users-store'
 import { getManagedUserDetail } from '../../services/manage-user-service'
-import type { ManagedUser, ManagedUserDetail } from '../../types/manage-users'
+import type {
+  IssuedCredentials,
+  ManagedUser,
+  ManagedUserDetail,
+} from '../../types/manage-users'
 import { exportUsersCsv } from '../../utils/export-users-csv'
 
 export function ManageUsersPage() {
@@ -28,6 +36,7 @@ export function ManageUsersPage() {
     unrestrictUser,
     blockUserIp,
     unblockUserIp,
+    reissueCredentials,
   } = useManageUsersStore()
 
   const [search, setSearch] = useState('')
@@ -43,6 +52,14 @@ export function ManageUsersPage() {
   const [restrictingUser, setRestrictingUser] = useState<ManagedUser | null>(null)
   const [blockingIpUser, setBlockingIpUser] = useState<ManagedUser | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [addUserOpen, setAddUserOpen] = useState(false)
+  const [reissueUser, setReissueUser] = useState<ManagedUser | null>(null)
+  const [reissued, setReissued] = useState<IssuedCredentials | null>(null)
+
+  const provision = useProvisionUserForm()
+  // A director asks for an account; an administrator issues it — the same split the
+  // server enforces, so the controls a director cannot use are not shown to them.
+  const canProvision = usePortalRole() === 'admin'
 
   useEffect(() => {
     void fetchUsers()
@@ -131,6 +148,26 @@ export function ManageUsersPage() {
     [runMutation, unblockUserIp],
   )
 
+  const handleConfirmReissue = async (expiresInHours: number) => {
+    if (!reissueUser) return
+
+    setSubmitting(true)
+    const result = await reissueCredentials(reissueUser.id, expiresInHours)
+    setSubmitting(false)
+
+    if (result.ok && result.credentials) {
+      setReissued(result.credentials)
+      toast.success(result.message ?? 'New credentials issued')
+    } else {
+      toast.error(result.message ?? 'The credentials could not be issued')
+    }
+  }
+
+  const closeReissue = () => {
+    setReissueUser(null)
+    setReissued(null)
+  }
+
   const closeDetails = () => {
     setDetailsUser(null)
     setPanelOpen(false)
@@ -173,6 +210,7 @@ export function ManageUsersPage() {
         onRoleChange={resetToFirstPage(setRoleFilter)}
         onStatusChange={resetToFirstPage(setStatusFilter)}
         onExport={() => exportUsersCsv(filtered)}
+        onAddUser={canProvision ? () => setAddUserOpen(true) : undefined}
       />
 
       {truncated && (
@@ -193,6 +231,7 @@ export function ManageUsersPage() {
         onUnrestrict={handleUnrestrict}
         onBlockIp={setBlockingIpUser}
         onUnblockIp={handleUnblockIp}
+        onReissueCredentials={canProvision ? setReissueUser : undefined}
       />
 
       <UserDetailsModal
@@ -220,6 +259,21 @@ export function ManageUsersPage() {
         loading={submitting}
         onClose={() => setBlockingIpUser(null)}
         onConfirm={(payload) => void handleConfirmBlockIp(payload)}
+      />
+
+      <ReissueCredentialsModal
+        key={`reissue-${reissueUser?.id}`}
+        user={reissueUser}
+        credentials={reissued}
+        loading={submitting}
+        onClose={closeReissue}
+        onConfirm={(hours) => void handleConfirmReissue(hours)}
+      />
+
+      <AddUserModal
+        {...provision}
+        open={addUserOpen}
+        onClose={() => setAddUserOpen(false)}
       />
     </ContentShell>
   )

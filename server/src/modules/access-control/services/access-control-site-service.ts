@@ -20,7 +20,10 @@ import {
   type PortalRoleType,
 } from '../../../shared/constants/portal-role-types';
 import { isProtectedAdminEmail } from '../../../shared/constants/protected-admin';
+import type { RequestContextDto } from '../../../shared/decorators/request-context-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
+import type { AuditLogChangeDto } from '../../audit-logs/dto/audit-logs-site-dto';
+import { AuditLogRecorder } from '../../audit-logs/services/audit-log-recorder';
 import type {
   AccessCatalogDto,
   AccessUserDetailDto,
@@ -56,6 +59,7 @@ export class AccessControlSiteService {
   constructor(
     private readonly accessControlRepository: AccessControlRepository,
     private readonly configService: ConfigService,
+    private readonly auditLogRecorder: AuditLogRecorder,
   ) {}
 
   private isProtected(row: AccessUserRow): boolean {
@@ -124,6 +128,7 @@ export class AccessControlSiteService {
     caller: JwtPayload,
     userId: string,
     data: UpdateUserPermissionsDto,
+    context: RequestContextDto = {},
   ): Promise<AccessUserDetailDto> {
     const row = await this.requirePortalUser(userId);
 
@@ -155,19 +160,47 @@ export class AccessControlSiteService {
       }
     }
 
+    // Read before writing, so the trail records the rights the user actually held
+    // rather than the baseline the form happened to start from.
+    const detail = await this.getUserDetail(userId);
+    const changes = diffPermissions(detail.effective_permissions, [...desired]);
+
     await this.accessControlRepository.replaceUserOverrides(
       userId,
       overrides,
       caller.sub,
     );
 
-    return this.getUserDetail(userId);
+    const updated = await this.getUserDetail(userId);
+
+    await this.auditLogRecorder.record({
+      action: 'access-control.user-permissions.updated',
+      description: changes.length
+        ? `Updated the rights of ${targetName(row)} (${changes.length} change${changes.length === 1 ? '' : 's'})`
+        : `Saved the rights of ${targetName(row)} with no changes`,
+      category: 'ACCESS_CONTROL',
+      // Widening what an account may do is exactly what a review of the trail looks
+      // for, so it stays above the ordinary INFO line even when it went through.
+      severity: 'NOTICE',
+      actor: caller,
+      targetType: 'user',
+      targetLabel: targetName(row),
+      targetId: row.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      reason,
+      changes,
+      metadata: { role: row.role.type },
+    });
+
+    return updated;
   }
 
   async updateRolePermissions(
     caller: JwtPayload,
     roleType: PortalRoleType,
     data: UpdateRolePermissionsDto,
+    context: RequestContextDto = {},
   ): Promise<RolePermissionsDto> {
     if (roleType === RoleType.ADMIN) {
       throw new BadRequestException(
@@ -175,11 +208,33 @@ export class AccessControlSiteService {
       );
     }
 
+    const previous = await this.baselineFor(roleType);
     const permissions = sortPermissions(new Set(data.permissions));
+
     await this.accessControlRepository.replaceRoleDefaults(
       roleType,
       permissions,
     );
+
+    const changes = diffPermissions(previous, permissions);
+
+    await this.auditLogRecorder.record({
+      action: 'access-control.role-baseline.updated',
+      description: changes.length
+        ? `Updated the ${roleType} baseline (${changes.length} change${changes.length === 1 ? '' : 's'})`
+        : `Saved the ${roleType} baseline with no changes`,
+      category: 'ACCESS_CONTROL',
+      // A baseline reaches every account holding the role, so it outranks a
+      // single-user override.
+      severity: 'WARNING',
+      actor: caller,
+      // The baseline is a role, not a record — it has no id to point at.
+      targetType: 'role',
+      targetLabel: `${roleType} baseline`,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      changes,
+    });
 
     return { role_type: roleType, permissions };
   }
@@ -188,6 +243,7 @@ export class AccessControlSiteService {
     caller: JwtPayload,
     userId: string,
     data: SuspendActionsDto,
+    context: RequestContextDto = {},
   ): Promise<AccessUserDetailDto> {
     const row = await this.requirePortalUser(userId);
 
@@ -206,12 +262,38 @@ export class AccessControlSiteService {
       throw new BadRequestException('The expiry must be in the future');
     }
 
+    const permissions = [...new Set(data.permissions)];
+
     await this.accessControlRepository.createSuspensions({
       userId,
-      permissions: [...new Set(data.permissions)],
+      permissions,
       reason: data.reason,
       issuedByUserId: caller.sub,
       expiresAt,
+    });
+
+    await this.auditLogRecorder.record({
+      action: 'access-control.actions.suspended',
+      description: `Suspended ${permissions.length} action${permissions.length === 1 ? '' : 's'} for ${targetName(row)}`,
+      category: 'ACCESS_CONTROL',
+      severity: 'WARNING',
+      actor: caller,
+      targetType: 'user',
+      targetLabel: targetName(row),
+      targetId: row.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      reason: data.reason,
+      changes: permissions.map((permission) => ({
+        field: permission,
+        before: 'allowed',
+        after: 'suspended',
+      })),
+      metadata: {
+        // "never" rather than an omitted key: an open-ended suspension is the
+        // heavier of the two, and it should be visible without reading the code.
+        expires_at: expiresAt ? expiresAt.toISOString() : 'never',
+      },
     });
 
     return this.getUserDetail(userId);
@@ -221,8 +303,9 @@ export class AccessControlSiteService {
     caller: JwtPayload,
     userId: string,
     suspensionId: string,
+    context: RequestContextDto = {},
   ): Promise<AccessUserDetailDto> {
-    await this.requirePortalUser(userId);
+    const row = await this.requirePortalUser(userId);
 
     const suspension =
       await this.accessControlRepository.findSuspension(suspensionId);
@@ -235,6 +318,25 @@ export class AccessControlSiteService {
     }
 
     await this.accessControlRepository.liftSuspension(suspensionId, caller.sub);
+
+    await this.auditLogRecorder.record({
+      action: 'access-control.suspension.lifted',
+      description: `Lifted the suspension on ${suspension.permission} for ${targetName(row)}`,
+      category: 'ACCESS_CONTROL',
+      severity: 'NOTICE',
+      actor: caller,
+      targetType: 'user',
+      targetLabel: targetName(row),
+      targetId: row.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      reason: suspension.reason,
+      changes: [
+        { field: suspension.permission, before: 'suspended', after: 'allowed' },
+      ],
+      metadata: { suspension_id: suspensionId },
+    });
+
     return this.getUserDetail(userId);
   }
 
@@ -281,6 +383,38 @@ export class AccessControlSiteService {
     }
     return row;
   }
+}
+
+/** The name the trail shows for the account acted on, denormalised at write time. */
+function targetName(row: AccessUserRow): string {
+  const name = `${row.firstname} ${row.lastname}`.trim();
+  return name || (row.accounts[0]?.email ?? row.user_id);
+}
+
+/**
+ * One before/after pair per permission that moved, so the trail says which rights
+ * changed rather than restating the whole set on both sides.
+ */
+function diffPermissions(
+  previous: readonly PermissionKey[],
+  next: readonly PermissionKey[],
+): AuditLogChangeDto[] {
+  const before = new Set(previous);
+  const after = new Set(next);
+
+  return PERMISSION_CATALOG.flatMap((entry) => {
+    const had = before.has(entry.key);
+    const has = after.has(entry.key);
+    if (had === has) return [];
+
+    return [
+      {
+        field: entry.key,
+        before: had ? 'allowed' : 'denied',
+        after: has ? 'allowed' : 'denied',
+      },
+    ];
+  });
 }
 
 interface SuspensionView {

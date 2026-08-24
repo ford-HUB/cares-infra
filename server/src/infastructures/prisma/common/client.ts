@@ -104,6 +104,27 @@ export type UserActionSuspension = Prisma.UserActionSuspensionModel
  */
 export type BlockedIp = Prisma.BlockedIpModel
 /**
+ * Model SecurityPolicy
+ * Portal-wide security settings, held as exactly one row: `singleton` is pinned to
+ * true and unique, so an upsert can never create a second policy. Every field has a
+ * default here that matches the fallback the server applies when the row is missing.
+ */
+export type SecurityPolicy = Prisma.SecurityPolicyModel
+/**
+ * Model LoginActivity
+ * One row per sign-in attempt, successful or not. Append-only: nothing updates or
+ * deletes a row, so the trail stays reviewable. `user_id` is null when the email
+ * matched no account, which is why the typed email is stored alongside it.
+ */
+export type LoginActivity = Prisma.LoginActivityModel
+/**
+ * Model AuditLog
+ * One row per privileged action. Append-only: nothing updates or deletes a row, so
+ * the trail stays reviewable. The actor's name, email, and role are denormalised at
+ * write time so a later rename or role change cannot rewrite history.
+ */
+export type AuditLog = Prisma.AuditLogModel
+/**
  * Model Account
  * 
  */
@@ -150,3 +171,15 @@ export type ChatMessage = Prisma.ChatMessageModel
  * 
  */
 export type ChatAttachment = Prisma.ChatAttachmentModel
+/**
+ * Model SupportTicket
+ * A reported problem or request. `reference_number` is the tracking number shown to
+ * the requester — sequential and never reused, which is why it is a DB sequence
+ * rather than a count of rows.
+ */
+export type SupportTicket = Prisma.SupportTicketModel
+/**
+ * Model SupportTicketReply
+ * 
+ */
+export type SupportTicketReply = Prisma.SupportTicketReplyModel

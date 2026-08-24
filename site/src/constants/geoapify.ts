@@ -58,6 +58,17 @@ export const UNIVERSITY_KEYWORDS = [
  */
 export const ALLOWED_UNIVERSITY_NAMES = ['university of cebu'] as const
 
+/**
+ * Largest auto-traced footprint accepted as an event geofence, in square metres
+ * (~2 hectares). Geoapify often returns the whole campus/landuse polygon for a
+ * university; anything that big would count people far outside the venue as
+ * attending, so oversized traces are replaced by a circle around the place.
+ */
+export const MAX_AUTO_TRACE_AREA_SQM = 20_000
+
+/** Radius of the fallback circular geofence when no usable footprint is found. */
+export const FALLBACK_GEOFENCE_RADIUS_M = 60
+
 export function geoapifyAutocompleteUrl(query: string): string {
   const { minLng, minLat, maxLng, maxLat } = CEBU_METRO_BOUNDS
   const url = new URL(`${GEOAPIFY_API_BASE_URL}/v1/geocode/autocomplete`)

@@ -229,3 +229,19 @@ export const GOODS_TYPE_OPTIONS: GoodsTypeOption[] = [
 ]
 
 export const DEFAULT_MAP_CENTER: [number, number] = [123.8854, 10.3157]
+
+/**
+ * Bounding box of Cebu province — Bantayan/Daanbantayan in the north down to
+ * Santander in the south. The event map fits this so the whole island is on
+ * screen before the operator zooms into a pin. `[[minLng, minLat], [maxLng, maxLat]]`.
+ */
+export const CEBU_PROVINCE_BOUNDS: [[number, number], [number, number]] = [
+  [123.15, 9.35],
+  [124.35, 11.35],
+]
+
+/** Padding (px) kept around {@link CEBU_PROVINCE_BOUNDS} when fitting the map. */
+export const CEBU_BOUNDS_PADDING = 32
+
+/** Zoom the map flies to when a pin is selected — venue level, not street level. */
+export const EVENT_PIN_FOCUS_ZOOM = 15

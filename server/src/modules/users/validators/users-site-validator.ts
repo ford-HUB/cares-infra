@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import {
   GenderType,
+  PermissionKey,
   RoleType,
   VerificationStatus,
 } from '../../../infastructures/prisma/common/client';
+import { PORTAL_ROLE_TYPES } from '../../../shared/constants/portal-role-types';
 
 export const USER_LIST_DEFAULT_PAGE_SIZE = 25;
 export const USER_LIST_MAX_PAGE_SIZE = 100;
@@ -14,7 +16,64 @@ export const UserStatusFilterSchema = z.enum([
   'active',
   'restricted',
   'pending',
+  'expired',
 ]);
+
+/** Only a portal role can be provisioned — volunteers come through the app's signup. */
+export const ProvisionableRoleSchema = z.enum(PORTAL_ROLE_TYPES);
+
+/** One hour to 90 days. Beyond that it stops being a hand-over credential. */
+export const CREDENTIAL_MIN_HOURS = 1;
+export const CREDENTIAL_MAX_HOURS = 24 * 90;
+export const CREDENTIAL_DEFAULT_HOURS = 72;
+
+const CredentialLifetimeSchema = z.coerce
+  .number()
+  .int()
+  .min(CREDENTIAL_MIN_HOURS)
+  .max(CREDENTIAL_MAX_HOURS)
+  .default(CREDENTIAL_DEFAULT_HOURS);
+
+/**
+ * `manual` carries the email the requester asked from, `generate` has the server mint
+ * one. The password is always generated either way — an administrator choosing a
+ * password for someone else is the thing this flow exists to avoid.
+ */
+export const ProvisionUserSchema = z
+  .object({
+    mode: z.enum(['manual', 'generate']),
+    firstname: z.string().trim().min(1, 'First name is required').max(80),
+    lastname: z.string().trim().min(1, 'Last name is required').max(80),
+    email: z.email('A valid email address is required').max(160).optional(),
+    role_type: ProvisionableRoleSchema,
+    department: z.string().trim().max(120).optional(),
+    phone_number: z.string().trim().min(7).max(25).optional(),
+    /**
+     * The complete set of actions the account should hold. Omit it to leave the
+     * account on its role's baseline; the server stores only the departures.
+     */
+    permissions: z
+      .array(z.enum(PermissionKey))
+      .max(Object.keys(PermissionKey).length)
+      .optional(),
+    expires_in_hours: CredentialLifetimeSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.mode === 'manual' && !data.email) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['email'],
+        message: 'An email address is required when entering it manually',
+      });
+    }
+  });
+
+export const ReissueCredentialsSchema = z
+  .object({
+    expires_in_hours: CredentialLifetimeSchema,
+  })
+  .strict();
 
 export const ListUsersQuerySchema = z
   .object({
@@ -53,7 +112,9 @@ export const ManagedUserSchema = z.object({
   email: z.string(),
   role_type: z.enum(RoleType),
   department: z.string().nullable(),
-  status: z.enum(['active', 'restricted', 'pending']),
+  status: z.enum(['active', 'restricted', 'pending', 'expired']),
+  /** Set only while a provisioned credential is outstanding — null once it is replaced. */
+  credential_expires_at: z.iso.datetime().nullable(),
   restriction_reason: z.string().nullable(),
   last_login_ip: z.string().nullable(),
   blocked_ips: z.array(z.string()),
@@ -106,4 +167,20 @@ export const ManagedUserListResponseSchema = z.object({
   total: z.number(),
   page: z.number(),
   page_size: z.number(),
+});
+
+/**
+ * The plaintext credential, returned exactly once — at issue time. It is never stored
+ * in a readable form, so an administrator who closes the dialog without copying it has
+ * to re-issue rather than look it up.
+ */
+export const IssuedCredentialsSchema = z.object({
+  email: z.string(),
+  password: z.string(),
+  expires_at: z.iso.datetime(),
+});
+
+export const ProvisionedUserResponseSchema = z.object({
+  user: ManagedUserSchema,
+  credentials: IssuedCredentialsSchema,
 });

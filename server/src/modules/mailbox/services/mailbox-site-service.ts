@@ -53,6 +53,13 @@ const OAUTH_STATE_TTL = DurationUtils.ONE_MINUTE * 10;
 /** Refresh a little early so a call never starts with a token that dies mid-flight. */
 const TOKEN_REFRESH_MARGIN_MS = 60_000;
 
+/**
+ * Every list row costs one extra Gmail call. Firing a whole page of them at once is
+ * what Gmail answers with "Too many concurrent requests for user", so the fan-out is
+ * walked a few at a time.
+ */
+const MESSAGE_HYDRATION_CONCURRENCY = 4;
+
 const NOT_CONNECTED_MESSAGE =
   'No Google account is connected. Connect a mailbox to continue.';
 
@@ -187,10 +194,11 @@ export class MailboxSiteService {
         pageToken: query.page_token,
       });
 
-      const messages = await Promise.all(
-        (page.messages ?? []).map((entry) =>
+      const messages = await this.mapWithLimit(
+        page.messages ?? [],
+        MESSAGE_HYDRATION_CONCURRENCY,
+        (entry) =>
           this.gmailApiClient.getMessage(accessToken, entry.id, 'metadata'),
-        ),
       );
 
       return {
@@ -275,6 +283,28 @@ export class MailboxSiteService {
       );
       return { id: sent.id, thread_id: sent.threadId };
     });
+  }
+
+  /** `Promise.all` with a ceiling: results keep the input order. */
+  private async mapWithLimit<TItem, TResult>(
+    items: TItem[],
+    limit: number,
+    run: (item: TItem) => Promise<TResult>,
+  ): Promise<TResult[]> {
+    const results = new Array<TResult>(items.length);
+    let cursor = 0;
+
+    const worker = async () => {
+      while (cursor < items.length) {
+        const index = cursor++;
+        results[index] = await run(items[index]);
+      }
+    };
+
+    await Promise.all(
+      Array.from({ length: Math.min(limit, items.length) }, worker),
+    );
+    return results;
   }
 
   private toSummary(message: GmailMessage): MailSummaryDto {

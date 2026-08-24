@@ -23,7 +23,7 @@ export function useMailboxWorkspace() {
   const nextPageToken = useMailboxStore((s) => s.nextPageToken)
   const listLoading = useMailboxStore((s) => s.listLoading)
   const listInitialized = useMailboxStore((s) => s.listInitialized)
-  const loadingMore = useMailboxStore((s) => s.loadingMore)
+  const pageIndex = useMailboxStore((s) => s.pageIndex)
   const selectedId = useMailboxStore((s) => s.selectedId)
   const detail = useMailboxStore((s) => s.detail)
   const detailLoading = useMailboxStore((s) => s.detailLoading)
@@ -35,7 +35,8 @@ export function useMailboxWorkspace() {
   const openFolder = useMailboxStore((s) => s.openFolder)
   const applySearch = useMailboxStore((s) => s.applySearch)
   const refresh = useMailboxStore((s) => s.refresh)
-  const loadMore = useMailboxStore((s) => s.loadMore)
+  const nextPage = useMailboxStore((s) => s.nextPage)
+  const previousPage = useMailboxStore((s) => s.previousPage)
   const selectMessage = useMailboxStore((s) => s.selectMessage)
   const clearSelection = useMailboxStore((s) => s.clearSelection)
   const toggleRead = useMailboxStore((s) => s.toggleRead)
@@ -115,8 +116,8 @@ export function useMailboxWorkspace() {
     messages,
     listLoading,
     listInitialized,
-    loadingMore,
-    hasMore: Boolean(nextPageToken),
+    hasNextPage: Boolean(nextPageToken),
+    hasPreviousPage: pageIndex > 0,
     searchDraft,
     setSearchDraft,
 
@@ -136,7 +137,8 @@ export function useMailboxWorkspace() {
       clearSelection()
     },
     onRefresh: () => void refresh(),
-    onLoadMore: () => void loadMore(),
+    onNextPage: () => void nextPage(),
+    onPreviousPage: () => void previousPage(),
     onSearchSubmit: handleSearchSubmit,
     onClearSearch: handleClearSearch,
   }

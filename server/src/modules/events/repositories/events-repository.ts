@@ -83,6 +83,8 @@ export class EventsRepository {
       max_beneficiaries: data.max_beneficiaries,
       geojson: data.geojson ?? Prisma.DbNull,
       area_sqm: data.area_sqm,
+      marker_lat: data.marker_lat,
+      marker_lng: data.marker_lng,
     };
   }
 }

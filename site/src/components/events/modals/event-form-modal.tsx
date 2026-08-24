@@ -74,6 +74,8 @@ export function EventFormModal({
       goods_types: defaultValues?.goods_types ?? [],
       geojson: defaultValues?.geojson ?? null,
       area_sqm: defaultValues?.area_sqm ?? null,
+      marker_lat: defaultValues?.marker_lat ?? null,
+      marker_lng: defaultValues?.marker_lng ?? null,
       event_images: defaultValues?.event_images ?? [],
     },
   })
@@ -189,6 +191,8 @@ export function EventFormModal({
         data.beneficiary_applicable && data.goods_donation ? data.goods_types : [],
       geojson: (data.geojson as Geometry | null) ?? null,
       area_sqm: data.area_sqm ?? null,
+      marker_lat: data.marker_lat ?? null,
+      marker_lng: data.marker_lng ?? null,
     }
 
     const ok =
@@ -362,9 +366,18 @@ export function EventFormModal({
           <EventMapDraw
             value={geojson ?? null}
             focus={selectedLocation}
+            marker={
+              defaultValues?.marker_lat != null && defaultValues?.marker_lng != null
+                ? { lat: defaultValues.marker_lat, lng: defaultValues.marker_lng }
+                : null
+            }
             onChange={(geometry, areaSqM) => {
               setValue('geojson', geometry, { shouldDirty: true })
               setValue('area_sqm', areaSqM, { shouldDirty: true })
+            }}
+            onMarkerChange={(center) => {
+              setValue('marker_lat', center.lat, { shouldDirty: true })
+              setValue('marker_lng', center.lng, { shouldDirty: true })
             }}
             onAddressResolved={(label, center) => {
               setValue('location', label, { shouldDirty: true, shouldValidate: true })

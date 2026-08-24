@@ -9,7 +9,7 @@ import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 export interface ListUsersFilter {
   search?: string;
   role: RoleType | 'all';
-  status: 'all' | 'active' | 'restricted' | 'pending';
+  status: 'all' | 'active' | 'restricted' | 'pending' | 'expired';
   skip: number;
   take: number;
   /** Roles the caller is allowed to see — a director never lists admins. */
@@ -25,7 +25,10 @@ const managedUserSelect = {
   restriction_reason: true,
   last_login_ip: true,
   createdAt: true,
-  accounts: { select: { email: true }, take: 1 },
+  accounts: {
+    select: { email: true, credential_expires_at: true },
+    take: 1,
+  },
   role: { select: { type: true } },
   blocked_ips: { select: { ip_address: true } },
   user_verifications: {
@@ -39,6 +42,18 @@ export type ManagedUserRow = Prisma.UserGetPayload<{
   select: typeof managedUserSelect;
 }>;
 
+export interface CreateProvisionedUserInput {
+  firstname: string;
+  lastname: string;
+  roleId: string;
+  department: string | null;
+  phoneNumber: string;
+  email: string;
+  passwordHash: string;
+  credentialExpiresAt: Date;
+  provisionedByUserId: string;
+}
+
 export type UserDetailRow = NonNullable<
   Awaited<ReturnType<UsersRepository['findUserDetail']>>
 >;
@@ -50,7 +65,9 @@ export class UsersRepository {
   async listUsers(filter: ListUsersFilter) {
     const where = buildWhere(filter);
 
-    const [rows, total] = await this.prisma.$transaction([
+    // Two independent reads, so they run concurrently rather than holding a
+    // transaction slot open — a paged read needs no atomicity.
+    const [rows, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         select: managedUserSelect,
@@ -167,6 +184,92 @@ export class UsersRepository {
       select: { ip_address: true },
     });
   }
+
+  async findUserByPhone(phoneNumber: string) {
+    return this.prisma.user.findUnique({
+      where: { phone_number: phoneNumber },
+      select: { user_id: true },
+    });
+  }
+
+  async findAccountByEmail(email: string) {
+    return this.prisma.account.findUnique({
+      where: { email },
+      select: { account_id: true, user_id: true },
+    });
+  }
+
+  /**
+   * `Role` has no unique constraint on `type`, so a role is looked up before it is
+   * created — the same shape the admin seeder uses.
+   */
+  async findOrCreateRole(type: RoleType) {
+    const existing = await this.prisma.role.findFirst({
+      where: { type },
+      select: { role_id: true },
+    });
+
+    return (
+      existing ??
+      this.prisma.role.create({ data: { type }, select: { role_id: true } })
+    );
+  }
+
+  /** The user and its account are one write — an account-less user cannot sign in. */
+  async createProvisionedUser(input: CreateProvisionedUserInput) {
+    return this.prisma.user.create({
+      data: {
+        firstname: input.firstname,
+        lastname: input.lastname,
+        // Age and address belong to the person, not to the administrator filling this
+        // in from an emailed request. They stay blank until the account completes its
+        // own profile.
+        age: 0,
+        current_address: '',
+        phone_number: input.phoneNumber,
+        portal_department: input.department,
+        role_id: input.roleId,
+        accounts: {
+          create: {
+            email: input.email,
+            password: input.passwordHash,
+            credential_expires_at: input.credentialExpiresAt,
+            provisioned_by_user_id: input.provisionedByUserId,
+          },
+        },
+      },
+      select: { user_id: true },
+    });
+  }
+
+  async findProvisionedAccount(userId: string) {
+    return this.prisma.account.findFirst({
+      where: { user_id: userId },
+      select: {
+        account_id: true,
+        email: true,
+        credential_expires_at: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async replaceAccountCredential(params: {
+    accountId: string;
+    passwordHash: string;
+    credentialExpiresAt: Date;
+    provisionedByUserId: string;
+  }) {
+    return this.prisma.account.update({
+      where: { account_id: params.accountId },
+      data: {
+        password: params.passwordHash,
+        credential_expires_at: params.credentialExpiresAt,
+        provisioned_by_user_id: params.provisionedByUserId,
+      },
+      select: { account_id: true },
+    });
+  }
 }
 
 function buildWhere(filter: ListUsersFilter): Prisma.UserWhereInput {
@@ -204,6 +307,18 @@ function buildWhere(filter: ListUsersFilter): Prisma.UserWhereInput {
     where.is_restricted = false;
     where.user_verifications = {
       none: { status: VerificationStatus.PENDING },
+    };
+    // An outstanding credential that has lapsed reads as `expired`, not `active` —
+    // the account cannot sign in either way.
+    where.accounts = {
+      none: { credential_expires_at: { lt: new Date() } },
+    };
+  }
+
+  if (filter.status === 'expired') {
+    where.is_restricted = false;
+    where.accounts = {
+      some: { credential_expires_at: { lt: new Date() } },
     };
   }
 

@@ -97,3 +97,6 @@ microservices/**/datasets/**/*.tiff
 CLAUDE.md
 
 .claude
+
+
+site/*

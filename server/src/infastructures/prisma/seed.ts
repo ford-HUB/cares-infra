@@ -3,10 +3,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './common/client';
 import { seedAccessControl } from './seeders/access-control-seeder';
 import { seedAdmin } from './seeders/admin-seeder';
+import { seedDirector } from './seeders/director-seeder';
 import { seedEvents } from './seeders/events-seeder';
 
 const SEEDERS = {
   admin: seedAdmin,
+  director: seedDirector,
   events: seedEvents,
   'access-control': seedAccessControl,
 } as const;

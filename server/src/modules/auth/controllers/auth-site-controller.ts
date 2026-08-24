@@ -1,5 +1,5 @@
 import { AuthSiteService } from '../services/auth-site-service';
-import { Controller, Get, HttpCode, Ip, Post } from '@nestjs/common';
+import { Controller, Get, Headers, HttpCode, Ip, Post } from '@nestjs/common';
 import { ZBody, ZSerialize } from 'nest-zod';
 import {
   AdminLoginResponseSchema,
@@ -14,6 +14,10 @@ import type {
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Public } from 'src/shared/decorators/public-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import {
+  RequestContext,
+  type RequestContextDto,
+} from 'src/shared/decorators/request-context-decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
@@ -30,8 +34,20 @@ export class AuthSiteController {
   async adminLogin(
     @ZBody(LoginSchema) data: LoginDto,
     @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
   ): Promise<AdminLoginResponseDto> {
-    return await this.authSiteService.adminLogin(data, ipAddress);
+    return await this.authSiteService.adminLogin(data, ipAddress, userAgent);
+  }
+
+  @Post('admin/logout')
+  @Roles(...PORTAL_ROLE_TYPES)
+  @HttpCode(200)
+  @ResponseMessage('Signed out')
+  async adminLogout(
+    @CurrentUser() user: JwtPayload,
+    @RequestContext() context: RequestContextDto,
+  ): Promise<void> {
+    await this.authSiteService.logout(user, context);
   }
 
   @Get('me')

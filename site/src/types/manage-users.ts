@@ -1,4 +1,4 @@
-export type ManagedUserStatus = 'active' | 'restricted' | 'pending'
+export type ManagedUserStatus = 'active' | 'restricted' | 'pending' | 'expired'
 
 export interface ManagedUser {
   id: string
@@ -12,6 +12,42 @@ export interface ManagedUser {
   restrictionReason?: string
   lastLoginIp?: string
   blockedIps: string[]
+  /** Set while an administrator-issued credential is outstanding on the account. */
+  credentialExpiresAt?: string
+}
+
+/** How the sign-in name is decided when an administrator provisions an account. */
+export type ProvisionMode = 'manual' | 'generate'
+
+export interface ProvisionUserPayload {
+  mode: ProvisionMode
+  firstName: string
+  lastName: string
+  /** Required in `manual` mode; the server mints one in `generate` mode. */
+  email?: string
+  role: string
+  department?: string
+  phoneNumber?: string
+  /** The complete set of actions the account should hold; omit to keep the role baseline. */
+  permissions?: string[]
+  expiresInHours: number
+}
+
+/**
+ * The plaintext credential, handed back once at issue time. Nothing can look it up
+ * afterwards, so the dialog showing it is the only chance to copy it.
+ */
+export interface IssuedCredentials {
+  email: string
+  password: string
+  expiresAt: string
+}
+
+export interface ProvisionUserResult {
+  success: boolean
+  message?: string
+  user?: ManagedUser
+  credentials?: IssuedCredentials
 }
 
 export interface ManageUsersResult {

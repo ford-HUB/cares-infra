@@ -567,6 +567,8 @@ export function ManageEvents() {
             goods_types: editRow.rawEvent.goods_types ?? [],
             geojson: editRow.rawEvent.geojson,
             area_sqm: editRow.rawEvent.area_sqm,
+            marker_lat: editRow.rawEvent.marker_lat,
+            marker_lng: editRow.rawEvent.marker_lng,
           }}
           onClose={() => setEditRow(null)}
           onSaved={() => void fetchEvents()}

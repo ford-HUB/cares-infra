@@ -1,4 +1,4 @@
-import { Ban, MoreVertical, RotateCcw, ShieldOff, UserPen } from 'lucide-react'
+import { Ban, KeyRound, MoreVertical, RotateCcw, ShieldOff, UserPen } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ManagedUser } from '../../../types/manage-users'
 
@@ -9,6 +9,8 @@ interface UserActionsMenuProps {
   onUnrestrict: (user: ManagedUser) => void
   onBlockIp: (user: ManagedUser) => void
   onUnblockIp: (user: ManagedUser) => void
+  /** Undefined for a caller who cannot issue credentials — the item is then hidden. */
+  onReissueCredentials?: (user: ManagedUser) => void
 }
 
 const MENU_WIDTH_PX = 184
@@ -25,6 +27,7 @@ export function UserActionsMenu({
   onUnrestrict,
   onBlockIp,
   onUnblockIp,
+  onReissueCredentials,
 }: UserActionsMenuProps) {
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -126,6 +129,18 @@ export function UserActionsMenu({
             >
               <ShieldOff className="h-4 w-4" />
               Restrict
+            </button>
+          )}
+
+          {onReissueCredentials && (
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={run(onReissueCredentials)}
+            >
+              <KeyRound className="h-4 w-4 text-gray-400" />
+              Re-issue password
             </button>
           )}
 

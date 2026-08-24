@@ -3,6 +3,10 @@ import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
 import { RoleType } from 'src/infastructures/prisma/common/client';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
+import {
+  RequestContext,
+  type RequestContextDto,
+} from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
@@ -76,11 +80,13 @@ export class AccessControlSiteController {
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
     @ZBody(UpdateUserPermissionsSchema) data: UpdateUserPermissionsDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<AccessUserDetailDto> {
     return this.accessControlSiteService.updateUserPermissions(
       caller,
       id,
       data,
+      context,
     );
   }
 
@@ -91,8 +97,14 @@ export class AccessControlSiteController {
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
     @ZBody(SuspendActionsSchema) data: SuspendActionsDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<AccessUserDetailDto> {
-    return this.accessControlSiteService.suspendActions(caller, id, data);
+    return this.accessControlSiteService.suspendActions(
+      caller,
+      id,
+      data,
+      context,
+    );
   }
 
   @Delete('users/:id/suspensions/:suspensionId')
@@ -102,11 +114,13 @@ export class AccessControlSiteController {
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
     @ZParam('suspensionId', SuspensionIdParamSchema) suspensionId: string,
+    @RequestContext() context: RequestContextDto,
   ): Promise<AccessUserDetailDto> {
     return this.accessControlSiteService.liftSuspension(
       caller,
       id,
       suspensionId,
+      context,
     );
   }
 
@@ -117,11 +131,13 @@ export class AccessControlSiteController {
     @CurrentUser() caller: JwtPayload,
     @ZParam('roleType', PortalRoleSchema) roleType: PortalRoleType,
     @ZBody(UpdateRolePermissionsSchema) data: UpdateRolePermissionsDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<RolePermissionsDto> {
     return this.accessControlSiteService.updateRolePermissions(
       caller,
       roleType,
       data,
+      context,
     );
   }
 }

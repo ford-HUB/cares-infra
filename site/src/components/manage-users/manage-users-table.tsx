@@ -28,6 +28,7 @@ interface ManageUsersTableProps {
   onUnrestrict: (user: ManagedUser) => void
   onBlockIp: (user: ManagedUser) => void
   onUnblockIp: (user: ManagedUser) => void
+  onReissueCredentials?: (user: ManagedUser) => void
 }
 
 const cellBorder = USER_CELL_BORDER
@@ -45,6 +46,7 @@ export function ManageUsersTable({
   onUnrestrict,
   onBlockIp,
   onUnblockIp,
+  onReissueCredentials,
 }: ManageUsersTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { rowsPerPage, remainder } = useRowsPerPage(
@@ -169,6 +171,7 @@ export function ManageUsersTable({
                       onUnrestrict={onUnrestrict}
                       onBlockIp={onBlockIp}
                       onUnblockIp={onUnblockIp}
+                      onReissueCredentials={onReissueCredentials}
                     />
                   </td>
                 </tr>

@@ -62,6 +62,9 @@ export const ModelName = {
   UserPermissionOverride: 'UserPermissionOverride',
   UserActionSuspension: 'UserActionSuspension',
   BlockedIp: 'BlockedIp',
+  SecurityPolicy: 'SecurityPolicy',
+  LoginActivity: 'LoginActivity',
+  AuditLog: 'AuditLog',
   Account: 'Account',
   GmailConnection: 'GmailConnection',
   Interest: 'Interest',
@@ -70,7 +73,9 @@ export const ModelName = {
   Conversation: 'Conversation',
   ConversationParticipant: 'ConversationParticipant',
   ChatMessage: 'ChatMessage',
-  ChatAttachment: 'ChatAttachment'
+  ChatAttachment: 'ChatAttachment',
+  SupportTicket: 'SupportTicket',
+  SupportTicketReply: 'SupportTicketReply'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -254,10 +259,81 @@ export const BlockedIpScalarFieldEnum = {
 export type BlockedIpScalarFieldEnum = (typeof BlockedIpScalarFieldEnum)[keyof typeof BlockedIpScalarFieldEnum]
 
 
+export const SecurityPolicyScalarFieldEnum = {
+  security_policy_id: 'security_policy_id',
+  singleton: 'singleton',
+  password_min_length: 'password_min_length',
+  password_require_uppercase: 'password_require_uppercase',
+  password_require_lowercase: 'password_require_lowercase',
+  password_require_number: 'password_require_number',
+  password_require_symbol: 'password_require_symbol',
+  lockout_enabled: 'lockout_enabled',
+  lockout_max_attempts: 'lockout_max_attempts',
+  lockout_window_minutes: 'lockout_window_minutes',
+  lockout_duration_minutes: 'lockout_duration_minutes',
+  session_idle_timeout_minutes: 'session_idle_timeout_minutes',
+  session_max_duration_hours: 'session_max_duration_hours',
+  max_concurrent_sessions: 'max_concurrent_sessions',
+  login_hours_enabled: 'login_hours_enabled',
+  login_hours_start_minute: 'login_hours_start_minute',
+  login_hours_end_minute: 'login_hours_end_minute',
+  ip_allowlist: 'ip_allowlist',
+  updated_by_user_id: 'updated_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SecurityPolicyScalarFieldEnum = (typeof SecurityPolicyScalarFieldEnum)[keyof typeof SecurityPolicyScalarFieldEnum]
+
+
+export const LoginActivityScalarFieldEnum = {
+  login_activity_id: 'login_activity_id',
+  user_id: 'user_id',
+  email: 'email',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  source: 'source',
+  outcome: 'outcome',
+  failure_reason: 'failure_reason',
+  createdAt: 'createdAt'
+} as const
+
+export type LoginActivityScalarFieldEnum = (typeof LoginActivityScalarFieldEnum)[keyof typeof LoginActivityScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  audit_log_id: 'audit_log_id',
+  action: 'action',
+  description: 'description',
+  category: 'category',
+  severity: 'severity',
+  outcome: 'outcome',
+  actor_user_id: 'actor_user_id',
+  actor_name: 'actor_name',
+  actor_email: 'actor_email',
+  actor_role: 'actor_role',
+  target_type: 'target_type',
+  target_label: 'target_label',
+  target_id: 'target_id',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  source: 'source',
+  request_id: 'request_id',
+  reason: 'reason',
+  changes: 'changes',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
 export const AccountScalarFieldEnum = {
   account_id: 'account_id',
   email: 'email',
   password: 'password',
+  credential_expires_at: 'credential_expires_at',
+  provisioned_by_user_id: 'provisioned_by_user_id',
   user_id: 'user_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -329,6 +405,8 @@ export const EventScalarFieldEnum = {
   max_beneficiaries: 'max_beneficiaries',
   geojson: 'geojson',
   area_sqm: 'area_sqm',
+  marker_lat: 'marker_lat',
+  marker_lng: 'marker_lng',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -379,6 +457,37 @@ export const ChatAttachmentScalarFieldEnum = {
 } as const
 
 export type ChatAttachmentScalarFieldEnum = (typeof ChatAttachmentScalarFieldEnum)[keyof typeof ChatAttachmentScalarFieldEnum]
+
+
+export const SupportTicketScalarFieldEnum = {
+  support_ticket_id: 'support_ticket_id',
+  reference_number: 'reference_number',
+  subject: 'subject',
+  description: 'description',
+  type: 'type',
+  status: 'status',
+  priority: 'priority',
+  requester_id: 'requester_id',
+  assignee_id: 'assignee_id',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SupportTicketScalarFieldEnum = (typeof SupportTicketScalarFieldEnum)[keyof typeof SupportTicketScalarFieldEnum]
+
+
+export const SupportTicketReplyScalarFieldEnum = {
+  support_ticket_reply_id: 'support_ticket_reply_id',
+  support_ticket_id: 'support_ticket_id',
+  author_id: 'author_id',
+  author_name: 'author_name',
+  author_type: 'author_type',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type SupportTicketReplyScalarFieldEnum = (typeof SupportTicketReplyScalarFieldEnum)[keyof typeof SupportTicketReplyScalarFieldEnum]
 
 
 export const SortOrder = {

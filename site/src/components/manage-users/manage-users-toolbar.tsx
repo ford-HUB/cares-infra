@@ -1,4 +1,4 @@
-import { Download, Search } from 'lucide-react'
+import { Download, Search, UserPlus } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   USER_ROLE_FILTER_ALL,
@@ -20,6 +20,8 @@ interface ManageUsersToolbarProps {
   onRoleChange: (value: string) => void
   onStatusChange: (value: UserStatusFilter) => void
   onExport: () => void
+  /** Undefined for a caller who cannot provision accounts — the button is then hidden. */
+  onAddUser?: () => void
 }
 
 const selectClass =
@@ -38,6 +40,7 @@ export function ManageUsersToolbar({
   onRoleChange,
   onStatusChange,
   onExport,
+  onAddUser,
 }: ManageUsersToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -108,6 +111,17 @@ export function ManageUsersToolbar({
           <Download className="h-3.5 w-3.5" />
           Export
         </button>
+
+        {onAddUser && (
+          <button
+            type="button"
+            onClick={onAddUser}
+            className="flex h-9 items-center gap-2 rounded-lg bg-[var(--cares-primary)] px-3 text-[13px] text-white transition-opacity hover:opacity-90"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            Add User
+          </button>
+        )}
       </div>
     </div>
   )

@@ -24,8 +24,8 @@ export function MailboxWorkspace({
   messages,
   listLoading,
   listInitialized,
-  loadingMore,
-  hasMore,
+  hasNextPage,
+  hasPreviousPage,
   searchDraft,
   setSearchDraft,
   selectedId,
@@ -40,7 +40,8 @@ export function MailboxWorkspace({
   onClearSelection,
   onMarkUnread,
   onRefresh,
-  onLoadMore,
+  onNextPage,
+  onPreviousPage,
   onSearchSubmit,
   onClearSearch,
 }: MailboxWorkspaceProps) {
@@ -82,23 +83,25 @@ export function MailboxWorkspace({
         />
 
         {/* On mobile the reading pane replaces the list rather than sitting beside it. */}
+        {/* Fixed width and `min-h-0` so the list scrolls inside the card, never past it. */}
         <div
-          className={`min-h-0 flex-1 flex-col md:flex ${selectedId ? 'hidden md:flex' : 'flex'}`}
+          className={`min-h-0 w-full flex-1 flex-col md:w-80 md:flex-none lg:w-96 ${selectedId ? 'hidden md:flex' : 'flex'}`}
         >
           <MailboxMessageList
             messages={messages}
             selectedId={selectedId}
             loading={listLoading}
             initialized={listInitialized}
-            loadingMore={loadingMore}
-            hasMore={hasMore}
+            hasNextPage={hasNextPage}
+            hasPreviousPage={hasPreviousPage}
             searchDraft={searchDraft}
             onSearchChange={setSearchDraft}
             onSearchSubmit={onSearchSubmit}
             onClearSearch={onClearSearch}
             onSelect={onSelectMessage}
             onRefresh={onRefresh}
-            onLoadMore={onLoadMore}
+            onNextPage={onNextPage}
+            onPreviousPage={onPreviousPage}
           />
         </div>
 

@@ -1,4 +1,4 @@
-import { Loader2, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RefreshCw, Search, X } from 'lucide-react'
 import {
   MAILBOX_EMPTY_BODY,
   MAILBOX_EMPTY_TITLE,
@@ -13,37 +13,42 @@ interface MailboxMessageListProps {
   selectedId: string | null
   loading: boolean
   initialized: boolean
-  loadingMore: boolean
-  hasMore: boolean
+  hasNextPage: boolean
+  hasPreviousPage: boolean
   searchDraft: string
   onSearchChange: (value: string) => void
   onSearchSubmit: () => void
   onClearSearch: () => void
   onSelect: (id: string) => void
   onRefresh: () => void
-  onLoadMore: () => void
+  onNextPage: () => void
+  onPreviousPage: () => void
 }
+
+const PAGE_BUTTON_CLASS =
+  'rounded-[var(--cares-radius)] p-1.5 text-[var(--cares-muted)] transition hover:bg-[var(--cares-bg)] hover:text-[var(--cares-body)] disabled:pointer-events-none disabled:opacity-40'
 
 export function MailboxMessageList({
   messages,
   selectedId,
   loading,
   initialized,
-  loadingMore,
-  hasMore,
+  hasNextPage,
+  hasPreviousPage,
   searchDraft,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
   onSelect,
   onRefresh,
-  onLoadMore,
+  onNextPage,
+  onPreviousPage,
 }: MailboxMessageListProps) {
   // A refetch keeps the rows that are already on screen; only a cold list skeletons.
   const showSkeleton = !initialized || (loading && messages.length === 0)
 
   return (
-    <section className="flex w-full min-w-0 shrink-0 flex-col border-b border-[var(--cares-border)] md:w-80 md:border-b-0 md:border-r lg:w-96">
+    <section className="flex min-h-0 w-full min-w-0 flex-1 flex-col border-b border-[var(--cares-border)] md:border-b-0 md:border-r">
       <div className="flex shrink-0 items-center gap-2 border-b border-[var(--cares-border)] px-3 py-2.5">
         <form
           className="relative min-w-0 flex-1"
@@ -84,6 +89,27 @@ export function MailboxMessageList({
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : undefined} />
         </button>
+
+        <div className="flex shrink-0 items-center">
+          <button
+            type="button"
+            onClick={onPreviousPage}
+            disabled={loading || !hasPreviousPage}
+            aria-label="Newer messages"
+            className={PAGE_BUTTON_CLASS}
+          >
+            <ChevronLeft size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={onNextPage}
+            disabled={loading || !hasNextPage}
+            aria-label="Older messages"
+            className={PAGE_BUTTON_CLASS}
+          >
+            <ChevronRight size={15} />
+          </button>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto" aria-busy={loading}>
@@ -99,28 +125,14 @@ export function MailboxMessageList({
             </p>
           </div>
         ) : (
-          <>
-            {messages.map((message) => (
-              <MailboxMessageRow
-                key={message.id}
-                message={message}
-                active={message.id === selectedId}
-                onSelect={onSelect}
-              />
-            ))}
-
-            {hasMore && (
-              <button
-                type="button"
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                className="flex w-full items-center justify-center gap-2 py-3 text-xs text-[var(--cares-primary)] transition hover:bg-[var(--cares-bg)] disabled:opacity-60"
-              >
-                {loadingMore && <Loader2 size={13} className="animate-spin" />}
-                {loadingMore ? 'Loading…' : 'Load more'}
-              </button>
-            )}
-          </>
+          messages.map((message) => (
+            <MailboxMessageRow
+              key={message.id}
+              message={message}
+              active={message.id === selectedId}
+              onSelect={onSelect}
+            />
+          ))
         )}
       </div>
     </section>

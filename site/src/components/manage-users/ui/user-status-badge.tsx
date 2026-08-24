@@ -4,6 +4,7 @@ const statusStyles: Record<ManagedUser['status'], { badge: string; dot: string }
   active: { badge: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
   pending: { badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
   restricted: { badge: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
+  expired: { badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
 }
 
 /** Dense badge sized for the users grid — the roomier `StatusPill` is for detail views. */

@@ -11,6 +11,10 @@ import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
 import { RoleType } from 'src/infastructures/prisma/common/client';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
+import {
+  RequestContext,
+  type RequestContextDto,
+} from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
@@ -20,6 +24,9 @@ import type {
   ListUsersQueryDto,
   ManagedUserDto,
   ManagedUserListDto,
+  ProvisionUserDto,
+  ProvisionedUserDto,
+  ReissueCredentialsDto,
   RestrictUserDto,
 } from '../dto/users-site-dto';
 import { UsersSiteService } from '../services/users-site-service';
@@ -29,6 +36,9 @@ import {
   ManagedUserDetailSchema,
   ManagedUserListResponseSchema,
   ManagedUserSchema,
+  ProvisionedUserResponseSchema,
+  ProvisionUserSchema,
+  ReissueCredentialsSchema,
   RestrictUserSchema,
 } from '../validators/users-site-validator';
 
@@ -47,6 +57,35 @@ export class UsersSiteController {
     @ZQuery(ListUsersQuerySchema) query: ListUsersQueryDto,
   ): Promise<ManagedUserListDto> {
     return this.usersSiteService.listUsers(caller, query);
+  }
+
+  /**
+   * Creating an account is an admin-only act: a director asks for one, an
+   * administrator issues it. The method-level `@Roles` narrows the class default.
+   */
+  @Post()
+  @Roles(RoleType.ADMIN)
+  @ResponseMessage('Account created')
+  @ZSerialize(ProvisionedUserResponseSchema)
+  async provisionUser(
+    @CurrentUser() caller: JwtPayload,
+    @ZBody(ProvisionUserSchema) data: ProvisionUserDto,
+    @RequestContext() context: RequestContextDto,
+  ): Promise<ProvisionedUserDto> {
+    return this.usersSiteService.provisionUser(caller, data, context);
+  }
+
+  @Post(':id/reissue-credentials')
+  @Roles(RoleType.ADMIN)
+  @ResponseMessage('New credentials issued')
+  @ZSerialize(ProvisionedUserResponseSchema)
+  async reissueCredentials(
+    @CurrentUser() caller: JwtPayload,
+    @ZParam('id', UserIdParamSchema) id: string,
+    @ZBody(ReissueCredentialsSchema) data: ReissueCredentialsDto,
+    @RequestContext() context: RequestContextDto,
+  ): Promise<ProvisionedUserDto> {
+    return this.usersSiteService.reissueCredentials(caller, id, data, context);
   }
 
   @Get(':id')
@@ -98,8 +137,9 @@ export class UsersSiteController {
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
     @ZBody(RestrictUserSchema) data: RestrictUserDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<ManagedUserDto> {
-    return this.usersSiteService.restrictUser(caller, id, data);
+    return this.usersSiteService.restrictUser(caller, id, data, context);
   }
 
   @Patch(':id/unrestrict')
@@ -108,8 +148,9 @@ export class UsersSiteController {
   async unrestrictUser(
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
+    @RequestContext() context: RequestContextDto,
   ): Promise<ManagedUserDto> {
-    return this.usersSiteService.unrestrictUser(caller, id);
+    return this.usersSiteService.unrestrictUser(caller, id, context);
   }
 
   @Post(':id/block-ip')
@@ -119,8 +160,9 @@ export class UsersSiteController {
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
     @ZBody(BlockUserIpSchema) data: BlockUserIpDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<ManagedUserDto> {
-    return this.usersSiteService.blockUserIp(caller, id, data);
+    return this.usersSiteService.blockUserIp(caller, id, data, context);
   }
 
   @Delete(':id/block-ip')
@@ -129,8 +171,9 @@ export class UsersSiteController {
   async unblockUserIp(
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', UserIdParamSchema) id: string,
+    @RequestContext() context: RequestContextDto,
     @Query('ip_address') ipAddress?: string,
   ): Promise<ManagedUserDto> {
-    return this.usersSiteService.unblockUserIp(caller, id, ipAddress);
+    return this.usersSiteService.unblockUserIp(caller, id, ipAddress, context);
   }
 }
