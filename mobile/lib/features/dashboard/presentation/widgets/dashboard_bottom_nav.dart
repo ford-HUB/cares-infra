@@ -8,7 +8,7 @@ abstract final class DashboardNavColors {
 
 enum DashboardTab {
   home(Icons.home_outlined, 'Home'),
-  events(Icons.calendar_month_outlined, 'Programs'),
+  events(Icons.calendar_month_outlined, 'Events'),
   activity(Icons.bar_chart_outlined, 'Activity'),
   ranks(Icons.emoji_events_outlined, 'Ranks'),
   profile(Icons.person_outline, 'Profile');
@@ -32,7 +32,7 @@ class DashboardBottomNav extends StatelessWidget {
 
   /// Overrides the label of [DashboardTab.events] without changing the
   /// shared layout, icons, or navigation order (e.g. 'Campaigns' for the
-  /// donor dashboard vs the default 'Programs' for volunteers).
+  /// donor dashboard vs the default 'Events' for volunteers).
   final String? eventsTabLabel;
 
   @override
