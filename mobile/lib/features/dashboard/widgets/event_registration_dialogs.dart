@@ -194,8 +194,8 @@ Future<void> showEventRegistrationSuccessDialog(BuildContext context) {
             ),
             const SizedBox(height: 12),
             const Text(
-              'You have successfully joined this event. You can now use the '
-              'QR Code and Geolocation features during the event.',
+              'You have successfully joined this event. Use geolocation '
+              'check-in at the venue to verify your attendance.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -204,22 +204,9 @@ Future<void> showEventRegistrationSuccessDialog(BuildContext context) {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _FeatureHint(
-                    icon: Icons.qr_code_rounded,
-                    label: 'QR Code',
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _FeatureHint(
-                    icon: Icons.my_location_rounded,
-                    label: 'Geolocation',
-                  ),
-                ),
-              ],
+            const _FeatureHint(
+              icon: Icons.my_location_rounded,
+              label: 'Geolocation check-in',
             ),
             const SizedBox(height: 24),
             SizedBox(

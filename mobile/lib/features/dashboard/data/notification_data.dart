@@ -26,7 +26,7 @@ const kMockNotifications = [
     title: 'Event reminder',
     message:
         'Coastal Cleanup Drive starts tomorrow at 8:00 AM. '
-        'Don\'t forget to bring your QR code for check-in.',
+        'Check in with geolocation when you arrive at the venue.',
     timeAgo: '2h ago',
     type: NotificationType.event,
   ),

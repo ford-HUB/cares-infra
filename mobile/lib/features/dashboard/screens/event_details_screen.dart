@@ -5,7 +5,6 @@ import '../../../core/theme/app_theme.dart';
 import '../data/event_registration_store.dart';
 import '../data/mock_events.dart';
 import '../utils/geo_utils.dart';
-import '../widgets/event_qr_code_sheet.dart';
 import '../widgets/event_registration_dialogs.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -534,53 +533,28 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
               child: isRegistered
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: participation == null
-                                ? null
-                                : () => showEventQrCodeSheet(
-                                    context,
-                                    participation,
-                                    event.title,
-                                  ),
-                            icon: const Icon(Icons.qr_code_rounded),
-                            label: const Text('QR Code'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              minimumSize: const Size.fromHeight(52),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _isCheckingLocation
-                                ? null
-                                : _verifyGeolocation,
-                            icon: _isCheckingLocation
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.my_location_rounded),
-                            label: Text(
-                              _isCheckingLocation
-                                  ? 'Checking...'
-                                  : 'Geolocation',
-                            ),
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size.fromHeight(52),
-                            ),
-                          ),
-                        ),
-                      ],
+                  ? FilledButton.icon(
+                      onPressed: _isCheckingLocation || participation == null
+                          ? null
+                          : _verifyGeolocation,
+                      icon: _isCheckingLocation
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.my_location_rounded),
+                      label: Text(
+                        _isCheckingLocation
+                            ? 'Checking...'
+                            : 'Verify Attendance',
+                      ),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
                     )
                   : FilledButton(
                       onPressed: event.slotsLeft > 0 ? _confirmJoin : null,

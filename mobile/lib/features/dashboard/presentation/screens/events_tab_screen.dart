@@ -84,60 +84,63 @@ class _EventsTabScreenState extends State<EventsTabScreen> {
       onTap: () => _searchFocusNode.unfocus(),
       child: ColoredBox(
         color: AppColors.background,
-        child: CustomScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverToBoxAdapter(child: EventsPageHeader(subtitle: _subtitle)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: SmartEventSearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  query: _query,
-                  onQueryChanged: (value) => setState(() => _query = value),
-                  onSuggestionTap: _applySuggestion,
-                  onClear: _clearSearch,
-                  showSuggestions: showSuggestions,
-                  suggestions: _suggestions,
+        child: SafeArea(
+          bottom: false,
+          child: CustomScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              SliverToBoxAdapter(child: EventsPageHeader(subtitle: _subtitle)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: SmartEventSearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    query: _query,
+                    onQueryChanged: (value) => setState(() => _query = value),
+                    onSuggestionTap: _applySuggestion,
+                    onClear: _clearSearch,
+                    showSuggestions: showSuggestions,
+                    suggestions: _suggestions,
+                  ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: EventCategoryFilters(
-                  selected: _selectedCategory,
-                  onSelected: (category) {
-                    setState(() => _selectedCategory = category);
-                    _searchFocusNode.unfocus();
-                  },
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: EventCategoryFilters(
+                    selected: _selectedCategory,
+                    onSelected: (category) {
+                      setState(() => _selectedCategory = category);
+                      _searchFocusNode.unfocus();
+                    },
+                  ),
                 ),
               ),
-            ),
-            if (events.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: EventsEmptyState(
-                  query: _query,
-                  hasActiveFilters: _hasActiveFilters,
-                  onClearFilters: _clearFilters,
+              if (events.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EventsEmptyState(
+                    query: _query,
+                    hasActiveFilters: _hasActiveFilters,
+                    onClearFilters: _clearFilters,
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final event = events[index];
+                      return EventCatalogCard(
+                        event: event,
+                        onTap: () => EventDetailsScreen.open(context, event),
+                      );
+                    }, childCount: events.length),
+                  ),
                 ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final event = events[index];
-                    return EventCatalogCard(
-                      event: event,
-                      onTap: () => EventDetailsScreen.open(context, event),
-                    );
-                  }, childCount: events.length),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
