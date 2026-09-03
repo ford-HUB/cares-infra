@@ -85,64 +85,69 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
       onTap: () => _searchFocusNode.unfocus(),
       child: ColoredBox(
         color: AppColors.background,
-        child: CustomScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverToBoxAdapter(child: DonationsPageHeader(subtitle: _subtitle)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: DonationSmartSearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  query: _query,
-                  onQueryChanged: (value) => setState(() => _query = value),
-                  onSuggestionTap: _applySuggestion,
-                  onClear: _clearSearch,
-                  showSuggestions: showSuggestions,
-                  suggestions: _suggestions,
+        child: SafeArea(
+          bottom: false,
+          child: CustomScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              SliverToBoxAdapter(
+                child: DonationsPageHeader(subtitle: _subtitle),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: DonationSmartSearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    query: _query,
+                    onQueryChanged: (value) => setState(() => _query = value),
+                    onSuggestionTap: _applySuggestion,
+                    onClear: _clearSearch,
+                    showSuggestions: showSuggestions,
+                    suggestions: _suggestions,
+                  ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: DonationCategoryFilters(
-                  selected: _selectedCategory,
-                  onSelected: (category) {
-                    setState(() => _selectedCategory = category);
-                    _searchFocusNode.unfocus();
-                  },
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: DonationCategoryFilters(
+                    selected: _selectedCategory,
+                    onSelected: (category) {
+                      setState(() => _selectedCategory = category);
+                      _searchFocusNode.unfocus();
+                    },
+                  ),
                 ),
               ),
-            ),
-            if (donations.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: DonationsEmptyState(
-                  query: _query,
-                  hasActiveFilters: _hasActiveFilters,
-                  onClearFilters: _clearFilters,
+              if (donations.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: DonationsEmptyState(
+                    query: _query,
+                    hasActiveFilters: _hasActiveFilters,
+                    onClearFilters: _clearFilters,
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final donation = donations[index];
+                      return DonationCatalogCard(
+                        donation: donation,
+                        onTap: () => DonationDetailsScreen.open(
+                          context,
+                          donation,
+                          donorEmail: widget.email,
+                        ),
+                      );
+                    }, childCount: donations.length),
+                  ),
                 ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final donation = donations[index];
-                    return DonationCatalogCard(
-                      donation: donation,
-                      onTap: () => DonationDetailsScreen.open(
-                        context,
-                        donation,
-                        donorEmail: widget.email,
-                      ),
-                    );
-                  }, childCount: donations.length),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

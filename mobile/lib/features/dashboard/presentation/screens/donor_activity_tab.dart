@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/donation_store.dart';
+import 'package:mobile/features/dashboard/data/mock_donations.dart';
+import 'package:mobile/features/dashboard/screens/donation_flow_screen.dart';
+import 'package:mobile/features/dashboard/screens/donation_receipt_screen.dart';
 
 /// Donor's donation history — mirrors [ActivityTabScreen] layout.
 class DonorActivityTab extends StatelessWidget {
@@ -14,9 +17,7 @@ class DonorActivityTab extends StatelessWidget {
     final totalDonated = DonationStore.instance.totalDonatedDisplayForEmail(
       email,
     );
-    final donationsCount = DonationStore.instance.donationsCountForEmail(
-      email,
-    );
+    final donationsCount = DonationStore.instance.donationsCountForEmail(email);
     final campaignsSupported = donations.isEmpty
         ? donationsCount
         : donations.map((d) => d.campaignTitle).toSet().length;
@@ -94,7 +95,10 @@ class DonorActivityTab extends StatelessWidget {
                     const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final donation = donations[donations.length - 1 - index];
-                  return _DonationActivityCard(donation: donation);
+                  return _DonationActivityCard(
+                    donation: donation,
+                    email: email,
+                  );
                 },
               ),
             ),
@@ -152,103 +156,149 @@ class _SummaryChip extends StatelessWidget {
 }
 
 class _DonationActivityCard extends StatelessWidget {
-  const _DonationActivityCard({required this.donation});
+  const _DonationActivityCard({required this.donation, required this.email});
 
   final UserDonation donation;
+  final String email;
+
+  void _open(BuildContext context) {
+    final campaign = donation.type == DonationType.goods
+        ? findDonationById(donation.campaignId)
+        : null;
+    if (campaign != null) {
+      DonationFlowScreen.openStatus(
+        context,
+        campaign: campaign,
+        donorEmail: email,
+        donation: donation,
+      );
+    } else {
+      DonationReceiptScreen.open(context, donation);
+    }
+  }
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    final isMoney = donation.type == DonationType.money;
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => _open(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.fieldBorder),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.light.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.favorite_rounded,
-              color: AppColors.primaryDark,
-              size: 22,
-            ),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.fieldBorder),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        donation.campaignTitle,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primaryDark,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        DonationStore.formatPesoFull(donation.amount),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.light.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 8),
-                Row(
+                child: Icon(
+                  isMoney ? Icons.favorite_rounded : Icons.inventory_2_rounded,
+                  color: AppColors.primaryDark,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 13,
-                      color: AppColors.secondary.withValues(alpha: 0.85),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            donation.campaignTitle,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            isMoney
+                                ? DonationStore.formatPesoFull(donation.amount)
+                                : 'Goods',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(height: 6),
                     Text(
-                      _formatDate(donation.donatedAt),
-                      style: TextStyle(
+                      '${donation.donationId} · ${donation.statusLabel}',
+                      style: const TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondary.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMuted,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 13,
+                          color: AppColors.secondary.withValues(alpha: 0.85),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDate(donation.donatedAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondary.withValues(alpha: 0.95),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

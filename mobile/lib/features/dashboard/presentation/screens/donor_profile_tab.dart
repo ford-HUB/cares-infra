@@ -4,18 +4,13 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:mobile/features/dashboard/data/donation_store.dart';
 import 'package:mobile/features/dashboard/data/mock_donor_ranks.dart';
+import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
 
 /// Donor profile and account settings — mirrors [ProfileTabScreen] layout.
 class DonorProfileTab extends StatelessWidget {
   const DonorProfileTab({super.key, required this.donor});
 
   final DonorSessionUser donor;
-
-  void _showMockAction(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
-  }
 
   void _signOut(BuildContext context) {
     DonorSession.instance.signOut();
@@ -71,9 +66,8 @@ class DonorProfileTab extends StatelessWidget {
                   const SizedBox(height: 8),
                   _MenuTile(
                     icon: Icons.help_outline,
-                    label: 'Help & support',
-                    onTap: () =>
-                        _showMockAction(context, 'Help center coming soon.'),
+                    label: 'Help & Support',
+                    onTap: () => HelpSupportScreen.open(context),
                   ),
                   _MenuTile(
                     icon: Icons.logout,

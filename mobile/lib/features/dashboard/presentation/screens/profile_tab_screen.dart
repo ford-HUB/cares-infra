@@ -7,6 +7,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
+import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
 
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 
@@ -209,8 +210,7 @@ class ProfileTabScreen extends StatelessWidget {
 
                     label: 'Help & support',
 
-                    onTap: () =>
-                        _showMockAction(context, 'Help center coming soon.'),
+                    onTap: () => HelpSupportScreen.open(context),
                   ),
 
                   _MenuTile(

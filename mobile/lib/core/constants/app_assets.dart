@@ -9,6 +9,8 @@ abstract final class AppAssets {
       'assets/images/onboarding_discover.png';
   static const String onboardingImpact = 'assets/images/onboarding_impact.png';
 
+  static const String campaignPhoto = 'assets/images/intro-img-3.jpg';
+
   static const String mascotWaving = 'assets/images/mascot/waving.png';
   static const String mascotSmile = 'assets/images/mascot/smile.png';
   static const String mascotHappy = 'assets/images/mascot/happy.png';

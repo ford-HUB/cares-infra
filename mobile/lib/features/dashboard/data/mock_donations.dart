@@ -39,8 +39,18 @@ class CaresDonation {
 
   String get monthLabel {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[deadline.month - 1];
   }
@@ -75,7 +85,59 @@ class CaresDonation {
 
 const kDonationFilterCategories = ['All', 'Environment', 'Education', 'Health'];
 
+/// An item a campaign currently needs, shown in the goods donation flow.
+class NeededGood {
+  const NeededGood({
+    required this.name,
+    required this.unit,
+    required this.quantityNeeded,
+  });
+
+  final String name;
+  final String unit;
+  final int quantityNeeded;
+
+  String get needLabel => '$quantityNeeded $unit needed';
+}
+
+const _floodReliefNeeds = [
+  NeededGood(name: 'Rice', unit: 'sacks', quantityNeeded: 50),
+  NeededGood(name: 'Blankets', unit: 'pieces', quantityNeeded: 100),
+  NeededGood(name: 'Bottled Water', unit: 'bottles', quantityNeeded: 500),
+  NeededGood(name: 'Hygiene Kits', unit: 'kits', quantityNeeded: 100),
+];
+
+const _defaultNeededGoods = [
+  NeededGood(name: 'Rice', unit: 'sacks', quantityNeeded: 30),
+  NeededGood(name: 'Canned Goods', unit: 'boxes', quantityNeeded: 40),
+  NeededGood(name: 'School Supplies', unit: 'kits', quantityNeeded: 60),
+  NeededGood(name: 'Blankets', unit: 'pieces', quantityNeeded: 50),
+];
+
+const kNeededGoodsByCampaign = <String, List<NeededGood>>{
+  'don-flood': _floodReliefNeeds,
+};
+
+List<NeededGood> neededGoodsForCampaign(String campaignId) =>
+    kNeededGoodsByCampaign[campaignId] ?? _defaultNeededGoods;
+
 final kMockFeaturedDonations = [
+  CaresDonation(
+    id: 'don-flood',
+    title: 'Help Families Affected by the Flood',
+    organization: 'CARES Disaster Response',
+    category: 'Health',
+    tags: ['relief', 'disaster', 'families'],
+    description:
+        'Provide emergency food packs, clean water, hygiene kits, and temporary '
+        'shelter for families displaced by the recent flooding in low-lying '
+        'barangays.',
+    goalAmount: 200000,
+    raisedAmount: 84500,
+    daysLeft: 15,
+    deadline: DateTime(2026, 9, 30),
+    isFeatured: true,
+  ),
   CaresDonation(
     id: 'don-1',
     title: 'CARES Health Fund',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
 import 'certificate_review_screen.dart';
+import 'help_support_screen.dart';
 export 'profile_analytics_screen.dart';
 export 'profile_edit_screen.dart';
 
@@ -247,40 +248,10 @@ class ProfileHistoryScreen extends StatelessWidget {
 class ProfileHelpSupportScreen extends StatelessWidget {
   const ProfileHelpSupportScreen({super.key});
 
-  static void open(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ProfileHelpSupportScreen()),
-    );
-  }
+  static void open(BuildContext context) => HelpSupportScreen.open(context);
 
   @override
-  Widget build(BuildContext context) {
-    return _ProfileListScreen(
-      title: 'Help and Support',
-      items: const [
-        _ListEntry(
-          icon: Icons.quiz_outlined,
-          title: 'FAQs',
-          subtitle: 'Common questions about volunteering and donations',
-        ),
-        _ListEntry(
-          icon: Icons.mail_outline_rounded,
-          title: 'Email support',
-          subtitle: 'support@cares.org',
-        ),
-        _ListEntry(
-          icon: Icons.phone_outlined,
-          title: 'Contact hotline',
-          subtitle: '(032) 123-4567',
-        ),
-        _ListEntry(
-          icon: Icons.report_gmailerrorred_outlined,
-          title: 'Report an issue',
-          subtitle: 'Tell us about a problem with the app',
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => const HelpSupportScreen();
 }
 
 class ProfileAboutScreen extends StatelessWidget {
@@ -432,15 +403,10 @@ class ProfileStatDetailScreen extends StatelessWidget {
 }
 
 class _ProfileListScreen extends StatelessWidget {
-  const _ProfileListScreen({
-    required this.title,
-    required this.items,
-    this.emptyMessage,
-  });
+  const _ProfileListScreen({required this.title, required this.items});
 
   final String title;
   final List<_ListEntry> items;
-  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -454,9 +420,9 @@ class _ProfileListScreen extends StatelessWidget {
       ),
       body: items.isEmpty
           ? Center(
-              child: Text(
-                emptyMessage ?? 'Nothing to show yet.',
-                style: const TextStyle(color: AppColors.textSecondary),
+              child: const Text(
+                'Nothing to show yet.',
+                style: TextStyle(color: AppColors.textSecondary),
               ),
             )
           : ListView.separated(
@@ -517,14 +483,6 @@ class _ProfileListScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (item.trailing != null)
-                            Text(
-                              item.trailing!,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -537,17 +495,11 @@ class _ProfileListScreen extends StatelessWidget {
 }
 
 class _ListEntry {
-  const _ListEntry({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.trailing,
-  });
+  const _ListEntry({required this.icon, required this.title, this.subtitle});
 
   final IconData icon;
   final String title;
   final String? subtitle;
-  final String? trailing;
 }
 
 class _InfoCard extends StatelessWidget {

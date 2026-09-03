@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/mock_donations.dart';
 import 'events_page_widgets.dart';
@@ -11,7 +12,7 @@ class DonationsPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -129,25 +130,25 @@ class DonationCatalogCard extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      Container(
+                      SizedBox(
                         height: 120,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.inputFill,
-                              AppColors.primary.withValues(alpha: 0.15),
-                            ],
-                          ),
+                        width: double.infinity,
+                        child: Image.asset(
+                          AppAssets.campaignPhoto,
+                          fit: BoxFit.cover,
                         ),
                       ),
                       Positioned.fill(
-                        child: Center(
-                          child: Icon(
-                            Icons.favorite_rounded,
-                            size: 44,
-                            color: AppColors.primary.withValues(alpha: 0.45),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.02),
+                                Colors.black.withValues(alpha: 0.28),
+                              ],
+                            ),
                           ),
                         ),
                       ),
