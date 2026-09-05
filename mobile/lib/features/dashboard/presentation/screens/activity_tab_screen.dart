@@ -1,13 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
+import 'package:mobile/features/dashboard/data/event_registration_store.dart';
+import 'package:mobile/features/dashboard/data/mock_events.dart';
 import 'package:mobile/features/dashboard/domain/mock_activity.dart';
+import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
+import 'package:mobile/features/dashboard/widgets/completed_event_widgets.dart';
 
-class ActivityTabScreen extends StatelessWidget {
+class ActivityTabScreen extends StatefulWidget {
   const ActivityTabScreen({super.key});
+
+  @override
+  State<ActivityTabScreen> createState() => _ActivityTabScreenState();
+}
+
+class _ActivityTabScreenState extends State<ActivityTabScreen> {
+  final _registrationStore = EventRegistrationStore.instance;
+  final _feedbackStore = EventFeedbackStore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedbackStore.addListener(_onStoreChanged);
+    // Prototype scenario: the volunteer already joined and attended the
+    // events that have since been completed.
+    _registrationStore.seedCompletedEventParticipation(email: _userEmail);
+  }
+
+  @override
+  void dispose() {
+    _feedbackStore.removeListener(_onStoreChanged);
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String get _userEmail =>
+      StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
   @override
   Widget build(BuildContext context) {
     final summary = MockActivities.summary;
+    final completedEvents = kMockCompletedEvents;
 
     return SafeArea(
       bottom: false,
@@ -63,6 +100,43 @@ class ActivityTabScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Completed events',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Give feedback to unlock your certificate.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.secondary.withValues(alpha: 0.95),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...completedEvents.map(
+                    (event) => CompletedEventCard(
+                      event: event,
+                      feedbackSubmitted: _feedbackStore.hasSubmitted(
+                        event.id,
+                        _userEmail,
+                      ),
+                      onTap: () => EventDetailsScreen.open(context, event),
+                    ),
                   ),
                 ],
               ),

@@ -19,6 +19,8 @@ class CaresEvent {
     required this.venueLongitude,
     this.attendanceRadiusMeters = 500,
     this.isFeatured = false,
+    this.isCompleted = false,
+    this.hoursCompleted,
     this.imageAsset,
   });
 
@@ -41,6 +43,12 @@ class CaresEvent {
   final double venueLongitude;
   final double attendanceRadiusMeters;
   final bool isFeatured;
+
+  /// True once the event has ended and participation has been closed out.
+  final bool isCompleted;
+
+  /// Service hours credited to volunteers who completed the event.
+  final int? hoursCompleted;
   final String? imageAsset;
 
   String get monthLabel {
@@ -70,6 +78,26 @@ class CaresEvent {
   String get formattedDate => '${date.month}/${date.day}/${date.year}';
 
   String get dateTimeLabel => '$formattedDate · $time';
+
+  String get longDateLabel {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String get statusLabel => isCompleted ? 'Completed' : 'Upcoming';
 
   bool matchesQuery(String query) {
     if (query.trim().isEmpty) return true;
@@ -215,10 +243,67 @@ final kMockUpcomingEvents = [
   ),
 ];
 
+/// Events the volunteer already joined and that have since ended. These drive
+/// the post-event feedback + certificate prototype flow.
+final kMockCompletedEvents = [
+  CaresEvent(
+    id: 'completed-1',
+    title: 'Coastal Cleanup Drive — Mactan',
+    organization: 'CARES Environment Team',
+    date: DateTime(2026, 5, 24),
+    time: '6:00 AM – 10:00 AM',
+    location: 'Mactan Island, Cebu',
+    description:
+        'A morning shoreline cleanup with partner barangays. Volunteers '
+        'collected, sorted, and weighed coastal waste for recycling.',
+    slotsLeft: 0,
+    daysUntil: 0,
+    capacityFilled: 1,
+    category: 'Environment',
+    tags: ['environment', 'cleanup'],
+    registeredCount: 50,
+    totalCapacity: 50,
+    requirements: [
+      'Bring gloves and a reusable water bottle',
+      'Wear sun protection and appropriate footwear',
+    ],
+    venueLatitude: 10.3173,
+    venueLongitude: 123.9494,
+    isCompleted: true,
+    hoursCompleted: 4,
+  ),
+  CaresEvent(
+    id: 'completed-2',
+    title: 'School Supply Drive — Talisay',
+    organization: 'CARES Extension Office',
+    date: DateTime(2026, 5, 10),
+    time: '9:00 AM – 12:00 PM',
+    location: 'Talisay City, Cebu',
+    description:
+        'Volunteers sorted and packed school kits for students in partner '
+        'communities ahead of the new school year.',
+    slotsLeft: 0,
+    daysUntil: 0,
+    capacityFilled: 1,
+    category: 'Education',
+    tags: ['education', 'supplies'],
+    registeredCount: 40,
+    totalCapacity: 40,
+    requirements: ['Follow packing and sorting instructions on-site'],
+    venueLatitude: 10.2447,
+    venueLongitude: 123.8495,
+    isCompleted: true,
+    hoursCompleted: 3,
+  ),
+];
+
 final kMockAllEvents = [...kMockFeaturedEvents, ...kMockUpcomingEvents];
 
+/// Every event the app can resolve by id — browsable plus completed ones.
+final kMockEventDirectory = [...kMockAllEvents, ...kMockCompletedEvents];
+
 CaresEvent? findEventById(String id) {
-  for (final event in kMockAllEvents) {
+  for (final event in kMockEventDirectory) {
     if (event.id == id) return event;
   }
   return null;

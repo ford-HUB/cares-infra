@@ -52,7 +52,25 @@ class CertificateReviewScreen extends StatelessWidget {
             certificate: certificate,
             recipientName: _recipientName,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 15,
+                color: AppColors.textMuted,
+              ),
+              SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Sample certificate design — preview only.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => _download(context),
             icon: const Icon(Icons.download_rounded),
@@ -185,6 +203,15 @@ class _CertificatePreview extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
+              if (certificate.eventDateLabel != null) ...[
+                Expanded(
+                  child: _DetailChip(
+                    label: 'Event date',
+                    value: certificate.eventDateLabel!,
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
               Expanded(
                 child: _DetailChip(
                   label: 'Hours',

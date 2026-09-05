@@ -6,8 +6,11 @@ import 'package:mobile/core/theme/app_theme.dart';
 
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
+import 'package:mobile/features/dashboard/data/certificate_data.dart';
+import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
+import 'package:mobile/features/dashboard/screens/profile_screens.dart';
 
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 
@@ -205,6 +208,21 @@ class ProfileTabScreen extends StatelessWidget {
                         ),
                   ),
 
+                  ListenableBuilder(
+                    listenable: EventFeedbackStore.instance,
+
+                    builder: (context, _) => _MenuTile(
+                      icon: Icons.workspace_premium_outlined,
+
+                      label: 'Certificates',
+
+                      trailingLabel:
+                          '${earnedCertificatesFor(certificateWalletEmail()).length}',
+
+                      onTap: () => ProfileCertificatesScreen.open(context),
+                    ),
+                  ),
+
                   _MenuTile(
                     icon: Icons.help_outline,
 
@@ -349,7 +367,7 @@ class _ProfileHeader extends StatelessWidget {
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.primary,
 
         borderRadius: BorderRadius.circular(16),
 
@@ -395,7 +413,7 @@ class _ProfileHeader extends StatelessWidget {
 
                     fontWeight: FontWeight.w800,
 
-                    color: AppColors.primaryDark,
+                    color: Colors.white,
                   ),
                 ),
 
@@ -413,7 +431,12 @@ class _ProfileHeader extends StatelessWidget {
 
                     fontWeight: FontWeight.w500,
 
-                    color: AppColors.secondary.withValues(alpha: 0.95),
+                    color: const Color.fromARGB(
+                      255,
+                      206,
+                      226,
+                      207,
+                    ).withValues(alpha: 1),
                   ),
                 ),
 
@@ -435,7 +458,7 @@ class _ProfileHeader extends StatelessWidget {
                       ),
 
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
+                        color: Colors.white,
 
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -461,7 +484,12 @@ class _ProfileHeader extends StatelessWidget {
 
                         fontWeight: FontWeight.w500,
 
-                        color: AppColors.secondary.withValues(alpha: 0.9),
+                        color: const Color.fromARGB(
+                          255,
+                          206,
+                          226,
+                          207,
+                        ).withValues(alpha: 1),
                       ),
                     ),
                   ],
@@ -717,6 +745,8 @@ class _MenuTile extends StatelessWidget {
     required this.onTap,
 
     this.destructive = false,
+
+    this.trailingLabel,
   });
 
   final IconData icon;
@@ -727,6 +757,9 @@ class _MenuTile extends StatelessWidget {
 
   final bool destructive;
 
+  /// Optional count shown before the chevron (e.g. certificates received).
+  final String? trailingLabel;
+
   @override
   Widget build(BuildContext context) {
     final color = destructive ? AppColors.heart : AppColors.primaryDark;
@@ -734,20 +767,19 @@ class _MenuTile extends StatelessWidget {
     return Material(
       color: Colors.white,
 
-      borderRadius: BorderRadius.circular(12),
-
+      // borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
 
         borderRadius: BorderRadius.circular(12),
 
         child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
+          margin: const EdgeInsets.only(bottom: 1),
 
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
 
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(4),
 
             border: Border.all(color: AppColors.fieldBorder),
           ),
@@ -771,6 +803,35 @@ class _MenuTile extends StatelessWidget {
                   ),
                 ),
               ),
+
+              if (trailingLabel != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+
+                  child: Text(
+                    trailingLabel!,
+
+                    style: const TextStyle(
+                      fontSize: 12,
+
+                      fontWeight: FontWeight.w700,
+
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+              ],
 
               Icon(Icons.chevron_right, color: color.withValues(alpha: 0.7)),
             ],

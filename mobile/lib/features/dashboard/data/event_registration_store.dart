@@ -47,9 +47,13 @@ class EventRegistrationStore extends ChangeNotifier {
 
   EventParticipation register(CaresEvent event, {String? email, String? name}) {
     final participantEmail =
-        email ?? StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+        email ??
+        StaticUserSession.instance.currentUser?.email ??
+        'guest@cares.local';
     final participantName =
-        name ?? StaticUserSession.instance.currentUser?.firstName ?? 'Participant';
+        name ??
+        StaticUserSession.instance.currentUser?.firstName ??
+        'Participant';
 
     final key = _key(event.id, participantEmail);
     final existing = _participations[key];
@@ -64,6 +68,42 @@ class EventRegistrationStore extends ChangeNotifier {
     _participations[key] = participation;
     notifyListeners();
     return participation;
+  }
+
+  /// Seeds the prototype scenario: the volunteer already joined every
+  /// completed event and their attendance was verified on the event day.
+  void seedCompletedEventParticipation({String? email, String? name}) {
+    final participantEmail =
+        email ??
+        StaticUserSession.instance.currentUser?.email ??
+        'guest@cares.local';
+    final participantName =
+        name ??
+        StaticUserSession.instance.currentUser?.firstName ??
+        'Participant';
+
+    var changed = false;
+    for (final event in kMockCompletedEvents) {
+      final key = _key(event.id, participantEmail);
+      var participation = _participations[key];
+      if (participation == null) {
+        participation = EventParticipation(
+          eventId: event.id,
+          participantEmail: participantEmail,
+          participantName: participantName,
+          registeredAt: event.date.subtract(const Duration(days: 7)),
+        );
+        _participations[key] = participation;
+        changed = true;
+      }
+      if (!participation.attendanceVerified) {
+        participation.attendanceVerified = true;
+        participation.attendanceVerifiedAt = event.date;
+        changed = true;
+      }
+    }
+
+    if (changed) notifyListeners();
   }
 
   void markAttendanceVerified(String eventId, String email) {

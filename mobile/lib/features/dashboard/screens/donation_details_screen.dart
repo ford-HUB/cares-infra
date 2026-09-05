@@ -186,44 +186,44 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.inputFill),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.handshake_outlined,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Tap Donate to choose how you want to help — money or '
-                    'goods. You can review everything before anything is '
-                    'confirmed.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.all(16),
+          //   decoration: BoxDecoration(
+          //     color: AppColors.surface,
+          //     borderRadius: BorderRadius.circular(14),
+          //     border: Border.all(color: AppColors.inputFill),
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       Container(
+          //         width: 40,
+          //         height: 40,
+          //         decoration: BoxDecoration(
+          //           color: AppColors.primary.withValues(alpha: 0.1),
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         child: const Icon(
+          //           Icons.handshake_outlined,
+          //           size: 20,
+          //           color: AppColors.primary,
+          //         ),
+          //       ),
+          //       const SizedBox(width: 12),
+          //       const Expanded(
+          //         child: Text(
+          //           'Tap Donate to choose how you want to help — money or '
+          //           'goods. You can review everything before anything is '
+          //           'confirmed.',
+          //           style: TextStyle(
+          //             fontSize: 13,
+          //             color: AppColors.textSecondary,
+          //             height: 1.4,
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );

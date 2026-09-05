@@ -4,7 +4,9 @@ import '../../../auth/registration/models/registration_data.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/login_screen.dart';
 import '../../data/activity_data.dart';
+import '../../data/certificate_data.dart';
 import '../../data/donation_store.dart';
+import '../../data/event_feedback_store.dart';
 import '../../data/event_registration_store.dart';
 import '../../screens/profile_screens.dart';
 
@@ -25,6 +27,7 @@ class StudentProfileTab extends StatefulWidget {
 class _StudentProfileTabState extends State<StudentProfileTab> {
   final _store = EventRegistrationStore.instance;
   final _donationStore = DonationStore.instance;
+  final _feedbackStore = EventFeedbackStore.instance;
   bool _notificationsEnabled = true;
 
   @override
@@ -32,12 +35,14 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
     super.initState();
     _store.addListener(_onStoreChanged);
     _donationStore.addListener(_onStoreChanged);
+    _feedbackStore.addListener(_onStoreChanged);
   }
 
   @override
   void dispose() {
     _store.removeListener(_onStoreChanged);
     _donationStore.removeListener(_onStoreChanged);
+    _feedbackStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -74,7 +79,8 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
 
   int get _donationsMade => _donationStore.donationsCountForEmail(_userEmail);
 
-  static const _certsEarned = 2;
+  /// Certificates the volunteer has received so far.
+  int get _certsEarned => earnedCertificatesFor(_userEmail).length;
 
   void _logout(BuildContext context) {
     StaticUserSession.instance.signOut();
@@ -170,10 +176,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
                 child: _StatTile(
                   value: '$_certsEarned',
                   label: 'Certs\nEarned',
-                  onTap: () => ProfileCertificatesScreen.open(
-                    context,
-                    count: _certsEarned,
-                  ),
+                  onTap: () => ProfileCertificatesScreen.open(context),
                 ),
               ),
             ],
@@ -187,6 +190,12 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
                 icon: Icons.edit_outlined,
                 label: 'Edit Profile',
                 onTap: _openEditProfile,
+              ),
+              _SettingsTile(
+                icon: Icons.workspace_premium_outlined,
+                label: 'Certificates',
+                badge: '$_certsEarned',
+                onTap: () => ProfileCertificatesScreen.open(context),
               ),
               _SettingsTile(
                 icon: Icons.notifications_outlined,
@@ -218,15 +227,6 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
           const SizedBox(height: 8),
           _SettingsGroup(
             children: [
-              _SettingsTile(
-                icon: Icons.workspace_premium_outlined,
-                label: 'Certificates',
-                badge: '$_certsEarned',
-                onTap: () => ProfileCertificatesScreen.open(
-                  context,
-                  count: _certsEarned,
-                ),
-              ),
               _SettingsTile(
                 icon: Icons.bar_chart_rounded,
                 label: 'Analytics',
