@@ -3,14 +3,23 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/donation_store.dart';
 import 'package:mobile/features/dashboard/data/mock_donations.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_header.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_card.dart';
 import 'package:mobile/features/dashboard/screens/donation_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/donation_cards.dart';
 
 class DonorHomeTab extends StatelessWidget {
-  const DonorHomeTab({super.key, required this.firstName, required this.email});
+  const DonorHomeTab({
+    super.key,
+    required this.firstName,
+    required this.email,
+    this.showProfileCompletionCard = false,
+    this.onCompleteProfile,
+  });
 
   final String firstName;
   final String email;
+  final bool showProfileCompletionCard;
+  final VoidCallback? onCompleteProfile;
 
   int get _totalDonated =>
       DonationStore.instance.totalDonatedDisplayForEmail(email);
@@ -36,6 +45,17 @@ class DonorHomeTab extends StatelessWidget {
               donationsCount: _donationsCount,
               campaignsSupported: _donationsCount,
             ),
+            if (showProfileCompletionCard) ...[
+              const SizedBox(height: 16),
+              ProfileCompletionCard(
+                onTap: onCompleteProfile,
+                title: 'Complete Your Profile',
+                subtitle:
+                    'Add your interests & giving preferences to get matched '
+                    'campaigns',
+                icon: Icons.favorite_outline_rounded,
+              ),
+            ],
             const SizedBox(height: 28),
             Text(
               'Donation Campaigns',

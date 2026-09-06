@@ -7,6 +7,10 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
 import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_personal_profile_store.dart';
+import 'package:mobile/features/dashboard/data/donation_store.dart';
+import 'package:mobile/features/dashboard/data/mock_donor_ranks.dart';
+import 'package:mobile/features/dashboard/donor/data/donor_profile_store.dart';
+import 'package:mobile/features/dashboard/donor/screens/donor_profile_section_edit_screen.dart';
 import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_profile_store.dart';
 import 'package:mobile/features/dashboard/beneficiary/screens/beneficiary_assistance_edit_screen.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
@@ -42,6 +46,10 @@ class ProfileTabScreen extends StatelessWidget {
     this.onOpenRequests,
 
     this.completionPercent,
+
+    this.isDonor = false,
+
+    this.onOpenDonations,
   });
 
   final String displayName;
@@ -65,10 +73,24 @@ class ProfileTabScreen extends StatelessWidget {
   /// Overrides the volunteer completion maths (e.g. beneficiary profiles).
   final int? completionPercent;
 
+  /// Renders the donor variant: giving stats, interest profiling, and
+  /// donation preferences instead of volunteer or beneficiary details.
+  final bool isDonor;
+
+  final VoidCallback? onOpenDonations;
+
   void _showMockAction(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
+  }
+
+  Future<void> _editDonorSection(
+    BuildContext context,
+
+    DonorProfileSection section,
+  ) async {
+    await DonorProfileSectionEditScreen.open(context, section);
   }
 
   Future<void> _editAssistanceSection(
@@ -103,6 +125,27 @@ class ProfileTabScreen extends StatelessWidget {
 
     final beneficiaryProfile = BeneficiaryProfileStore.instance.profile;
 
+    final donorProfile = DonorProfileStore.instance.profile;
+
+    final donorPersonal = DonorPersonalProfileStore.instance.profile;
+
+    final donorTotalDonated = DonationStore.instance
+        .totalDonatedDisplayForEmail(donorPersonal.email);
+
+    final donorDonationsCount = DonationStore.instance.donationsCountForEmail(
+      donorPersonal.email,
+    );
+
+    final donorDonations = DonationStore.instance.donationsForEmail(
+      donorPersonal.email,
+    );
+
+    final donorCampaignsSupported = donorDonations.isEmpty
+        ? donorDonationsCount
+        : donorDonations.map((d) => d.campaignTitle).toSet().length;
+
+    final donorTierName = MockDonorRanks.tierForAmount(donorTotalDonated).name;
+
     final personalProfile = BeneficiaryPersonalProfileStore.instance.profile;
 
     final latestRequest = requestStore.history.isEmpty
@@ -122,7 +165,11 @@ class ProfileTabScreen extends StatelessWidget {
 
       profileComplete: profileComplete,
 
-      roleLabel: isBeneficiary ? 'Beneficiary' : null,
+      roleLabel: isBeneficiary
+          ? 'Beneficiary'
+          : isDonor
+          ? 'Donor'
+          : null,
     );
 
     return SafeArea(
@@ -165,7 +212,39 @@ class ProfileTabScreen extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
-                  if (isBeneficiary)
+                  if (isDonor)
+                    StatsRow.custom(
+                      items: [
+                        StatsRowItem(
+                          icon: Icons.favorite_outline_rounded,
+
+                          value: DonationStore.formatPeso(donorTotalDonated),
+
+                          label: 'Donated',
+
+                          iconBackground: const Color(0xFFFFE0B2),
+
+                          iconColor: const Color(0xFFE65100),
+                        ),
+
+                        StatsRowItem(
+                          icon: Icons.card_giftcard_rounded,
+
+                          value: '$donorDonationsCount',
+
+                          label: 'Donations',
+                        ),
+
+                        StatsRowItem(
+                          icon: Icons.campaign_outlined,
+
+                          value: '$donorCampaignsSupported',
+
+                          label: 'Campaigns',
+                        ),
+                      ],
+                    )
+                  else if (isBeneficiary)
                     StatsRow.custom(
                       items: [
                         StatsRowItem(
@@ -174,6 +253,8 @@ class ProfileTabScreen extends StatelessWidget {
                           value: '${requestStore.currentRequests.length}',
 
                           label: 'Pending',
+                          iconBackground: const Color(0xFFFFE0B2),
+                          iconColor: AppColors.accentOrange,
                         ),
 
                         StatsRowItem(
@@ -204,7 +285,156 @@ class ProfileTabScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  if (isBeneficiary) ...[
+                  if (isDonor) ...[
+                    _SectionTitle(
+                      title: 'Personal Information',
+
+                      onEdit: onEditProfile,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    _InfoRow(
+                      icon: Icons.badge_outlined,
+
+                      label: 'Full name',
+
+                      value: donorPersonal.fullName.isEmpty
+                          ? displayName
+                          : donorPersonal.fullName,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.call_outlined,
+
+                      label: 'Contact number',
+
+                      value: donorPersonal.contactNumber.isEmpty
+                          ? 'Not set'
+                          : donorPersonal.contactNumber,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.home_outlined,
+
+                      label: 'Address',
+
+                      value: donorPersonal.address.isEmpty
+                          ? 'Not set'
+                          : donorPersonal.address,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.apartment_rounded,
+
+                      label: 'Organization',
+
+                      value: donorPersonal.organization.isEmpty
+                          ? 'Individual donor'
+                          : donorPersonal.organization,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Interests',
+
+                      onEdit: () => _editDonorSection(
+                        context,
+
+                        DonorProfileSection.interests,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    if (donorProfile.interests.isEmpty)
+                      _EmptySectionHint(
+                        message:
+                            'Tap the edit icon to pick the causes you care about.',
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+
+                        runSpacing: 8,
+
+                        children: [
+                          for (final interest in donorProfile.interestLabels)
+                            _ChipTag(label: interest),
+                        ],
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Donation Preferences',
+
+                      onEdit: () => _editDonorSection(
+                        context,
+
+                        DonorProfileSection.donationTypes,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    if (donorProfile.donationTypes.isEmpty)
+                      _EmptySectionHint(
+                        message:
+                            'Tap the edit icon to tell CARES what you want to '
+                            'give.',
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+
+                        runSpacing: 8,
+
+                        children: [
+                          for (final type in donorProfile.donationTypeLabels)
+                            _ChipTag(label: type),
+                        ],
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Giving Availability',
+
+                      onEdit: () => _editDonorSection(
+                        context,
+
+                        DonorProfileSection.givingPreferences,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    _InfoRow(
+                      icon: Icons.event_available_outlined,
+
+                      label: 'Frequency & budget',
+
+                      value: donorProfile.givingLabel,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.workspace_premium_outlined,
+
+                      label: 'Donor tier',
+
+                      value: '$donorTierName Donor',
+                    ),
+                  ] else if (isBeneficiary) ...[
                     _SectionTitle(
                       title: 'Personal Information',
 
@@ -465,7 +695,23 @@ class ProfileTabScreen extends StatelessWidget {
                         ),
                   ),
 
-                  if (isBeneficiary)
+                  if (isDonor)
+                    _MenuTile(
+                      icon: Icons.card_giftcard_rounded,
+
+                      label: 'My Donations',
+
+                      trailingLabel: '$donorDonationsCount',
+
+                      onTap:
+                          onOpenDonations ??
+                          () => _showMockAction(
+                            context,
+
+                            'Open the Activity tab to see your donations.',
+                          ),
+                    )
+                  else if (isBeneficiary)
                     _MenuTile(
                       icon: Icons.request_page_outlined,
 

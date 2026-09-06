@@ -89,57 +89,57 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
           Expanded(
             child: ListView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.inputFill),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.event_available_rounded,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              event.title,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                                height: 1.3,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${event.longDateLabel} · ${event.organization}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // Container(
+                //   padding: const EdgeInsets.all(16),
+                //   decoration: BoxDecoration(
+                //     color: AppColors.surface,
+                //     borderRadius: BorderRadius.circular(16),
+                //     border: Border.all(color: AppColors.inputFill),
+                //   ),
+                //   child: Row(
+                //     children: [
+                //       Container(
+                //         width: 44,
+                //         height: 44,
+                //         decoration: BoxDecoration(
+                //           color: AppColors.primary.withValues(alpha: 0.1),
+                //           borderRadius: BorderRadius.circular(12),
+                //         ),
+                //         child: const Icon(
+                //           Icons.event_available_rounded,
+                //           color: AppColors.primary,
+                //         ),
+                //       ),
+                //       const SizedBox(width: 12),
+                //       Expanded(
+                //         child: Column(
+                //           crossAxisAlignment: CrossAxisAlignment.start,
+                //           children: [
+                //             Text(
+                //               event.title,
+                //               style: const TextStyle(
+                //                 fontSize: 15,
+                //                 fontWeight: FontWeight.w700,
+                //                 color: AppColors.textPrimary,
+                //                 height: 1.3,
+                //               ),
+                //             ),
+                //             const SizedBox(height: 4),
+                //             Text(
+                //               '${event.longDateLabel} · ${event.organization}',
+                //               style: const TextStyle(
+                //                 fontSize: 12,
+                //                 color: AppColors.textSecondary,
+                //               ),
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
                 const SizedBox(height: 24),
                 const Text(
                   'How was the event?',
@@ -402,7 +402,7 @@ Future<void> showFeedbackThankYouDialog(
               child: const Icon(
                 Icons.favorite_rounded,
                 size: 32,
-                color: AppColors.primary,
+                color: AppColors.heart,
               ),
             ),
             const SizedBox(height: 20),
