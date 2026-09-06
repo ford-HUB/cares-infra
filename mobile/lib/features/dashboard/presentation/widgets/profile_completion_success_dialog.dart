@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-Future<void> showProfileCompletionSuccessDialog(BuildContext context) {
+Future<void> showProfileCompletionSuccessDialog(
+  BuildContext context, {
+  String message =
+      'Your volunteer profile has been completed successfully. '
+      'You can now explore programs matched to your interests and skills.',
+}) {
   return showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -38,8 +43,7 @@ Future<void> showProfileCompletionSuccessDialog(BuildContext context) {
           ),
           const SizedBox(height: 10),
           Text(
-            'Your volunteer profile has been completed successfully. '
-            'You can now explore programs matched to your interests and skills.',
+            message,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,

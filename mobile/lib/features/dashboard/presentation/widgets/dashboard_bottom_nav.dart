@@ -25,10 +25,17 @@ class DashboardBottomNav extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     this.eventsTabLabel,
+    this.ranksTabLabel,
+    this.ranksTabIcon,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+
+  /// Overrides [DashboardTab.ranks] without changing the shared layout or
+  /// navigation order (e.g. 'Request' for the beneficiary dashboard).
+  final String? ranksTabLabel;
+  final IconData? ranksTabIcon;
 
   /// Overrides the label of [DashboardTab.events] without changing the
   /// shared layout, icons, or navigation order (e.g. 'Campaigns' for the
@@ -49,10 +56,16 @@ class DashboardBottomNav extends StatelessWidget {
               for (var i = 0; i < DashboardTab.values.length; i++)
                 Expanded(
                   child: _NavItem(
-                    tab: DashboardTab.values[i],
-                    label: DashboardTab.values[i] == DashboardTab.events
-                        ? (eventsTabLabel ?? DashboardTab.values[i].label)
-                        : DashboardTab.values[i].label,
+                    icon: DashboardTab.values[i] == DashboardTab.ranks
+                        ? (ranksTabIcon ?? DashboardTab.values[i].icon)
+                        : DashboardTab.values[i].icon,
+                    label: switch (DashboardTab.values[i]) {
+                      DashboardTab.events =>
+                        eventsTabLabel ?? DashboardTab.events.label,
+                      DashboardTab.ranks =>
+                        ranksTabLabel ?? DashboardTab.ranks.label,
+                      final tab => tab.label,
+                    },
                     selected: currentIndex == i,
                     onTap: () => onTap(i),
                   ),
@@ -67,13 +80,13 @@ class DashboardBottomNav extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
-    required this.tab,
+    required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
-  final DashboardTab tab;
+  final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -88,7 +101,7 @@ class _NavItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
           children: [
-            Icon(tab.icon, size: 22, color: DashboardNavColors.itemColor),
+            Icon(icon, size: 22, color: DashboardNavColors.itemColor),
             const SizedBox(height: 2),
             Text(
               label,

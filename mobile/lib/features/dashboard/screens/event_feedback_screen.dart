@@ -428,17 +428,17 @@ Future<void> showFeedbackThankYouDialog(
               ),
             ),
             const SizedBox(height: 18),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                ),
-              ),
-            ),
+            // Container(
+            //   width: double.infinity,
+            //   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            //   decoration: BoxDecoration(
+            //     color: AppColors.primary.withValues(alpha: 0.08),
+            //     borderRadius: BorderRadius.circular(14),
+            //     border: Border.all(
+            //       color: AppColors.primary.withValues(alpha: 0.2),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 22),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(),

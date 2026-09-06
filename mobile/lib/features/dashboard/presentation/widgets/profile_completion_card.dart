@@ -2,9 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 class ProfileCompletionCard extends StatelessWidget {
-  const ProfileCompletionCard({super.key, this.onTap});
+  const ProfileCompletionCard({
+    super.key,
+    this.onTap,
+    this.title = 'Complete Your Volunteer Profile',
+    this.subtitle =
+        'Add skills, interests & availability to unlock AI Matching',
+    this.icon = Icons.person_add_alt_1_outlined,
+  });
 
   final VoidCallback? onTap;
+
+  /// Copy and icon differ per role (volunteer vs beneficiary); the layout,
+  /// colors, and spacing stay identical.
+  final String title;
+  final String subtitle;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -29,20 +42,16 @@ class ProfileCompletionCard extends StatelessWidget {
                   color: AppColors.primaryDark,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.person_add_alt_1_outlined,
-                  color: Colors.white,
-                  size: 22,
-                ),
+                child: Icon(icon, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Complete Your Volunteer Profile',
-                      style: TextStyle(
+                    Text(
+                      title,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryDark,
@@ -50,7 +59,7 @@ class ProfileCompletionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Add skills, interests & availability to unlock AI Matching',
+                      subtitle,
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.35,

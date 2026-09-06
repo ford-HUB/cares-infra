@@ -1,20 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
+/// One tile in a [StatsRow] built with [StatsRow.custom].
+class StatsRowItem {
+  const StatsRowItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+    this.iconBackground,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color? iconBackground;
+  final Color? iconColor;
+}
+
 class StatsRow extends StatelessWidget {
   const StatsRow({
     super.key,
     required this.serviceHours,
     required this.activities,
     required this.points,
-  });
+  }) : items = null;
+
+  /// Same three-tile layout with caller-supplied stats — used by dashboards
+  /// that track something other than volunteer hours (e.g. beneficiaries).
+  const StatsRow.custom({super.key, required List<StatsRowItem> this.items})
+    : serviceHours = 0,
+      activities = 0,
+      points = 0;
 
   final int serviceHours;
   final int activities;
   final int points;
+  final List<StatsRowItem>? items;
 
   @override
   Widget build(BuildContext context) {
+    final customItems = items;
+    if (customItems != null) {
+      return Row(
+        children: [
+          for (var i = 0; i < customItems.length; i++) ...[
+            if (i > 0) const SizedBox(width: 10),
+            Expanded(
+              child: _StatCard(
+                icon: customItems[i].icon,
+                iconBackground:
+                    customItems[i].iconBackground ??
+                    AppColors.light.withValues(alpha: 0.45),
+                iconColor: customItems[i].iconColor ?? AppColors.primaryDark,
+                value: customItems[i].value,
+                label: customItems[i].label,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(

@@ -6,6 +6,11 @@ import 'package:mobile/core/theme/app_theme.dart';
 
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
+import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_personal_profile_store.dart';
+import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_profile_store.dart';
+import 'package:mobile/features/dashboard/beneficiary/screens/beneficiary_assistance_edit_screen.dart';
+import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
+import 'package:mobile/features/dashboard/widgets/assistance_request_widgets.dart';
 import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
@@ -31,6 +36,12 @@ class ProfileTabScreen extends StatelessWidget {
     this.profileComplete = false,
 
     this.onEditProfile,
+
+    this.isBeneficiary = false,
+
+    this.onOpenRequests,
+
+    this.completionPercent,
   });
 
   final String displayName;
@@ -45,10 +56,27 @@ class ProfileTabScreen extends StatelessWidget {
 
   final VoidCallback? onEditProfile;
 
+  /// Renders the beneficiary variant: assistance stats and household details
+  /// instead of volunteer interests, skills, and certificates.
+  final bool isBeneficiary;
+
+  final VoidCallback? onOpenRequests;
+
+  /// Overrides the volunteer completion maths (e.g. beneficiary profiles).
+  final int? completionPercent;
+
   void _showMockAction(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
+  }
+
+  Future<void> _editAssistanceSection(
+    BuildContext context,
+
+    BeneficiaryProfileSection section,
+  ) async {
+    await BeneficiaryAssistanceEditScreen.open(context, section);
   }
 
   void _signOut(BuildContext context) {
@@ -71,6 +99,16 @@ class ProfileTabScreen extends StatelessWidget {
       points: points,
     );
 
+    final requestStore = AssistanceRequestStore.instance;
+
+    final beneficiaryProfile = BeneficiaryProfileStore.instance.profile;
+
+    final personalProfile = BeneficiaryPersonalProfileStore.instance.profile;
+
+    final latestRequest = requestStore.history.isEmpty
+        ? null
+        : requestStore.history.first;
+
     final profile = _ResolvedProfile.from(
       displayName: displayName,
 
@@ -83,6 +121,8 @@ class ProfileTabScreen extends StatelessWidget {
       volunteerProfile: volunteerProfile,
 
       profileComplete: profileComplete,
+
+      roleLabel: isBeneficiary ? 'Beneficiary' : null,
     );
 
     return SafeArea(
@@ -118,75 +158,292 @@ class ProfileTabScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     _CompletionBanner(
-                      percent: profile.profileCompletionPercent,
+                      percent:
+                          completionPercent ?? profile.profileCompletionPercent,
                     ),
                   ],
 
                   const SizedBox(height: 16),
 
-                  StatsRow(
-                    serviceHours: profile.serviceHours,
+                  if (isBeneficiary)
+                    StatsRow.custom(
+                      items: [
+                        StatsRowItem(
+                          icon: Icons.hourglass_top_outlined,
 
-                    activities: profile.activitiesCompleted,
+                          value: '${requestStore.currentRequests.length}',
 
-                    points: profile.points,
-                  ),
+                          label: 'Pending',
+                        ),
 
-                  const SizedBox(height: 20),
+                        StatsRowItem(
+                          icon: Icons.verified_outlined,
 
-                  _SectionTitle(title: 'Interests'),
+                          value: '${requestStore.approvedRequests.length}',
 
-                  const SizedBox(height: 8),
+                          label: 'Approved',
+                        ),
 
-                  if (profile.interests.isEmpty)
-                    _EmptySectionHint(
-                      message:
-                          'Add your interests to get better event matches.',
+                        StatsRowItem(
+                          icon: Icons.task_alt_outlined,
+
+                          value: '${requestStore.completedRequests.length}',
+
+                          label: 'Completed',
+                        ),
+                      ],
                     )
                   else
-                    Wrap(
-                      spacing: 8,
+                    StatsRow(
+                      serviceHours: profile.serviceHours,
 
-                      runSpacing: 8,
+                      activities: profile.activitiesCompleted,
 
-                      children: [
-                        for (final interest in profile.interests)
-                          _ChipTag(label: interest),
-                      ],
+                      points: profile.points,
                     ),
 
                   const SizedBox(height: 20),
 
-                  _SectionTitle(title: 'Skills'),
+                  if (isBeneficiary) ...[
+                    _SectionTitle(
+                      title: 'Personal Information',
 
-                  const SizedBox(height: 8),
-
-                  if (profile.skills.isEmpty)
-                    _EmptySectionHint(
-                      message:
-                          'Add skills so coordinators know what you offer.',
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-
-                      runSpacing: 8,
-
-                      children: [
-                        for (final skill in profile.skills)
-                          _ChipTag(label: skill),
-                      ],
+                      onEdit: onEditProfile,
                     ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
-                  _InfoRow(
-                    icon: Icons.event_available_outlined,
+                    _InfoRow(
+                      icon: Icons.badge_outlined,
 
-                    label: 'Availability',
+                      label: 'Full name',
 
-                    value: profile.availability,
-                  ),
+                      value: personalProfile.fullName.isEmpty
+                          ? displayName
+                          : personalProfile.fullName,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.call_outlined,
+
+                      label: 'Contact number',
+
+                      value: personalProfile.contactNumber.isEmpty
+                          ? 'Not set'
+                          : personalProfile.contactNumber,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.home_outlined,
+
+                      label: 'Address',
+
+                      value: personalProfile.address.isEmpty
+                          ? 'Not set'
+                          : personalProfile.address,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.cake_outlined,
+
+                      label: 'Date of birth',
+
+                      value: personalProfile.dateOfBirth.isEmpty
+                          ? 'Not set'
+                          : personalProfile.dateOfBirth,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.verified_user_outlined,
+
+                      label: 'Verification documents',
+
+                      value:
+                          '${personalProfile.verifiedDocumentCount}/'
+                          '${personalProfile.documents.length} verified',
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Assistance Needs',
+
+                      onEdit: () => _editAssistanceSection(
+                        context,
+
+                        BeneficiaryProfileSection.assistanceNeeds,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    if (beneficiaryProfile.assistanceNeeds.isEmpty)
+                      _EmptySectionHint(
+                        message:
+                            'Tap the edit icon to tell CARES what your household '
+                            'needs.',
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+
+                        runSpacing: 8,
+
+                        children: [
+                          for (final need
+                              in beneficiaryProfile.assistanceNeedLabels)
+                            _ChipTag(label: need),
+                        ],
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Household Situation',
+
+                      onEdit: () => _editAssistanceSection(
+                        context,
+
+                        BeneficiaryProfileSection.household,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    if (beneficiaryProfile.householdSituation.isEmpty)
+                      _EmptySectionHint(
+                        message:
+                            'Tap the edit icon to add your household situation.',
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+
+                        runSpacing: 8,
+
+                        children: [
+                          for (final item
+                              in beneficiaryProfile.householdSituationLabels)
+                            _ChipTag(label: item),
+                        ],
+                      ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.groups_outlined,
+
+                      label: 'Household size',
+
+                      value: beneficiaryProfile.householdSize != null
+                          ? beneficiaryProfile.householdSizeLabel
+                          : latestRequest == null
+                          ? 'Not set'
+                          : '${latestRequest.householdSize} members',
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Visit Availability',
+
+                      onEdit: () => _editAssistanceSection(
+                        context,
+
+                        BeneficiaryProfileSection.visitAvailability,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    _InfoRow(
+                      icon: Icons.event_available_outlined,
+
+                      label: 'Preferred days & times',
+
+                      value: beneficiaryProfile.availabilityLabel,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(title: 'Needs Assessment'),
+
+                    const SizedBox(height: 8),
+
+                    NeedsAssessmentCard(summary: kMockNeedsAssessment),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.assignment_outlined,
+
+                      label: 'Latest request',
+
+                      value: latestRequest?.title ?? 'None filed yet',
+                    ),
+                  ] else ...[
+                    _SectionTitle(title: 'Interests'),
+
+                    const SizedBox(height: 8),
+
+                    if (profile.interests.isEmpty)
+                      _EmptySectionHint(
+                        message:
+                            'Add your interests to get better event matches.',
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+
+                        runSpacing: 8,
+
+                        children: [
+                          for (final interest in profile.interests)
+                            _ChipTag(label: interest),
+                        ],
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(title: 'Skills'),
+
+                    const SizedBox(height: 8),
+
+                    if (profile.skills.isEmpty)
+                      _EmptySectionHint(
+                        message:
+                            'Add skills so coordinators know what you offer.',
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+
+                        runSpacing: 8,
+
+                        children: [
+                          for (final skill in profile.skills)
+                            _ChipTag(label: skill),
+                        ],
+                      ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      icon: Icons.event_available_outlined,
+
+                      label: 'Availability',
+
+                      value: profile.availability,
+                    ),
+                  ],
 
                   const SizedBox(height: 20),
 
@@ -208,20 +465,37 @@ class ProfileTabScreen extends StatelessWidget {
                         ),
                   ),
 
-                  ListenableBuilder(
-                    listenable: EventFeedbackStore.instance,
+                  if (isBeneficiary)
+                    _MenuTile(
+                      icon: Icons.request_page_outlined,
 
-                    builder: (context, _) => _MenuTile(
-                      icon: Icons.workspace_premium_outlined,
+                      label: 'My Requests',
 
-                      label: 'Certificates',
+                      trailingLabel: '${requestStore.history.length}',
 
-                      trailingLabel:
-                          '${earnedCertificatesFor(certificateWalletEmail()).length}',
+                      onTap:
+                          onOpenRequests ??
+                          () => _showMockAction(
+                            context,
 
-                      onTap: () => ProfileCertificatesScreen.open(context),
+                            'Open the Request tab to manage your requests.',
+                          ),
+                    )
+                  else
+                    ListenableBuilder(
+                      listenable: EventFeedbackStore.instance,
+
+                      builder: (context, _) => _MenuTile(
+                        icon: Icons.workspace_premium_outlined,
+
+                        label: 'Certificates',
+
+                        trailingLabel:
+                            '${earnedCertificatesFor(certificateWalletEmail()).length}',
+
+                        onTap: () => ProfileCertificatesScreen.open(context),
+                      ),
                     ),
-                  ),
 
                   _MenuTile(
                     icon: Icons.help_outline,
@@ -289,6 +563,8 @@ class _ResolvedProfile {
     required VolunteerProfile? volunteerProfile,
 
     required bool profileComplete,
+
+    String? roleLabel,
   }) {
     final hasVolunteerData =
         volunteerProfile != null &&
@@ -301,7 +577,7 @@ class _ResolvedProfile {
 
       email: email ?? mockProfile.email,
 
-      roleLabel: mockProfile.roleLabel,
+      roleLabel: roleLabel ?? mockProfile.roleLabel,
 
       memberSince: mockProfile.memberSince,
 
@@ -577,13 +853,17 @@ class _CompletionBanner extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
+  const _SectionTitle({required this.title, this.onEdit});
 
   final String title;
 
+  /// Optional per-section edit action — used by the beneficiary assistance,
+  /// household, and visit-availability cards.
+  final VoidCallback? onEdit;
+
   @override
   Widget build(BuildContext context) {
-    return Text(
+    final label = Text(
       title,
 
       style: const TextStyle(
@@ -593,6 +873,30 @@ class _SectionTitle extends StatelessWidget {
 
         color: AppColors.primaryDark,
       ),
+    );
+
+    if (onEdit == null) return label;
+
+    return Row(
+      children: [
+        Expanded(child: label),
+
+        IconButton(
+          onPressed: onEdit,
+
+          icon: const Icon(Icons.edit_outlined, size: 18),
+
+          color: AppColors.primary,
+
+          tooltip: 'Edit $title',
+
+          visualDensity: VisualDensity.compact,
+
+          padding: EdgeInsets.zero,
+
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        ),
+      ],
     );
   }
 }

@@ -7,8 +7,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
+import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/features/auth/presentation/widgets/verification_code_input.dart';
-import 'package:mobile/features/dashboard/presentation/screens/home_screen.dart';
 
 class EmailVerificationScreen extends ConsumerStatefulWidget {
   const EmailVerificationScreen({
@@ -119,10 +119,7 @@ class _EmailVerificationScreenState
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -169,15 +166,15 @@ class _EmailVerificationScreenState
     }
   }
 
-  void _goToHome() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => HomeScreen(
-          email: widget.email,
-          firstName: widget.ocrData.firstname,
-        ),
-      ),
-      (_) => false,
+  /// Lands on the dashboard for the role the user registered under — a
+  /// beneficiary must never end up on the volunteer dashboard.
+  void _goToRoleDashboard() {
+    DashboardRouter.navigateToRoleDashboard(
+      context,
+      roleType: widget.roleType.apiValue,
+      email: widget.email,
+      firstName: widget.ocrData.firstname,
+      lastName: widget.ocrData.lastname,
     );
   }
 
@@ -209,7 +206,7 @@ class _EmailVerificationScreenState
 
       if (!mounted) return;
 
-      _goToHome();
+      _goToRoleDashboard();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -217,7 +214,9 @@ class _EmailVerificationScreenState
         _code = '';
       });
       _showError(
-        e is ApiException ? e.message : 'Registration failed. Please try again.',
+        e is ApiException
+            ? e.message
+            : 'Registration failed. Please try again.',
       );
     }
   }
@@ -258,9 +257,9 @@ class _EmailVerificationScreenState
                     Text(
                       'Check your inbox',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryDark,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -318,7 +317,9 @@ class _EmailVerificationScreenState
                     if (_isSubmitting) ...[
                       const SizedBox(height: 20),
                       const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -381,8 +382,9 @@ class _EmailVerificationScreenState
                     ),
                     const SizedBox(height: 8),
                     TextButton(
-                      onPressed:
-                          _canResend ? () => unawaited(_resendCode()) : null,
+                      onPressed: _canResend
+                          ? () => unawaited(_resendCode())
+                          : null,
                       child: Text(_isResending ? 'Sending…' : 'Resend code'),
                     ),
                     const SizedBox(height: 24),
