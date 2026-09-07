@@ -28,7 +28,9 @@
     "seed:admin": "pnpm run seed admin",
     "seed:director": "pnpm run seed director",
     "seed:events": "pnpm run seed events",
-    "seed:access-control": "pnpm run seed access-control"
+    "seed:attendance": "pnpm run seed attendance",
+    "seed:access-control": "pnpm run seed access-control",
+    "seed:monthly-reports": "pnpm run seed monthly-reports"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1058.0",

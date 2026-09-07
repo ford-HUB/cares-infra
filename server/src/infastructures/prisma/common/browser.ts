@@ -127,6 +127,14 @@ export type UserInterest = Prisma.UserInterestModel
  */
 export type Event = Prisma.EventModel
 /**
+ * Model EventAttendance
+ * One volunteer's registration for one event, plus whatever validation has ruled so far.
+ * The row is created on registration and stays PENDING until the coordinates are in and
+ * judged: before the event, while it runs, and after it for as long as an offline device
+ * still has not pushed.
+ */
+export type EventAttendance = Prisma.EventAttendanceModel
+/**
  * Model Conversation
  * Direct (1:1) portal messaging. Participants are portal staff — volunteers use
  * the mobile app and are not addressable here.
@@ -159,3 +167,71 @@ export type SupportTicket = Prisma.SupportTicketModel
  * 
  */
 export type SupportTicketReply = Prisma.SupportTicketReplyModel
+/**
+ * Model CertificateTemplate
+ * A certificate design a director maintains in the portal. Everything that is pure
+ * drawing instruction — accent, frame, per-block position, fonts, sizes, wording,
+ * seal and where each imported image sits — lives in `design`, shaped by
+ * `CertificateDesignSchema`. It is one document edited as a whole by one screen, so
+ * splitting it into columns would buy nothing and cost a migration per control the
+ * customizer gains. What is *not* in there is anything another feature has to join
+ * on: the signatory accounts and the uploaded files are their own rows.
+ */
+export type CertificateTemplate = Prisma.CertificateTemplateModel
+/**
+ * Model CertificateTemplateSignatory
+ * One printed signature line. The coordinator account is the source of truth for the
+ * signature image, so the line stores the account rather than typed text; the printed
+ * strings are snapshotted beside it so a later rename or transfer cannot silently
+ * reword a template certificates were already issued from.
+ */
+export type CertificateTemplateSignatory = Prisma.CertificateTemplateSignatoryModel
+/**
+ * Model CertificateTemplateAsset
+ * A file a director imported onto a sheet. The bytes live in the private S3 bucket,
+ * so `design` references the row by id and the portal reads the bytes back through
+ * `GET /v1/certificate-templates/:id/assets/:assetId` — an `<img src>` pointed at the
+ * stored object URL would render broken.
+ */
+export type CertificateTemplateAsset = Prisma.CertificateTemplateAssetModel
+/**
+ * Model CertificateDeployment
+ * One template deployed to one event — what the live certificates page lists. The
+ * design, the signature lines and the event's own details are all frozen into the row
+ * at deploy time: the template it came from stays editable, and a certificate already
+ * promised to a volunteer must not silently change wording when a director tidies the
+ * template up afterwards. The template is still referenced, because the frozen design
+ * points at that template's stored artwork.
+ */
+export type CertificateDeployment = Prisma.CertificateDeploymentModel
+/**
+ * Model MonthlyReportFolder
+ * A named tray the director builds on top of the automatic filing — an accreditation
+ * packet, a set pulled for a board meeting. College folders are *not* rows: they are
+ * derived from each report's `department`, so every approved report has a home before
+ * anyone files it anywhere, and deleting a folder only drops it back to its college.
+ */
+export type MonthlyReportFolder = Prisma.MonthlyReportFolderModel
+/**
+ * Model MonthlyReport
+ * One coordinator submission for one reporting month. The submitter's name, email and
+ * post are snapshotted beside the account: a report already decided on must keep
+ * reading the way it read on the day, even if the coordinator is renamed or moves
+ * college.
+ */
+export type MonthlyReport = Prisma.MonthlyReportModel
+/**
+ * Model MonthlyReportDocument
+ * A file attached to a submission. The bytes live in the private S3 bucket, so the
+ * row holds the object key and the portal reads them back through
+ * `GET /v1/monthly-reports/:id/documents/:documentId` — a stored object URL in an
+ * `<a href>` would 403.
+ */
+export type MonthlyReportDocument = Prisma.MonthlyReportDocumentModel
+/**
+ * Model MonthlyReportTrailEntry
+ * Append-only history of the submission: who submitted, who decided, and the note
+ * that came with it. This is the report's own record, kept beside the entry rather
+ * than in the global audit log because the coordinator reads it too.
+ */
+export type MonthlyReportTrailEntry = Prisma.MonthlyReportTrailEntryModel

@@ -1,10 +1,22 @@
 import { AuthRepository } from '../repositories/auth-repository';
 import {
+  AccessRequestDto,
+  AccessRequestResponseDto,
   AdminLoginResponseDto,
   LoginDto,
   MeResponseDto,
 } from '../dto/auth-site-dto';
 import {
+  ACCESS_REQUEST_ALLOWED_MIME_TYPES,
+  ACCESS_REQUEST_MAX_FILES,
+  ACCESS_REQUEST_MAX_FILE_BYTES,
+  ACCESS_REQUEST_MAX_TOTAL_BYTES,
+} from '../validators/auth-site-validator';
+import { NodemailerService } from 'src/infastructures/nodemailer/nodemailer-service';
+import type { MailAttachment } from 'src/infastructures/nodemailer/nodemailer-service';
+import {
+  BadGatewayException,
+  BadRequestException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
@@ -35,6 +47,7 @@ export class AuthSiteService {
     private readonly sessionRegistry: SessionRegistry,
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
     private readonly auditLogRecorder: AuditLogRecorder,
+    private readonly nodemailerService: NodemailerService,
   ) {}
 
   async adminLogin(
@@ -302,5 +315,100 @@ export class AuthSiteService {
       role_type: profile.role.type,
       is_protected: isProtectedAdminEmail(email, this.configService),
     };
+  }
+
+  /**
+   * Request Access on the portal login page: relays the applicant's message and their
+   * ID attachments to the CARES support inbox. No account is created here — an admin
+   * reads the mail and provisions the account manually.
+   */
+  async submitAccessRequest(
+    data: AccessRequestDto,
+    files: Express.Multer.File[] = [],
+  ): Promise<AccessRequestResponseDto> {
+    const attachments = this.buildAccessRequestAttachments(files);
+    const recipient =
+      this.configService.get<string>('ACCESS_REQUEST_EMAIL') ??
+      'careeesadmin@gmail.com';
+
+    try {
+      await this.nodemailerService.sendEmail(
+        recipient,
+        data.subject,
+        this.renderAccessRequestEmail(data, attachments),
+        { replyTo: data.from_email, attachments },
+      );
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : 'Email delivery failed';
+      throw new BadGatewayException(
+        `Unable to send your access request. ${detail}`,
+      );
+    }
+
+    return {
+      delivered_to: recipient,
+      attachment_count: attachments.length,
+    };
+  }
+
+  private buildAccessRequestAttachments(
+    files: Express.Multer.File[],
+  ): MailAttachment[] {
+    if (files.length > ACCESS_REQUEST_MAX_FILES) {
+      throw new BadRequestException(
+        `Attach at most ${ACCESS_REQUEST_MAX_FILES} files`,
+      );
+    }
+
+    let total = 0;
+    return files.map((file) => {
+      if (!file.size) {
+        throw new BadRequestException(`${file.originalname} is empty`);
+      }
+      if (file.size > ACCESS_REQUEST_MAX_FILE_BYTES) {
+        throw new BadRequestException(
+          `${file.originalname} exceeds the 5 MB per-file limit`,
+        );
+      }
+      if (!ACCESS_REQUEST_ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+        throw new BadRequestException(
+          `${file.originalname} is not an accepted file type`,
+        );
+      }
+
+      total += file.size;
+      if (total > ACCESS_REQUEST_MAX_TOTAL_BYTES) {
+        throw new BadRequestException(
+          'The attachments exceed the 15 MB combined limit',
+        );
+      }
+
+      return {
+        filename: file.originalname,
+        content: file.buffer,
+        contentType: file.mimetype,
+      };
+    });
+  }
+
+  private renderAccessRequestEmail(
+    data: AccessRequestDto,
+    attachments: MailAttachment[],
+  ): string {
+    const escape = (value: string) =>
+      value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const attachmentList = attachments.length
+      ? attachments.map((file) => `<li>${escape(file.filename)}</li>`).join('')
+      : '<li>None</li>';
+
+    return `
+      <p><strong>From:</strong> ${escape(data.from_email)}</p>
+      <p><strong>Subject:</strong> ${escape(data.subject)}</p>
+      <pre style="font-family: inherit; white-space: pre-wrap;">${escape(data.body)}</pre>
+      <p><strong>Attachments</strong></p>
+      <ul>${attachmentList}</ul>
+    `;
   }
 }

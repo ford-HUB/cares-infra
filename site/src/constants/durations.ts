@@ -2,7 +2,6 @@
 export const MOCK_API_DELAY_MS = {
   default: 300,
   forgotPassword: 600,
-  requestAccess: 800,
 } as const
 
 export function delay(ms: number): Promise<void> {

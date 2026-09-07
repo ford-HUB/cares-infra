@@ -34,3 +34,34 @@ export const MeResponseSchema = z.object({
   /** The root operator account — its sign-in email is fixed. */
   is_protected: z.boolean(),
 });
+
+/** Mirrors the portal's Request Access form limits (site/src/constants/request-access.ts). */
+export const ACCESS_REQUEST_MAX_FILES = 5;
+export const ACCESS_REQUEST_MAX_FILE_BYTES = 5 * 1024 * 1024;
+export const ACCESS_REQUEST_MAX_TOTAL_BYTES = 15 * 1024 * 1024;
+
+export const ACCESS_REQUEST_ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+];
+
+export const AccessRequestSchema = z
+  .object({
+    from_email: z
+      .string()
+      .trim()
+      .email()
+      .transform((value) => value.toLowerCase()),
+    subject: z.string().trim().min(1).max(200),
+    body: z.string().trim().min(20).max(10000),
+  })
+  .strict();
+
+export const AccessRequestResponseSchema = z.object({
+  delivered_to: z.string(),
+  attachment_count: z.number(),
+});

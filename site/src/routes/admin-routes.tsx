@@ -8,6 +8,8 @@ import { AdminSettingsLayout } from '../pages/admin/admin-settings'
 import { AccessControlPage } from '../pages/admin/access-control'
 import { AttendanceLogPage } from '../pages/admin/attendance-log'
 import { AuditLogsPage } from '../pages/admin/audit-logs'
+import { CertificateTemplatesPage } from '../pages/admin/certificate-templates'
+import { DeployedCertificatesPage } from '../pages/admin/deployed-certificates'
 import { EventAttendeesPage } from '../pages/admin/event-attendees'
 import { EventCalendarPage } from '../pages/admin/event-calendar'
 import { InternalDonationTrackingPage } from '../pages/admin/internal-donation-tracking'
@@ -15,11 +17,15 @@ import { EventMapPage } from '../pages/shared/event-map-page'
 import { ActiveSessionsPage } from '../pages/admin/active-sessions'
 import { LoginActivityPage } from '../pages/admin/login-activity'
 import { MailInboxPage } from '../pages/admin/mail-inbox'
+import { MaintenancePage } from '../pages/admin/maintenance'
 import { ManageUsersPage } from '../pages/admin/manage-users'
+import { MonthlyReportsPage } from '../pages/admin/monthly-reports'
+import { QueueReviewerPage } from '../pages/admin/queue-reviewer'
 import { RankingCustomizationPage } from '../pages/admin/ranking-customization'
 import { RankingsPage } from '../pages/admin/rankings'
 import { SecurityPoliciesPage } from '../pages/admin/security-policies'
 import { SupportTicketsPage } from '../pages/admin/support-tickets'
+import { SystemServicesPage } from '../pages/admin/system-services'
 import { UserRequestPage } from '../pages/admin/user-request'
 import { ChatPage } from '../pages/shared/chat-page'
 import { createPlaceholderPage } from '../pages/shared/create-placeholder-page'
@@ -31,14 +37,6 @@ const Statistics = createPlaceholderPage('Statistics', 'Charts and analytics for
 const SystemPerformance = createPlaceholderPage('System Performance', 'Server and application performance metrics.')
 const BackupRecovery = createPlaceholderPage('Backup & Recovery', 'Database backup schedule and restore points.')
 const SystemNotices = createPlaceholderPage('System Notices', 'Portal-wide announcements and system alerts.')
-const SystemServices = createPlaceholderPage('System Services', 'Status and controls for CARES backend services.')
-const Maintenance = createPlaceholderPage('Maintenance', 'System maintenance mode and housekeeping tasks.')
-const PostRequirements = createPlaceholderPage('Post Monthly Report', 'Publish monthly reporting requirements.')
-const TemplatePage = createPlaceholderPage('Certificate Templates', 'Manage certificate template categories.')
-const DeployedCertificateTemplates = createPlaceholderPage(
-  'Deployed Certificate Templates',
-  'View and manage deployed certificate templates.',
-)
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -56,8 +54,8 @@ export const adminRoutes: RouteObject[] = [
           { path: 'chat', element: <ChatPage /> },
           { path: 'backup-recovery', element: <BackupRecovery /> },
           { path: 'system-notices', element: <SystemNotices /> },
-          { path: 'system-services', element: <SystemServices /> },
-          { path: 'maintenance', element: <Maintenance /> },
+          { path: 'system-services', element: <SystemServicesPage /> },
+          { path: 'maintenance', element: <MaintenancePage /> },
           {
             path: 'settings',
             element: <AdminSettingsLayout />,
@@ -87,7 +85,11 @@ export const adminRoutes: RouteObject[] = [
               { path: 'support-tickets', element: <SupportTicketsPage /> },
             ],
           },
-          { path: 'post-requirements', element: <PostRequirements /> },
+          // Reviewing and the filed library are two different jobs, so they are two
+          // screens; `post-requirements` is the queue's original path, kept working.
+          { path: 'report-queue', element: <QueueReviewerPage /> },
+          { path: 'post-requirements', element: <QueueReviewerPage /> },
+          { path: 'monthly-reports', element: <MonthlyReportsPage /> },
           { path: 'internal-donation-tracking', element: <InternalDonationTrackingPage /> },
           { path: 'event-list', element: <ManageEventsPage /> },
           { path: 'attendance-log', element: <AttendanceLogPage /> },
@@ -96,8 +98,8 @@ export const adminRoutes: RouteObject[] = [
           { path: 'event-calendar', element: <EventCalendarPage /> },
           { path: 'rankings', element: <RankingsPage /> },
           { path: 'ranking-customization', element: <RankingCustomizationPage /> },
-          { path: 'templates-list', element: <TemplatePage /> },
-          { path: 'deployed-certificate-templates', element: <DeployedCertificateTemplates /> },
+          { path: 'templates-list', element: <CertificateTemplatesPage /> },
+          { path: 'deployed-certificate-templates', element: <DeployedCertificatesPage /> },
           { path: 'notifications', element: <NotificationsPage /> },
           { path: 'payment-status', element: createPlaceholderPage('Payment Status')() },
           { path: 'map', element: createPlaceholderPage('Map')() },

@@ -1,12 +1,27 @@
 import { AuthSiteService } from '../services/auth-site-service';
-import { Controller, Get, Headers, HttpCode, Ip, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  Ip,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ZBody, ZSerialize } from 'nest-zod';
 import {
+  ACCESS_REQUEST_MAX_FILES,
+  AccessRequestResponseSchema,
+  AccessRequestSchema,
   AdminLoginResponseSchema,
   LoginSchema,
   MeResponseSchema,
 } from '../validators/auth-site-validator';
 import type {
+  AccessRequestDto,
+  AccessRequestResponseDto,
   AdminLoginResponseDto,
   LoginDto,
   MeResponseDto,
@@ -48,6 +63,19 @@ export class AuthSiteController {
     @RequestContext() context: RequestContextDto,
   ): Promise<void> {
     await this.authSiteService.logout(user, context);
+  }
+
+  @Post('access-request')
+  @Public()
+  @HttpCode(200)
+  @ResponseMessage('Access request sent')
+  @ZSerialize(AccessRequestResponseSchema)
+  @UseInterceptors(FilesInterceptor('attachments', ACCESS_REQUEST_MAX_FILES))
+  async submitAccessRequest(
+    @ZBody(AccessRequestSchema) data: AccessRequestDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ): Promise<AccessRequestResponseDto> {
+    return await this.authSiteService.submitAccessRequest(data, files);
   }
 
   @Get('me')

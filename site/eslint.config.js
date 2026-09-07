@@ -19,4 +19,13 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // shadcn CLI output — generated primitives export their cva variants alongside
+    // the component, which the fast-refresh rule rejects. The directory is owned by
+    // the CLI, so the rule is relaxed here instead of hand-editing the files.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

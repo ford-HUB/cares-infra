@@ -1,23 +1,19 @@
-import { Link } from 'react-router-dom'
-import { LOGIN_PATH } from '../../config/auth-redirect'
+import { LandingCapabilities } from '../../components/public/landing-capabilities'
+import { LandingFooter } from '../../components/public/landing-footer'
+import { LandingHeader } from '../../components/public/landing-header'
+import { LandingHero } from '../../components/public/landing-hero'
+import { LandingRoles } from '../../components/public/landing-roles'
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[var(--cares-bg)] p-8 text-center">
-      <img src="/transparent-logo.png" alt="CARES" className="h-20 w-20 object-contain" />
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">CARES Administrator Portal</h1>
-        <p className="mt-2 max-w-lg text-base text-gray-600">
-          Sign in once as Admin, Director, or Coordinator. Backend
-          wiring is deferred — mock services are enabled by default.
-        </p>
-      </div>
-      <Link
-        to={LOGIN_PATH}
-        className="rounded-lg bg-[var(--cares-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--cares-primary-hover)]"
-      >
-        Sign in
-      </Link>
+    <div className="flex min-h-screen flex-col bg-[var(--cares-bg)]">
+      <LandingHeader />
+      <main className="flex-1">
+        <LandingHero />
+        <LandingRoles />
+        <LandingCapabilities />
+      </main>
+      <LandingFooter />
     </div>
   )
 }

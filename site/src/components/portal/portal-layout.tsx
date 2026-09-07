@@ -33,8 +33,10 @@ export function PortalLayout({ nav, title }: PortalLayoutProps) {
     }
   }, [ensureProfile, user])
 
+  // Pinned to the viewport rather than sized with h-screen/h-full: the shell covers
+  // exactly what is on screen, whatever height the document ends up with.
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--cares-bg)]">
+    <div className="fixed inset-0 flex overflow-hidden bg-[var(--cares-bg)]">
       <div onMouseEnter={onSidebarEnter} onMouseLeave={onSidebarLeave}>
         <PortalSidebar
           config={nav}

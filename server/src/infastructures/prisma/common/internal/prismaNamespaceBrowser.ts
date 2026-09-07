@@ -70,12 +70,21 @@ export const ModelName = {
   Interest: 'Interest',
   UserInterest: 'UserInterest',
   Event: 'Event',
+  EventAttendance: 'EventAttendance',
   Conversation: 'Conversation',
   ConversationParticipant: 'ConversationParticipant',
   ChatMessage: 'ChatMessage',
   ChatAttachment: 'ChatAttachment',
   SupportTicket: 'SupportTicket',
-  SupportTicketReply: 'SupportTicketReply'
+  SupportTicketReply: 'SupportTicketReply',
+  CertificateTemplate: 'CertificateTemplate',
+  CertificateTemplateSignatory: 'CertificateTemplateSignatory',
+  CertificateTemplateAsset: 'CertificateTemplateAsset',
+  CertificateDeployment: 'CertificateDeployment',
+  MonthlyReportFolder: 'MonthlyReportFolder',
+  MonthlyReport: 'MonthlyReport',
+  MonthlyReportDocument: 'MonthlyReportDocument',
+  MonthlyReportTrailEntry: 'MonthlyReportTrailEntry'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,6 +423,24 @@ export const EventScalarFieldEnum = {
 export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
 
 
+export const EventAttendanceScalarFieldEnum = {
+  event_attendance_id: 'event_attendance_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  status: 'status',
+  validation_method: 'validation_method',
+  first_ping_at: 'first_ping_at',
+  last_ping_at: 'last_ping_at',
+  hours_rendered: 'hours_rendered',
+  remarks: 'remarks',
+  registered_at: 'registered_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventAttendanceScalarFieldEnum = (typeof EventAttendanceScalarFieldEnum)[keyof typeof EventAttendanceScalarFieldEnum]
+
+
 export const ConversationScalarFieldEnum = {
   conversation_id: 'conversation_id',
   last_message_at: 'last_message_at',
@@ -488,6 +515,148 @@ export const SupportTicketReplyScalarFieldEnum = {
 } as const
 
 export type SupportTicketReplyScalarFieldEnum = (typeof SupportTicketReplyScalarFieldEnum)[keyof typeof SupportTicketReplyScalarFieldEnum]
+
+
+export const CertificateTemplateScalarFieldEnum = {
+  certificate_template_id: 'certificate_template_id',
+  reference: 'reference',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  status: 'status',
+  orientation: 'orientation',
+  issued: 'issued',
+  deployed_events: 'deployed_events',
+  design: 'design',
+  updated_by_user_id: 'updated_by_user_id',
+  updated_by_name: 'updated_by_name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CertificateTemplateScalarFieldEnum = (typeof CertificateTemplateScalarFieldEnum)[keyof typeof CertificateTemplateScalarFieldEnum]
+
+
+export const CertificateTemplateSignatoryScalarFieldEnum = {
+  certificate_template_signatory_id: 'certificate_template_signatory_id',
+  certificate_template_id: 'certificate_template_id',
+  coordinator_user_id: 'coordinator_user_id',
+  name: 'name',
+  title: 'title',
+  department: 'department',
+  signature_token: 'signature_token',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CertificateTemplateSignatoryScalarFieldEnum = (typeof CertificateTemplateSignatoryScalarFieldEnum)[keyof typeof CertificateTemplateSignatoryScalarFieldEnum]
+
+
+export const CertificateTemplateAssetScalarFieldEnum = {
+  certificate_template_asset_id: 'certificate_template_asset_id',
+  certificate_template_id: 'certificate_template_id',
+  kind: 'kind',
+  storage_key: 'storage_key',
+  file_name: 'file_name',
+  content_type: 'content_type',
+  byte_size: 'byte_size',
+  createdAt: 'createdAt'
+} as const
+
+export type CertificateTemplateAssetScalarFieldEnum = (typeof CertificateTemplateAssetScalarFieldEnum)[keyof typeof CertificateTemplateAssetScalarFieldEnum]
+
+
+export const CertificateDeploymentScalarFieldEnum = {
+  certificate_deployment_id: 'certificate_deployment_id',
+  reference: 'reference',
+  certificate_template_id: 'certificate_template_id',
+  template_name: 'template_name',
+  category: 'category',
+  orientation: 'orientation',
+  design: 'design',
+  event_id: 'event_id',
+  event_name: 'event_name',
+  event_venue: 'event_venue',
+  event_date: 'event_date',
+  status: 'status',
+  participants: 'participants',
+  distributed: 'distributed',
+  claimed: 'claimed',
+  deployed_by_user_id: 'deployed_by_user_id',
+  deployed_by_name: 'deployed_by_name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CertificateDeploymentScalarFieldEnum = (typeof CertificateDeploymentScalarFieldEnum)[keyof typeof CertificateDeploymentScalarFieldEnum]
+
+
+export const MonthlyReportFolderScalarFieldEnum = {
+  monthly_report_folder_id: 'monthly_report_folder_id',
+  name: 'name',
+  created_by_user_id: 'created_by_user_id',
+  created_by_name: 'created_by_name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonthlyReportFolderScalarFieldEnum = (typeof MonthlyReportFolderScalarFieldEnum)[keyof typeof MonthlyReportFolderScalarFieldEnum]
+
+
+export const MonthlyReportScalarFieldEnum = {
+  monthly_report_id: 'monthly_report_id',
+  reference: 'reference',
+  title: 'title',
+  period: 'period',
+  department: 'department',
+  status: 'status',
+  summary: 'summary',
+  metric_events: 'metric_events',
+  metric_volunteers: 'metric_volunteers',
+  metric_service_hours: 'metric_service_hours',
+  metric_beneficiaries: 'metric_beneficiaries',
+  submitted_by_user_id: 'submitted_by_user_id',
+  submitted_by_name: 'submitted_by_name',
+  submitted_by_email: 'submitted_by_email',
+  submitted_by_title: 'submitted_by_title',
+  submitted_at: 'submitted_at',
+  reviewer_user_id: 'reviewer_user_id',
+  reviewer_name: 'reviewer_name',
+  decided_at: 'decided_at',
+  decision_note: 'decision_note',
+  folder_id: 'folder_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonthlyReportScalarFieldEnum = (typeof MonthlyReportScalarFieldEnum)[keyof typeof MonthlyReportScalarFieldEnum]
+
+
+export const MonthlyReportDocumentScalarFieldEnum = {
+  monthly_report_document_id: 'monthly_report_document_id',
+  monthly_report_id: 'monthly_report_id',
+  file_name: 'file_name',
+  kind: 'kind',
+  storage_key: 'storage_key',
+  content_type: 'content_type',
+  byte_size: 'byte_size',
+  createdAt: 'createdAt'
+} as const
+
+export type MonthlyReportDocumentScalarFieldEnum = (typeof MonthlyReportDocumentScalarFieldEnum)[keyof typeof MonthlyReportDocumentScalarFieldEnum]
+
+
+export const MonthlyReportTrailEntryScalarFieldEnum = {
+  monthly_report_trail_entry_id: 'monthly_report_trail_entry_id',
+  monthly_report_id: 'monthly_report_id',
+  action: 'action',
+  actor_name: 'actor_name',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type MonthlyReportTrailEntryScalarFieldEnum = (typeof MonthlyReportTrailEntryScalarFieldEnum)[keyof typeof MonthlyReportTrailEntryScalarFieldEnum]
 
 
 export const SortOrder = {

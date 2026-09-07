@@ -5,7 +5,7 @@ import { EVENT_CATEGORIES } from '../../constants/event'
 import type { CalendarCategoryFilter } from '../../hooks/use-event-calendar'
 import type { CalendarEvent, CalendarView } from '../../types/calendar'
 import type { EventCategory } from '../../types/event'
-import { monthGridDays, weekDays } from '../../utils/calendar-layout'
+import { eventsInDays, monthGridDays, weekDays } from '../../utils/calendar-layout'
 import { CalendarEventModal } from './ui/calendar-event-modal'
 import { CalendarLegend } from './ui/calendar-legend'
 import { CalendarMonthGrid } from './ui/calendar-month-grid'
@@ -63,10 +63,7 @@ export function EventCalendar({
   }, [view, cursor])
 
   const inRange = useMemo(
-    () =>
-      events.filter((event) =>
-        visibleDays.some((day) => day.isSame(event.start, 'day')),
-      ),
+    () => eventsInDays(events, visibleDays),
     [events, visibleDays],
   )
 

@@ -1,12 +1,6 @@
-import dayjs, { type Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import type { AuditLogActor, AuditLogEntry } from '../types/audit-log'
-import type { CalendarEvent } from '../types/calendar'
-import type { EventCategory, EventStatus } from '../types/event'
-import type {
-  AttendanceStatus,
-  EventAttendee,
-  GeoValidationMethod,
-} from '../types/attendee'
+import type { AttendanceStatus, GeoValidationMethod } from '../types/attendee'
 import type {
   LiveAttendanceSnapshot,
   LiveAttendanceState,
@@ -14,6 +8,17 @@ import type {
 import type { NotificationFeed } from '../types/notification'
 import { formatTicketReference } from '../constants/support-tickets'
 import type { SupportTicket } from '../types/support-ticket'
+import type {
+  Announcement,
+  MaintenanceMode,
+  MaintenanceWindow,
+} from '../types/maintenance'
+import type {
+  ServiceLogEntry,
+  ServiceRun,
+  ServiceState,
+  SystemService,
+} from '../types/system-service'
 
 export const mockNotifications: NotificationFeed = {
   summary: { total: 5, unread: 2, read: 3 },
@@ -1013,395 +1018,6 @@ export const mockDepartmentOverview = {
 }
 
 /**
- * Event attendance roster. The attendance endpoint is not built yet, so the portal
- * reads this through `attendee-service` — the shape already matches what the server
- * will return, so the swap is a body-only change in that service.
- */
-const dayOffset = (days: number, hour = 8, minute = 0) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  date.setHours(hour, minute, 0, 0)
-  return date.toISOString()
-}
-
-interface AttendeeSeed {
-  first: string
-  last: string
-  department: string
-  yearLevel: string
-  contact: string
-  status: AttendanceStatus
-  method?: GeoValidationMethod
-  checkInHour?: number
-  checkOutHour?: number
-  hours?: number
-  remarks?: string
-}
-
-interface AttendeeEventSeed {
-  eventId: number
-  title: string
-  /** Days from today — negative for events that already ran. */
-  offsetDays: number
-  attendees: AttendeeSeed[]
-}
-
-const attendeeEventSeeds: AttendeeEventSeed[] = [
-  {
-    eventId: 101,
-    title: 'Coastal Clean-Up Drive',
-    offsetDays: -6,
-    attendees: [
-      { first: 'Jomar', last: 'Estrada', department: 'CCS', yearLevel: '3rd Year', contact: '+63 917 100 1101', status: 'completed', method: 'geofence', checkInHour: 7, checkOutHour: 12, hours: 5 },
-      { first: 'Alyssa', last: 'Rubio', department: 'CCS', yearLevel: '2nd Year', contact: '+63 917 100 1102', status: 'completed', method: 'geofence', checkInHour: 7, checkOutHour: 12, hours: 5 },
-      { first: 'Kenneth', last: 'Villanueva', department: 'CEA', yearLevel: '4th Year', contact: '+63 917 100 1103', status: 'completed', method: 'offline_sync', checkInHour: 8, checkOutHour: 12, hours: 4, remarks: 'No signal on site — coordinates pushed the next morning.' },
-      { first: 'Marianne', last: 'Solon', department: 'CBA', yearLevel: '1st Year', contact: '+63 917 100 1104', status: 'absent', remarks: 'Did not arrive; no coordinates recorded.' },
-      { first: 'Ray', last: 'Padilla', department: 'CAS', yearLevel: '3rd Year', contact: '+63 917 100 1105', status: 'absent', method: 'geofence', checkInHour: 8, checkOutHour: 9, hours: 0, remarks: 'Left the event area after an hour — validation did not pass.' },
-      { first: 'Chesca', last: 'Lim', department: 'CCS', yearLevel: '2nd Year', contact: '+63 917 100 1106', status: 'absent', remarks: 'Withdrew two days before the event; no coordinates recorded.' },
-    ],
-  },
-  {
-    eventId: 102,
-    title: 'Medical Outreach — Barangay Talamban',
-    offsetDays: -2,
-    attendees: [
-      { first: 'Dianne', last: 'Cabrera', department: 'CNAHS', yearLevel: '4th Year', contact: '+63 917 100 1201', status: 'completed', method: 'geofence', checkInHour: 6, checkOutHour: 14, hours: 8 },
-      { first: 'Paulo', last: 'Mendez', department: 'CNAHS', yearLevel: '4th Year', contact: '+63 917 100 1202', status: 'completed', method: 'geofence', checkInHour: 6, checkOutHour: 14, hours: 8 },
-      { first: 'Trisha', last: 'Bacus', department: 'CNAHS', yearLevel: '3rd Year', contact: '+63 917 100 1203', status: 'completed', method: 'offline_sync', checkInHour: 7, checkOutHour: 14, hours: 7 },
-      { first: 'Ivan', last: 'Delos Reyes', department: 'CAS', yearLevel: '2nd Year', contact: '+63 917 100 1204', status: 'pending', method: 'awaiting_sync', checkInHour: 7, remarks: 'Device still offline — coordinates not pushed yet.' },
-      { first: 'Grace', last: 'Ortega', department: 'CBA', yearLevel: '3rd Year', contact: '+63 917 100 1205', status: 'absent' },
-      { first: 'Nino', last: 'Almirante', department: 'CEA', yearLevel: '1st Year', contact: '+63 917 100 1206', status: 'completed', method: 'geofence', checkInHour: 8, checkOutHour: 13, hours: 5 },
-      { first: 'Sam', last: 'Yap', department: 'CCS', yearLevel: '4th Year', contact: '+63 917 100 1207', status: 'completed', method: 'manual', checkInHour: 8, checkOutHour: 13, hours: 5, remarks: 'Phone battery died — coordinator vouched for the full duration.' },
-    ],
-  },
-  {
-    eventId: 103,
-    title: 'Feeding Program — Sitio Kalunasan',
-    offsetDays: 0,
-    attendees: [
-      { first: 'Bea', last: 'Fernandez', department: 'CBA', yearLevel: '2nd Year', contact: '+63 917 100 1301', status: 'pending', method: 'geofence', checkInHour: 8, remarks: 'Event still running — validation has not ruled yet.' },
-      { first: 'Miguel', last: 'Tan', department: 'CCS', yearLevel: '3rd Year', contact: '+63 917 100 1302', status: 'pending', method: 'geofence', checkInHour: 8, remarks: 'Event still running — validation has not ruled yet.' },
-      { first: 'Loraine', last: 'Abella', department: 'CAS', yearLevel: '1st Year', contact: '+63 917 100 1303', status: 'pending', method: 'awaiting_sync', checkInHour: 9, remarks: 'Buffering coordinates offline.' },
-      { first: 'Hannah', last: 'Sarmiento', department: 'CNAHS', yearLevel: '2nd Year', contact: '+63 917 100 1304', status: 'pending' },
-      { first: 'Dave', last: 'Roque', department: 'CEA', yearLevel: '4th Year', contact: '+63 917 100 1305', status: 'pending' },
-      { first: 'Aira', last: 'Nacua', department: 'CCS', yearLevel: '1st Year', contact: '+63 917 100 1306', status: 'absent', remarks: 'Class schedule conflict — did not join.' },
-    ],
-  },
-  {
-    eventId: 104,
-    title: 'Tree Planting — Busay Watershed',
-    offsetDays: 9,
-    attendees: [
-      { first: 'Carla', last: 'Gonzaga', department: 'CEA', yearLevel: '3rd Year', contact: '+63 917 100 1401', status: 'pending' },
-      { first: 'Jerome', last: 'Batucan', department: 'CCS', yearLevel: '2nd Year', contact: '+63 917 100 1402', status: 'pending' },
-      { first: 'Patricia', last: 'Uy', department: 'CBA', yearLevel: '4th Year', contact: '+63 917 100 1403', status: 'pending' },
-      { first: 'Ellen', last: 'Manalo', department: 'CAS', yearLevel: '2nd Year', contact: '+63 917 100 1404', status: 'pending' },
-      { first: 'Rico', last: 'Salazar', department: 'CNAHS', yearLevel: '1st Year', contact: '+63 917 100 1405', status: 'pending', remarks: 'Requested transfer to the next batch.' },
-    ],
-  },
-]
-
-export const mockEventAttendees: EventAttendee[] = attendeeEventSeeds.flatMap((event) =>
-  event.attendees.map((seed, index) => ({
-    id: `att-${event.eventId}-${index + 1}`,
-    eventId: event.eventId,
-    eventTitle: event.title,
-    eventDate: dayOffset(event.offsetDays),
-    firstName: seed.first,
-    lastName: seed.last,
-    email: `${seed.first}.${seed.last}`.toLowerCase().replace(/\s+/g, '') + '@uclm.edu.ph',
-    contactNumber: seed.contact,
-    department: seed.department,
-    yearLevel: seed.yearLevel,
-    status: seed.status,
-    registeredAt: dayOffset(event.offsetDays - 7, 10, 30),
-    checkedInAt: seed.checkInHour ? dayOffset(event.offsetDays, seed.checkInHour, 15) : null,
-    checkedOutAt: seed.checkOutHour ? dayOffset(event.offsetDays, seed.checkOutHour, 0) : null,
-    validationMethod: seed.method ?? null,
-    hoursRendered: seed.hours,
-    remarks: seed.remarks,
-  })),
-)
-
-/**
- * Calendar fixtures. Anchored to the current week rather than fixed dates so the
- * month, week and day grids are always populated whenever the page is opened.
- */
-export function buildMockCalendarEvents(): CalendarEvent[] {
-  const weekStart = dayjs().startOf('week')
-  const monthStart = dayjs().startOf('month')
-
-  /** `day` is an offset from Sunday of the current week. */
-  const slot = (day: number, hour: number, minute = 0) =>
-    weekStart.add(day, 'day').hour(hour).minute(minute).second(0).millisecond(0)
-
-  const draft = (
-    id: string,
-    title: string,
-    category: EventCategory,
-    status: EventStatus,
-    start: Dayjs,
-    end: Dayjs,
-    location: string,
-    organizer: string,
-    participants: number,
-    maxParticipants: number,
-    extras: { department?: string; allDay?: boolean } = {},
-  ): CalendarEvent => ({
-    id,
-    title,
-    category,
-    status,
-    location,
-    organizer,
-    department: extras.department,
-    start: start.toISOString(),
-    end: end.toISOString(),
-    allDay: extras.allDay ?? false,
-    participants,
-    maxParticipants,
-  })
-
-  return [
-    draft(
-      'cal-1',
-      'Barangay Clean-Up Drive',
-      'Community',
-      'Upcoming',
-      slot(1, 7),
-      slot(1, 10),
-      'Barangay Guadalupe, Cebu City',
-      'Prof. Dela Cruz',
-      48,
-      60,
-      { department: 'College of Computer Studies' },
-    ),
-    draft(
-      'cal-2',
-      'Volunteer Orientation',
-      'Training',
-      'Upcoming',
-      slot(1, 9),
-      slot(1, 11, 30),
-      'UCLM AVR 2',
-      'CARES Office',
-      35,
-      40,
-    ),
-    draft(
-      'cal-3',
-      'Feeding Program Prep',
-      'Charity',
-      'Upcoming',
-      slot(1, 13),
-      slot(1, 16),
-      'UCLM Gymnasium',
-      'Ms. Reyes',
-      22,
-      30,
-    ),
-    draft(
-      'cal-4',
-      'Free Medical Check-Up',
-      'Health',
-      'Ongoing',
-      slot(2, 8),
-      slot(2, 12),
-      'Brgy. Mabolo Health Center',
-      'College of Nursing',
-      54,
-      70,
-      { department: 'College of Nursing' },
-    ),
-    draft(
-      'cal-5',
-      'Department Heads Sync',
-      'Seminar',
-      'Upcoming',
-      slot(2, 10),
-      slot(2, 11),
-      'Director’s Office',
-      'Dr. Villanueva',
-      12,
-      15,
-    ),
-    draft(
-      'cal-6',
-      'Founders Week',
-      'Others',
-      'Ongoing',
-      slot(2, 0),
-      slot(3, 23, 59),
-      'UCLM Main Campus',
-      'Office of Student Affairs',
-      0,
-      0,
-      { allDay: true },
-    ),
-    draft(
-      'cal-7',
-      'School Supplies Turnover',
-      'Donation Drive',
-      'Upcoming',
-      slot(3, 9),
-      slot(3, 11),
-      'Talamban Elementary School',
-      'Prof. Santos',
-      18,
-      25,
-      { department: 'College of Teacher Education' },
-    ),
-    draft(
-      'cal-8',
-      'Disaster Response Drill',
-      'Emergency',
-      'Upcoming',
-      slot(3, 14),
-      slot(3, 17),
-      'UCLM Quadrangle',
-      'Safety Office',
-      80,
-      120,
-    ),
-    draft(
-      'cal-9',
-      'Coastal Clean-Up',
-      'Outreach',
-      'Upcoming',
-      slot(4, 6, 30),
-      slot(4, 10, 30),
-      'Talisay Shoreline',
-      'Engr. Lim',
-      64,
-      80,
-      { department: 'College of Engineering' },
-    ),
-    draft(
-      'cal-10',
-      'Relief Goods Packing',
-      'Relief Program',
-      'Upcoming',
-      slot(4, 13),
-      slot(4, 18),
-      'CARES Storage Room',
-      'CARES Office',
-      26,
-      40,
-    ),
-    draft(
-      'cal-11',
-      'Literacy Tutorial Session',
-      'School',
-      'Upcoming',
-      slot(5, 8),
-      slot(5, 11),
-      'Brgy. Lorega Day Care',
-      'Prof. Abella',
-      20,
-      24,
-      { department: 'College of Teacher Education' },
-    ),
-    draft(
-      'cal-12',
-      'Blood Donation Drive',
-      'Health',
-      'Upcoming',
-      slot(5, 9),
-      slot(5, 15),
-      'UCLM Clinic',
-      'Red Cross Cebu',
-      90,
-      150,
-    ),
-    draft(
-      'cal-13',
-      'Monthly Report Review',
-      'Seminar',
-      'Upcoming',
-      slot(5, 16),
-      slot(5, 17, 30),
-      'Director’s Office',
-      'Dr. Villanueva',
-      9,
-      12,
-    ),
-    draft(
-      'cal-14',
-      'Tree Planting Activity',
-      'Community',
-      'Upcoming',
-      slot(6, 7),
-      slot(6, 12),
-      'Mt. Naupa, Naga',
-      'Mr. Cabahug',
-      45,
-      50,
-    ),
-    // Spread across the month so the month grid is not one busy week and six blanks.
-    draft(
-      'cal-15',
-      'Livelihood Skills Seminar',
-      'Training',
-      'Completed',
-      monthStart.add(3, 'day').hour(9),
-      monthStart.add(3, 'day').hour(15),
-      'UCLM AVR 1',
-      'Prof. Yap',
-      38,
-      40,
-    ),
-    draft(
-      'cal-16',
-      'Book Donation Sorting',
-      'Donation Drive',
-      'Completed',
-      monthStart.add(9, 'day').hour(13),
-      monthStart.add(9, 'day').hour(16),
-      'UCLM Library Annex',
-      'Ms. Ong',
-      15,
-      20,
-    ),
-    draft(
-      'cal-17',
-      'Fire Safety Awareness',
-      'Emergency',
-      'Cancelled',
-      monthStart.add(17, 'day').hour(10),
-      monthStart.add(17, 'day').hour(12),
-      'Brgy. Apas Covered Court',
-      'BFP Cebu City',
-      0,
-      60,
-    ),
-    draft(
-      'cal-18',
-      'Senior Citizens Outreach',
-      'Outreach',
-      'Upcoming',
-      monthStart.add(23, 'day').hour(8),
-      monthStart.add(23, 'day').hour(12),
-      'Home for the Aged, Cebu',
-      'Ms. Reyes',
-      28,
-      35,
-    ),
-    draft(
-      'cal-19',
-      'Scholarship Interview Day',
-      'School',
-      'Upcoming',
-      monthStart.add(26, 'day').hour(9),
-      monthStart.add(26, 'day').hour(16),
-      'Guidance Office',
-      'Dr. Villanueva',
-      42,
-      50,
-    ),
-  ]
-}
-
-/**
  * Live attendance monitor fixtures. Built on call, not at module load, and anchored to
  * *today* so the session always reads as a started, still-running event no matter when
  * the page is opened — a fixed date would show the director an empty monitor forever.
@@ -1486,4 +1102,462 @@ export function buildMockLiveAttendance(): LiveAttendanceSnapshot {
     })),
     capturedAt: now.toISOString(),
   }
+}
+
+/**
+ * The scheduler roster for System Services. The workers are not built yet, so the
+ * fixture describes what each one will do and where its runs sit in the cycle;
+ * timestamps are relative to now so the page reads as a live board.
+ */
+interface SystemServiceSeed {
+  id: string
+  name: string
+  description: string
+  owner: SystemService['owner']
+  state: ServiceState
+  trigger: SystemService['trigger']
+  duration: SystemService['duration']
+  averageRuntimeSeconds: number
+  /** Minutes since the last run started. */
+  lastRunAgoMinutes: number
+  /** Minutes until the next trigger; null for manual-only services. */
+  nextRunInMinutes: number | null
+  onDutyDays: number
+  /** Outcomes of the recent runs, oldest first. */
+  outcomes: ServiceRun['outcome'][]
+  lastError: string | null
+}
+
+const systemServiceSeeds: SystemServiceSeed[] = [
+  {
+    id: 'attendance-sync',
+    name: 'Attendance Sync Worker',
+    description: 'Flushes offline attendance readings queued by volunteer devices into the event roster.',
+    owner: 'mobile-sync',
+    state: 'running',
+    trigger: { mode: 'interval', intervalMinutes: 5, dailyAt: '00:00', cronExpression: '*/5 * * * *' },
+    duration: { maxRuntimeMinutes: 2, retries: 2, overlapPolicy: 'skip' },
+    averageRuntimeSeconds: 41,
+    lastRunAgoMinutes: 0,
+    nextRunInMinutes: 5,
+    onDutyDays: 34,
+    outcomes: ['success', 'success', 'success', 'success', 'success', 'timed_out', 'success', 'success', 'success', 'success', 'success', 'running'],
+    lastError: null,
+  },
+  {
+    id: 'geofence-validator',
+    name: 'Geofence Validation Pass',
+    description: 'Runs the AI check over closed events and marks each volunteer present, absent, or for review.',
+    owner: 'microservices',
+    state: 'scheduled',
+    trigger: { mode: 'interval', intervalMinutes: 15, dailyAt: '00:00', cronExpression: '*/15 * * * *' },
+    duration: { maxRuntimeMinutes: 10, retries: 1, overlapPolicy: 'queue' },
+    averageRuntimeSeconds: 188,
+    lastRunAgoMinutes: 9,
+    nextRunInMinutes: 6,
+    onDutyDays: 21,
+    outcomes: ['success', 'success', 'failed', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success'],
+    lastError: null,
+  },
+  {
+    id: 'certificate-dispatcher',
+    name: 'Certificate Dispatcher',
+    description: 'Renders approved certificate deployments and emails them to their volunteers.',
+    owner: 'server',
+    state: 'failing',
+    trigger: { mode: 'interval', intervalMinutes: 30, dailyAt: '00:00', cronExpression: '*/30 * * * *' },
+    duration: { maxRuntimeMinutes: 15, retries: 3, overlapPolicy: 'skip' },
+    averageRuntimeSeconds: 402,
+    lastRunAgoMinutes: 24,
+    nextRunInMinutes: 6,
+    onDutyDays: 12,
+    outcomes: ['success', 'success', 'success', 'success', 'success', 'success', 'timed_out', 'failed', 'failed', 'success', 'failed', 'failed'],
+    lastError: 'SMTP relay refused 12 of 40 recipients — mailbox quota exceeded.',
+  },
+  {
+    id: 'event-reminders',
+    name: 'Event Reminder Notifier',
+    description: 'Pushes day-before and hour-before reminders to volunteers booked on upcoming events.',
+    owner: 'server',
+    state: 'scheduled',
+    trigger: { mode: 'interval', intervalMinutes: 60, dailyAt: '00:00', cronExpression: '0 * * * *' },
+    duration: { maxRuntimeMinutes: 5, retries: 2, overlapPolicy: 'skip' },
+    averageRuntimeSeconds: 63,
+    lastRunAgoMinutes: 38,
+    nextRunInMinutes: 22,
+    onDutyDays: 57,
+    outcomes: ['success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success'],
+    lastError: null,
+  },
+  {
+    id: 'session-reaper',
+    name: 'Session & Token Reaper',
+    description: 'Clears expired portal sessions and refresh tokens so the active-sessions list stays truthful.',
+    owner: 'server',
+    state: 'scheduled',
+    trigger: { mode: 'interval', intervalMinutes: 10, dailyAt: '00:00', cronExpression: '*/10 * * * *' },
+    duration: { maxRuntimeMinutes: 1, retries: 1, overlapPolicy: 'skip' },
+    averageRuntimeSeconds: 8,
+    lastRunAgoMinutes: 4,
+    nextRunInMinutes: 6,
+    onDutyDays: 92,
+    outcomes: ['success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success'],
+    lastError: null,
+  },
+  {
+    id: 'monthly-report-compiler',
+    name: 'Monthly Report Compiler',
+    description: 'Builds each department’s monthly report packet and files it for the director’s review.',
+    owner: 'server',
+    state: 'scheduled',
+    trigger: { mode: 'daily', intervalMinutes: 1440, dailyAt: '01:30', cronExpression: '30 1 * * *' },
+    duration: { maxRuntimeMinutes: 30, retries: 1, overlapPolicy: 'queue' },
+    averageRuntimeSeconds: 754,
+    lastRunAgoMinutes: 640,
+    nextRunInMinutes: 800,
+    onDutyDays: 12,
+    outcomes: ['success', 'success', 'success', 'success', 'success', 'timed_out', 'success', 'success', 'success', 'success', 'success', 'success'],
+    lastError: null,
+  },
+  {
+    id: 'face-index-refresh',
+    name: 'Face Index Refresh',
+    description: 'Re-embeds newly verified volunteer faces so scan-in matches the current roster.',
+    owner: 'microservices',
+    state: 'paused',
+    trigger: { mode: 'daily', intervalMinutes: 1440, dailyAt: '02:15', cronExpression: '15 2 * * *' },
+    duration: { maxRuntimeMinutes: 60, retries: 0, overlapPolicy: 'skip' },
+    averageRuntimeSeconds: 1620,
+    lastRunAgoMinutes: 2_140,
+    nextRunInMinutes: null,
+    onDutyDays: 0,
+    outcomes: ['success', 'success', 'success', 'success', 'failed', 'success', 'success', 'success', 'success', 'success', 'success', 'success'],
+    lastError: null,
+  },
+  {
+    id: 'audit-archiver',
+    name: 'Audit Log Archiver',
+    description: 'Compresses audit entries past the retention window and snapshots them to cold storage.',
+    owner: 'server',
+    state: 'scheduled',
+    trigger: { mode: 'cron', intervalMinutes: 1440, dailyAt: '03:00', cronExpression: '0 3 * * 0' },
+    duration: { maxRuntimeMinutes: 30, retries: 1, overlapPolicy: 'skip' },
+    averageRuntimeSeconds: 512,
+    lastRunAgoMinutes: 3_100,
+    nextRunInMinutes: 1_180,
+    onDutyDays: 44,
+    outcomes: ['success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success', 'success'],
+    lastError: null,
+  },
+]
+
+export function buildMockSystemServices(): SystemService[] {
+  const now = dayjs()
+
+  return systemServiceSeeds.map((seed) => {
+    const lastRunAt = now.subtract(seed.lastRunAgoMinutes, 'minute')
+
+    return {
+      id: seed.id,
+      name: seed.name,
+      description: seed.description,
+      owner: seed.owner,
+      state: seed.state,
+      trigger: seed.trigger,
+      duration: seed.duration,
+      averageRuntimeSeconds: seed.averageRuntimeSeconds,
+      lastRunAt: lastRunAt.toISOString(),
+      nextRunAt:
+        seed.state === 'paused' || seed.nextRunInMinutes === null
+          ? null
+          : now.add(seed.nextRunInMinutes, 'minute').toISOString(),
+      currentRunStartedAt:
+        seed.state === 'running' ? now.subtract(27, 'second').toISOString() : null,
+      onDutyDays: seed.onDutyDays,
+      recentRuns: seed.outcomes.map((outcome, index) => {
+        const spacingMinutes = seed.trigger.intervalMinutes
+        const startedAt = lastRunAt.subtract(
+          (seed.outcomes.length - 1 - index) * spacingMinutes,
+          'minute',
+        )
+        // Failures die early, timeouts sit at the cap — a flat strip would hide both.
+        const durationSeconds =
+          outcome === 'timed_out'
+            ? seed.duration.maxRuntimeMinutes * 60
+            : outcome === 'failed'
+              ? Math.round(seed.averageRuntimeSeconds * 0.35)
+              : outcome === 'running'
+                ? 27
+                : Math.round(seed.averageRuntimeSeconds * (0.82 + (index % 5) * 0.09))
+
+        return {
+          id: `${seed.id}-run-${index + 1}`,
+          startedAt: startedAt.toISOString(),
+          durationSeconds,
+          outcome,
+        }
+      }),
+      lastError: seed.lastError,
+    }
+  })
+}
+
+/** Per-service log flavour: what a healthy run of that worker actually prints. */
+const systemServiceLogLines: Record<string, string[]> = {
+  'attendance-sync': [
+    'claimed 3 device queues (mobile-sync v1.4.2)',
+    'merged 42 readings into event 103 roster',
+    'acknowledged queues, 0 readings left pending',
+  ],
+  'geofence-validator': [
+    'loaded 2 closed events awaiting validation',
+    'ucid-service returned 38 verdicts in 2.1 s',
+    'wrote 34 present, 3 absent, 1 for review',
+  ],
+  'certificate-dispatcher': [
+    'picked up 40 approved deployments',
+    'rendered 40 certificates from template "Volunteer 2026"',
+    'handed 40 messages to the SMTP relay',
+  ],
+  'event-reminders': [
+    'found 6 events starting within 24 h',
+    'queued 118 push notifications, 118 emails',
+    'delivery receipts: 118 accepted',
+  ],
+  'session-reaper': [
+    'scanned 214 sessions, 9 past expiry',
+    'revoked 9 refresh tokens',
+  ],
+  'monthly-report-compiler': [
+    'compiling packets for 5 departments',
+    'aggregated 1,204 attendance rows',
+    'filed 5 packets for director review',
+  ],
+  'face-index-refresh': [
+    're-embedding 63 newly verified faces',
+    'fr-service index rebuilt, 1,842 vectors',
+  ],
+  'audit-archiver': [
+    'selected 12,400 entries past the retention window',
+    'compressed to 3 archives, 41 MB',
+    'uploaded to cold storage, verified checksums',
+  ],
+}
+
+/** The failure each service reports when a run goes wrong, in its own vocabulary. */
+const systemServiceFailureLines: Record<string, string> = {
+  'attendance-sync': 'device queue lock held by a previous run — 1 queue skipped',
+  'geofence-validator': 'ucid-service returned 503 on batch 2 of 3',
+  'certificate-dispatcher': 'SMTP relay refused 12 of 40 recipients — mailbox quota exceeded',
+  'event-reminders': 'push gateway rejected 4 stale device tokens',
+  'session-reaper': 'session table locked by a migration, retrying next trigger',
+  'monthly-report-compiler': 'department "Nursing" has no closed events this period',
+  'face-index-refresh': 'fr-service model file missing an embedding for volunteer 4412',
+  'audit-archiver': 'cold storage credentials expired',
+}
+
+/**
+ * The log the scheduler wrote for each of its recent runs, newest run last. Built
+ * from the same runs the history strip draws, so a red tick and the error line a
+ * staff member opens to explain it always agree.
+ */
+export function buildMockServiceLogs(service: SystemService): ServiceLogEntry[] {
+  const body = systemServiceLogLines[service.id] ?? ['worker step completed']
+  const failure = systemServiceFailureLines[service.id] ?? 'worker step failed'
+
+  return service.recentRuns.flatMap((run) => {
+    const at = (offsetSeconds: number) =>
+      dayjs(run.startedAt).add(offsetSeconds, 'second').toISOString()
+    const step = run.durationSeconds / (body.length + 1)
+
+    const lines: ServiceLogEntry[] = [
+      {
+        id: `${run.id}-start`,
+        runId: run.id,
+        at: at(0),
+        level: 'info',
+        message: `run started · trigger ${service.trigger.mode} · cap ${service.duration.maxRuntimeMinutes} min`,
+      },
+      ...body.map((message, index) => ({
+        id: `${run.id}-step-${index}`,
+        runId: run.id,
+        at: at(Math.round(step * (index + 1))),
+        level: 'info' as const,
+        message,
+      })),
+    ]
+
+    if (run.outcome === 'running') return lines
+
+    if (run.outcome === 'failed') {
+      lines.push({
+        id: `${run.id}-error`,
+        runId: run.id,
+        at: at(run.durationSeconds),
+        level: 'error',
+        message: failure,
+      })
+    }
+
+    if (run.outcome === 'timed_out') {
+      lines.push({
+        id: `${run.id}-timeout`,
+        runId: run.id,
+        at: at(run.durationSeconds),
+        level: 'warn',
+        message: `runtime cap of ${service.duration.maxRuntimeMinutes} min reached — run killed by the scheduler`,
+      })
+    }
+
+    lines.push({
+      id: `${run.id}-end`,
+      runId: run.id,
+      at: at(run.durationSeconds),
+      level: run.outcome === 'success' ? 'info' : 'warn',
+      message:
+        run.outcome === 'success'
+          ? `run finished in ${Math.round(run.durationSeconds)}s`
+          : `run ended ${run.outcome === 'failed' ? 'with errors' : 'at the cap'} after ${Math.round(run.durationSeconds)}s`,
+    })
+
+    return lines
+  })
+}
+
+/**
+ * Maintenance fixtures. The system is live when the page first loads — the interesting
+ * screen is the one where a window is booked for tonight and the notice has already
+ * gone out, so the roster is written that way.
+ */
+export function buildMockMaintenanceMode(): MaintenanceMode {
+  return {
+    enabled: false,
+    surfaces: [],
+    since: null,
+    estimatedEndAt: null,
+    message:
+      'CARES is briefly offline for scheduled maintenance. Attendance already recorded on your phone is safe and will sync when we are back.',
+    allowAdmins: true,
+    changedBy: null,
+  }
+}
+
+export function buildMockMaintenanceWindows(): MaintenanceWindow[] {
+  const tonight = dayjs().add(1, 'day').hour(1).minute(0).second(0).millisecond(0)
+
+  return [
+    {
+      id: 'win-db-migration',
+      title: 'Database migration — attendance tables',
+      reason: 'Adds the geofence columns the new attendance monitor reads.',
+      surfaces: ['portal', 'mobile', 'api'],
+      startAt: tonight.toISOString(),
+      endAt: tonight.add(90, 'minute').toISOString(),
+      state: 'scheduled',
+      noticeLeadMinutes: 60,
+      allowAdmins: true,
+      createdBy: 'A. Reyes',
+    },
+    {
+      id: 'win-cert-worker',
+      title: 'Certificate dispatcher upgrade',
+      reason: 'New template engine; issued certificates are re-rendered on the way.',
+      surfaces: ['api'],
+      startAt: dayjs().add(4, 'day').hour(2).minute(30).toISOString(),
+      endAt: dayjs().add(4, 'day').hour(3).minute(15).toISOString(),
+      state: 'scheduled',
+      noticeLeadMinutes: 1440,
+      allowAdmins: true,
+      createdBy: 'System',
+    },
+    {
+      id: 'win-storage-swap',
+      title: 'Media storage cutover',
+      reason: 'ID photos and event media moved to the new S3 bucket.',
+      surfaces: ['portal', 'mobile', 'public', 'api'],
+      startAt: dayjs().subtract(6, 'day').hour(1).minute(0).toISOString(),
+      endAt: dayjs().subtract(6, 'day').hour(2).minute(40).toISOString(),
+      state: 'completed',
+      noticeLeadMinutes: 1440,
+      allowAdmins: true,
+      createdBy: 'A. Reyes',
+    },
+    {
+      id: 'win-public-refresh',
+      title: 'Public site content refresh',
+      reason: 'Called off — the change shipped without downtime.',
+      surfaces: ['public'],
+      startAt: dayjs().subtract(2, 'day').hour(22).minute(0).toISOString(),
+      endAt: dayjs().subtract(2, 'day').hour(23).minute(0).toISOString(),
+      state: 'cancelled',
+      noticeLeadMinutes: 30,
+      allowAdmins: true,
+      createdBy: 'M. Cruz',
+    },
+  ]
+}
+
+export function buildMockAnnouncements(): Announcement[] {
+  return [
+    {
+      id: 'ann-tonight-window',
+      title: 'CARES is offline tonight, 1:00–2:30 AM',
+      body: 'We are upgrading the attendance database. Check in before 12:45 AM or after 2:30 AM. Anything recorded offline on your phone will sync on its own once we are back.',
+      tone: 'warning',
+      audiences: ['volunteers', 'staff'],
+      channels: ['portal', 'mobile', 'email'],
+      state: 'published',
+      publishAt: dayjs().subtract(3, 'hour').toISOString(),
+      expiresAt: dayjs().add(1, 'day').hour(3).toISOString(),
+      pinned: true,
+      windowId: 'win-db-migration',
+      author: 'A. Reyes',
+      reach: 1284,
+    },
+    {
+      id: 'ann-cert-worker',
+      title: 'Certificates pause briefly this Saturday',
+      body: 'Certificate issuing is paused from 2:30 to 3:15 AM while the dispatcher is upgraded. Requests filed during the pause are queued, not lost.',
+      tone: 'info',
+      audiences: ['staff'],
+      channels: ['portal'],
+      state: 'scheduled',
+      publishAt: dayjs().add(3, 'day').hour(9).toISOString(),
+      expiresAt: dayjs().add(4, 'day').hour(4).toISOString(),
+      pinned: false,
+      windowId: 'win-cert-worker',
+      author: 'System',
+      reach: 0,
+    },
+    {
+      id: 'ann-outreach-call',
+      title: 'Volunteers needed — Barangay Guadalupe outreach',
+      body: 'Twenty more volunteers are needed for the medical mission on the 22nd. Slots open in the app under Upcoming Events.',
+      tone: 'info',
+      audiences: ['volunteers'],
+      channels: ['mobile', 'email'],
+      state: 'draft',
+      publishAt: dayjs().add(1, 'day').hour(8).toISOString(),
+      expiresAt: null,
+      pinned: false,
+      windowId: null,
+      author: 'M. Cruz',
+      reach: 0,
+    },
+    {
+      id: 'ann-storage-done',
+      title: 'Media storage cutover finished',
+      body: 'Photos and IDs uploaded before the cutover are all accounted for. Report anything that still fails to load through Support Tickets.',
+      tone: 'info',
+      audiences: ['staff', 'volunteers', 'beneficiaries', 'donors'],
+      channels: ['portal', 'mobile'],
+      state: 'expired',
+      publishAt: dayjs().subtract(6, 'day').hour(4).toISOString(),
+      expiresAt: dayjs().subtract(4, 'day').toISOString(),
+      pinned: false,
+      windowId: 'win-storage-swap',
+      author: 'A. Reyes',
+      reach: 2140,
+    },
+  ]
 }

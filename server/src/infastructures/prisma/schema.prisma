@@ -46,9 +46,16 @@ model User {
   gmail_connection   GmailConnection?
   chat_participants  ConversationParticipant[]
   chat_messages      ChatMessage[]
+  event_attendances  EventAttendance[]
   support_tickets          SupportTicket[]      @relation("SupportTicketRequester")
   assigned_support_tickets SupportTicket[]      @relation("SupportTicketAssignee")
   support_ticket_replies   SupportTicketReply[] @relation("SupportTicketReplyAuthor")
+  edited_certificate_templates  CertificateTemplate[]          @relation("CertificateTemplateEditor")
+  certificate_signatory_lines   CertificateTemplateSignatory[]
+  certificate_deployments       CertificateDeployment[]         @relation("CertificateDeploymentDeployer")
+  submitted_monthly_reports     MonthlyReport[]                @relation("MonthlyReportSubmitter")
+  reviewed_monthly_reports      MonthlyReport[]                @relation("MonthlyReportReviewer")
+  monthly_report_folders        MonthlyReportFolder[]          @relation("MonthlyReportFolderCreator")
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -506,8 +513,57 @@ model Event {
   /// Pin the operator dropped inside the geofence — the exact meeting spot.
   marker_lat             Float?
   marker_lng             Float?
+  certificate_deployments CertificateDeployment[]
+  attendances            EventAttendance[]
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
+}
+
+/// Where a volunteer stands for one event. Attendance is geofence-based: the mobile app
+/// records coordinates while the event runs and the AI validation service decides,
+/// afterwards, whether the volunteer stayed inside the event area for its duration.
+enum AttendanceStatus {
+  PENDING
+  COMPLETED
+  ABSENT
+}
+
+/// Where the coordinates the validation service judged came from. Offline devices buffer
+/// their readings and push them as a CSV once back online, so a row can sit on
+/// AWAITING_SYNC with nothing to validate yet.
+enum GeoValidationMethod {
+  GEOFENCE
+  OFFLINE_SYNC
+  AWAITING_SYNC
+  MANUAL
+}
+
+/// One volunteer's registration for one event, plus whatever validation has ruled so far.
+/// The row is created on registration and stays PENDING until the coordinates are in and
+/// judged: before the event, while it runs, and after it for as long as an offline device
+/// still has not pushed.
+model EventAttendance {
+  event_attendance_id String               @id @default(uuid())
+  event_id            Int
+  event               Event                @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  user_id             String
+  user                User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  status              AttendanceStatus     @default(PENDING)
+  validation_method   GeoValidationMethod?
+  /// First reading inside the event geofence.
+  first_ping_at       DateTime?
+  /// Last reading inside the event geofence.
+  last_ping_at        DateTime?
+  /// Credited service hours; only meaningful once the row is COMPLETED.
+  hours_rendered      Float?
+  remarks             String?
+  registered_at       DateTime             @default(now())
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@unique([event_id, user_id])
+  @@index([event_id])
+  @@index([user_id])
 }
 
 /// Direct (1:1) portal messaging. Participants are portal staff — volunteers use
@@ -641,4 +697,307 @@ model SupportTicketReply {
   createdAt               DateTime                @default(now())
 
   @@index([support_ticket_id, createdAt])
+}
+
+enum CertificateTemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CertificateTemplateCategory {
+  PARTICIPATION
+  APPRECIATION
+  VOLUNTEER_HOURS
+  COMPLETION
+  SPONSORSHIP
+}
+
+enum CertificateOrientation {
+  LANDSCAPE
+  PORTRAIT
+}
+
+/// What an uploaded file is used for on the sheet. IMAGE files are placed by the
+/// director; FRAME and SEAL replace the built-in artwork and there is at most one of
+/// each per template.
+enum CertificateAssetKind {
+  IMAGE
+  FRAME
+  SEAL
+}
+
+/// A certificate design a director maintains in the portal. Everything that is pure
+/// drawing instruction — accent, frame, per-block position, fonts, sizes, wording,
+/// seal and where each imported image sits — lives in `design`, shaped by
+/// `CertificateDesignSchema`. It is one document edited as a whole by one screen, so
+/// splitting it into columns would buy nothing and cost a migration per control the
+/// customizer gains. What is *not* in there is anything another feature has to join
+/// on: the signatory accounts and the uploaded files are their own rows.
+model CertificateTemplate {
+  certificate_template_id String                        @id @default(uuid())
+  /// Human reference printed on the card, e.g. `CT-2026-014`.
+  reference               String                        @unique
+  name                    String
+  description             String
+  category                CertificateTemplateCategory   @default(PARTICIPATION)
+  status                  CertificateTemplateStatus     @default(DRAFT)
+  orientation             CertificateOrientation        @default(LANDSCAPE)
+  /// Certificates already printed from this template.
+  issued                  Int                           @default(0)
+  /// Events currently deploying it.
+  deployed_events         Int                           @default(0)
+  design                  Json
+  /// Null once the editor's account is removed; the template keeps the name.
+  updated_by_user_id      String?
+  updated_by              User?                         @relation("CertificateTemplateEditor", fields: [updated_by_user_id], references: [user_id], onDelete: SetNull)
+  /// Snapshot of who last saved it, so a deleted account still reads right on the card.
+  updated_by_name         String                        @default("")
+  signatories             CertificateTemplateSignatory[]
+  assets                  CertificateTemplateAsset[]
+  deployments             CertificateDeployment[]
+  createdAt               DateTime                      @default(now())
+  updatedAt               DateTime                      @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([updatedAt])
+}
+
+/// One printed signature line. The coordinator account is the source of truth for the
+/// signature image, so the line stores the account rather than typed text; the printed
+/// strings are snapshotted beside it so a later rename or transfer cannot silently
+/// reword a template certificates were already issued from.
+model CertificateTemplateSignatory {
+  certificate_template_signatory_id String              @id @default(uuid())
+  certificate_template_id           String
+  template                          CertificateTemplate @relation(fields: [certificate_template_id], references: [certificate_template_id], onDelete: Cascade)
+  coordinator_user_id               String
+  coordinator                       User                @relation(fields: [coordinator_user_id], references: [user_id], onDelete: Restrict)
+  name                              String
+  title                             String
+  department                        String
+  /// The placeholder the print job swaps for the coordinator's stored signature image
+  /// (`User.signature_url`). The customizer never shows it — a director picks an
+  /// account, not a token — but it is held per line rather than assumed globally so a
+  /// line can print without a signature later without a migration.
+  signature_token                   String              @default("{{signature-image}}")
+  /// Left-to-right order of the lines on the sheet.
+  position                          Int                 @default(0)
+  createdAt                         DateTime            @default(now())
+  updatedAt                         DateTime            @updatedAt
+
+  @@unique([certificate_template_id, coordinator_user_id])
+  @@index([certificate_template_id, position])
+  @@index([coordinator_user_id])
+}
+
+/// A file a director imported onto a sheet. The bytes live in the private S3 bucket,
+/// so `design` references the row by id and the portal reads the bytes back through
+/// `GET /v1/certificate-templates/:id/assets/:assetId` — an `<img src>` pointed at the
+/// stored object URL would render broken.
+model CertificateTemplateAsset {
+  certificate_template_asset_id String               @id @default(uuid())
+  certificate_template_id       String
+  template                      CertificateTemplate  @relation(fields: [certificate_template_id], references: [certificate_template_id], onDelete: Cascade)
+  kind                          CertificateAssetKind
+  /// S3 object key, not a URL — the bucket and region are configuration.
+  storage_key                   String
+  file_name                     String
+  content_type                  String
+  byte_size                     Int
+  createdAt                     DateTime             @default(now())
+
+  @@index([certificate_template_id])
+}
+
+/// Where a deployment sits in its own life, independent of the event's status.
+enum CertificateDeploymentStatus {
+  SCHEDULED
+  DISTRIBUTING
+  PAUSED
+  COMPLETED
+}
+
+/// One template deployed to one event — what the live certificates page lists. The
+/// design, the signature lines and the event's own details are all frozen into the row
+/// at deploy time: the template it came from stays editable, and a certificate already
+/// promised to a volunteer must not silently change wording when a director tidies the
+/// template up afterwards. The template is still referenced, because the frozen design
+/// points at that template's stored artwork.
+model CertificateDeployment {
+  certificate_deployment_id String                      @id @default(uuid())
+  /// Human reference for the deployment itself, e.g. `DC-2026-014`.
+  reference                 String                      @unique
+  certificate_template_id   String
+  template                  CertificateTemplate         @relation(fields: [certificate_template_id], references: [certificate_template_id], onDelete: Restrict)
+  /// Snapshot of the template's name, category and shape as deployed.
+  template_name             String
+  category                  CertificateTemplateCategory
+  orientation               CertificateOrientation
+  /// The frozen sheet: the same shape as `CertificateTemplate.design`, plus the
+  /// signature lines as they read on the day.
+  design                    Json
+  event_id                  Int
+  event                     Event                       @relation(fields: [event_id], references: [event_id], onDelete: Restrict)
+  /// Snapshot of the event, so the list reads correctly even if the event is renamed.
+  event_name                String
+  event_venue               String
+  event_date                DateTime
+  status                    CertificateDeploymentStatus @default(SCHEDULED)
+  /// Participants the deployment covers — the denominator for everything below.
+  participants              Int                         @default(0)
+  /// Certificates generated and released to a participant.
+  distributed               Int                         @default(0)
+  /// Of those, how many the recipient actually opened.
+  claimed                   Int                         @default(0)
+  /// Null once the deploying account is removed; the row keeps the name.
+  deployed_by_user_id       String?
+  deployed_by               User?                       @relation("CertificateDeploymentDeployer", fields: [deployed_by_user_id], references: [user_id], onDelete: SetNull)
+  deployed_by_name          String                      @default("")
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+
+  /// A template is deployed to an event once; deploying again re-cuts the same row.
+  @@unique([certificate_template_id, event_id])
+  @@index([status])
+  @@index([event_id])
+  @@index([createdAt])
+}
+
+/// Where a coordinator's monthly report sits. It leaves the director's queue the
+/// moment it is approved — an approved report is a filed one, not a decided one still
+/// waiting in the list.
+enum MonthlyReportStatus {
+  UNDER_REVIEW
+  APPROVED
+  RETURNED
+}
+
+/// The college a report counts for. Held as an enum rather than a `Department` row
+/// because the portal groups, colours and totals on this exact set — a free-text
+/// department would let two spellings split one college's figures in half.
+enum ReportDepartment {
+  CCS
+  CBA
+  CEA
+  CNAHS
+  CAS
+  CCJE
+}
+
+/// What an attached file is, so the portal can pick an icon and decide whether the
+/// viewer can render it or only offer it for download.
+enum MonthlyReportDocumentKind {
+  DOCX
+  PDF
+  XLSX
+  IMAGE
+}
+
+enum MonthlyReportTrailAction {
+  SUBMITTED
+  APPROVED
+  RETURNED
+  RESUBMITTED
+}
+
+/// A named tray the director builds on top of the automatic filing — an accreditation
+/// packet, a set pulled for a board meeting. College folders are *not* rows: they are
+/// derived from each report's `department`, so every approved report has a home before
+/// anyone files it anywhere, and deleting a folder only drops it back to its college.
+model MonthlyReportFolder {
+  monthly_report_folder_id String          @id @default(uuid())
+  name                     String
+  /// Null once the creating account is removed; the folder keeps the name below.
+  created_by_user_id       String?
+  created_by               User?           @relation("MonthlyReportFolderCreator", fields: [created_by_user_id], references: [user_id], onDelete: SetNull)
+  created_by_name          String          @default("")
+  reports                  MonthlyReport[]
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+
+  @@index([createdAt])
+}
+
+/// One coordinator submission for one reporting month. The submitter's name, email and
+/// post are snapshotted beside the account: a report already decided on must keep
+/// reading the way it read on the day, even if the coordinator is renamed or moves
+/// college.
+model MonthlyReport {
+  monthly_report_id    String                    @id @default(uuid())
+  /// Tracking number both sides quote, e.g. `MR-2026-014`.
+  reference            String                    @unique
+  title                String
+  /// Reporting month as `YYYY-MM` — the period filter and the grouping key.
+  period               String
+  department           ReportDepartment
+  status               MonthlyReportStatus       @default(UNDER_REVIEW)
+  summary              String
+  metric_events        Int                       @default(0)
+  metric_volunteers    Int                       @default(0)
+  metric_service_hours Int                       @default(0)
+  metric_beneficiaries Int                       @default(0)
+  submitted_by_user_id String?
+  submitted_by         User?                     @relation("MonthlyReportSubmitter", fields: [submitted_by_user_id], references: [user_id], onDelete: SetNull)
+  submitted_by_name    String
+  submitted_by_email   String
+  submitted_by_title   String
+  submitted_at         DateTime                  @default(now())
+  reviewer_user_id     String?
+  reviewer             User?                     @relation("MonthlyReportReviewer", fields: [reviewer_user_id], references: [user_id], onDelete: SetNull)
+  /// Snapshot of the deciding director, shown on the row without a join.
+  reviewer_name        String?
+  decided_at           DateTime?
+  /// Latest decision note — the only thing a returned report gives the coordinator.
+  decision_note        String?
+  /// The director's tray this sits in. Null means it is filed under its college.
+  folder_id            String?
+  folder               MonthlyReportFolder?      @relation(fields: [folder_id], references: [monthly_report_folder_id], onDelete: SetNull)
+  documents            MonthlyReportDocument[]
+  trail                MonthlyReportTrailEntry[]
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+
+  @@index([status])
+  @@index([period])
+  @@index([department])
+  @@index([folder_id])
+  @@index([updatedAt])
+}
+
+/// A file attached to a submission. The bytes live in the private S3 bucket, so the
+/// row holds the object key and the portal reads them back through
+/// `GET /v1/monthly-reports/:id/documents/:documentId` — a stored object URL in an
+/// `<a href>` would 403.
+model MonthlyReportDocument {
+  monthly_report_document_id String                    @id @default(uuid())
+  monthly_report_id          String
+  report                     MonthlyReport             @relation(fields: [monthly_report_id], references: [monthly_report_id], onDelete: Cascade)
+  /// File name as the coordinator uploaded it, extension included.
+  file_name                  String
+  kind                       MonthlyReportDocumentKind
+  /// S3 object key, not a URL — the bucket and region are configuration.
+  storage_key                String
+  content_type               String
+  byte_size                  Int
+  createdAt                  DateTime                  @default(now())
+
+  @@index([monthly_report_id])
+}
+
+/// Append-only history of the submission: who submitted, who decided, and the note
+/// that came with it. This is the report's own record, kept beside the entry rather
+/// than in the global audit log because the coordinator reads it too.
+model MonthlyReportTrailEntry {
+  monthly_report_trail_entry_id String                   @id @default(uuid())
+  monthly_report_id             String
+  report                        MonthlyReport            @relation(fields: [monthly_report_id], references: [monthly_report_id], onDelete: Cascade)
+  action                        MonthlyReportTrailAction
+  /// Snapshot of the actor's name, so a rename cannot rewrite the trail.
+  actor_name                    String
+  note                          String?
+  createdAt                     DateTime                 @default(now())
+
+  @@index([monthly_report_id, createdAt])
 }

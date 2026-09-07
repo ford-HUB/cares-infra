@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
@@ -50,13 +50,19 @@ export function useMailboxWorkspace() {
    * stripped, so a refresh does not replay the toast.
    */
   const callbackFlag = searchParams.get(MAILBOX_CALLBACK_PARAM)
+  const reportedCallbackFlag = useRef<string | null>(null)
   useEffect(() => {
     if (!callbackFlag) return
+    // The param is only stripped on the next render, so a re-run (StrictMode's
+    // double mount included) would otherwise fire the same toast twice.
+    if (reportedCallbackFlag.current === callbackFlag) return
+    reportedCallbackFlag.current = callbackFlag
 
     const outcome =
       MAILBOX_CALLBACK_MESSAGES[callbackFlag] ?? MAILBOX_CALLBACK_MESSAGES.error
-    if (outcome.type === 'success') toast.success(outcome.message)
-    else toast.error(outcome.message)
+    const toastId = `${MAILBOX_CALLBACK_PARAM}:${callbackFlag}`
+    if (outcome.type === 'success') toast.success(outcome.message, { id: toastId })
+    else toast.error(outcome.message, { id: toastId })
 
     setSearchParams(
       (current) => {

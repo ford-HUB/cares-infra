@@ -3,14 +3,18 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './common/client';
 import { seedAccessControl } from './seeders/access-control-seeder';
 import { seedAdmin } from './seeders/admin-seeder';
+import { seedAttendance } from './seeders/attendance-seeder';
 import { seedDirector } from './seeders/director-seeder';
 import { seedEvents } from './seeders/events-seeder';
+import { seedMonthlyReports } from './seeders/monthly-reports-seeder';
 
 const SEEDERS = {
   admin: seedAdmin,
   director: seedDirector,
   events: seedEvents,
+  attendance: seedAttendance,
   'access-control': seedAccessControl,
+  'monthly-reports': seedMonthlyReports,
 } as const;
 
 type SeederName = keyof typeof SEEDERS;

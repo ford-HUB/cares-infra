@@ -585,6 +585,40 @@ export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
 }
 
+export type EnumAttendanceStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceStatus | Prisma.EnumAttendanceStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel> | $Enums.AttendanceStatus
+}
+
+export type EnumGeoValidationMethodNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel> | $Enums.GeoValidationMethod | null
+}
+
+export type EnumAttendanceStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceStatus | Prisma.EnumAttendanceStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAttendanceStatusWithAggregatesFilter<$PrismaModel> | $Enums.AttendanceStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
+}
+
+export type EnumGeoValidationMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeoValidationMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.GeoValidationMethod | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
+}
+
 export type EnumSupportTicketTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.SupportTicketType | Prisma.EnumSupportTicketTypeFieldRefInput<$PrismaModel>
   in?: $Enums.SupportTicketType[] | Prisma.ListEnumSupportTicketTypeFieldRefInput<$PrismaModel>
@@ -651,6 +685,159 @@ export type EnumSupportTicketAuthorTypeWithAggregatesFilter<$PrismaModel = never
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSupportTicketAuthorTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSupportTicketAuthorTypeFilter<$PrismaModel>
+}
+
+export type EnumCertificateTemplateCategoryFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateCategory | Prisma.EnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateCategoryFilter<$PrismaModel> | $Enums.CertificateTemplateCategory
+}
+
+export type EnumCertificateTemplateStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateStatus | Prisma.EnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateStatusFilter<$PrismaModel> | $Enums.CertificateTemplateStatus
+}
+
+export type EnumCertificateOrientationFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateOrientation | Prisma.EnumCertificateOrientationFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateOrientationFilter<$PrismaModel> | $Enums.CertificateOrientation
+}
+
+export type EnumCertificateTemplateCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateCategory | Prisma.EnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateCategoryWithAggregatesFilter<$PrismaModel> | $Enums.CertificateTemplateCategory
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateTemplateCategoryFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateTemplateCategoryFilter<$PrismaModel>
+}
+
+export type EnumCertificateTemplateStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateStatus | Prisma.EnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateStatusWithAggregatesFilter<$PrismaModel> | $Enums.CertificateTemplateStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateTemplateStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateTemplateStatusFilter<$PrismaModel>
+}
+
+export type EnumCertificateOrientationWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateOrientation | Prisma.EnumCertificateOrientationFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateOrientationWithAggregatesFilter<$PrismaModel> | $Enums.CertificateOrientation
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateOrientationFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateOrientationFilter<$PrismaModel>
+}
+
+export type EnumCertificateAssetKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateAssetKind | Prisma.EnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateAssetKindFilter<$PrismaModel> | $Enums.CertificateAssetKind
+}
+
+export type EnumCertificateAssetKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateAssetKind | Prisma.EnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateAssetKindWithAggregatesFilter<$PrismaModel> | $Enums.CertificateAssetKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateAssetKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateAssetKindFilter<$PrismaModel>
+}
+
+export type EnumCertificateDeploymentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateDeploymentStatus | Prisma.EnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateDeploymentStatusFilter<$PrismaModel> | $Enums.CertificateDeploymentStatus
+}
+
+export type EnumCertificateDeploymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateDeploymentStatus | Prisma.EnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateDeploymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.CertificateDeploymentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateDeploymentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateDeploymentStatusFilter<$PrismaModel>
+}
+
+export type EnumReportDepartmentFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportDepartment | Prisma.EnumReportDepartmentFieldRefInput<$PrismaModel>
+  in?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReportDepartmentFilter<$PrismaModel> | $Enums.ReportDepartment
+}
+
+export type EnumMonthlyReportStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportStatus | Prisma.EnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportStatusFilter<$PrismaModel> | $Enums.MonthlyReportStatus
+}
+
+export type EnumReportDepartmentWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportDepartment | Prisma.EnumReportDepartmentFieldRefInput<$PrismaModel>
+  in?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReportDepartmentWithAggregatesFilter<$PrismaModel> | $Enums.ReportDepartment
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReportDepartmentFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReportDepartmentFilter<$PrismaModel>
+}
+
+export type EnumMonthlyReportStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportStatus | Prisma.EnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportStatusWithAggregatesFilter<$PrismaModel> | $Enums.MonthlyReportStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMonthlyReportStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMonthlyReportStatusFilter<$PrismaModel>
+}
+
+export type EnumMonthlyReportDocumentKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportDocumentKind | Prisma.EnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel> | $Enums.MonthlyReportDocumentKind
+}
+
+export type EnumMonthlyReportDocumentKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportDocumentKind | Prisma.EnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportDocumentKindWithAggregatesFilter<$PrismaModel> | $Enums.MonthlyReportDocumentKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel>
+}
+
+export type EnumMonthlyReportTrailActionFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportTrailAction | Prisma.EnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportTrailActionFilter<$PrismaModel> | $Enums.MonthlyReportTrailAction
+}
+
+export type EnumMonthlyReportTrailActionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportTrailAction | Prisma.EnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportTrailActionWithAggregatesFilter<$PrismaModel> | $Enums.MonthlyReportTrailAction
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMonthlyReportTrailActionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMonthlyReportTrailActionFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -1173,6 +1360,40 @@ export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
 }
 
+export type NestedEnumAttendanceStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceStatus | Prisma.EnumAttendanceStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel> | $Enums.AttendanceStatus
+}
+
+export type NestedEnumGeoValidationMethodNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel> | $Enums.GeoValidationMethod | null
+}
+
+export type NestedEnumAttendanceStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceStatus | Prisma.EnumAttendanceStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AttendanceStatus[] | Prisma.ListEnumAttendanceStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAttendanceStatusWithAggregatesFilter<$PrismaModel> | $Enums.AttendanceStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumGeoValidationMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeoValidationMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.GeoValidationMethod | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
+}
+
 export type NestedEnumSupportTicketTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.SupportTicketType | Prisma.EnumSupportTicketTypeFieldRefInput<$PrismaModel>
   in?: $Enums.SupportTicketType[] | Prisma.ListEnumSupportTicketTypeFieldRefInput<$PrismaModel>
@@ -1239,6 +1460,159 @@ export type NestedEnumSupportTicketAuthorTypeWithAggregatesFilter<$PrismaModel =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSupportTicketAuthorTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSupportTicketAuthorTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumCertificateTemplateCategoryFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateCategory | Prisma.EnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateCategoryFilter<$PrismaModel> | $Enums.CertificateTemplateCategory
+}
+
+export type NestedEnumCertificateTemplateStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateStatus | Prisma.EnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateStatusFilter<$PrismaModel> | $Enums.CertificateTemplateStatus
+}
+
+export type NestedEnumCertificateOrientationFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateOrientation | Prisma.EnumCertificateOrientationFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateOrientationFilter<$PrismaModel> | $Enums.CertificateOrientation
+}
+
+export type NestedEnumCertificateTemplateCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateCategory | Prisma.EnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateCategory[] | Prisma.ListEnumCertificateTemplateCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateCategoryWithAggregatesFilter<$PrismaModel> | $Enums.CertificateTemplateCategory
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateTemplateCategoryFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateTemplateCategoryFilter<$PrismaModel>
+}
+
+export type NestedEnumCertificateTemplateStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateTemplateStatus | Prisma.EnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateTemplateStatus[] | Prisma.ListEnumCertificateTemplateStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateTemplateStatusWithAggregatesFilter<$PrismaModel> | $Enums.CertificateTemplateStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateTemplateStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateTemplateStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumCertificateOrientationWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateOrientation | Prisma.EnumCertificateOrientationFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateOrientation[] | Prisma.ListEnumCertificateOrientationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateOrientationWithAggregatesFilter<$PrismaModel> | $Enums.CertificateOrientation
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateOrientationFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateOrientationFilter<$PrismaModel>
+}
+
+export type NestedEnumCertificateAssetKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateAssetKind | Prisma.EnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateAssetKindFilter<$PrismaModel> | $Enums.CertificateAssetKind
+}
+
+export type NestedEnumCertificateAssetKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateAssetKind | Prisma.EnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateAssetKind[] | Prisma.ListEnumCertificateAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateAssetKindWithAggregatesFilter<$PrismaModel> | $Enums.CertificateAssetKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateAssetKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateAssetKindFilter<$PrismaModel>
+}
+
+export type NestedEnumCertificateDeploymentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateDeploymentStatus | Prisma.EnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateDeploymentStatusFilter<$PrismaModel> | $Enums.CertificateDeploymentStatus
+}
+
+export type NestedEnumCertificateDeploymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CertificateDeploymentStatus | Prisma.EnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CertificateDeploymentStatus[] | Prisma.ListEnumCertificateDeploymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCertificateDeploymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.CertificateDeploymentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCertificateDeploymentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCertificateDeploymentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumReportDepartmentFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportDepartment | Prisma.EnumReportDepartmentFieldRefInput<$PrismaModel>
+  in?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReportDepartmentFilter<$PrismaModel> | $Enums.ReportDepartment
+}
+
+export type NestedEnumMonthlyReportStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportStatus | Prisma.EnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportStatusFilter<$PrismaModel> | $Enums.MonthlyReportStatus
+}
+
+export type NestedEnumReportDepartmentWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportDepartment | Prisma.EnumReportDepartmentFieldRefInput<$PrismaModel>
+  in?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReportDepartment[] | Prisma.ListEnumReportDepartmentFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReportDepartmentWithAggregatesFilter<$PrismaModel> | $Enums.ReportDepartment
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReportDepartmentFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReportDepartmentFilter<$PrismaModel>
+}
+
+export type NestedEnumMonthlyReportStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportStatus | Prisma.EnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportStatus[] | Prisma.ListEnumMonthlyReportStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportStatusWithAggregatesFilter<$PrismaModel> | $Enums.MonthlyReportStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMonthlyReportStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMonthlyReportStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportDocumentKind | Prisma.EnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel> | $Enums.MonthlyReportDocumentKind
+}
+
+export type NestedEnumMonthlyReportDocumentKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportDocumentKind | Prisma.EnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportDocumentKind[] | Prisma.ListEnumMonthlyReportDocumentKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportDocumentKindWithAggregatesFilter<$PrismaModel> | $Enums.MonthlyReportDocumentKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMonthlyReportDocumentKindFilter<$PrismaModel>
+}
+
+export type NestedEnumMonthlyReportTrailActionFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportTrailAction | Prisma.EnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportTrailActionFilter<$PrismaModel> | $Enums.MonthlyReportTrailAction
+}
+
+export type NestedEnumMonthlyReportTrailActionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MonthlyReportTrailAction | Prisma.EnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  in?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MonthlyReportTrailAction[] | Prisma.ListEnumMonthlyReportTrailActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMonthlyReportTrailActionWithAggregatesFilter<$PrismaModel> | $Enums.MonthlyReportTrailAction
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMonthlyReportTrailActionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMonthlyReportTrailActionFilter<$PrismaModel>
 }
 
 

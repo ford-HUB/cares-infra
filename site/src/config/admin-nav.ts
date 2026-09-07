@@ -111,8 +111,8 @@ export const adminNav: PortalNavConfig = {
       icon: CreditCard,
       roles: OPERATIONS_ROLES,
       children: [
-        { label: 'Templates', to: '/admin/templates-list' },
-        { label: 'Deployed Templates', to: '/admin/deployed-certificate-templates' },
+        { label: 'Customization', to: '/admin/templates-list' },
+        { label: 'Live Certificates', to: '/admin/deployed-certificate-templates' },
       ],
     },
     {
@@ -121,8 +121,8 @@ export const adminNav: PortalNavConfig = {
       icon: Trophy,
       roles: OPERATIONS_ROLES,
       children: [
-        { label: 'Ranking', to: '/admin/rankings' },
         { label: 'Customization', to: '/admin/ranking-customization' },
+        { label: 'Ranking', to: '/admin/rankings' },
       ],
     },
     {
@@ -130,7 +130,10 @@ export const adminNav: PortalNavConfig = {
       label: 'Reports',
       icon: FileText,
       roles: OPERATIONS_ROLES,
-      children: [{ label: 'Monthly Report', to: '/admin/post-requirements' }],
+      children: [
+        { label: 'Queue Reviewer', to: '/admin/report-queue' },
+        { label: 'Monthly Report', to: '/admin/monthly-reports' },
+      ],
     },
     { type: 'section', label: 'Administration' },
     {

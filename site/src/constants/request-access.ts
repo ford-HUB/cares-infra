@@ -1,6 +1,6 @@
 /** Recipient for administrator access requests. */
 export const ADMIN_REQUEST_EMAIL =
-  import.meta.env.VITE_ADMIN_REQUEST_EMAIL ?? 'cares.admin@uclm.edu.ph'
+  import.meta.env.VITE_ADMIN_REQUEST_EMAIL ?? 'careeesadmin@gmail.com'
 
 export const REQUEST_ACCESS_SUBJECT = 'CARES Administrator Access Request'
 

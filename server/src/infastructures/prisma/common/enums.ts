@@ -176,6 +176,25 @@ export const EventStatus = {
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]
 
 
+export const AttendanceStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  ABSENT: 'ABSENT'
+} as const
+
+export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus]
+
+
+export const GeoValidationMethod = {
+  GEOFENCE: 'GEOFENCE',
+  OFFLINE_SYNC: 'OFFLINE_SYNC',
+  AWAITING_SYNC: 'AWAITING_SYNC',
+  MANUAL: 'MANUAL'
+} as const
+
+export type GeoValidationMethod = (typeof GeoValidationMethod)[keyof typeof GeoValidationMethod]
+
+
 export const SupportTicketPriority = {
   HIGH: 'HIGH',
   MEDIUM: 'MEDIUM',
@@ -217,3 +236,91 @@ export const SupportTicketAuthorType = {
 } as const
 
 export type SupportTicketAuthorType = (typeof SupportTicketAuthorType)[keyof typeof SupportTicketAuthorType]
+
+
+export const CertificateTemplateStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CertificateTemplateStatus = (typeof CertificateTemplateStatus)[keyof typeof CertificateTemplateStatus]
+
+
+export const CertificateTemplateCategory = {
+  PARTICIPATION: 'PARTICIPATION',
+  APPRECIATION: 'APPRECIATION',
+  VOLUNTEER_HOURS: 'VOLUNTEER_HOURS',
+  COMPLETION: 'COMPLETION',
+  SPONSORSHIP: 'SPONSORSHIP'
+} as const
+
+export type CertificateTemplateCategory = (typeof CertificateTemplateCategory)[keyof typeof CertificateTemplateCategory]
+
+
+export const CertificateOrientation = {
+  LANDSCAPE: 'LANDSCAPE',
+  PORTRAIT: 'PORTRAIT'
+} as const
+
+export type CertificateOrientation = (typeof CertificateOrientation)[keyof typeof CertificateOrientation]
+
+
+export const CertificateAssetKind = {
+  IMAGE: 'IMAGE',
+  FRAME: 'FRAME',
+  SEAL: 'SEAL'
+} as const
+
+export type CertificateAssetKind = (typeof CertificateAssetKind)[keyof typeof CertificateAssetKind]
+
+
+export const CertificateDeploymentStatus = {
+  SCHEDULED: 'SCHEDULED',
+  DISTRIBUTING: 'DISTRIBUTING',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type CertificateDeploymentStatus = (typeof CertificateDeploymentStatus)[keyof typeof CertificateDeploymentStatus]
+
+
+export const MonthlyReportStatus = {
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  APPROVED: 'APPROVED',
+  RETURNED: 'RETURNED'
+} as const
+
+export type MonthlyReportStatus = (typeof MonthlyReportStatus)[keyof typeof MonthlyReportStatus]
+
+
+export const ReportDepartment = {
+  CCS: 'CCS',
+  CBA: 'CBA',
+  CEA: 'CEA',
+  CNAHS: 'CNAHS',
+  CAS: 'CAS',
+  CCJE: 'CCJE'
+} as const
+
+export type ReportDepartment = (typeof ReportDepartment)[keyof typeof ReportDepartment]
+
+
+export const MonthlyReportDocumentKind = {
+  DOCX: 'DOCX',
+  PDF: 'PDF',
+  XLSX: 'XLSX',
+  IMAGE: 'IMAGE'
+} as const
+
+export type MonthlyReportDocumentKind = (typeof MonthlyReportDocumentKind)[keyof typeof MonthlyReportDocumentKind]
+
+
+export const MonthlyReportTrailAction = {
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  RETURNED: 'RETURNED',
+  RESUBMITTED: 'RESUBMITTED'
+} as const
+
+export type MonthlyReportTrailAction = (typeof MonthlyReportTrailAction)[keyof typeof MonthlyReportTrailAction]

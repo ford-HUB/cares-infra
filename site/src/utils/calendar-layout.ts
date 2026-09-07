@@ -34,10 +34,25 @@ export function monthGridDays(date: Dayjs): Dayjs[] {
   )
 }
 
+/**
+ * Timed events belong to the day they start on. An all-day event repeats across
+ * every day it covers instead — a multi-day event listed only on its first day
+ * reads as if the schedule were clear for the rest of its run.
+ */
+function coversDay(event: CalendarEvent, day: Dayjs): boolean {
+  if (!event.allDay) return dayjs(event.start).isSame(day, 'day')
+  return !day.isBefore(dayjs(event.start), 'day') && !day.isAfter(dayjs(event.end), 'day')
+}
+
 export function eventsOnDay(events: CalendarEvent[], day: Dayjs): CalendarEvent[] {
   return events
-    .filter((event) => dayjs(event.start).isSame(day, 'day'))
+    .filter((event) => coversDay(event, day))
     .sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf())
+}
+
+/** The events drawn anywhere in the visible range — what the toolbar counts. */
+export function eventsInDays(events: CalendarEvent[], days: Dayjs[]): CalendarEvent[] {
+  return events.filter((event) => days.some((day) => coversDay(event, day)))
 }
 
 /**
