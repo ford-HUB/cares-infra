@@ -75,13 +75,14 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
   bool get _ocrDataValid {
     if (_isBeneficiary) {
+      // The ID number comes from the completed ID validation step, so it is
+      // not re-entered (or required) on the beneficiary details form.
       return _ocrData.firstname.trim().isNotEmpty &&
           _ocrData.lastname.trim().isNotEmpty &&
           _ocrData.gender.trim().isNotEmpty &&
           _ocrData.age > 0 &&
           _ocrData.currentAddress.trim().isNotEmpty &&
-          _ocrData.phoneNumber.trim().length >= 7 &&
-          _ocrData.idNumber.trim().isNotEmpty;
+          _ocrData.phoneNumber.trim().length >= 7;
     }
 
     final baseValid =
@@ -313,6 +314,10 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       final volunteerType = widget.volunteerType;
       if (volunteerType != null) {
         ocrData = ocrData.copyWith(volunteerType: volunteerType.apiValue);
+      } else if (_isBeneficiary) {
+        // Never let the extractor's default volunteer type stick to a
+        // beneficiary registration.
+        ocrData = ocrData.copyWith(volunteerType: '');
       }
 
       setState(() {

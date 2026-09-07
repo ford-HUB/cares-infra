@@ -154,6 +154,49 @@ class StaticUserSession {
     }
   }
 
+  /// Signs in (or creates) the in-memory user for an account whose role was
+  /// resolved elsewhere — API registration or API login. The role is written
+  /// through so role-based dashboard routing stays correct.
+  StaticSessionUser signInWithRole({
+    required String email,
+    required AccountType accountType,
+    String firstName = '',
+    String lastName = '',
+    UserRole? userRole,
+    BeneficiaryType? beneficiaryType,
+  }) {
+    final key = email.trim().toLowerCase();
+    final user =
+        _usersByEmail[key] ??
+        StaticSessionUser(
+          firstName: firstName,
+          lastName: lastName,
+          email: email.trim(),
+          password: '',
+          accountType: accountType,
+        );
+
+    user.email = email.trim();
+    user.accountType = accountType;
+    if (firstName.trim().isNotEmpty) user.firstName = firstName.trim();
+    if (lastName.trim().isNotEmpty) user.lastName = lastName.trim();
+
+    if (accountType == AccountType.beneficiary) {
+      // Beneficiaries never carry a volunteer role.
+      user.userRole = null;
+      user.beneficiaryType =
+          beneficiaryType ?? user.beneficiaryType ?? BeneficiaryType.individual;
+    } else {
+      user.userRole = userRole ?? user.userRole;
+      user.beneficiaryType = null;
+    }
+
+    _usersByEmail[key] = user;
+    currentUser = user;
+    isDonorMode = false;
+    return user;
+  }
+
   StaticSessionUser? signIn(String email, String password) {
     final user = _usersByEmail[email.trim().toLowerCase()];
     if (user == null || user.password != password) return null;

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../core/session/static_user_session.dart';
 import '../data/mock_events.dart';
@@ -9,20 +8,15 @@ class EventParticipation {
     required this.eventId,
     required this.participantEmail,
     required this.participantName,
-    required this.qrToken,
     required this.registeredAt,
   });
 
   final String eventId;
   final String participantEmail;
   final String participantName;
-  final String qrToken;
   final DateTime registeredAt;
   bool attendanceVerified = false;
   DateTime? attendanceVerifiedAt;
-
-  String get qrPayload =>
-      'CARES|$eventId|$participantEmail|$qrToken';
 }
 
 /// In-memory event registration store for the static prototype phase.
@@ -30,7 +24,6 @@ class EventRegistrationStore extends ChangeNotifier {
   EventRegistrationStore._();
 
   static final EventRegistrationStore instance = EventRegistrationStore._();
-  static const _uuid = Uuid();
 
   final Map<String, EventParticipation> _participations = {};
 
@@ -54,9 +47,13 @@ class EventRegistrationStore extends ChangeNotifier {
 
   EventParticipation register(CaresEvent event, {String? email, String? name}) {
     final participantEmail =
-        email ?? StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+        email ??
+        StaticUserSession.instance.currentUser?.email ??
+        'guest@cares.local';
     final participantName =
-        name ?? StaticUserSession.instance.currentUser?.firstName ?? 'Participant';
+        name ??
+        StaticUserSession.instance.currentUser?.firstName ??
+        'Participant';
 
     final key = _key(event.id, participantEmail);
     final existing = _participations[key];
@@ -66,12 +63,47 @@ class EventRegistrationStore extends ChangeNotifier {
       eventId: event.id,
       participantEmail: participantEmail,
       participantName: participantName,
-      qrToken: _uuid.v4(),
       registeredAt: DateTime.now(),
     );
     _participations[key] = participation;
     notifyListeners();
     return participation;
+  }
+
+  /// Seeds the prototype scenario: the volunteer already joined every
+  /// completed event and their attendance was verified on the event day.
+  void seedCompletedEventParticipation({String? email, String? name}) {
+    final participantEmail =
+        email ??
+        StaticUserSession.instance.currentUser?.email ??
+        'guest@cares.local';
+    final participantName =
+        name ??
+        StaticUserSession.instance.currentUser?.firstName ??
+        'Participant';
+
+    var changed = false;
+    for (final event in kMockCompletedEvents) {
+      final key = _key(event.id, participantEmail);
+      var participation = _participations[key];
+      if (participation == null) {
+        participation = EventParticipation(
+          eventId: event.id,
+          participantEmail: participantEmail,
+          participantName: participantName,
+          registeredAt: event.date.subtract(const Duration(days: 7)),
+        );
+        _participations[key] = participation;
+        changed = true;
+      }
+      if (!participation.attendanceVerified) {
+        participation.attendanceVerified = true;
+        participation.attendanceVerifiedAt = event.date;
+        changed = true;
+      }
+    }
+
+    if (changed) notifyListeners();
   }
 
   void markAttendanceVerified(String eventId, String email) {

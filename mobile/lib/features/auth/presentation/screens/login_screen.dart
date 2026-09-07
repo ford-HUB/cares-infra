@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_copy.dart';
+import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -9,7 +10,6 @@ import 'package:mobile/features/auth/data/auth_login_service.dart';
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/animated_illustration.dart';
 import 'package:mobile/features/auth/presentation/widgets/sun_weather_panel.dart';
-import 'package:mobile/features/dashboard/presentation/screens/home_screen.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
@@ -94,15 +94,12 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!mounted) return;
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
-          builder: (_) => HomeScreen(
-            email: loginResult.email,
-            firstName: loginResult.firstName,
-            profileComplete: loginResult.hasInterests,
-          ),
-        ),
-        (_) => false,
+      DashboardRouter.navigateToRoleDashboard(
+        context,
+        roleType: loginResult.roleType,
+        email: loginResult.email,
+        firstName: loginResult.firstName,
+        profileComplete: loginResult.hasInterests,
       );
     } on ApiException catch (error) {
       if (!mounted) return;

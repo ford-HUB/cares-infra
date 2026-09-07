@@ -9,11 +9,15 @@ class HomeHeader extends StatelessWidget {
     required this.firstName,
     required this.points,
     this.showNotificationDot = true,
+    this.badgeLabel,
   });
 
   final String firstName;
   final int points;
   final bool showNotificationDot;
+
+  /// Replaces the points pill, e.g. '2 active' on the beneficiary dashboard.
+  final String? badgeLabel;
 
   String get _initial {
     final trimmed = firstName.trim();
@@ -66,7 +70,7 @@ class HomeHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            '${points}pts',
+            badgeLabel ?? '${points}pts',
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,

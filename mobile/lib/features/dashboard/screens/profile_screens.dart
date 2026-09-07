@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
+import '../data/event_feedback_store.dart';
 import 'certificate_review_screen.dart';
+import 'help_support_screen.dart';
 export 'profile_analytics_screen.dart';
 export 'profile_edit_screen.dart';
 
@@ -89,22 +92,45 @@ class _ProfileNotificationsScreenState
   }
 }
 
-class ProfileCertificatesScreen extends StatelessWidget {
-  const ProfileCertificatesScreen({super.key, required this.count});
+/// The volunteer's certificate wallet: every certificate they have received.
+class ProfileCertificatesScreen extends StatefulWidget {
+  const ProfileCertificatesScreen({super.key});
 
-  final int count;
-
-  static void open(BuildContext context, {required int count}) {
+  static void open(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ProfileCertificatesScreen(count: count),
+        builder: (_) => const ProfileCertificatesScreen(),
       ),
     );
   }
 
   @override
+  State<ProfileCertificatesScreen> createState() =>
+      _ProfileCertificatesScreenState();
+}
+
+class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
+  final _feedbackStore = EventFeedbackStore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedbackStore.addListener(_onStoreChanged);
+  }
+
+  @override
+  void dispose() {
+    _feedbackStore.removeListener(_onStoreChanged);
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final certificates = certificatesForCount(count);
+    final certificates = earnedCertificatesFor(certificateWalletEmail());
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -116,23 +142,47 @@ class ProfileCertificatesScreen extends StatelessWidget {
       ),
       body: certificates.isEmpty
           ? const Center(
-              child: Text(
-                'No certificates earned yet.',
-                style: TextStyle(color: AppColors.textSecondary),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'No certificates earned yet. Complete an event and submit '
+                  'your feedback to receive one.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
               ),
             )
           : ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: certificates.length,
+              itemCount: certificates.length + 1,
               separatorBuilder: (_, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                final certificate = certificates[index];
-                return _CertificateListTile(certificate: certificate);
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      '${certificates.length} certificate'
+                      '${certificates.length == 1 ? '' : 's'} received',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  );
+                }
+                return _CertificateListTile(
+                  certificate: certificates[index - 1],
+                );
               },
             ),
     );
   }
 }
+
+/// Email the certificate wallet is keyed on for the static prototype.
+String certificateWalletEmail() =>
+    StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
 class _CertificateListTile extends StatelessWidget {
   const _CertificateListTile({required this.certificate});
@@ -247,40 +297,10 @@ class ProfileHistoryScreen extends StatelessWidget {
 class ProfileHelpSupportScreen extends StatelessWidget {
   const ProfileHelpSupportScreen({super.key});
 
-  static void open(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ProfileHelpSupportScreen()),
-    );
-  }
+  static void open(BuildContext context) => HelpSupportScreen.open(context);
 
   @override
-  Widget build(BuildContext context) {
-    return _ProfileListScreen(
-      title: 'Help and Support',
-      items: const [
-        _ListEntry(
-          icon: Icons.quiz_outlined,
-          title: 'FAQs',
-          subtitle: 'Common questions about volunteering and donations',
-        ),
-        _ListEntry(
-          icon: Icons.mail_outline_rounded,
-          title: 'Email support',
-          subtitle: 'support@cares.org',
-        ),
-        _ListEntry(
-          icon: Icons.phone_outlined,
-          title: 'Contact hotline',
-          subtitle: '(032) 123-4567',
-        ),
-        _ListEntry(
-          icon: Icons.report_gmailerrorred_outlined,
-          title: 'Report an issue',
-          subtitle: 'Tell us about a problem with the app',
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => const HelpSupportScreen();
 }
 
 class ProfileAboutScreen extends StatelessWidget {
@@ -432,15 +452,10 @@ class ProfileStatDetailScreen extends StatelessWidget {
 }
 
 class _ProfileListScreen extends StatelessWidget {
-  const _ProfileListScreen({
-    required this.title,
-    required this.items,
-    this.emptyMessage,
-  });
+  const _ProfileListScreen({required this.title, required this.items});
 
   final String title;
   final List<_ListEntry> items;
-  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -454,9 +469,9 @@ class _ProfileListScreen extends StatelessWidget {
       ),
       body: items.isEmpty
           ? Center(
-              child: Text(
-                emptyMessage ?? 'Nothing to show yet.',
-                style: const TextStyle(color: AppColors.textSecondary),
+              child: const Text(
+                'Nothing to show yet.',
+                style: TextStyle(color: AppColors.textSecondary),
               ),
             )
           : ListView.separated(
@@ -517,14 +532,6 @@ class _ProfileListScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (item.trailing != null)
-                            Text(
-                              item.trailing!,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -537,17 +544,11 @@ class _ProfileListScreen extends StatelessWidget {
 }
 
 class _ListEntry {
-  const _ListEntry({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.trailing,
-  });
+  const _ListEntry({required this.icon, required this.title, this.subtitle});
 
   final IconData icon;
   final String title;
   final String? subtitle;
-  final String? trailing;
 }
 
 class _InfoCard extends StatelessWidget {

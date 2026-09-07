@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
-import '../data/donation_store.dart';
 import '../data/mock_donations.dart';
-import '../widgets/donation_dialogs.dart';
+import 'donation_flow_screen.dart';
 
 class DonationDetailsScreen extends StatefulWidget {
   const DonationDetailsScreen({
@@ -33,38 +33,17 @@ class DonationDetailsScreen extends StatefulWidget {
 }
 
 class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
-  int _selectedAmount = 500;
+  String get _donorEmail =>
+      widget.donorEmail ??
+      StaticUserSession.instance.currentUser?.email ??
+      'guest@cares.local';
 
-  static const _presetAmounts = [100, 250, 500, 1000];
-
-  Future<void> _confirmDonation() async {
-    final confirmed = await showDonationConfirmationDialog(
+  void _startDonation() {
+    DonationFlowScreen.open(
       context,
-      donation: widget.donation,
-      amount: _selectedAmount,
+      campaign: widget.donation,
+      donorEmail: _donorEmail,
     );
-
-    if (confirmed != true || !mounted) return;
-
-    final email = widget.donorEmail ??
-        StaticUserSession.instance.currentUser?.email ??
-        'guest@cares.local';
-    DonationStore.instance.recordDonation(
-      donationId: widget.donation.id,
-      campaignTitle: widget.donation.title,
-      amount: _selectedAmount,
-      donorEmail: email,
-    );
-
-    if (!mounted) return;
-    await showDonationSuccessDialog(
-      context,
-      donation: widget.donation,
-      amount: _selectedAmount,
-    );
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
   }
 
   @override
@@ -79,43 +58,81 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: FilledButton.icon(
+            onPressed: _startDonation,
+            icon: const Icon(Icons.volunteer_activism_rounded),
+            label: const Text('Donate'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              minimumSize: const Size.fromHeight(52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.primaryLight, AppColors.primary],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
               children: [
-                Text(
-                  donation.category,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontWeight: FontWeight.w600,
+                Positioned.fill(
+                  child: Image.asset(
+                    AppAssets.campaignPhoto,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  donation.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.2,
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.05),
+                          Colors.black.withValues(alpha: 0.55),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  donation.organization,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        donation.category,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        donation.title,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        donation.organization,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -169,48 +186,44 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Select amount',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _presetAmounts.map((amount) {
-              final selected = _selectedAmount == amount;
-              return ChoiceChip(
-                label: Text('₱$amount'),
-                selected: selected,
-                onSelected: (_) => setState(() => _selectedAmount = amount),
-                selectedColor: AppColors.primary.withValues(alpha: 0.15),
-                labelStyle: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: selected ? AppColors.primary : AppColors.textSecondary,
-                ),
-                side: BorderSide(
-                  color: selected ? AppColors.primary : AppColors.inputFill,
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 28),
-          FilledButton.icon(
-            onPressed: _confirmDonation,
-            icon: const Icon(Icons.favorite_rounded),
-            label: Text('Donate ₱$_selectedAmount'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              minimumSize: const Size.fromHeight(50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.all(16),
+          //   decoration: BoxDecoration(
+          //     color: AppColors.surface,
+          //     borderRadius: BorderRadius.circular(14),
+          //     border: Border.all(color: AppColors.inputFill),
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       Container(
+          //         width: 40,
+          //         height: 40,
+          //         decoration: BoxDecoration(
+          //           color: AppColors.primary.withValues(alpha: 0.1),
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         child: const Icon(
+          //           Icons.handshake_outlined,
+          //           size: 20,
+          //           color: AppColors.primary,
+          //         ),
+          //       ),
+          //       const SizedBox(width: 12),
+          //       const Expanded(
+          //         child: Text(
+          //           'Tap Donate to choose how you want to help — money or '
+          //           'goods. You can review everything before anything is '
+          //           'confirmed.',
+          //           style: TextStyle(
+          //             fontSize: 13,
+          //             color: AppColors.textSecondary,
+          //             height: 1.4,
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );

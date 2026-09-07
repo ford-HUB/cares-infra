@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../../../../core/session/static_user_session.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/activity_data.dart';
+import '../../data/event_feedback_store.dart';
 import '../../data/event_registration_store.dart';
 import '../../data/mock_events.dart';
 import '../../screens/event_details_screen.dart';
+import '../../widgets/completed_event_widgets.dart';
 
 class StudentActivitiesTab extends StatefulWidget {
   const StudentActivitiesTab({super.key});
@@ -15,17 +17,23 @@ class StudentActivitiesTab extends StatefulWidget {
 
 class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
   final _store = EventRegistrationStore.instance;
+  final _feedbackStore = EventFeedbackStore.instance;
   int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     _store.addListener(_onStoreChanged);
+    _feedbackStore.addListener(_onStoreChanged);
+    // Prototype scenario: the volunteer already joined and attended the
+    // events that have since been completed.
+    _store.seedCompletedEventParticipation(email: _userEmail);
   }
 
   @override
   void dispose() {
     _store.removeListener(_onStoreChanged);
+    _feedbackStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -55,14 +63,27 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
         .where((p) => p.attendanceVerified)
         .map((p) => findEventById(p.eventId))
         .whereType<CaresEvent>()
+        // Completed events live on their own tab with the feedback flow.
+        .where((e) => !e.isCompleted)
         .map((e) => ActivityEntry.fromEvent(e, ActivityStatus.attended))
         .toList();
 
     return [...fromStore, ...kMockAttendedActivities];
   }
 
+  /// Events the volunteer participated in that have since ended.
+  List<CaresEvent> get _completedEvents {
+    return _store
+        .participationsForEmail(_userEmail)
+        .map((p) => findEventById(p.eventId))
+        .whereType<CaresEvent>()
+        .where((e) => e.isCompleted)
+        .toList();
+  }
+
   int get _joinedCount => _joinedActivities.length;
-  int get _attendedCount => _attendedActivities.length;
+  int get _attendedCount =>
+      _attendedActivities.length + _completedEvents.length;
   int get _points => 240 + (_attendedCount * 25);
 
   void _openEvent(ActivityEntry activity) {
@@ -72,11 +93,21 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
     }
   }
 
+  bool _hasFeedback(CaresEvent event) =>
+      _feedbackStore.hasSubmitted(event.id, _userEmail);
+
   @override
   Widget build(BuildContext context) {
+    final completedEvents = _completedEvents;
     final activities = _selectedTab == 0
         ? _joinedActivities
-        : _attendedActivities;
+        : _selectedTab == 1
+        ? _attendedActivities
+        : const <ActivityEntry>[];
+    final isCompletedTab = _selectedTab == 2;
+    final isEmpty = isCompletedTab
+        ? completedEvents.isEmpty
+        : activities.isEmpty;
 
     return ColoredBox(
       color: AppColors.background,
@@ -145,7 +176,7 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
               ),
             ),
           ),
-          if (activities.isEmpty)
+          if (isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
@@ -153,6 +184,20 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
                   'No activities in this section yet.',
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
+              ),
+            )
+          else if (isCompletedTab)
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final event = completedEvents[index];
+                  return CompletedEventCard(
+                    event: event,
+                    feedbackSubmitted: _hasFeedback(event),
+                    onTap: () => EventDetailsScreen.open(context, event),
+                  );
+                }, childCount: completedEvents.length),
               ),
             )
           else
@@ -253,6 +298,13 @@ class _ActivityTabSelector extends StatelessWidget {
               onTap: () => onChanged(1),
             ),
           ),
+          Expanded(
+            child: _TabChip(
+              label: 'Completed',
+              selected: selectedIndex == 2,
+              onTap: () => onChanged(2),
+            ),
+          ),
         ],
       ),
     );
@@ -287,8 +339,10 @@ class _TabChip extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12.5,
               fontWeight: FontWeight.w700,
               color: selected ? Colors.white : AppColors.textSecondary,
             ),

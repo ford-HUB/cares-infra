@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
+import '../beneficiary/data/beneficiary_personal_profile_store.dart';
+import '../beneficiary/domain/beneficiary_personal_profile.dart';
+import '../beneficiary/widgets/beneficiary_verification_gate.dart';
+import '../data/certificate_data.dart';
+import '../data/event_feedback_store.dart';
 import '../data/event_registration_store.dart';
 import '../data/mock_events.dart';
 import '../utils/geo_utils.dart';
-import '../widgets/event_qr_code_sheet.dart';
+import '../widgets/completed_event_widgets.dart';
 import '../widgets/event_registration_dialogs.dart';
+import 'certificate_review_screen.dart';
+import 'event_feedback_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({super.key, required this.event});
@@ -25,10 +32,53 @@ class EventDetailsScreen extends StatefulWidget {
 
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
+  final _feedbackStore = EventFeedbackStore.instance;
+  final _verificationStore = BeneficiaryPersonalProfileStore.instance;
   bool _isCheckingLocation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedbackStore.addListener(_onFeedbackChanged);
+    _verificationStore.addListener(_onFeedbackChanged);
+    if (widget.event.isCompleted) {
+      // Prototype scenario: the volunteer already joined and attended.
+      _store.seedCompletedEventParticipation(email: _participantEmail);
+    }
+  }
+
+  @override
+  void dispose() {
+    _feedbackStore.removeListener(_onFeedbackChanged);
+    _verificationStore.removeListener(_onFeedbackChanged);
+    super.dispose();
+  }
+
+  void _onFeedbackChanged() {
+    if (mounted) setState(() {});
+  }
 
   String get _participantEmail =>
       StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+
+  bool get _feedbackSubmitted =>
+      _feedbackStore.hasSubmitted(widget.event.id, _participantEmail);
+
+  Future<void> _giveFeedback() async {
+    final submitted = await EventFeedbackScreen.open(context, widget.event);
+    if (!mounted || !submitted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Thank you for your feedback!'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _viewCertificate() {
+    CertificateReviewScreen.open(context, certificateForEvent(widget.event));
+  }
 
   EventParticipation? get _participation =>
       _store.participationFor(widget.event.id, _participantEmail);
@@ -36,7 +86,47 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _isRegistered =>
       _store.isRegistered(widget.event.id, _participantEmail);
 
+  /// Beneficiaries must have a verified identity/residency document on file
+  /// before they can join an event.
+  bool get _isBeneficiary => isBeneficiarySession;
+
+  BeneficiaryVerificationState get _verificationState =>
+      _verificationStore.verificationState;
+
+  VerificationDocument? get _verificationDocument =>
+      switch (_verificationState) {
+        BeneficiaryVerificationState.rejected =>
+          _verificationStore.profile.rejectedDocument,
+        BeneficiaryVerificationState.underReview =>
+          _verificationStore.profile.documentUnderReview,
+        _ => null,
+      };
+
+  bool get _blockedByVerification =>
+      _isBeneficiary && !_verificationStore.canJoinEvents;
+
+  Future<void> _openVerificationGate() async {
+    final uploaded = await showBeneficiaryVerificationRequiredDialog(context);
+    if (!mounted) return;
+    setState(() {});
+    if (uploaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Document submitted. You can join events once it is verified.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _confirmJoin() async {
+    if (_blockedByVerification) {
+      await _openVerificationGate();
+      return;
+    }
+
     final confirmed = await showEventJoinConfirmationDialog(
       context,
       widget.event,
@@ -228,6 +318,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final event = widget.event;
     final participation = _participation;
     final isRegistered = _isRegistered;
+    final isCompleted = event.isCompleted;
+    final feedbackSubmitted = _feedbackSubmitted;
     final filledPercent = (event.capacityFilled * 100).round();
 
     return Scaffold(
@@ -298,7 +390,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                   ),
                                 ),
                               Text(
-                                event.category,
+                                isCompleted
+                                    ? '${event.category} · Completed'
+                                    : event.category,
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: 14,
@@ -332,24 +426,54 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: [
-                            _CountdownChip(daysUntil: event.daysUntil),
-                            _StatusChip(
-                              label: '${event.slotsLeft} slots left',
-                              color: AppColors.primary,
-                              background: AppColors.primary.withValues(
-                                alpha: 0.12,
-                              ),
-                            ),
-                            if (isRegistered)
-                              _StatusChip(
-                                label: 'Registered',
-                                color: AppColors.primary,
-                                background: AppColors.accent.withValues(
-                                  alpha: 0.15,
-                                ),
-                              ),
-                          ],
+                          children: isCompleted
+                              ? [
+                                  _StatusChip(
+                                    label: 'Completed',
+                                    color: AppColors.primary,
+                                    background: AppColors.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                  ),
+                                  _StatusChip(
+                                    label: 'Participated',
+                                    color: AppColors.primary,
+                                    background: AppColors.accent.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                  ),
+                                  _StatusChip(
+                                    label: feedbackSubmitted
+                                        ? 'Feedback submitted'
+                                        : 'Feedback required',
+                                    color: feedbackSubmitted
+                                        ? AppColors.primary
+                                        : AppColors.accentOrange,
+                                    background:
+                                        (feedbackSubmitted
+                                                ? AppColors.primary
+                                                : AppColors.accentOrange)
+                                            .withValues(alpha: 0.12),
+                                  ),
+                                ]
+                              : [
+                                  _CountdownChip(daysUntil: event.daysUntil),
+                                  _StatusChip(
+                                    label: '${event.slotsLeft} slots left',
+                                    color: AppColors.primary,
+                                    background: AppColors.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                  ),
+                                  if (isRegistered)
+                                    _StatusChip(
+                                      label: 'Registered',
+                                      color: AppColors.primary,
+                                      background: AppColors.accent.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                    ),
+                                ],
                         ),
                         const SizedBox(height: 24),
                         _sectionTitle('About this event'),
@@ -435,92 +559,110 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 24),
-                        _sectionTitle('Available slots'),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.inputFill),
+                        if (isCompleted) ...[
+                          const SizedBox(height: 24),
+                          _sectionTitle('Completed event'),
+                          const SizedBox(height: 12),
+                          CompletedEventStatusCard(
+                            event: event,
+                            participated:
+                                participation?.attendanceVerified ?? true,
+                            feedbackSubmitted: feedbackSubmitted,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '$filledPercent% filled',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${event.registeredCount}/${event.totalCapacity} registered',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: LinearProgressIndicator(
-                                  value: event.capacityFilled,
-                                  minHeight: 8,
-                                  backgroundColor: AppColors.inputFill,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${event.slotsLeft} spots still available',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (participation?.attendanceVerified == true) ...[
                           const SizedBox(height: 16),
+                          CertificateStatusBanner(unlocked: feedbackSubmitted),
+                        ] else ...[
+                          const SizedBox(height: 24),
+                          _sectionTitle('Available slots'),
+                          const SizedBox(height: 12),
                           Container(
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.2),
-                              ),
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.inputFill),
                             ),
-                            child: const Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.verified_rounded,
-                                  color: AppColors.primary,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'Attendance verified at this event.',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primary,
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '$filledPercent% filled',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
+                                      ),
                                     ),
+                                    Text(
+                                      '${event.registeredCount}/${event.totalCapacity} registered',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: LinearProgressIndicator(
+                                    value: event.capacityFilled,
+                                    minHeight: 8,
+                                    backgroundColor: AppColors.inputFill,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${event.slotsLeft} spots still available',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textMuted,
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          if (participation?.attendanceVerified == true) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.08,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                ),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.verified_rounded,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Attendance verified at this event.',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ],
                     ),
@@ -533,59 +675,73 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             top: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: isRegistered
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: participation == null
-                                ? null
-                                : () => showEventQrCodeSheet(
-                                    context,
-                                    participation,
-                                    event.title,
-                                  ),
-                            icon: const Icon(Icons.qr_code_rounded),
-                            label: const Text('QR Code'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              minimumSize: const Size.fromHeight(52),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _isCheckingLocation
-                                ? null
-                                : _verifyGeolocation,
-                            icon: _isCheckingLocation
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.my_location_rounded),
-                            label: Text(
-                              _isCheckingLocation
-                                  ? 'Checking...'
-                                  : 'Geolocation',
-                            ),
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size.fromHeight(52),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : FilledButton(
-                      onPressed: event.slotsLeft > 0 ? _confirmJoin : null,
-                      child: const Text('Join Event'),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isCompleted && !isRegistered && _blockedByVerification)
+                    BeneficiaryVerificationBanner(
+                      state: _verificationState,
+                      document: _verificationDocument,
+                      onAction: _openVerificationGate,
                     ),
+                  isCompleted
+                      ? (feedbackSubmitted
+                            ? FilledButton.icon(
+                                onPressed: _viewCertificate,
+                                icon: const Icon(
+                                  Icons.workspace_premium_rounded,
+                                ),
+                                label: const Text('View Certificate'),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
+                                ),
+                              )
+                            : FilledButton.icon(
+                                onPressed: _giveFeedback,
+                                icon: const Icon(Icons.rate_review_rounded),
+                                label: const Text('Give Feedback'),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
+                                ),
+                              ))
+                      : isRegistered
+                      ? FilledButton.icon(
+                          onPressed:
+                              _isCheckingLocation || participation == null
+                              ? null
+                              : _verifyGeolocation,
+                          icon: _isCheckingLocation
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.my_location_rounded),
+                          label: Text(
+                            _isCheckingLocation
+                                ? 'Checking...'
+                                : 'Verify Attendance',
+                          ),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                          ),
+                        )
+                      : FilledButton(
+                          onPressed: event.slotsLeft > 0 ? _confirmJoin : null,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                          ),
+                          child: Text(
+                            _blockedByVerification
+                                ? 'Verify Document to Join'
+                                : 'Join Event',
+                          ),
+                        ),
+                ],
+              ),
             ),
           ),
         ],

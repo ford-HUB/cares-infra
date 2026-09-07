@@ -492,14 +492,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           keyboardType: TextInputType.phone,
           onChanged: (_) => _notifyParent(),
         ),
-        if (_isBeneficiary) ...[
-          const SizedBox(height: 12),
-          RegisterFormField(
-            label: 'ID number',
-            controller: _idNumber,
-            onChanged: (_) => _notifyParent(),
-          ),
-        ],
+        // Beneficiaries already validated their ID, so the extracted ID
+        // number is kept on the payload but not shown again as a field.
         if (!_isBeneficiary) ...[
           const SizedBox(height: 20),
           _sectionTitle('School information', Icons.school_outlined),
