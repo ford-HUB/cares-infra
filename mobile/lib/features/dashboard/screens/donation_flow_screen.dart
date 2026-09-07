@@ -216,6 +216,13 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     setState(() => _stage = _Stage.goodsStatus);
   }
 
+  void _advanceGoodsStatus() {
+    final donation = _completed;
+    if (donation == null) return;
+    DonationStore.instance.advanceGoodsStatus(donation.donationId);
+    setState(() {});
+  }
+
   void _startEdit() {
     final d = _completed;
     if (d == null || !d.canModify) return;
@@ -639,7 +646,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         ),
         const SizedBox(height: 12),
         const Text(
-          'Your donation is only recorded once the payment succeeds.',
+          'Tapping "Proceed to Payment" starts a simulated payment. Your '
+          'donation is only recorded once it succeeds.',
           style: TextStyle(
             fontSize: 12,
             color: AppColors.textMuted,
@@ -1215,6 +1223,11 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
                 side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
               ),
             ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _advanceGoodsStatus,
+              child: const Text('Simulate: schedule pickup'),
+            ),
           ],
         );
 
@@ -1252,16 +1265,14 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _statusFooter(
-              'CARES will update this donation once the goods are picked up.',
-            ),
+            _simulateButton('Simulate Pickup', Icons.local_shipping_outlined),
           ],
         );
 
       case GoodsDonationStatus.verifying:
-        return _statusFooter(
-          'Your donation is being verified by the CARES team. You will be '
-          'notified once it is confirmed.',
+        return _simulateButton(
+          'Simulate Verification',
+          Icons.fact_check_outlined,
         );
 
       case GoodsDonationStatus.confirmed:
@@ -1308,22 +1319,19 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     }
   }
 
-  Widget _statusFooter(String message) {
+  Widget _simulateButton(String label, IconData icon) {
     return Column(
       children: [
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 12,
-            height: 1.4,
-            color: AppColors.textSecondary,
-          ),
+        FilledButton.icon(
+          onPressed: _advanceGoodsStatus,
+          icon: Icon(icon, size: 18),
+          label: Text(label),
         ),
-        const SizedBox(height: 12),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Back to campaign'),
+        const SizedBox(height: 6),
+        const Text(
+          'Demo control — advances the status for the prototype flow.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
         ),
       ],
     );

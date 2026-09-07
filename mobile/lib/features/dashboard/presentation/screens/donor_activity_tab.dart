@@ -56,6 +56,7 @@ class DonorActivityTab extends StatelessWidget {
                         child: _SummaryChip(
                           icon: Icons.volunteer_activism_outlined,
                           value: DonationStore.formatPeso(totalDonated),
+
                           label: 'Donated',
                         ),
                       ),

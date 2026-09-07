@@ -267,8 +267,8 @@ class DonationStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Moves a goods donation to the next status in the lifecycle. Driven by
-  /// the CARES side (pickup, then verification), not by the donor.
+  /// Moves a goods donation to the next status in the lifecycle. Used by the
+  /// prototype's "Simulate Pickup" / "Simulate Verification" buttons.
   void advanceGoodsStatus(String donationId) {
     final donation = donationById(donationId);
     final next = donation?.goodsStatus.next;
