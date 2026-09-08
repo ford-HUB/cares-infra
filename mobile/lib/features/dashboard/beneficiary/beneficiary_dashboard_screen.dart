@@ -15,8 +15,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/profile_completio
 import 'package:mobile/features/dashboard/screens/assistance_request_form_screen.dart';
 
 /// Beneficiary shell — same structure, layout, and styling as the volunteer
-/// [HomeScreen], with the Request tab replacing Ranks and beneficiary content
-/// on the home and profile tabs.
+/// [HomeScreen], with beneficiary navigation (Home, Events, Requests,
+/// Activity, Profile) and beneficiary content on the home and profile tabs.
 class BeneficiaryDashboardScreen extends StatefulWidget {
   const BeneficiaryDashboardScreen({
     super.key,
@@ -42,7 +42,7 @@ class BeneficiaryDashboardScreen extends StatefulWidget {
 
 class _BeneficiaryDashboardScreenState
     extends State<BeneficiaryDashboardScreen> {
-  static const _requestTabIndex = 3;
+  static const _requestTabIndex = 2;
 
   final _profileStore = BeneficiaryProfileStore.instance;
   final _personalStore = BeneficiaryPersonalProfileStore.instance;
@@ -137,8 +137,8 @@ class _BeneficiaryDashboardScreenState
                   onCompleteProfile: _openProfileSetup,
                 ),
                 const EventsTabScreen(),
-                const ActivityTabScreen(),
                 const BeneficiaryRequestsTab(),
+                const ActivityTabScreen(),
                 ProfileTabScreen(
                   displayName: _displayName,
                   email: widget.email,
@@ -154,8 +154,7 @@ class _BeneficiaryDashboardScreenState
           ),
           DashboardBottomNav(
             currentIndex: _currentTab,
-            ranksTabLabel: 'Request',
-            ranksTabIcon: Icons.request_page_outlined,
+            items: DashboardNavItems.beneficiary,
             onTap: (index) => setState(() => _currentTab = index),
           ),
         ],

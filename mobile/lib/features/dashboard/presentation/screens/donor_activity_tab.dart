@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/donor/data/donor_accent_colors.dart';
 import 'package:mobile/features/dashboard/data/donation_store.dart';
 import 'package:mobile/features/dashboard/data/mock_donations.dart';
 import 'package:mobile/features/dashboard/screens/donation_flow_screen.dart';
@@ -55,6 +56,7 @@ class DonorActivityTab extends StatelessWidget {
                       Expanded(
                         child: _SummaryChip(
                           icon: Icons.volunteer_activism_outlined,
+                          color: DonorAccents.donated,
                           value: DonationStore.formatPeso(totalDonated),
 
                           label: 'Donated',
@@ -64,6 +66,7 @@ class DonorActivityTab extends StatelessWidget {
                       Expanded(
                         child: _SummaryChip(
                           icon: Icons.favorite_outline,
+                          color: DonorAccents.donations,
                           value: '$donationsCount',
                           label: 'Donations',
                         ),
@@ -72,6 +75,7 @@ class DonorActivityTab extends StatelessWidget {
                       Expanded(
                         child: _SummaryChip(
                           icon: Icons.campaign_outlined,
+                          color: DonorAccents.campaigns,
                           value: '$campaignsSupported',
                           label: 'Campaigns',
                         ),
@@ -112,11 +116,13 @@ class DonorActivityTab extends StatelessWidget {
 class _SummaryChip extends StatelessWidget {
   const _SummaryChip({
     required this.icon,
+    required this.color,
     required this.value,
     required this.label,
   });
 
   final IconData icon;
+  final Color color;
   final String value;
   final String label;
 
@@ -131,7 +137,15 @@ class _SummaryChip extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 20, color: AppColors.primaryDark),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
           const SizedBox(height: 6),
           Text(
             value,
@@ -199,6 +213,7 @@ class _DonationActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMoney = donation.type == DonationType.money;
+    final typeColor = isMoney ? DonorAccents.money : DonorAccents.goods;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
@@ -218,12 +233,12 @@ class _DonationActivityCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.light.withValues(alpha: 0.4),
+                  color: typeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   isMoney ? Icons.favorite_rounded : Icons.inventory_2_rounded,
-                  color: AppColors.primaryDark,
+                  color: typeColor,
                   size: 22,
                 ),
               ),
@@ -250,17 +265,17 @@ class _DonationActivityCard extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
+                            color: typeColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             isMoney
                                 ? DonationStore.formatPesoFull(donation.amount)
                                 : 'Goods',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: typeColor,
                             ),
                           ),
                         ),
@@ -278,10 +293,10 @@ class _DonationActivityCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.calendar_today_outlined,
                           size: 13,
-                          color: AppColors.secondary.withValues(alpha: 0.85),
+                          color: DonorAccents.date,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -316,7 +331,7 @@ class _EmptyActivityState extends StatelessWidget {
           Icon(
             Icons.volunteer_activism_outlined,
             size: 48,
-            color: AppColors.secondary.withValues(alpha: 0.4),
+            color: DonorAccents.donated.withValues(alpha: 0.45),
           ),
           const SizedBox(height: 12),
           Text(

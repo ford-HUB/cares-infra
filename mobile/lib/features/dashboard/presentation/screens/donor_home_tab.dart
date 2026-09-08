@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/donor/data/donor_accent_colors.dart';
 import 'package:mobile/features/dashboard/data/donation_store.dart';
 import 'package:mobile/features/dashboard/data/mock_donations.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_header.dart';
@@ -100,6 +101,7 @@ class _DonorStatsRow extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: Icons.volunteer_activism_outlined,
+            color: DonorAccents.donated,
             value: DonationStore.formatPeso(totalDonated),
             label: 'Total donated',
           ),
@@ -108,6 +110,7 @@ class _DonorStatsRow extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: Icons.favorite_outline,
+            color: DonorAccents.donations,
             value: '$donationsCount',
             label: 'Donations',
           ),
@@ -116,6 +119,7 @@ class _DonorStatsRow extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: Icons.campaign_outlined,
+            color: DonorAccents.campaigns,
             value: '$campaignsSupported',
             label: 'Campaigns',
           ),
@@ -128,11 +132,13 @@ class _DonorStatsRow extends StatelessWidget {
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,
+    required this.color,
     required this.value,
     required this.label,
   });
 
   final IconData icon;
+  final Color color;
   final String value;
   final String label;
 
@@ -147,7 +153,15 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 22, color: AppColors.primaryDark),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 22, color: color),
+          ),
           const SizedBox(height: 8),
           Text(
             value,

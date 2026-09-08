@@ -134,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   showProfileCompletionCard:
                       !_isLoadingProfile && !_profileComplete,
                   onCompleteProfile: _openProfileSetup,
+                  onSeeAllEvents: () => setState(() => _currentTab = 1),
                 ),
                 const EventsTabScreen(),
                 const ActivityTabScreen(),
@@ -155,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           DashboardBottomNav(
             currentIndex: _currentTab,
+            items: DashboardNavItems.volunteer,
             onTap: (index) => setState(() => _currentTab = index),
           ),
         ],

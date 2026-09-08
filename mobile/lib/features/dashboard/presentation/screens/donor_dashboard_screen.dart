@@ -124,8 +124,8 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
           ),
           DashboardBottomNav(
             currentIndex: _currentTab,
+            items: DashboardNavItems.donor,
             onTap: (index) => setState(() => _currentTab = index),
-            eventsTabLabel: 'Campaigns',
           ),
         ],
       ),

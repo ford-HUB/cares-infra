@@ -91,32 +91,12 @@ abstract final class DonorProfileOptions {
     ProfileSelectableOption(
       label: 'Cash donations',
       icon: Icons.payments_outlined,
-      accentColor: Color(0xFF26A69A),
+      accentColor: Color(0xFF2D7634),
     ),
     ProfileSelectableOption(
-      label: 'Food & groceries',
-      icon: Icons.restaurant_rounded,
-      accentColor: Color(0xFF66BB6A),
-    ),
-    ProfileSelectableOption(
-      label: 'School supplies',
-      icon: Icons.menu_book_rounded,
-      accentColor: Color(0xFFFFA726),
-    ),
-    ProfileSelectableOption(
-      label: 'Medical supplies',
-      icon: Icons.medical_services_outlined,
-      accentColor: Color(0xFFEF5350),
-    ),
-    ProfileSelectableOption(
-      label: 'Clothing',
-      icon: Icons.checkroom_rounded,
-      accentColor: Color(0xFF7E57C2),
-    ),
-    ProfileSelectableOption(
-      label: 'Relief goods',
+      label: 'In-Kind donations',
       icon: Icons.inventory_2_outlined,
-      accentColor: Color(0xFF42A5F5),
+      accentColor: Color(0xFFF9A825),
     ),
   ];
 

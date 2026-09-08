@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:mobile/core/services/auth_session.dart';
 
+import 'package:mobile/core/session/app_role.dart';
+
+import 'package:mobile/core/session/role_session.dart';
+
 import 'package:mobile/core/theme/app_theme.dart';
 
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
@@ -19,6 +23,7 @@ import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
+import 'package:mobile/features/dashboard/screens/switch_role_screen.dart';
 import 'package:mobile/features/dashboard/screens/profile_screens.dart';
 
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
@@ -127,8 +132,14 @@ class ProfileTabScreen extends StatelessWidget {
     await BeneficiaryAssistanceEditScreen.open(context, section);
   }
 
+  Future<void> _switchRole(BuildContext context) async {
+    await SwitchRoleScreen.open(context);
+  }
+
   void _signOut(BuildContext context) {
     AuthSession.clear();
+
+    RoleSession.instance.clear();
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
@@ -148,6 +159,8 @@ class ProfileTabScreen extends StatelessWidget {
     );
 
     final requestStore = AssistanceRequestStore.instance;
+
+    final roleSession = RoleSession.instance;
 
     final beneficiaryProfile = BeneficiaryProfileStore.instance.profile;
 
@@ -748,6 +761,17 @@ class ProfileTabScreen extends StatelessWidget {
                           'Profile editing coming soon.',
                         ),
                   ),
+
+                  if (roleSession.canSwitchRole)
+                    _MenuTile(
+                      icon: Icons.swap_horiz_rounded,
+
+                      label: 'Change Role',
+
+                      trailingLabel: roleSession.activeRole.label,
+
+                      onTap: () => _switchRole(context),
+                    ),
 
                   if (isDonor)
                     _MenuTile(
