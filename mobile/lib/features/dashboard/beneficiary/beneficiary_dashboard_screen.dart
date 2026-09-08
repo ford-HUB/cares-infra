@@ -136,7 +136,7 @@ class _BeneficiaryDashboardScreenState
                   showProfileCompletionCard: !_profileComplete,
                   onCompleteProfile: _openProfileSetup,
                 ),
-                const EventsTabScreen(),
+                const EventsTabScreen(forBeneficiary: true),
                 const BeneficiaryRequestsTab(),
                 const ActivityTabScreen(),
                 ProfileTabScreen(

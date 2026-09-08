@@ -4,10 +4,15 @@ import 'package:mobile/features/dashboard/data/mock_events.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/events_page_widgets.dart';
 
-/// Browse and search all volunteer events — mirrors the donor/student
-/// catalog layout (search, category filters, event cards).
+/// Browse and search events — mirrors the donor/student catalog layout
+/// (search, category filters, event cards).
+///
+/// With [forBeneficiary] the list is limited to the events beneficiaries may
+/// attend; volunteers see the full catalog.
 class EventsTabScreen extends StatefulWidget {
-  const EventsTabScreen({super.key});
+  const EventsTabScreen({super.key, this.forBeneficiary = false});
+
+  final bool forBeneficiary;
 
   @override
   State<EventsTabScreen> createState() => _EventsTabScreenState();
@@ -32,8 +37,11 @@ class _EventsTabScreenState extends State<EventsTabScreen> {
     super.dispose();
   }
 
+  List<CaresEvent> get _sourceEvents =>
+      widget.forBeneficiary ? kMockBeneficiaryEvents : kMockAllEvents;
+
   List<CaresEvent> get _filteredEvents {
-    return kMockAllEvents
+    return _sourceEvents
         .where(
           (event) =>
               event.matchesCategory(_selectedCategory) &&
@@ -51,6 +59,9 @@ class _EventsTabScreenState extends State<EventsTabScreen> {
     final count = _filteredEvents.length;
     if (_query.trim().isNotEmpty) {
       return '$count result${count == 1 ? '' : 's'} found';
+    }
+    if (widget.forBeneficiary) {
+      return '$count event${count == 1 ? '' : 's'} open to beneficiaries';
     }
     return '$count events available';
   }

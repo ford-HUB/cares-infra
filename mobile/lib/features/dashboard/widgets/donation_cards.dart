@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../data/event_category_colors.dart';
 import '../data/mock_donations.dart';
 import '../screens/donation_details_screen.dart';
 
@@ -257,7 +258,10 @@ class UpcomingDonationCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _UpcomingDonationTag(label: donation.category),
+                    _UpcomingDonationTag(
+                      label: donation.category,
+                      color: eventCategoryColor(donation.category),
+                    ),
                     const _UpcomingDonationTag(label: 'Active'),
                   ],
                 ),
@@ -364,25 +368,35 @@ class UpcomingDonationCard extends StatelessWidget {
 }
 
 class _UpcomingDonationTag extends StatelessWidget {
-  const _UpcomingDonationTag({required this.label});
+  const _UpcomingDonationTag({required this.label, this.color});
 
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final accent = color ?? AppColors.primary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: color == null
+            ? AppColors.background
+            : accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppColors.pillRadius),
-        border: Border.all(color: AppColors.borderLight, width: 1),
+        border: Border.all(
+          color: color == null
+              ? AppColors.borderLight
+              : accent.withValues(alpha: 0.35),
+          width: 1,
+        ),
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          color: accent,
         ),
       ),
     );

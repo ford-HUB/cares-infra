@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_theme.dart';
+import '../data/event_category_colors.dart';
 import '../data/mock_donations.dart';
 import 'events_page_widgets.dart';
 
@@ -60,6 +61,7 @@ class DonationCategoryFilters extends StatelessWidget {
         itemBuilder: (context, index) {
           final category = kDonationFilterCategories[index];
           final isSelected = selected == category;
+          final categoryColor = eventCategoryColor(category);
 
           return Material(
             color: Colors.transparent,
@@ -71,12 +73,12 @@ class DonationCategoryFilters extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  color: isSelected ? categoryColor : AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.borderLight,
+                        ? categoryColor
+                        : categoryColor.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Text(
@@ -84,7 +86,7 @@ class DonationCategoryFilters extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    color: isSelected ? Colors.white : categoryColor,
                   ),
                 ),
               ),
@@ -165,10 +167,10 @@ class DonationCatalogCard extends StatelessWidget {
                           ),
                           child: Text(
                             donation.category,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: eventCategoryColor(donation.category),
                             ),
                           ),
                         ),

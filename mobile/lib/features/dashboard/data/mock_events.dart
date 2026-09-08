@@ -19,6 +19,7 @@ class CaresEvent {
     required this.venueLongitude,
     this.attendanceRadiusMeters = 500,
     this.isFeatured = false,
+    this.openToBeneficiaries = false,
     this.isCompleted = false,
     this.hoursCompleted,
     this.imageAsset,
@@ -43,6 +44,10 @@ class CaresEvent {
   final double venueLongitude;
   final double attendanceRadiusMeters;
   final bool isFeatured;
+
+  /// True when beneficiaries may attend or receive assistance at this event.
+  /// Static prototype flag — the beneficiary events tab shows only these.
+  final bool openToBeneficiaries;
 
   /// True once the event has ended and participation has been closed out.
   final bool isCompleted;
@@ -143,6 +148,7 @@ final kMockFeaturedEvents = [
     venueLatitude: 10.3157,
     venueLongitude: 123.8854,
     isFeatured: true,
+    openToBeneficiaries: true,
   ),
   CaresEvent(
     id: 'featured-2',
@@ -167,6 +173,7 @@ final kMockFeaturedEvents = [
     venueLatitude: 10.3235,
     venueLongitude: 123.9200,
     isFeatured: true,
+    openToBeneficiaries: true,
   ),
 ];
 
@@ -240,6 +247,7 @@ final kMockUpcomingEvents = [
     ],
     venueLatitude: 10.2447,
     venueLongitude: 123.8495,
+    openToBeneficiaries: true,
   ),
 ];
 
@@ -301,6 +309,13 @@ final kMockAllEvents = [...kMockFeaturedEvents, ...kMockUpcomingEvents];
 
 /// Every event the app can resolve by id — browsable plus completed ones.
 final kMockEventDirectory = [...kMockAllEvents, ...kMockCompletedEvents];
+
+/// Events a beneficiary can attend — feeding, distribution, and health
+/// outreach activities. Static prototype selection.
+final kMockBeneficiaryEvents = [
+  for (final event in kMockAllEvents)
+    if (event.openToBeneficiaries) event,
+];
 
 CaresEvent? findEventById(String id) {
   for (final event in kMockEventDirectory) {
