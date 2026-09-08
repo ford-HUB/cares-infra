@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/data/mock_events.dart';
@@ -79,6 +80,7 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
                       Expanded(
                         child: _SummaryChip(
                           icon: Icons.schedule_outlined,
+                          color: _kHoursColor,
                           value: '${summary.totalHours}',
                           label: 'Total hrs',
                         ),
@@ -87,6 +89,7 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
                       Expanded(
                         child: _SummaryChip(
                           icon: Icons.event_available_outlined,
+                          color: _kJoinedColor,
                           value: '${summary.eventsJoined}',
                           label: 'Joined',
                         ),
@@ -95,6 +98,7 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
                       Expanded(
                         child: _SummaryChip(
                           icon: Icons.bolt,
+                          color: _kPointsColor,
                           value: '${summary.pointsThisMonth}',
                           label: 'Pts (month)',
                         ),
@@ -158,14 +162,23 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
   }
 }
 
+/// Icon accents used across the activity page.
+const _kHoursColor = Color(0xFF1976D2);
+const _kJoinedColor = Color(0xFF2D7634);
+const _kPointsColor = Color(0xFFF9A825);
+const _kDateColor = Color(0xFF5C6BC0);
+const _kLocationColor = Color(0xFFE65100);
+
 class _SummaryChip extends StatelessWidget {
   const _SummaryChip({
     required this.icon,
+    required this.color,
     required this.value,
     required this.label,
   });
 
   final IconData icon;
+  final Color color;
   final String value;
   final String label;
 
@@ -180,7 +193,15 @@ class _SummaryChip extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 20, color: AppColors.primaryDark),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
           const SizedBox(height: 6),
           Text(
             value,
@@ -219,6 +240,7 @@ class _ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(entry.status);
+    final categoryColor = eventCategoryColor(entry.category);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -234,12 +256,12 @@ class _ActivityCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.light.withValues(alpha: 0.4),
+              color: categoryColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.volunteer_activism_outlined,
-              color: AppColors.primaryDark,
+              color: categoryColor,
               size: 24,
             ),
           ),
@@ -286,16 +308,16 @@ class _ActivityCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.secondary.withValues(alpha: 0.9),
+                    color: categoryColor,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.calendar_today_outlined,
                       size: 13,
-                      color: AppColors.secondary.withValues(alpha: 0.85),
+                      color: _kDateColor,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -311,10 +333,10 @@ class _ActivityCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.location_on_outlined,
                       size: 13,
-                      color: AppColors.secondary.withValues(alpha: 0.85),
+                      color: _kLocationColor,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -337,11 +359,13 @@ class _ActivityCard extends StatelessWidget {
                     children: [
                       _MetaTag(
                         icon: Icons.schedule_outlined,
+                        color: _kHoursColor,
                         label: '${entry.hours} hrs',
                       ),
                       const SizedBox(width: 8),
                       _MetaTag(
                         icon: Icons.bolt,
+                        color: _kPointsColor,
                         label: '+${entry.pointsEarned} pts',
                       ),
                     ],
@@ -357,9 +381,14 @@ class _ActivityCard extends StatelessWidget {
 }
 
 class _MetaTag extends StatelessWidget {
-  const _MetaTag({required this.icon, required this.label});
+  const _MetaTag({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
 
   final IconData icon;
+  final Color color;
   final String label;
 
   @override
@@ -367,20 +396,20 @@ class _MetaTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.light.withValues(alpha: 0.35),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppColors.primaryDark),
+          Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.primaryDark,
+              color: color,
             ),
           ),
         ],

@@ -101,22 +101,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _openProfileEdit() async {
-    final result = await Navigator.of(context).push<VolunteerProfileEditResult>(
-      MaterialPageRoute(
-        builder: (_) => VolunteerProfileEditScreen(
-          initialProfile: _volunteerProfile,
-          fallbackEmail: widget.email,
-          fallbackFirstName: widget.firstName,
-        ),
-      ),
+  /// "Edit Profile" opens personal information only — interests, skills, and
+  /// availability are edited from their own section icons on the profile tab.
+  Future<void> _openPersonalInfo() async {
+    await VolunteerProfileEditScreen.open(
+      context,
+      fallbackEmail: widget.email,
+      fallbackFirstName: widget.firstName,
     );
+  }
 
-    if (!mounted || result == null) return;
-
+  void _onVolunteerProfileUpdated(VolunteerProfile profile) {
     setState(() {
-      _volunteerProfile = result.profile;
-      _profileComplete = result.profile.profileComplete;
+      _volunteerProfile = profile;
+      _profileComplete = profile.profileComplete;
     });
   }
 
@@ -149,7 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   points: widget.points,
                   volunteerProfile: _volunteerProfile,
                   profileComplete: _profileComplete,
-                  onEditProfile: _openProfileEdit,
+                  onEditProfile: _openPersonalInfo,
+                  onVolunteerProfileUpdated: _onVolunteerProfileUpdated,
                 ),
               ],
             ),

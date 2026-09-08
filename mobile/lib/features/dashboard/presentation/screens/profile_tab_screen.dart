@@ -23,6 +23,8 @@ import 'package:mobile/features/dashboard/screens/profile_screens.dart';
 
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 
+import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_section_edit_screen.dart';
+
 import 'package:mobile/features/dashboard/presentation/widgets/stats_row.dart';
 
 class ProfileTabScreen extends StatelessWidget {
@@ -50,6 +52,8 @@ class ProfileTabScreen extends StatelessWidget {
     this.isDonor = false,
 
     this.onOpenDonations,
+
+    this.onVolunteerProfileUpdated,
   });
 
   final String displayName;
@@ -79,6 +83,10 @@ class ProfileTabScreen extends StatelessWidget {
 
   final VoidCallback? onOpenDonations;
 
+  /// Called after a volunteer edits their interests, skills, or availability
+  /// from the section edit icons.
+  final ValueChanged<VolunteerProfile>? onVolunteerProfileUpdated;
+
   void _showMockAction(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
@@ -91,6 +99,24 @@ class ProfileTabScreen extends StatelessWidget {
     DonorProfileSection section,
   ) async {
     await DonorProfileSectionEditScreen.open(context, section);
+  }
+
+  Future<void> _editVolunteerSection(
+    BuildContext context,
+
+    VolunteerProfileSection section,
+  ) async {
+    final saved = await VolunteerProfileSectionEditScreen.open(
+      context,
+
+      section,
+
+      initialProfile: volunteerProfile,
+    );
+
+    if (saved != null) {
+      onVolunteerProfileUpdated?.call(saved);
+    }
   }
 
   Future<void> _editAssistanceSection(
@@ -612,15 +638,23 @@ class ProfileTabScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    _InfoRow(
-                      icon: Icons.assignment_outlined,
+                    // _InfoRow(
+                    //   icon: Icons.assignment_outlined,
 
-                      label: 'Latest request',
+                    //   label: 'Latest request',
 
-                      value: latestRequest?.title ?? 'None filed yet',
-                    ),
+                    //   value: latestRequest?.title ?? 'None filed yet',
+                    // ),
                   ] else ...[
-                    _SectionTitle(title: 'Interests'),
+                    _SectionTitle(
+                      title: 'Interests',
+
+                      onEdit: () => _editVolunteerSection(
+                        context,
+
+                        VolunteerProfileSection.interests,
+                      ),
+                    ),
 
                     const SizedBox(height: 8),
 
@@ -643,7 +677,15 @@ class ProfileTabScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    _SectionTitle(title: 'Skills'),
+                    _SectionTitle(
+                      title: 'Skills',
+
+                      onEdit: () => _editVolunteerSection(
+                        context,
+
+                        VolunteerProfileSection.skills,
+                      ),
+                    ),
 
                     const SizedBox(height: 8),
 
@@ -664,7 +706,19 @@ class ProfileTabScreen extends StatelessWidget {
                         ],
                       ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
+
+                    _SectionTitle(
+                      title: 'Availability',
+
+                      onEdit: () => _editVolunteerSection(
+                        context,
+
+                        VolunteerProfileSection.availability,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
 
                     _InfoRow(
                       icon: Icons.event_available_outlined,
@@ -1104,7 +1158,8 @@ class _SectionTitle extends StatelessWidget {
   final String title;
 
   /// Optional per-section edit action — used by the beneficiary assistance,
-  /// household, and visit-availability cards.
+  /// household, and visit-availability cards, and by the volunteer interests,
+  /// skills, and availability cards.
   final VoidCallback? onEdit;
 
   @override

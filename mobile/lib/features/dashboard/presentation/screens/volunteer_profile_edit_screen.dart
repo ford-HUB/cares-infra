@@ -3,34 +3,44 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/features/dashboard/data/volunteer_account_service.dart';
-import 'package:mobile/features/dashboard/data/volunteer_profile_service.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_account_profile.dart';
-import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/personal_information_section.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile_form_sections.dart';
-import 'package:mobile/features/interests/data/interests_service.dart';
-import 'package:mobile/features/interests/domain/user_interest.dart';
 
-/// Post-onboarding profile management — view and edit all volunteer information.
+/// Volunteer "Edit Profile" — personal and account information only.
+/// Interests, skills, and availability are edited from their own section edit
+/// icons on the profile tab (see `VolunteerProfileSectionEditScreen`).
 class VolunteerProfileEditScreen extends StatefulWidget {
   const VolunteerProfileEditScreen({
     super.key,
-    this.initialProfile,
     this.fallbackEmail,
     this.fallbackFirstName,
   });
 
-  final VolunteerProfile? initialProfile;
   final String? fallbackEmail;
   final String? fallbackFirstName;
+
+  static Future<VolunteerAccountProfile?> open(
+    BuildContext context, {
+    String? fallbackEmail,
+    String? fallbackFirstName,
+  }) {
+    return Navigator.of(context).push<VolunteerAccountProfile>(
+      MaterialPageRoute<VolunteerAccountProfile>(
+        builder: (_) => VolunteerProfileEditScreen(
+          fallbackEmail: fallbackEmail,
+          fallbackFirstName: fallbackFirstName,
+        ),
+      ),
+    );
+  }
 
   @override
   State<VolunteerProfileEditScreen> createState() =>
       _VolunteerProfileEditScreenState();
 }
 
-class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen> {
-  final VolunteerProfileService _profileService = VolunteerProfileService();
+class _VolunteerProfileEditScreenState
+    extends State<VolunteerProfileEditScreen> {
   final VolunteerAccountService _accountService = VolunteerAccountService();
 
   final _firstNameController = TextEditingController();
@@ -39,15 +49,9 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
   final _phoneController = TextEditingController();
   final _idNumberController = TextEditingController();
 
-  final Set<UserInterest> _selectedInterests = {};
-  final Set<String> _selectedSkills = {};
-  final Set<String> _selectedAvailability = {};
-  int? _hoursPerWeek;
-
   String? _department;
   String? _course;
 
-  List<InterestCatalogItem> _catalog = const [];
   bool _isLoading = true;
   bool _isSaving = false;
   String? _loadError;
@@ -55,7 +59,6 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
   @override
   void initState() {
     super.initState();
-    _applyVolunteerProfile(widget.initialProfile);
     _loadData();
   }
 
@@ -67,20 +70,6 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
     _phoneController.dispose();
     _idNumberController.dispose();
     super.dispose();
-  }
-
-  void _applyVolunteerProfile(VolunteerProfile? profile) {
-    if (profile == null) return;
-    _selectedInterests
-      ..clear()
-      ..addAll(profile.interests);
-    _selectedSkills
-      ..clear()
-      ..addAll(profile.skills);
-    _selectedAvailability
-      ..clear()
-      ..addAll(profile.availability);
-    _hoursPerWeek = profile.hoursPerWeek;
   }
 
   void _applyAccountProfile(VolunteerAccountProfile profile) {
@@ -114,18 +103,11 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
     });
 
     try {
-      final results = await Future.wait([
-        _profileService.fetchInterestCatalog(),
-        _accountService.fetchAccount(),
-      ]);
+      final account = await _accountService.fetchAccount();
 
       if (!mounted) return;
 
-      final catalog = results[0] as List<InterestCatalogItem>;
-      final account = results[1] as VolunteerAccountProfile;
-
       setState(() {
-        _catalog = catalog;
         _applyAccountProfile(account);
         _isLoading = false;
       });
@@ -146,53 +128,9 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
     }
   }
 
-  List<ProfileSelectableOption> get _interestOptions {
-    return _catalog
-        .map((item) => item.asUserInterest)
-        .whereType<UserInterest>()
-        .map(
-          (interest) => ProfileSelectableOption(
-            label: interest.label,
-            icon: interest.icon,
-            accentColor: interest.accentColor,
-          ),
-        )
-        .toList();
-  }
-
-  void _toggleInterestByLabel(String label) {
-    final interest = _catalog
-        .map((item) => item.asUserInterest)
-        .whereType<UserInterest>()
-        .where((item) => item.label == label)
-        .firstOrNull;
-    if (interest == null) return;
-
-    setState(() {
-      if (_selectedInterests.contains(interest)) {
-        _selectedInterests.remove(interest);
-      } else {
-        _selectedInterests.add(interest);
-      }
-    });
-  }
-
-  void _toggleString(Set<String> set, String value) {
-    setState(() {
-      if (set.contains(value)) {
-        set.remove(value);
-      } else {
-        set.add(value);
-      }
-    });
-  }
-
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -208,13 +146,6 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
 
     if (phone.isEmpty) {
       _showMessage('Please enter your phone number.');
-      return;
-    }
-
-    if (_selectedInterests.isEmpty ||
-        _selectedSkills.isEmpty ||
-        _selectedAvailability.isEmpty) {
-      _showMessage('Please complete interests, skills, and availability.');
       return;
     }
 
@@ -236,24 +167,10 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
         ),
       );
 
-      final savedProfile = await _profileService.saveProfile(
-        VolunteerProfile(
-          interests: _selectedInterests,
-          skills: _selectedSkills,
-          availability: _selectedAvailability,
-          hoursPerWeek: _hoursPerWeek,
-          profileComplete: widget.initialProfile?.profileComplete ?? false,
-        ),
-      );
-
       if (!mounted) return;
 
-      Navigator.of(context).pop(
-        VolunteerProfileEditResult(
-          account: account,
-          profile: savedProfile,
-        ),
-      );
+      _showMessage('Personal information updated.');
+      Navigator.of(context).pop(account);
     } on ApiException catch (error) {
       if (!mounted) return;
       _showMessage(error.message);
@@ -295,36 +212,14 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        PersonalInformationSection(
-                          firstNameController: _firstNameController,
-                          lastNameController: _lastNameController,
-                          emailController: _emailController,
-                          phoneController: _phoneController,
-                          idNumberController: _idNumberController,
-                          department: _department,
-                          course: _course,
-                        ),
-                        const SizedBox(height: 16),
-                        VolunteerProfileFormSections(
-                          interestOptions: _interestOptions,
-                          selectedInterestLabels: _selectedInterests
-                              .map((interest) => interest.label)
-                              .toSet(),
-                          selectedSkills: _selectedSkills,
-                          selectedAvailability: _selectedAvailability,
-                          hoursPerWeek: _hoursPerWeek,
-                          onToggleInterest: _toggleInterestByLabel,
-                          onToggleSkill: (value) =>
-                              _toggleString(_selectedSkills, value),
-                          onToggleAvailability: (value) =>
-                              _toggleString(_selectedAvailability, value),
-                          onHoursChanged: (value) =>
-                              setState(() => _hoursPerWeek = value),
-                        ),
-                      ],
+                    child: PersonalInformationSection(
+                      firstNameController: _firstNameController,
+                      lastNameController: _lastNameController,
+                      emailController: _emailController,
+                      phoneController: _phoneController,
+                      idNumberController: _idNumberController,
+                      department: _department,
+                      course: _course,
                     ),
                   ),
                 ),
@@ -343,7 +238,7 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Save Profile'),
+                          : const Text('Save Changes'),
                     ),
                   ),
                 ),
@@ -353,21 +248,8 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
   }
 }
 
-class VolunteerProfileEditResult {
-  const VolunteerProfileEditResult({
-    required this.account,
-    required this.profile,
-  });
-
-  final VolunteerAccountProfile account;
-  final VolunteerProfile profile;
-}
-
 class _InlineErrorBanner extends StatelessWidget {
-  const _InlineErrorBanner({
-    required this.message,
-    required this.onRetry,
-  });
+  const _InlineErrorBanner({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -393,10 +275,7 @@ class _InlineErrorBanner extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );
