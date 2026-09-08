@@ -146,7 +146,6 @@ export const adminNav: PortalNavConfig = {
         { label: 'Login Activity', to: '/admin/login-activity' },
         { label: 'Active Sessions', to: '/admin/active-sessions' },
         { label: 'Security Policies', to: '/admin/security-policies' },
-        { label: 'Backup & Recovery', to: '/admin/backup-recovery' },
       ],
     },
     {

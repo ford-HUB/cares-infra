@@ -25,6 +25,8 @@ import { RankingCustomizationPage } from '../pages/admin/ranking-customization'
 import { RankingsPage } from '../pages/admin/rankings'
 import { SecurityPoliciesPage } from '../pages/admin/security-policies'
 import { SupportTicketsPage } from '../pages/admin/support-tickets'
+import { SystemNoticesPage } from '../pages/admin/system-notices'
+import { SystemPerformancePage } from '../pages/admin/system-performance'
 import { SystemServicesPage } from '../pages/admin/system-services'
 import { UserRequestPage } from '../pages/admin/user-request'
 import { ChatPage } from '../pages/shared/chat-page'
@@ -34,9 +36,6 @@ import { NotificationsPage } from '../pages/shared/Notifications'
 import { settingsChildRoutes } from './settings-child-routes'
 
 const Statistics = createPlaceholderPage('Statistics', 'Charts and analytics for CARES programs.')
-const SystemPerformance = createPlaceholderPage('System Performance', 'Server and application performance metrics.')
-const BackupRecovery = createPlaceholderPage('Backup & Recovery', 'Database backup schedule and restore points.')
-const SystemNotices = createPlaceholderPage('System Notices', 'Portal-wide announcements and system alerts.')
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -49,11 +48,10 @@ export const adminRoutes: RouteObject[] = [
           { index: true, element: <AdminDashboard /> },
           { path: 'overview', element: <AdminDashboard /> },
           { path: 'statistics', element: <Statistics /> },
-          { path: 'system-performance', element: <SystemPerformance /> },
+          { path: 'system-performance', element: <SystemPerformancePage /> },
           { path: 'profile', element: <AdminProfile /> },
           { path: 'chat', element: <ChatPage /> },
-          { path: 'backup-recovery', element: <BackupRecovery /> },
-          { path: 'system-notices', element: <SystemNotices /> },
+          { path: 'system-notices', element: <SystemNoticesPage /> },
           { path: 'system-services', element: <SystemServicesPage /> },
           { path: 'maintenance', element: <MaintenancePage /> },
           {
