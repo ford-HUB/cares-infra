@@ -74,6 +74,7 @@ flutter:
     - assets/images/onboarding_discover.png
     - assets/images/onboarding_impact.png
     - assets/images/intro-img-3.jpg
+    - assets/images/entry-login-banner.png
     - assets/images/mascot/
 
   # An image asset can refer to one or more resolution-specific "variants", see

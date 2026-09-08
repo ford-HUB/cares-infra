@@ -55,6 +55,12 @@ export const RegistrationIdSchema = z
   })
   .strict();
 
+export const StartSessionSchema = z
+  .object({
+    roleType: z.enum(RoleType),
+  })
+  .strict();
+
 export const RegisterFromSessionSchema = CreateUserSchema.omit({
   biometric: true,
 })
@@ -92,6 +98,7 @@ export const LoginSchema = z
   .strict();
 
 export const RegistrationStepSchema = z.enum([
+  'session_started',
   'id_uploaded',
   'face_verified',
   'ocr_completed',
@@ -114,6 +121,11 @@ export const LoginResponseSchema = z.object({
 
 export const UploadIdResponseSchema = z.object({
   registrationId: z.string(),
+});
+
+export const StartSessionResponseSchema = z.object({
+  registrationId: z.string(),
+  step: RegistrationStepSchema,
 });
 
 export const VerifyFaceResponseSchema = z.object({

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../shared/widgets/auth_text_field.dart';
+import '../../presentation/widgets/register_form_field.dart';
 import '../models/registration_data.dart';
-import '../widgets/image_upload_card.dart';
 import '../utils/password_strength.dart';
 import '../widgets/password_strength_indicator.dart';
-import '../widgets/registration_section_card.dart';
+import '../../presentation/widgets/registration_form_card.dart';
 
+/// Beneficiary sign-up form, built on the same pattern as the donor form:
+/// gradient hero panel, then one white card per idea — name, who you are,
+/// organization details (only when relevant), sign-in details.
 class BeneficiaryRegistrationFormStep extends StatefulWidget {
   const BeneficiaryRegistrationFormStep({
     super.key,
@@ -29,18 +31,29 @@ class _BeneficiaryRegistrationFormStepState
   late final TextEditingController _firstNameController;
   late final TextEditingController _middleNameController;
   late final TextEditingController _lastNameController;
-  late final TextEditingController _addressController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _emailController;
   late final TextEditingController _organizationController;
+  late final TextEditingController _organizationRoleController;
+  late final TextEditingController _organizationAddressController;
+  late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
 
-  static const List<String> _genders = ['Male', 'Female', 'Prefer not to say'];
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  static const List<String> _organizationTypes = [
+    'Non-profit / NGO',
+    "People's Organization",
+    'School / Academic Institution',
+    'Barangay / LGU Unit',
+    'Religious Group',
+    'Other',
+  ];
 
   RegistrationData get data => widget.data;
+
+  bool get _passwordsMatch =>
+      _confirmPasswordController.text == _passwordController.text;
 
   @override
   void initState() {
@@ -48,101 +61,19 @@ class _BeneficiaryRegistrationFormStepState
     _firstNameController = TextEditingController(text: data.firstName);
     _middleNameController = TextEditingController(text: data.middleName);
     _lastNameController = TextEditingController(text: data.lastName);
-    _addressController = TextEditingController(text: data.address);
-    _phoneController = TextEditingController(text: data.phoneNumber);
-    _emailController = TextEditingController(text: data.email);
     _organizationController = TextEditingController(
       text: data.organizationName,
     );
+    _organizationRoleController = TextEditingController(
+      text: data.organizationRole,
+    );
+    _organizationAddressController = TextEditingController(
+      text: data.organizationAddress,
+    );
+    _emailController = TextEditingController(text: data.email);
     _passwordController = TextEditingController(text: data.password);
     _confirmPasswordController = TextEditingController(
       text: data.confirmPassword,
-    );
-    _passwordController.addListener(_syncPassword);
-  }
-
-  void _syncPassword() => setState(() {});
-
-  void _syncToData() {
-    data.firstName = _firstNameController.text.trim();
-    data.middleName = _middleNameController.text.trim();
-    data.lastName = _lastNameController.text.trim();
-    data.address = _addressController.text.trim();
-    data.phoneNumber = _phoneController.text.trim();
-    data.email = _emailController.text.trim();
-    if (data.isOrganizationMember) {
-      data.organizationName = _organizationController.text.trim();
-    }
-    data.password = _passwordController.text;
-    data.confirmPassword = _confirmPasswordController.text;
-  }
-
-  Future<void> _pickDateOfBirth() async {
-    final now = DateTime.now();
-    final initial = data.dateOfBirth != null
-        ? DateTime.tryParse(data.dateOfBirth!) ??
-              DateTime(now.year - 25, now.month, now.day)
-        : DateTime(now.year - 25, now.month, now.day);
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: now,
-      helpText: 'Select date of birth',
-    );
-
-    if (picked != null) {
-      setState(() {
-        data.dateOfBirth =
-            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-      });
-      widget.onChanged();
-    }
-  }
-
-  String _formatDisplayDate(String? iso) {
-    if (iso == null) return '';
-    final parsed = DateTime.tryParse(iso);
-    if (parsed == null) return iso;
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[parsed.month - 1]} ${parsed.day}, ${parsed.year}';
-  }
-
-  InputDecoration _boxedDecoration({Widget? suffixIcon}) {
-    return InputDecoration(
-      filled: true,
-      fillColor: AppColors.inputFill,
-      suffixIcon: suffixIcon,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: AppColors.primary.withValues(alpha: 0.5),
-          width: 1.5,
-        ),
-      ),
     );
   }
 
@@ -151,289 +82,280 @@ class _BeneficiaryRegistrationFormStepState
     _firstNameController.dispose();
     _middleNameController.dispose();
     _lastNameController.dispose();
-    _addressController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
     _organizationController.dispose();
-    _passwordController.removeListener(_syncPassword);
+    _organizationRoleController.dispose();
+    _organizationAddressController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _syncToData() {
+    data.firstName = _firstNameController.text.trim();
+    data.middleName = _middleNameController.text.trim();
+    data.lastName = _lastNameController.text.trim();
+    data.email = _emailController.text.trim();
+    data.password = _passwordController.text;
+    data.confirmPassword = _confirmPasswordController.text;
+    if (data.isOrganizationMember) {
+      data.organizationName = _organizationController.text.trim();
+      data.organizationRole = _organizationRoleController.text.trim();
+      data.organizationAddress = _organizationAddressController.text.trim();
+    }
+  }
+
+  void _onFieldChanged(String _) {
+    _syncToData();
+    setState(() {});
+    widget.onChanged();
+  }
+
+  void _selectBeneficiaryType(BeneficiaryType type) {
+    data.beneficiaryType = type;
+    if (type == BeneficiaryType.individual) {
+      data.clearOrganizationFields();
+      _organizationController.clear();
+      _organizationRoleController.clear();
+      _organizationAddressController.clear();
+    }
+    setState(() {});
+    widget.onChanged();
   }
 
   @override
   Widget build(BuildContext context) {
     return Form(
       key: widget.formKey,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      onChanged: _syncToData,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          RegistrationSectionCard(
-            title: 'Personal Information',
-            children: [
-              AuthTextField(
-                controller: _firstNameController,
-                label: 'First Name',
-                hintText: 'John',
-                icon: Icons.person_outline_rounded,
-                textInputAction: TextInputAction.next,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'First name is required'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                controller: _middleNameController,
-                label: 'Middle Name (optional)',
-                hintText: 'Doe',
-                icon: Icons.person_outline_rounded,
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                controller: _lastNameController,
-                label: 'Last Name',
-                hintText: 'Doe',
-                icon: Icons.person_outline_rounded,
-                textInputAction: TextInputAction.next,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Last name is required'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Date of Birth',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: _pickDateOfBirth,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InputDecorator(
-                      decoration: _boxedDecoration(
-                        suffixIcon: const Icon(
-                          Icons.calendar_today_outlined,
-                          color: AppColors.textMuted,
-                          size: 20,
-                        ),
-                      ),
-                      child: Text(
-                        data.dateOfBirth != null
-                            ? _formatDisplayDate(data.dateOfBirth)
-                            : 'Select your date of birth',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: data.dateOfBirth != null
-                              ? AppColors.textPrimary
-                              : AppColors.textMuted,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (data.dateOfBirth == null)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 6),
-                      child: Text(
-                        'Date of birth is required',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Gender',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: data.gender,
-                    decoration: _boxedDecoration(),
-                    hint: const Text('Select gender'),
-                    items: _genders
-                        .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() => data.gender = value);
-                      widget.onChanged();
-                    },
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Gender is required' : null,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                controller: _addressController,
-                label: 'Address',
-                hintText: '123 Main St, Anytown, USA',
-                icon: Icons.location_on_outlined,
-                textInputAction: TextInputAction.next,
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Address is required'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                controller: _phoneController,
-                label: 'Contact Number',
-                hintText: '09123456789',
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.next,
-                maxLength: 11,
-                digitsOnly: true,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Contact number is required';
-                  }
-                  if (v.length != 11) {
-                    return 'Contact number must be 11 digits';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              AuthTextField(
-                controller: _emailController,
-                label: 'Email Address',
-                hintText: 'you@example.com',
-                icon: Icons.mail_outline_rounded,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Email address is required';
-                  }
-                  if (!v.contains('@')) return 'Enter a valid email address';
-                  return null;
-                },
-              ),
-              if (data.isOrganizationMember) ...[
-                const SizedBox(height: 16),
-                AuthTextField(
-                  controller: _organizationController,
-                  label: 'Organization Name',
-                  icon: Icons.apartment_outlined,
-                  textInputAction: TextInputAction.next,
-                  validator: (v) => v == null || v.trim().isEmpty
-                      ? 'Organization name is required'
-                      : null,
-                ),
-              ],
+          const RegistrationHeroPanel(
+            icon: Icons.volunteer_activism_rounded,
+            title: 'Register as a beneficiary',
+            subtitle: 'Just the basics — takes about a minute.',
+            highlights: [
+              (Icons.assignment_turned_in_outlined, 'Apply for assistance programs'),
+              (Icons.groups_2_outlined, 'Register on your own or for a group'),
+              (Icons.notifications_active_outlined, 'Get updates on your requests'),
             ],
           ),
+          const SizedBox(height: 20),
+          _nameSection(),
           const SizedBox(height: 16),
-          RegistrationSectionCard(
-            title: 'Account Security',
-            children: [
-              AuthTextField(
-                controller: _passwordController,
-                label: 'Password',
-                hintText: '********',
-                icon: Icons.lock_outline_rounded,
-                obscureText: _obscurePassword,
-                textInputAction: TextInputAction.next,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: AppColors.textMuted,
-                    size: 22,
-                  ),
-                  onPressed: () =>
-                      setState(() => _obscurePassword = !_obscurePassword),
-                ),
-                validator: validatePassword,
-              ),
-              const SizedBox(height: 10),
-              PasswordStrengthIndicator(password: _passwordController.text),
-              const SizedBox(height: 16),
-              AuthTextField(
-                controller: _confirmPasswordController,
-                label: 'Re-enter Password',
-                hintText: '********',
-                icon: Icons.lock_outline_rounded,
-                obscureText: _obscureConfirm,
-                textInputAction: TextInputAction.done,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureConfirm
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: AppColors.textMuted,
-                    size: 22,
-                  ),
-                  onPressed: () =>
-                      setState(() => _obscureConfirm = !_obscureConfirm),
-                ),
-                validator: (v) =>
-                    validateConfirmPassword(v, _passwordController.text),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ImageUploadCard(
-            title: 'Face Picture Upload',
-            instructions:
-                'Take a clear photo of your face or upload from gallery. Your face must be fully visible with no masks, sunglasses, or heavy obstructions.',
-            imagePath: data.facePicturePath,
-            onImageSelected: (path) {
-              data.facePicturePath = path;
-              widget.onChanged();
-            },
-          ),
-          if (data.facePicturePath == null) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.accentYellow.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: AppColors.textSecondary,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'A face picture is required before you can continue.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _typeSection(),
+          if (data.isOrganizationMember) ...[
+            const SizedBox(height: 16),
+            _organizationSection(),
           ],
+          const SizedBox(height: 16),
+          _accountSection(),
         ],
       ),
+    );
+  }
+
+  Widget _nameSection() {
+    return RegistrationFormCard(
+      icon: Icons.badge_outlined,
+      title: 'Your name',
+      subtitle: 'Use the name that appears on your valid ID.',
+      children: [
+        RegisterFormField(
+          label: 'First Name',
+          controller: _firstNameController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+        const SizedBox(height: 14),
+        RegisterFormField(
+          label: 'Middle Name',
+          hint: 'Optional',
+          controller: _middleNameController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+        const SizedBox(height: 14),
+        RegisterFormField(
+          label: 'Last Name',
+          controller: _lastNameController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _typeSection() {
+    return RegistrationFormCard(
+      icon: Icons.people_outline_rounded,
+      title: 'Who are you registering as?',
+      subtitle: 'Pick one — an organization adds a few extra details.',
+      children: [
+        RegistrationChoiceTile(
+          icon: Icons.person_outline_rounded,
+          title: 'Individual',
+          description: 'You are applying for assistance for yourself.',
+          isSelected: data.beneficiaryType == BeneficiaryType.individual,
+          onTap: () => _selectBeneficiaryType(BeneficiaryType.individual),
+        ),
+        const SizedBox(height: 12),
+        RegistrationChoiceTile(
+          icon: Icons.business_outlined,
+          title: 'Organization',
+          description: 'You represent a group, association, or institution.',
+          isSelected:
+              data.beneficiaryType == BeneficiaryType.organizationMember,
+          onTap: () =>
+              _selectBeneficiaryType(BeneficiaryType.organizationMember),
+        ),
+        if (data.beneficiaryType == null) ...[
+          const SizedBox(height: 10),
+          const Text(
+            'Select one to continue.',
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _organizationSection() {
+    return RegistrationFormCard(
+      icon: Icons.apartment_outlined,
+      title: 'Organization details',
+      subtitle: 'Tell us about the group you are registering for.',
+      children: [
+        RegisterFormField(
+          label: 'Organization Name',
+          hint: 'e.g. Barangay Malinis Women’s Association',
+          controller: _organizationController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+        const SizedBox(height: 14),
+        _organizationTypeField(),
+        const SizedBox(height: 14),
+        RegisterFormField(
+          label: 'Your Role in the Organization',
+          hint: 'e.g. President, Secretary, Member',
+          controller: _organizationRoleController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+        const SizedBox(height: 14),
+        RegisterFormField(
+          label: 'Organization Address',
+          hint: 'Where the organization operates',
+          controller: _organizationAddressController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _organizationTypeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Organization Type',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondary.withValues(alpha: 0.95),
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: data.organizationType,
+          isExpanded: true,
+          hint: const Text('Select organization type'),
+          items: _organizationTypes
+              .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+              .toList(),
+          onChanged: (value) {
+            data.organizationType = value;
+            setState(() {});
+            widget.onChanged();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _accountSection() {
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
+
+    return RegistrationFormCard(
+      icon: Icons.lock_outline_rounded,
+      title: 'Sign-in details',
+      subtitle: 'Used every time you sign in to CARES.',
+      children: [
+        RegisterFormField(
+          label: 'Email',
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+        ),
+        const SizedBox(height: 14),
+        RegisterFormField(
+          label: 'Password',
+          controller: _passwordController,
+          obscureText: _obscurePassword,
+          textInputAction: TextInputAction.next,
+          onChanged: _onFieldChanged,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
+          ),
+        ),
+        const SizedBox(height: 10),
+        PasswordStrengthIndicator(password: password),
+        const SizedBox(height: 10),
+        PasswordRuleChips(password: password),
+        const SizedBox(height: 14),
+        RegisterFormField(
+          label: 'Confirm Password',
+          controller: _confirmPasswordController,
+          obscureText: _obscureConfirmPassword,
+          textInputAction: TextInputAction.done,
+          onChanged: _onFieldChanged,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureConfirmPassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+            onPressed: () => setState(
+              () => _obscureConfirmPassword = !_obscureConfirmPassword,
+            ),
+          ),
+        ),
+        if (confirm.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          PasswordMatchNote(matches: _passwordsMatch),
+        ],
+        if (password.isNotEmpty && validatePassword(password) != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            validatePassword(password)!,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.heart,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

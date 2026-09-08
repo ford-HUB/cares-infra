@@ -10,6 +10,22 @@ export interface FrVerifyImagesResult {
   selfieEmbedding: number[];
 }
 
+export interface FrEmbedResult {
+  embedding: number[];
+  detScore: number;
+}
+
+interface FrEmbedApiResponse {
+  ok: boolean;
+  message?: string;
+  data?: {
+    embedding: number[];
+    det_score: number;
+    embedding_dim: number;
+  };
+  errors?: unknown;
+}
+
 interface FrApiResponse {
   ok: boolean;
   message?: string;
@@ -70,6 +86,35 @@ export class FrServiceClient {
       idDetScore: payload.data.id_det_score,
       selfieDetScore: payload.data.selfie_det_score,
       selfieEmbedding: payload.data.selfie_embedding,
+    };
+  }
+
+  /** Extracts a face embedding from a single image — used when there is no ID photo to match against. */
+  async embedImage(
+    image: Buffer,
+    filename: string,
+    mimetype: string | undefined,
+  ): Promise<FrEmbedResult> {
+    const form = new FormData();
+    form.append('image', toImageBlob(image, mimetype, filename), filename);
+
+    const response = await fetch(`${this.baseUrl}/api/v1/embed`, {
+      method: 'POST',
+      body: form,
+    });
+
+    const payload = (await response.json()) as FrEmbedApiResponse;
+    if (!response.ok || !payload.ok || !payload.data) {
+      const detail = payload.message?.trim();
+      if (detail) {
+        throw new Error(detail);
+      }
+      throw new Error('Face embedding service failed');
+    }
+
+    return {
+      embedding: payload.data.embedding,
+      detScore: payload.data.det_score,
     };
   }
 }

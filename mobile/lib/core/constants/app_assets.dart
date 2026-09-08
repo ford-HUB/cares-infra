@@ -11,6 +11,9 @@ abstract final class AppAssets {
 
   static const String campaignPhoto = 'assets/images/intro-img-3.jpg';
 
+  /// Outreach photo sitting behind the green login header band.
+  static const String loginEntryBanner = 'assets/images/entry-login-banner.png';
+
   static const String mascotWaving = 'assets/images/mascot/waving.png';
   static const String mascotSmile = 'assets/images/mascot/smile.png';
   static const String mascotHappy = 'assets/images/mascot/happy.png';

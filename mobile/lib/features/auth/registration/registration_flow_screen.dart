@@ -47,9 +47,7 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
     RegistrationFlowStep.accountType => 'Choose Your Account Type',
     RegistrationFlowStep.userRole => 'Select Your Role',
     RegistrationFlowStep.registrationForm =>
-      _data.isBeneficiary
-          ? 'Beneficiary Registration Form'
-          : 'Registration Form',
+      _data.isBeneficiary ? 'Beneficiary Sign Up' : 'Registration Form',
     RegistrationFlowStep.identityVerification => 'Verify Your Identity',
     RegistrationFlowStep.submission => 'Review & Submit',
   };
@@ -57,21 +55,14 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
   bool get _canContinue => switch (_currentStep) {
     RegistrationFlowStep.accountType => _canContinueAccountType,
     RegistrationFlowStep.userRole => _data.userRole != null,
-    RegistrationFlowStep.registrationForm => true,
+    RegistrationFlowStep.registrationForm =>
+      !_data.isBeneficiary || _data.beneficiaryBasicsComplete,
     RegistrationFlowStep.identityVerification =>
       _data.schoolIdImagePath != null && _data.selfieImagePath != null,
     RegistrationFlowStep.submission => true,
   };
 
-  bool get _canContinueAccountType {
-    if (_data.accountType == null) return false;
-    if (_data.isRegularUser) return true;
-    if (_data.beneficiaryType == null) return false;
-    if (_data.isOrganizationMember) {
-      return _data.organizationName.trim().isNotEmpty;
-    }
-    return true;
-  }
+  bool get _canContinueAccountType => _data.accountType != null;
 
   void _goToLogin() {
     if (Navigator.of(context).canPop()) {
@@ -117,15 +108,13 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
       case RegistrationFlowStep.userRole:
         setState(() => _currentStep = RegistrationFlowStep.registrationForm);
       case RegistrationFlowStep.registrationForm:
-        if (!(_formKey.currentState?.validate() ?? false)) return;
+        if (!_data.isBeneficiary &&
+            !(_formKey.currentState?.validate() ?? false)) {
+          return;
+        }
         if (_data.isBeneficiary) {
-          if (_data.dateOfBirth == null || _data.dateOfBirth!.isEmpty) {
-            _showMessage('Please select your date of birth.');
-            setState(() {});
-            return;
-          }
-          if (_data.facePicturePath == null) {
-            _showMessage('Please upload a face picture to continue.');
+          if (!_data.beneficiaryBasicsComplete) {
+            _showMessage('Please complete all fields before continuing.');
             setState(() {});
             return;
           }

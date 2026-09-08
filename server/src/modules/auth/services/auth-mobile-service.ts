@@ -7,10 +7,14 @@ import {
   LoginResponseDto,
   RegisterFromSessionDto,
   RegistrationSessionDto,
+  StartSessionResponseDto,
   UploadIdResponseDto,
   VerifyFaceResponseDto,
 } from '../dto/auth-mobile-dto';
-import { EmbeddingType } from '../../../infastructures/prisma/common/client';
+import {
+  EmbeddingType,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 import {
   BadGatewayException,
   BadRequestException,
@@ -24,7 +28,10 @@ import { randomInt, randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/infastructures/s3/s3-service';
 import { RedisService } from 'src/infastructures/redis/redis-service';
-import { FrServiceClient } from 'src/infastructures/microservices/fr-service-client';
+import {
+  FrEmbedResult,
+  FrServiceClient,
+} from 'src/infastructures/microservices/fr-service-client';
 import { OcrServiceClient } from 'src/infastructures/microservices/ocr-service-client';
 import { UcidServiceClient } from 'src/infastructures/microservices/ucid-service-client';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
@@ -211,6 +218,7 @@ export class AuthMobileService {
     await this.saveSession(registrationId, {
       idFrontImageUrl,
       idBackImageUrl,
+      roleType: null,
       selfieUrl: null,
       faceMatch: null,
       faceSimilarity: null,
@@ -223,11 +231,46 @@ export class AuthMobileService {
     return { registrationId };
   }
 
+  /**
+   * Starts an ID-less registration session. Beneficiaries do not present a
+   * school ID, so their face capture is enrolled on its own and their details
+   * are typed in instead of being read off an ID by OCR.
+   */
+  async startSession(roleType: RoleType): Promise<StartSessionResponseDto> {
+    if (roleType !== RoleType.BENEFICIARY) {
+      throw new BadRequestException(
+        'Only beneficiary registration can start without an ID upload',
+      );
+    }
+
+    const registrationId = randomUUID();
+
+    await this.saveSession(registrationId, {
+      idFrontImageUrl: null,
+      idBackImageUrl: null,
+      roleType,
+      selfieUrl: null,
+      faceMatch: null,
+      faceSimilarity: null,
+      selfieEmbedding: null,
+      ocrData: null,
+      step: 'session_started',
+      createdAt: Date.now(),
+    });
+
+    return { registrationId, step: 'session_started' };
+  }
+
   async verifyFace(
     registrationId: string,
     selfie: Express.Multer.File,
   ): Promise<VerifyFaceResponseDto> {
     const session = await this.requireSession(registrationId);
+
+    if (!session.idFrontImageUrl) {
+      return this.captureFaceWithoutId(registrationId, session, selfie);
+    }
+
     const canVerifyFace =
       session.step === 'id_uploaded' ||
       session.step === 'face_verified' ||
@@ -302,8 +345,73 @@ export class AuthMobileService {
     };
   }
 
+  /**
+   * Face step for ID-less sessions: there is no ID photo to match against, so
+   * the selfie is only checked for a usable face and enrolled as the embedding.
+   */
+  private async captureFaceWithoutId(
+    registrationId: string,
+    session: RegistrationSessionDto,
+    selfie: Express.Multer.File,
+  ): Promise<VerifyFaceResponseDto> {
+    if (
+      session.step !== 'session_started' &&
+      session.step !== 'face_verified'
+    ) {
+      throw new BadRequestException(
+        'Invalid registration step for face verification',
+      );
+    }
+
+    let embedding: FrEmbedResult;
+    try {
+      embedding = await this.frServiceClient.embedImage(
+        selfie.buffer,
+        selfie.originalname,
+        selfie.mimetype,
+      );
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : 'Face capture failed';
+      if (this.isFaceDetectionError(detail)) {
+        throw new BadRequestException(detail);
+      }
+      throw new BadGatewayException(
+        'Face verification service is unavailable. Please try again shortly.',
+      );
+    }
+
+    const selfieKey = `${registrationId}/selfie-${selfie.originalname}`;
+    const selfieUrl = await this.s3Service.uploadToS3(selfieKey, selfie.buffer);
+
+    await this.saveSession(registrationId, {
+      ...session,
+      selfieUrl,
+      faceMatch: true,
+      faceSimilarity: embedding.detScore,
+      selfieEmbedding: embedding.embedding,
+      step: 'face_verified',
+      ocrData: null,
+    });
+
+    return {
+      registrationId,
+      match: true,
+      similarity: embedding.detScore,
+      threshold: 0,
+      step: 'face_verified',
+      message: 'Face captured successfully',
+    };
+  }
+
   async extractId(registrationId: string): Promise<ExtractIdResponseDto> {
     const session = await this.requireSession(registrationId);
+
+    if (!session.idFrontImageUrl || !session.idBackImageUrl) {
+      throw new BadRequestException(
+        'This registration has no uploaded ID to extract details from',
+      );
+    }
 
     if (session.step !== 'face_verified' || !session.faceMatch) {
       throw new BadRequestException(
@@ -357,10 +465,29 @@ export class AuthMobileService {
 
     await this.requireVerifiedEmail(data.account.email);
 
-    if (session.step !== 'ocr_completed') {
-      throw new BadRequestException(
-        'OCR extraction must complete before registration',
-      );
+    if (session.idFrontImageUrl) {
+      if (session.step !== 'ocr_completed') {
+        throw new BadRequestException(
+          'OCR extraction must complete before registration',
+        );
+      }
+    } else {
+      // ID-less sessions are locked to the role that started them so an
+      // ID-backed role can never be claimed without an ID.
+      if (
+        session.roleType !== RoleType.BENEFICIARY ||
+        data.role_type !== RoleType.BENEFICIARY
+      ) {
+        throw new BadRequestException(
+          'This registration session requires an uploaded ID',
+        );
+      }
+
+      if (session.step !== 'face_verified') {
+        throw new BadRequestException(
+          'Face capture must complete before registration',
+        );
+      }
     }
 
     if (!session.faceMatch || !session.selfieUrl || !session.selfieEmbedding) {

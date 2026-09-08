@@ -27,6 +27,9 @@ class RegistrationData {
   String? dateOfBirth;
   String? gender;
   String organizationName = '';
+  String? organizationType;
+  String organizationRole = '';
+  String organizationAddress = '';
 
   String? department;
   String? course;
@@ -72,13 +75,36 @@ class RegistrationData {
     return parts.where((p) => p.isNotEmpty).join(' ');
   }
 
+  /// Everything the beneficiary form asks for, filled in.
+  bool get beneficiaryBasicsComplete {
+    if (firstName.trim().isEmpty || lastName.trim().isEmpty) return false;
+    if (beneficiaryType == null) return false;
+    if (isOrganizationMember && !organizationDetailsComplete) return false;
+    if (!email.contains('@')) return false;
+    if (password.length < 8) return false;
+    return password == confirmPassword;
+  }
+
+  bool get organizationDetailsComplete =>
+      organizationName.trim().isNotEmpty &&
+      (organizationType?.isNotEmpty ?? false) &&
+      organizationRole.trim().isNotEmpty &&
+      organizationAddress.trim().isNotEmpty;
+
+  void clearOrganizationFields() {
+    organizationName = '';
+    organizationType = null;
+    organizationRole = '';
+    organizationAddress = '';
+  }
+
   void resetCourseSelection() {
     course = null;
   }
 
   void clearBeneficiaryFields() {
     beneficiaryType = null;
-    organizationName = '';
+    clearOrganizationFields();
     middleName = '';
     address = '';
     dateOfBirth = null;

@@ -85,22 +85,25 @@ class SubmissionReviewStep extends StatelessWidget {
           title: 'Personal Information',
           children: [
             _reviewRow('Name', data.fullName),
-            if (data.isBeneficiary) ...[
-              _reviewRow('Date of Birth', data.dateOfBirth ?? '—'),
-              _reviewRow('Gender', data.gender ?? '—'),
-              _reviewRow('Address', data.address),
-            ],
             _reviewRow('Email', data.email),
-            _reviewRow(
-              data.isBeneficiary ? 'Contact Number' : 'Phone',
-              data.phoneNumber,
-            ),
-            if (data.isRegularUser)
+            if (data.isRegularUser) ...[
+              _reviewRow('Phone', data.phoneNumber),
               _reviewRow('School ID', data.schoolIdNumber),
-            if (data.isOrganizationMember)
-              _reviewRow('Organization', data.organizationName),
+            ],
           ],
         ),
+        if (data.isOrganizationMember) ...[
+          const SizedBox(height: 12),
+          RegistrationSectionCard(
+            title: 'Organization Details',
+            children: [
+              _reviewRow('Organization', data.organizationName),
+              _reviewRow('Type', data.organizationType ?? '—'),
+              _reviewRow('Your Role', data.organizationRole),
+              _reviewRow('Address', data.organizationAddress),
+            ],
+          ),
+        ],
         if (data.isRegularUser) ...[
           const SizedBox(height: 12),
           RegistrationSectionCard(
@@ -122,18 +125,6 @@ class SubmissionReviewStep extends StatelessWidget {
               _reviewRow(
                 'Selfie',
                 data.selfieImagePath != null ? 'Uploaded' : 'Missing',
-              ),
-            ],
-          ),
-        ],
-        if (data.isBeneficiary) ...[
-          const SizedBox(height: 12),
-          RegistrationSectionCard(
-            title: 'Verification',
-            children: [
-              _reviewRow(
-                'Face Picture',
-                data.facePicturePath != null ? 'Uploaded' : 'Missing',
               ),
             ],
           ),
