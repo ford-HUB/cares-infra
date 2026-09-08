@@ -106,6 +106,13 @@ class EventRegistrationStore extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
+  /// Cancels participation locally — the event goes back to its unjoined
+  /// state for this participant.
+  void cancelParticipation(String eventId, String email) {
+    final removed = _participations.remove(_key(eventId, email));
+    if (removed != null) notifyListeners();
+  }
+
   void markAttendanceVerified(String eventId, String email) {
     final participation = participationFor(eventId, email);
     if (participation == null) return;

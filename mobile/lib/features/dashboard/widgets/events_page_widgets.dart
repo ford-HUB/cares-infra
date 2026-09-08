@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../data/event_category_colors.dart';
 import '../data/mock_events.dart';
 
 class EventsPageHeader extends StatelessWidget {
@@ -237,6 +238,7 @@ class EventCategoryFilters extends StatelessWidget {
         itemBuilder: (context, index) {
           final category = kEventFilterCategories[index];
           final isSelected = selected == category;
+          final categoryColor = eventCategoryColor(category);
 
           return Material(
             color: Colors.transparent,
@@ -248,12 +250,12 @@ class EventCategoryFilters extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  color: isSelected ? categoryColor : AppColors.surface,
                   borderRadius: BorderRadius.circular(AppColors.pillRadius),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.borderLight,
+                        ? categoryColor
+                        : categoryColor.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Text(
@@ -261,7 +263,7 @@ class EventCategoryFilters extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    color: isSelected ? Colors.white : categoryColor,
                   ),
                 ),
               ),
@@ -303,6 +305,7 @@ class EventCatalogCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final urgent = event.daysUntil <= 3;
+    final categoryColor = eventCategoryColor(event.category);
     final fillRatio = event.totalCapacity == 0
         ? 0.0
         : event.registeredCount / event.totalCapacity;
@@ -334,8 +337,8 @@ class EventCatalogCard extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppColors.inputFill,
-                              AppColors.primary.withValues(alpha: 0.12),
+                              categoryColor.withValues(alpha: 0.14),
+                              categoryColor.withValues(alpha: 0.30),
                             ],
                           ),
                         ),
@@ -345,7 +348,7 @@ class EventCatalogCard extends StatelessWidget {
                           child: Icon(
                             Icons.event_available_rounded,
                             size: 44,
-                            color: AppColors.primary.withValues(alpha: 0.45),
+                            color: categoryColor.withValues(alpha: 0.45),
                           ),
                         ),
                       ),
@@ -362,10 +365,10 @@ class EventCatalogCard extends StatelessWidget {
                           ),
                           child: Text(
                             event.category,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: categoryColor,
                             ),
                           ),
                         ),

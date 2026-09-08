@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../data/event_category_colors.dart';
 import '../data/mock_events.dart';
 import '../screens/event_details_screen.dart';
 
@@ -292,7 +293,10 @@ class UpcomingEventCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _UpcomingEventTag(label: event.category),
+                    _UpcomingEventTag(
+                      label: event.category,
+                      color: eventCategoryColor(event.category),
+                    ),
                     const _UpcomingEventTag(label: 'Upcoming'),
                   ],
                 ),
@@ -399,25 +403,35 @@ class UpcomingEventCard extends StatelessWidget {
 }
 
 class _UpcomingEventTag extends StatelessWidget {
-  const _UpcomingEventTag({required this.label});
+  const _UpcomingEventTag({required this.label, this.color});
 
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final accent = color ?? AppColors.primary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: color == null
+            ? AppColors.background
+            : accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppColors.pillRadius),
-        border: Border.all(color: AppColors.borderLight, width: 1),
+        border: Border.all(
+          color: color == null
+              ? AppColors.borderLight
+              : accent.withValues(alpha: 0.35),
+          width: 1,
+        ),
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          color: accent,
         ),
       ),
     );

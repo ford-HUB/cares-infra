@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/domain/mock_event.dart';
 
 class FeaturedEventsCarousel extends StatefulWidget {
@@ -208,7 +209,7 @@ class _EventCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    color: eventCategoryColor(event.category),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
