@@ -14,6 +14,15 @@ import type {
   MaintenanceWindow,
 } from '../types/maintenance'
 import type {
+  CpuCore,
+  EndpointLatency,
+  PageLoadTiming,
+  PerformanceHost,
+  PerformanceSample,
+  PerformanceSnapshot,
+  ProcessLoad,
+} from '../types/system-performance'
+import type {
   ServiceLogEntry,
   ServiceRun,
   ServiceState,
@@ -1545,6 +1554,36 @@ export function buildMockAnnouncements(): Announcement[] {
       reach: 0,
     },
     {
+      id: 'ann-payroll-window',
+      title: 'Donation receipts were delayed on the 3rd',
+      body: 'Receipts filed between 9:00 and 11:20 AM on the 3rd were queued behind a stuck worker and sent late. Every one of them went out; no donation was lost.',
+      tone: 'warning',
+      audiences: ['donors', 'staff'],
+      channels: ['portal', 'email'],
+      state: 'expired',
+      publishAt: dayjs().subtract(2, 'day').hour(11).minute(40).toISOString(),
+      expiresAt: dayjs().subtract(1, 'day').toISOString(),
+      pinned: false,
+      windowId: null,
+      author: 'J. Villanueva',
+      reach: 244,
+    },
+    {
+      id: 'ann-app-update',
+      title: 'Volunteer app 2.4 is out — update before your next event',
+      body: 'Offline check-in and the new QR scanner ship in 2.4. Phones still on 2.3 can check in, but attendance will not sync until the app is updated.',
+      tone: 'info',
+      audiences: ['volunteers'],
+      channels: ['mobile', 'portal'],
+      state: 'published',
+      publishAt: dayjs().subtract(4, 'day').hour(8).minute(15).toISOString(),
+      expiresAt: null,
+      pinned: false,
+      windowId: null,
+      author: 'M. Cruz',
+      reach: 1042,
+    },
+    {
       id: 'ann-storage-done',
       title: 'Media storage cutover finished',
       body: 'Photos and IDs uploaded before the cutover are all accounted for. Report anything that still fails to load through Support Tickets.',
@@ -1559,5 +1598,281 @@ export function buildMockAnnouncements(): Announcement[] {
       author: 'A. Reyes',
       reach: 2140,
     },
+    {
+      id: 'ann-scholarship-deadline',
+      title: 'Scholarship requirement filing closes on the 30th',
+      body: 'Beneficiaries have until 11:59 PM on the 30th to file their post-requirements. Anything filed after that moves to next term\u2019s review queue.',
+      tone: 'critical',
+      audiences: ['beneficiaries', 'staff'],
+      channels: ['portal', 'mobile', 'email'],
+      state: 'expired',
+      publishAt: dayjs().subtract(12, 'day').hour(7).minute(30).toISOString(),
+      expiresAt: dayjs().subtract(9, 'day').toISOString(),
+      pinned: false,
+      windowId: null,
+      author: 'R. Dela Cruz',
+      reach: 668,
+    },
   ]
+}
+
+/* -------------------------------------------------------------------------- */
+/* System performance                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** The box CARES runs on, quoted on the page so percentages have a unit. */
+const performanceHost: PerformanceHost = {
+  name: 'cares-app-01',
+  region: 'ap-southeast-1 · Singapore',
+  vcpu: 8,
+  memoryGb: 32,
+  uptimeHours: 296,
+}
+
+/**
+ * Deterministic 0–1 noise. A redraw must not reshuffle the history behind the live
+ * cursor, so the wobble is a function of the sample index, never `Math.random()`.
+ */
+function performanceNoise(seed: number): number {
+  const value = Math.sin(seed * 12.9898) * 43758.5453
+  return value - Math.floor(value)
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
+}
+
+/**
+ * One reading built from slow and fast waves plus noise, so the chart has the shape
+ * of real load — a drifting baseline with bursts on top — rather than a sine wave.
+ * `dayShape` lifts the daytime hours on the 24 h view, where a flat line would be a
+ * lie about how the portal is actually used.
+ */
+function buildPerformanceSample(
+  at: dayjs.Dayjs,
+  index: number,
+  dayShape: boolean,
+): PerformanceSample {
+  const hourOfDay = at.hour() + at.minute() / 60
+  // Office hours peak; the small hours are the report jobs only.
+  const daytime = dayShape
+    ? 0.35 + 0.65 * Math.max(0, Math.sin(((hourOfDay - 6) / 14) * Math.PI))
+    : 1
+
+  const burst = performanceNoise(index * 1.7) > 0.93 ? 14 : 0
+
+  const cpuUser = clamp(
+    (26 + 9 * Math.sin(index / 9) + 5 * Math.sin(index / 3.1) + burst) * daytime +
+      4 * performanceNoise(index),
+    6,
+    82,
+  )
+  const cpuSystem = clamp(
+    (8 + 2.5 * Math.sin(index / 7 + 1)) * daytime + 2 * performanceNoise(index + 11),
+    2,
+    24,
+  )
+  const cpuIoWait = clamp(
+    (3.5 + 2.5 * Math.sin(index / 11 + 2) + burst / 3) * daytime +
+      2 * performanceNoise(index + 29),
+    0.4,
+    18,
+  )
+
+  const busy = cpuUser + cpuSystem + cpuIoWait
+  const requestsPerMinute = Math.round(
+    clamp((150 + 70 * Math.sin(index / 8) + burst * 6) * daytime + 30 * performanceNoise(index + 5), 20, 460),
+  )
+
+  // Response time follows the host, not its own curve: the tail is what queueing and
+  // I/O wait do to the median, which is the whole point of charting them together.
+  const responseP50 = clamp(96 + busy * 1.9 + 18 * performanceNoise(index + 41), 80, 900)
+  const responseP95 = clamp(
+    responseP50 * 2.4 + cpuIoWait * 18 + 90 * performanceNoise(index + 61),
+    responseP50 * 1.6,
+    2_600,
+  )
+
+  return {
+    at: at.toISOString(),
+    cpuUser: Number(cpuUser.toFixed(1)),
+    cpuSystem: Number(cpuSystem.toFixed(1)),
+    cpuIoWait: Number(cpuIoWait.toFixed(1)),
+    memoryPercent: Number(
+      clamp(58 + 7 * Math.sin(index / 17) + 3 * performanceNoise(index + 7), 40, 94).toFixed(1),
+    ),
+    requestsPerMinute,
+    responseP50Ms: Math.round(responseP50),
+    responseP95Ms: Math.round(responseP95),
+  }
+}
+
+/** The window of readings behind the charts, oldest first, ending at "now". */
+export function buildMockPerformanceSamples(
+  points: number,
+  stepSeconds: number,
+): PerformanceSample[] {
+  const now = dayjs()
+
+  return Array.from({ length: points }, (_, index) =>
+    buildPerformanceSample(
+      now.subtract((points - 1 - index) * stepSeconds, 'second'),
+      index,
+      stepSeconds >= 600,
+    ),
+  )
+}
+
+/**
+ * The next live reading, walked from the one before it. Continuity matters more than
+ * realism here: a stream that jumps every tick reads as a broken sensor.
+ */
+export function buildNextPerformanceSample(
+  previous: PerformanceSample,
+): PerformanceSample {
+  const walk = (value: number, spread: number, min: number, max: number) =>
+    Number(clamp(value + (Math.random() - 0.5) * spread, min, max).toFixed(1))
+
+  const cpuUser = walk(previous.cpuUser, 9, 6, 88)
+  const cpuSystem = walk(previous.cpuSystem, 3, 2, 24)
+  const cpuIoWait = walk(previous.cpuIoWait, 2.5, 0.4, 18)
+  const busy = cpuUser + cpuSystem + cpuIoWait
+
+  const responseP50Ms = Math.round(clamp(96 + busy * 1.9 + Math.random() * 24, 80, 900))
+
+  return {
+    at: new Date().toISOString(),
+    cpuUser,
+    cpuSystem,
+    cpuIoWait,
+    memoryPercent: walk(previous.memoryPercent, 1.6, 40, 94),
+    requestsPerMinute: Math.round(
+      clamp(previous.requestsPerMinute + (Math.random() - 0.5) * 60, 20, 460),
+    ),
+    responseP50Ms,
+    responseP95Ms: Math.round(
+      clamp(responseP50Ms * 2.4 + cpuIoWait * 18 + Math.random() * 110, responseP50Ms * 1.6, 2_600),
+    ),
+  }
+}
+
+/** What each core is mostly running, so a hot core points somewhere. */
+const performanceCoreWork = [
+  'API request handlers',
+  'API request handlers',
+  'OCR inference',
+  'Face-recognition inference',
+  'Prisma query pool',
+  'Report compiler',
+  'Attendance sync',
+  'Idle / spare capacity',
+]
+
+/**
+ * Per-core load derived from the live reading rather than fixed, so the analysis card
+ * stays consistent with the chart above it. The ML cores carry the burst — that is the
+ * finding the card is there to surface.
+ */
+export function buildMockCpuCores(sample: PerformanceSample, vcpu: number): CpuCore[] {
+  const busy = sample.cpuUser + sample.cpuSystem + sample.cpuIoWait
+  // Weights sum to `vcpu`, so the weighted mean lands back on the host average.
+  const weights = [1.05, 1, 1.75, 1.6, 0.95, 0.7, 0.55, 0.4]
+
+  return Array.from({ length: vcpu }, (_, index) => ({
+    id: index,
+    usagePercent: Number(
+      clamp(busy * (weights[index % weights.length] ?? 1), 2, 99).toFixed(1),
+    ),
+    runningWhat: performanceCoreWork[index % performanceCoreWork.length],
+  }))
+}
+
+/** Shares of host capacity, scaled to the live reading so the column stays honest. */
+const performanceProcessSeeds: Array<
+  Omit<ProcessLoad, 'cpuPercent'> & { share: number }
+> = [
+  { id: 'ocr-service', name: 'ocr-service (uvicorn)', owner: 'microservices', share: 0.29, memoryMb: 1_960, threads: 12 },
+  { id: 'fr-service', name: 'fr-service (uvicorn)', owner: 'microservices', share: 0.24, memoryMb: 2_480, threads: 10 },
+  { id: 'cares-api', name: 'cares-api (node)', owner: 'server', share: 0.21, memoryMb: 1_120, threads: 18 },
+  { id: 'postgres', name: 'postgres (primary)', owner: 'database', share: 0.13, memoryMb: 3_240, threads: 24 },
+  { id: 'ucid-service', name: 'ucid-service (uvicorn)', owner: 'microservices', share: 0.08, memoryMb: 890, threads: 6 },
+  { id: 'nginx', name: 'nginx (site)', owner: 'site', share: 0.05, memoryMb: 140, threads: 4 },
+]
+
+export function buildMockProcessLoad(sample: PerformanceSample): ProcessLoad[] {
+  const busy = sample.cpuUser + sample.cpuSystem + sample.cpuIoWait
+
+  return performanceProcessSeeds.map((seed) => ({
+    id: seed.id,
+    name: seed.name,
+    owner: seed.owner,
+    memoryMb: seed.memoryMb,
+    threads: seed.threads,
+    cpuPercent: Number((busy * seed.share).toFixed(1)),
+  }))
+}
+
+/** Trend strip for a route: recent p95 readings around its median. */
+function buildLatencyTrend(p95: number, seed: number): number[] {
+  return Array.from({ length: 12 }, (_, index) =>
+    Math.round(p95 * (0.78 + 0.42 * performanceNoise(seed + index * 3.7))),
+  )
+}
+
+const performanceEndpointSeeds: Array<
+  Omit<EndpointLatency, 'trend'> & { seed: number }
+> = [
+  { id: 'ep-ocr', method: 'POST', route: '/api/v1/registration/ocr-scan', callsPerMinute: 14, p50Ms: 1_180, p95Ms: 2_340, errorRate: 0.021, seed: 3 },
+  { id: 'ep-face', method: 'POST', route: '/api/v1/registration/face-verify', callsPerMinute: 11, p50Ms: 940, p95Ms: 1_780, errorRate: 0.014, seed: 9 },
+  { id: 'ep-reports', method: 'GET', route: '/api/v1/reports/monthly', callsPerMinute: 6, p50Ms: 610, p95Ms: 1_460, errorRate: 0, seed: 17 },
+  { id: 'ep-attendance', method: 'POST', route: '/api/v1/attendance/sync', callsPerMinute: 42, p50Ms: 288, p95Ms: 720, errorRate: 0.004, seed: 23 },
+  { id: 'ep-users', method: 'GET', route: '/api/v1/users', callsPerMinute: 96, p50Ms: 132, p95Ms: 340, errorRate: 0, seed: 31 },
+  { id: 'ep-events', method: 'GET', route: '/api/v1/events', callsPerMinute: 78, p50Ms: 118, p95Ms: 262, errorRate: 0, seed: 37 },
+  { id: 'ep-certs', method: 'PATCH', route: '/api/v1/certificates/:id/deploy', callsPerMinute: 4, p50Ms: 240, p95Ms: 520, errorRate: 0.008, seed: 43 },
+  { id: 'ep-notices', method: 'GET', route: '/api/v1/system-notices', callsPerMinute: 61, p50Ms: 46, p95Ms: 96, errorRate: 0, seed: 47 },
+  { id: 'ep-session', method: 'DELETE', route: '/api/v1/sessions/:id', callsPerMinute: 3, p50Ms: 64, p95Ms: 132, errorRate: 0, seed: 53 },
+  { id: 'ep-login', method: 'POST', route: '/api/v1/auth/login', callsPerMinute: 19, p50Ms: 210, p95Ms: 430, errorRate: 0.011, seed: 59 },
+]
+
+export function buildMockEndpointLatency(): EndpointLatency[] {
+  return performanceEndpointSeeds.map(({ seed, ...endpoint }) => ({
+    ...endpoint,
+    trend: buildLatencyTrend(endpoint.p95Ms, seed),
+  }))
+}
+
+/** Browser-side load of the screens staff open most, measured in the field. */
+export function buildMockPageLoadTimings(): PageLoadTiming[] {
+  return [
+    { id: 'page-dashboard', label: 'Dashboard overview', ttfbMs: 148, domReadyMs: 420, interactiveMs: 910, samples: 1_842 },
+    { id: 'page-attendance', label: 'Attendance monitor', ttfbMs: 210, domReadyMs: 560, interactiveMs: 1_340, samples: 964 },
+    { id: 'page-users', label: 'Manage users', ttfbMs: 172, domReadyMs: 480, interactiveMs: 1_060, samples: 1_310 },
+    { id: 'page-map', label: 'Event map', ttfbMs: 196, domReadyMs: 720, interactiveMs: 2_180, samples: 388 },
+    { id: 'page-reports', label: 'Monthly reports', ttfbMs: 640, domReadyMs: 1_020, interactiveMs: 1_720, samples: 246 },
+  ]
+}
+
+export function buildMockPerformanceSnapshot(
+  points: number,
+  stepSeconds: number,
+): PerformanceSnapshot {
+  const samples = buildMockPerformanceSamples(points, stepSeconds)
+  const latest = samples[samples.length - 1]
+  const busy = latest.cpuUser + latest.cpuSystem + latest.cpuIoWait
+
+  return {
+    capturedAt: latest.at,
+    host: performanceHost,
+    samples,
+    cores: buildMockCpuCores(latest, performanceHost.vcpu),
+    processes: buildMockProcessLoad(latest),
+    endpoints: buildMockEndpointLatency(),
+    pages: buildMockPageLoadTimings(),
+    // Load average is the run queue, so it tracks busy CPU across the vCPU count.
+    loadAverage: [
+      Number(((busy / 100) * performanceHost.vcpu).toFixed(2)),
+      Number(((busy / 100) * performanceHost.vcpu * 0.92).toFixed(2)),
+      Number(((busy / 100) * performanceHost.vcpu * 0.81).toFixed(2)),
+    ],
+  }
 }

@@ -264,3 +264,34 @@ export const AUDIENCE_SIZES: Record<AnnouncementAudience, number> = {
 export function audienceReachTotal(audiences: AnnouncementAudience[]): number {
   return audiences.reduce((total, one) => total + AUDIENCE_SIZES[one], 0)
 }
+
+/** Segment fill in the notice-board availability bar — the fourth visual channel. */
+export const ANNOUNCEMENT_STATE_BAR_STYLES: Record<AnnouncementState, string> = {
+  draft: 'bg-gray-300',
+  scheduled: 'bg-amber-400',
+  published: 'bg-emerald-500',
+  expired: 'bg-gray-200',
+}
+
+/** What each state means for the reader — the legend tooltips on the notice board. */
+export const ANNOUNCEMENT_STATE_HINTS: Record<AnnouncementState, string> = {
+  draft: 'Written but never sent. Nobody has read it.',
+  scheduled: 'Queued to go out on its own at the time it names.',
+  published: 'Out now — this is what users are reading.',
+  expired: 'Ran its course or was taken down. Kept as record.',
+}
+
+/**
+ * The day heading a notice sits under in the feed. Named days carry the reader for the
+ * span they actually think in; anything older or further out is dated outright.
+ */
+export function formatNoticeDay(timestamp: string): string {
+  const day = dayjs(timestamp).startOf('day')
+  const today = dayjs().startOf('day')
+  const offset = day.diff(today, 'day')
+
+  if (offset === 0) return 'Today'
+  if (offset === -1) return 'Yesterday'
+  if (offset === 1) return 'Tomorrow'
+  return day.format(day.isSame(today, 'year') ? 'dddd, MMM D' : 'MMM D, YYYY')
+}
