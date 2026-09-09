@@ -1,7 +1,25 @@
 import { NotFoundException, Injectable } from '@nestjs/common';
-import { Prisma } from '../../../infastructures/prisma/common/client';
+import {
+  AuthProvider,
+  GenderType,
+  Prisma,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { CreateUserDto } from '../dto/auth-mobile-dto';
+
+export interface CreateDonorInput {
+  firstname: string;
+  lastname: string;
+  middleName: string;
+  gender: GenderType;
+  phoneNumber: string;
+  currentAddress: string;
+  avatar: string | null;
+  email: string;
+  provider: AuthProvider;
+  providerUserId: string;
+}
 
 @Injectable()
 export class AuthRepository {
@@ -110,6 +128,141 @@ export class AuthRepository {
         account_id: account.account_id,
         user_biometric_id: user.user_biometrics[0].user_biometric_id,
       };
+    });
+  }
+
+  /**
+   * Creates a donor and the social identity that may sign in as them, in one
+   * transaction — a donor row with no way to sign in would be unreachable.
+   *
+   * Donors have no school record and no biometric enrolment: they never present an ID
+   * or a face scan, so those relations stay empty rather than being filled with stubs.
+   */
+  async createDonorFromOAuth(data: CreateDonorInput) {
+    return await this.prisma.$transaction(async (tx) => {
+      const role =
+        (await tx.role.findFirst({
+          where: { type: RoleType.DONOR },
+          select: { role_id: true },
+        })) ??
+        (await tx.role.create({
+          data: { type: RoleType.DONOR },
+          select: { role_id: true },
+        }));
+
+      const user = await tx.user.create({
+        data: {
+          firstname: data.firstname,
+          lastname: data.lastname,
+          middle_name: data.middleName,
+          gender: data.gender,
+          current_address: data.currentAddress,
+          phone_number: data.phoneNumber,
+          avatar: data.avatar,
+          role: { connect: { role_id: role.role_id } },
+        },
+        select: { user_id: true },
+      });
+
+      const account = await tx.account.create({
+        data: {
+          email: data.email,
+          user: { connect: { user_id: user.user_id } },
+        },
+        select: { account_id: true },
+      });
+
+      const identity = await tx.oAuthIdentity.create({
+        data: {
+          provider: data.provider,
+          provider_user_id: data.providerUserId,
+          email: data.email,
+          user: { connect: { user_id: user.user_id } },
+        },
+        select: { oauth_identity_id: true },
+      });
+
+      return {
+        user_id: user.user_id,
+        account_id: account.account_id,
+        oauth_identity_id: identity.oauth_identity_id,
+      };
+    });
+  }
+
+  /** Resolves a provider subject id to the CARES user it already signs in as. */
+  async findOAuthIdentity(provider: AuthProvider, providerUserId: string) {
+    return this.prisma.oAuthIdentity.findUnique({
+      where: {
+        provider_provider_user_id: {
+          provider,
+          provider_user_id: providerUserId,
+        },
+      },
+      select: {
+        oauth_identity_id: true,
+        email: true,
+        user: {
+          select: {
+            user_id: true,
+            firstname: true,
+            role: { select: { type: true } },
+            user_interest: { select: { user_interest_id: true } },
+            accounts: { select: { email: true }, take: 1 },
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Attaches a provider identity to a user who already exists — the case where someone
+   * registered with an email and later taps the matching provider button.
+   */
+  async linkOAuthIdentity(
+    userId: string,
+    provider: AuthProvider,
+    providerUserId: string,
+    email: string,
+  ) {
+    return this.prisma.oAuthIdentity.upsert({
+      where: {
+        provider_provider_user_id: {
+          provider,
+          provider_user_id: providerUserId,
+        },
+      },
+      create: {
+        provider,
+        provider_user_id: providerUserId,
+        email,
+        user: { connect: { user_id: userId } },
+      },
+      update: { email },
+      select: { oauth_identity_id: true },
+    });
+  }
+
+  /** Everything a session needs about a user resolved by something other than a password. */
+  async findUserForSession(userId: string) {
+    return this.prisma.user.findUnique({
+      where: { user_id: userId },
+      select: {
+        user_id: true,
+        firstname: true,
+        is_restricted: true,
+        restriction_reason: true,
+        role: { select: { type: true } },
+        user_interest: { select: { user_interest_id: true } },
+        accounts: { select: { email: true }, take: 1 },
+      },
+    });
+  }
+
+  async findPhoneNumberOwner(phoneNumber: string) {
+    return this.prisma.user.findUnique({
+      where: { phone_number: phoneNumber },
+      select: { user_id: true },
     });
   }
 

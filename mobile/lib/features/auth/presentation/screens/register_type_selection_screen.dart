@@ -47,9 +47,7 @@ class _RegisterTypeSelectionScreenState
 
     if (roleType == RegistrationRoleType.donor) {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const RegisterDonorScreen(),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const RegisterDonorScreen()),
       );
       return;
     }
@@ -97,12 +95,10 @@ class _RegisterTypeSelectionScreenState
                   child: _VolunteerTypeChip(
                     label: type.label,
                     isSelected: _selectedVolunteerType == type,
-                    onTap: () =>
-                        setState(() => _selectedVolunteerType = type),
+                    onTap: () => setState(() => _selectedVolunteerType = type),
                   ),
                 ),
-                if (type != VolunteerType.values.last)
-                  const SizedBox(width: 8),
+                if (type != VolunteerType.values.last) const SizedBox(width: 8),
               ],
             ],
           ),
@@ -218,7 +214,7 @@ class _RegisterHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, topInset + 8, 20, 28),
+      padding: EdgeInsets.fromLTRB(20, topInset + 6, 20, 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -241,26 +237,11 @@ class _RegisterHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-                color: Colors.white,
-                tooltip: 'Back',
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                'Create account',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _BackControl(onTap: () => Navigator.of(context).maybePop()),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           const Text(
             'How are you joining CARES?',
             style: TextStyle(
@@ -281,6 +262,52 @@ class _RegisterHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// iOS-style back affordance: a chevron with a short label, sitting flush with
+/// the header's content edge instead of inside an [IconButton]'s padding, so it
+/// lines up with the title and body copy below it.
+class _BackControl extends StatelessWidget {
+  const _BackControl({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Back',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: const Padding(
+          // Only vertical + trailing padding: the chevron itself stays on the
+          // 20pt content margin the way a UINavigationBar back button does.
+          padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 17,
+                color: Colors.white,
+              ),
+              SizedBox(width: 5),
+              Text(
+                'Back',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

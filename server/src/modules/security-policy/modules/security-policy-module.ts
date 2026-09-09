@@ -3,6 +3,7 @@ import { LoginActivityModule } from 'src/modules/login-activity/modules/login-ac
 import { SecurityPolicyRepository } from '../repositories/security-policy-repository';
 import { LoginPolicyEnforcer } from '../services/login-policy-enforcer';
 import { SecurityPolicyService } from '../services/security-policy-service';
+import { SecurityPolicyPublicModule } from './security-policy-public-module';
 import { SecurityPolicySiteModule } from './security-policy-site-module';
 
 /**
@@ -15,7 +16,11 @@ import { SecurityPolicySiteModule } from './security-policy-site-module';
  */
 @Global()
 @Module({
-  imports: [SecurityPolicySiteModule, LoginActivityModule],
+  imports: [
+    SecurityPolicySiteModule,
+    SecurityPolicyPublicModule,
+    LoginActivityModule,
+  ],
   providers: [
     SecurityPolicyService,
     SecurityPolicyRepository,

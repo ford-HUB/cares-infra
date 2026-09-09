@@ -4,10 +4,7 @@ import 'package:mobile/features/auth/domain/registration_role_type.dart';
 
 /// Temporary screen for donor and beneficiary registration paths.
 class RegisterRolePlaceholderScreen extends StatelessWidget {
-  const RegisterRolePlaceholderScreen({
-    super.key,
-    required this.roleType,
-  });
+  const RegisterRolePlaceholderScreen({super.key, required this.roleType});
 
   final RegistrationRoleType roleType;
 

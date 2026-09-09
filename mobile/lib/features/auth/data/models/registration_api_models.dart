@@ -51,7 +51,10 @@ class VerificationStatusResponse {
 }
 
 class StartSessionResponse {
-  const StartSessionResponse({required this.registrationId, required this.step});
+  const StartSessionResponse({
+    required this.registrationId,
+    required this.step,
+  });
 
   factory StartSessionResponse.fromJson(Map<String, dynamic> json) {
     return StartSessionResponse(

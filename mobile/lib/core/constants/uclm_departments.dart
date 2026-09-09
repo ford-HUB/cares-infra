@@ -28,9 +28,7 @@ class UclmDepartments {
       'BSIT - Bachelor of Science in Information Technology',
       'BSCS - Bachelor of Science in Computer Science',
     ],
-    'College of Nursing': [
-      'BSN - Bachelor of Science in Nursing',
-    ],
+    'College of Nursing': ['BSN - Bachelor of Science in Nursing'],
     'College of Maritime': [
       'BSMarE - Bachelor of Science in Marine Engineering',
       'BSMT - Bachelor of Science in Marine Transportation',

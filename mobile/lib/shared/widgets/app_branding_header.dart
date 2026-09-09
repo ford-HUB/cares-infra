@@ -25,11 +25,11 @@ class AppBrandingHeader extends StatelessWidget {
         Text(
           'CARES',
           style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                color: AppColors.primary,
-                fontSize: compact ? 26 : 28,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
+            color: AppColors.primary,
+            fontSize: compact ? 26 : 28,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+          ),
           textAlign: TextAlign.center,
         ),
         if (showTagline) ...[
@@ -39,10 +39,10 @@ class AppBrandingHeader extends StatelessWidget {
             child: Text(
               'Community Awareness, Relations & Extension Services',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontSize: compact ? 13 : 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
-                  ),
+                fontSize: compact ? 13 : 14,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
           ),

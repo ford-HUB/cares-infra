@@ -1,3 +1,5 @@
+import 'package:mobile/core/models/password_policy.dart';
+
 enum PasswordStrength { weak, fair, good, strong }
 
 class PasswordStrengthResult {
@@ -14,7 +16,10 @@ class PasswordStrengthResult {
   final int colorValue;
 }
 
-PasswordStrengthResult evaluatePasswordStrength(String password) {
+PasswordStrengthResult evaluatePasswordStrength(
+  String password, {
+  PasswordPolicy policy = PasswordPolicy.fallback,
+}) {
   if (password.isEmpty) {
     return const PasswordStrengthResult(
       strength: PasswordStrength.weak,
@@ -25,8 +30,8 @@ PasswordStrengthResult evaluatePasswordStrength(String password) {
   }
 
   var score = 0.0;
-  if (password.length >= 8) score += 0.25;
-  if (password.length >= 12) score += 0.15;
+  if (password.length >= policy.minLength) score += 0.25;
+  if (password.length >= policy.minLength + 4) score += 0.15;
   if (RegExp(r'[A-Z]').hasMatch(password)) score += 0.2;
   if (RegExp(r'[a-z]').hasMatch(password)) score += 0.15;
   if (RegExp(r'[0-9]').hasMatch(password)) score += 0.15;
@@ -64,14 +69,20 @@ PasswordStrengthResult evaluatePasswordStrength(String password) {
   );
 }
 
-String? validatePassword(String? value) {
+/// Mirrors the server's own check, so the form refuses what the API would refuse.
+String? validatePassword(
+  String? value, {
+  PasswordPolicy policy = PasswordPolicy.fallback,
+}) {
   if (value == null || value.isEmpty) {
     return 'Password is required';
   }
-  if (value.length < 8) {
-    return 'Password must be at least 8 characters';
-  }
-  return null;
+
+  final unmet = policy.unmetRules(value);
+  if (unmet.isEmpty) return null;
+
+  // One message, listing only what is still missing — the same rules the chips show.
+  return 'Password needs ${unmet.map((rule) => rule.label.toLowerCase()).join(', ')}';
 }
 
 String? validateConfirmPassword(String? value, String password) {

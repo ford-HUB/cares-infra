@@ -6,9 +6,10 @@ final openWeatherServiceProvider = Provider<OpenWeatherService>(
   (ref) => OpenWeatherService(),
 );
 
-final weatherProvider = AsyncNotifierProvider<WeatherNotifier, WeatherSnapshot?>(
-  WeatherNotifier.new,
-);
+final weatherProvider =
+    AsyncNotifierProvider<WeatherNotifier, WeatherSnapshot?>(
+      WeatherNotifier.new,
+    );
 
 class WeatherNotifier extends AsyncNotifier<WeatherSnapshot?> {
   @override

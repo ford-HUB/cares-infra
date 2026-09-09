@@ -1,3 +1,5 @@
+import 'package:mobile/core/models/password_policy.dart';
+
 enum AccountType { regularUser, beneficiary }
 
 enum BeneficiaryType { individual, organizationMember }
@@ -48,23 +50,23 @@ class RegistrationData {
       beneficiaryType == BeneficiaryType.organizationMember;
 
   String get accountTypeLabel => switch (accountType) {
-        AccountType.regularUser => 'Regular User',
-        AccountType.beneficiary => 'Beneficiary',
-        null => '—',
-      };
+    AccountType.regularUser => 'Regular User',
+    AccountType.beneficiary => 'Beneficiary',
+    null => '—',
+  };
 
   String get beneficiaryTypeLabel => switch (beneficiaryType) {
-        BeneficiaryType.individual => 'Individual',
-        BeneficiaryType.organizationMember => 'Organization Member',
-        null => '—',
-      };
+    BeneficiaryType.individual => 'Individual',
+    BeneficiaryType.organizationMember => 'Organization Member',
+    null => '—',
+  };
 
   String get userRoleLabel => switch (userRole) {
-        UserRole.student => 'Student',
-        UserRole.staff => 'Staff',
-        UserRole.faculty => 'Faculty',
-        null => '—',
-      };
+    UserRole.student => 'Student',
+    UserRole.staff => 'Staff',
+    UserRole.faculty => 'Faculty',
+    null => '—',
+  };
 
   String get fullName {
     final parts = [
@@ -75,13 +77,14 @@ class RegistrationData {
     return parts.where((p) => p.isNotEmpty).join(' ');
   }
 
-  /// Everything the beneficiary form asks for, filled in.
-  bool get beneficiaryBasicsComplete {
+  /// Everything the beneficiary form asks for, filled in. The password rules are
+  /// passed in rather than hardcoded here — they belong to the administrator.
+  bool beneficiaryBasicsComplete(PasswordPolicy policy) {
     if (firstName.trim().isEmpty || lastName.trim().isEmpty) return false;
     if (beneficiaryType == null) return false;
     if (isOrganizationMember && !organizationDetailsComplete) return false;
     if (!email.contains('@')) return false;
-    if (password.length < 8) return false;
+    if (!policy.isSatisfiedBy(password)) return false;
     return password == confirmPassword;
   }
 

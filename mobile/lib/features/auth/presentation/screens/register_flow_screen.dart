@@ -10,6 +10,7 @@ import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_account_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_beneficiary_details_step.dart';
@@ -178,7 +179,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
   bool get _accountValid {
     final emailOk = _email.contains('@') && _email.contains('.');
-    final passwordOk = _password.length >= 8;
+    // The administrator's rules, so Continue unlocks on exactly what the chips under
+    // the field are still asking for.
+    final passwordOk = ref
+        .watch(currentPasswordPolicyProvider)
+        .isSatisfiedBy(_password);
     final matchOk =
         _password == _confirmPassword && _confirmPassword.isNotEmpty;
     return emailOk && passwordOk && matchOk;
@@ -188,8 +193,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     if (_isSubmitting) return false;
 
     return switch (_currentStep) {
-      _RegisterStep.idUpload =>
-        _idFrontImage != null && _idBackImage != null,
+      _RegisterStep.idUpload => _idFrontImage != null && _idBackImage != null,
       _RegisterStep.faceScan => false,
       _RegisterStep.details => _detailsReady && _ocrDataValid,
       _RegisterStep.account => _accountValid,

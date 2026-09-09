@@ -27,12 +27,48 @@ class CategoryBreakdown {
 }
 
 const kAnalyticsMonthlyStats = [
-  MonthlyActivityStat(label: 'Jan', joined: 1, attended: 1, points: 25, hours: 4),
-  MonthlyActivityStat(label: 'Feb', joined: 2, attended: 1, points: 25, hours: 4),
-  MonthlyActivityStat(label: 'Mar', joined: 2, attended: 2, points: 50, hours: 8),
-  MonthlyActivityStat(label: 'Apr', joined: 3, attended: 2, points: 50, hours: 8),
-  MonthlyActivityStat(label: 'May', joined: 3, attended: 3, points: 75, hours: 12),
-  MonthlyActivityStat(label: 'Jun', joined: 3, attended: 2, points: 50, hours: 8),
+  MonthlyActivityStat(
+    label: 'Jan',
+    joined: 1,
+    attended: 1,
+    points: 25,
+    hours: 4,
+  ),
+  MonthlyActivityStat(
+    label: 'Feb',
+    joined: 2,
+    attended: 1,
+    points: 25,
+    hours: 4,
+  ),
+  MonthlyActivityStat(
+    label: 'Mar',
+    joined: 2,
+    attended: 2,
+    points: 50,
+    hours: 8,
+  ),
+  MonthlyActivityStat(
+    label: 'Apr',
+    joined: 3,
+    attended: 2,
+    points: 50,
+    hours: 8,
+  ),
+  MonthlyActivityStat(
+    label: 'May',
+    joined: 3,
+    attended: 3,
+    points: 75,
+    hours: 12,
+  ),
+  MonthlyActivityStat(
+    label: 'Jun',
+    joined: 3,
+    attended: 2,
+    points: 50,
+    hours: 8,
+  ),
 ];
 
 const kAnalyticsCategoryBreakdown = [

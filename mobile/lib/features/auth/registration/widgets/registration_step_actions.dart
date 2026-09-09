@@ -30,7 +30,9 @@ class RegistrationStepActions extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 52),
                 foregroundColor: AppColors.textPrimary,
-                side: BorderSide(color: AppColors.primary.withValues(alpha: 0.25)),
+                side: BorderSide(
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

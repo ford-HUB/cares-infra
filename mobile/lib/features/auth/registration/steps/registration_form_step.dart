@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../presentation/providers/password_policy_provider.dart';
 import '../../../../shared/widgets/auth_text_field.dart';
 import '../data/academic_options.dart';
 import '../models/registration_data.dart';
@@ -7,7 +9,7 @@ import '../utils/password_strength.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../widgets/registration_section_card.dart';
 
-class RegistrationFormStep extends StatefulWidget {
+class RegistrationFormStep extends ConsumerStatefulWidget {
   const RegistrationFormStep({
     super.key,
     required this.data,
@@ -18,10 +20,11 @@ class RegistrationFormStep extends StatefulWidget {
   final GlobalKey<FormState> formKey;
 
   @override
-  State<RegistrationFormStep> createState() => _RegistrationFormStepState();
+  ConsumerState<RegistrationFormStep> createState() =>
+      _RegistrationFormStepState();
 }
 
-class _RegistrationFormStepState extends State<RegistrationFormStep> {
+class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
   late final TextEditingController _emailController;
@@ -250,7 +253,11 @@ class _RegistrationFormStepState extends State<RegistrationFormStep> {
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
-                validator: validatePassword,
+                // The administrator's rules, not a second copy of them here.
+                validator: (value) => validatePassword(
+                  value,
+                  policy: ref.watch(currentPasswordPolicyProvider),
+                ),
               ),
               const SizedBox(height: 10),
               PasswordStrengthIndicator(password: _passwordController.text),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 
 /// Shared building blocks for the "donor style" registration forms.
 ///
@@ -313,7 +315,9 @@ class PasswordRuleChip extends StatelessWidget {
             ? AppColors.accentLight.withValues(alpha: 0.45)
             : AppColors.background,
         borderRadius: BorderRadius.circular(AppColors.pillRadius),
-        border: Border.all(color: met ? AppColors.light : AppColors.borderLight),
+        border: Border.all(
+          color: met ? AppColors.light : AppColors.borderLight,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -338,29 +342,30 @@ class PasswordRuleChip extends StatelessWidget {
   }
 }
 
-/// The three password rules the donor form shows, as one wrapping row.
-class PasswordRuleChips extends StatelessWidget {
+/// The password rules still outstanding, as one wrapping row.
+///
+/// Only unmet rules appear, and nothing at all is drawn before the user has typed
+/// anything or once every rule is satisfied: a checklist of things already done is
+/// noise under a field the user has finished with. The rules themselves come from the
+/// security policy the administrator set in the portal.
+class PasswordRuleChips extends ConsumerWidget {
   const PasswordRuleChips({super.key, required this.password});
 
   final String password;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (password.isEmpty) return const SizedBox.shrink();
+
+    final unmet = ref.watch(currentPasswordPolicyProvider).unmetRules(password);
+    if (unmet.isEmpty) return const SizedBox.shrink();
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        PasswordRuleChip(label: '8+ characters', met: password.length >= 8),
-        PasswordRuleChip(
-          label: 'Upper & lower case',
-          met:
-              RegExp(r'[A-Z]').hasMatch(password) &&
-              RegExp(r'[a-z]').hasMatch(password),
-        ),
-        PasswordRuleChip(
-          label: 'A number',
-          met: RegExp(r'[0-9]').hasMatch(password),
-        ),
+        for (final rule in unmet)
+          PasswordRuleChip(label: rule.label, met: false),
       ],
     );
   }

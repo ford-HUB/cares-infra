@@ -56,10 +56,10 @@ class RegistrationProgressHeader extends StatelessWidget {
           Text(
             title!,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
           ),
         ],
       ],

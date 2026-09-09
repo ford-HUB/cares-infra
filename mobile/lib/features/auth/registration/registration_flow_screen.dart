@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/session/static_user_session.dart';
@@ -8,6 +9,8 @@ import '../../prototype/email_verification_screen.dart';
 import '../../prototype/models/prototype_user_data.dart';
 import '../login_screen.dart';
 import '../data/auth_api.dart';
+import '../../../core/models/password_policy.dart';
+import '../presentation/providers/password_policy_provider.dart';
 import 'models/registration_data.dart';
 import 'steps/account_type_step.dart';
 import 'steps/beneficiary_registration_form_step.dart';
@@ -18,14 +21,16 @@ import 'steps/user_role_step.dart';
 import 'widgets/registration_progress_header.dart';
 import 'widgets/registration_step_actions.dart';
 
-class RegistrationFlowScreen extends StatefulWidget {
+class RegistrationFlowScreen extends ConsumerStatefulWidget {
   const RegistrationFlowScreen({super.key});
 
   @override
-  State<RegistrationFlowScreen> createState() => _RegistrationFlowScreenState();
+  ConsumerState<RegistrationFlowScreen> createState() =>
+      _RegistrationFlowScreenState();
 }
 
-class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
+class _RegistrationFlowScreenState
+    extends ConsumerState<RegistrationFlowScreen> {
   final RegistrationData _data = RegistrationData();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthApi _authApi = AuthApi();
@@ -56,13 +61,17 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
     RegistrationFlowStep.accountType => _canContinueAccountType,
     RegistrationFlowStep.userRole => _data.userRole != null,
     RegistrationFlowStep.registrationForm =>
-      !_data.isBeneficiary || _data.beneficiaryBasicsComplete,
+      !_data.isBeneficiary || _data.beneficiaryBasicsComplete(_passwordPolicy),
     RegistrationFlowStep.identityVerification =>
       _data.schoolIdImagePath != null && _data.selfieImagePath != null,
     RegistrationFlowStep.submission => true,
   };
 
   bool get _canContinueAccountType => _data.accountType != null;
+
+  /// The rules the administrator set in the portal, falling back to the built-in
+  /// defaults while the fetch is in flight.
+  PasswordPolicy get _passwordPolicy => ref.read(currentPasswordPolicyProvider);
 
   void _goToLogin() {
     if (Navigator.of(context).canPop()) {
@@ -113,7 +122,7 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
           return;
         }
         if (_data.isBeneficiary) {
-          if (!_data.beneficiaryBasicsComplete) {
+          if (!_data.beneficiaryBasicsComplete(_passwordPolicy)) {
             _showMessage('Please complete all fields before continuing.');
             setState(() {});
             return;
@@ -165,9 +174,7 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => EmailVerificationScreen(
-            userData: userData,
-          ),
+          builder: (_) => EmailVerificationScreen(userData: userData),
         ),
       );
       return;
@@ -183,7 +190,9 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Row(
             children: [
               Icon(Icons.check_circle_rounded, color: AppColors.accent),
@@ -216,9 +225,7 @@ class _RegistrationFlowScreenState extends State<RegistrationFlowScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      _showMessage(
-        'Registration failed. Check your connection and try again.',
-      );
+      _showMessage('Registration failed. Check your connection and try again.');
     }
   }
 

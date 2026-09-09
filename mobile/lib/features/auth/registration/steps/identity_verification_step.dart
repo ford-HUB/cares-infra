@@ -59,7 +59,11 @@ class IdentityVerificationStep extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(Icons.info_outline, size: 18, color: AppColors.textSecondary),
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(

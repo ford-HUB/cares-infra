@@ -60,9 +60,8 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
               child: Center(
                 child: AnimatedBuilder(
                   animation: _introController,
-                  builder: (context, _) => AppEntryIntro(
-                    progress: _introController.value,
-                  ),
+                  builder: (context, _) =>
+                      AppEntryIntro(progress: _introController.value),
                 ),
               ),
             ),

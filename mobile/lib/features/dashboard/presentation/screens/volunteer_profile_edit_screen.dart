@@ -29,7 +29,8 @@ class VolunteerProfileEditScreen extends StatefulWidget {
       _VolunteerProfileEditScreenState();
 }
 
-class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen> {
+class _VolunteerProfileEditScreenState
+    extends State<VolunteerProfileEditScreen> {
   final VolunteerProfileService _profileService = VolunteerProfileService();
   final VolunteerAccountService _accountService = VolunteerAccountService();
 
@@ -189,10 +190,7 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -249,10 +247,7 @@ class _VolunteerProfileEditScreenState extends State<VolunteerProfileEditScreen>
       if (!mounted) return;
 
       Navigator.of(context).pop(
-        VolunteerProfileEditResult(
-          account: account,
-          profile: savedProfile,
-        ),
+        VolunteerProfileEditResult(account: account, profile: savedProfile),
       );
     } on ApiException catch (error) {
       if (!mounted) return;
@@ -364,10 +359,7 @@ class VolunteerProfileEditResult {
 }
 
 class _InlineErrorBanner extends StatelessWidget {
-  const _InlineErrorBanner({
-    required this.message,
-    required this.onRetry,
-  });
+  const _InlineErrorBanner({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -393,10 +385,7 @@ class _InlineErrorBanner extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );

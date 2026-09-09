@@ -50,13 +50,11 @@ abstract final class FaceBboxMapper {
   /// Front-camera preview is mirrored; try both for geometry checks.
   static List<Rect> normalizedVariants(Face face, CameraFrameInput frame) {
     final n = toNormalized(face, frame);
-    return [
-      n,
-      Rect.fromLTRB(1 - n.right, n.top, 1 - n.left, n.bottom),
-    ];
+    return [n, Rect.fromLTRB(1 - n.right, n.top, 1 - n.left, n.bottom)];
   }
 
-  static int _rotationDegrees(InputImageRotation rotation) => switch (rotation) {
+  static int _rotationDegrees(InputImageRotation rotation) =>
+      switch (rotation) {
         InputImageRotation.rotation0deg => 0,
         InputImageRotation.rotation90deg => 90,
         InputImageRotation.rotation180deg => 180,

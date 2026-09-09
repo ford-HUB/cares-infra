@@ -70,5 +70,49 @@
 	<string>CARES needs camera access to capture your school ID and face for registration.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>CARES needs photo library access to upload your school ID.</string>
+
+	<!--
+	  Donor social sign-in. Both providers read their configuration from here on iOS,
+	  the way Android reads res/values/strings.xml, so these are placeholders until the
+	  real ids exist. Replace every PLACEHOLDER value before shipping an iOS build:
+
+	  - FacebookAppID / FacebookClientToken: developers.facebook.com > Settings > Basic.
+	    The fb… URL scheme is literally "fb" + the app id.
+	  - The com.googleusercontent.apps.… scheme is the REVERSED_CLIENT_ID from the
+	    GoogleService-Info.plist of this app's iOS OAuth client.
+	-->
+	<key>FacebookAppID</key>
+	<string>PLACEHOLDER_FACEBOOK_APP_ID</string>
+	<key>FacebookClientToken</key>
+	<string>PLACEHOLDER_FACEBOOK_CLIENT_TOKEN</string>
+	<key>FacebookDisplayName</key>
+	<string>CARES</string>
+	<!-- Auto-init off, matching Android: an unconfigured build must still launch. -->
+	<key>FacebookAutoInitEnabled</key>
+	<false/>
+	<key>FacebookAutoLogAppEventsEnabled</key>
+	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fbPLACEHOLDER_FACEBOOK_APP_ID</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.PLACEHOLDER_REVERSED_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+	</array>
 </dict>
 </plist>

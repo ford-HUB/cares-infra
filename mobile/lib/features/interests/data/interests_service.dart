@@ -40,9 +40,7 @@ class InterestsService {
         .toList();
   }
 
-  Future<void> saveInterests({
-    required Set<UserInterest> interests,
-  }) async {
+  Future<void> saveInterests({required Set<UserInterest> interests}) async {
     await _api.putJson(
       '/interests',
       body: {

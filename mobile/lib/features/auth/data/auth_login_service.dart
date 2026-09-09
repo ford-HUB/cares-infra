@@ -13,10 +13,7 @@ class AuthLoginService {
     final response = await _api.postJson(
       '/auth/login',
       authenticate: false,
-      body: {
-        'email': email.trim().toLowerCase(),
-        'password': password,
-      },
+      body: {'email': email.trim().toLowerCase(), 'password': password},
     );
 
     return LoginResponse.fromJson(response['data'] as Map<String, dynamic>);

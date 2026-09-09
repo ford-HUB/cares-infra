@@ -65,7 +65,8 @@ class RegisterFormField extends StatelessWidget {
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint ?? label,
-            suffixIcon: suffixIcon ??
+            suffixIcon:
+                suffixIcon ??
                 (readOnly
                     ? Icon(
                         Icons.lock_outline,

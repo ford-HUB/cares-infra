@@ -43,6 +43,13 @@ dependencies:
   flutter_riverpod: ^2.6.1
   flutter_dotenv: ^5.2.1
   http: ^1.4.0
+  # Official Google / Facebook brand marks are rendered from their vector
+  # artwork rather than hand-painted glyphs.
+  flutter_svg: ^2.0.17
+  # Donor social sign-in. Pinned to google_sign_in 6.x: 7.x replaced signIn() with a
+  # different initialize/authenticate API, and DonorSocialAuthClient is written against 6.x.
+  google_sign_in: ^6.3.0
+  flutter_facebook_auth: ^7.1.1
 
 dev_dependencies:
   flutter_test:

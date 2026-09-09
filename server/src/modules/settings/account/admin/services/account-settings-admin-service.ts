@@ -108,8 +108,14 @@ export class AccountSettingsAdminService {
 
   private async verifyCurrentPassword(
     plainPassword: string,
-    hashedPassword: string,
+    // Nullable because social-only accounts store no hash. Portal roles always have one,
+    // so reaching here with null means something upstream let the wrong account through.
+    hashedPassword: string | null,
   ): Promise<void> {
+    if (!hashedPassword) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
     let matches = false;
     try {
       matches = await bcrypt.compare(plainPassword, hashedPassword);

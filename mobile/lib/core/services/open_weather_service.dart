@@ -19,19 +19,17 @@ class OpenWeatherService {
       return null;
     }
 
-    final uri = Uri.https(
-      'api.openweathermap.org',
-      '/data/2.5/weather',
-      {
-        'lat': '$_cebuLat',
-        'lon': '$_cebuLon',
-        'units': 'metric',
-        'appid': apiKey,
-      },
-    );
+    final uri = Uri.https('api.openweathermap.org', '/data/2.5/weather', {
+      'lat': '$_cebuLat',
+      'lon': '$_cebuLon',
+      'units': 'metric',
+      'appid': apiKey,
+    });
 
     try {
-      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+      final response = await _client
+          .get(uri)
+          .timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) return null;
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -40,7 +38,8 @@ class OpenWeatherService {
       if (main == null || weather == null || weather.isEmpty) return null;
 
       final temp = (main['temp'] as num?)?.toDouble();
-      final conditionMain = (weather.first as Map<String, dynamic>)['main'] as String?;
+      final conditionMain =
+          (weather.first as Map<String, dynamic>)['main'] as String?;
       if (temp == null || conditionMain == null) return null;
 
       return WeatherSnapshot(

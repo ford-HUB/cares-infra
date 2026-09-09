@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../presentation/widgets/register_form_field.dart';
 import '../models/registration_data.dart';
-import '../utils/password_strength.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../../presentation/widgets/registration_form_card.dart';
 
@@ -135,9 +134,15 @@ class _BeneficiaryRegistrationFormStepState
             title: 'Register as a beneficiary',
             subtitle: 'Just the basics — takes about a minute.',
             highlights: [
-              (Icons.assignment_turned_in_outlined, 'Apply for assistance programs'),
+              (
+                Icons.assignment_turned_in_outlined,
+                'Apply for assistance programs',
+              ),
               (Icons.groups_2_outlined, 'Register on your own or for a group'),
-              (Icons.notifications_active_outlined, 'Get updates on your requests'),
+              (
+                Icons.notifications_active_outlined,
+                'Get updates on your requests',
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -343,17 +348,6 @@ class _BeneficiaryRegistrationFormStepState
         if (confirm.isNotEmpty) ...[
           const SizedBox(height: 8),
           PasswordMatchNote(matches: _passwordsMatch),
-        ],
-        if (password.isNotEmpty && validatePassword(password) != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            validatePassword(password)!,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.heart,
-            ),
-          ),
         ],
       ],
     );

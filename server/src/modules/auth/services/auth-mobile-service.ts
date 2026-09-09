@@ -96,6 +96,19 @@ export class AuthMobileService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // A social-only account has no stored hash. Refusing here — rather than letting
+    // bcrypt.compare see a null — keeps the reply identical to a wrong password, so the
+    // form cannot be used to discover which emails signed up through a provider.
+    if (!account.password) {
+      await this.loginActivityRecorder.record({
+        ...attempt,
+        userId: account.user.user_id,
+        outcome: 'INVALID_CREDENTIALS',
+        failureReason: 'Account signs in through a social provider',
+      });
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     let passwordMatches = false;
     try {
       passwordMatches = await bcrypt.compare(data.password, account.password);

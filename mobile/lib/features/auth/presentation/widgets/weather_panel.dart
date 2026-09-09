@@ -10,11 +10,7 @@ import 'package:mobile/features/auth/presentation/widgets/weather_ambience.dart'
 /// ambient animation that changes with the sky — wind drifting past on a dry
 /// day, rain falling on a wet one.
 class WeatherPanel extends ConsumerWidget {
-  const WeatherPanel({
-    super.key,
-    required this.width,
-    required this.progress,
-  });
+  const WeatherPanel({super.key, required this.width, required this.progress});
 
   final double width;
   final double progress;
@@ -63,10 +59,10 @@ class _TemperaturePill extends StatelessWidget {
   final SunWeatherMood mood;
 
   IconData get _moodIcon => switch (mood) {
-        SunWeatherMood.clear => Icons.wb_sunny_rounded,
-        SunWeatherMood.cloudy => Icons.air_rounded,
-        SunWeatherMood.rainy => Icons.water_drop_rounded,
-      };
+    SunWeatherMood.clear => Icons.wb_sunny_rounded,
+    SunWeatherMood.cloudy => Icons.air_rounded,
+    SunWeatherMood.rainy => Icons.water_drop_rounded,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +88,7 @@ class _TemperaturePill extends StatelessWidget {
             _moodIcon,
             size: 15,
             color: Colors.white.withValues(alpha: 0.92),
-            shadows: const [
-              Shadow(color: Color(0xB31F5F28), blurRadius: 6),
-            ],
+            shadows: const [Shadow(color: Color(0xB31F5F28), blurRadius: 6)],
           ),
           const SizedBox(width: 8),
           // Dot-matrix numerals: a readout, not body copy. With the border gone

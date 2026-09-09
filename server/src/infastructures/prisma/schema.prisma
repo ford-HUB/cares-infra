@@ -19,7 +19,7 @@ model User {
   lastname           String
   middle_name        String?
   gender             GenderType         @default(OTHER)
-  age                Int
+  age                Int                @default(0)
   current_address    String
   phone_number       String             @unique
   avatar             String?
@@ -44,6 +44,7 @@ model User {
   user_verifications UserVerification[]
   user_interest      UserInterest?
   gmail_connection   GmailConnection?
+  oauth_identities   OAuthIdentity[]
   chat_participants  ConversationParticipant[]
   chat_messages      ChatMessage[]
   event_attendances  EventAttendance[]
@@ -424,7 +425,9 @@ model AuditLog {
 model Account {
   account_id String   @id @default(uuid())
   email      String   @unique
-  password   String
+  /// Null for an account that only ever signs in through a social provider — see
+  /// `OAuthIdentity`. Password sign-in is refused outright when this is null.
+  password   String?
   /// Set when an administrator provisioned this account with temporary credentials.
   /// Sign-in is refused once it passes; null means the password does not expire, which
   /// is what a self-registered account and a completed hand-over both look like.
@@ -435,6 +438,34 @@ model Account {
   user_id    String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+enum AuthProvider {
+  GOOGLE
+  FACEBOOK
+}
+
+/// A social identity that may sign in as `user`. One row per provider account, so a
+/// donor can attach both Google and Facebook to the same CARES user.
+///
+/// Unlike `GmailConnection` — which stores mailbox tokens and grants no access on its
+/// own — a row here *is* an authentication factor, so no provider token is kept: the
+/// token is verified with the provider at sign-in and then discarded.
+model OAuthIdentity {
+  oauth_identity_id String       @id @default(uuid())
+  provider          AuthProvider
+  /// The provider's immutable subject id (`sub` for Google, `id` for Facebook). The
+  /// email is not the key — providers let people change it.
+  provider_user_id  String
+  /// Whatever the provider last reported, kept for support lookups only.
+  email             String?
+  user              User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id           String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([provider, provider_user_id])
+  @@index([user_id])
 }
 
 /// One linked Google mailbox per portal user. Tokens are issued by Google OAuth and

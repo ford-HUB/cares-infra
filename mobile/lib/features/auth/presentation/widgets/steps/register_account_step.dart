@@ -51,8 +51,7 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
   @override
   Widget build(BuildContext context) {
     final passwordsMatch =
-        widget.password.isNotEmpty &&
-        widget.password == widget.confirmPassword;
+        widget.password.isNotEmpty && widget.password == widget.confirmPassword;
 
     return RegistrationFormCard(
       icon: Icons.lock_outline_rounded,
@@ -100,8 +99,7 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
                   ? Icons.visibility_outlined
                   : Icons.visibility_off_outlined,
             ),
-            onPressed: () =>
-                setState(() => _obscureConfirm = !_obscureConfirm),
+            onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
           ),
         ),
         if (widget.confirmPassword.isNotEmpty) ...[

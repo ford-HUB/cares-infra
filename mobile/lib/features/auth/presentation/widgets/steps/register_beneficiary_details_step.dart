@@ -56,12 +56,8 @@ class _RegisterBeneficiaryDetailsStepState
     _age = TextEditingController(text: data.age > 0 ? '${data.age}' : '');
     _address = TextEditingController(text: data.currentAddress);
     _phone = TextEditingController(text: data.phoneNumber);
-    _organizationName = TextEditingController(
-      text: _profile.organizationName,
-    );
-    _organizationRole = TextEditingController(
-      text: _profile.organizationRole,
-    );
+    _organizationName = TextEditingController(text: _profile.organizationName);
+    _organizationRole = TextEditingController(text: _profile.organizationRole);
     _organizationAddress = TextEditingController(
       text: _profile.organizationAddress,
     );
@@ -236,9 +232,7 @@ class _RegisterBeneficiaryDetailsStepState
           value: _profile.organizationType,
           items: BeneficiaryProfile.organizationTypes,
           onChanged: (value) {
-            widget.onProfileChanged(
-              _profile.copyWith(organizationType: value),
-            );
+            widget.onProfileChanged(_profile.copyWith(organizationType: value));
             setState(() {});
           },
         ),

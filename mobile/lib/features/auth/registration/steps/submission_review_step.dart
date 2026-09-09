@@ -4,10 +4,7 @@ import '../models/registration_data.dart';
 import '../widgets/registration_section_card.dart';
 
 class SubmissionReviewStep extends StatelessWidget {
-  const SubmissionReviewStep({
-    super.key,
-    required this.data,
-  });
+  const SubmissionReviewStep({super.key, required this.data});
 
   final RegistrationData data;
 

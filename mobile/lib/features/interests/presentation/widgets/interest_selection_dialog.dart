@@ -15,7 +15,8 @@ class InterestSelectionDialog extends StatefulWidget {
   const InterestSelectionDialog({super.key});
 
   @override
-  State<InterestSelectionDialog> createState() => _InterestSelectionDialogState();
+  State<InterestSelectionDialog> createState() =>
+      _InterestSelectionDialogState();
 }
 
 class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
@@ -168,7 +169,11 @@ class _InterestOptionTile extends StatelessWidget {
                   ),
                 ),
                 child: isSelected
-                    ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      )
                     : null,
               ),
             ],

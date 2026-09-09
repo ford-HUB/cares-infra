@@ -58,7 +58,8 @@ abstract final class MockEvents {
       location: 'Riverside Greenbelt',
       imageUrl:
           'https://images.unsplash.com/photo-1464226183344-4d7a0a0224be?w=800&q=80',
-      description: 'Plant native seedlings and learn sustainable forestry basics.',
+      description:
+          'Plant native seedlings and learn sustainable forestry basics.',
       spotsLeft: 30,
       hours: 2,
     ),

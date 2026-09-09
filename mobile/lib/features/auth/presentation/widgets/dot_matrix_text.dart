@@ -103,8 +103,8 @@ class _DotMatrixPainter extends CustomPainter {
     final glow = glowColor == null
         ? null
         : (Paint()
-          ..color = glowColor!
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, dotSize * 0.9));
+            ..color = glowColor!
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, dotSize * 0.9));
 
     var penX = 0.0;
     for (final char in text.characters) {

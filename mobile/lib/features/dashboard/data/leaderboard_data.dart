@@ -145,7 +145,8 @@ List<LeaderboardEntry> buildVolunteerLeaderboard({
     seeds: _volunteerSeeds,
     userName: userName,
     userScore: userPoints,
-    userSubtitle: '$userEventsAttended event${userEventsAttended == 1 ? '' : 's'} attended',
+    userSubtitle:
+        '$userEventsAttended event${userEventsAttended == 1 ? '' : 's'} attended',
     formatValue: (score) => '$score pts',
   );
 }
@@ -159,7 +160,8 @@ List<LeaderboardEntry> buildDonorLeaderboard({
     seeds: _donorSeeds,
     userName: userName,
     userScore: userTotalDonated,
-    userSubtitle: '$userDonationsCount donation${userDonationsCount == 1 ? '' : 's'}',
+    userSubtitle:
+        '$userDonationsCount donation${userDonationsCount == 1 ? '' : 's'}',
     formatValue: _formatDonorValue,
   );
 }
