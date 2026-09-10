@@ -73,8 +73,6 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final event = widget.event;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(

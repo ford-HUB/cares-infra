@@ -19,12 +19,6 @@ class HomeHeader extends StatelessWidget {
   /// Replaces the points pill, e.g. '2 active' on the beneficiary dashboard.
   final String? badgeLabel;
 
-  String get _initial {
-    final trimmed = firstName.trim();
-    if (trimmed.isEmpty) return '?';
-    return trimmed[0].toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Row(

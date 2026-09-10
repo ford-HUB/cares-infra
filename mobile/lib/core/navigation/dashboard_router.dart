@@ -42,17 +42,30 @@ class DashboardRouter {
   }) {
     final role = AppRoleX.fromApiValue(roleType);
 
-    if (role == AppRole.donor) {
-      // Seed the donor record so the donor dashboard has a name to greet.
-      DonorSession.instance.register(
-        DonorSession.instance.currentDonor ??
-            DonorSessionUser(
-              firstName: firstName,
-              middleName: '',
-              lastName: lastName,
-              email: email,
-            ),
-      );
+    switch (role) {
+      case AppRole.beneficiary:
+        // Keep the static beneficiary session in sync for role-based routing.
+        StaticUserSession.instance.signInWithRole(
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          accountType: AccountType.beneficiary,
+        );
+
+      case AppRole.donor:
+        // Seed the donor record so the donor dashboard has a name to greet.
+        DonorSession.instance.register(
+          DonorSession.instance.currentDonor ??
+              DonorSessionUser(
+                firstName: firstName,
+                middleName: '',
+                lastName: lastName,
+                email: email,
+              ),
+        );
+
+      case AppRole.volunteer:
+        break;
     }
 
     _startRoleSession(
