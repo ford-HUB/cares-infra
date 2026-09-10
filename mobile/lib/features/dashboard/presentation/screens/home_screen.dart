@@ -147,20 +147,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// "Edit Profile" opens personal information only — interests, skills, and
-  /// availability are edited from their own section icons on the profile tab.
-  Future<void> _openPersonalInfo() async {
-    await VolunteerProfileEditScreen.open(
-      context,
-      fallbackEmail: widget.email,
-      fallbackFirstName: widget.firstName,
+  Future<void> _openProfileEdit() async {
+    final result = await Navigator.of(context).push<VolunteerProfileEditResult>(
+      MaterialPageRoute(
+        builder: (_) => VolunteerProfileEditScreen(
+          initialProfile: _volunteerProfile,
+          fallbackEmail: widget.email,
+          fallbackFirstName: widget.firstName,
+        ),
+      ),
     );
-  }
 
-  void _onVolunteerProfileUpdated(VolunteerProfile profile) {
+    if (!mounted || result == null) return;
+
     setState(() {
-      _volunteerProfile = profile;
-      _profileComplete = profile.profileComplete;
+      _volunteerProfile = result.profile;
+      _profileComplete = result.profile.profileComplete;
     });
   }
 
@@ -171,35 +173,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           Expanded(
-<<<<<<< HEAD
-            child: IndexedStack(
-              index: _currentTab,
-              children: [
-                VolunteerHomeTab(
-                  firstName: _firstName,
-                  points: widget.points,
-                  showProfileCompletionCard:
-                      !_isLoadingProfile && !_profileComplete,
-                  onCompleteProfile: _openProfileSetup,
-                  onSeeAllEvents: () => setState(() => _currentTab = 1),
-                ),
-                const EventsTabScreen(),
-                const ActivityTabScreen(),
-                RanksTabScreen(
-                  displayName: _displayName,
-                  points: widget.points,
-                ),
-                ProfileTabScreen(
-                  displayName: _displayName,
-                  email: widget.email,
-                  points: widget.points,
-                  volunteerProfile: _volunteerProfile,
-                  profileComplete: _profileComplete,
-                  onEditProfile: _openPersonalInfo,
-                  onVolunteerProfileUpdated: _onVolunteerProfileUpdated,
-                ),
-              ],
-=======
             child: DashboardRefreshShell(
               onRefresh: _refreshAll,
               child: IndexedStack(
@@ -229,12 +202,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
->>>>>>> 772bb00f1a6fee39a1cdaafa9674b6b76d530bdb
             ),
           ),
           DashboardBottomNav(
             currentIndex: _currentTab,
-            items: DashboardNavItems.volunteer,
             onTap: (index) => setState(() => _currentTab = index),
           ),
         ],

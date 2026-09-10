@@ -59,6 +59,7 @@ class RoleDashboardShell extends StatelessWidget {
           firstName: session.firstName,
           displayName: displayName.isEmpty ? null : displayName,
           profileComplete: session.profileComplete,
+          hasInterests: session.hasInterests,
         );
     }
   }

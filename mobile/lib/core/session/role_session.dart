@@ -19,6 +19,7 @@ class RoleSession extends ChangeNotifier {
   String _firstName = '';
   String _lastName = '';
   bool _profileComplete = false;
+  bool _hasInterests = false;
 
   AppRole get activeRole => _activeRole;
 
@@ -33,6 +34,9 @@ class RoleSession extends ChangeNotifier {
   String get firstName => _firstName;
   String get lastName => _lastName;
   bool get profileComplete => _profileComplete;
+
+  /// Whether the volunteer already picked event-type interests.
+  bool get hasInterests => _hasInterests;
 
   String get displayName {
     final parts = [
@@ -50,12 +54,14 @@ class RoleSession extends ChangeNotifier {
     String firstName = '',
     String lastName = '',
     bool profileComplete = false,
+    bool hasInterests = false,
     Set<AppRole>? availableRoles,
   }) {
     _email = email.trim();
     _firstName = firstName.trim();
     _lastName = lastName.trim();
     _profileComplete = profileComplete;
+    _hasInterests = hasInterests;
     _availableRoles =
         availableRoles ??
         MockAccountRoles.rolesFor(email: _email, registeredRole: activeRole);
@@ -91,6 +97,7 @@ class RoleSession extends ChangeNotifier {
     _firstName = '';
     _lastName = '';
     _profileComplete = false;
+    _hasInterests = false;
     notifyListeners();
   }
 }

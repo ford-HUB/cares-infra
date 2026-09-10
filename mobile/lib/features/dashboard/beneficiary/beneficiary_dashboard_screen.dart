@@ -137,32 +137,6 @@ class _BeneficiaryDashboardScreenState
       body: Column(
         children: [
           Expanded(
-<<<<<<< HEAD
-            child: IndexedStack(
-              index: _currentTab,
-              children: [
-                BeneficiaryHomeTab(
-                  firstName: _firstName,
-                  onRequestAssistance: _requestAssistance,
-                  onViewRequests: _openRequestsTab,
-                  showProfileCompletionCard: !_profileComplete,
-                  onCompleteProfile: _openProfileSetup,
-                ),
-                const EventsTabScreen(forBeneficiary: true),
-                const BeneficiaryRequestsTab(),
-                const ActivityTabScreen(),
-                ProfileTabScreen(
-                  displayName: _displayName,
-                  email: widget.email,
-                  points: 0,
-                  profileComplete: _profileComplete,
-                  completionPercent: _profile.completionPercent,
-                  isBeneficiary: true,
-                  onEditProfile: _openPersonalInfo,
-                  onOpenRequests: _openRequestsTab,
-                ),
-              ],
-=======
             child: DashboardRefreshShell(
               onRefresh: _refreshAll,
               child: IndexedStack(
@@ -191,7 +165,6 @@ class _BeneficiaryDashboardScreenState
                   ),
                 ],
               ),
->>>>>>> 772bb00f1a6fee39a1cdaafa9674b6b76d530bdb
             ),
           ),
           DashboardBottomNav(
