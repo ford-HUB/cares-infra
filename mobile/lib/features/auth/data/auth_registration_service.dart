@@ -11,6 +11,18 @@ class AuthRegistrationService {
 
   final ApiClient _api;
 
+  /// Starts an ID-less registration session (beneficiaries skip the ID upload).
+  Future<StartSessionResponse> startSession({required String roleType}) async {
+    final response = await _api.postJson(
+      '/auth/start-session',
+      body: {'roleType': roleType},
+    );
+
+    return StartSessionResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+  }
+
   Future<UploadIdResponse> uploadId({
     required XFile front,
     required XFile back,

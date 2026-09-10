@@ -41,8 +41,8 @@ class DonorPersonalProfileStore extends ChangeNotifier {
       firstName: donor?.firstName ?? '',
       lastName: donor?.lastName ?? '',
       email: donor?.email ?? 'donor@cares.local',
-      contactNumber: '',
-      address: '',
+      contactNumber: donor?.phoneNumber ?? '',
+      address: donor?.address ?? '',
       organization: '',
     );
   }

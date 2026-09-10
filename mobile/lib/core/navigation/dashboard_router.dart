@@ -51,7 +51,6 @@ class DashboardRouter {
               middleName: '',
               lastName: lastName,
               email: email,
-              password: '',
             ),
       );
     }

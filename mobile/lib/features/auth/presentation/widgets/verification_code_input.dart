@@ -69,8 +69,8 @@ class _VerificationCodeInputState extends State<VerificationCodeInput> {
           color: active
               ? AppColors.secondary
               : filled
-                  ? AppColors.primary
-                  : AppColors.fieldBorder,
+              ? AppColors.primary
+              : AppColors.fieldBorder,
           width: active ? 2 : 1,
         ),
       ),

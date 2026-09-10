@@ -32,9 +32,19 @@ class LeaderboardEntry {
 abstract final class VolunteerRanks {
   static const tiers = [
     RankTier(name: 'Bronze', minPoints: 0, maxPoints: 499, iconName: 'bronze'),
-    RankTier(name: 'Silver', minPoints: 500, maxPoints: 1499, iconName: 'silver'),
+    RankTier(
+      name: 'Silver',
+      minPoints: 500,
+      maxPoints: 1499,
+      iconName: 'silver',
+    ),
     RankTier(name: 'Gold', minPoints: 1500, maxPoints: 2999, iconName: 'gold'),
-    RankTier(name: 'Platinum', minPoints: 3000, maxPoints: 99999, iconName: 'platinum'),
+    RankTier(
+      name: 'Platinum',
+      minPoints: 3000,
+      maxPoints: 99999,
+      iconName: 'platinum',
+    ),
   ];
 
   static RankTier tierForPoints(int points) {

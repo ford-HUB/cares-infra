@@ -10,10 +10,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 /// Curves and stagger timing follow [AnimatedIllustration] (elastic logo) and
 /// [LoginScreen] header fade/slide intervals.
 class AppEntryIntro extends StatelessWidget {
-  const AppEntryIntro({
-    super.key,
-    required this.progress,
-  });
+  const AppEntryIntro({super.key, required this.progress});
 
   /// Master animation value in [0, 1].
   final double progress;

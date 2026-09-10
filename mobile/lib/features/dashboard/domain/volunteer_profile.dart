@@ -60,11 +60,14 @@ class VolunteerProfile {
   final bool profileComplete;
 
   /// Progress across account registration plus volunteer profile sections.
-  int get completionPercent => VolunteerProfileCompletion.calculate(profile: this);
+  int get completionPercent =>
+      VolunteerProfileCompletion.calculate(profile: this);
 
   String get availabilityLabel {
     if (availability.isEmpty) return 'Not set';
-    final parts = VolunteerProfileOptions.sortAvailabilityDays(availability.toList());
+    final parts = VolunteerProfileOptions.sortAvailabilityDays(
+      availability.toList(),
+    );
     final hours = hoursPerWeek;
     if (hours != null) {
       return '${parts.join(' · ')} · $hours hrs/week';
@@ -132,15 +135,7 @@ abstract final class VolunteerProfileOptions {
   static List<String> get skillLabels =>
       skills.map((skill) => skill.label).toList();
 
-  static const availability = [
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-    'Sun',
-  ];
+  static const availability = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   static List<String> sortAvailabilityDays(List<String> days) {
     final sorted = List<String>.from(days);

@@ -22,6 +22,8 @@ import {
   RegistrationIdSchema,
   SendVerificationResponseSchema,
   SendVerificationSchema,
+  StartSessionResponseSchema,
+  StartSessionSchema,
   UploadIdResponseSchema,
   VerificationStatusResponseSchema,
   VerifyFaceResponseSchema,
@@ -38,6 +40,8 @@ import type {
   RegistrationIdDto,
   SendVerificationDto,
   SendVerificationResponseDto,
+  StartSessionDto,
+  StartSessionResponseDto,
   UploadIdResponseDto,
   VerificationStatusResponseDto,
   VerifyFaceResponseDto,
@@ -85,6 +89,16 @@ export class AuthMobileController {
   @ResponseMessage('Signed out')
   async logout(@CurrentUser() user: JwtPayload): Promise<void> {
     await this.authMobileService.logout(user);
+  }
+
+  @Post('start-session')
+  @Public()
+  @ResponseMessage('Registration session started')
+  @ZSerialize(StartSessionResponseSchema)
+  async startSession(
+    @ZBody(StartSessionSchema) body: StartSessionDto,
+  ): Promise<StartSessionResponseDto> {
+    return await this.authMobileService.startSession(body.roleType);
   }
 
   @Post('upload-id')

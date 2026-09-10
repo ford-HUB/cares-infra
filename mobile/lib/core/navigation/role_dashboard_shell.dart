@@ -48,7 +48,6 @@ class RoleDashboardShell extends StatelessWidget {
               middleName: '',
               lastName: session.lastName,
               email: session.email,
-              password: '',
             );
         // Keep the donor record on the same account when switching in.
         DonorSession.instance.register(donor);

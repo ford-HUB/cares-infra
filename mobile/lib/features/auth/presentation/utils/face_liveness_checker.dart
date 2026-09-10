@@ -14,13 +14,13 @@ enum FaceLivenessPhase {
 extension FaceLivenessPhaseCapture on FaceLivenessPhase {
   /// Blink step stays automatic only.
   bool get allowsManualCapture => switch (this) {
-        FaceLivenessPhase.center => true,
-        FaceLivenessPhase.blink => false,
-        FaceLivenessPhase.turnLeft => true,
-        FaceLivenessPhase.turnRight => true,
-        FaceLivenessPhase.finalCapture => true,
-        FaceLivenessPhase.finished => false,
-      };
+    FaceLivenessPhase.center => true,
+    FaceLivenessPhase.blink => false,
+    FaceLivenessPhase.turnLeft => true,
+    FaceLivenessPhase.turnRight => true,
+    FaceLivenessPhase.finalCapture => true,
+    FaceLivenessPhase.finished => false,
+  };
 }
 
 class FaceLivenessChecker {
@@ -44,26 +44,25 @@ class FaceLivenessChecker {
   static const _turnDegrees = 12.0;
 
   String get instruction => switch (phase) {
-        FaceLivenessPhase.center =>
-          'Center your face in the oval until the outline turns green',
-        FaceLivenessPhase.blink => 'Keep centered, then blink both eyes once',
-        FaceLivenessPhase.turnLeft =>
-          'Slowly turn your head to your left and hold',
-        FaceLivenessPhase.turnRight =>
-          'Slowly turn your head to your right and hold',
-        FaceLivenessPhase.finalCapture =>
-          'Face forward in the oval for your final photo',
-        FaceLivenessPhase.finished => 'All face photos captured',
-      };
+    FaceLivenessPhase.center =>
+      'Center your face in the oval until the outline turns green',
+    FaceLivenessPhase.blink => 'Keep centered, then blink both eyes once',
+    FaceLivenessPhase.turnLeft => 'Slowly turn your head to your left and hold',
+    FaceLivenessPhase.turnRight =>
+      'Slowly turn your head to your right and hold',
+    FaceLivenessPhase.finalCapture =>
+      'Face forward in the oval for your final photo',
+    FaceLivenessPhase.finished => 'All face photos captured',
+  };
 
   int get activeStepIndex => switch (phase) {
-        FaceLivenessPhase.center => 0,
-        FaceLivenessPhase.blink => 1,
-        FaceLivenessPhase.turnLeft => 2,
-        FaceLivenessPhase.turnRight => 3,
-        FaceLivenessPhase.finalCapture => 4,
-        FaceLivenessPhase.finished => 4,
-      };
+    FaceLivenessPhase.center => 0,
+    FaceLivenessPhase.blink => 1,
+    FaceLivenessPhase.turnLeft => 2,
+    FaceLivenessPhase.turnRight => 3,
+    FaceLivenessPhase.finalCapture => 4,
+    FaceLivenessPhase.finished => 4,
+  };
 
   bool get isFinished => phase == FaceLivenessPhase.finished;
 
@@ -76,13 +75,13 @@ class FaceLivenessChecker {
   }
 
   int _requiredStreakFor(FaceLivenessPhase p) => switch (p) {
-        FaceLivenessPhase.center => _centerStreak,
-        FaceLivenessPhase.blink => _blinkStreak,
-        FaceLivenessPhase.turnLeft => _turnStreak,
-        FaceLivenessPhase.turnRight => _turnStreak,
-        FaceLivenessPhase.finalCapture => _finalStreak,
-        FaceLivenessPhase.finished => 1,
-      };
+    FaceLivenessPhase.center => _centerStreak,
+    FaceLivenessPhase.blink => _blinkStreak,
+    FaceLivenessPhase.turnLeft => _turnStreak,
+    FaceLivenessPhase.turnRight => _turnStreak,
+    FaceLivenessPhase.finalCapture => _finalStreak,
+    FaceLivenessPhase.finished => 1,
+  };
 
   FaceLivenessPhase? consumeCompletedPhase() {
     final p = _phaseJustCompleted;

@@ -30,14 +30,14 @@ class VolunteerAccountProfile {
   final String? course;
 
   String get fullName {
-    final parts = [firstName.trim(), lastName.trim()].where((part) => part.isNotEmpty);
+    final parts = [
+      firstName.trim(),
+      lastName.trim(),
+    ].where((part) => part.isNotEmpty);
     return parts.join(' ');
   }
 
-  Map<String, dynamic> toRequestBody({
-    String? department,
-    String? course,
-  }) {
+  Map<String, dynamic> toRequestBody({String? department, String? course}) {
     return {
       'firstname': firstName.trim(),
       'lastname': lastName.trim(),

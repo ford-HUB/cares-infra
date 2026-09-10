@@ -5,17 +5,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
-import 'package:mobile/features/auth/presentation/widgets/register_step_indicator.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_account_step.dart';
+import 'package:mobile/features/auth/presentation/widgets/steps/register_beneficiary_details_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_face_scan_step.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_id_upload_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_review_step.dart';
+
+/// Registration steps. Beneficiaries do not present an ID and are not face
+/// scanned, so their flow omits [_RegisterStep.idUpload] and
+/// [_RegisterStep.faceScan] and types the details in instead of reading them
+/// off an ID with OCR.
+enum _RegisterStep { idUpload, faceScan, details, account }
 
 class RegisterFlowScreen extends ConsumerStatefulWidget {
   const RegisterFlowScreen({
@@ -35,14 +43,7 @@ class RegisterFlowScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
-  static const _stepLabels = [
-    'Upload ID',
-    'Face scan',
-    'Your details',
-    'Account',
-  ];
-
-  int _step = 0;
+  int _stepIndex = 0;
   XFile? _idFrontImage;
   XFile? _idBackImage;
   String? _registrationId;
@@ -52,8 +53,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   bool _ocrExtractSucceeded = false;
   String? _ocrExtractError;
   bool _isSubmitting = false;
+  bool _startingSession = false;
+  String? _sessionError;
 
   late RegisterOcrSample _ocrData;
+  BeneficiaryProfile _beneficiaryProfile = const BeneficiaryProfile();
   String _email = '';
   String _password = '';
   String _confirmPassword = '';
@@ -61,9 +65,27 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
 
-  String get _flowTitle => _isBeneficiary
-      ? '${widget.roleType.title} registration'
-      : '${widget.volunteerType!.label} registration';
+  List<_RegisterStep> get _steps => _isBeneficiary
+      ? const [_RegisterStep.details, _RegisterStep.account]
+      : const [
+          _RegisterStep.idUpload,
+          _RegisterStep.faceScan,
+          _RegisterStep.details,
+          _RegisterStep.account,
+        ];
+
+  _RegisterStep get _currentStep => _steps[_stepIndex];
+
+  List<String> get _stepLabels => [for (final step in _steps) _labelFor(step)];
+
+  int _indexOf(_RegisterStep step) => _steps.indexOf(step);
+
+  static String _labelFor(_RegisterStep step) => switch (step) {
+    _RegisterStep.idUpload => 'Upload your ID',
+    _RegisterStep.faceScan => 'Face scan',
+    _RegisterStep.details => 'Your details',
+    _RegisterStep.account => 'Create account',
+  };
 
   @override
   void initState() {
@@ -71,14 +93,48 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     _ocrData = RegisterOcrSample.empty(
       volunteerType: widget.volunteerType?.apiValue ?? '',
     );
+    if (_isBeneficiary) {
+      unawaited(_startBeneficiarySession());
+    }
+  }
+
+  /// Beneficiaries have no ID upload to open their registration session, so the
+  /// session is created up front, before their details are typed in.
+  Future<void> _startBeneficiarySession() async {
+    setState(() {
+      _startingSession = true;
+      _sessionError = null;
+    });
+
+    try {
+      final service = ref.read(authRegistrationServiceProvider);
+      final response = await service.startSession(
+        roleType: widget.roleType.apiValue,
+      );
+      if (!mounted) return;
+
+      setState(() {
+        _registrationId = response.registrationId;
+        _startingSession = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _startingSession = false;
+        _sessionError = e is ApiException
+            ? e.message
+            : 'Failed to start registration. Check your connection and try again.';
+      });
+    }
   }
 
   bool get _ocrDataValid {
     if (_isBeneficiary) {
-      // The ID number comes from the completed ID validation step, so it is
-      // not re-entered (or required) on the beneficiary details form.
+      // Beneficiaries register without an ID, so no ID number or school
+      // information is collected on their details form.
       return _ocrData.firstname.trim().isNotEmpty &&
           _ocrData.lastname.trim().isNotEmpty &&
+          _beneficiaryProfile.isComplete &&
           _ocrData.gender.trim().isNotEmpty &&
           _ocrData.age > 0 &&
           _ocrData.currentAddress.trim().isNotEmpty &&
@@ -116,9 +172,18 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     };
   }
 
+  /// Beneficiary details are typed in, so there is no extraction to wait for.
+  bool get _detailsReady =>
+      _isBeneficiary ||
+      (!_ocrExtracting && !_ocrExtractFailed && _ocrExtractSucceeded);
+
   bool get _accountValid {
     final emailOk = _email.contains('@') && _email.contains('.');
-    final passwordOk = _password.length >= 8;
+    // The administrator's rules, so Continue unlocks on exactly what the chips under
+    // the field are still asking for.
+    final passwordOk = ref
+        .watch(currentPasswordPolicyProvider)
+        .isSatisfiedBy(_password);
     final matchOk =
         _password == _confirmPassword && _confirmPassword.isNotEmpty;
     return emailOk && passwordOk && matchOk;
@@ -127,36 +192,23 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   bool get _canContinue {
     if (_isSubmitting) return false;
 
-    switch (_step) {
-      case 0:
-        return _idFrontImage != null && _idBackImage != null;
-      case 1:
-        return false;
-      case 2:
-        return !_ocrExtracting &&
-            !_ocrExtractFailed &&
-            _ocrExtractSucceeded &&
-            _ocrDataValid;
-      case 3:
-        return _accountValid;
-      default:
-        return false;
-    }
+    return switch (_currentStep) {
+      _RegisterStep.idUpload => _idFrontImage != null && _idBackImage != null,
+      _RegisterStep.faceScan => false,
+      _RegisterStep.details => _detailsReady && _ocrDataValid,
+      _RegisterStep.account => _accountValid,
+    };
   }
 
   String get _continueLabel {
     if (_isSubmitting) return 'Please wait…';
 
-    switch (_step) {
-      case 0:
-        return 'Upload and continue';
-      case 2:
-        return 'Continue to account';
-      case 3:
-        return 'Continue to verification';
-      default:
-        return 'Continue';
-    }
+    return switch (_currentStep) {
+      _RegisterStep.idUpload => 'Upload and continue',
+      _RegisterStep.details => 'Continue to account',
+      _RegisterStep.account => 'Continue to verification',
+      _RegisterStep.faceScan => 'Continue',
+    };
   }
 
   void _showError(String message) {
@@ -167,18 +219,15 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   }
 
   Future<void> _next() async {
-    if (_step == 0) {
-      await _uploadIdAndContinue();
-      return;
-    }
-
-    if (_step == 2) {
-      setState(() => _step = 3);
-      return;
-    }
-
-    if (_step == 3) {
-      await _sendVerificationCode();
+    switch (_currentStep) {
+      case _RegisterStep.idUpload:
+        await _uploadIdAndContinue();
+      case _RegisterStep.faceScan:
+        return;
+      case _RegisterStep.details:
+        setState(() => _stepIndex = _indexOf(_RegisterStep.account));
+      case _RegisterStep.account:
+        await _sendVerificationCode();
     }
   }
 
@@ -258,7 +307,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
       setState(() {
         _registrationId = response.registrationId;
-        _step = 1;
+        _stepIndex = _indexOf(_RegisterStep.faceScan);
         _isSubmitting = false;
       });
     } catch (e) {
@@ -276,7 +325,10 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   ) async {
     setState(() {
       _faceCaptures = captures;
-      _step = 2;
+      _stepIndex = _indexOf(_RegisterStep.details);
+    });
+
+    setState(() {
       _ocrExtracting = true;
       _ocrExtractFailed = false;
       _ocrExtractSucceeded = false;
@@ -341,16 +393,17 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   void _back() {
     if (_isSubmitting) return;
 
-    if (_step == 0) {
+    if (_stepIndex == 0) {
       Navigator.of(context).pop();
       return;
     }
     setState(() {
-      _step--;
-      if (_step == 1) {
+      _stepIndex--;
+      if (_currentStep == _RegisterStep.faceScan) {
         _faceCaptures = const FaceCaptureSet();
       }
-      if (_step < 2) {
+      if (_currentStep != _RegisterStep.details &&
+          _currentStep != _RegisterStep.account) {
         _ocrExtracting = false;
         _ocrExtractFailed = false;
         _ocrExtractSucceeded = false;
@@ -364,61 +417,55 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     final registrationId = _registrationId;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppColors.primary,
-        title: Text(
-          _flowTitle,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: _isSubmitting ? null : _back,
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-              child: RegisterStepIndicator(
-                currentStep: _step,
-                labels: _stepLabels,
+      // White page ground: the flow header carries the brand green so the step
+      // content can sit on white cards.
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          _FlowHeader(
+            stepLabel: _stepLabels[_stepIndex],
+            stepIndex: _stepIndex,
+            stepCount: _stepLabels.length,
+            onBack: _isSubmitting ? null : _back,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                child: _buildStep(registrationId),
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  child: _buildStep(registrationId),
+          ),
+          if (_currentStep != _RegisterStep.faceScan)
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                12 + MediaQuery.paddingOf(context).bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Color(0xFFE6EFE3))),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _canContinue ? () => unawaited(_next()) : null,
+                  child: Text(_continueLabel),
                 ),
               ),
             ),
-            if (_step != 1)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _canContinue ? () => unawaited(_next()) : null,
-                    child: Text(_continueLabel),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildStep(String? registrationId) {
-    switch (_step) {
-      case 0:
+    switch (_currentStep) {
+      case _RegisterStep.idUpload:
         return RegisterIdUploadStep(
           key: const ValueKey('id'),
           roleType: widget.roleType,
@@ -427,14 +474,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           onFrontPicked: (file) => setState(() => _idFrontImage = file),
           onBackPicked: (file) => setState(() => _idBackImage = file),
         );
-      case 1:
+      case _RegisterStep.faceScan:
         if (registrationId == null) {
-          return const Center(
-            key: ValueKey('face-missing-session'),
-            child: Text(
-              'Missing registration session. Go back and upload your ID again.',
-            ),
-          );
+          return _buildMissingSession();
         }
 
         final service = ref.read(authRegistrationServiceProvider);
@@ -451,7 +493,20 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           onVerified: (captures, similarity) =>
               unawaited(_onFaceVerified(captures, similarity)),
         );
-      case 2:
+      case _RegisterStep.details:
+        // The beneficiary session is created in the background on entry, so the
+        // first step doubles as the session's loading / retry surface.
+        if (_isBeneficiary) {
+          if (registrationId == null) return _buildMissingSession();
+          return RegisterBeneficiaryDetailsStep(
+            key: const ValueKey('beneficiary-details'),
+            data: _ocrData,
+            profile: _beneficiaryProfile,
+            onChanged: (data) => setState(() => _ocrData = data),
+            onProfileChanged: (profile) =>
+                setState(() => _beneficiaryProfile = profile),
+          );
+        }
         return RegisterOcrReviewStep(
           key: const ValueKey('ocr-review'),
           data: _ocrData,
@@ -463,7 +518,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           onRetry: () => unawaited(_runOcrExtract()),
           onChanged: (data) => setState(() => _ocrData = data),
         );
-      case 3:
+      case _RegisterStep.account:
         return RegisterAccountStep(
           key: const ValueKey('account'),
           email: _email,
@@ -473,8 +528,160 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           onPasswordChanged: (v) => setState(() => _password = v),
           onConfirmPasswordChanged: (v) => setState(() => _confirmPassword = v),
         );
-      default:
-        return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildMissingSession() {
+    if (!_isBeneficiary) {
+      return const Center(
+        key: ValueKey('face-missing-session'),
+        child: Text(
+          'Missing registration session. Go back and upload your ID again.',
+        ),
+      );
+    }
+
+    if (_startingSession) {
+      return const Padding(
+        key: ValueKey('session-starting'),
+        padding: EdgeInsets.symmetric(vertical: 64),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Padding(
+      key: const ValueKey('session-failed'),
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.wifi_off_rounded,
+            size: 40,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _sessionError ?? 'Could not start your registration.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => unawaited(_startBeneficiarySession()),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Try again'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Green band at the top of the registration flow — back arrow, which flow you
+/// are in, and how far along you are. It concentrates the brand colour in one
+/// place so every step below it can sit on white.
+class _FlowHeader extends StatelessWidget {
+  const _FlowHeader({
+    required this.stepLabel,
+    required this.stepIndex,
+    required this.stepCount,
+    required this.onBack,
+  });
+
+  final String stepLabel;
+  final int stepIndex;
+  final int stepCount;
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final topInset = MediaQuery.paddingOf(context).top;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(12, topInset + 6, 20, 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryDark,
+            AppColors.primary,
+            AppColors.secondary,
+          ],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x2E1F5F28),
+            blurRadius: 22,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_rounded),
+                color: Colors.white,
+                disabledColor: Colors.white54,
+                tooltip: 'Back',
+              ),
+              Text(
+                'STEP ${stepIndex + 1} OF $stepCount',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  stepLabel,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    for (var index = 0; index < stepCount; index++) ...[
+                      Expanded(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: index <= stepIndex
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.28),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      if (index < stepCount - 1) const SizedBox(width: 6),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

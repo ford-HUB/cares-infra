@@ -27,7 +27,9 @@ class ApiClient {
     if (configured == null || configured.isEmpty) {
       throw ApiException('API_BASE_URL is not configured in .env');
     }
-    return configured.endsWith('/') ? configured.substring(0, configured.length - 1) : configured;
+    return configured.endsWith('/')
+        ? configured.substring(0, configured.length - 1)
+        : configured;
   }
 
   Uri uri(String path) {
@@ -97,7 +99,9 @@ class ApiClient {
         ..fields.addAll(fields)
         ..files.addAll(files);
 
-      final streamed = await _client.send(request).timeout(const Duration(seconds: 60));
+      final streamed = await _client
+          .send(request)
+          .timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
       return _parseResponse(response);
     }, path);
@@ -130,8 +134,14 @@ class ApiClient {
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = body?['message'] as String? ?? 'Request failed (${response.statusCode})';
-      throw ApiException(message, statusCode: response.statusCode, errors: body?['errors']);
+      final message =
+          body?['message'] as String? ??
+          'Request failed (${response.statusCode})';
+      throw ApiException(
+        message,
+        statusCode: response.statusCode,
+        errors: body?['errors'],
+      );
     }
 
     if (body == null) {

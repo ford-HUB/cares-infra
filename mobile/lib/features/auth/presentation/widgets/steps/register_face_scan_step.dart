@@ -99,9 +99,11 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       unawaited(_disposeCamera());
-    } else if (state == AppLifecycleState.resumed && !widget.captures.isComplete) {
+    } else if (state == AppLifecycleState.resumed &&
+        !widget.captures.isComplete) {
       unawaited(_openInAppCamera());
     }
   }
@@ -197,7 +199,10 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   }
 
   Future<void> _onCameraFrame(CameraImage image) async {
-    if (_isCapturing || _isVerifying || _isProcessingFrame || widget.captures.isComplete) {
+    if (_isCapturing ||
+        _isVerifying ||
+        _isProcessingFrame ||
+        widget.captures.isComplete) {
       return;
     }
 
@@ -317,11 +322,13 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
 
   Future<void> _maybeStartVerification() async {
     if (_isVerifying || _isCapturing || widget.captures.isComplete) return;
-    if (_verifyCooldownUntil != null && DateTime.now().isBefore(_verifyCooldownUntil!)) {
+    if (_verifyCooldownUntil != null &&
+        DateTime.now().isBefore(_verifyCooldownUntil!)) {
       return;
     }
     if (!_faceInGuide || _alignedSince == null) return;
-    if (DateTime.now().difference(_alignedSince!) < _alignedHoldDuration) return;
+    if (DateTime.now().difference(_alignedSince!) < _alignedHoldDuration)
+      return;
 
     await _runVerification();
   }
@@ -386,9 +393,9 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     return faces.reduce(
       (a, b) =>
           a.boundingBox.width * a.boundingBox.height >
-                  b.boundingBox.width * b.boundingBox.height
-              ? a
-              : b,
+              b.boundingBox.width * b.boundingBox.height
+          ? a
+          : b,
     );
   }
 
@@ -403,25 +410,25 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
         Text(
           'Face verification',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.primaryDark,
-              ),
+            fontWeight: FontWeight.w800,
+            color: AppColors.primaryDark,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           allDone
               ? 'Face verified successfully.'
               : _isVerifying
-                  ? 'Hold still — verifying your face…'
-                  : _similarity != null && !_faceInGuide
-                      ? 'Adjust position and hold still to retry matching'
-                      : !_faceSeen && _cameraController != null
-                          ? 'Looking for your face… move into the outline'
-                          : _faceInGuide
-                              ? _similarity == null
-                                  ? 'Face aligned — hold still to verify'
-                                  : 'Matching… ${(_similarity! * 100).toStringAsFixed(0)}% — hold still'
-                              : 'Center your face in the oval',
+              ? 'Hold still — verifying your face…'
+              : _similarity != null && !_faceInGuide
+              ? 'Adjust position and hold still to retry matching'
+              : !_faceSeen && _cameraController != null
+              ? 'Looking for your face… move into the outline'
+              : _faceInGuide
+              ? _similarity == null
+                    ? 'Face aligned — hold still to verify'
+                    : 'Matching… ${(_similarity! * 100).toStringAsFixed(0)}% — hold still'
+              : 'Center your face in the oval',
           style: TextStyle(
             fontSize: 14,
             height: 1.45,
@@ -509,7 +516,10 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
               right: 12,
               bottom: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(20),
@@ -573,7 +583,10 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
     return _buildLiveCameraStack(controller, scan);
   }
 
-  Widget _buildLiveCameraStack(CameraController controller, AnimationController? scan) {
+  Widget _buildLiveCameraStack(
+    CameraController controller,
+    AnimationController? scan,
+  ) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -625,10 +638,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
 }
 
 class _FaceShotPreviewDialog extends StatelessWidget {
-  const _FaceShotPreviewDialog({
-    required this.filePath,
-    required this.onRetry,
-  });
+  const _FaceShotPreviewDialog({required this.filePath, required this.onRetry});
 
   final String filePath;
   final VoidCallback onRetry;

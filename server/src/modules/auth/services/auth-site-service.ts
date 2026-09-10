@@ -94,6 +94,27 @@ export class AuthSiteService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // Social-only accounts (donors, on mobile) have no stored hash and no portal
+    // presence. Same reply as a wrong password, for the same reason.
+    if (!account.password) {
+      const reason = 'Account signs in through a social provider';
+      await this.loginActivityRecorder.record({
+        ...attempt,
+        userId: account.user.user_id,
+        outcome: 'INVALID_CREDENTIALS',
+        failureReason: reason,
+      });
+      await this.recordSignIn(attempt, {
+        outcome: 'FAILURE',
+        severity: 'NOTICE',
+        description: `Failed portal sign-in for ${email}`,
+        reason,
+        userId: account.user.user_id,
+        roleType: account.user.role.type,
+      });
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     let passwordMatches = false;
     try {
       passwordMatches = await bcrypt.compare(data.password, account.password);

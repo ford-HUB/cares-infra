@@ -57,7 +57,9 @@ class RegistrationOptionCard extends StatelessWidget {
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                    color: isSelected
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 16),

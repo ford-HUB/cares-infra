@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 import '../utils/password_strength.dart';
 
-class PasswordStrengthIndicator extends StatelessWidget {
-  const PasswordStrengthIndicator({
-    super.key,
-    required this.password,
-  });
+class PasswordStrengthIndicator extends ConsumerWidget {
+  const PasswordStrengthIndicator({super.key, required this.password});
 
   final String password;
 
   @override
-  Widget build(BuildContext context) {
-    final result = evaluatePasswordStrength(password);
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Scored against the administrator's minimum length, so the bar and the rules
+    // below it agree about what "long enough" means.
+    final result = evaluatePasswordStrength(
+      password,
+      policy: ref.watch(currentPasswordPolicyProvider),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -61,7 +61,9 @@ class PrototypeSectionCard extends StatelessWidget {
                 labelStyle: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
                 ),
                 side: BorderSide(
                   color: isSelected ? AppColors.primary : AppColors.inputFill,
@@ -130,9 +132,9 @@ class PrototypeProgressHeader extends StatelessWidget {
         Text(
           title,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ],
     );

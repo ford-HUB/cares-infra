@@ -1,15 +1,11 @@
-enum ActivityStatus {
-  completed,
-  registered,
-  cancelled,
-}
+enum ActivityStatus { completed, registered, cancelled }
 
 extension ActivityStatusX on ActivityStatus {
   String get label => switch (this) {
-        ActivityStatus.completed => 'Completed',
-        ActivityStatus.registered => 'Registered',
-        ActivityStatus.cancelled => 'Cancelled',
-      };
+    ActivityStatus.completed => 'Completed',
+    ActivityStatus.registered => 'Registered',
+    ActivityStatus.cancelled => 'Cancelled',
+  };
 }
 
 class MockActivityEntry {

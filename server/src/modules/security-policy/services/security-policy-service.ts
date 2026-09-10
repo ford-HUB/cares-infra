@@ -10,6 +10,7 @@ import type {
   SecurityPolicyValuesDto,
   UpdateSecurityPolicyDto,
 } from '../dto/security-policy-site-dto';
+import type { PasswordRulesDto } from '../dto/security-policy-public-dto';
 import { SecurityPolicyRepository } from '../repositories/security-policy-repository';
 
 const POLICY_CACHE_KEY = 'security-policy';
@@ -83,6 +84,23 @@ export class SecurityPolicyService {
       );
       return DEFAULT_SECURITY_POLICY;
     }
+  }
+
+  /**
+   * The password rules on their own, for the sign-up and password forms. Reads through
+   * the same cached policy as enforcement, so a form can never state a rule the server
+   * has stopped applying.
+   */
+  async getPasswordRules(): Promise<PasswordRulesDto> {
+    const policy = await this.getPolicy();
+
+    return {
+      password_min_length: policy.password_min_length,
+      password_require_uppercase: policy.password_require_uppercase,
+      password_require_lowercase: policy.password_require_lowercase,
+      password_require_number: policy.password_require_number,
+      password_require_symbol: policy.password_require_symbol,
+    };
   }
 
   /** The policy plus its audit fields, for the portal's settings form. */

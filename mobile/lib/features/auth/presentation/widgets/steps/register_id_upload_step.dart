@@ -130,14 +130,7 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          _isBeneficiary ? 'Upload your valid ID' : 'Upload your school ID',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: AppColors.primaryDark,
-          ),
-        ),
-        const SizedBox(height: 8),
+        // The flow header already names this step.
         Text(
           _isBeneficiary
               ? 'Upload a clear photo of a government-issued or other accepted valid ID '

@@ -38,12 +38,14 @@ class MediaPermissions {
       }
       if (photos.isPermanentlyDenied || photos.isRestricted) {
         return MediaPermissionResult.denied(
-          message: 'Photo library access is blocked. Enable it in app settings.',
+          message:
+              'Photo library access is blocked. Enable it in app settings.',
           openSettings: true,
         );
       }
       return const MediaPermissionResult.denied(
-        message: 'Photo library permission is required to choose your ID image.',
+        message:
+            'Photo library permission is required to choose your ID image.',
       );
     }
 
@@ -69,8 +71,8 @@ class MediaPermissions {
       return const MediaPermissionResult.granted();
     }
 
-    final denied = photosRequest.isPermanentlyDenied ||
-        storageRequest.isPermanentlyDenied;
+    final denied =
+        photosRequest.isPermanentlyDenied || storageRequest.isPermanentlyDenied;
     if (denied) {
       return MediaPermissionResult.denied(
         message: 'Storage access is blocked. Enable it in app settings.',
@@ -93,17 +95,12 @@ class MediaPermissionResult {
     this.openSettings = false,
   });
 
-  const MediaPermissionResult.granted()
-      : this._(isGranted: true);
+  const MediaPermissionResult.granted() : this._(isGranted: true);
 
   const MediaPermissionResult.denied({
     required String message,
     bool openSettings = false,
-  }) : this._(
-          isGranted: false,
-          message: message,
-          openSettings: openSettings,
-        );
+  }) : this._(isGranted: false, message: message, openSettings: openSettings);
 
   final bool isGranted;
   final String? message;

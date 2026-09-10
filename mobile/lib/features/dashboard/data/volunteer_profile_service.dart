@@ -6,8 +6,8 @@ class VolunteerProfileService {
   VolunteerProfileService({
     ApiClient? apiClient,
     InterestsService? interestsService,
-  })  : _api = apiClient ?? ApiClient(),
-        _interestsService = interestsService ?? InterestsService();
+  }) : _api = apiClient ?? ApiClient(),
+       _interestsService = interestsService ?? InterestsService();
 
   final ApiClient _api;
   final InterestsService _interestsService;

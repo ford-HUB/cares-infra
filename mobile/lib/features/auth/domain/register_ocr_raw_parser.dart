@@ -12,7 +12,8 @@ class RegisterOcrRawParser {
     String currentAddress,
     String phoneNumber,
     String idNumber,
-  }) parse(String frontText, String backText) {
+  })
+  parse(String frontText, String backText) {
     final combined = '$frontText\n$backText';
     final lines = combined
         .split('\n')
@@ -49,14 +50,18 @@ class RegisterOcrRawParser {
 
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
-      final isNameLabel = RegExp(
-        r'^[\s.,|:]+NAME\s*[|:]?\s*$',
-        caseSensitive: false,
-      ).hasMatch(_stripLeadingJunk(line)) ||
-          RegExp(r'^NAME\s*[|:]?\s*$', caseSensitive: false)
-              .hasMatch(_stripLeadingJunk(line));
+      final isNameLabel =
+          RegExp(
+            r'^[\s.,|:]+NAME\s*[|:]?\s*$',
+            caseSensitive: false,
+          ).hasMatch(_stripLeadingJunk(line)) ||
+          RegExp(
+            r'^NAME\s*[|:]?\s*$',
+            caseSensitive: false,
+          ).hasMatch(_stripLeadingJunk(line));
       final hasLooseNameLabel =
-          !isNameLabel && RegExp(r'\bNAME\b', caseSensitive: false).hasMatch(line);
+          !isNameLabel &&
+          RegExp(r'\bNAME\b', caseSensitive: false).hasMatch(line);
 
       if (!isNameLabel && !hasLooseNameLabel) continue;
 
@@ -104,7 +109,8 @@ class RegisterOcrRawParser {
     var cleaned = value.trim();
     while (cleaned.isNotEmpty) {
       final code = cleaned.codeUnitAt(0);
-      final isJunk = cleaned.startsWith(RegExp(r'[\s.,|:`;]')) ||
+      final isJunk =
+          cleaned.startsWith(RegExp(r'[\s.,|:`;]')) ||
           code == 0x2018 ||
           code == 0x2019 ||
           code == 0x201C ||
@@ -120,7 +126,14 @@ class RegisterOcrRawParser {
   static String _cleanName(String value) {
     var cleaned = value.replaceAll(RegExp(r'\s+'), ' ').trim();
     cleaned = _stripLeadingJunk(cleaned);
-    cleaned = cleaned.split(RegExp(r'\b(?:ADDRESS|TEL|ID\s*NO|BIRTHDATE)\b', caseSensitive: false)).first;
+    cleaned = cleaned
+        .split(
+          RegExp(
+            r'\b(?:ADDRESS|TEL|ID\s*NO|BIRTHDATE)\b',
+            caseSensitive: false,
+          ),
+        )
+        .first;
     return cleaned.replaceAll(RegExp(r'[ .*]+$'), '').trim();
   }
 
@@ -133,7 +146,9 @@ class RegisterOcrRawParser {
     ).hasMatch(text)) {
       return false;
     }
-    return tokens.every((token) => RegExp(r"^[A-Za-z][A-Za-z.']*$").hasMatch(token));
+    return tokens.every(
+      (token) => RegExp(r"^[A-Za-z][A-Za-z.']*$").hasMatch(token),
+    );
   }
 
   static (String, String, String) _splitName(String value) {
@@ -149,7 +164,8 @@ class RegisterOcrRawParser {
     }
 
     final tokens = value.split(' ');
-    if (tokens.length >= 4 && RegExp(r'^[A-Za-z]\.?$').hasMatch(tokens[tokens.length - 2])) {
+    if (tokens.length >= 4 &&
+        RegExp(r'^[A-Za-z]\.?$').hasMatch(tokens[tokens.length - 2])) {
       return (
         tokens.first,
         tokens.sublist(1, tokens.length - 1).join(' '),
@@ -196,16 +212,20 @@ class RegisterOcrRawParser {
 
     final collected = <String>[];
     for (var i = 0; i < lines.length; i++) {
-      if (RegExp(r'\bADDRESS\s*[.:]?\s*$', caseSensitive: false)
-          .hasMatch(lines[i])) {
+      if (RegExp(
+        r'\bADDRESS\s*[.:]?\s*$',
+        caseSensitive: false,
+      ).hasMatch(lines[i])) {
         for (var offset = 1; offset <= 3; offset++) {
           final nextIndex = i + offset;
           if (nextIndex >= lines.length) break;
           final candidate = _cleanAddressValue(lines[nextIndex]);
           if (candidate.isEmpty ||
               _looksLikePhone(candidate) ||
-              RegExp(r'\b(?:TEL|PHONE|BIRTHDATE|NAME)\b', caseSensitive: false)
-                  .hasMatch(candidate)) {
+              RegExp(
+                r'\b(?:TEL|PHONE|BIRTHDATE|NAME)\b',
+                caseSensitive: false,
+              ).hasMatch(candidate)) {
             break;
           }
           collected.add(candidate);
@@ -248,8 +268,9 @@ class RegisterOcrRawParser {
       return normalizeIdNumber('${spaced.group(1)}${spaced.group(2)}');
     }
 
-    final eightDigit =
-        RegExp(r'\b(\d{8})\b').firstMatch(_normalizeDigits(text));
+    final eightDigit = RegExp(
+      r'\b(\d{8})\b',
+    ).firstMatch(_normalizeDigits(text));
     if (eightDigit != null) return eightDigit.group(1)!;
 
     return '';
@@ -272,18 +293,25 @@ class RegisterOcrRawParser {
   }
 
   static String _extractGender(String text) {
-    final match = RegExp(r'\b(MALE|FEMALE)\b', caseSensitive: false).firstMatch(text);
+    final match = RegExp(
+      r'\b(MALE|FEMALE)\b',
+      caseSensitive: false,
+    ).firstMatch(text);
     return match != null ? match.group(1)!.toUpperCase() : '';
   }
 
   static int _extractAge(String text, List<String> lines) {
-    final ageLabel = RegExp(r'\b(?:AGE|Edad)\s*[:\-]?\s*(\d{1,3})\b', caseSensitive: false)
-        .firstMatch(text);
+    final ageLabel = RegExp(
+      r'\b(?:AGE|Edad)\s*[:\-]?\s*(\d{1,3})\b',
+      caseSensitive: false,
+    ).firstMatch(text);
     if (ageLabel != null) return int.parse(ageLabel.group(1)!);
 
     for (final line in lines) {
-      if (!RegExp(r'\b(?:BIRTHDATE|BIRTH\s*DATE|DOB)\b', caseSensitive: false)
-          .hasMatch(line)) {
+      if (!RegExp(
+        r'\b(?:BIRTHDATE|BIRTH\s*DATE|DOB)\b',
+        caseSensitive: false,
+      ).hasMatch(line)) {
         continue;
       }
       final parsed = _parseDate(line);
@@ -295,8 +323,9 @@ class RegisterOcrRawParser {
 
   static DateTime? _parseDate(String value) {
     final normalized = _normalizeDigits(value);
-    final match = RegExp(r'(\d{1,2})\D{1,3}(\d{1,2})\D{1,3}((?:19|20)\d{2})')
-        .firstMatch(normalized);
+    final match = RegExp(
+      r'(\d{1,2})\D{1,3}(\d{1,2})\D{1,3}((?:19|20)\d{2})',
+    ).firstMatch(normalized);
     if (match == null) return null;
 
     final month = int.parse(match.group(1)!);

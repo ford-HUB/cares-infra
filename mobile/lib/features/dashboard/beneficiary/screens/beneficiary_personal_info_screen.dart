@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
+import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
+import 'package:mobile/features/auth/registration/utils/password_strength.dart';
 import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_personal_profile_store.dart';
 import 'package:mobile/features/dashboard/beneficiary/domain/beneficiary_personal_profile.dart';
 import 'package:mobile/features/dashboard/beneficiary/screens/beneficiary_document_upload_screen.dart';
@@ -178,6 +182,17 @@ class _BeneficiaryPersonalInfoScreenState
             ),
             const SizedBox(height: 10),
             _PasswordField(controller: newController, hint: 'New password'),
+            // Only the rules the new password has yet to satisfy; the row is empty
+            // until the user types and collapses again once they are all met.
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: newController,
+              builder: (_, value, _) => value.text.isEmpty
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: PasswordRuleChips(password: value.text),
+                    ),
+            ),
             const SizedBox(height: 10),
             _PasswordField(
               controller: confirmController,
@@ -190,29 +205,36 @@ class _BeneficiaryPersonalInfoScreenState
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (newController.text.length < 8) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(
-                    content: Text('Password must be at least 8 characters.'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
+          Consumer(
+            builder: (_, ref, _) => ElevatedButton(
+              onPressed: () {
+                // The same rules the portal enforces, not a second copy of them.
+                final problem = validatePassword(
+                  newController.text,
+                  policy: ref.read(currentPasswordPolicyProvider),
                 );
-                return;
-              }
-              if (newController.text != confirmController.text) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(
-                    content: Text('Passwords do not match.'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                return;
-              }
-              Navigator.of(ctx).pop(true);
-            },
-            child: const Text('Update'),
+                if (problem != null) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      content: Text(problem),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+                if (newController.text != confirmController.text) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                      content: Text('Passwords do not match.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.of(ctx).pop(true);
+              },
+              child: const Text('Update'),
+            ),
           ),
         ],
       ),

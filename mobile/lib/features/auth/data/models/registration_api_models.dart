@@ -50,6 +50,23 @@ class VerificationStatusResponse {
   final int expiresInSeconds;
 }
 
+class StartSessionResponse {
+  const StartSessionResponse({
+    required this.registrationId,
+    required this.step,
+  });
+
+  factory StartSessionResponse.fromJson(Map<String, dynamic> json) {
+    return StartSessionResponse(
+      registrationId: json['registrationId'] as String,
+      step: json['step'] as String? ?? 'session_started',
+    );
+  }
+
+  final String registrationId;
+  final String step;
+}
+
 class UploadIdResponse {
   const UploadIdResponse({required this.registrationId});
 
@@ -144,6 +161,11 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
   }) {
     final normalizedId = RegisterOcrRawParser.normalizeIdNumber(idNumber);
     final isBeneficiary = roleType == 'BENEFICIARY';
+    // Beneficiaries register without an ID, so there is no ID number to send.
+    // The registration id keeps the server's unique school-info key unique.
+    final beneficiaryId = normalizedId.isEmpty
+        ? 'BEN-$registrationId'
+        : normalizedId;
 
     return {
       'registrationId': registrationId,
@@ -158,7 +180,7 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'account': {'email': email, 'password': password},
       'school_info': isBeneficiary
           ? {
-              'id_number': normalizedId,
+              'id_number': beneficiaryId,
               'graduation_year': 2000,
               'graduation_month': 1,
               'graduation_day': 1,

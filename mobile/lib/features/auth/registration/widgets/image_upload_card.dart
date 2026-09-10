@@ -82,7 +82,10 @@ class ImageUploadCard extends StatelessWidget {
                 ),
                 if (imagePath != null)
                   ListTile(
-                    leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                    leading: const Icon(
+                      Icons.delete_outline,
+                      color: AppColors.error,
+                    ),
                     title: const Text(
                       'Remove Photo',
                       style: TextStyle(color: AppColors.error),
@@ -143,7 +146,9 @@ class ImageUploadCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: hasImage ? AppColors.textPrimary : AppColors.textSecondary,
+                    color: hasImage
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -164,10 +169,7 @@ class ImageUploadCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: 16 / 10,
-                child: Image.file(
-                  File(imagePath!),
-                  fit: BoxFit.cover,
-                ),
+                child: Image.file(File(imagePath!), fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 12),

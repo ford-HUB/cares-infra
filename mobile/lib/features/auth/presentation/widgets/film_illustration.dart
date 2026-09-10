@@ -62,11 +62,37 @@ class _FilmPainter extends CustomPainter {
 
     blob.moveTo(cx - rw * 0.9, cy);
     blob.cubicTo(cx - rw, cy - rh, cx - rw * 0.3, cy - rh * 1.1, cx, cy - rh);
-    blob.cubicTo(cx + rw * 0.35, cy - rh * 1.05, cx + rw, cy - rh * 0.7, cx + rw * 0.95, cy);
-    blob.cubicTo(cx + rw * 1.05, cy + rh * 0.4, cx + rw * 0.4, cy + rh * 0.85, cx, cy + rh * 0.75);
-    blob.cubicTo(cx - rw * 0.45, cy + rh * 0.9, cx - rw, cy + rh * 0.35, cx - rw * 0.9, cy);
+    blob.cubicTo(
+      cx + rw * 0.35,
+      cy - rh * 1.05,
+      cx + rw,
+      cy - rh * 0.7,
+      cx + rw * 0.95,
+      cy,
+    );
+    blob.cubicTo(
+      cx + rw * 1.05,
+      cy + rh * 0.4,
+      cx + rw * 0.4,
+      cy + rh * 0.85,
+      cx,
+      cy + rh * 0.75,
+    );
+    blob.cubicTo(
+      cx - rw * 0.45,
+      cy + rh * 0.9,
+      cx - rw,
+      cy + rh * 0.35,
+      cx - rw * 0.9,
+      cy,
+    );
 
-    canvas.drawShadow(blob, AppColors.primary.withValues(alpha: 0.25), 18, false);
+    canvas.drawShadow(
+      blob,
+      AppColors.primary.withValues(alpha: 0.25),
+      18,
+      false,
+    );
     canvas.drawPath(
       blob,
       Paint()
@@ -119,18 +145,34 @@ class _FilmPainter extends CustomPainter {
     final fillShoes = Paint()..color = const Color(0xFF263238);
 
     // Legs
-    canvas.drawLine(base + Offset(-14 * s, 50 * s), base + Offset(-14 * s, 95 * s), stroke);
-    canvas.drawLine(base + Offset(14 * s, 50 * s), base + Offset(14 * s, 95 * s), stroke);
+    canvas.drawLine(
+      base + Offset(-14 * s, 50 * s),
+      base + Offset(-14 * s, 95 * s),
+      stroke,
+    );
+    canvas.drawLine(
+      base + Offset(14 * s, 50 * s),
+      base + Offset(14 * s, 95 * s),
+      stroke,
+    );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: base + Offset(-14 * s, 102 * s), width: 28 * s, height: 12 * s),
+        Rect.fromCenter(
+          center: base + Offset(-14 * s, 102 * s),
+          width: 28 * s,
+          height: 12 * s,
+        ),
         Radius.circular(6 * s),
       ),
       fillShoes,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: base + Offset(14 * s, 102 * s), width: 28 * s, height: 12 * s),
+        Rect.fromCenter(
+          center: base + Offset(14 * s, 102 * s),
+          width: 28 * s,
+          height: 12 * s,
+        ),
         Radius.circular(6 * s),
       ),
       fillShoes,
@@ -150,7 +192,11 @@ class _FilmPainter extends CustomPainter {
     // Torso / CARES shirt
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: base + Offset(0, 18 * s), width: 56 * s, height: 62 * s),
+        Rect.fromCenter(
+          center: base + Offset(0, 18 * s),
+          width: 56 * s,
+          height: 62 * s,
+        ),
         Radius.circular(14 * s),
       ),
       fillShirt,
@@ -183,7 +229,9 @@ class _FilmPainter extends CustomPainter {
     );
 
     // Sapling in hand
-    final sprout = Curves.easeOut.transform(((progress - 0.35) / 0.4).clamp(0.0, 1.0));
+    final sprout = Curves.easeOut.transform(
+      ((progress - 0.35) / 0.4).clamp(0.0, 1.0),
+    );
     if (sprout > 0) {
       final hand = base + Offset(52 * s, 20 * s);
       canvas.drawLine(
@@ -194,38 +242,72 @@ class _FilmPainter extends CustomPainter {
           ..strokeWidth = 3 * s
           ..strokeCap = StrokeCap.round,
       );
-      canvas.drawCircle(hand + Offset(0, -26 * s * sprout), 5 * s, Paint()..color = AppColors.secondary);
+      canvas.drawCircle(
+        hand + Offset(0, -26 * s * sprout),
+        5 * s,
+        Paint()..color = AppColors.secondary,
+      );
     }
 
     // Head
     canvas.drawCircle(base + Offset(0, -28 * s), 22 * s, fillSkin);
-    canvas.drawCircle(base + Offset(0, -28 * s), 22 * s, stroke..style = PaintingStyle.stroke);
+    canvas.drawCircle(
+      base + Offset(0, -28 * s),
+      22 * s,
+      stroke..style = PaintingStyle.stroke,
+    );
 
     // Hair
     canvas.drawPath(
       Path()
         ..moveTo(base.dx - 20 * s, base.dy - 38 * s)
-        ..quadraticBezierTo(base.dx, base.dy - 58 * s, base.dx + 20 * s, base.dy - 38 * s)
+        ..quadraticBezierTo(
+          base.dx,
+          base.dy - 58 * s,
+          base.dx + 20 * s,
+          base.dy - 38 * s,
+        )
         ..lineTo(base.dx + 18 * s, base.dy - 30 * s)
-        ..quadraticBezierTo(base.dx, base.dy - 48 * s, base.dx - 18 * s, base.dy - 30 * s)
+        ..quadraticBezierTo(
+          base.dx,
+          base.dy - 48 * s,
+          base.dx - 18 * s,
+          base.dy - 30 * s,
+        )
         ..close(),
       Paint()..color = const Color(0xFF212121),
     );
 
     // Glasses
     canvas.drawOval(
-      Rect.fromCenter(center: base + Offset(-9 * s, -30 * s), width: 14 * s, height: 10 * s),
+      Rect.fromCenter(
+        center: base + Offset(-9 * s, -30 * s),
+        width: 14 * s,
+        height: 10 * s,
+      ),
       stroke..strokeWidth = 2 * s,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: base + Offset(9 * s, -30 * s), width: 14 * s, height: 10 * s),
+      Rect.fromCenter(
+        center: base + Offset(9 * s, -30 * s),
+        width: 14 * s,
+        height: 10 * s,
+      ),
       stroke..strokeWidth = 2 * s,
     );
-    canvas.drawLine(base + Offset(-2 * s, -30 * s), base + Offset(2 * s, -30 * s), stroke..strokeWidth = 2 * s);
+    canvas.drawLine(
+      base + Offset(-2 * s, -30 * s),
+      base + Offset(2 * s, -30 * s),
+      stroke..strokeWidth = 2 * s,
+    );
 
     // Smile
     canvas.drawArc(
-      Rect.fromCenter(center: base + Offset(0, -22 * s), width: 12 * s, height: 8 * s),
+      Rect.fromCenter(
+        center: base + Offset(0, -22 * s),
+        width: 12 * s,
+        height: 8 * s,
+      ),
       0.1,
       math.pi - 0.2,
       false,
@@ -282,7 +364,8 @@ class _FilmPainter extends CustomPainter {
       final orbit = progress * 0.15;
       final angle = item.angle + orbit;
       final radius = size.width * item.dist * 0.5;
-      final pos = center +
+      final pos =
+          center +
           Offset(math.cos(angle), math.sin(angle)) * radius * inT +
           Offset(0, bob);
 
@@ -307,7 +390,13 @@ class _FilmPainter extends CustomPainter {
     }
   }
 
-  void _paintIcon(Canvas canvas, IconData icon, Offset pos, Color color, double iconSize) {
+  void _paintIcon(
+    Canvas canvas,
+    IconData icon,
+    Offset pos,
+    Color color,
+    double iconSize,
+  ) {
     final tp = TextPainter(
       text: TextSpan(
         text: String.fromCharCode(icon.codePoint),
