@@ -27,7 +27,8 @@ export function RestrictUserModal({
           <strong>
             {user.firstName} {user.lastName}
           </strong>{' '}
-          will be blocked from signing in until an administrator lifts the restriction.
+          will be signed out of every device immediately and blocked from signing in
+          until an administrator lifts the restriction.
         </p>
 
         <label className="mt-4 block text-sm font-medium text-gray-700" htmlFor="restrict-reason">
@@ -39,8 +40,13 @@ export function RestrictUserModal({
           onChange={(event) => setReason(event.target.value)}
           rows={3}
           placeholder="Why is this account being restricted?"
+          maxLength={500}
           className="mt-1 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
         />
+        <p className="mt-1 text-xs text-gray-500">
+          This reason is emailed to <span className="font-medium text-gray-700">{user.email}</span>{' '}
+          and recorded in the audit log — write it for the user to read.
+        </p>
 
         <div className="mt-6 flex justify-end gap-3">
           <button

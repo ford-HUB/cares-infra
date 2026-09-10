@@ -1,14 +1,12 @@
 import {
-  ConflictException,
+  BadRequestException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import {
-  AuthProvider,
-  RoleType,
-} from '../../../infastructures/prisma/common/client';
+import { AuthProvider } from '../../../infastructures/prisma/common/client';
 import type { OAuthIdentityProfile } from 'src/infastructures/passport/oauth-identity';
 import { JwtService } from 'src/infastructures/jwt/jwt-service';
 import { RedisService } from 'src/infastructures/redis/redis-service';
@@ -16,11 +14,15 @@ import { LoginActivityRecorder } from 'src/modules/login-activity/services/login
 import { SessionRegistry } from 'src/modules/sessions/services/session-registry';
 import { LoginPolicyEnforcer } from 'src/modules/security-policy/services/login-policy-enforcer';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
-import { AuthRepository } from '../repositories/auth-repository';
+import {
+  AuthRepository,
+  registrationConflict,
+} from '../repositories/auth-repository';
 import type {
   DonorOAuthResponseDto,
   DonorOAuthTicketDto,
   RegisterDonorDto,
+  RegisterDonorWithEmailDto,
 } from '../dto/auth-donor-dto';
 import type { LoginResponseDto } from '../dto/auth-mobile-dto';
 
@@ -30,9 +32,12 @@ const TICKET_TTL_SECONDS = DurationUtils.THIRTY_MINUTES;
 /**
  * Donor sign-in and sign-up through Google or Facebook.
  *
- * Split from `AuthMobileService` because nothing is shared with the volunteer flow: a
- * donor presents no ID, enrols no face, and never sees an OTP — the provider is what
- * vouches for the email, so the whole ID/OCR/face state machine is absent here.
+ * Split from `AuthMobileService` because almost nothing is shared with the volunteer
+ * flow: a donor presents no ID and enrols no face, so the whole ID/OCR/face state
+ * machine is absent here. The one thing borrowed is the email OTP — a donor who signs
+ * up with a password (no provider to vouch for the address) goes through the same
+ * `/v1/auth/send-verification` + `/v1/auth/verify-otp` pair as a volunteer, and
+ * `registerDonorWithEmail` only reads the verified flag those calls leave in Redis.
  *
  * Verifying the provider token is not this service's job: `DonorOAuthGuard` runs the
  * matching Passport strategy first, and what arrives here is an already-verified profile.
@@ -160,16 +165,14 @@ export class AuthDonorService {
       ticket.email,
     );
     if (existingAccount) {
-      throw new ConflictException('An account with this email already exists');
+      throw registrationConflict('email');
     }
 
     const phoneNumber = data.phone_number.trim();
     const phoneOwner =
       await this.authRepository.findPhoneNumberOwner(phoneNumber);
     if (phoneOwner) {
-      throw new ConflictException(
-        'This phone number is already registered to another account',
-      );
+      throw registrationConflict('phone_number');
     }
 
     const created = await this.authRepository.createDonorFromOAuth({
@@ -191,6 +194,64 @@ export class AuthDonorService {
     return this.issueSession(
       created.user_id,
       { email: ticket.email, ipAddress, userAgent, source: 'MOBILE' as const },
+      ipAddress,
+      userAgent,
+    );
+  }
+
+  /**
+   * Completes email + password donor sign-up. The email must already be OTP-verified
+   * (`AuthMobileService.verifyOtpEmail`) — the flag it sets is the only proof accepted,
+   * and it is cleared here so the same code cannot open a second account.
+   */
+  async registerDonorWithEmail(
+    data: RegisterDonorWithEmailDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<LoginResponseDto> {
+    const email = data.email.trim().toLowerCase();
+
+    const verified = await this.redisService.get<string>(
+      this.otpVerifiedKey(email),
+    );
+    if (verified !== 'true') {
+      throw new BadRequestException(
+        'Email verification is required before registration',
+      );
+    }
+
+    const existingAccount = await this.authRepository.findUserByEmail(email);
+    if (existingAccount) {
+      throw registrationConflict('email');
+    }
+
+    const phoneNumber = data.phone_number.trim();
+    const phoneOwner =
+      await this.authRepository.findPhoneNumberOwner(phoneNumber);
+    if (phoneOwner) {
+      throw registrationConflict('phone_number');
+    }
+
+    await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(data.password);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const created = await this.authRepository.createDonorWithPassword({
+      firstname: data.firstname,
+      lastname: data.lastname,
+      middleName: data.middle_name,
+      gender: data.gender,
+      phoneNumber,
+      currentAddress: data.current_address,
+      email,
+      hashedPassword,
+    });
+
+    await this.redisService.delete(this.otpKey(email));
+    await this.redisService.delete(this.otpVerifiedKey(email));
+
+    return this.issueSession(
+      created.user_id,
+      { email, ipAddress, userAgent, source: 'MOBILE' as const },
       ipAddress,
       userAgent,
     );
@@ -249,7 +310,7 @@ export class AuthDonorService {
 
     return {
       user_id: userId,
-      role_type: user.role.type as RoleType,
+      role_type: user.role.type,
       email,
       firstname: user.firstname,
       has_interests: user.user_interest !== null,
@@ -288,5 +349,14 @@ export class AuthDonorService {
 
   private ticketKey(ticket: string): string {
     return `donor-oauth:${ticket}`;
+  }
+
+  // Mirror `AuthMobileService.otpKey` / `otpVerifiedKey` — the OTP is issued there.
+  private otpKey(email: string): string {
+    return `otp:${email}`;
+  }
+
+  private otpVerifiedKey(email: string): string {
+    return `otp-verified:${email}`;
   }
 }

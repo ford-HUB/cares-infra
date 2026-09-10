@@ -1,11 +1,19 @@
-import { AuthRepository } from '../repositories/auth-repository';
+import {
+  AuthRepository,
+  registrationConflict,
+} from '../repositories/auth-repository';
 import {
   CreateUserDto,
   ExtractIdResponseDto,
   IdOcrResultDto,
   LoginDto,
+  ForgotPasswordResponseDto,
   LoginResponseDto,
   RegisterFromSessionDto,
+  SendVerificationDto,
+  ResetPasswordDto,
+  ResetPasswordResponseDto,
+  VerifyResetOtpResponseDto,
   RegistrationSessionDto,
   StartSessionResponseDto,
   UploadIdResponseDto,
@@ -18,7 +26,6 @@ import {
 import {
   BadGatewayException,
   BadRequestException,
-  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -42,6 +49,9 @@ import { LoginActivityRecorder } from 'src/modules/login-activity/services/login
 import { SessionRegistry } from 'src/modules/sessions/services/session-registry';
 import { LoginPolicyEnforcer } from 'src/modules/security-policy/services/login-policy-enforcer';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
+
+/** Wrong codes tolerated before the reset code is thrown away. */
+const PASSWORD_RESET_MAX_ATTEMPTS = 5;
 
 @Injectable()
 export class AuthMobileService {
@@ -246,8 +256,8 @@ export class AuthMobileService {
 
   /**
    * Starts an ID-less registration session. Beneficiaries do not present a
-   * school ID, so their face capture is enrolled on its own and their details
-   * are typed in instead of being read off an ID by OCR.
+   * school ID and do not scan a face; their details are typed in instead of
+   * being read off an ID by OCR, and the email OTP is what vouches for them.
    */
   async startSession(roleType: RoleType): Promise<StartSessionResponseDto> {
     if (roleType !== RoleType.BENEFICIARY) {
@@ -478,40 +488,59 @@ export class AuthMobileService {
 
     await this.requireVerifiedEmail(data.account.email);
 
-    if (session.idFrontImageUrl) {
-      if (session.step !== 'ocr_completed') {
-        throw new BadRequestException(
-          'OCR extraction must complete before registration',
-        );
-      }
-    } else {
-      // ID-less sessions are locked to the role that started them so an
-      // ID-backed role can never be claimed without an ID.
-      if (
-        session.roleType !== RoleType.BENEFICIARY ||
-        data.role_type !== RoleType.BENEFICIARY
-      ) {
-        throw new BadRequestException(
-          'This registration session requires an uploaded ID',
-        );
-      }
-
-      if (session.step !== 'face_verified') {
-        throw new BadRequestException(
-          'Face capture must complete before registration',
-        );
-      }
-    }
-
-    if (!session.faceMatch || !session.selfieUrl || !session.selfieEmbedding) {
+    // ID-less sessions are locked to the role that started them so an
+    // ID-backed role can never be claimed without an ID.
+    const isIdLess = !session.idFrontImageUrl;
+    if (
+      isIdLess &&
+      (session.roleType !== RoleType.BENEFICIARY ||
+        data.role_type !== RoleType.BENEFICIARY)
+    ) {
       throw new BadRequestException(
-        'Face verification data is missing from registration session',
+        'This registration session requires an uploaded ID',
       );
     }
 
-    const faceUrl = this.s3Service.buildObjectUrl(
-      this.s3Service.resolveObjectKey(session.selfieUrl),
-    );
+    if (!isIdLess && session.step !== 'ocr_completed') {
+      throw new BadRequestException(
+        'OCR extraction must complete before registration',
+      );
+    }
+
+    // Beneficiaries present no ID and enrol no face — their details are typed in
+    // and the email OTP is what vouches for them. Every ID-backed role still needs
+    // the face that was matched against the ID.
+    let biometric: CreateUserDto['biometric'];
+    if (!isIdLess) {
+      if (
+        !session.faceMatch ||
+        !session.selfieUrl ||
+        !session.selfieEmbedding
+      ) {
+        throw new BadRequestException(
+          'Face verification data is missing from registration session',
+        );
+      }
+
+      biometric = {
+        face_url: this.s3Service.buildObjectUrl(
+          this.s3Service.resolveObjectKey(session.selfieUrl),
+        ),
+        embedding: session.selfieEmbedding,
+        embedding_type: EmbeddingType.FACE,
+        isActive: true,
+      };
+    }
+
+    // A failed attempt leaves the session and the verified-email flag intact, so
+    // the user can fix a detail and submit the same code again. Surface any
+    // uniqueness clash before the insert so the retry gets a clear 409 rather
+    // than a raw database error.
+    await this.assertRegistrationDetailsAvailable({
+      email: data.account.email,
+      phoneNumber: data.phone_number,
+      idNumber: data.school_info.id_number,
+    });
 
     const user = await this.registerUser({
       firstname: data.firstname,
@@ -525,12 +554,7 @@ export class AuthMobileService {
       avatar: data.avatar,
       account: data.account,
       school_info: data.school_info,
-      biometric: {
-        face_url: faceUrl,
-        embedding: session.selfieEmbedding,
-        embedding_type: EmbeddingType.FACE,
-        isActive: true,
-      },
+      biometric,
     });
 
     const normalizedEmail = data.account.email.trim().toLowerCase();
@@ -604,14 +628,16 @@ export class AuthMobileService {
     return `registration:${registrationId}`;
   }
 
-  async sendOtpEmail(email: string) {
-    const normalizedEmail = email.trim().toLowerCase();
+  async sendOtpEmail(data: SendVerificationDto) {
+    const normalizedEmail = data.email.trim().toLowerCase();
 
-    const existingAccount =
-      await this.authRepository.findUserByEmail(normalizedEmail);
-    if (existingAccount) {
-      throw new ConflictException('An account with this email already exists');
-    }
+    // Every unique field is checked here, before any code goes out, so the form
+    // can send the user back to the clashing input instead of the OTP screen.
+    await this.assertRegistrationDetailsAvailable({
+      email: normalizedEmail,
+      phoneNumber: data.phone_number,
+      idNumber: data.id_number,
+    });
 
     const existingOtp = await this.redisService.get<string>(
       this.otpKey(normalizedEmail),
@@ -720,6 +746,201 @@ export class AuthMobileService {
     };
   }
 
+  /**
+   * Step 1 of "forgot password": confirm the email belongs to an account, then mail a
+   * code. The reply says an account was found — the user asked for that, and the sign-up
+   * form already answers the same question, so it discloses nothing new.
+   */
+  async requestPasswordReset(
+    email: string,
+  ): Promise<ForgotPasswordResponseDto> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const account = await this.authRepository.findUserByEmail(normalizedEmail);
+    if (!account) {
+      throw new NotFoundException('No account is registered with this email');
+    }
+
+    // A social-only account has no password to reset; sending a code would leave the
+    // user staring at a form that can never sign them in.
+    if (!account.password) {
+      throw new BadRequestException(
+        'This account signs in through Google or Facebook. Use that provider instead.',
+      );
+    }
+
+    const existingOtp = await this.redisService.get<string>(
+      this.resetOtpKey(normalizedEmail),
+    );
+    if (existingOtp) {
+      const ttl = await this.redisService.ttl(
+        this.resetOtpKey(normalizedEmail),
+      );
+      return {
+        email: normalizedEmail,
+        sent: false,
+        reused: true,
+        expiresInSeconds: ttl > 0 ? ttl : 0,
+      };
+    }
+
+    const otp = randomInt(100000, 1000000).toString();
+    const template = await TemplateUtils.compileTemplate(
+      'password-reset-otp.html',
+      {
+        code: otp,
+        username: account.user.firstname || normalizedEmail,
+        expiresInMinutes: DurationUtils.TEN_MINUTES / 60,
+      },
+    );
+
+    try {
+      await this.nodemailerService.sendEmail(
+        normalizedEmail,
+        'Reset your CARES password',
+        template,
+      );
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : 'Email delivery failed';
+      throw new BadGatewayException(`Unable to send reset email. ${detail}`);
+    }
+
+    await this.clearPasswordResetState(normalizedEmail);
+    await this.redisService.set(
+      this.resetOtpKey(normalizedEmail),
+      otp,
+      DurationUtils.TEN_MINUTES,
+    );
+
+    return {
+      email: normalizedEmail,
+      sent: true,
+      reused: false,
+      expiresInSeconds: DurationUtils.TEN_MINUTES,
+    };
+  }
+
+  /**
+   * Step 2: trade a correct code for a single-use reset token. The code is spent here,
+   * so the new-password screen never has to hold on to it.
+   */
+  async verifyPasswordResetOtp(
+    email: string,
+    otp: string,
+  ): Promise<VerifyResetOtpResponseDto> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const storedOtp = await this.redisService.get<string>(
+      this.resetOtpKey(normalizedEmail),
+    );
+
+    if (!storedOtp) {
+      throw new BadRequestException(
+        'Reset code expired or not found. Please request a new code.',
+      );
+    }
+
+    if (storedOtp !== otp.trim()) {
+      const attempts = await this.recordFailedResetAttempt(normalizedEmail);
+      if (attempts >= PASSWORD_RESET_MAX_ATTEMPTS) {
+        await this.clearPasswordResetState(normalizedEmail);
+        throw new BadRequestException(
+          'Too many incorrect codes. Please request a new one.',
+        );
+      }
+      throw new BadRequestException('Invalid reset code');
+    }
+
+    const resetToken = randomUUID();
+    await this.redisService.delete(this.resetOtpKey(normalizedEmail));
+    await this.redisService.delete(this.resetAttemptsKey(normalizedEmail));
+    await this.redisService.set(
+      this.resetTokenKey(normalizedEmail),
+      resetToken,
+      DurationUtils.FIFTEEN_MINUTES,
+    );
+
+    return {
+      email: normalizedEmail,
+      resetToken,
+      expiresInSeconds: DurationUtils.FIFTEEN_MINUTES,
+    };
+  }
+
+  /** Step 3: write the new password, then sign the account out of every device. */
+  async resetPassword(
+    data: ResetPasswordDto,
+  ): Promise<ResetPasswordResponseDto> {
+    const normalizedEmail = data.email.trim().toLowerCase();
+
+    const storedToken = await this.redisService.get<string>(
+      this.resetTokenKey(normalizedEmail),
+    );
+    if (!storedToken || storedToken !== data.resetToken) {
+      throw new UnauthorizedException(
+        'This reset session expired. Please start again.',
+      );
+    }
+
+    const account = await this.authRepository.findUserByEmail(normalizedEmail);
+    if (!account) {
+      throw new NotFoundException('No account is registered with this email');
+    }
+
+    await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(data.newPassword);
+
+    if (account.password) {
+      const reused = await bcrypt
+        .compare(data.newPassword, account.password)
+        .catch(() => false);
+      if (reused) {
+        throw new BadRequestException(
+          'Your new password must be different from your current one',
+        );
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    await this.authRepository.updatePasswordByEmail(
+      normalizedEmail,
+      hashedPassword,
+    );
+
+    await this.clearPasswordResetState(normalizedEmail);
+    // Anyone still holding a token issued under the old password is signed out — the
+    // reset is only worth something if a thief's session dies with it.
+    await this.sessionRegistry.revokeAllForUser(account.user.user_id);
+
+    return { email: normalizedEmail, updated: true };
+  }
+
+  private resetOtpKey(email: string): string {
+    return `password-reset:otp:${email}`;
+  }
+
+  private resetTokenKey(email: string): string {
+    return `password-reset:token:${email}`;
+  }
+
+  private resetAttemptsKey(email: string): string {
+    return `password-reset:attempts:${email}`;
+  }
+
+  /** Counts wrong codes for as long as the code itself lives. */
+  private async recordFailedResetAttempt(email: string): Promise<number> {
+    const key = this.resetAttemptsKey(email);
+    const current = (await this.redisService.get<number>(key)) ?? 0;
+    const next = current + 1;
+    await this.redisService.set(key, next, DurationUtils.TEN_MINUTES);
+    return next;
+  }
+
+  private async clearPasswordResetState(email: string): Promise<void> {
+    await this.redisService.delete(this.resetOtpKey(email));
+    await this.redisService.delete(this.resetTokenKey(email));
+    await this.redisService.delete(this.resetAttemptsKey(email));
+  }
+
   private otpKey(email: string): string {
     return `otp:${email}`;
   }
@@ -738,6 +959,30 @@ export class AuthMobileService {
   private async clearOtpState(email: string): Promise<void> {
     await this.redisService.delete(this.otpKey(email));
     await this.redisService.delete(this.otpVerifiedKey(email));
+  }
+
+  private async assertRegistrationDetailsAvailable(details: {
+    email: string;
+    phoneNumber?: string;
+    idNumber?: string;
+  }): Promise<void> {
+    const normalizedEmail = details.email.trim().toLowerCase();
+    if (await this.authRepository.findUserByEmail(normalizedEmail)) {
+      throw registrationConflict('email');
+    }
+
+    const phoneNumber = details.phoneNumber?.trim();
+    if (
+      phoneNumber &&
+      (await this.authRepository.findPhoneNumberOwner(phoneNumber))
+    ) {
+      throw registrationConflict('phone_number');
+    }
+
+    const idNumber = details.idNumber?.trim();
+    if (idNumber && (await this.authRepository.findSchoolIdOwner(idNumber))) {
+      throw registrationConflict('id_number');
+    }
   }
 
   private async requireVerifiedEmail(email: string): Promise<void> {

@@ -4,12 +4,16 @@ import {
   DonorOAuthResponseSchema,
   DonorOAuthSchema,
   RegisterDonorSchema,
+  RegisterDonorWithEmailSchema,
 } from '../validators/auth-donor-validator';
 
 export type DonorOAuthDto = z.infer<typeof DonorOAuthSchema>;
 export type DonorOAuthProfileDto = z.infer<typeof DonorOAuthProfileSchema>;
 export type DonorOAuthResponseDto = z.infer<typeof DonorOAuthResponseSchema>;
 export type RegisterDonorDto = z.infer<typeof RegisterDonorSchema>;
+export type RegisterDonorWithEmailDto = z.infer<
+  typeof RegisterDonorWithEmailSchema
+>;
 
 /**
  * Redis-only record behind an `oauth_ticket` — never serialized to a client, so it has

@@ -5,16 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/presentation/widgets/cares_terms_dialog.dart';
 import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
+import 'package:mobile/features/auth/presentation/widgets/account_exists_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_account_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_beneficiary_details_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_face_scan_step.dart';
+import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_id_upload_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_review_step.dart';
@@ -61,6 +66,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   String _email = '';
   String _password = '';
   String _confirmPassword = '';
+  bool _acceptedTerms = false;
+
+  /// Set when the server rejected a unique field (phone, ID number, email); the
+  /// flow jumps back to that step and the input shows the message until edited.
+  RegistrationConflict? _conflict;
 
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
@@ -138,7 +148,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           _ocrData.gender.trim().isNotEmpty &&
           _ocrData.age > 0 &&
           _ocrData.currentAddress.trim().isNotEmpty &&
-          _ocrData.phoneNumber.trim().length >= 7;
+          isValidPhilippinePhone(_ocrData.phoneNumber);
     }
 
     final baseValid =
@@ -146,7 +156,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         _ocrData.lastname.trim().isNotEmpty &&
         _ocrData.age > 0 &&
         _ocrData.currentAddress.trim().isNotEmpty &&
-        _ocrData.phoneNumber.trim().length >= 7 &&
+        isValidPhilippinePhone(_ocrData.phoneNumber) &&
         _ocrData.idNumber.trim().isNotEmpty &&
         _ocrData.departmentName.trim().isNotEmpty;
 
@@ -186,7 +196,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         .isSatisfiedBy(_password);
     final matchOk =
         _password == _confirmPassword && _confirmPassword.isNotEmpty;
-    return emailOk && passwordOk && matchOk;
+    return emailOk && passwordOk && matchOk && _acceptedTerms;
   }
 
   bool get _canContinue {
@@ -218,6 +228,44 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     );
   }
 
+  Future<void> _returnToConflict(RegistrationConflict conflict) async {
+    if (!mounted) return;
+    final step = switch (conflict.field) {
+      RegistrationConflictField.email => _RegisterStep.account,
+      RegistrationConflictField.phoneNumber ||
+      RegistrationConflictField.idNumber => _RegisterStep.details,
+    };
+    setState(() {
+      _conflict = conflict;
+      _stepIndex = _indexOf(step);
+    });
+    // A taken email is a dead end for this sign-up, so it gets a modal rather
+    // than a passing snackbar; the other fields are just corrected in place.
+    if (conflict.field == RegistrationConflictField.email) {
+      await showAccountExistsDialog(context, email: _email.trim());
+      return;
+    }
+    _showError(conflict.message);
+  }
+
+  /// Drops the inline conflict once its own field is edited — the next attempt
+  /// re-validates on the server anyway.
+  void _clearConflict(RegistrationConflictField field) {
+    if (_conflict?.field == field) _conflict = null;
+  }
+
+  void _clearConflictsChangedBy(RegisterOcrSample next) {
+    if (next.phoneNumber.trim() != _ocrData.phoneNumber.trim()) {
+      _clearConflict(RegistrationConflictField.phoneNumber);
+    }
+    if (next.idNumber.trim() != _ocrData.idNumber.trim()) {
+      _clearConflict(RegistrationConflictField.idNumber);
+    }
+  }
+
+  String? _conflictMessageFor(RegistrationConflictField field) =>
+      _conflict?.field == field ? _conflict!.message : null;
+
   Future<void> _next() async {
     switch (_currentStep) {
       case _RegisterStep.idUpload:
@@ -242,8 +290,12 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
+      // Phone / ID number go along so a clash is caught here, before any code
+      // is mailed, and the user is sent back to that input.
       final sendResult = await service.sendVerificationCode(
         email: _email.trim(),
+        phoneNumber: _ocrData.phoneNumber,
+        idNumber: _isBeneficiary ? null : _ocrData.idNumber,
       );
       if (!mounted) return;
 
@@ -262,27 +314,52 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         );
       }
 
-      final completed = await Navigator.of(context).push<bool>(
+      final email = _email.trim();
+      final ocrData = _ocrData;
+      final password = _password;
+
+      await Navigator.of(context).push<void>(
         MaterialPageRoute(
           builder: (_) => EmailVerificationScreen(
-            email: _email.trim(),
-            registrationId: registrationId,
-            ocrData: _ocrData,
-            roleType: widget.roleType,
-            password: _password,
+            email: email,
             initialExpiresInSeconds: sendResult.expiresInSeconds,
             emailAlreadyVerified: sendResult.verified,
             codeReused: sendResult.reused,
+            // A duplicate email / phone / ID number pops the OTP screen and
+            // lands on that input; the verified email stays valid so the same
+            // code finishes registration once it is fixed.
+            onConflict: _returnToConflict,
+            onVerified: (otpContext) async {
+              await service.registerFromSession(
+                registrationId: registrationId,
+                ocrData: ocrData,
+                roleType: widget.roleType.apiValue,
+                email: email,
+                password: password,
+              );
+              if (!otpContext.mounted) return;
+
+              // Land on the dashboard for the role registered under — a
+              // beneficiary must never end up on the volunteer dashboard.
+              DashboardRouter.navigateToRoleDashboard(
+                otpContext,
+                roleType: widget.roleType.apiValue,
+                email: email,
+                firstName: ocrData.firstname,
+                lastName: ocrData.lastname,
+              );
+            },
           ),
         ),
       );
-
-      if (completed == true && mounted) {
-        Navigator.of(context).pop();
-      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
+      final conflict = RegistrationConflict.fromException(e);
+      if (conflict != null) {
+        unawaited(_returnToConflict(conflict));
+        return;
+      }
       _showError(
         e is ApiException ? e.message : 'Failed to send verification code.',
       );
@@ -502,7 +579,13 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
             key: const ValueKey('beneficiary-details'),
             data: _ocrData,
             profile: _beneficiaryProfile,
-            onChanged: (data) => setState(() => _ocrData = data),
+            phoneError: _conflictMessageFor(
+              RegistrationConflictField.phoneNumber,
+            ),
+            onChanged: (data) => setState(() {
+              _clearConflictsChangedBy(data);
+              _ocrData = data;
+            }),
             onProfileChanged: (profile) =>
                 setState(() => _beneficiaryProfile = profile),
           );
@@ -516,7 +599,16 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           extractFailed: _ocrExtractFailed,
           extractErrorMessage: _ocrExtractError,
           onRetry: () => unawaited(_runOcrExtract()),
-          onChanged: (data) => setState(() => _ocrData = data),
+          phoneError: _conflictMessageFor(
+            RegistrationConflictField.phoneNumber,
+          ),
+          idNumberError: _conflictMessageFor(
+            RegistrationConflictField.idNumber,
+          ),
+          onChanged: (data) => setState(() {
+            _clearConflictsChangedBy(data);
+            _ocrData = data;
+          }),
         );
       case _RegisterStep.account:
         return RegisterAccountStep(
@@ -524,9 +616,20 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           email: _email,
           password: _password,
           confirmPassword: _confirmPassword,
-          onEmailChanged: (v) => setState(() => _email = v),
+          emailError: _conflictMessageFor(RegistrationConflictField.email),
+          onEmailChanged: (v) => setState(() {
+            if (v.trim() != _email.trim()) {
+              _clearConflict(RegistrationConflictField.email);
+            }
+            _email = v;
+          }),
           onPasswordChanged: (v) => setState(() => _password = v),
           onConfirmPasswordChanged: (v) => setState(() => _confirmPassword = v),
+          termsAudience: _isBeneficiary
+              ? CaresTermsAudience.beneficiary
+              : CaresTermsAudience.volunteer,
+          acceptedTerms: _acceptedTerms,
+          onAcceptedTermsChanged: (v) => setState(() => _acceptedTerms = v),
         );
     }
   }

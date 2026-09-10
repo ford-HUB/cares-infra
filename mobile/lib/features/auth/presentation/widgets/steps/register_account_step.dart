@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
+import 'package:mobile/features/auth/presentation/widgets/cares_terms_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
+import 'package:mobile/features/auth/presentation/widgets/terms_agreement_checkbox.dart';
 import 'package:mobile/features/auth/registration/widgets/password_strength_indicator.dart';
 
 class RegisterAccountStep extends StatefulWidget {
@@ -12,6 +15,10 @@ class RegisterAccountStep extends StatefulWidget {
     required this.onEmailChanged,
     required this.onPasswordChanged,
     required this.onConfirmPasswordChanged,
+    required this.termsAudience,
+    required this.acceptedTerms,
+    required this.onAcceptedTermsChanged,
+    this.emailError,
   });
 
   final String email;
@@ -20,6 +27,12 @@ class RegisterAccountStep extends StatefulWidget {
   final ValueChanged<String> onEmailChanged;
   final ValueChanged<String> onPasswordChanged;
   final ValueChanged<String> onConfirmPasswordChanged;
+  final CaresTermsAudience termsAudience;
+  final bool acceptedTerms;
+  final ValueChanged<bool> onAcceptedTermsChanged;
+
+  /// Server-side conflict on the email — shown inline and focused.
+  final String? emailError;
 
   @override
   State<RegisterAccountStep> createState() => _RegisterAccountStepState();
@@ -29,6 +42,7 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   late final TextEditingController _confirm;
+  late final FocusNode _emailFocus;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
@@ -38,10 +52,23 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
     _email = TextEditingController(text: widget.email);
     _password = TextEditingController(text: widget.password);
     _confirm = TextEditingController(text: widget.confirmPassword);
+    _emailFocus = FocusNode();
+    if (widget.emailError != null) {
+      focusConflictField(this, _emailFocus);
+    }
+  }
+
+  @override
+  void didUpdateWidget(RegisterAccountStep oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.emailError != null && oldWidget.emailError == null) {
+      focusConflictField(this, _emailFocus);
+    }
   }
 
   @override
   void dispose() {
+    _emailFocus.dispose();
     _email.dispose();
     _password.dispose();
     _confirm.dispose();
@@ -61,6 +88,8 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
         RegisterFormField(
           label: 'Email address',
           controller: _email,
+          focusNode: _emailFocus,
+          errorText: widget.emailError,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           onChanged: widget.onEmailChanged,
@@ -106,6 +135,12 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
           const SizedBox(height: 8),
           PasswordMatchNote(matches: passwordsMatch),
         ],
+        const SizedBox(height: 14),
+        TermsAgreementCheckbox(
+          audience: widget.termsAudience,
+          accepted: widget.acceptedTerms,
+          onChanged: widget.onAcceptedTermsChanged,
+        ),
       ],
     );
   }

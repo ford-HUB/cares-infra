@@ -1,18 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/session/donor_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/data/donor_auth_service.dart';
 import 'package:mobile/features/auth/data/models/donor_auth_models.dart';
 import 'package:mobile/features/auth/data/models/login_api_models.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/data/social_auth_client.dart';
 import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
+import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
+import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
+import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
+import 'package:mobile/features/auth/presentation/widgets/account_exists_dialog.dart';
+import 'package:mobile/features/auth/presentation/widgets/cares_terms_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
+import 'package:mobile/features/auth/presentation/widgets/terms_agreement_checkbox.dart';
 import 'package:mobile/features/auth/registration/widgets/password_strength_indicator.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_dashboard_screen.dart';
 
@@ -23,8 +32,10 @@ import 'package:mobile/features/dashboard/presentation/screens/donor_dashboard_s
 /// hands back a verified profile plus a ticket that `POST /v1/auth/donor/register`
 /// spends to create the account.
 ///
-/// The email + password route below it is still the local prototype — it keeps a donor
-/// in memory and has no server account behind it.
+/// The email + password route has no provider to vouch for the address, so it borrows
+/// the volunteer OTP step: "Create donor account" mails a code, the
+/// [EmailVerificationScreen] confirms it, and only then does
+/// `POST /v1/auth/donor/register-email` create the account.
 class RegisterDonorScreen extends ConsumerStatefulWidget {
   const RegisterDonorScreen({super.key});
 
@@ -42,6 +53,12 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _phoneFocus = FocusNode();
+
+  /// Set when the server says the email or phone number belongs to another
+  /// account; the input shows the message and takes focus until edited.
+  RegistrationConflict? _conflict;
 
   final _socialAuthClient = SocialAuthClient();
   final _donorAuthService = DonorAuthService();
@@ -76,7 +93,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         _emailController.text.trim().contains('@') &&
         // The server needs both: `phone_number` is unique on the user record, and the
         // address is what donation receipts are issued against.
-        _phoneController.text.trim().length >= 7 &&
+        isValidPhilippinePhone(_phoneController.text) &&
         _addressController.text.trim().isNotEmpty &&
         _acceptedTerms;
 
@@ -100,7 +117,37 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     _addressController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _emailFocus.dispose();
+    _phoneFocus.dispose();
     super.dispose();
+  }
+
+  String? _conflictMessageFor(RegistrationConflictField field) =>
+      _conflict?.field == field ? _conflict!.message : null;
+
+  void _clearConflict(RegistrationConflictField field) {
+    if (_conflict?.field == field) _conflict = null;
+  }
+
+  /// Highlights and focuses the field the server rejected. Runs on this page
+  /// directly from a failed send, or via the OTP screen after it pops itself.
+  Future<void> _showConflict(RegistrationConflict conflict) async {
+    if (!mounted) return;
+    setState(() => _conflict = conflict);
+    switch (conflict.field) {
+      case RegistrationConflictField.email:
+        focusConflictField(this, _emailFocus);
+        await showAccountExistsDialog(
+          context,
+          email: _emailController.text.trim(),
+        );
+        return;
+      case RegistrationConflictField.phoneNumber:
+        focusConflictField(this, _phoneFocus);
+      case RegistrationConflictField.idNumber:
+        break;
+    }
+    _showMessage(conflict.message);
   }
 
   void _showMessage(String message) {
@@ -199,19 +246,84 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       return;
     }
 
-    // Email + password donor sign-up is still the local prototype: there is no server
-    // account behind it, only an in-memory session.
-    final donor = DonorSessionUser(
-      firstName: _firstNameController.text.trim(),
-      middleName: _middleNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      email: _emailController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
-      address: _addressController.text.trim(),
+    await _sendVerificationCode();
+  }
+
+  /// Email + password path: mail a code, then hand off to the OTP screen. The account
+  /// is created from that screen's `onVerified`, so a wrong or expired code never
+  /// leaves a half-made donor behind.
+  Future<void> _sendVerificationCode() async {
+    final email = _emailController.text.trim();
+    setState(() => _submitting = true);
+
+    try {
+      final registrationService = ref.read(authRegistrationServiceProvider);
+      final sendResult = await registrationService.sendVerificationCode(
+        email: email,
+        phoneNumber: _phoneController.text,
+      );
+      if (!mounted) return;
+
+      setState(() => _submitting = false);
+
+      if (!sendResult.sent && sendResult.reused) {
+        _showMessage(
+          sendResult.verified
+              ? 'Your email is already verified. Enter the same code to continue.'
+              : 'Your verification code is still active. Check your email and enter it below.',
+        );
+      }
+
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => EmailVerificationScreen(
+            email: email,
+            initialExpiresInSeconds: sendResult.expiresInSeconds,
+            emailAlreadyVerified: sendResult.verified,
+            codeReused: sendResult.reused,
+            onConflict: _showConflict,
+            onVerified: _createEmailDonor,
+          ),
+        ),
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      final conflict = RegistrationConflict.fromException(error);
+      if (conflict != null) {
+        unawaited(_showConflict(conflict));
+        return;
+      }
+      _showMessage(error.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _showMessage('Failed to send verification code.');
+    }
+  }
+
+  /// Runs on the OTP screen once the code is accepted. Errors are left to propagate:
+  /// the verification screen shows them and clears the code for another try.
+  Future<void> _createEmailDonor(BuildContext otpContext) async {
+    final session = await _donorAuthService.registerDonorWithEmail(
+      email: _emailController.text,
+      password: _passwordController.text,
+      firstName: _firstNameController.text,
+      middleName: _middleNameController.text,
+      lastName: _lastNameController.text,
+      phoneNumber: _phoneController.text,
+      address: _addressController.text,
     );
 
-    DonorSession.instance.register(donor);
-    _openDashboard(donor);
+    if (!otpContext.mounted) return;
+    _enterDashboard(
+      session,
+      middleName: _middleNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      phoneNumber: _phoneController.text.trim(),
+      address: _addressController.text.trim(),
+      navigatorContext: otpContext,
+    );
   }
 
   Future<void> _submitSocialSignUp() async {
@@ -250,6 +362,11 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
           _oauthTicket = null;
         });
       }
+      final conflict = RegistrationConflict.fromException(error);
+      if (conflict != null) {
+        unawaited(_showConflict(conflict));
+        return;
+      }
       _showMessage(error.message);
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -263,6 +380,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     required String lastName,
     required String phoneNumber,
     required String address,
+    BuildContext? navigatorContext,
   }) {
     AuthSession.setAccessToken(session.accessToken);
 
@@ -278,11 +396,14 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     );
 
     DonorSession.instance.register(donor);
-    _openDashboard(donor);
+    _openDashboard(donor, navigatorContext ?? context);
   }
 
-  void _openDashboard(DonorSessionUser donor) {
-    Navigator.of(context).pushAndRemoveUntil(
+  /// [navigatorContext] is whichever screen is on top — this form, or the OTP screen
+  /// pushed above it on the email path. Both share the root navigator, so the whole
+  /// sign-up stack is cleared either way.
+  void _openDashboard(DonorSessionUser donor, BuildContext navigatorContext) {
+    Navigator.of(navigatorContext).pushAndRemoveUntil(
       MaterialPageRoute<void>(
         builder: (_) => DonorDashboardScreen(donor: donor),
       ),
@@ -412,13 +533,16 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         RegisterFormField(
           label: 'Phone Number',
           controller: _phoneController,
+          focusNode: _phoneFocus,
+          errorText:
+              _conflictMessageFor(RegistrationConflictField.phoneNumber) ??
+              philippinePhoneError(_phoneController.text),
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
-            LengthLimitingTextInputFormatter(25),
-          ],
-          onChanged: (_) => setState(() {}),
+          inputFormatters: const [PhilippinePhoneFormatter()],
+          onChanged: (_) => setState(
+            () => _clearConflict(RegistrationConflictField.phoneNumber),
+          ),
         ),
         const SizedBox(height: 14),
         RegisterFormField(
@@ -450,10 +574,13 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         RegisterFormField(
           label: 'Email',
           controller: _emailController,
+          focusNode: _emailFocus,
+          errorText: _conflictMessageFor(RegistrationConflictField.email),
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           readOnly: _isSocialSignUp,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) =>
+              setState(() => _clearConflict(RegistrationConflictField.email)),
         ),
         if (!_isSocialSignUp) ...[
           const SizedBox(height: 14),
@@ -532,42 +659,10 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   }
 
   Widget _termsRow() {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => setState(() => _acceptedTerms = !_acceptedTerms),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: _acceptedTerms,
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                onChanged: (value) =>
-                    setState(() => _acceptedTerms = value ?? false),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'I agree to the CARES donor terms and privacy notice.',
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  color: AppColors.secondary.withValues(alpha: 0.95),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return TermsAgreementCheckbox(
+      audience: CaresTermsAudience.donor,
+      accepted: _acceptedTerms,
+      onChanged: (value) => setState(() => _acceptedTerms = value),
     );
   }
 

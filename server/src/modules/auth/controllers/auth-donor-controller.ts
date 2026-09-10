@@ -17,12 +17,14 @@ import {
   DonorOAuthResponseSchema,
   DonorOAuthSchema,
   RegisterDonorSchema,
+  RegisterDonorWithEmailSchema,
 } from '../validators/auth-donor-validator';
 import { LoginResponseSchema } from '../validators/auth-mobile-validator';
 import type {
   DonorOAuthDto,
   DonorOAuthResponseDto,
   RegisterDonorDto,
+  RegisterDonorWithEmailDto,
 } from '../dto/auth-donor-dto';
 import type { LoginResponseDto } from '../dto/auth-mobile-dto';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
@@ -82,6 +84,27 @@ export class AuthDonorController {
     @Headers('user-agent') userAgent?: string,
   ): Promise<LoginResponseDto> {
     return await this.authDonorService.registerDonor(
+      data,
+      ipAddress,
+      userAgent,
+    );
+  }
+
+  /**
+   * Email + password donor sign-up. The address must have passed the shared OTP check
+   * first — the client sends the code via `POST /v1/auth/send-verification` and
+   * confirms it via `POST /v1/auth/verify-otp` before calling this.
+   */
+  @Post('register-email')
+  @Public()
+  @ResponseMessage('Donor account created')
+  @ZSerialize(LoginResponseSchema)
+  async registerDonorWithEmail(
+    @ZBody(RegisterDonorWithEmailSchema) data: RegisterDonorWithEmailDto,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<LoginResponseDto> {
+    return await this.authDonorService.registerDonorWithEmail(
       data,
       ipAddress,
       userAgent,

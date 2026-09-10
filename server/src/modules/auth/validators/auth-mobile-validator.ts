@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 import {
   EmbeddingType,
   GenderType,
@@ -16,7 +17,7 @@ export const CreateUserSchema = z
 
     age: z.number().int().min(1).max(150),
     current_address: z.string().trim().min(1),
-    phone_number: z.string().trim().min(7).max(25),
+    phone_number: PhoneNumberSchema,
     avatar: z.string().trim().url().optional(),
 
     account: z.object({
@@ -40,12 +41,16 @@ export const CreateUserSchema = z
       }),
     }),
 
-    biometric: z.object({
-      face_url: z.string().trim().url(),
-      embedding: z.array(z.number().finite()).length(512),
-      embedding_type: z.enum(EmbeddingType),
-      isActive: z.boolean().default(true),
-    }),
+    // Absent for beneficiaries: they register without an ID or a face scan, so
+    // there is nothing to enrol.
+    biometric: z
+      .object({
+        face_url: z.string().trim().url(),
+        embedding: z.array(z.number().finite()).length(512),
+        embedding_type: z.enum(EmbeddingType),
+        isActive: z.boolean().default(true),
+      })
+      .optional(),
   })
   .strict();
 
@@ -72,6 +77,10 @@ export const RegisterFromSessionSchema = CreateUserSchema.omit({
 export const SendVerificationSchema = z
   .object({
     email: z.string().trim().email(),
+    // Optional so the availability check runs before a code is ever mailed —
+    // a taken phone number or ID number is caught on the form, not after OTP.
+    phone_number: PhoneNumberSchema.optional(),
+    id_number: z.string().trim().min(1).optional(),
   })
   .strict();
 
@@ -83,6 +92,44 @@ export const VerifyOtpSchema = z
       .trim()
       .length(6)
       .regex(/^\d{6}$/),
+  })
+  .strict();
+
+export const ForgotPasswordSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .email()
+      .transform((value) => value.toLowerCase()),
+  })
+  .strict();
+
+export const VerifyResetOtpSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .email()
+      .transform((value) => value.toLowerCase()),
+    otp: z
+      .string()
+      .trim()
+      .length(6)
+      .regex(/^\d{6}$/),
+  })
+  .strict();
+
+export const ResetPasswordSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .email()
+      .transform((value) => value.toLowerCase()),
+    /** Handed out by `verify-reset-otp`; the OTP itself is never replayed here. */
+    resetToken: z.uuid(),
+    newPassword: z.string().min(8),
   })
   .strict();
 
@@ -107,7 +154,8 @@ export const RegistrationStepSchema = z.enum([
 export const RegisterUserResponseSchema = z.object({
   user_id: z.string(),
   account_id: z.string(),
-  user_biometric_id: z.string(),
+  // Null for a beneficiary — no face is enrolled on an ID-less registration.
+  user_biometric_id: z.string().nullable(),
 });
 
 export const LoginResponseSchema = z.object({
@@ -182,4 +230,22 @@ export const VerifyOtpResponseSchema = z.object({
   email: z.string(),
   verified: z.boolean(),
   expiresInSeconds: z.number(),
+});
+
+export const ForgotPasswordResponseSchema = z.object({
+  email: z.string(),
+  sent: z.boolean(),
+  reused: z.boolean(),
+  expiresInSeconds: z.number(),
+});
+
+export const VerifyResetOtpResponseSchema = z.object({
+  email: z.string(),
+  resetToken: z.string(),
+  expiresInSeconds: z.number(),
+});
+
+export const ResetPasswordResponseSchema = z.object({
+  email: z.string(),
+  updated: z.boolean(),
 });

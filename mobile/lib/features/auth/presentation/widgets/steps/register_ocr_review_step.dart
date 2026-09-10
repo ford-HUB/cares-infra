@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -18,6 +20,8 @@ class RegisterOcrReviewStep extends StatefulWidget {
     required this.isExtracting,
     required this.extractFailed,
     required this.onChanged,
+    this.phoneError,
+    this.idNumberError,
     this.extractErrorMessage,
     this.onRetry,
   }) : assert(
@@ -33,6 +37,10 @@ class RegisterOcrReviewStep extends StatefulWidget {
   final String? extractErrorMessage;
   final VoidCallback? onRetry;
   final ValueChanged<RegisterOcrSample> onChanged;
+
+  /// Server-side conflicts on these inputs — shown inline and focused.
+  final String? phoneError;
+  final String? idNumberError;
 
   @override
   State<RegisterOcrReviewStep> createState() => _RegisterOcrReviewStepState();
@@ -67,6 +75,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   late final FocusNode _gradMonthFocus;
   late final FocusNode _gradDayFocus;
   late final FocusNode _gradYearFocus;
+  late final FocusNode _phoneFocus;
+  late final FocusNode _idNumberFocus;
 
   late String _gender;
   String? _selectedDepartment;
@@ -107,16 +117,33 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradMonthFocus = FocusNode();
     _gradDayFocus = FocusNode();
     _gradYearFocus = FocusNode();
+    _phoneFocus = FocusNode();
+    _idNumberFocus = FocusNode();
     _gender = '';
 
     if (!widget.isExtracting && !widget.extractFailed) {
       _applyData(widget.data);
+    }
+    _focusConflict();
+  }
+
+  /// Lands the cursor on whichever input the server rejected.
+  void _focusConflict() {
+    if (widget.phoneError != null) {
+      focusConflictField(this, _phoneFocus);
+    } else if (widget.idNumberError != null) {
+      focusConflictField(this, _idNumberFocus);
     }
   }
 
   @override
   void didUpdateWidget(RegisterOcrReviewStep oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if ((widget.phoneError != null && oldWidget.phoneError == null) ||
+        (widget.idNumberError != null && oldWidget.idNumberError == null)) {
+      _focusConflict();
+    }
 
     final extractionCompleted =
         oldWidget.isExtracting && !widget.isExtracting && !widget.extractFailed;
@@ -148,7 +175,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _setControllerText(_middleName, enriched.middleName);
     _setControllerText(_age, enriched.age > 0 ? '${enriched.age}' : '');
     _setControllerText(_address, enriched.currentAddress);
-    _setControllerText(_phone, enriched.phoneNumber);
+    _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
     _setControllerText(_idNumber, enriched.idNumber);
     _setControllerText(_yearLevel, enriched.yearLevelName);
     _setControllerText(
@@ -208,6 +235,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradMonthFocus.dispose();
     _gradDayFocus.dispose();
     _gradYearFocus.dispose();
+    _phoneFocus.dispose();
+    _idNumberFocus.dispose();
     super.dispose();
   }
 
@@ -475,8 +504,12 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             const SizedBox(height: 14),
             RegisterFormField(
               label: 'Phone number',
+              hint: '+639XXXXXXXXX',
               controller: _phone,
+              focusNode: _phoneFocus,
+              errorText: widget.phoneError ?? philippinePhoneError(_phone.text),
               keyboardType: TextInputType.phone,
+              inputFormatters: const [PhilippinePhoneFormatter()],
               onChanged: (_) => _notifyParent(),
             ),
           ],
@@ -490,6 +523,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             RegisterFormField(
               label: 'ID number',
               controller: _idNumber,
+              focusNode: _idNumberFocus,
+              errorText: widget.idNumberError,
               onChanged: (_) => _notifyParent(),
             ),
             const SizedBox(height: 14),

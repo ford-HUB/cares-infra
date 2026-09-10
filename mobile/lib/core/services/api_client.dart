@@ -49,7 +49,7 @@ class ApiClient {
       final response = await _client
           .get(uri(path), headers: _jsonHeaders(authenticate: authenticate))
           .timeout(const Duration(seconds: 30));
-      return _parseResponse(response);
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
   }
 
@@ -67,7 +67,7 @@ class ApiClient {
             body: jsonEncode(body),
           )
           .timeout(timeout);
-      return _parseResponse(response);
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
   }
 
@@ -85,7 +85,7 @@ class ApiClient {
             body: jsonEncode(body),
           )
           .timeout(timeout);
-      return _parseResponse(response);
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
   }
 
@@ -124,7 +124,10 @@ class ApiClient {
     }
   }
 
-  Map<String, dynamic> _parseResponse(http.Response response) {
+  Map<String, dynamic> _parseResponse(
+    http.Response response, {
+    bool authenticated = false,
+  }) {
     Map<String, dynamic>? body;
     if (response.body.isNotEmpty) {
       final decoded = jsonDecode(response.body);
@@ -137,6 +140,14 @@ class ApiClient {
       final message =
           body?['message'] as String? ??
           'Request failed (${response.statusCode})';
+      // A 401 on a request that carried our token means the server dropped the
+      // session (restricted account, revoked device, expiry). A 401 from login
+      // itself is a wrong password and stays with the form.
+      if (response.statusCode == 401 &&
+          authenticated &&
+          AuthSession.isSignedIn) {
+        AuthSession.notifySessionEnded(message);
+      }
       throw ApiException(
         message,
         statusCode: response.statusCode,

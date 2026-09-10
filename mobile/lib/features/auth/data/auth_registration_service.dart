@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
@@ -112,12 +113,25 @@ class AuthRegistrationService {
     return response['data'] as Map<String, dynamic>? ?? {};
   }
 
+  /// [phoneNumber] and [idNumber] are checked for clashes with existing
+  /// accounts before a code is sent, so a taken value is reported as a
+  /// [RegistrationConflict] on the form rather than after the OTP.
   Future<SendVerificationResponse> sendVerificationCode({
     required String email,
+    String? phoneNumber,
+    String? idNumber,
   }) async {
+    final phone = phoneNumber == null
+        ? null
+        : normalizePhilippinePhone(phoneNumber);
+    final id = idNumber?.trim();
     final response = await _api.postJson(
       '/auth/send-verification',
-      body: {'email': email.trim()},
+      body: {
+        'email': email.trim(),
+        if (phone != null && phone.isNotEmpty) 'phone_number': phone,
+        if (id != null && id.isNotEmpty) 'id_number': id,
+      },
     );
 
     return SendVerificationResponse.fromJson(

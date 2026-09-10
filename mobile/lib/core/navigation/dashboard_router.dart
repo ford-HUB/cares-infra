@@ -36,6 +36,7 @@ class DashboardRouter {
     String firstName = '',
     String lastName = '',
     bool profileComplete = false,
+    bool hasInterests = false,
   }) {
     switch (roleType.trim().toUpperCase()) {
       case 'BENEFICIARY':
@@ -68,6 +69,7 @@ class DashboardRouter {
           email: email,
           firstName: firstName,
           profileComplete: profileComplete,
+          hasInterests: hasInterests,
         );
     }
   }
@@ -88,6 +90,7 @@ class DashboardRouter {
     String firstName = '',
     String lastName = '',
     bool profileComplete = false,
+    bool hasInterests = false,
   }) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
@@ -97,6 +100,7 @@ class DashboardRouter {
           firstName: firstName,
           lastName: lastName,
           profileComplete: profileComplete,
+          hasInterests: hasInterests,
         ),
       ),
       (_) => false,

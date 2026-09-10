@@ -1,4 +1,8 @@
-import { NotFoundException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   AuthProvider,
   GenderType,
@@ -8,17 +12,50 @@ import {
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { CreateUserDto } from '../dto/auth-mobile-dto';
 
-export interface CreateDonorInput {
+interface DonorDetailsInput {
   firstname: string;
   lastname: string;
   middleName: string;
   gender: GenderType;
   phoneNumber: string;
   currentAddress: string;
-  avatar: string | null;
   email: string;
+}
+
+export interface CreateDonorInput extends DonorDetailsInput {
+  avatar: string | null;
   provider: AuthProvider;
   providerUserId: string;
+}
+
+export interface CreateDonorWithPasswordInput extends DonorDetailsInput {
+  /** Already bcrypt-hashed — the repository never sees a plaintext password. */
+  hashedPassword: string;
+}
+
+export type RegistrationConflictField = 'email' | 'phone_number' | 'id_number';
+
+const REGISTRATION_CONFLICT_MESSAGES: Record<
+  RegistrationConflictField,
+  string
+> = {
+  email: 'An account with this email already exists',
+  phone_number: 'This phone number is already registered to another account',
+  id_number: 'This ID number is already registered to another account',
+};
+
+/**
+ * A 409 whose `errors` carries the clashing field in the same `{ path, message }`
+ * shape as validation issues, so a client can jump back to that input.
+ */
+export function registrationConflict(
+  field: RegistrationConflictField,
+): ConflictException {
+  const message = REGISTRATION_CONFLICT_MESSAGES[field];
+  return new ConflictException({
+    message,
+    errors: [{ path: field, message }],
+  });
 }
 
 @Injectable()
@@ -26,6 +63,38 @@ export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createUser(data: CreateUserDto) {
+    try {
+      return await this.createUserInTransaction(data);
+    } catch (error) {
+      throw this.mapUniqueViolation(error);
+    }
+  }
+
+  /**
+   * Turns a unique-index clash into a 409 naming the field, so a registration retry
+   * reads as "already taken" instead of a raw database failure.
+   */
+  private mapUniqueViolation(error: unknown): unknown {
+    if (
+      !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+      error.code !== 'P2002'
+    ) {
+      return error;
+    }
+
+    const target = error.meta?.target;
+    const fields = Array.isArray(target)
+      ? target.map(String)
+      : [String(target)];
+    const field = (['phone_number', 'email', 'id_number'] as const).find(
+      (candidate) => fields.includes(candidate),
+    );
+    return field
+      ? registrationConflict(field)
+      : new ConflictException('Some of these details are already registered');
+  }
+
+  private async createUserInTransaction(data: CreateUserDto) {
     return await this.prisma.$transaction(async (tx) => {
       const department = await this.findOrCreateDepartment(
         tx,
@@ -89,14 +158,16 @@ export class AuthRepository {
               },
             },
           },
-          user_biometrics: {
-            create: {
-              face_url: data.biometric.face_url,
-              embedding: data.biometric.embedding,
-              embedding_type: data.biometric.embedding_type,
-              isActive: data.biometric.isActive,
-            },
-          },
+          user_biometrics: data.biometric
+            ? {
+                create: {
+                  face_url: data.biometric.face_url,
+                  embedding: data.biometric.embedding,
+                  embedding_type: data.biometric.embedding_type,
+                  isActive: data.biometric.isActive,
+                },
+              }
+            : undefined,
         },
         select: {
           user_id: true,
@@ -126,7 +197,7 @@ export class AuthRepository {
       return {
         user_id: user.user_id,
         account_id: account.account_id,
-        user_biometric_id: user.user_biometrics[0].user_biometric_id,
+        user_biometric_id: user.user_biometrics[0]?.user_biometric_id ?? null,
       };
     });
   }
@@ -187,6 +258,48 @@ export class AuthRepository {
         account_id: account.account_id,
         oauth_identity_id: identity.oauth_identity_id,
       };
+    });
+  }
+
+  /**
+   * Creates a donor who signs in with a password instead of a provider. Same shape as
+   * the OAuth variant minus the identity row — the account itself carries the credential.
+   */
+  async createDonorWithPassword(data: CreateDonorWithPasswordInput) {
+    return await this.prisma.$transaction(async (tx) => {
+      const role =
+        (await tx.role.findFirst({
+          where: { type: RoleType.DONOR },
+          select: { role_id: true },
+        })) ??
+        (await tx.role.create({
+          data: { type: RoleType.DONOR },
+          select: { role_id: true },
+        }));
+
+      const user = await tx.user.create({
+        data: {
+          firstname: data.firstname,
+          lastname: data.lastname,
+          middle_name: data.middleName,
+          gender: data.gender,
+          current_address: data.currentAddress,
+          phone_number: data.phoneNumber,
+          role: { connect: { role_id: role.role_id } },
+        },
+        select: { user_id: true },
+      });
+
+      const account = await tx.account.create({
+        data: {
+          email: data.email,
+          password: data.hashedPassword,
+          user: { connect: { user_id: user.user_id } },
+        },
+        select: { account_id: true },
+      });
+
+      return { user_id: user.user_id, account_id: account.account_id };
     });
   }
 
@@ -266,6 +379,13 @@ export class AuthRepository {
     });
   }
 
+  async findSchoolIdOwner(idNumber: string) {
+    return this.prisma.userSchoolInfo.findUnique({
+      where: { id_number: idNumber },
+      select: { user_id: true },
+    });
+  }
+
   async findUserByEmail(email: string) {
     return await this.prisma.account.findUnique({
       where: {
@@ -300,6 +420,22 @@ export class AuthRepository {
           },
         },
       },
+    });
+  }
+
+  /**
+   * Password-reset write. `credential_expires_at` is cleared as well: an account the
+   * administrator provisioned with a temporary credential now has one its owner chose,
+   * so the expiry that forced the hand-over no longer applies.
+   */
+  async updatePasswordByEmail(email: string, hashedPassword: string) {
+    return this.prisma.account.update({
+      where: { email },
+      data: {
+        password: hashedPassword,
+        credential_expires_at: null,
+      },
+      select: { account_id: true, email: true, user_id: true },
     });
   }
 

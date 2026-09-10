@@ -13,6 +13,7 @@ import 'package:mobile/features/dashboard/presentation/screens/profile_tab_scree
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
 import 'package:mobile/features/dashboard/screens/assistance_request_form_screen.dart';
+import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
 /// Beneficiary shell — same structure, layout, and styling as the volunteer
 /// [HomeScreen], with the Request tab replacing Ranks and beneficiary content
@@ -48,8 +49,18 @@ class _BeneficiaryDashboardScreenState
   final _personalStore = BeneficiaryPersonalProfileStore.instance;
 
   int _currentTab = 0;
+  // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
+  int _refreshVersion = 0;
 
   BeneficiaryProfile get _profile => _profileStore.profile;
+
+  /// Pull-to-refresh. Beneficiary data lives in in-memory stores today, so
+  /// the reload is a remount of every tab; swap in real fetches here when the
+  /// beneficiary endpoints land.
+  Future<void> _refreshAll() async {
+    if (!mounted) return;
+    setState(() => _refreshVersion++);
+  }
 
   bool get _profileComplete => _profile.profileComplete;
 
@@ -126,30 +137,34 @@ class _BeneficiaryDashboardScreenState
       body: Column(
         children: [
           Expanded(
-            child: IndexedStack(
-              index: _currentTab,
-              children: [
-                BeneficiaryHomeTab(
-                  firstName: _firstName,
-                  onRequestAssistance: _requestAssistance,
-                  onViewRequests: _openRequestsTab,
-                  showProfileCompletionCard: !_profileComplete,
-                  onCompleteProfile: _openProfileSetup,
-                ),
-                const EventsTabScreen(),
-                const ActivityTabScreen(),
-                const BeneficiaryRequestsTab(),
-                ProfileTabScreen(
-                  displayName: _displayName,
-                  email: widget.email,
-                  points: 0,
-                  profileComplete: _profileComplete,
-                  completionPercent: _profile.completionPercent,
-                  isBeneficiary: true,
-                  onEditProfile: _openPersonalInfo,
-                  onOpenRequests: _openRequestsTab,
-                ),
-              ],
+            child: DashboardRefreshShell(
+              onRefresh: _refreshAll,
+              child: IndexedStack(
+                key: ValueKey(_refreshVersion),
+                index: _currentTab,
+                children: [
+                  BeneficiaryHomeTab(
+                    firstName: _firstName,
+                    onRequestAssistance: _requestAssistance,
+                    onViewRequests: _openRequestsTab,
+                    showProfileCompletionCard: !_profileComplete,
+                    onCompleteProfile: _openProfileSetup,
+                  ),
+                  const EventsTabScreen(),
+                  const ActivityTabScreen(),
+                  const BeneficiaryRequestsTab(),
+                  ProfileTabScreen(
+                    displayName: _displayName,
+                    email: widget.email,
+                    points: 0,
+                    profileComplete: _profileComplete,
+                    completionPercent: _profile.completionPercent,
+                    isBeneficiary: true,
+                    onEditProfile: _openPersonalInfo,
+                    onOpenRequests: _openRequestsTab,
+                  ),
+                ],
+              ),
             ),
           ),
           DashboardBottomNav(

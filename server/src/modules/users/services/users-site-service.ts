@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +13,7 @@ import {
   RoleType,
   VerificationStatus,
 } from '../../../infastructures/prisma/common/client';
+import { NodemailerService } from '../../../infastructures/nodemailer/nodemailer-service';
 import { S3Service } from '../../../infastructures/s3/s3-service';
 import {
   PERMISSION_CATALOG,
@@ -23,12 +25,14 @@ import {
   generateTemporaryEmail,
   generateTemporaryPassword,
 } from '../../../shared/utils/temporary-credential-utils';
+import { TemplateUtils } from '../../../shared/utils/templete-utils';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { AccessControlRepository } from '../../access-control/repositories/access-control-repository';
 import type { OverrideInput } from '../../access-control/repositories/access-control-repository';
 import { AuditLogRecorder } from '../../audit-logs/services/audit-log-recorder';
 import { LoginPolicyEnforcer } from '../../security-policy/services/login-policy-enforcer';
 import { SecurityPolicyService } from '../../security-policy/services/security-policy-service';
+import { SessionRegistry } from '../../sessions/services/session-registry';
 import type {
   BlockUserIpDto,
   ListUsersQueryDto,
@@ -59,6 +63,15 @@ const DEFAULT_PROVISIONED_EMAIL_DOMAIN = 'cares.local';
 /** A minted address collides only by chance; a few attempts is more than enough. */
 const EMAIL_GENERATION_ATTEMPTS = 5;
 
+/** Where a restricted user is told to appeal; the same inbox that reads access requests. */
+const DEFAULT_SUPPORT_EMAIL = 'careeesadmin@gmail.com';
+
+/**
+ * Provisioned accounts are minted under a domain nothing is delivered to (see
+ * `DEFAULT_PROVISIONED_EMAIL_DOMAIN`); mailing them would only bounce.
+ */
+const UNDELIVERABLE_EMAIL_DOMAINS = new Set([DEFAULT_PROVISIONED_EMAIL_DOMAIN]);
+
 /** An admin sees every account; a director sees everyone except other admins. */
 const VISIBLE_ROLES: Record<string, readonly RoleType[]> = {
   [RoleType.ADMIN]: Object.values(RoleType),
@@ -69,6 +82,8 @@ const VISIBLE_ROLES: Record<string, readonly RoleType[]> = {
 
 @Injectable()
 export class UsersSiteService {
+  private readonly logger = new Logger(UsersSiteService.name);
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly s3Service: S3Service,
@@ -77,6 +92,8 @@ export class UsersSiteService {
     private readonly securityPolicyService: SecurityPolicyService,
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
     private readonly configService: ConfigService,
+    private readonly sessionRegistry: SessionRegistry,
+    private readonly nodemailerService: NodemailerService,
   ) {}
 
   async listUsers(
@@ -151,7 +168,22 @@ export class UsersSiteService {
       throw new BadRequestException('You cannot restrict your own account');
     }
 
+    const restrictedAt = new Date();
     await this.usersRepository.setRestriction(userId, true, data.reason);
+
+    // The login check only stops the *next* sign-in. Anything already signed in — on
+    // the portal or the app — holds a token `SessionGuard` will keep honouring until
+    // its record is gone, so every live session is ended here, in the same request.
+    const revoked = await this.sessionRegistry.revokeAllForUser(userId);
+
+    const email = target.accounts[0]?.email ?? null;
+    const notified = await this.sendRestrictionNotice(
+      target,
+      email,
+      data.reason,
+      restrictedAt,
+      caller,
+    );
 
     await this.auditLogRecorder.record({
       action: 'user.restricted',
@@ -168,10 +200,66 @@ export class UsersSiteService {
       userAgent: context.userAgent,
       reason: data.reason,
       changes: [{ field: 'is_restricted', before: 'false', after: 'true' }],
-      metadata: { role: target.role.type },
+      metadata: {
+        role: target.role.type,
+        sessions_revoked: String(revoked),
+        // Whether the person was actually told — a bounce or an undeliverable
+        // address is what an operator wants to know when the user says "nobody
+        // told me".
+        notified: String(notified),
+      },
     });
 
     return this.reload(userId);
+  }
+
+  /**
+   * Mails the person the reason they were restricted. Best-effort: the restriction
+   * and the sign-out already happened, and a mail failure must not roll them back or
+   * turn the action into an error. Returns whether the notice was delivered to SMTP.
+   */
+  private async sendRestrictionNotice(
+    target: ManagedUserRow,
+    email: string | null,
+    reason: string,
+    restrictedAt: Date,
+    caller: JwtPayload,
+  ): Promise<boolean> {
+    if (!email || !isDeliverableEmail(email)) {
+      return false;
+    }
+
+    const supportEmail =
+      this.configService.get<string>('ACCESS_REQUEST_EMAIL')?.trim() ||
+      DEFAULT_SUPPORT_EMAIL;
+
+    try {
+      const html = await TemplateUtils.compileTemplate(
+        'account-restricted.html',
+        {
+          username: `${target.firstname} ${target.lastname}`.trim() || email,
+          email,
+          reason,
+          restrictedAt: formatNoticeDate(restrictedAt),
+          restrictedBy: `A CARES ${caller.role_type.toLowerCase()}`,
+          supportEmail,
+        },
+      );
+
+      await this.nodemailerService.sendEmail(
+        email,
+        'Your CARES account has been restricted',
+        html,
+        { replyTo: supportEmail },
+      );
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send the restriction notice to ${email} for user ${target.user_id}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return false;
+    }
   }
 
   async unrestrictUser(
@@ -595,6 +683,26 @@ export class UsersSiteService {
     }
     return toManagedUser(user);
   }
+}
+
+function isDeliverableEmail(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return Boolean(domain) && !UNDELIVERABLE_EMAIL_DOMAINS.has(domain);
+}
+
+/** e.g. "10 September 2026, 14:05 (Asia/Manila)" — a person reads this, not a parser. */
+function formatNoticeDate(date: Date): string {
+  const timeZone = process.env.TZ || 'Asia/Manila';
+  const formatted = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone,
+  }).format(date);
+  return `${formatted} (${timeZone})`;
 }
 
 /** The name the trail shows for the account acted on, denormalised at write time. */

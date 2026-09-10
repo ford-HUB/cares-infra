@@ -19,6 +19,7 @@ class RegisterFormField extends StatelessWidget {
     this.inputFormatters,
     this.focusNode,
     this.autofocus = false,
+    this.errorText,
   });
 
   final String label;
@@ -35,6 +36,7 @@ class RegisterFormField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final FocusNode? focusNode;
   final bool autofocus;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +67,8 @@ class RegisterFormField extends StatelessWidget {
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint ?? label,
+            errorText: errorText,
+            errorMaxLines: 2,
             suffixIcon:
                 suffixIcon ??
                 (readOnly

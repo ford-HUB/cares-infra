@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/features/dashboard/data/volunteer_account_service.dart';
@@ -38,6 +40,9 @@ class _VolunteerProfileEditScreenState
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+
+  /// Server rejection of the phone number (already on another account).
+  String? _phoneConflict;
   final _idNumberController = TextEditingController();
 
   final Set<UserInterest> _selectedInterests = {};
@@ -88,7 +93,7 @@ class _VolunteerProfileEditScreenState
     _firstNameController.text = profile.firstName;
     _lastNameController.text = profile.lastName;
     _emailController.text = profile.email;
-    _phoneController.text = profile.phoneNumber;
+    _phoneController.text = normalizePhilippinePhone(profile.phoneNumber);
     _idNumberController.text = profile.idNumber ?? '';
     _department = profile.department ?? UclmDepartments.names.first;
     _course = profile.course ?? _defaultCourseFor(_department);
@@ -197,7 +202,7 @@ class _VolunteerProfileEditScreenState
   Future<void> _save() async {
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
-    final phone = _phoneController.text.trim();
+    final phone = normalizePhilippinePhone(_phoneController.text);
 
     if (firstName.isEmpty || lastName.isEmpty) {
       _showMessage('Please enter your first and last name.');
@@ -206,6 +211,10 @@ class _VolunteerProfileEditScreenState
 
     if (phone.isEmpty) {
       _showMessage('Please enter your phone number.');
+      return;
+    }
+    if (!isValidPhilippinePhone(phone)) {
+      _showMessage('Enter an 11-digit PH mobile number (09XXXXXXXXX).');
       return;
     }
 
@@ -251,6 +260,10 @@ class _VolunteerProfileEditScreenState
       );
     } on ApiException catch (error) {
       if (!mounted) return;
+      final conflict = RegistrationConflict.fromException(error);
+      if (conflict?.field == RegistrationConflictField.phoneNumber) {
+        setState(() => _phoneConflict = conflict!.message);
+      }
       _showMessage(error.message);
     } catch (_) {
       if (!mounted) return;
@@ -301,6 +314,9 @@ class _VolunteerProfileEditScreenState
                           idNumberController: _idNumberController,
                           department: _department,
                           course: _course,
+                          phoneError: _phoneConflict,
+                          onPhoneChanged: (_) =>
+                              setState(() => _phoneConflict = null),
                         ),
                         const SizedBox(height: 16),
                         VolunteerProfileFormSections(
