@@ -11,6 +11,7 @@ import 'package:mobile/features/dashboard/presentation/screens/profile_tab_scree
 import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_ranks_tab.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
+import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
 /// Donor dashboard — mirrors volunteer [HomeScreen] layout with campaign focus.
 class DonorDashboardScreen extends StatefulWidget {
@@ -29,8 +30,18 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
   final _personalStore = DonorPersonalProfileStore.instance;
 
   int _currentTab = 0;
+  // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
+  int _refreshVersion = 0;
 
   bool get _profileComplete => _profileStore.profile.profileComplete;
+
+  /// Pull-to-refresh. Donor data lives in in-memory stores today, so the
+  /// reload is a remount of every tab; swap in real fetches here when the
+  /// donor endpoints land.
+  Future<void> _refreshAll() async {
+    if (!mounted) return;
+    setState(() => _refreshVersion++);
+  }
 
   @override
   void initState() {
@@ -92,34 +103,38 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
       body: Column(
         children: [
           Expanded(
-            child: IndexedStack(
-              index: _currentTab,
-              children: [
-                DonorHomeTab(
-                  firstName: _firstName,
-                  email: widget.donor.email,
-                  showProfileCompletionCard: !_profileComplete,
-                  onCompleteProfile: _openProfileSetup,
-                ),
-                DonorCampaignsTab(email: widget.donor.email),
-                DonorActivityTab(email: widget.donor.email),
-                DonorRanksTab(
-                  displayName: widget.donor.fullName,
-                  email: widget.donor.email,
-                ),
-                ProfileTabScreen(
-                  displayName: _personalStore.profile.fullName.trim().isEmpty
-                      ? widget.donor.fullName
-                      : _personalStore.profile.fullName,
-                  email: widget.donor.email,
-                  points: 0,
-                  profileComplete: _profileComplete,
-                  completionPercent: _profileStore.profile.completionPercent,
-                  isDonor: true,
-                  onEditProfile: _openPersonalInfo,
-                  onOpenDonations: _openDonationsTab,
-                ),
-              ],
+            child: DashboardRefreshShell(
+              onRefresh: _refreshAll,
+              child: IndexedStack(
+                key: ValueKey(_refreshVersion),
+                index: _currentTab,
+                children: [
+                  DonorHomeTab(
+                    firstName: _firstName,
+                    email: widget.donor.email,
+                    showProfileCompletionCard: !_profileComplete,
+                    onCompleteProfile: _openProfileSetup,
+                  ),
+                  DonorCampaignsTab(email: widget.donor.email),
+                  DonorActivityTab(email: widget.donor.email),
+                  DonorRanksTab(
+                    displayName: widget.donor.fullName,
+                    email: widget.donor.email,
+                  ),
+                  ProfileTabScreen(
+                    displayName: _personalStore.profile.fullName.trim().isEmpty
+                        ? widget.donor.fullName
+                        : _personalStore.profile.fullName,
+                    email: widget.donor.email,
+                    points: 0,
+                    profileComplete: _profileComplete,
+                    completionPercent: _profileStore.profile.completionPercent,
+                    isDonor: true,
+                    onEditProfile: _openPersonalInfo,
+                    onOpenDonations: _openDonationsTab,
+                  ),
+                ],
+              ),
             ),
           ),
           DashboardBottomNav(

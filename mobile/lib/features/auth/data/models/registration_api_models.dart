@@ -1,3 +1,5 @@
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
@@ -176,7 +178,7 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'gender': _mapGender(gender),
       'age': age,
       'current_address': currentAddress,
-      'phone_number': phoneNumber,
+      'phone_number': normalizePhilippinePhone(phoneNumber),
       'account': {'email': email, 'password': password},
       'school_info': isBeneficiary
           ? {
@@ -209,5 +211,53 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'FEMALE' || 'F' => 'FEMALE',
       _ => 'OTHER',
     };
+  }
+}
+
+/// Which registration input clashed with an existing account. The server sends a
+/// 409 whose `errors` names the field, so the flow can send the user straight
+/// back to that input instead of leaving them on the OTP screen.
+enum RegistrationConflictField {
+  email('email'),
+  phoneNumber('phone_number'),
+  idNumber('id_number');
+
+  const RegistrationConflictField(this.path);
+
+  final String path;
+
+  static RegistrationConflictField? fromPath(String? path) {
+    for (final field in values) {
+      if (field.path == path) return field;
+    }
+    return null;
+  }
+}
+
+class RegistrationConflict {
+  const RegistrationConflict({required this.field, required this.message});
+
+  final RegistrationConflictField field;
+  final String message;
+
+  /// Null when the error is not a conflict on a known registration field.
+  static RegistrationConflict? fromException(Object error) {
+    if (error is! ApiException || error.statusCode != 409) return null;
+
+    final errors = error.errors;
+    if (errors is! List) return null;
+
+    for (final issue in errors) {
+      if (issue is! Map) continue;
+      final field = RegistrationConflictField.fromPath(
+        issue['path'] as String?,
+      );
+      if (field == null) continue;
+      return RegistrationConflict(
+        field: field,
+        message: issue['message'] as String? ?? error.message,
+      );
+    }
+    return null;
   }
 }

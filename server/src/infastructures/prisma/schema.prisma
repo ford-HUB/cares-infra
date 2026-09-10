@@ -486,10 +486,25 @@ model GmailConnection {
   updatedAt           DateTime @updatedAt
 }
 
+/// Volunteer interests mirror the portal's event categories (site/src/constants/event.ts)
+/// so a volunteer's picks can be matched against the events staff publish. The first
+/// three values are the original catalog; they stay in the enum because Postgres
+/// cannot drop enum values, but their Interest rows are inactive.
 enum InterestCode {
   ACADEMIC_ACTIVITIES
   DONATION_DRIVES
   ENVIRONMENT
+  SCHOOL
+  COMMUNITY
+  EMERGENCY
+  DONATION_DRIVE
+  CHARITY
+  RELIEF_PROGRAM
+  HEALTH
+  OUTREACH
+  TRAINING
+  SEMINAR
+  OTHERS
 }
 
 model Interest {

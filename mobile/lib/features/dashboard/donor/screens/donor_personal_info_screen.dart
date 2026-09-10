@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
@@ -45,7 +47,9 @@ class _DonorPersonalInfoScreenState extends State<DonorPersonalInfoScreen> {
     _firstName = TextEditingController(text: profile.firstName);
     _lastName = TextEditingController(text: profile.lastName);
     _email = TextEditingController(text: profile.email);
-    _contact = TextEditingController(text: profile.contactNumber);
+    _contact = TextEditingController(
+      text: normalizePhilippinePhone(profile.contactNumber),
+    );
     _address = TextEditingController(text: profile.address);
     _organization = TextEditingController(text: profile.organization);
     _photoLabel = profile.photoLabel;
@@ -172,6 +176,11 @@ class _DonorPersonalInfoScreenState extends State<DonorPersonalInfoScreen> {
       _showMessage('Please enter your first and last name.');
       return;
     }
+    if (_contact.text.trim().isNotEmpty &&
+        !isValidPhilippinePhone(_contact.text)) {
+      _showMessage('Enter an 11-digit PH mobile number (09XXXXXXXXX).');
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -184,7 +193,7 @@ class _DonorPersonalInfoScreenState extends State<DonorPersonalInfoScreen> {
         firstName: _firstName.text.trim(),
         lastName: _lastName.text.trim(),
         email: _email.text.trim(),
-        contactNumber: _contact.text.trim(),
+        contactNumber: normalizePhilippinePhone(_contact.text),
         address: _address.text.trim(),
         organization: _organization.text.trim(),
         photoLabel: _photoLabel,
@@ -260,8 +269,11 @@ class _DonorPersonalInfoScreenState extends State<DonorPersonalInfoScreen> {
                       const SizedBox(height: 6),
                       _ProfileTextField(
                         controller: _contact,
-                        hint: '09XX XXX XXXX',
+                        hint: '+639XXXXXXXXX',
                         keyboardType: TextInputType.phone,
+                        inputFormatters: const [PhilippinePhoneFormatter()],
+                        errorText: philippinePhoneError(_contact.text),
+                        onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: 12),
                       _FieldLabel('Address'),
@@ -484,6 +496,8 @@ class _ProfileTextField extends StatelessWidget {
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
     this.readOnly = false,
+    this.inputFormatters,
+    this.errorText,
     this.maxLines = 1,
     this.onChanged,
   });
@@ -493,6 +507,8 @@ class _ProfileTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final bool readOnly;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? errorText;
   final int maxLines;
   final ValueChanged<String>? onChanged;
 
@@ -503,11 +519,14 @@ class _ProfileTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       readOnly: readOnly,
+      inputFormatters: inputFormatters,
       maxLines: maxLines,
       onChanged: onChanged,
       style: const TextStyle(fontSize: 14, color: AppColors.primaryDark),
       decoration: InputDecoration(
         hintText: hint,
+        errorText: errorText,
+        errorMaxLines: 2,
         filled: true,
         fillColor: readOnly ? AppColors.background : Colors.white,
         isDense: true,

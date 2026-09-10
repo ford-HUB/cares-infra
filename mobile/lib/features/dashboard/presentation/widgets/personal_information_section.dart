@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 class PersonalInformationSection extends StatelessWidget {
@@ -11,6 +13,8 @@ class PersonalInformationSection extends StatelessWidget {
     required this.idNumberController,
     required this.department,
     required this.course,
+    this.phoneError,
+    this.onPhoneChanged,
   });
 
   final TextEditingController firstNameController;
@@ -20,6 +24,10 @@ class PersonalInformationSection extends StatelessWidget {
   final TextEditingController idNumberController;
   final String? department;
   final String? course;
+
+  /// Overrides the local format check — e.g. a server "already registered".
+  final String? phoneError;
+  final ValueChanged<String>? onPhoneChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +89,11 @@ class PersonalInformationSection extends StatelessWidget {
           const SizedBox(height: 6),
           _ProfileTextField(
             controller: phoneController,
-            hint: '09XX XXX XXXX',
+            hint: '+639XXXXXXXXX',
             keyboardType: TextInputType.phone,
+            inputFormatters: const [PhilippinePhoneFormatter()],
+            errorText: phoneError ?? philippinePhoneError(phoneController.text),
+            onChanged: onPhoneChanged,
           ),
           const SizedBox(height: 12),
           _FieldLabel('ID number'),
@@ -165,6 +176,9 @@ class _ProfileTextField extends StatelessWidget {
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
     this.readOnly = false,
+    this.inputFormatters,
+    this.errorText,
+    this.onChanged,
   });
 
   final TextEditingController controller;
@@ -172,6 +186,9 @@ class _ProfileTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final bool readOnly;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? errorText;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -180,8 +197,12 @@ class _ProfileTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       readOnly: readOnly,
+      inputFormatters: inputFormatters,
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hint,
+        errorText: errorText,
+        errorMaxLines: 2,
         filled: true,
         fillColor: readOnly
             ? AppColors.light.withValues(alpha: 0.35)

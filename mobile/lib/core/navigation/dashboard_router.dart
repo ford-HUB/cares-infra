@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../features/auth/registration/models/registration_data.dart';
+import '../../features/dashboard/beneficiary/beneficiary_dashboard_screen.dart';
 import '../../features/dashboard/placeholder_dashboard_screen.dart';
+import '../../features/dashboard/presentation/screens/donor_dashboard_screen.dart';
+import '../../features/dashboard/presentation/screens/home_screen.dart';
 import '../../features/dashboard/student/student_dashboard_screen.dart';
-import '../session/app_role.dart';
 import '../session/donor_session.dart';
-import '../session/role_session.dart';
 import '../session/static_user_session.dart';
-import 'role_dashboard_shell.dart';
 
 class DashboardRouter {
   DashboardRouter._();
 
   static Widget screenFor(StaticSessionUser user) {
     if (user.accountType == AccountType.beneficiary) {
-      _startRoleSession(
-        role: AppRole.beneficiary,
+      return BeneficiaryDashboardScreen(
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName,
+        displayName: user.fullName.trim().isEmpty ? null : user.fullName,
       );
-      return const RoleDashboardShell();
     }
 
     if (user.usesMainDashboard) {
@@ -31,68 +29,49 @@ class DashboardRouter {
 
   /// Resolves the dashboard for a server role (`VOLUNTEER`, `DONOR`,
   /// `BENEFICIARY`) so registration and login always land on the dashboard
-  /// that matches the account's registered role. The account keeps every role
-  /// it is authorized for — see Profile → Account → Switch Role.
+  /// that matches the account's registered role.
   static Widget screenForRoleType(
     String roleType, {
     required String email,
     String firstName = '',
     String lastName = '',
     bool profileComplete = false,
+    bool hasInterests = false,
   }) {
-    final role = AppRoleX.fromApiValue(roleType);
-
-    switch (role) {
-      case AppRole.beneficiary:
-        // Keep the static beneficiary session in sync for role-based routing.
-        StaticUserSession.instance.signInWithRole(
+    switch (roleType.trim().toUpperCase()) {
+      case 'BENEFICIARY':
+        final user = StaticUserSession.instance.signInWithRole(
           email: email,
           firstName: firstName,
           lastName: lastName,
           accountType: AccountType.beneficiary,
         );
-
-      case AppRole.donor:
-        // Seed the donor record so the donor dashboard has a name to greet.
-        DonorSession.instance.register(
-          DonorSession.instance.currentDonor ??
-              DonorSessionUser(
-                firstName: firstName,
-                middleName: '',
-                lastName: lastName,
-                email: email,
-              ),
+        return BeneficiaryDashboardScreen(
+          email: user.email,
+          firstName: user.firstName,
+          displayName: user.fullName.trim().isEmpty ? null : user.fullName,
         );
 
-      case AppRole.volunteer:
-        break;
+      case 'DONOR':
+        final donor =
+            DonorSession.instance.currentDonor ??
+            DonorSessionUser(
+              firstName: firstName,
+              middleName: '',
+              lastName: lastName,
+              email: email,
+            );
+        DonorSession.instance.register(donor);
+        return DonorDashboardScreen(donor: donor);
+
+      default:
+        return HomeScreen(
+          email: email,
+          firstName: firstName,
+          profileComplete: profileComplete,
+          hasInterests: hasInterests,
+        );
     }
-
-    _startRoleSession(
-      role: role,
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      profileComplete: profileComplete,
-    );
-
-    return const RoleDashboardShell();
-  }
-
-  static void _startRoleSession({
-    required AppRole role,
-    required String email,
-    String firstName = '',
-    String lastName = '',
-    bool profileComplete = false,
-  }) {
-    RoleSession.instance.start(
-      activeRole: role,
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      profileComplete: profileComplete,
-    );
   }
 
   static void navigateAfterLogin(BuildContext context, StaticSessionUser user) {
@@ -111,6 +90,7 @@ class DashboardRouter {
     String firstName = '',
     String lastName = '',
     bool profileComplete = false,
+    bool hasInterests = false,
   }) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
@@ -120,6 +100,7 @@ class DashboardRouter {
           firstName: firstName,
           lastName: lastName,
           profileComplete: profileComplete,
+          hasInterests: hasInterests,
         ),
       ),
       (_) => false,

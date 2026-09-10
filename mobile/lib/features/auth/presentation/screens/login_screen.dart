@@ -9,6 +9,8 @@ import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/auth_login_service.dart';
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
+import 'package:mobile/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:mobile/features/auth/presentation/widgets/forgot_password_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/weather_panel.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
@@ -93,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen>
         email: loginResult.email,
         firstName: loginResult.firstName,
         profileComplete: loginResult.hasInterests,
+        hasInterests: loginResult.hasInterests,
       );
     } on ApiException catch (error) {
       if (!mounted) return;
@@ -105,6 +108,35 @@ class _LoginScreenState extends State<LoginScreen>
         setState(() => _isSigningIn = false);
       }
     }
+  }
+
+  /// Runs the whole reset flow: the dialog collects the email and the emailed
+  /// code, and only once it hands back a token do we open the new-password
+  /// screen. The email already typed into the form is carried in as a head start.
+  Future<void> _forgotPassword() async {
+    if (_isSigningIn) return;
+
+    final result = await showForgotPasswordDialog(
+      context,
+      initialEmail: _emailController.text.trim(),
+    );
+    if (!mounted || result == null) return;
+
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => ResetPasswordScreen(
+          email: result.email,
+          resetToken: result.resetToken,
+        ),
+      ),
+    );
+    if (!mounted || updated != true) return;
+
+    // The password just changed, so whatever is in the field is stale.
+    setState(() {
+      _emailController.text = result.email;
+      _passwordController.clear();
+    });
   }
 
   @override
@@ -294,7 +326,27 @@ class _LoginScreenState extends State<LoginScreen>
             _emailField(),
             const SizedBox(height: 14),
             _passwordField(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _isSigningIn ? null : _forgotPassword,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Forgot password?',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: _isSigningIn ? null : _signIn,
               child: _isSigningIn

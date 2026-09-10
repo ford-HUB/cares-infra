@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 import {
   AuthProvider,
   GenderType,
@@ -37,14 +38,24 @@ export const DonorOAuthResponseSchema = z.object({
   oauth_ticket: z.string().nullable(),
 });
 
-export const RegisterDonorSchema = z
-  .object({
-    oauth_ticket: z.uuid(),
-    firstname: z.string().trim().min(1),
-    lastname: z.string().trim().min(1),
-    middle_name: z.string().trim().optional().default(''),
-    phone_number: z.string().trim().min(7).max(25),
-    current_address: z.string().trim().min(1),
-    gender: z.enum(GenderType).optional().default(GenderType.OTHER),
-  })
-  .strict();
+const DonorDetailsSchema = z.object({
+  firstname: z.string().trim().min(1),
+  lastname: z.string().trim().min(1),
+  middle_name: z.string().trim().optional().default(''),
+  phone_number: PhoneNumberSchema,
+  current_address: z.string().trim().min(1),
+  gender: z.enum(GenderType).optional().default(GenderType.OTHER),
+});
+
+export const RegisterDonorSchema = DonorDetailsSchema.extend({
+  oauth_ticket: z.uuid(),
+}).strict();
+
+/**
+ * Email + password donor sign-up. No provider vouches for the address here, so the
+ * email must already have passed the shared OTP check (`/v1/auth/verify-otp`).
+ */
+export const RegisterDonorWithEmailSchema = DonorDetailsSchema.extend({
+  email: z.string().trim().email(),
+  password: z.string().min(8),
+}).strict();

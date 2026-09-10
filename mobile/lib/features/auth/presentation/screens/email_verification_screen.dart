@@ -4,30 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
-import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
-import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/features/auth/presentation/widgets/verification_code_input.dart';
 
+/// Runs once the 6-digit code has been accepted. It owns the actual account creation
+/// and must navigate away on success; a thrown [ApiException] is shown on this screen
+/// and the code is cleared for another try.
+typedef EmailVerifiedCallback = Future<void> Function(BuildContext context);
+
+/// OTP step shared by every self-registration that has no provider vouching for the
+/// email — volunteers, beneficiaries, and donors signing up with a password. The
+/// screen only proves the address; what happens afterwards is the caller's
+/// [onVerified], which is why it does not know about registration sessions or roles.
 class EmailVerificationScreen extends ConsumerStatefulWidget {
   const EmailVerificationScreen({
     super.key,
     required this.email,
-    required this.registrationId,
-    required this.ocrData,
-    required this.roleType,
-    required this.password,
+    required this.onVerified,
     this.initialExpiresInSeconds = 0,
     this.emailAlreadyVerified = false,
     this.codeReused = false,
+    this.onConflict,
   });
 
   final String email;
-  final String registrationId;
-  final RegisterOcrSample ocrData;
-  final RegistrationRoleType roleType;
-  final String password;
+  final EmailVerifiedCallback onVerified;
+
+  /// Called after this screen pops itself when the server says the email, phone
+  /// number, or ID number already belongs to another account — the caller sends
+  /// the user back to that input. Without it the message just shows here.
+  final ValueChanged<RegistrationConflict>? onConflict;
   final int initialExpiresInSeconds;
   final bool emailAlreadyVerified;
   final bool codeReused;
@@ -127,6 +134,16 @@ class _EmailVerificationScreenState
     _showMessage(message);
   }
 
+  /// True when the error was handed off to [EmailVerificationScreen.onConflict].
+  bool _handOffConflict(Object error) {
+    final onConflict = widget.onConflict;
+    final conflict = RegistrationConflict.fromException(error);
+    if (onConflict == null || conflict == null) return false;
+    Navigator.of(context).pop();
+    onConflict(conflict);
+    return true;
+  }
+
   Future<void> _resendCode() async {
     if (!_canResend) return;
 
@@ -151,6 +168,7 @@ class _EmailVerificationScreenState
     } catch (e) {
       if (!mounted) return;
       setState(() => _isResending = false);
+      if (_handOffConflict(e)) return;
       _showError(
         e is ApiException ? e.message : 'Failed to resend verification code.',
       );
@@ -164,18 +182,6 @@ class _EmailVerificationScreenState
       FocusManager.instance.primaryFocus?.unfocus();
       unawaited(_completeRegistration());
     }
-  }
-
-  /// Lands on the dashboard for the role the user registered under — a
-  /// beneficiary must never end up on the volunteer dashboard.
-  void _goToRoleDashboard() {
-    DashboardRouter.navigateToRoleDashboard(
-      context,
-      roleType: widget.roleType.apiValue,
-      email: widget.email,
-      firstName: widget.ocrData.firstname,
-      lastName: widget.ocrData.lastname,
-    );
   }
 
   Future<void> _completeRegistration() async {
@@ -196,23 +202,16 @@ class _EmailVerificationScreenState
         _emailVerified = true;
       }
 
-      await service.registerFromSession(
-        registrationId: widget.registrationId,
-        ocrData: widget.ocrData,
-        roleType: widget.roleType.apiValue,
-        email: widget.email,
-        password: widget.password,
-      );
-
       if (!mounted) return;
 
-      _goToRoleDashboard();
+      await widget.onVerified(context);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isSubmitting = false;
         _code = '';
       });
+      if (_handOffConflict(e)) return;
       _showError(
         e is ApiException
             ? e.message
@@ -272,42 +271,6 @@ class _EmailVerificationScreenState
                         color: AppColors.secondary.withValues(alpha: 0.9),
                       ),
                     ),
-                    if (_emailVerified) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.verified_outlined,
-                              size: 20,
-                              color: AppColors.primaryDark,
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Email verified. Fix any registration details if needed, then enter the same code again to finish.',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 32),
                     VerificationCodeInput(
                       code: _code,

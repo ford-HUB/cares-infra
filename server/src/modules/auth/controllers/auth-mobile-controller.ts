@@ -15,6 +15,12 @@ import { ZBody, ZSerialize } from 'nest-zod';
 import {
   CreateUserSchema,
   ExtractIdResponseSchema,
+  ForgotPasswordResponseSchema,
+  ForgotPasswordSchema,
+  ResetPasswordResponseSchema,
+  ResetPasswordSchema,
+  VerifyResetOtpResponseSchema,
+  VerifyResetOtpSchema,
   LoginResponseSchema,
   LoginSchema,
   RegisterFromSessionSchema,
@@ -33,6 +39,12 @@ import {
 import type {
   CreateUserDto,
   ExtractIdResponseDto,
+  ForgotPasswordDto,
+  ForgotPasswordResponseDto,
+  ResetPasswordDto,
+  ResetPasswordResponseDto,
+  VerifyResetOtpDto,
+  VerifyResetOtpResponseDto,
   LoginDto,
   LoginResponseDto,
   RegisterFromSessionDto,
@@ -181,7 +193,43 @@ export class AuthMobileController {
   async sendVerification(
     @ZBody(SendVerificationSchema) body: SendVerificationDto,
   ): Promise<SendVerificationResponseDto> {
-    return await this.authMobileService.sendOtpEmail(body.email);
+    return await this.authMobileService.sendOtpEmail(body);
+  }
+
+  @Post('forgot-password')
+  @Public()
+  @HttpCode(200)
+  @ResponseMessage('Reset code sent')
+  @ZSerialize(ForgotPasswordResponseSchema)
+  async forgotPassword(
+    @ZBody(ForgotPasswordSchema) body: ForgotPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    return await this.authMobileService.requestPasswordReset(body.email);
+  }
+
+  @Post('verify-reset-otp')
+  @Public()
+  @HttpCode(200)
+  @ResponseMessage('Reset code verified')
+  @ZSerialize(VerifyResetOtpResponseSchema)
+  async verifyResetOtp(
+    @ZBody(VerifyResetOtpSchema) body: VerifyResetOtpDto,
+  ): Promise<VerifyResetOtpResponseDto> {
+    return await this.authMobileService.verifyPasswordResetOtp(
+      body.email,
+      body.otp,
+    );
+  }
+
+  @Post('reset-password')
+  @Public()
+  @HttpCode(200)
+  @ResponseMessage('Password updated')
+  @ZSerialize(ResetPasswordResponseSchema)
+  async resetPassword(
+    @ZBody(ResetPasswordSchema) body: ResetPasswordDto,
+  ): Promise<ResetPasswordResponseDto> {
+    return await this.authMobileService.resetPassword(body);
   }
 
   @Post('verification-status')

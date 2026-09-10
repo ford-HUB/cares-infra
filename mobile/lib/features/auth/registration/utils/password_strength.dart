@@ -45,10 +45,14 @@ PasswordStrengthResult evaluatePasswordStrength(
       colorValue: 0xFFD32F2F,
     );
   }
-  if (score < 0.6) {
+
+  // Green means "the form will accept this". A password can score well on variety
+  // and still miss a rule the administrator set, so it stays orange until every
+  // rule is met — otherwise the bar says Good while the submit button stays off.
+  if (score < 0.6 || !policy.isSatisfiedBy(password)) {
     return PasswordStrengthResult(
       strength: PasswordStrength.fair,
-      score: score,
+      score: score.clamp(0.0, 0.6),
       label: 'Fair',
       colorValue: 0xFFFF9800,
     );

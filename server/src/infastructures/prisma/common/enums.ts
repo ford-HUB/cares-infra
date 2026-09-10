@@ -169,7 +169,18 @@ export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
 export const InterestCode = {
   ACADEMIC_ACTIVITIES: 'ACADEMIC_ACTIVITIES',
   DONATION_DRIVES: 'DONATION_DRIVES',
-  ENVIRONMENT: 'ENVIRONMENT'
+  ENVIRONMENT: 'ENVIRONMENT',
+  SCHOOL: 'SCHOOL',
+  COMMUNITY: 'COMMUNITY',
+  EMERGENCY: 'EMERGENCY',
+  DONATION_DRIVE: 'DONATION_DRIVE',
+  CHARITY: 'CHARITY',
+  RELIEF_PROGRAM: 'RELIEF_PROGRAM',
+  HEALTH: 'HEALTH',
+  OUTREACH: 'OUTREACH',
+  TRAINING: 'TRAINING',
+  SEMINAR: 'SEMINAR',
+  OTHERS: 'OTHERS'
 } as const
 
 export type InterestCode = (typeof InterestCode)[keyof typeof InterestCode]

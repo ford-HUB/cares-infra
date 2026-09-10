@@ -1,4 +1,6 @@
+import toast from 'react-hot-toast'
 import { create } from 'zustand'
+import { SESSION_ENDED_EVENT } from '../constants/session'
 import type { AuthUser, PortalRole } from '../types/portal-roles'
 import type { LoginPayload } from '../types/auth'
 import { useProfileStore } from './profile-store'
@@ -61,6 +63,24 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   clearError: () => set({ error: null }),
 }))
+
+/**
+ * The API client fires this when the server stops honouring the token — the account
+ * was restricted, the device was signed out from Active Sessions, or the session
+ * expired. Storage is already cleared by then; dropping `user` is what makes
+ * `ProtectedPortal` redirect to the login page. No logout call: the session is gone.
+ */
+window.addEventListener(SESSION_ENDED_EVENT, (event) => {
+  if (!useAuthStore.getState().user) return
+
+  useProfileStore.getState().reset()
+  useAuthStore.setState({ user: null, error: null })
+
+  const message = (event as CustomEvent<{ message?: string }>).detail?.message
+  toast.error(message ?? 'Your session has ended — please sign in again', {
+    id: SESSION_ENDED_EVENT,
+  })
+})
 
 export function usePortalRole(): PortalRole | null {
   return useAuthStore((s) => s.user?.role ?? null)

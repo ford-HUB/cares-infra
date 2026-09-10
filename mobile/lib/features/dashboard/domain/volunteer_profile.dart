@@ -59,6 +59,22 @@ class VolunteerProfile {
   final int? hoursPerWeek;
   final bool profileComplete;
 
+  VolunteerProfile copyWith({
+    Set<UserInterest>? interests,
+    Set<String>? skills,
+    Set<String>? availability,
+    int? hoursPerWeek,
+    bool? profileComplete,
+  }) {
+    return VolunteerProfile(
+      interests: interests ?? this.interests,
+      skills: skills ?? this.skills,
+      availability: availability ?? this.availability,
+      hoursPerWeek: hoursPerWeek ?? this.hoursPerWeek,
+      profileComplete: profileComplete ?? this.profileComplete,
+    );
+  }
+
   /// Progress across account registration plus volunteer profile sections.
   int get completionPercent =>
       VolunteerProfileCompletion.calculate(profile: this);

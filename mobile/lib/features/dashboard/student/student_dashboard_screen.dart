@@ -7,6 +7,7 @@ import 'tabs/student_events_tab.dart';
 import 'tabs/student_home_tab.dart';
 import 'tabs/student_profile_tab.dart';
 import 'tabs/student_ranks_tab.dart';
+import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
   const StudentDashboardScreen({super.key, required this.user});
@@ -19,6 +20,14 @@ class StudentDashboardScreen extends StatefulWidget {
 
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   int _currentIndex = 0;
+  // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
+  int _refreshVersion = 0;
+
+  /// Pull-to-refresh: remount every tab so each reloads from scratch.
+  Future<void> _refreshAll() async {
+    if (!mounted) return;
+    setState(() => _refreshVersion++);
+  }
 
   void _toggleVolunteerDonor() {
     setState(() {
@@ -49,7 +58,15 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: IndexedStack(index: _currentIndex, children: tabs),
+        child: DashboardRefreshShell(
+          onRefresh: _refreshAll,
+          edgeOffset: 0,
+          child: IndexedStack(
+            key: ValueKey(_refreshVersion),
+            index: _currentIndex,
+            children: tabs,
+          ),
+        ),
       ),
       bottomNavigationBar: DashboardBottomNav(
         currentIndex: _currentIndex,

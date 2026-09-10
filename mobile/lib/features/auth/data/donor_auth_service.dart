@@ -1,4 +1,5 @@
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/data/models/donor_auth_models.dart';
 import 'package:mobile/features/auth/data/models/login_api_models.dart';
 import 'package:mobile/features/auth/data/social_auth_client.dart';
@@ -38,7 +39,36 @@ class DonorAuthService {
         'firstname': firstName.trim(),
         'middle_name': middleName.trim(),
         'lastname': lastName.trim(),
-        'phone_number': phoneNumber.trim(),
+        'phone_number': normalizePhilippinePhone(phoneNumber),
+        'current_address': address.trim(),
+      },
+    );
+
+    return LoginResponse.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  /// Email + password donor sign-up. Only valid once the address has passed the shared
+  /// OTP check (`AuthRegistrationService.sendVerificationCode` + `verifyOtp`) — the
+  /// server refuses it otherwise.
+  Future<LoginResponse> registerDonorWithEmail({
+    required String email,
+    required String password,
+    required String firstName,
+    required String middleName,
+    required String lastName,
+    required String phoneNumber,
+    required String address,
+  }) async {
+    final response = await _api.postJson(
+      '/auth/donor/register-email',
+      authenticate: false,
+      body: {
+        'email': email.trim(),
+        'password': password,
+        'firstname': firstName.trim(),
+        'middle_name': middleName.trim(),
+        'lastname': lastName.trim(),
+        'phone_number': normalizePhilippinePhone(phoneNumber),
         'current_address': address.trim(),
       },
     );

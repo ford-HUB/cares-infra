@@ -25,6 +25,9 @@ class AppColors {
   static const Color accentOrange = Color(0xFFE65100);
   static const Color heart = Color(0xFFE53935);
 
+  /// "Not there yet" — a password rule still unmet, a strength bar short of the policy.
+  static const Color warning = Color(0xFFFF9800);
+
   // Fills & borders
   static const Color inputFill = Color(0xFFCFE8C8);
   static const Color fieldFill = Colors.white;

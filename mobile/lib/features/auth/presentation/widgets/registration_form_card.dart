@@ -307,16 +307,20 @@ class PasswordRuleChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = met ? AppColors.secondary : AppColors.textMuted;
+    // Orange while outstanding so it reads as "still needed", not as a passed check
+    // in a slightly different green.
+    final color = met ? AppColors.secondary : AppColors.warning;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: met
             ? AppColors.accentLight.withValues(alpha: 0.45)
-            : AppColors.background,
+            : AppColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppColors.pillRadius),
         border: Border.all(
-          color: met ? AppColors.light : AppColors.borderLight,
+          color: met
+              ? AppColors.light
+              : AppColors.warning.withValues(alpha: 0.5),
         ),
       ),
       child: Row(

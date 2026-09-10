@@ -2,6 +2,12 @@ import { z } from 'zod';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import {
   CreateUserSchema,
+  ForgotPasswordResponseSchema,
+  ForgotPasswordSchema,
+  ResetPasswordResponseSchema,
+  ResetPasswordSchema,
+  VerifyResetOtpResponseSchema,
+  VerifyResetOtpSchema,
   ExtractIdResponseSchema,
   IdOcrResultSchema,
   LoginResponseSchema,
@@ -35,6 +41,9 @@ export type RegisterFromSessionDto = z.infer<typeof RegisterFromSessionSchema>;
 export type SendVerificationDto = z.infer<typeof SendVerificationSchema>;
 export type VerifyOtpDto = z.infer<typeof VerifyOtpSchema>;
 export type LoginDto = z.infer<typeof LoginSchema>;
+export type ForgotPasswordDto = z.infer<typeof ForgotPasswordSchema>;
+export type VerifyResetOtpDto = z.infer<typeof VerifyResetOtpSchema>;
+export type ResetPasswordDto = z.infer<typeof ResetPasswordSchema>;
 
 export type RegistrationStep = z.infer<typeof RegistrationStepSchema>;
 export type IdOcrResultDto = z.infer<typeof IdOcrResultSchema>;
@@ -55,6 +64,15 @@ export type VerificationStatusResponseDto = z.infer<
   typeof VerificationStatusResponseSchema
 >;
 export type VerifyOtpResponseDto = z.infer<typeof VerifyOtpResponseSchema>;
+export type ForgotPasswordResponseDto = z.infer<
+  typeof ForgotPasswordResponseSchema
+>;
+export type VerifyResetOtpResponseDto = z.infer<
+  typeof VerifyResetOtpResponseSchema
+>;
+export type ResetPasswordResponseDto = z.infer<
+  typeof ResetPasswordResponseSchema
+>;
 
 /** Redis-only registration state — never serialized to a client, so it has no schema. */
 export interface RegistrationSessionDto {

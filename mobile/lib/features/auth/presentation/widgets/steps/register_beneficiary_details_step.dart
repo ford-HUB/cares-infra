@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
@@ -16,12 +18,16 @@ class RegisterBeneficiaryDetailsStep extends StatefulWidget {
     required this.profile,
     required this.onChanged,
     required this.onProfileChanged,
+    this.phoneError,
   });
 
   final RegisterOcrSample data;
   final BeneficiaryProfile profile;
   final ValueChanged<RegisterOcrSample> onChanged;
   final ValueChanged<BeneficiaryProfile> onProfileChanged;
+
+  /// Server-side conflict on the phone number — shown inline and focused.
+  final String? phoneError;
 
   @override
   State<RegisterBeneficiaryDetailsStep> createState() =>
@@ -41,6 +47,7 @@ class _RegisterBeneficiaryDetailsStepState
   late final TextEditingController _organizationName;
   late final TextEditingController _organizationRole;
   late final TextEditingController _organizationAddress;
+  late final FocusNode _phoneFocus;
 
   late String _gender;
 
@@ -55,17 +62,32 @@ class _RegisterBeneficiaryDetailsStepState
     _lastname = TextEditingController(text: data.lastname);
     _age = TextEditingController(text: data.age > 0 ? '${data.age}' : '');
     _address = TextEditingController(text: data.currentAddress);
-    _phone = TextEditingController(text: data.phoneNumber);
+    _phone = TextEditingController(
+      text: normalizePhilippinePhone(data.phoneNumber),
+    );
+    _phoneFocus = FocusNode();
     _organizationName = TextEditingController(text: _profile.organizationName);
     _organizationRole = TextEditingController(text: _profile.organizationRole);
     _organizationAddress = TextEditingController(
       text: _profile.organizationAddress,
     );
     _gender = data.gender;
+    if (widget.phoneError != null) {
+      focusConflictField(this, _phoneFocus);
+    }
+  }
+
+  @override
+  void didUpdateWidget(RegisterBeneficiaryDetailsStep oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.phoneError != null && oldWidget.phoneError == null) {
+      focusConflictField(this, _phoneFocus);
+    }
   }
 
   @override
   void dispose() {
+    _phoneFocus.dispose();
     _firstname.dispose();
     _middleName.dispose();
     _lastname.dispose();
@@ -295,14 +317,13 @@ class _RegisterBeneficiaryDetailsStepState
         const SizedBox(height: 14),
         RegisterFormField(
           label: 'Phone number',
-          hint: '09123456789',
+          hint: '+639XXXXXXXXX',
           controller: _phone,
+          focusNode: _phoneFocus,
+          errorText: widget.phoneError ?? philippinePhoneError(_phone.text),
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.done,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(11),
-          ],
+          inputFormatters: const [PhilippinePhoneFormatter()],
           onChanged: _onFieldChanged,
         ),
       ],
