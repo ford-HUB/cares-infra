@@ -1,25 +1,100 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env
+# Test coverage
+coverage/
+.nyc_output/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# OS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+Desktop.ini
+
+# IDEs & editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# Temp & runtime
+.temp/
+.tmp/
+*.pid
+*.seed
+
+# Docker local overrides
+docker-compose.override.yaml
+docker-compose.override.yml
+
+# Python (microservices/*)
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ML weights & training data — never commit real ID photos or model binaries
+*.keras
+*.h5
+*.onnx
+*.pb
+*.tflite
+*.pkl
+microservices/**/datasets.zip
+microservices/**/datasets/**/*.jpg
+microservices/**/datasets/**/*.jpeg
+microservices/**/datasets/**/*.png
+microservices/**/datasets/**/*.webp
+microservices/**/datasets/**/*.bmp
+microservices/**/datasets/**/*.gif
+microservices/**/datasets/**/*.tiff
+!**/.gitkeep
+
+# Flutter / Dart (mobile/)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.iml
+
+# Archives & scratch
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Claude Code — skills and CLAUDE.md rules are committed; local overrides are not
+.claude/settings.local.json
+.claude/*.local.json
+
+CLAUDE.md
+
+.claude
+
