@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import type {
+  Announcement,
   AnnouncementAudience,
   AnnouncementChannel,
   AnnouncementState,
@@ -8,6 +9,30 @@ import type {
   SurfaceState,
   WindowState,
 } from '../types/maintenance'
+
+/**
+ * A blank notice, so the dialog has the same shape for a new one as for an existing
+ * one. Both Maintenance and System Notices compose from here, so the starting point of
+ * a notice cannot drift between the two screens. `author` is a placeholder: the server
+ * stamps the real name of whoever is signed in.
+ */
+export function blankAnnouncement(): Announcement {
+  return {
+    id: '',
+    title: '',
+    body: '',
+    tone: 'info',
+    audiences: ['volunteers'],
+    channels: ['portal'],
+    state: 'draft',
+    publishAt: dayjs().add(1, 'hour').toISOString(),
+    expiresAt: null,
+    pinned: false,
+    windowId: null,
+    author: 'You',
+    reach: 0,
+  }
+}
 
 /** How often the page re-reads state while it is open — a window can start on its own. */
 export const MAINTENANCE_POLL_INTERVAL_MS = 20_000

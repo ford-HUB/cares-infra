@@ -31,6 +31,7 @@ import { SupportTicketsModule } from './modules/support-tickets/modules/support-
 import { MonthlyReportsModule } from './modules/monthly-reports/modules/monthly-reports-module';
 import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
 import { ChatModule } from './modules/chat/modules/chat-module';
+import { AnnouncementsModule } from './modules/announcements/modules/announcements-module';
 import { JwtModule } from './infastructures/jwt/jwt-module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth-guard';
 import { RolesGuard } from './shared/guards/roles-guard';
@@ -65,6 +66,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     MonthlyReportsModule,
     MailboxModule,
     ChatModule,
+    AnnouncementsModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -38,8 +38,18 @@ interface MaintenanceStoreState {
   cancelWindow: (window: MaintenanceWindow) => Promise<void>
   toggleWindowRunning: (window: MaintenanceWindow, running: boolean) => Promise<void>
   saveNotice: (id: string | null, draft: AnnouncementDraft) => Promise<void>
-  setNoticeState: (notice: Announcement, state: AnnouncementState) => Promise<void>
+  setNoticeState: (
+    notice: Announcement,
+    state: Extract<AnnouncementState, 'published' | 'expired'>,
+  ) => Promise<void>
   togglePinned: (notice: Announcement) => Promise<void>
+}
+
+/** The server answers a mutation with the one row it touched; slot it into the board. */
+function upsertAnnouncement(list: Announcement[], one: Announcement): Announcement[] {
+  return list.some((existing) => existing.id === one.id)
+    ? list.map((existing) => (existing.id === one.id ? one : existing))
+    : [one, ...list]
 }
 
 /** Shared shape of every control: lock the row, apply, report, unlock. */
@@ -53,14 +63,18 @@ async function control(
   try {
     set(await action())
     toast.success(done)
-  } catch {
-    toast.error('The control plane did not accept that change.')
+  } catch (error) {
+    toast.error(
+      error instanceof Error && error.message
+        ? error.message
+        : 'The control plane did not accept that change.',
+    )
   } finally {
     set({ busyId: null })
   }
 }
 
-export const useMaintenanceStore = create<MaintenanceStoreState>((set) => ({
+export const useMaintenanceStore = create<MaintenanceStoreState>((set, get) => ({
   mode: null,
   windows: [],
   announcements: [],
@@ -125,7 +139,12 @@ export const useMaintenanceStore = create<MaintenanceStoreState>((set) => ({
     await control(
       set,
       id ?? 'new-announcement',
-      async () => ({ announcements: await saveAnnouncement(id, draft) }),
+      async () => ({
+        announcements: upsertAnnouncement(
+          get().announcements,
+          await saveAnnouncement(id, draft),
+        ),
+      }),
       id ? 'Announcement saved.' : 'Announcement created.',
     )
   },
@@ -134,7 +153,12 @@ export const useMaintenanceStore = create<MaintenanceStoreState>((set) => ({
     await control(
       set,
       notice.id,
-      async () => ({ announcements: await setAnnouncementState(notice.id, state) }),
+      async () => ({
+        announcements: upsertAnnouncement(
+          get().announcements,
+          await setAnnouncementState(notice.id, state),
+        ),
+      }),
       state === 'published' ? 'Announcement published.' : 'Announcement taken down.',
     )
   },
@@ -144,7 +168,10 @@ export const useMaintenanceStore = create<MaintenanceStoreState>((set) => ({
       set,
       notice.id,
       async () => ({
-        announcements: await setAnnouncementPinned(notice.id, !notice.pinned),
+        announcements: upsertAnnouncement(
+          get().announcements,
+          await setAnnouncementPinned(notice.id, !notice.pinned),
+        ),
       }),
       notice.pinned ? 'Unpinned.' : 'Pinned to the top of every feed it reaches.',
     )

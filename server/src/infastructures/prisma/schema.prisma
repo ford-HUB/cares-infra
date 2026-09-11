@@ -57,6 +57,7 @@ model User {
   submitted_monthly_reports     MonthlyReport[]                @relation("MonthlyReportSubmitter")
   reviewed_monthly_reports      MonthlyReport[]                @relation("MonthlyReportReviewer")
   monthly_report_folders        MonthlyReportFolder[]          @relation("MonthlyReportFolderCreator")
+  authored_announcements        Announcement[]                 @relation("AnnouncementAuthor")
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -1046,4 +1047,61 @@ model MonthlyReportTrailEntry {
   createdAt                     DateTime                 @default(now())
 
   @@index([monthly_report_id, createdAt])
+}
+
+enum AnnouncementTone {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AnnouncementAudience {
+  VOLUNTEERS
+  BENEFICIARIES
+  DONORS
+  STAFF
+}
+
+enum AnnouncementChannel {
+  PORTAL
+  MOBILE
+  EMAIL
+}
+
+enum AnnouncementState {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  EXPIRED
+}
+
+/// A notice written on the Maintenance board and read back on System Notices. State
+/// moves forward on its own once a scheduled `publish_at` or `expires_at` passes; the
+/// sweep runs on read, so a page that polls sees the flip without a scheduler.
+model Announcement {
+  announcement_id String                 @id @default(uuid())
+  title           String
+  body            String
+  tone            AnnouncementTone       @default(INFO)
+  audiences       AnnouncementAudience[] @default([])
+  channels        AnnouncementChannel[]  @default([])
+  state           AnnouncementState      @default(DRAFT)
+  publish_at      DateTime
+  /// Null means it stays up until taken down by hand.
+  expires_at      DateTime?
+  pinned          Boolean                @default(false)
+  /// The maintenance window this notice was written for; windows are not persisted
+  /// yet, so this is a loose reference rather than a relation.
+  window_id       String?
+  author_id       String?
+  author          User?                  @relation("AnnouncementAuthor", fields: [author_id], references: [user_id], onDelete: SetNull)
+  /// Snapshot of the author's name, so a rename cannot rewrite the board.
+  author_name     String
+  /// Accounts it reached when it went out; 0 until it publishes.
+  reach           Int                    @default(0)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([state])
+  @@index([publish_at])
 }

@@ -12,6 +12,7 @@ import {
   ANNOUNCEMENT_STATE_FILTER_ALL,
   ANNOUNCEMENT_STATE_ORDER,
   MAINTENANCE_POLL_INTERVAL_MS,
+  blankAnnouncement,
   resolveSurfaceStates,
   type AnnouncementStateFilter,
 } from '../../constants/maintenance'
@@ -44,24 +45,6 @@ function blankWindow(): MaintenanceWindow {
     noticeLeadMinutes: 60,
     allowAdmins: true,
     createdBy: 'You',
-  }
-}
-
-function blankAnnouncement(): Announcement {
-  return {
-    id: '',
-    title: '',
-    body: '',
-    tone: 'info',
-    audiences: ['volunteers'],
-    channels: ['portal'],
-    state: 'draft',
-    publishAt: dayjs().add(1, 'hour').toISOString(),
-    expiresAt: null,
-    pinned: false,
-    windowId: null,
-    author: 'You',
-    reach: 0,
   }
 }
 

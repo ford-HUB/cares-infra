@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import { Megaphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
+import { AnnouncementDialog } from '../../components/maintenance/ui/announcement-dialog'
 import { ContentShell } from '../../components/portal/ui/content-shell'
 import { NoticeFeed, type NoticeDayGroup } from '../../components/system-notices/notice-feed'
 import { SystemNoticeBanner } from '../../components/system-notices/system-notice-banner'
@@ -12,11 +13,14 @@ import {
   ANNOUNCEMENT_STATE_LABELS,
   ANNOUNCEMENT_STATE_ORDER,
   MAINTENANCE_POLL_INTERVAL_MS,
+  blankAnnouncement,
   formatNoticeDay,
   type AnnouncementStateFilter,
 } from '../../constants/maintenance'
 import { ADMIN_MAINTENANCE_PATH } from '../../constants/routes'
+import { usePortalRole } from '../../store/auth-store'
 import { useMaintenanceStore } from '../../store/maintenance-store'
+import type { Announcement } from '../../types/maintenance'
 
 /**
  * The record of what CARES has told its users, newest first. Announcements are written
@@ -27,11 +31,21 @@ export function SystemNoticesPage() {
   const announcements = useMaintenanceStore((s) => s.announcements)
   const initialized = useMaintenanceStore((s) => s.initialized)
   const error = useMaintenanceStore((s) => s.error)
+  const busyId = useMaintenanceStore((s) => s.busyId)
   const fetchAll = useMaintenanceStore((s) => s.fetchAll)
+  const saveNotice = useMaintenanceStore((s) => s.saveNotice)
+
+  const role = usePortalRole()
+  // Directors write notices but have no Maintenance screen to write them on, so the
+  // composer opens here instead of sending them to a page they cannot reach. Admins
+  // keep the link: on Maintenance a notice sits beside the downtime that prompted it.
+  const writesHere = role === 'director'
+  const canWrite = role === 'admin' || writesHere
 
   const [filter, setFilter] = useState<AnnouncementStateFilter>(
     ANNOUNCEMENT_STATE_FILTER_ALL,
   )
+  const [editingNotice, setEditingNotice] = useState<Announcement | null>(null)
 
   useEffect(() => {
     void fetchAll()
@@ -106,12 +120,20 @@ export function SystemNoticesPage() {
           </p>
         </div>
 
-        <Button size="sm" asChild>
-          <Link to={ADMIN_MAINTENANCE_PATH}>
-            <Megaphone data-icon="inline-start" />
-            Write a notice
-          </Link>
-        </Button>
+        {canWrite &&
+          (writesHere ? (
+            <Button size="sm" onClick={() => setEditingNotice(blankAnnouncement())}>
+              <Megaphone data-icon="inline-start" />
+              Write a notice
+            </Button>
+          ) : (
+            <Button size="sm" asChild>
+              <Link to={ADMIN_MAINTENANCE_PATH}>
+                <Megaphone data-icon="inline-start" />
+                Write a notice
+              </Link>
+            </Button>
+          ))}
       </header>
 
       {error ? (
@@ -146,6 +168,16 @@ export function SystemNoticesPage() {
       ) : (
         <SystemNoticesSkeleton groups={2} rowsPerGroup={2} />
       )}
+
+      <AnnouncementDialog
+        key={editingNotice ? 'announcement-new' : 'announcement-closed'}
+        announcement={editingNotice}
+        saving={busyId === 'new-announcement'}
+        onClose={() => setEditingNotice(null)}
+        onSubmit={(draft) => {
+          void saveNotice(null, draft).then(() => setEditingNotice(null))
+        }}
+      />
     </ContentShell>
   )
 }
