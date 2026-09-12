@@ -4,7 +4,6 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_activity_tab.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_campaigns_tab.dart';
 import 'package:mobile/features/dashboard/donor/data/donor_profile_store.dart';
-import 'package:mobile/features/dashboard/donor/screens/donor_personal_info_screen.dart';
 import 'package:mobile/features/dashboard/donor/screens/donor_profile_setup_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_home_tab.dart';
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
@@ -86,11 +85,6 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
   }
 
   /// Personal information is edited separately from giving preferences.
-  Future<void> _openPersonalInfo() async {
-    await DonorPersonalInfoScreen.open(context);
-    if (mounted) setState(() {});
-  }
-
   String get _firstName {
     final name = widget.donor.firstName.trim();
     return name.isEmpty ? 'Donor' : name;
@@ -98,44 +92,53 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          Expanded(
-            child: DashboardRefreshShell(
-              onRefresh: _refreshAll,
-              child: IndexedStack(
-                key: ValueKey(_refreshVersion),
-                index: _currentTab,
-                children: [
-                  DonorHomeTab(
-                    firstName: _firstName,
-                    email: widget.donor.email,
-                    showProfileCompletionCard: !_profileComplete,
-                    onCompleteProfile: _openProfileSetup,
-                  ),
-                  DonorCampaignsTab(email: widget.donor.email),
-                  DonorActivityTab(email: widget.donor.email),
-                  DonorRanksTab(
-                    displayName: widget.donor.fullName,
-                    email: widget.donor.email,
-                  ),
-                  ProfileTabScreen(
-                    displayName: _personalStore.profile.fullName.trim().isEmpty
-                        ? widget.donor.fullName
-                        : _personalStore.profile.fullName,
-                    email: widget.donor.email,
-                    points: 0,
-                    profileComplete: _profileComplete,
-                    completionPercent: _profileStore.profile.completionPercent,
-                    isDonor: true,
-                    onEditProfile: _openPersonalInfo,
-                    onOpenDonations: _openDonationsTab,
-                  ),
-                ],
+    // Back gesture on a secondary tab returns to Home before leaving the app.
+    return PopScope(
+      canPop: _currentTab == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _currentTab = 0);
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Column(
+          children: [
+            Expanded(
+              child: DashboardRefreshShell(
+                onRefresh: _refreshAll,
+                child: IndexedStack(
+                  key: ValueKey(_refreshVersion),
+                  index: _currentTab,
+                  children: [
+                    DonorHomeTab(
+                      firstName: _firstName,
+                      email: widget.donor.email,
+                      showProfileCompletionCard: !_profileComplete,
+                      onCompleteProfile: _openProfileSetup,
+                    ),
+                    DonorCampaignsTab(email: widget.donor.email),
+                    DonorActivityTab(email: widget.donor.email),
+                    DonorRanksTab(
+                      displayName: widget.donor.fullName,
+                      email: widget.donor.email,
+                    ),
+                    ProfileTabScreen(
+                      displayName:
+                          _personalStore.profile.fullName.trim().isEmpty
+                          ? widget.donor.fullName
+                          : _personalStore.profile.fullName,
+                      email: widget.donor.email,
+                      points: 0,
+                      profileComplete: _profileComplete,
+                      completionPercent:
+                          _profileStore.profile.completionPercent,
+                      isDonor: true,
+                      onOpenDonations: _openDonationsTab,
+                    ),
+                  ],
+                ),
               ),
             ),
+<<<<<<< HEAD
           ),
           DashboardBottomNav(
             currentIndex: _currentTab,
@@ -143,6 +146,15 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
             onTap: (index) => setState(() => _currentTab = index),
           ),
         ],
+=======
+            DashboardBottomNav(
+              currentIndex: _currentTab,
+              onTap: (index) => setState(() => _currentTab = index),
+              eventsTabLabel: 'Campaigns',
+            ),
+          ],
+        ),
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
       ),
     );
   }

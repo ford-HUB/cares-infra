@@ -8,6 +8,8 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User.js'
+export type * from './models/ResidencyDocument.js'
+export type * from './models/UserRoleAvatar.js'
 export type * from './models/UserSchoolInfo.js'
 export type * from './models/Department.js'
 export type * from './models/Major.js'

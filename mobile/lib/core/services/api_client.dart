@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -89,13 +90,58 @@ class ApiClient {
     }, path);
   }
 
+  Future<Map<String, dynamic>> deleteJson(
+    String path, {
+    bool authenticate = true,
+  }) async {
+    return _guard(() async {
+      final response = await _client
+          .delete(uri(path), headers: _jsonHeaders(authenticate: authenticate))
+          .timeout(const Duration(seconds: 30));
+      return _parseResponse(response, authenticated: authenticate);
+    }, path);
+  }
+
   Future<Map<String, dynamic>> postMultipart(
     String path, {
     required Map<String, String> fields,
     required List<http.MultipartFile> files,
+    bool authenticate = true,
+  }) {
+    return _sendMultipart(
+      'POST',
+      path,
+      fields: fields,
+      files: files,
+      authenticate: authenticate,
+    );
+  }
+
+  Future<Map<String, dynamic>> putMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required List<http.MultipartFile> files,
+    bool authenticate = true,
+  }) {
+    return _sendMultipart(
+      'PUT',
+      path,
+      fields: fields,
+      files: files,
+      authenticate: authenticate,
+    );
+  }
+
+  Future<Map<String, dynamic>> _sendMultipart(
+    String method,
+    String path, {
+    required Map<String, String> fields,
+    required List<http.MultipartFile> files,
+    required bool authenticate,
   }) async {
     return _guard(() async {
-      final request = http.MultipartRequest('POST', uri(path))
+      final request = http.MultipartRequest(method, uri(path))
+        ..headers.addAll(authHeaders(authenticate: authenticate))
         ..fields.addAll(fields)
         ..files.addAll(files);
 
@@ -103,8 +149,17 @@ class ApiClient {
           .send(request)
           .timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
-      return _parseResponse(response);
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
+  }
+
+  /// Bearer header only — for requests the client does not build itself
+  /// (multipart uploads, `Image.network` against a private stream).
+  Map<String, String> authHeaders({bool authenticate = true}) {
+    if (!authenticate) return const {};
+    final token = AuthSession.accessToken;
+    if (token == null || token.isEmpty) return const {};
+    return {'Authorization': 'Bearer $token'};
   }
 
   Future<Map<String, dynamic>> _guard(
@@ -170,16 +225,17 @@ class ApiClient {
     return body;
   }
 
-  Map<String, String> _jsonHeaders({bool authenticate = true}) {
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    if (!authenticate) {
-      return headers;
-    }
+  /// Names the app and OS so a session shows up as "CARES app · Android" in
+  /// the connected-devices list instead of the Dart runtime's default.
+  static final String userAgent =
+      'CARES-Mobile (${Platform.operatingSystem}; '
+      '${Platform.operatingSystemVersion})';
 
-    final token = AuthSession.accessToken;
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
-    }
-    return headers;
+  Map<String, String> _jsonHeaders({bool authenticate = true}) {
+    return {
+      'Content-Type': 'application/json',
+      'User-Agent': userAgent,
+      ...authHeaders(authenticate: authenticate),
+    };
   }
 }

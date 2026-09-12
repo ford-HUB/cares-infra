@@ -21,12 +21,15 @@ const managedUserSelect = {
   firstname: true,
   lastname: true,
   portal_department: true,
-  is_restricted: true,
-  restriction_reason: true,
-  last_login_ip: true,
   createdAt: true,
   accounts: {
-    select: { email: true, credential_expires_at: true },
+    select: {
+      email: true,
+      credential_expires_at: true,
+      is_restricted: true,
+      restriction_reason: true,
+      last_login_ip: true,
+    },
     take: 1,
   },
   role: { select: { type: true } },
@@ -92,13 +95,19 @@ export class UsersRepository {
         current_address: true,
         phone_number: true,
         avatar: true,
-        signature_url: true,
         address_street: true,
         address_barangay: true,
         address_city: true,
         address_province: true,
-        restricted_at: true,
         updatedAt: true,
+        accounts: {
+          select: {
+            ...managedUserSelect.accounts.select,
+            signature_url: true,
+            restricted_at: true,
+          },
+          take: 1,
+        },
         user_school_info: {
           select: {
             id_number: true,
@@ -135,14 +144,13 @@ export class UsersRepository {
     restricted: boolean,
     reason: string | null,
   ) {
-    return this.prisma.user.update({
+    return this.prisma.account.updateMany({
       where: { user_id: userId },
       data: {
         is_restricted: restricted,
         restricted_at: restricted ? new Date() : null,
         restriction_reason: reason,
       },
-      select: { user_id: true },
     });
   }
 
@@ -292,33 +300,37 @@ function buildWhere(filter: ListUsersFilter): Prisma.UserWhereInput {
     ];
   }
 
+  // Restriction lives on the account row — see `Account.is_restricted`.
   if (filter.status === 'restricted') {
-    where.is_restricted = true;
+    where.accounts = { some: { is_restricted: true } };
   }
 
   if (filter.status === 'pending') {
-    where.is_restricted = false;
+    where.accounts = { none: { is_restricted: true } };
     where.user_verifications = {
-      some: { status: VerificationStatus.PENDING },
+      some: { status: VerificationStatus.N },
     };
   }
 
   if (filter.status === 'active') {
-    where.is_restricted = false;
     where.user_verifications = {
-      none: { status: VerificationStatus.PENDING },
+      none: { status: VerificationStatus.N },
     };
     // An outstanding credential that has lapsed reads as `expired`, not `active` —
     // the account cannot sign in either way.
     where.accounts = {
-      none: { credential_expires_at: { lt: new Date() } },
+      none: {
+        OR: [
+          { is_restricted: true },
+          { credential_expires_at: { lt: new Date() } },
+        ],
+      },
     };
   }
 
   if (filter.status === 'expired') {
-    where.is_restricted = false;
     where.accounts = {
-      some: { credential_expires_at: { lt: new Date() } },
+      some: { is_restricted: false, credential_expires_at: { lt: new Date() } },
     };
   }
 

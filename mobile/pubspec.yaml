@@ -35,6 +35,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   image_picker: ^1.1.2
+  # Proof-of-residency uploads can be PDFs, which image_picker can't pick.
+  file_picker: ^10.3.3
   geolocator: ^14.0.2
   fl_chart: ^1.2.0
   permission_handler: ^11.4.0

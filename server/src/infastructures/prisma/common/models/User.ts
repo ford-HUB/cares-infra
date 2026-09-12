@@ -27,10 +27,12 @@ export type AggregateUser = {
 
 export type UserAvgAggregateOutputType = {
   age: number | null
+  household_size: number | null
 }
 
 export type UserSumAggregateOutputType = {
   age: number | null
+  household_size: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -48,11 +50,7 @@ export type UserMinAggregateOutputType = {
   address_barangay: string | null
   address_city: string | null
   address_province: string | null
-  signature_url: string | null
-  is_restricted: boolean | null
-  restricted_at: Date | null
-  restriction_reason: string | null
-  last_login_ip: string | null
+  household_size: number | null
   role_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -73,11 +71,7 @@ export type UserMaxAggregateOutputType = {
   address_barangay: string | null
   address_city: string | null
   address_province: string | null
-  signature_url: string | null
-  is_restricted: boolean | null
-  restricted_at: Date | null
-  restriction_reason: string | null
-  last_login_ip: string | null
+  household_size: number | null
   role_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -98,11 +92,7 @@ export type UserCountAggregateOutputType = {
   address_barangay: number
   address_city: number
   address_province: number
-  signature_url: number
-  is_restricted: number
-  restricted_at: number
-  restriction_reason: number
-  last_login_ip: number
+  household_size: number
   role_id: number
   createdAt: number
   updatedAt: number
@@ -112,10 +102,12 @@ export type UserCountAggregateOutputType = {
 
 export type UserAvgAggregateInputType = {
   age?: true
+  household_size?: true
 }
 
 export type UserSumAggregateInputType = {
   age?: true
+  household_size?: true
 }
 
 export type UserMinAggregateInputType = {
@@ -133,11 +125,7 @@ export type UserMinAggregateInputType = {
   address_barangay?: true
   address_city?: true
   address_province?: true
-  signature_url?: true
-  is_restricted?: true
-  restricted_at?: true
-  restriction_reason?: true
-  last_login_ip?: true
+  household_size?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -158,11 +146,7 @@ export type UserMaxAggregateInputType = {
   address_barangay?: true
   address_city?: true
   address_province?: true
-  signature_url?: true
-  is_restricted?: true
-  restricted_at?: true
-  restriction_reason?: true
-  last_login_ip?: true
+  household_size?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -183,11 +167,7 @@ export type UserCountAggregateInputType = {
   address_barangay?: true
   address_city?: true
   address_province?: true
-  signature_url?: true
-  is_restricted?: true
-  restricted_at?: true
-  restriction_reason?: true
-  last_login_ip?: true
+  household_size?: true
   role_id?: true
   createdAt?: true
   updatedAt?: true
@@ -295,11 +275,7 @@ export type UserGroupByOutputType = {
   address_barangay: string | null
   address_city: string | null
   address_province: string | null
-  signature_url: string | null
-  is_restricted: boolean
-  restricted_at: Date | null
-  restriction_reason: string | null
-  last_login_ip: string | null
+  household_size: number | null
   role_id: string
   createdAt: Date
   updatedAt: Date
@@ -343,21 +319,18 @@ export type UserWhereInput = {
   address_barangay?: Prisma.StringNullableFilter<"User"> | string | null
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
-  signature_url?: Prisma.StringNullableFilter<"User"> | string | null
-  is_restricted?: Prisma.BoolFilter<"User"> | boolean
-  restricted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  restriction_reason?: Prisma.StringNullableFilter<"User"> | string | null
-  last_login_ip?: Prisma.StringNullableFilter<"User"> | string | null
+  household_size?: Prisma.IntNullableFilter<"User"> | number | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  residency_documents?: Prisma.ResidencyDocumentListRelationFilter
+  role_avatars?: Prisma.UserRoleAvatarListRelationFilter
   blocked_ips?: Prisma.BlockedIpListRelationFilter
   login_activities?: Prisma.LoginActivityListRelationFilter
   audit_logs?: Prisma.AuditLogListRelationFilter
   permission_overrides?: Prisma.UserPermissionOverrideListRelationFilter
   action_suspensions?: Prisma.UserActionSuspensionListRelationFilter
   user_school_info?: Prisma.UserSchoolInfoListRelationFilter
-  user_biometrics?: Prisma.UserBiometricListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   user_verifications?: Prisma.UserVerificationListRelationFilter
   user_interest?: Prisma.XOR<Prisma.UserInterestNullableScalarRelationFilter, Prisma.UserInterestWhereInput> | null
@@ -394,21 +367,18 @@ export type UserOrderByWithRelationInput = {
   address_barangay?: Prisma.SortOrderInput | Prisma.SortOrder
   address_city?: Prisma.SortOrderInput | Prisma.SortOrder
   address_province?: Prisma.SortOrderInput | Prisma.SortOrder
-  signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
-  is_restricted?: Prisma.SortOrder
-  restricted_at?: Prisma.SortOrderInput | Prisma.SortOrder
-  restriction_reason?: Prisma.SortOrderInput | Prisma.SortOrder
-  last_login_ip?: Prisma.SortOrderInput | Prisma.SortOrder
+  household_size?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  residency_documents?: Prisma.ResidencyDocumentOrderByRelationAggregateInput
+  role_avatars?: Prisma.UserRoleAvatarOrderByRelationAggregateInput
   blocked_ips?: Prisma.BlockedIpOrderByRelationAggregateInput
   login_activities?: Prisma.LoginActivityOrderByRelationAggregateInput
   audit_logs?: Prisma.AuditLogOrderByRelationAggregateInput
   permission_overrides?: Prisma.UserPermissionOverrideOrderByRelationAggregateInput
   action_suspensions?: Prisma.UserActionSuspensionOrderByRelationAggregateInput
   user_school_info?: Prisma.UserSchoolInfoOrderByRelationAggregateInput
-  user_biometrics?: Prisma.UserBiometricOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   user_verifications?: Prisma.UserVerificationOrderByRelationAggregateInput
   user_interest?: Prisma.UserInterestOrderByWithRelationInput
@@ -448,21 +418,18 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   address_barangay?: Prisma.StringNullableFilter<"User"> | string | null
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
-  signature_url?: Prisma.StringNullableFilter<"User"> | string | null
-  is_restricted?: Prisma.BoolFilter<"User"> | boolean
-  restricted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  restriction_reason?: Prisma.StringNullableFilter<"User"> | string | null
-  last_login_ip?: Prisma.StringNullableFilter<"User"> | string | null
+  household_size?: Prisma.IntNullableFilter<"User"> | number | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  residency_documents?: Prisma.ResidencyDocumentListRelationFilter
+  role_avatars?: Prisma.UserRoleAvatarListRelationFilter
   blocked_ips?: Prisma.BlockedIpListRelationFilter
   login_activities?: Prisma.LoginActivityListRelationFilter
   audit_logs?: Prisma.AuditLogListRelationFilter
   permission_overrides?: Prisma.UserPermissionOverrideListRelationFilter
   action_suspensions?: Prisma.UserActionSuspensionListRelationFilter
   user_school_info?: Prisma.UserSchoolInfoListRelationFilter
-  user_biometrics?: Prisma.UserBiometricListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   user_verifications?: Prisma.UserVerificationListRelationFilter
   user_interest?: Prisma.XOR<Prisma.UserInterestNullableScalarRelationFilter, Prisma.UserInterestWhereInput> | null
@@ -499,11 +466,7 @@ export type UserOrderByWithAggregationInput = {
   address_barangay?: Prisma.SortOrderInput | Prisma.SortOrder
   address_city?: Prisma.SortOrderInput | Prisma.SortOrder
   address_province?: Prisma.SortOrderInput | Prisma.SortOrder
-  signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
-  is_restricted?: Prisma.SortOrder
-  restricted_at?: Prisma.SortOrderInput | Prisma.SortOrder
-  restriction_reason?: Prisma.SortOrderInput | Prisma.SortOrder
-  last_login_ip?: Prisma.SortOrderInput | Prisma.SortOrder
+  household_size?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -532,11 +495,7 @@ export type UserScalarWhereWithAggregatesInput = {
   address_barangay?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   address_city?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   address_province?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  signature_url?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  is_restricted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  restricted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
-  restriction_reason?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  last_login_ip?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  household_size?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
   role_id?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -557,20 +516,17 @@ export type UserCreateInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -607,21 +563,18 @@ export type UserUncheckedCreateInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -657,20 +610,17 @@ export type UserUpdateInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -707,21 +657,18 @@ export type UserUncheckedUpdateInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -757,11 +704,7 @@ export type UserCreateManyInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -782,11 +725,7 @@ export type UserUpdateManyMutationInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -806,11 +745,7 @@ export type UserUncheckedUpdateManyInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -831,11 +766,7 @@ export type UserCountOrderByAggregateInput = {
   address_barangay?: Prisma.SortOrder
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
-  signature_url?: Prisma.SortOrder
-  is_restricted?: Prisma.SortOrder
-  restricted_at?: Prisma.SortOrder
-  restriction_reason?: Prisma.SortOrder
-  last_login_ip?: Prisma.SortOrder
+  household_size?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -843,6 +774,7 @@ export type UserCountOrderByAggregateInput = {
 
 export type UserAvgOrderByAggregateInput = {
   age?: Prisma.SortOrder
+  household_size?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -860,11 +792,7 @@ export type UserMaxOrderByAggregateInput = {
   address_barangay?: Prisma.SortOrder
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
-  signature_url?: Prisma.SortOrder
-  is_restricted?: Prisma.SortOrder
-  restricted_at?: Prisma.SortOrder
-  restriction_reason?: Prisma.SortOrder
-  last_login_ip?: Prisma.SortOrder
+  household_size?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -885,11 +813,7 @@ export type UserMinOrderByAggregateInput = {
   address_barangay?: Prisma.SortOrder
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
-  signature_url?: Prisma.SortOrder
-  is_restricted?: Prisma.SortOrder
-  restricted_at?: Prisma.SortOrder
-  restriction_reason?: Prisma.SortOrder
-  last_login_ip?: Prisma.SortOrder
+  household_size?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -897,6 +821,7 @@ export type UserMinOrderByAggregateInput = {
 
 export type UserSumOrderByAggregateInput = {
   age?: Prisma.SortOrder
+  household_size?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -939,16 +864,44 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutResidency_documentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutResidency_documentsInput, Prisma.UserUncheckedCreateWithoutResidency_documentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutResidency_documentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutResidency_documentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutResidency_documentsInput, Prisma.UserUncheckedCreateWithoutResidency_documentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutResidency_documentsInput
+  upsert?: Prisma.UserUpsertWithoutResidency_documentsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutResidency_documentsInput, Prisma.UserUpdateWithoutResidency_documentsInput>, Prisma.UserUncheckedUpdateWithoutResidency_documentsInput>
+}
+
+export type UserCreateNestedOneWithoutRole_avatarsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRole_avatarsInput, Prisma.UserUncheckedCreateWithoutRole_avatarsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRole_avatarsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRole_avatarsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRole_avatarsInput, Prisma.UserUncheckedCreateWithoutRole_avatarsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRole_avatarsInput
+  upsert?: Prisma.UserUpsertWithoutRole_avatarsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRole_avatarsInput, Prisma.UserUpdateWithoutRole_avatarsInput>, Prisma.UserUncheckedUpdateWithoutRole_avatarsInput>
 }
 
 export type UserCreateNestedOneWithoutUser_school_infoInput = {
@@ -977,20 +930,6 @@ export type UserUpdateOneRequiredWithoutUser_verificationsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutUser_verificationsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUser_verificationsInput, Prisma.UserUpdateWithoutUser_verificationsInput>, Prisma.UserUncheckedUpdateWithoutUser_verificationsInput>
-}
-
-export type UserCreateNestedOneWithoutUser_biometricsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutUser_biometricsInput, Prisma.UserUncheckedCreateWithoutUser_biometricsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_biometricsInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutUser_biometricsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutUser_biometricsInput, Prisma.UserUncheckedCreateWithoutUser_biometricsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_biometricsInput
-  upsert?: Prisma.UserUpsertWithoutUser_biometricsInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUser_biometricsInput, Prisma.UserUpdateWithoutUser_biometricsInput>, Prisma.UserUncheckedUpdateWithoutUser_biometricsInput>
 }
 
 export type UserCreateNestedManyWithoutRoleInput = {
@@ -1349,6 +1288,7 @@ export type UserUpdateOneWithoutReviewed_monthly_reportsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewed_monthly_reportsInput, Prisma.UserUpdateWithoutReviewed_monthly_reportsInput>, Prisma.UserUncheckedUpdateWithoutReviewed_monthly_reportsInput>
 }
 
+<<<<<<< HEAD
 export type UserCreateNestedOneWithoutAuthored_announcementsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAuthored_announcementsInput, Prisma.UserUncheckedCreateWithoutAuthored_announcementsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuthored_announcementsInput
@@ -1363,6 +1303,398 @@ export type UserUpdateOneWithoutAuthored_announcementsNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuthored_announcementsInput, Prisma.UserUpdateWithoutAuthored_announcementsInput>, Prisma.UserUncheckedUpdateWithoutAuthored_announcementsInput>
+=======
+export type UserCreateWithoutResidency_documentsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutResidency_documentsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+}
+
+export type UserCreateOrConnectWithoutResidency_documentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutResidency_documentsInput, Prisma.UserUncheckedCreateWithoutResidency_documentsInput>
+}
+
+export type UserUpsertWithoutResidency_documentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutResidency_documentsInput, Prisma.UserUncheckedUpdateWithoutResidency_documentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutResidency_documentsInput, Prisma.UserUncheckedCreateWithoutResidency_documentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutResidency_documentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutResidency_documentsInput, Prisma.UserUncheckedUpdateWithoutResidency_documentsInput>
+}
+
+export type UserUpdateWithoutResidency_documentsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutResidency_documentsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+}
+
+export type UserCreateWithoutRole_avatarsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutRole_avatarsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+}
+
+export type UserCreateOrConnectWithoutRole_avatarsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRole_avatarsInput, Prisma.UserUncheckedCreateWithoutRole_avatarsInput>
+}
+
+export type UserUpsertWithoutRole_avatarsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRole_avatarsInput, Prisma.UserUncheckedUpdateWithoutRole_avatarsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRole_avatarsInput, Prisma.UserUncheckedCreateWithoutRole_avatarsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRole_avatarsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRole_avatarsInput, Prisma.UserUncheckedUpdateWithoutRole_avatarsInput>
+}
+
+export type UserUpdateWithoutRole_avatarsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRole_avatarsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 }
 
 export type UserCreateWithoutUser_school_infoInput = {
@@ -1380,19 +1712,16 @@ export type UserCreateWithoutUser_school_infoInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -1429,20 +1758,17 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -1494,19 +1820,16 @@ export type UserUpdateWithoutUser_school_infoInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -1543,20 +1866,17 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -1592,20 +1912,17 @@ export type UserCreateWithoutUser_verificationsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
@@ -1641,21 +1958,18 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
@@ -1706,20 +2020,17 @@ export type UserUpdateWithoutUser_verificationsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
@@ -1755,6 +2066,7 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+<<<<<<< HEAD
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1972,9 +2284,14 @@ export type UserUncheckedUpdateWithoutUser_biometricsInput = {
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+=======
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
@@ -1982,7 +2299,6 @@ export type UserUncheckedUpdateWithoutUser_biometricsInput = {
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
   oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
@@ -2016,20 +2332,17 @@ export type UserCreateWithoutRoleInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -2065,20 +2378,17 @@ export type UserUncheckedCreateWithoutRoleInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -2143,11 +2453,7 @@ export type UserScalarWhereInput = {
   address_barangay?: Prisma.StringNullableFilter<"User"> | string | null
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
-  signature_url?: Prisma.StringNullableFilter<"User"> | string | null
-  is_restricted?: Prisma.BoolFilter<"User"> | boolean
-  restricted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  restriction_reason?: Prisma.StringNullableFilter<"User"> | string | null
-  last_login_ip?: Prisma.StringNullableFilter<"User"> | string | null
+  household_size?: Prisma.IntNullableFilter<"User"> | number | null
   role_id?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -2168,19 +2474,16 @@ export type UserCreateWithoutPermission_overridesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -2217,20 +2520,17 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -2282,19 +2582,16 @@ export type UserUpdateWithoutPermission_overridesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -2331,20 +2628,17 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -2380,19 +2674,16 @@ export type UserCreateWithoutAction_suspensionsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -2429,20 +2720,17 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -2494,19 +2782,16 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -2543,20 +2828,17 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -2592,19 +2874,16 @@ export type UserCreateWithoutBlocked_ipsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -2641,20 +2920,17 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -2706,19 +2982,16 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -2755,20 +3028,17 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -2804,19 +3074,16 @@ export type UserCreateWithoutLogin_activitiesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -2853,20 +3120,17 @@ export type UserUncheckedCreateWithoutLogin_activitiesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -2918,19 +3182,16 @@ export type UserUpdateWithoutLogin_activitiesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -2967,20 +3228,17 @@ export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -3016,19 +3274,16 @@ export type UserCreateWithoutAudit_logsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -3065,20 +3320,17 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -3130,19 +3382,16 @@ export type UserUpdateWithoutAudit_logsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -3179,20 +3428,17 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -3228,20 +3474,17 @@ export type UserCreateWithoutAccountsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
@@ -3277,21 +3520,18 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
@@ -3342,20 +3582,17 @@ export type UserUpdateWithoutAccountsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
@@ -3391,21 +3628,18 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
@@ -3440,20 +3674,17 @@ export type UserCreateWithoutOauth_identitiesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -3489,21 +3720,18 @@ export type UserUncheckedCreateWithoutOauth_identitiesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -3554,20 +3782,17 @@ export type UserUpdateWithoutOauth_identitiesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -3603,21 +3828,18 @@ export type UserUncheckedUpdateWithoutOauth_identitiesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -3652,20 +3874,17 @@ export type UserCreateWithoutGmail_connectionInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -3701,21 +3920,18 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -3766,20 +3982,17 @@ export type UserUpdateWithoutGmail_connectionInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -3815,21 +4028,18 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -3864,20 +4074,17 @@ export type UserCreateWithoutUser_interestInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
@@ -3913,21 +4120,18 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
@@ -3978,20 +4182,17 @@ export type UserUpdateWithoutUser_interestInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
@@ -4027,21 +4228,18 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
@@ -4076,20 +4274,17 @@ export type UserCreateWithoutEvent_attendancesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -4125,21 +4320,18 @@ export type UserUncheckedCreateWithoutEvent_attendancesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -4190,20 +4382,17 @@ export type UserUpdateWithoutEvent_attendancesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -4239,21 +4428,18 @@ export type UserUncheckedUpdateWithoutEvent_attendancesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -4288,20 +4474,17 @@ export type UserCreateWithoutChat_participantsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -4337,21 +4520,18 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -4402,20 +4582,17 @@ export type UserUpdateWithoutChat_participantsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -4451,21 +4628,18 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -4500,20 +4674,17 @@ export type UserCreateWithoutChat_messagesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -4549,21 +4720,18 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -4614,20 +4782,17 @@ export type UserUpdateWithoutChat_messagesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -4663,21 +4828,18 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -4712,20 +4874,17 @@ export type UserCreateWithoutSupport_ticketsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -4761,21 +4920,18 @@ export type UserUncheckedCreateWithoutSupport_ticketsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -4815,20 +4971,17 @@ export type UserCreateWithoutAssigned_support_ticketsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -4864,21 +5017,18 @@ export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -4929,20 +5079,17 @@ export type UserUpdateWithoutSupport_ticketsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -4978,21 +5125,18 @@ export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -5038,20 +5182,17 @@ export type UserUpdateWithoutAssigned_support_ticketsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -5087,21 +5228,18 @@ export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -5136,20 +5274,17 @@ export type UserCreateWithoutSupport_ticket_repliesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -5185,21 +5320,18 @@ export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -5250,20 +5382,17 @@ export type UserUpdateWithoutSupport_ticket_repliesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -5299,21 +5428,18 @@ export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -5348,20 +5474,17 @@ export type UserCreateWithoutEdited_certificate_templatesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -5397,21 +5520,18 @@ export type UserUncheckedCreateWithoutEdited_certificate_templatesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -5462,20 +5582,17 @@ export type UserUpdateWithoutEdited_certificate_templatesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -5511,21 +5628,18 @@ export type UserUncheckedUpdateWithoutEdited_certificate_templatesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -5560,20 +5674,17 @@ export type UserCreateWithoutCertificate_signatory_linesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -5609,21 +5720,18 @@ export type UserUncheckedCreateWithoutCertificate_signatory_linesInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -5674,20 +5782,17 @@ export type UserUpdateWithoutCertificate_signatory_linesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -5723,21 +5828,18 @@ export type UserUncheckedUpdateWithoutCertificate_signatory_linesInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -5772,20 +5874,17 @@ export type UserCreateWithoutCertificate_deploymentsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -5821,21 +5920,18 @@ export type UserUncheckedCreateWithoutCertificate_deploymentsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -5886,20 +5982,17 @@ export type UserUpdateWithoutCertificate_deploymentsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -5935,21 +6028,18 @@ export type UserUncheckedUpdateWithoutCertificate_deploymentsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -5984,20 +6074,17 @@ export type UserCreateWithoutMonthly_report_foldersInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -6033,21 +6120,18 @@ export type UserUncheckedCreateWithoutMonthly_report_foldersInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -6098,20 +6182,17 @@ export type UserUpdateWithoutMonthly_report_foldersInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -6147,21 +6228,18 @@ export type UserUncheckedUpdateWithoutMonthly_report_foldersInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -6196,20 +6274,17 @@ export type UserCreateWithoutSubmitted_monthly_reportsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -6245,21 +6320,18 @@ export type UserUncheckedCreateWithoutSubmitted_monthly_reportsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -6299,20 +6371,17 @@ export type UserCreateWithoutReviewed_monthly_reportsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
@@ -6348,21 +6417,18 @@ export type UserUncheckedCreateWithoutReviewed_monthly_reportsInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   role_id: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
   blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
   login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
-  user_biometrics?: Prisma.UserBiometricUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
   user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
@@ -6413,20 +6479,17 @@ export type UserUpdateWithoutSubmitted_monthly_reportsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -6462,21 +6525,18 @@ export type UserUncheckedUpdateWithoutSubmitted_monthly_reportsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -6522,20 +6582,17 @@ export type UserUpdateWithoutReviewed_monthly_reportsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -6571,21 +6628,18 @@ export type UserUncheckedUpdateWithoutReviewed_monthly_reportsInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -6832,11 +6886,7 @@ export type UserCreateManyRoleInput = {
   address_barangay?: string | null
   address_city?: string | null
   address_province?: string | null
-  signature_url?: string | null
-  is_restricted?: boolean
-  restricted_at?: Date | string | null
-  restriction_reason?: string | null
-  last_login_ip?: string | null
+  household_size?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -6856,20 +6906,17 @@ export type UserUpdateWithoutRoleInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
@@ -6905,20 +6952,17 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
   blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
   login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
   permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
   action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
   user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
-  user_biometrics?: Prisma.UserBiometricUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
   user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
@@ -6954,11 +6998,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  restriction_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  last_login_ip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -6969,13 +7009,14 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
  */
 
 export type UserCountOutputType = {
+  residency_documents: number
+  role_avatars: number
   blocked_ips: number
   login_activities: number
   audit_logs: number
   permission_overrides: number
   action_suspensions: number
   user_school_info: number
-  user_biometrics: number
   accounts: number
   user_verifications: number
   oauth_identities: number
@@ -6995,13 +7036,14 @@ export type UserCountOutputType = {
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  residency_documents?: boolean | UserCountOutputTypeCountResidency_documentsArgs
+  role_avatars?: boolean | UserCountOutputTypeCountRole_avatarsArgs
   blocked_ips?: boolean | UserCountOutputTypeCountBlocked_ipsArgs
   login_activities?: boolean | UserCountOutputTypeCountLogin_activitiesArgs
   audit_logs?: boolean | UserCountOutputTypeCountAudit_logsArgs
   permission_overrides?: boolean | UserCountOutputTypeCountPermission_overridesArgs
   action_suspensions?: boolean | UserCountOutputTypeCountAction_suspensionsArgs
   user_school_info?: boolean | UserCountOutputTypeCountUser_school_infoArgs
-  user_biometrics?: boolean | UserCountOutputTypeCountUser_biometricsArgs
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
   user_verifications?: boolean | UserCountOutputTypeCountUser_verificationsArgs
   oauth_identities?: boolean | UserCountOutputTypeCountOauth_identitiesArgs
@@ -7028,6 +7070,20 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountResidency_documentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ResidencyDocumentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRole_avatarsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserRoleAvatarWhereInput
 }
 
 /**
@@ -7070,13 +7126,6 @@ export type UserCountOutputTypeCountAction_suspensionsArgs<ExtArgs extends runti
  */
 export type UserCountOutputTypeCountUser_school_infoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserSchoolInfoWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountUser_biometricsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.UserBiometricWhereInput
 }
 
 /**
@@ -7207,21 +7256,18 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   address_barangay?: boolean
   address_city?: boolean
   address_province?: boolean
-  signature_url?: boolean
-  is_restricted?: boolean
-  restricted_at?: boolean
-  restriction_reason?: boolean
-  last_login_ip?: boolean
+  household_size?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  residency_documents?: boolean | Prisma.User$residency_documentsArgs<ExtArgs>
+  role_avatars?: boolean | Prisma.User$role_avatarsArgs<ExtArgs>
   blocked_ips?: boolean | Prisma.User$blocked_ipsArgs<ExtArgs>
   login_activities?: boolean | Prisma.User$login_activitiesArgs<ExtArgs>
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   permission_overrides?: boolean | Prisma.User$permission_overridesArgs<ExtArgs>
   action_suspensions?: boolean | Prisma.User$action_suspensionsArgs<ExtArgs>
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
-  user_biometrics?: boolean | Prisma.User$user_biometricsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   user_verifications?: boolean | Prisma.User$user_verificationsArgs<ExtArgs>
   user_interest?: boolean | Prisma.User$user_interestArgs<ExtArgs>
@@ -7259,11 +7305,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address_barangay?: boolean
   address_city?: boolean
   address_province?: boolean
-  signature_url?: boolean
-  is_restricted?: boolean
-  restricted_at?: boolean
-  restriction_reason?: boolean
-  last_login_ip?: boolean
+  household_size?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -7285,11 +7327,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address_barangay?: boolean
   address_city?: boolean
   address_province?: boolean
-  signature_url?: boolean
-  is_restricted?: boolean
-  restricted_at?: boolean
-  restriction_reason?: boolean
-  last_login_ip?: boolean
+  household_size?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -7311,25 +7349,22 @@ export type UserSelectScalar = {
   address_barangay?: boolean
   address_city?: boolean
   address_province?: boolean
-  signature_url?: boolean
-  is_restricted?: boolean
-  restricted_at?: boolean
-  restriction_reason?: boolean
-  last_login_ip?: boolean
+  household_size?: boolean
   role_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "signature_url" | "is_restricted" | "restricted_at" | "restriction_reason" | "last_login_ip" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "household_size" | "role_id" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  residency_documents?: boolean | Prisma.User$residency_documentsArgs<ExtArgs>
+  role_avatars?: boolean | Prisma.User$role_avatarsArgs<ExtArgs>
   blocked_ips?: boolean | Prisma.User$blocked_ipsArgs<ExtArgs>
   login_activities?: boolean | Prisma.User$login_activitiesArgs<ExtArgs>
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   permission_overrides?: boolean | Prisma.User$permission_overridesArgs<ExtArgs>
   action_suspensions?: boolean | Prisma.User$action_suspensionsArgs<ExtArgs>
   user_school_info?: boolean | Prisma.User$user_school_infoArgs<ExtArgs>
-  user_biometrics?: boolean | Prisma.User$user_biometricsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   user_verifications?: boolean | Prisma.User$user_verificationsArgs<ExtArgs>
   user_interest?: boolean | Prisma.User$user_interestArgs<ExtArgs>
@@ -7361,13 +7396,14 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    residency_documents: Prisma.$ResidencyDocumentPayload<ExtArgs>[]
+    role_avatars: Prisma.$UserRoleAvatarPayload<ExtArgs>[]
     blocked_ips: Prisma.$BlockedIpPayload<ExtArgs>[]
     login_activities: Prisma.$LoginActivityPayload<ExtArgs>[]
     audit_logs: Prisma.$AuditLogPayload<ExtArgs>[]
     permission_overrides: Prisma.$UserPermissionOverridePayload<ExtArgs>[]
     action_suspensions: Prisma.$UserActionSuspensionPayload<ExtArgs>[]
     user_school_info: Prisma.$UserSchoolInfoPayload<ExtArgs>[]
-    user_biometrics: Prisma.$UserBiometricPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     user_verifications: Prisma.$UserVerificationPayload<ExtArgs>[]
     user_interest: Prisma.$UserInterestPayload<ExtArgs> | null
@@ -7403,11 +7439,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     address_barangay: string | null
     address_city: string | null
     address_province: string | null
-    signature_url: string | null
-    is_restricted: boolean
-    restricted_at: Date | null
-    restriction_reason: string | null
-    last_login_ip: string | null
+    /**
+     * Beneficiaries only — how many people the assistance has to cover.
+     */
+    household_size: number | null
     role_id: string
     createdAt: Date
     updatedAt: Date
@@ -7805,13 +7840,14 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  residency_documents<T extends Prisma.User$residency_documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$residency_documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ResidencyDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  role_avatars<T extends Prisma.User$role_avatarsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$role_avatarsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRoleAvatarPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   blocked_ips<T extends Prisma.User$blocked_ipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$blocked_ipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BlockedIpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   login_activities<T extends Prisma.User$login_activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$login_activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoginActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audit_logs<T extends Prisma.User$audit_logsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   permission_overrides<T extends Prisma.User$permission_overridesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permission_overridesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPermissionOverridePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   action_suspensions<T extends Prisma.User$action_suspensionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$action_suspensionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserActionSuspensionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_school_info<T extends Prisma.User$user_school_infoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_school_infoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSchoolInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  user_biometrics<T extends Prisma.User$user_biometricsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_biometricsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserBiometricPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_verifications<T extends Prisma.User$user_verificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_verificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_interest<T extends Prisma.User$user_interestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_interestArgs<ExtArgs>>): Prisma.Prisma__UserInterestClient<runtime.Types.Result.GetResult<Prisma.$UserInterestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -7874,11 +7910,7 @@ export interface UserFieldRefs {
   readonly address_barangay: Prisma.FieldRef<"User", 'String'>
   readonly address_city: Prisma.FieldRef<"User", 'String'>
   readonly address_province: Prisma.FieldRef<"User", 'String'>
-  readonly signature_url: Prisma.FieldRef<"User", 'String'>
-  readonly is_restricted: Prisma.FieldRef<"User", 'Boolean'>
-  readonly restricted_at: Prisma.FieldRef<"User", 'DateTime'>
-  readonly restriction_reason: Prisma.FieldRef<"User", 'String'>
-  readonly last_login_ip: Prisma.FieldRef<"User", 'String'>
+  readonly household_size: Prisma.FieldRef<"User", 'Int'>
   readonly role_id: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -8283,6 +8315,54 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
+ * User.residency_documents
+ */
+export type User$residency_documentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ResidencyDocument
+   */
+  select?: Prisma.ResidencyDocumentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ResidencyDocument
+   */
+  omit?: Prisma.ResidencyDocumentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ResidencyDocumentInclude<ExtArgs> | null
+  where?: Prisma.ResidencyDocumentWhereInput
+  orderBy?: Prisma.ResidencyDocumentOrderByWithRelationInput | Prisma.ResidencyDocumentOrderByWithRelationInput[]
+  cursor?: Prisma.ResidencyDocumentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ResidencyDocumentScalarFieldEnum | Prisma.ResidencyDocumentScalarFieldEnum[]
+}
+
+/**
+ * User.role_avatars
+ */
+export type User$role_avatarsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserRoleAvatar
+   */
+  select?: Prisma.UserRoleAvatarSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserRoleAvatar
+   */
+  omit?: Prisma.UserRoleAvatarOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserRoleAvatarInclude<ExtArgs> | null
+  where?: Prisma.UserRoleAvatarWhereInput
+  orderBy?: Prisma.UserRoleAvatarOrderByWithRelationInput | Prisma.UserRoleAvatarOrderByWithRelationInput[]
+  cursor?: Prisma.UserRoleAvatarWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserRoleAvatarScalarFieldEnum | Prisma.UserRoleAvatarScalarFieldEnum[]
+}
+
+/**
  * User.blocked_ips
  */
 export type User$blocked_ipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -8424,30 +8504,6 @@ export type User$user_school_infoArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.UserSchoolInfoScalarFieldEnum | Prisma.UserSchoolInfoScalarFieldEnum[]
-}
-
-/**
- * User.user_biometrics
- */
-export type User$user_biometricsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the UserBiometric
-   */
-  select?: Prisma.UserBiometricSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the UserBiometric
-   */
-  omit?: Prisma.UserBiometricOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserBiometricInclude<ExtArgs> | null
-  where?: Prisma.UserBiometricWhereInput
-  orderBy?: Prisma.UserBiometricOrderByWithRelationInput | Prisma.UserBiometricOrderByWithRelationInput[]
-  cursor?: Prisma.UserBiometricWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.UserBiometricScalarFieldEnum | Prisma.UserBiometricScalarFieldEnum[]
 }
 
 /**

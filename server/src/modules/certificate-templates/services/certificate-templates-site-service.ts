@@ -318,7 +318,7 @@ export class CertificateTemplatesSiteService {
       throw new NotFoundException('Signatory not found on this template');
     }
 
-    const storedUrl = signatory.coordinator.signature_url;
+    const storedUrl = signatory.coordinator.accounts[0]?.signature_url;
     if (!storedUrl) {
       throw new NotFoundException(
         `${signatory.name} has not uploaded a signature image`,
@@ -637,7 +637,9 @@ export class CertificateTemplatesSiteService {
         title: signatory.title,
         department: signatory.department,
         signature_token: signatory.signature_token,
-        has_signature: Boolean(signatory.coordinator.signature_url),
+        has_signature: Boolean(
+          signatory.coordinator.accounts[0]?.signature_url,
+        ),
       })),
       updated_at: template.updatedAt.toISOString(),
       updated_by: template.updated_by_name,
@@ -669,7 +671,7 @@ function mapCoordinator(user: CoordinatorRow): SignatoryCoordinatorDto {
     title: titleOf(user),
     department: departmentOf(user),
     email: user.accounts[0]?.email ?? '',
-    has_signature: Boolean(user.signature_url),
+    has_signature: Boolean(user.accounts[0]?.signature_url),
   };
 }
 

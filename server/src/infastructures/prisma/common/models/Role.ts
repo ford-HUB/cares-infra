@@ -308,10 +308,6 @@ export type RoleUpdateOneRequiredWithoutUsersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RoleUpdateToOneWithWhereWithoutUsersInput, Prisma.RoleUpdateWithoutUsersInput>, Prisma.RoleUncheckedUpdateWithoutUsersInput>
 }
 
-export type EnumRoleTypeFieldUpdateOperationsInput = {
-  set?: $Enums.RoleType
-}
-
 export type RoleCreateWithoutUsersInput = {
   role_id?: string
   type?: $Enums.RoleType

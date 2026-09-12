@@ -174,6 +174,29 @@ export class SessionRegistry {
     });
   }
 
+  /**
+   * Rewrites the address on one account's live sessions after an email change, so the
+   * portal's session list and the audit trail stop naming an address that no longer
+   * signs in. Remaining TTLs are kept — the tokens themselves did not change.
+   */
+  async updateEmailForUser(userId: string, email: string): Promise<void> {
+    const owned = (await this.listAll()).filter(
+      (session) => session.user_id === userId,
+    );
+
+    for (const session of owned) {
+      const ttl = await this.redisService.ttl(keyOf(session.session_id));
+      if (ttl <= 0) {
+        continue;
+      }
+      await this.redisService.set(
+        keyOf(session.session_id),
+        { ...session, email },
+        ttl,
+      );
+    }
+  }
+
   async revoke(sessionId: string): Promise<void> {
     await this.redisService.delete(keyOf(sessionId));
   }

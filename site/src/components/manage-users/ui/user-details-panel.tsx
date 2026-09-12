@@ -2,7 +2,7 @@ import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthenticatedImage } from '../../../hooks/use-authenticated-image'
-import { PORTAL_ROLE_VALUES } from '../../../constants/manage-users'
+import { PORTAL_ROLE_VALUES, VERIFICATION_STATUS_LABELS } from '../../../constants/manage-users'
 import type { ManagedUserDetail } from '../../../types/manage-users'
 import { UserDetailsPanelSkeleton } from './user-details-panel-skeleton'
 
@@ -167,7 +167,7 @@ export function UserDetailsPanel({
                 detail.verifications.map((verification) => (
                   <Field
                     key={verification.submittedAt}
-                    label={verification.status}
+                    label={VERIFICATION_STATUS_LABELS[verification.status]}
                     value={formatDate(verification.submittedAt)}
                   />
                 ))

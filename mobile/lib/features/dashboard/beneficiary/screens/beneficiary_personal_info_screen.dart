@@ -8,9 +8,8 @@ import 'package:mobile/features/auth/presentation/widgets/registration_form_card
 import 'package:mobile/features/auth/registration/utils/password_strength.dart';
 import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_personal_profile_store.dart';
 import 'package:mobile/features/dashboard/beneficiary/domain/beneficiary_personal_profile.dart';
-import 'package:mobile/features/dashboard/beneficiary/screens/beneficiary_document_upload_screen.dart';
 
-/// Beneficiary "Edit Profile" — personal and verification information only.
+/// Beneficiary "Edit Profile" — personal information only.
 /// Assistance, household, and visit details are edited from their own cards
 /// on the profile page.
 class BeneficiaryPersonalInfoScreen extends StatefulWidget {
@@ -40,7 +39,6 @@ class _BeneficiaryPersonalInfoScreenState
   late final TextEditingController _address;
   late final TextEditingController _dateOfBirth;
 
-  late List<VerificationDocument> _documents;
   String? _photoLabel;
   bool _isSaving = false;
 
@@ -56,7 +54,6 @@ class _BeneficiaryPersonalInfoScreenState
     );
     _address = TextEditingController(text: profile.address);
     _dateOfBirth = TextEditingController(text: profile.dateOfBirth);
-    _documents = List.of(profile.documents);
     _photoLabel = profile.photoLabel;
   }
 
@@ -98,66 +95,6 @@ class _BeneficiaryPersonalInfoScreenState
     // Mock photo capture — the prototype stores a label, not a file.
     setState(() => _photoLabel = 'profile_photo.jpg');
     _showMessage('Photo updated (sample image).');
-  }
-
-  /// Uses the shared upload flow so every submission lands "Under Review".
-  Future<void> _uploadDocument(VerificationDocument document) async {
-    final submitted = await BeneficiaryDocumentUploadScreen.open(
-      context,
-      initialDocumentId: document.id,
-    );
-    if (!mounted || !submitted) return;
-    setState(() => _documents = List.of(_store.profile.documents));
-  }
-
-  /// Prototype-only review simulator — a CARES reviewer does this in the real
-  /// system. Remove once document review is wired to the backend.
-  Future<void> _simulateReview(VerificationDocument document) async {
-    final approve = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
-          'Simulate review (demo)',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: AppColors.primaryDark,
-          ),
-        ),
-        content: Text(
-          'Choose the review outcome for ${document.label}. This stands in '
-          'for the CARES reviewer while the prototype has no backend.',
-          style: const TextStyle(fontSize: 13, height: 1.45),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Reject'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Verify'),
-          ),
-        ],
-      ),
-    );
-
-    if (approve == null || !mounted) return;
-
-    if (approve) {
-      _store.markVerified(document.id);
-    } else {
-      _store.markRejected(
-        document.id,
-        'The uploaded image was blurry and the address could not be read.',
-      );
-    }
-
-    setState(() => _documents = List.of(_store.profile.documents));
-    _showMessage(
-      approve ? '${document.label} verified.' : '${document.label} rejected.',
-    );
   }
 
   Future<void> _changePassword() async {
@@ -278,7 +215,6 @@ class _BeneficiaryPersonalInfoScreenState
         contactNumber: normalizePhilippinePhone(_contact.text),
         address: _address.text.trim(),
         dateOfBirth: _dateOfBirth.text.trim(),
-        documents: _documents,
         photoLabel: _photoLabel,
       ),
     );
@@ -377,27 +313,6 @@ class _BeneficiaryPersonalInfoScreenState
                         onTap: _pickDateOfBirth,
                         suffixIcon: Icons.calendar_today_rounded,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Verification Documents',
-                    subtitle:
-                        'Valid ID, proof of residency, and other requirements.',
-                    children: [
-                      for (final document in _documents) ...[
-                        _DocumentTile(
-                          document: document,
-                          onUpload: () => _uploadDocument(document),
-                          onSimulateReview:
-                              document.status ==
-                                  VerificationDocumentStatus.pending
-                              ? () => _simulateReview(document)
-                              : null,
-                        ),
-                        if (document != _documents.last)
-                          const SizedBox(height: 10),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -571,121 +486,6 @@ class _SectionCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ...children,
-        ],
-      ),
-    );
-  }
-}
-
-class _DocumentTile extends StatelessWidget {
-  const _DocumentTile({
-    required this.document,
-    required this.onUpload,
-    this.onSimulateReview,
-  });
-
-  final VerificationDocument document;
-  final VoidCallback onUpload;
-
-  /// Prototype-only hook to fake a reviewer decision.
-  final VoidCallback? onSimulateReview;
-
-  Color get _statusColor => switch (document.status) {
-    VerificationDocumentStatus.verified => AppColors.primary,
-    VerificationDocumentStatus.pending => AppColors.accentOrange,
-    VerificationDocumentStatus.rejected => AppColors.heart,
-    VerificationDocumentStatus.missing => AppColors.textMuted,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.fieldBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: _statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(document.status.icon, size: 18, color: _statusColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  document.label,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  document.fileName ?? document.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    height: 1.35,
-                    color: AppColors.secondary.withValues(alpha: 0.95),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  document.status.label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: _statusColor,
-                  ),
-                ),
-                if (document.rejectionReason != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'Reason: ${document.rejectionReason}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      height: 1.35,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton(
-                onPressed: onUpload,
-                child: Text(switch (document.status) {
-                  VerificationDocumentStatus.missing => 'Upload',
-                  VerificationDocumentStatus.rejected => 'Upload new',
-                  _ => 'Replace',
-                }),
-              ),
-              if (onSimulateReview != null)
-                TextButton(
-                  onPressed: onSimulateReview,
-                  child: const Text(
-                    'Review (demo)',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                ),
-            ],
-          ),
         ],
       ),
     );

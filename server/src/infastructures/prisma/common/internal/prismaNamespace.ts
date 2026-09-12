@@ -384,6 +384,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  ResidencyDocument: 'ResidencyDocument',
+  UserRoleAvatar: 'UserRoleAvatar',
   UserSchoolInfo: 'UserSchoolInfo',
   Department: 'Department',
   Major: 'Major',
@@ -435,7 +437,11 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
+<<<<<<< HEAD
     modelProps: "user" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement"
+=======
+    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry"
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -510,6 +516,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    ResidencyDocument: {
+      payload: Prisma.$ResidencyDocumentPayload<ExtArgs>
+      fields: Prisma.ResidencyDocumentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ResidencyDocumentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ResidencyDocumentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>
+        }
+        findFirst: {
+          args: Prisma.ResidencyDocumentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ResidencyDocumentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>
+        }
+        findMany: {
+          args: Prisma.ResidencyDocumentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>[]
+        }
+        create: {
+          args: Prisma.ResidencyDocumentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>
+        }
+        createMany: {
+          args: Prisma.ResidencyDocumentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ResidencyDocumentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>[]
+        }
+        delete: {
+          args: Prisma.ResidencyDocumentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>
+        }
+        update: {
+          args: Prisma.ResidencyDocumentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ResidencyDocumentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ResidencyDocumentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ResidencyDocumentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>[]
+        }
+        upsert: {
+          args: Prisma.ResidencyDocumentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ResidencyDocumentPayload>
+        }
+        aggregate: {
+          args: Prisma.ResidencyDocumentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateResidencyDocument>
+        }
+        groupBy: {
+          args: Prisma.ResidencyDocumentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ResidencyDocumentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ResidencyDocumentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ResidencyDocumentCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserRoleAvatar: {
+      payload: Prisma.$UserRoleAvatarPayload<ExtArgs>
+      fields: Prisma.UserRoleAvatarFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserRoleAvatarFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserRoleAvatarFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>
+        }
+        findFirst: {
+          args: Prisma.UserRoleAvatarFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserRoleAvatarFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>
+        }
+        findMany: {
+          args: Prisma.UserRoleAvatarFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>[]
+        }
+        create: {
+          args: Prisma.UserRoleAvatarCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>
+        }
+        createMany: {
+          args: Prisma.UserRoleAvatarCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserRoleAvatarCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>[]
+        }
+        delete: {
+          args: Prisma.UserRoleAvatarDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>
+        }
+        update: {
+          args: Prisma.UserRoleAvatarUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserRoleAvatarDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserRoleAvatarUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserRoleAvatarUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserRoleAvatarUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRoleAvatarPayload>
+        }
+        aggregate: {
+          args: Prisma.UserRoleAvatarAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserRoleAvatar>
+        }
+        groupBy: {
+          args: Prisma.UserRoleAvatarGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserRoleAvatarGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserRoleAvatarCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserRoleAvatarCountAggregateOutputType> | number
         }
       }
     }
@@ -3231,11 +3385,7 @@ export const UserScalarFieldEnum = {
   address_barangay: 'address_barangay',
   address_city: 'address_city',
   address_province: 'address_province',
-  signature_url: 'signature_url',
-  is_restricted: 'is_restricted',
-  restricted_at: 'restricted_at',
-  restriction_reason: 'restriction_reason',
-  last_login_ip: 'last_login_ip',
+  household_size: 'household_size',
   role_id: 'role_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3244,9 +3394,36 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ResidencyDocumentScalarFieldEnum = {
+  residency_document_id: 'residency_document_id',
+  user_id: 'user_id',
+  file_url: 'file_url',
+  file_name: 'file_name',
+  mime_type: 'mime_type',
+  size_bytes: 'size_bytes',
+  extracted_address: 'extracted_address',
+  createdAt: 'createdAt'
+} as const
+
+export type ResidencyDocumentScalarFieldEnum = (typeof ResidencyDocumentScalarFieldEnum)[keyof typeof ResidencyDocumentScalarFieldEnum]
+
+
+export const UserRoleAvatarScalarFieldEnum = {
+  user_role_avatar_id: 'user_role_avatar_id',
+  user_id: 'user_id',
+  role_type: 'role_type',
+  avatar_url: 'avatar_url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserRoleAvatarScalarFieldEnum = (typeof UserRoleAvatarScalarFieldEnum)[keyof typeof UserRoleAvatarScalarFieldEnum]
+
+
 export const UserSchoolInfoScalarFieldEnum = {
   user_school_info_id: 'user_school_info_id',
   id_number: 'id_number',
+  school_id_url: 'school_id_url',
   graduation_year: 'graduation_year',
   graduation_month: 'graduation_month',
   graduation_day: 'graduation_day',
@@ -3294,7 +3471,7 @@ export type YearLevelScalarFieldEnum = (typeof YearLevelScalarFieldEnum)[keyof t
 export const UserVerificationScalarFieldEnum = {
   user_verification_id: 'user_verification_id',
   user_id: 'user_id',
-  school_id_url: 'school_id_url',
+  user_biometric_id: 'user_biometric_id',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3309,7 +3486,6 @@ export const UserBiometricScalarFieldEnum = {
   embedding: 'embedding',
   embedding_type: 'embedding_type',
   isActive: 'isActive',
-  user_id: 'user_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -3456,6 +3632,11 @@ export const AccountScalarFieldEnum = {
   password: 'password',
   credential_expires_at: 'credential_expires_at',
   provisioned_by_user_id: 'provisioned_by_user_id',
+  signature_url: 'signature_url',
+  is_restricted: 'is_restricted',
+  restricted_at: 'restricted_at',
+  restriction_reason: 'restriction_reason',
+  last_login_ip: 'last_login_ip',
   user_id: 'user_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3904,13 +4085,6 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -3921,6 +4095,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RoleType'
+ */
+export type EnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleType'>
+    
+
+
+/**
+ * Reference to a field of type 'RoleType[]'
+ */
+export type ListEnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleType[]'>
     
 
 
@@ -3967,16 +4155,9 @@ export type ListEnumEmbeddingTypeFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
- * Reference to a field of type 'RoleType'
+ * Reference to a field of type 'Boolean'
  */
-export type EnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleType'>
-    
-
-
-/**
- * Reference to a field of type 'RoleType[]'
- */
-export type ListEnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleType[]'>
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -4524,6 +4705,8 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  residencyDocument?: Prisma.ResidencyDocumentOmit
+  userRoleAvatar?: Prisma.UserRoleAvatarOmit
   userSchoolInfo?: Prisma.UserSchoolInfoOmit
   department?: Prisma.DepartmentOmit
   major?: Prisma.MajorOmit

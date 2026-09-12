@@ -155,7 +155,7 @@ class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
           : ListView.separated(
               padding: const EdgeInsets.all(20),
               itemCount: certificates.length + 1,
-              separatorBuilder: (_, index) => const SizedBox(height: 10),
+              separatorBuilder: (_, index) => const SizedBox(height: 14),
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return Padding(
@@ -189,63 +189,213 @@ class _CertificateListTile extends StatelessWidget {
 
   final CaresCertificate certificate;
 
+  String get _recipientName {
+    final user = StaticUserSession.instance.currentUser;
+    if (user == null || user.fullName.trim().isEmpty) return 'Volunteer';
+    return user.fullName;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => CertificateReviewScreen.open(context, certificate),
-        borderRadius: BorderRadius.circular(16),
         child: Ink(
-          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.inputFill),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.workspace_premium_outlined,
-                  size: 20,
-                  color: AppColors.primary,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: _CertificateThumbnail(
+                  certificate: certificate,
+                  recipientName: _recipientName,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 6, 6),
+                child: Row(
                   children: [
-                    Text(
-                      certificate.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium_outlined,
+                        size: 18,
+                        color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      certificate.issuedMonthYear,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            certificate.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Issued ${certificate.issuedMonthYear} · '
+                            '${certificate.hoursCompleted}h',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () => downloadCertificate(context, certificate),
+                      icon: const Icon(Icons.download_rounded),
+                      color: AppColors.primary,
+                      tooltip: 'Download certificate',
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () => downloadCertificate(context, certificate),
-                icon: const Icon(Icons.download_rounded),
-                color: AppColors.primary,
-                tooltip: 'Download certificate',
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact landscape rendering of the certificate so the wallet shows what
+/// the volunteer will actually receive, mirroring [CertificateReviewScreen].
+class _CertificateThumbnail extends StatelessWidget {
+  const _CertificateThumbnail({
+    required this.certificate,
+    required this.recipientName,
+  });
+
+  final CaresCertificate certificate;
+  final String recipientName;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.primary.withValues(alpha: 0.08),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+        ),
+        padding: const EdgeInsets.all(5),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.18),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.workspace_premium_rounded,
+                    size: 14,
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'CARES',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.6,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                certificate.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                width: 28,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'This certifies that',
+                style: TextStyle(fontSize: 8, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                recipientName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                certificate.eventName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'No. ${certificate.certificateNumber}',
+                style: const TextStyle(
+                  fontSize: 7,
+                  color: AppColors.textMuted,
+                ),
               ),
             ],
           ),
@@ -477,7 +627,7 @@ class _ProfileListScreen extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(20),
               itemCount: items.length,
-              separatorBuilder: (_, index) => const SizedBox(height: 10),
+              separatorBuilder: (_, index) => const SizedBox(height: 14),
               itemBuilder: (context, index) {
                 final item = items[index];
                 return Material(

@@ -7,6 +7,7 @@ import type {
   ManagedUser,
   ManagedUserDetail,
   ManagedUserStatus,
+  ManagedUserVerificationStatus,
   ManageUsersQuery,
   ManageUsersResult,
   ProvisionUserPayload,
@@ -237,7 +238,7 @@ interface ManagedUserDetailApiResponse extends ManagedUserApiResponse {
     year_level: string
     graduation_date: string
   } | null
-  verifications: { status: 'PENDING' | 'APPROVED' | 'REJECTED'; submitted_at: string }[]
+  verifications: { status: ManagedUserVerificationStatus; submitted_at: string }[]
   interests: string[]
   blocked_ip_details: {
     ip_address: string

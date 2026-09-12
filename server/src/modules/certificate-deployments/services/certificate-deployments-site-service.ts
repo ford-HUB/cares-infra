@@ -235,7 +235,7 @@ function freezeDesign(
       // Frozen with the line: the printed sheet still resolves it against the
       // coordinator's own signature image at issue time.
       signature_token: signatory.signature_token,
-      has_signature: Boolean(signatory.coordinator.signature_url),
+      has_signature: Boolean(signatory.coordinator.accounts[0]?.signature_url),
     }),
   );
 

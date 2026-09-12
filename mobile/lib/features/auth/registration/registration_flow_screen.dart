@@ -231,94 +231,103 @@ class _RegistrationFlowScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: Row(
-                children: [
-                  const CaresLogo(size: 40),
-                  const Spacer(),
-                  if (_currentStep != RegistrationFlowStep.accountType)
-                    TextButton(
-                      onPressed: _goBack,
-                      child: const Text(
-                        'Back',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    // The system back gesture retraces steps the same way the Back button
+    // does; only the first step actually leaves the screen.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: Row(
                   children: [
-                    RegistrationProgressHeader(
-                      currentStep: _stepNumber,
-                      totalSteps: _totalSteps,
-                      title: _stepTitle,
+                    const CaresLogo(size: 40),
+                    const Spacer(),
+                    if (_currentStep != RegistrationFlowStep.accountType)
+                      TextButton(
+                        onPressed: _goBack,
+                        child: const Text(
+                          'Back',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      RegistrationProgressHeader(
+                        currentStep: _stepNumber,
+                        totalSteps: _totalSteps,
+                        title: _stepTitle,
+                      ),
+                      const SizedBox(height: 24),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        child: KeyedSubtree(
+                          key: ValueKey(_currentStep),
+                          child: _buildStepContent(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: Column(
+                  children: [
+                    RegistrationStepActions(
+                      showBack:
+                          _currentStep != RegistrationFlowStep.accountType,
+                      onBack: _goBack,
+                      onContinue: _goNext,
+                      continueEnabled: _canContinue,
+                      continueLabel:
+                          _currentStep == RegistrationFlowStep.submission
+                          ? 'Submit Registration'
+                          : 'Continue',
+                      isLoading: _isSubmitting,
                     ),
-                    const SizedBox(height: 24),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      child: KeyedSubtree(
-                        key: ValueKey(_currentStep),
-                        child: _buildStepContent(),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: _goToLogin,
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          size: 16,
+                          color: AppColors.textMuted,
+                        ),
+                        label: const Text(
+                          'Back to Login',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.textMuted,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Column(
-                children: [
-                  RegistrationStepActions(
-                    showBack: _currentStep != RegistrationFlowStep.accountType,
-                    onBack: _goBack,
-                    onContinue: _goNext,
-                    continueEnabled: _canContinue,
-                    continueLabel:
-                        _currentStep == RegistrationFlowStep.submission
-                        ? 'Submit Registration'
-                        : 'Continue',
-                    isLoading: _isSubmitting,
-                  ),
-                  const SizedBox(height: 12),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: _goToLogin,
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        size: 16,
-                        color: AppColors.textMuted,
-                      ),
-                      label: const Text(
-                        'Back to Login',
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.textMuted,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

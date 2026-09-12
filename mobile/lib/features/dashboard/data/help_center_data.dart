@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -188,7 +190,7 @@ const kHelpArticles = <HelpArticle>[
     question: 'How do I edit my profile?',
     answer:
         'Go to Profile → Edit Profile. You can update your name, photo, bio, '
-        'skills, and availability. Tap Save to apply your changes.',
+        'and interests. Tap Save to apply your changes.',
   ),
   HelpArticle(
     id: 'acc-password',
@@ -278,36 +280,168 @@ List<HelpArticle> searchHelpArticles(String query) {
 }
 
 // ---------------------------------------------------------------------------
-// Support requests (static samples)
+// Support requests
+//
+// Mirrors the portal's support-ticket model (site/src/types/support-ticket.ts)
+// so what a volunteer sees here lines up with what the admin queue shows:
+// the same six statuses, the same ticket types, and the same
+// Issue / Support / Feature priority buckets. Rows come from
+// `support_ticket_service.dart`; the enums here are the wire vocabulary.
 // ---------------------------------------------------------------------------
 
-enum SupportRequestStatus { open, inProgress, resolved }
+/// The portal's ticket workflow, in order.
+enum SupportRequestStatus {
+  open,
+  inProgress,
+
+  /// Fix is in — waiting for the requester to confirm it works on their side.
+  underVerification,
+
+  /// Blocked on the requester: more detail or a decision is needed from them.
+  clientFeedback,
+  resolved,
+  closed,
+}
 
 extension SupportRequestStatusMeta on SupportRequestStatus {
   String get label => switch (this) {
     SupportRequestStatus.open => 'Open',
     SupportRequestStatus.inProgress => 'In Progress',
+    SupportRequestStatus.underVerification => 'Confirm Fix',
+    SupportRequestStatus.clientFeedback => 'Needs Your Reply',
     SupportRequestStatus.resolved => 'Resolved',
+    SupportRequestStatus.closed => 'Closed',
+  };
+
+  /// What the status means from the requester's side — the portal's status
+  /// hints, reworded for the person who filed the ticket.
+  String get hint => switch (this) {
+    SupportRequestStatus.open =>
+      'Received. Our team has not picked this up yet.',
+    SupportRequestStatus.inProgress => 'Someone on our team is working on it.',
+    SupportRequestStatus.underVerification =>
+      'We believe this is fixed. Please check and let us know.',
+    SupportRequestStatus.clientFeedback =>
+      'We need more information from you before we can continue.',
+    SupportRequestStatus.resolved =>
+      'Confirmed fixed. Thanks for your patience.',
+    SupportRequestStatus.closed => 'Finished — no further action needed.',
   };
 
   Color get color => switch (this) {
     SupportRequestStatus.open => AppColors.accentOrange,
     SupportRequestStatus.inProgress => AppColors.primary,
+    SupportRequestStatus.underVerification => AppColors.warning,
+    SupportRequestStatus.clientFeedback => AppColors.error,
     SupportRequestStatus.resolved => AppColors.secondary,
+    SupportRequestStatus.closed => AppColors.textMuted,
   };
+
+  /// The ball is in the requester's court.
+  bool get needsRequesterAction =>
+      this == SupportRequestStatus.underVerification ||
+      this == SupportRequestStatus.clientFeedback;
+
+  /// Still counts against the queue — anything not resolved or closed.
+  bool get isUnresolved =>
+      this != SupportRequestStatus.resolved &&
+      this != SupportRequestStatus.closed;
 }
 
-enum SupportCategory { donation, event, account, payment, other }
+/// What the reporter says went wrong — the portal routes triage by this.
+enum SupportTicketType {
+  bug,
+  login,
+  account,
+  verification,
+  event,
+  mobileApp,
+  featureRequest,
 
-extension SupportCategoryMeta on SupportCategory {
+  /// Flagging another user, event, campaign, or content — the "Report a
+  /// Problem" flow, as opposed to a request about the reporter's own account.
+  report,
+  other,
+}
+
+/// The portal triages by three buckets. Priority and category are the same
+/// axis there: an Issue is by definition high priority, a Feature low.
+enum SupportPriority { issue, support, feature }
+
+extension SupportPriorityMeta on SupportPriority {
   String get label => switch (this) {
-    SupportCategory.donation => 'Donation',
-    SupportCategory.event => 'Event',
-    SupportCategory.account => 'Account',
-    SupportCategory.payment => 'Payment',
-    SupportCategory.other => 'Other',
+    SupportPriority.issue => 'Issue',
+    SupportPriority.support => 'Support',
+    SupportPriority.feature => 'Feature',
+  };
+
+  String get caption => switch (this) {
+    SupportPriority.issue => 'High priority — broken or blocking',
+    SupportPriority.support => 'Medium priority — help requests',
+    SupportPriority.feature => 'Low priority — improvement ideas',
+  };
+
+  Color get color => switch (this) {
+    SupportPriority.issue => AppColors.error,
+    SupportPriority.support => AppColors.primary,
+    SupportPriority.feature => AppColors.accent,
   };
 }
+
+extension SupportTicketTypeMeta on SupportTicketType {
+  String get label => switch (this) {
+    SupportTicketType.bug => 'Bug',
+    SupportTicketType.login => 'Login Issue',
+    SupportTicketType.account => 'Account',
+    SupportTicketType.verification => 'Verification',
+    SupportTicketType.event => 'Event',
+    SupportTicketType.mobileApp => 'Mobile App',
+    SupportTicketType.featureRequest => 'Feature Request',
+    SupportTicketType.report => 'Report',
+    SupportTicketType.other => 'Other',
+  };
+
+  String get hint => switch (this) {
+    SupportTicketType.bug => 'Something is broken or behaving wrongly',
+    SupportTicketType.login => "Can't sign in, password or OTP problems",
+    SupportTicketType.account => 'Profile details, email, or deactivation',
+    SupportTicketType.verification => 'ID or face scan not going through',
+    SupportTicketType.event => 'Registration, slots, or attendance',
+    SupportTicketType.mobileApp => 'Crashes, slowness, or display problems',
+    SupportTicketType.featureRequest => 'An idea to make CARES better',
+    SupportTicketType.report => 'Suspicious or inappropriate activity',
+    SupportTicketType.other => 'Anything else',
+  };
+
+  IconData get icon => switch (this) {
+    SupportTicketType.bug => Icons.bug_report_outlined,
+    SupportTicketType.login => Icons.lock_outline_rounded,
+    SupportTicketType.account => Icons.person_outline_rounded,
+    SupportTicketType.verification => Icons.verified_user_outlined,
+    SupportTicketType.event => Icons.event_outlined,
+    SupportTicketType.mobileApp => Icons.phone_android_rounded,
+    SupportTicketType.featureRequest => Icons.lightbulb_outline_rounded,
+    SupportTicketType.report => Icons.flag_outlined,
+    SupportTicketType.other => Icons.help_outline_rounded,
+  };
+
+  /// Same mapping the portal applies when a ticket is filed.
+  SupportPriority get priority => switch (this) {
+    SupportTicketType.bug ||
+    SupportTicketType.login ||
+    SupportTicketType.verification ||
+    SupportTicketType.mobileApp ||
+    SupportTicketType.report => SupportPriority.issue,
+    SupportTicketType.account ||
+    SupportTicketType.event ||
+    SupportTicketType.other => SupportPriority.support,
+    SupportTicketType.featureRequest => SupportPriority.feature,
+  };
+}
+
+/// Tracking number the way the portal renders it — `Support #010`.
+String formatSupportReference(int sequence) =>
+    'Support #${sequence.toString().padLeft(3, '0')}';
 
 enum SupportAuthor { you, agent }
 
@@ -315,105 +449,179 @@ class SupportMessage {
   const SupportMessage({
     required this.author,
     required this.body,
-    required this.timeLabel,
+    required this.sentAt,
+    this.authorName,
   });
 
   final SupportAuthor author;
   final String body;
-  final String timeLabel;
+  final DateTime sentAt;
+
+  /// Portal account that replied; falls back to "CARES Support" when unset.
+  final String? authorName;
+
+  String get timeLabel => formatSupportDateTime(sentAt);
 }
 
-class SupportRequestSample {
-  const SupportRequestSample({
-    required this.referenceId,
+/// One ticket as the requester sees it — the server's row, minus the
+/// requester block (it is them) and the assignee id.
+class SupportRequest {
+  const SupportRequest({
+    required this.id,
+    required this.referenceNumber,
     required this.subject,
-    required this.category,
+    required this.description,
+    required this.type,
     required this.status,
-    required this.submittedLabel,
-    required this.updatedLabel,
+    required this.createdAt,
+    required this.updatedAt,
     required this.conversation,
+    this.assignee,
   });
 
-  final String referenceId;
+  final String id;
+  final int referenceNumber;
   final String subject;
-  final SupportCategory category;
+  final String description;
+  final SupportTicketType type;
   final SupportRequestStatus status;
-  final String submittedLabel;
-  final String updatedLabel;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final List<SupportMessage> conversation;
+
+  /// Portal account handling the ticket; null while it sits unassigned.
+  final String? assignee;
+
+  SupportPriority get priority => type.priority;
+  String get referenceId => formatSupportReference(referenceNumber);
+  String get submittedLabel => formatSupportDate(createdAt);
+  String get updatedLabel => formatSupportDate(updatedAt);
 }
 
-const kSampleSupportRequests = <SupportRequestSample>[
-  SupportRequestSample(
-    referenceId: 'REQ #0005',
-    subject: 'Payment issue',
-    category: SupportCategory.payment,
-    status: SupportRequestStatus.inProgress,
-    submittedLabel: 'Aug 28, 2026',
-    updatedLabel: 'Aug 30, 2026',
-    conversation: [
-      SupportMessage(
-        author: SupportAuthor.you,
-        body:
-            'I donated ₱500 to the CARES Health Fund this morning with GCash. '
-            'The money left my wallet but the donation is not showing in my '
-            'history. Reference number 8827345190.',
-        timeLabel: 'Aug 28 · 9:14 AM',
-      ),
-      SupportMessage(
-        author: SupportAuthor.agent,
-        body:
-            'Thanks for the details and the reference number. We have located '
-            'the payment and are confirming it with the provider. This usually '
-            'takes 1–2 business days.',
-        timeLabel: 'Aug 28 · 2:40 PM',
-      ),
-      SupportMessage(
-        author: SupportAuthor.agent,
-        body:
-            'Quick update: the provider confirmed the transfer. We are posting '
-            'the donation to your account now and will close this request once '
-            'you can see it.',
-        timeLabel: 'Aug 30 · 10:02 AM',
-      ),
-    ],
-  ),
-  SupportRequestSample(
-    referenceId: 'REQ #0002',
-    subject: 'Event registration issue',
-    category: SupportCategory.event,
-    status: SupportRequestStatus.resolved,
-    submittedLabel: 'Aug 12, 2026',
-    updatedLabel: 'Aug 14, 2026',
-    conversation: [
-      SupportMessage(
-        author: SupportAuthor.you,
-        body:
-            'I tried to join the Coastal Cleanup Drive but I keep getting a '
-            '"slot unavailable" error even though it says 8 slots are left.',
-        timeLabel: 'Aug 12 · 6:31 PM',
-      ),
-      SupportMessage(
-        author: SupportAuthor.agent,
-        body:
-            'Sorry about that. There was a sync delay on that event\'s slot '
-            'count. We have cleared it and manually added you to the roster — '
-            'you should see the Registered badge now.',
-        timeLabel: 'Aug 13 · 11:15 AM',
-      ),
-      SupportMessage(
-        author: SupportAuthor.you,
-        body: 'Confirmed, it shows Registered now. Thank you!',
-        timeLabel: 'Aug 14 · 8:03 AM',
-      ),
-      SupportMessage(
-        author: SupportAuthor.agent,
-        body: 'Great — marking this as resolved. Enjoy the cleanup drive!',
-        timeLabel: 'Aug 14 · 8:20 AM',
-      ),
-    ],
-  ),
+const _kShortMonths = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
+
+/// `Sep 11, 2026` — the date format used across the support screens.
+String formatSupportDate(DateTime at) {
+  final local = at.toLocal();
+  return '${_kShortMonths[local.month - 1]} ${local.day}, ${local.year}';
+}
+
+/// `Sep 11, 2026 · 3:05 PM` for message timestamps.
+String formatSupportDateTime(DateTime at) {
+  final local = at.toLocal();
+  final hour12 = local.hour % 12 == 0 ? 12 : local.hour % 12;
+  final minute = local.minute.toString().padLeft(2, '0');
+  final period = local.hour < 12 ? 'AM' : 'PM';
+  return '${formatSupportDate(local)} · $hour12:$minute $period';
+}
+
+/// Counts the portal's summary strip shows, computed over the loaded list.
+class SupportRequestSummary {
+  const SupportRequestSummary({
+    required this.total,
+    required this.unresolved,
+    required this.needsAction,
+    required this.resolved,
+  });
+
+  factory SupportRequestSummary.of(List<SupportRequest> requests) {
+    var unresolved = 0;
+    var needsAction = 0;
+    var resolved = 0;
+    for (final r in requests) {
+      if (r.status.isUnresolved) unresolved++;
+      if (r.status.needsRequesterAction) needsAction++;
+      if (!r.status.isUnresolved) resolved++;
+    }
+    return SupportRequestSummary(
+      total: requests.length,
+      unresolved: unresolved,
+      needsAction: needsAction,
+      resolved: resolved,
+    );
+  }
+
+  final int total;
+  final int unresolved;
+  final int needsAction;
+  final int resolved;
+}
+
+// ---------------------------------------------------------------------------
+// Report a Bug (static options)
+// ---------------------------------------------------------------------------
+
+/// Where in the app the bug showed up. Prefixes the subject so triage can
+/// tell "[Events] app closes" from "[Login] app closes" at a glance.
+enum BugArea {
+  login,
+  registration,
+  donations,
+  events,
+  attendance,
+  profile,
+  notifications,
+  other,
+}
+
+extension BugAreaMeta on BugArea {
+  String get label => switch (this) {
+    BugArea.login => 'Login',
+    BugArea.registration => 'Registration',
+    BugArea.donations => 'Donations',
+    BugArea.events => 'Events',
+    BugArea.attendance => 'Attendance',
+    BugArea.profile => 'Profile',
+    BugArea.notifications => 'Notifications',
+    BugArea.other => 'Somewhere else',
+  };
+
+  IconData get icon => switch (this) {
+    BugArea.login => Icons.login_rounded,
+    BugArea.registration => Icons.how_to_reg_outlined,
+    BugArea.donations => Icons.volunteer_activism_outlined,
+    BugArea.events => Icons.event_outlined,
+    BugArea.attendance => Icons.qr_code_scanner_rounded,
+    BugArea.profile => Icons.person_outline_rounded,
+    BugArea.notifications => Icons.notifications_none_rounded,
+    BugArea.other => Icons.more_horiz_rounded,
+  };
+}
+
+/// How often the bug shows up — helps the team reproduce it.
+enum BugFrequency { everyTime, sometimes, once }
+
+extension BugFrequencyMeta on BugFrequency {
+  String get label => switch (this) {
+    BugFrequency.everyTime => 'Every time',
+    BugFrequency.sometimes => 'Sometimes',
+    BugFrequency.once => 'Just once',
+  };
+}
+
+/// Device details attached to a bug report when the reporter opts in. Read
+/// off `dart:io` so no extra plugin is needed; the model name is not
+/// available without one, so the platform and OS version stand in for it.
+class BugDeviceInfo {
+  const BugDeviceInfo._();
+
+  static String get os =>
+      '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'.trim();
+  static String get summary => os;
+}
 
 // ---------------------------------------------------------------------------
 // Report a Problem (static options)

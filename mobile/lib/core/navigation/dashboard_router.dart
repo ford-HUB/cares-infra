@@ -4,7 +4,11 @@ import '../../features/dashboard/placeholder_dashboard_screen.dart';
 import '../../features/dashboard/student/student_dashboard_screen.dart';
 import '../session/app_role.dart';
 import '../session/donor_session.dart';
+<<<<<<< HEAD
 import '../session/role_session.dart';
+=======
+import '../session/role_account_store.dart';
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 import '../session/static_user_session.dart';
 import 'role_dashboard_shell.dart';
 
@@ -12,6 +16,15 @@ class DashboardRouter {
   DashboardRouter._();
 
   static Widget screenFor(StaticSessionUser user) {
+    RoleAccountStore.instance.signIn(
+      roleType: user.accountType == AccountType.beneficiary
+          ? RoleAccountStore.beneficiary
+          : RoleAccountStore.volunteer,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    );
+
     if (user.accountType == AccountType.beneficiary) {
       _startRoleSession(
         role: AppRole.beneficiary,
@@ -41,12 +54,27 @@ class DashboardRouter {
     bool profileComplete = false,
     bool hasInterests = false,
   }) {
+<<<<<<< HEAD
     final role = AppRoleX.fromApiValue(roleType);
 
     switch (role) {
       case AppRole.beneficiary:
         // Keep the static beneficiary session in sync for role-based routing.
         StaticUserSession.instance.signInWithRole(
+=======
+    // Record the role on the person's account list: the first role seen for
+    // this email is the unlocked primary, the rest start locked.
+    RoleAccountStore.instance.signIn(
+      roleType: roleType,
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+    );
+
+    switch (roleType.trim().toUpperCase()) {
+      case 'BENEFICIARY':
+        final user = StaticUserSession.instance.signInWithRole(
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
           email: email,
           firstName: firstName,
           lastName: lastName,
@@ -100,8 +128,11 @@ class DashboardRouter {
   }
 
   static void navigateAfterLogin(BuildContext context, StaticSessionUser user) {
+    // Resolve the screen before pushing: screenFor() writes to the session
+    // stores (notifyListeners), which must not run inside a route builder.
+    final screen = screenFor(user);
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => screenFor(user)),
+      MaterialPageRoute<void>(builder: (_) => screen),
       (_) => false,
     );
   }
@@ -117,17 +148,20 @@ class DashboardRouter {
     bool profileComplete = false,
     bool hasInterests = false,
   }) {
+    // Resolve the screen before pushing: screenForRoleType() writes to the
+    // session stores (notifyListeners), which must not run inside a route
+    // builder — that throws "setState() called during build" and re-runs the
+    // sign-in side effects on every rebuild of the route.
+    final screen = screenForRoleType(
+      roleType,
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      profileComplete: profileComplete,
+      hasInterests: hasInterests,
+    );
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => screenForRoleType(
-          roleType,
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          profileComplete: profileComplete,
-          hasInterests: hasInterests,
-        ),
-      ),
+      MaterialPageRoute<void>(builder: (_) => screen),
       (_) => false,
     );
   }

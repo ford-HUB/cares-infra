@@ -40,6 +40,7 @@ export type UserSchoolInfoSumAggregateOutputType = {
 export type UserSchoolInfoMinAggregateOutputType = {
   user_school_info_id: string | null
   id_number: string | null
+  school_id_url: string | null
   graduation_year: number | null
   graduation_month: number | null
   graduation_day: number | null
@@ -54,6 +55,7 @@ export type UserSchoolInfoMinAggregateOutputType = {
 export type UserSchoolInfoMaxAggregateOutputType = {
   user_school_info_id: string | null
   id_number: string | null
+  school_id_url: string | null
   graduation_year: number | null
   graduation_month: number | null
   graduation_day: number | null
@@ -68,6 +70,7 @@ export type UserSchoolInfoMaxAggregateOutputType = {
 export type UserSchoolInfoCountAggregateOutputType = {
   user_school_info_id: number
   id_number: number
+  school_id_url: number
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -96,6 +99,7 @@ export type UserSchoolInfoSumAggregateInputType = {
 export type UserSchoolInfoMinAggregateInputType = {
   user_school_info_id?: true
   id_number?: true
+  school_id_url?: true
   graduation_year?: true
   graduation_month?: true
   graduation_day?: true
@@ -110,6 +114,7 @@ export type UserSchoolInfoMinAggregateInputType = {
 export type UserSchoolInfoMaxAggregateInputType = {
   user_school_info_id?: true
   id_number?: true
+  school_id_url?: true
   graduation_year?: true
   graduation_month?: true
   graduation_day?: true
@@ -124,6 +129,7 @@ export type UserSchoolInfoMaxAggregateInputType = {
 export type UserSchoolInfoCountAggregateInputType = {
   user_school_info_id?: true
   id_number?: true
+  school_id_url?: true
   graduation_year?: true
   graduation_month?: true
   graduation_day?: true
@@ -225,6 +231,7 @@ export type UserSchoolInfoGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 export type UserSchoolInfoGroupByOutputType = {
   user_school_info_id: string
   id_number: string
+  school_id_url: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -262,6 +269,7 @@ export type UserSchoolInfoWhereInput = {
   NOT?: Prisma.UserSchoolInfoWhereInput | Prisma.UserSchoolInfoWhereInput[]
   user_school_info_id?: Prisma.StringFilter<"UserSchoolInfo"> | string
   id_number?: Prisma.StringFilter<"UserSchoolInfo"> | string
+  school_id_url?: Prisma.StringNullableFilter<"UserSchoolInfo"> | string | null
   graduation_year?: Prisma.IntFilter<"UserSchoolInfo"> | number
   graduation_month?: Prisma.IntFilter<"UserSchoolInfo"> | number
   graduation_day?: Prisma.IntFilter<"UserSchoolInfo"> | number
@@ -280,6 +288,7 @@ export type UserSchoolInfoWhereInput = {
 export type UserSchoolInfoOrderByWithRelationInput = {
   user_school_info_id?: Prisma.SortOrder
   id_number?: Prisma.SortOrder
+  school_id_url?: Prisma.SortOrderInput | Prisma.SortOrder
   graduation_year?: Prisma.SortOrder
   graduation_month?: Prisma.SortOrder
   graduation_day?: Prisma.SortOrder
@@ -301,6 +310,7 @@ export type UserSchoolInfoWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserSchoolInfoWhereInput | Prisma.UserSchoolInfoWhereInput[]
   OR?: Prisma.UserSchoolInfoWhereInput[]
   NOT?: Prisma.UserSchoolInfoWhereInput | Prisma.UserSchoolInfoWhereInput[]
+  school_id_url?: Prisma.StringNullableFilter<"UserSchoolInfo"> | string | null
   graduation_year?: Prisma.IntFilter<"UserSchoolInfo"> | number
   graduation_month?: Prisma.IntFilter<"UserSchoolInfo"> | number
   graduation_day?: Prisma.IntFilter<"UserSchoolInfo"> | number
@@ -319,6 +329,7 @@ export type UserSchoolInfoWhereUniqueInput = Prisma.AtLeast<{
 export type UserSchoolInfoOrderByWithAggregationInput = {
   user_school_info_id?: Prisma.SortOrder
   id_number?: Prisma.SortOrder
+  school_id_url?: Prisma.SortOrderInput | Prisma.SortOrder
   graduation_year?: Prisma.SortOrder
   graduation_month?: Prisma.SortOrder
   graduation_day?: Prisma.SortOrder
@@ -341,6 +352,7 @@ export type UserSchoolInfoScalarWhereWithAggregatesInput = {
   NOT?: Prisma.UserSchoolInfoScalarWhereWithAggregatesInput | Prisma.UserSchoolInfoScalarWhereWithAggregatesInput[]
   user_school_info_id?: Prisma.StringWithAggregatesFilter<"UserSchoolInfo"> | string
   id_number?: Prisma.StringWithAggregatesFilter<"UserSchoolInfo"> | string
+  school_id_url?: Prisma.StringNullableWithAggregatesFilter<"UserSchoolInfo"> | string | null
   graduation_year?: Prisma.IntWithAggregatesFilter<"UserSchoolInfo"> | number
   graduation_month?: Prisma.IntWithAggregatesFilter<"UserSchoolInfo"> | number
   graduation_day?: Prisma.IntWithAggregatesFilter<"UserSchoolInfo"> | number
@@ -355,6 +367,7 @@ export type UserSchoolInfoScalarWhereWithAggregatesInput = {
 export type UserSchoolInfoCreateInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -369,6 +382,7 @@ export type UserSchoolInfoCreateInput = {
 export type UserSchoolInfoUncheckedCreateInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -383,6 +397,7 @@ export type UserSchoolInfoUncheckedCreateInput = {
 export type UserSchoolInfoUpdateInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -397,6 +412,7 @@ export type UserSchoolInfoUpdateInput = {
 export type UserSchoolInfoUncheckedUpdateInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -411,6 +427,7 @@ export type UserSchoolInfoUncheckedUpdateInput = {
 export type UserSchoolInfoCreateManyInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -425,6 +442,7 @@ export type UserSchoolInfoCreateManyInput = {
 export type UserSchoolInfoUpdateManyMutationInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -435,6 +453,7 @@ export type UserSchoolInfoUpdateManyMutationInput = {
 export type UserSchoolInfoUncheckedUpdateManyInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -459,6 +478,7 @@ export type UserSchoolInfoOrderByRelationAggregateInput = {
 export type UserSchoolInfoCountOrderByAggregateInput = {
   user_school_info_id?: Prisma.SortOrder
   id_number?: Prisma.SortOrder
+  school_id_url?: Prisma.SortOrder
   graduation_year?: Prisma.SortOrder
   graduation_month?: Prisma.SortOrder
   graduation_day?: Prisma.SortOrder
@@ -479,6 +499,7 @@ export type UserSchoolInfoAvgOrderByAggregateInput = {
 export type UserSchoolInfoMaxOrderByAggregateInput = {
   user_school_info_id?: Prisma.SortOrder
   id_number?: Prisma.SortOrder
+  school_id_url?: Prisma.SortOrder
   graduation_year?: Prisma.SortOrder
   graduation_month?: Prisma.SortOrder
   graduation_day?: Prisma.SortOrder
@@ -493,6 +514,7 @@ export type UserSchoolInfoMaxOrderByAggregateInput = {
 export type UserSchoolInfoMinOrderByAggregateInput = {
   user_school_info_id?: Prisma.SortOrder
   id_number?: Prisma.SortOrder
+  school_id_url?: Prisma.SortOrder
   graduation_year?: Prisma.SortOrder
   graduation_month?: Prisma.SortOrder
   graduation_day?: Prisma.SortOrder
@@ -681,6 +703,7 @@ export type UserSchoolInfoUncheckedUpdateManyWithoutYear_levelNestedInput = {
 export type UserSchoolInfoCreateWithoutUserInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -694,6 +717,7 @@ export type UserSchoolInfoCreateWithoutUserInput = {
 export type UserSchoolInfoUncheckedCreateWithoutUserInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -736,6 +760,7 @@ export type UserSchoolInfoScalarWhereInput = {
   NOT?: Prisma.UserSchoolInfoScalarWhereInput | Prisma.UserSchoolInfoScalarWhereInput[]
   user_school_info_id?: Prisma.StringFilter<"UserSchoolInfo"> | string
   id_number?: Prisma.StringFilter<"UserSchoolInfo"> | string
+  school_id_url?: Prisma.StringNullableFilter<"UserSchoolInfo"> | string | null
   graduation_year?: Prisma.IntFilter<"UserSchoolInfo"> | number
   graduation_month?: Prisma.IntFilter<"UserSchoolInfo"> | number
   graduation_day?: Prisma.IntFilter<"UserSchoolInfo"> | number
@@ -750,6 +775,7 @@ export type UserSchoolInfoScalarWhereInput = {
 export type UserSchoolInfoCreateWithoutDepartmentInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -763,6 +789,7 @@ export type UserSchoolInfoCreateWithoutDepartmentInput = {
 export type UserSchoolInfoUncheckedCreateWithoutDepartmentInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -802,6 +829,7 @@ export type UserSchoolInfoUpdateManyWithWhereWithoutDepartmentInput = {
 export type UserSchoolInfoCreateWithoutMajorInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -815,6 +843,7 @@ export type UserSchoolInfoCreateWithoutMajorInput = {
 export type UserSchoolInfoUncheckedCreateWithoutMajorInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -854,6 +883,7 @@ export type UserSchoolInfoUpdateManyWithWhereWithoutMajorInput = {
 export type UserSchoolInfoCreateWithoutYear_levelInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -867,6 +897,7 @@ export type UserSchoolInfoCreateWithoutYear_levelInput = {
 export type UserSchoolInfoUncheckedCreateWithoutYear_levelInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -906,6 +937,7 @@ export type UserSchoolInfoUpdateManyWithWhereWithoutYear_levelInput = {
 export type UserSchoolInfoCreateManyUserInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -919,6 +951,7 @@ export type UserSchoolInfoCreateManyUserInput = {
 export type UserSchoolInfoUpdateWithoutUserInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -932,6 +965,7 @@ export type UserSchoolInfoUpdateWithoutUserInput = {
 export type UserSchoolInfoUncheckedUpdateWithoutUserInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -945,6 +979,7 @@ export type UserSchoolInfoUncheckedUpdateWithoutUserInput = {
 export type UserSchoolInfoUncheckedUpdateManyWithoutUserInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -958,6 +993,7 @@ export type UserSchoolInfoUncheckedUpdateManyWithoutUserInput = {
 export type UserSchoolInfoCreateManyDepartmentInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -971,6 +1007,7 @@ export type UserSchoolInfoCreateManyDepartmentInput = {
 export type UserSchoolInfoUpdateWithoutDepartmentInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -984,6 +1021,7 @@ export type UserSchoolInfoUpdateWithoutDepartmentInput = {
 export type UserSchoolInfoUncheckedUpdateWithoutDepartmentInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -997,6 +1035,7 @@ export type UserSchoolInfoUncheckedUpdateWithoutDepartmentInput = {
 export type UserSchoolInfoUncheckedUpdateManyWithoutDepartmentInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1010,6 +1049,7 @@ export type UserSchoolInfoUncheckedUpdateManyWithoutDepartmentInput = {
 export type UserSchoolInfoCreateManyMajorInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -1023,6 +1063,7 @@ export type UserSchoolInfoCreateManyMajorInput = {
 export type UserSchoolInfoUpdateWithoutMajorInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1036,6 +1077,7 @@ export type UserSchoolInfoUpdateWithoutMajorInput = {
 export type UserSchoolInfoUncheckedUpdateWithoutMajorInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1049,6 +1091,7 @@ export type UserSchoolInfoUncheckedUpdateWithoutMajorInput = {
 export type UserSchoolInfoUncheckedUpdateManyWithoutMajorInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1062,6 +1105,7 @@ export type UserSchoolInfoUncheckedUpdateManyWithoutMajorInput = {
 export type UserSchoolInfoCreateManyYear_levelInput = {
   user_school_info_id?: string
   id_number: string
+  school_id_url?: string | null
   graduation_year: number
   graduation_month: number
   graduation_day: number
@@ -1075,6 +1119,7 @@ export type UserSchoolInfoCreateManyYear_levelInput = {
 export type UserSchoolInfoUpdateWithoutYear_levelInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1088,6 +1133,7 @@ export type UserSchoolInfoUpdateWithoutYear_levelInput = {
 export type UserSchoolInfoUncheckedUpdateWithoutYear_levelInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1101,6 +1147,7 @@ export type UserSchoolInfoUncheckedUpdateWithoutYear_levelInput = {
 export type UserSchoolInfoUncheckedUpdateManyWithoutYear_levelInput = {
   user_school_info_id?: Prisma.StringFieldUpdateOperationsInput | string
   id_number?: Prisma.StringFieldUpdateOperationsInput | string
+  school_id_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   graduation_year?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_month?: Prisma.IntFieldUpdateOperationsInput | number
   graduation_day?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1116,6 +1163,7 @@ export type UserSchoolInfoUncheckedUpdateManyWithoutYear_levelInput = {
 export type UserSchoolInfoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_school_info_id?: boolean
   id_number?: boolean
+  school_id_url?: boolean
   graduation_year?: boolean
   graduation_month?: boolean
   graduation_day?: boolean
@@ -1134,6 +1182,7 @@ export type UserSchoolInfoSelect<ExtArgs extends runtime.Types.Extensions.Intern
 export type UserSchoolInfoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_school_info_id?: boolean
   id_number?: boolean
+  school_id_url?: boolean
   graduation_year?: boolean
   graduation_month?: boolean
   graduation_day?: boolean
@@ -1152,6 +1201,7 @@ export type UserSchoolInfoSelectCreateManyAndReturn<ExtArgs extends runtime.Type
 export type UserSchoolInfoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_school_info_id?: boolean
   id_number?: boolean
+  school_id_url?: boolean
   graduation_year?: boolean
   graduation_month?: boolean
   graduation_day?: boolean
@@ -1170,6 +1220,7 @@ export type UserSchoolInfoSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
 export type UserSchoolInfoSelectScalar = {
   user_school_info_id?: boolean
   id_number?: boolean
+  school_id_url?: boolean
   graduation_year?: boolean
   graduation_month?: boolean
   graduation_day?: boolean
@@ -1181,7 +1232,7 @@ export type UserSchoolInfoSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserSchoolInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_school_info_id" | "id_number" | "graduation_year" | "graduation_month" | "graduation_day" | "department_id" | "major_id" | "year_level_id" | "user_id" | "createdAt" | "updatedAt", ExtArgs["result"]["userSchoolInfo"]>
+export type UserSchoolInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_school_info_id" | "id_number" | "school_id_url" | "graduation_year" | "graduation_month" | "graduation_day" | "department_id" | "major_id" | "year_level_id" | "user_id" | "createdAt" | "updatedAt", ExtArgs["result"]["userSchoolInfo"]>
 export type UserSchoolInfoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   department?: boolean | Prisma.DepartmentDefaultArgs<ExtArgs>
   major?: boolean | Prisma.MajorDefaultArgs<ExtArgs>
@@ -1212,6 +1263,10 @@ export type $UserSchoolInfoPayload<ExtArgs extends runtime.Types.Extensions.Inte
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     user_school_info_id: string
     id_number: string
+    /**
+     * Scan of the school ID presented at registration; absent for ID-less roles.
+     */
+    school_id_url: string | null
     graduation_year: number
     graduation_month: number
     graduation_day: number
@@ -1650,6 +1705,7 @@ export interface Prisma__UserSchoolInfoClient<T, Null = never, ExtArgs extends r
 export interface UserSchoolInfoFieldRefs {
   readonly user_school_info_id: Prisma.FieldRef<"UserSchoolInfo", 'String'>
   readonly id_number: Prisma.FieldRef<"UserSchoolInfo", 'String'>
+  readonly school_id_url: Prisma.FieldRef<"UserSchoolInfo", 'String'>
   readonly graduation_year: Prisma.FieldRef<"UserSchoolInfo", 'Int'>
   readonly graduation_month: Prisma.FieldRef<"UserSchoolInfo", 'Int'>
   readonly graduation_day: Prisma.FieldRef<"UserSchoolInfo", 'Int'>

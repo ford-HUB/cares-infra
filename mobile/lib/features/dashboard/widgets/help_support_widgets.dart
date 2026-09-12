@@ -6,17 +6,19 @@ import '../data/help_center_data.dart';
 /// Shared building blocks for the Help & Support center. All widgets are
 /// presentational — they take static data and callbacks only.
 
-/// Section heading with a leading emoji, e.g. "📚  Quick Help".
+/// Section heading with a leading icon (or legacy emoji), e.g. "Quick Help".
 class HelpSectionHeader extends StatelessWidget {
   const HelpSectionHeader({
     super.key,
-    required this.emoji,
+    this.emoji,
+    this.icon,
     required this.title,
     this.subtitle,
     this.trailing,
-  });
+  }) : assert(emoji != null || icon != null);
 
-  final String emoji;
+  final String? emoji;
+  final IconData? icon;
   final String title;
   final String? subtitle;
   final Widget? trailing;
@@ -26,7 +28,13 @@ class HelpSectionHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+        if (emoji case final e?)
+          Text(e, style: const TextStyle(fontSize: 18))
+        else
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(icon, size: 22, color: AppColors.primary),
+          ),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -198,7 +206,11 @@ class QuickHelpCard extends StatelessWidget {
                       : AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Text(topic.emoji, style: const TextStyle(fontSize: 20)),
+                child: Icon(
+                  topic.icon,
+                  size: 22,
+                  color: selected ? Colors.white : AppColors.primary,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
@@ -458,6 +470,74 @@ class SupportStatusChip extends StatelessWidget {
   }
 }
 
+/// Small outlined label for the ticket's type, e.g. "Bug" or "Login Issue".
+class SupportTypeBadge extends StatelessWidget {
+  const SupportTypeBadge({super.key, required this.type});
+
+  final SupportTicketType type;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.inputFill.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(type.icon, size: 12, color: AppColors.textSecondary),
+          const SizedBox(width: 4),
+          Text(
+            type.label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Priority bucket the portal filed the ticket under (Issue / Support /
+/// Feature). Shown as a coloured dot + label so it reads beside the type.
+class SupportPriorityBadge extends StatelessWidget {
+  const SupportPriorityBadge({super.key, required this.priority});
+
+  final SupportPriority priority;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: priority.color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          priority.label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: priority.color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Row in the "My Support Requests" list.
 class SupportRequestTile extends StatelessWidget {
   const SupportRequestTile({
@@ -466,11 +546,14 @@ class SupportRequestTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final SupportRequestSample request;
+  final SupportRequest request;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final needsAction = request.status.needsRequesterAction;
+    final accent = request.status.color;
+
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(AppColors.cardRadius),
@@ -481,20 +564,29 @@ class SupportRequestTile extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppColors.cardRadius),
-            border: Border.all(color: AppColors.borderCard),
+            border: Border.all(
+              color: needsAction
+                  ? accent.withValues(alpha: 0.45)
+                  : AppColors.borderCard,
+              width: needsAction ? 1.4 : 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
                       request.subject,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
+                        height: 1.25,
                       ),
                     ),
                   ),
@@ -502,15 +594,58 @@ class SupportRequestTile extends StatelessWidget {
                   SupportStatusChip(status: request.status),
                 ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                '${request.referenceId} · ${request.category.label}',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    request.referenceId,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  SupportTypeBadge(type: request.type),
+                  SupportPriorityBadge(priority: request.priority),
+                ],
               ),
+              if (needsAction) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.notifications_active_outlined,
+                        size: 14,
+                        color: accent,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          request.status.hint,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: accent,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -564,7 +699,7 @@ class SupportMessageBubble extends StatelessWidget {
               : CrossAxisAlignment.start,
           children: [
             Text(
-              isYou ? 'You' : 'CARES Support',
+              isYou ? 'You' : (message.authorName ?? 'CARES Support'),
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -605,73 +740,6 @@ class SupportMessageBubble extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Frontend-only attachment control. Tapping it just simulates picking a file.
-class MockAttachmentField extends StatelessWidget {
-  const MockAttachmentField({
-    super.key,
-    required this.fileName,
-    required this.onAttach,
-    required this.onRemove,
-  });
-
-  final String? fileName;
-  final VoidCallback onAttach;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    if (fileName != null) {
-      return Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.image_outlined,
-              size: 18,
-              color: AppColors.primary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                fileName!,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: onRemove,
-              icon: const Icon(Icons.close_rounded, size: 18),
-              tooltip: 'Remove attachment',
-              visualDensity: VisualDensity.compact,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return OutlinedButton.icon(
-      onPressed: onAttach,
-      icon: const Icon(Icons.attach_file_rounded, size: 18),
-      label: const Text('Add screenshot or file (optional)'),
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(46),
-        foregroundColor: AppColors.textPrimary,
-        side: const BorderSide(color: AppColors.borderCard),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -754,6 +822,327 @@ class HelpPageBody extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Selectable pill used for single-choice pickers (bug area, frequency).
+class SupportChoiceChip extends StatelessWidget {
+  const SupportChoiceChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.icon,
+    this.accent = AppColors.primary,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final IconData? icon;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected ? Colors.white : AppColors.textPrimary;
+    return Material(
+      color: selected ? accent : AppColors.surface,
+      borderRadius: BorderRadius.circular(AppColors.pillRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppColors.pillRadius),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppColors.pillRadius),
+            border: Border.all(color: selected ? accent : AppColors.borderCard),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 15, color: fg),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: fg,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tappable field that opens [showSupportTypePicker]; reads like a dropdown
+/// but shows the chosen type's icon and the priority it will be filed under.
+class SupportTypeField extends StatelessWidget {
+  const SupportTypeField({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
+  });
+
+  final SupportTicketType? value;
+  final ValueChanged<SupportTicketType> onChanged;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = value;
+    return Material(
+      color: AppColors.fieldFill,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: enabled
+            ? () async {
+                final picked = await showSupportTypePicker(
+                  context,
+                  selected: type,
+                );
+                if (picked != null) onChanged(picked);
+              }
+            : null,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.fieldBorder),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                type?.icon ?? Icons.category_outlined,
+                size: 20,
+                color: type == null ? AppColors.textMuted : AppColors.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: type == null
+                    ? const Text(
+                        'Select what this is about',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textMuted,
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            type.label,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Filed as ${type.priority.label} · '
+                            '${type.priority.caption}',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: type.priority.color,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+              const Icon(Icons.expand_more_rounded, color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom-sheet picker listing every ticket type with its hint.
+Future<SupportTicketType?> showSupportTypePicker(
+  BuildContext context, {
+  SupportTicketType? selected,
+}) {
+  return showModalBottomSheet<SupportTicketType>(
+    context: context,
+    backgroundColor: AppColors.background,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+    ),
+    isScrollControlled: true,
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderCard,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'What is this about?',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'This decides who picks it up and how urgently.',
+              style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: SupportTicketType.values.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (_, i) {
+                  final type = SupportTicketType.values[i];
+                  final isSelected = type == selected;
+                  return Material(
+                    color: isSelected
+                        ? AppColors.primary.withValues(alpha: 0.08)
+                        : AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      onTap: () => Navigator.of(ctx).pop(type),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Ink(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.borderCard,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(type.icon, size: 20, color: AppColors.primary),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    type.label,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    type.hint,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SupportPriorityBadge(priority: type.priority),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Tinted banner explaining a status, or any short callout with an icon.
+class SupportInfoBanner extends StatelessWidget {
+  const SupportInfoBanner({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.body,
+    this.accent = AppColors.primary,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+  final Color accent;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accent.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: accent),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  body,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+        ],
       ),
     );
   }

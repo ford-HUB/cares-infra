@@ -18,9 +18,9 @@ export type GenderType = (typeof GenderType)[keyof typeof GenderType]
 
 
 export const VerificationStatus = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  N: 'N',
+  F: 'F',
+  V: 'V'
 } as const
 
 export type VerificationStatus = (typeof VerificationStatus)[keyof typeof VerificationStatus]
@@ -243,6 +243,7 @@ export const SupportTicketType = {
   EVENT: 'EVENT',
   MOBILE_APP: 'MOBILE_APP',
   FEATURE_REQUEST: 'FEATURE_REQUEST',
+  REPORT: 'REPORT',
   OTHER: 'OTHER'
 } as const
 

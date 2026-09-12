@@ -493,49 +493,56 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   Widget build(BuildContext context) {
     final registrationId = _registrationId;
 
-    return Scaffold(
-      // White page ground: the flow header carries the brand green so the step
-      // content can sit on white cards.
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _FlowHeader(
-            stepLabel: _stepLabels[_stepIndex],
-            stepIndex: _stepIndex,
-            stepCount: _stepLabels.length,
-            onBack: _isSubmitting ? null : _back,
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                child: _buildStep(registrationId),
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _back();
+      },
+      child: Scaffold(
+        // White page ground: the flow header carries the brand green so the step
+        // content can sit on white cards.
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            _FlowHeader(
+              stepLabel: _stepLabels[_stepIndex],
+              stepIndex: _stepIndex,
+              stepCount: _stepLabels.length,
+              onBack: _isSubmitting ? null : _back,
             ),
-          ),
-          if (_currentStep != _RegisterStep.faceScan)
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                12 + MediaQuery.paddingOf(context).bottom,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFE6EFE3))),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _canContinue ? () => unawaited(_next()) : null,
-                  child: Text(_continueLabel),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  child: _buildStep(registrationId),
                 ),
               ),
             ),
-        ],
+            if (_currentStep != _RegisterStep.faceScan)
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  12 + MediaQuery.paddingOf(context).bottom,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Color(0xFFE6EFE3))),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _canContinue ? () => unawaited(_next()) : null,
+                    child: Text(_continueLabel),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -469,6 +469,10 @@ export type UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.UserActionSuspensionScalarWhereInput | Prisma.UserActionSuspensionScalarWhereInput[]
 }
 
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type UserActionSuspensionCreateWithoutUserInput = {
   user_action_suspension_id?: string
   permission: $Enums.PermissionKey

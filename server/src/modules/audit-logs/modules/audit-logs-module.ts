@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { AuditLogRepository } from '../repositories/audit-log-repository';
 import { AuditLogRecorder } from '../services/audit-log-recorder';
+import { AuditLogsMobileModule } from './audit-logs-mobile-module';
 import { AuditLogsSiteModule } from './audit-logs-site-module';
 
 /**
@@ -10,7 +11,7 @@ import { AuditLogsSiteModule } from './audit-logs-site-module';
  */
 @Global()
 @Module({
-  imports: [AuditLogsSiteModule],
+  imports: [AuditLogsSiteModule, AuditLogsMobileModule],
   providers: [AuditLogRepository, AuditLogRecorder],
   exports: [AuditLogRecorder, AuditLogRepository],
 })

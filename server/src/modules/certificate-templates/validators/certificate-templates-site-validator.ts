@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Every signature line carries this placeholder. The print job swaps it for the
- * coordinator's stored signature image (`User.signature_url`); the customizer never
+ * coordinator's stored signature image (`Account.signature_url`); the customizer never
  * renders it, because a director picks an account rather than typing a token.
  */
 export const SIGNATURE_IMAGE_TOKEN = '{{signature-image}}';

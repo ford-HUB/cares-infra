@@ -8,6 +8,7 @@ import {
   GenderType,
   Prisma,
   RoleType,
+  VerificationStatus,
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { CreateUserDto } from '../dto/auth-mobile-dto';
@@ -138,6 +139,7 @@ export class AuthRepository {
           user_school_info: {
             create: {
               id_number: data.school_info.id_number,
+              school_id_url: data.school_info.school_id_url ?? null,
               graduation_year: data.school_info.graduation_year,
               graduation_month: data.school_info.graduation_month,
               graduation_day: data.school_info.graduation_day,
@@ -158,20 +160,27 @@ export class AuthRepository {
               },
             },
           },
-          user_biometrics: data.biometric
+          // An enrolled face opens a pending verification that owns it; the
+          // biometric is only reachable through that review.
+          user_verifications: data.biometric
             ? {
                 create: {
-                  face_url: data.biometric.face_url,
-                  embedding: data.biometric.embedding,
-                  embedding_type: data.biometric.embedding_type,
-                  isActive: data.biometric.isActive,
+                  status: VerificationStatus.N,
+                  user_biometric: {
+                    create: {
+                      face_url: data.biometric.face_url,
+                      embedding: data.biometric.embedding,
+                      embedding_type: data.biometric.embedding_type,
+                      isActive: data.biometric.isActive,
+                    },
+                  },
                 },
               }
             : undefined,
         },
         select: {
           user_id: true,
-          user_biometrics: {
+          user_verifications: {
             select: {
               user_biometric_id: true,
             },
@@ -197,7 +206,8 @@ export class AuthRepository {
       return {
         user_id: user.user_id,
         account_id: account.account_id,
-        user_biometric_id: user.user_biometrics[0]?.user_biometric_id ?? null,
+        user_biometric_id:
+          user.user_verifications[0]?.user_biometric_id ?? null,
       };
     });
   }
@@ -363,11 +373,16 @@ export class AuthRepository {
       select: {
         user_id: true,
         firstname: true,
-        is_restricted: true,
-        restriction_reason: true,
         role: { select: { type: true } },
         user_interest: { select: { user_interest_id: true } },
-        accounts: { select: { email: true }, take: 1 },
+        accounts: {
+          select: {
+            email: true,
+            is_restricted: true,
+            restriction_reason: true,
+          },
+          take: 1,
+        },
       },
     });
   }
@@ -404,13 +419,13 @@ export class AuthRepository {
         email: true,
         password: true,
         credential_expires_at: true,
+        is_restricted: true,
+        restriction_reason: true,
         user: {
           select: {
             user_id: true,
             firstname: true,
             lastname: true,
-            is_restricted: true,
-            restriction_reason: true,
             role: {
               select: { type: true },
             },
@@ -440,10 +455,9 @@ export class AuthRepository {
   }
 
   async recordLoginIp(userId: string, ipAddress: string) {
-    return this.prisma.user.update({
+    return this.prisma.account.updateMany({
       where: { user_id: userId },
       data: { last_login_ip: ipAddress },
-      select: { user_id: true },
     });
   }
 

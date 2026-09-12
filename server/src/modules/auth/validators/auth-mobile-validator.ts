@@ -27,6 +27,8 @@ export const CreateUserSchema = z
 
     school_info: z.object({
       id_number: z.string().trim().min(1),
+      // Scan of the presented school ID; absent for ID-less roles.
+      school_id_url: z.string().trim().url().optional(),
       graduation_year: z.number().int().min(1900).max(3000),
       graduation_month: z.number().int().min(1).max(12),
       graduation_day: z.number().int().min(1).max(31),
@@ -71,6 +73,10 @@ export const RegisterFromSessionSchema = CreateUserSchema.omit({
 })
   .extend({
     registrationId: z.uuid(),
+    // The ID scan is the one uploaded to the session, never a client-supplied URL.
+    school_info: CreateUserSchema.shape.school_info.omit({
+      school_id_url: true,
+    }),
   })
   .strict();
 

@@ -186,9 +186,9 @@ export class AuthSiteService {
       throw new ForbiddenException(message);
     }
 
-    if (account.user.is_restricted) {
-      const message = account.user.restriction_reason
-        ? `Account restricted: ${account.user.restriction_reason}`
+    if (account.is_restricted) {
+      const message = account.restriction_reason
+        ? `Account restricted: ${account.restriction_reason}`
         : 'This account has been restricted by an administrator';
       await this.loginActivityRecorder.record({
         ...attempt,

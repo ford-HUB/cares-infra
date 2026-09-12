@@ -35,10 +35,7 @@ import { randomInt, randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/infastructures/s3/s3-service';
 import { RedisService } from 'src/infastructures/redis/redis-service';
-import {
-  FrEmbedResult,
-  FrServiceClient,
-} from 'src/infastructures/microservices/fr-service-client';
+import { FrServiceClient } from 'src/infastructures/microservices/fr-service-client';
 import { OcrServiceClient } from 'src/infastructures/microservices/ocr-service-client';
 import { UcidServiceClient } from 'src/infastructures/microservices/ucid-service-client';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
@@ -49,6 +46,8 @@ import { LoginActivityRecorder } from 'src/modules/login-activity/services/login
 import { SessionRegistry } from 'src/modules/sessions/services/session-registry';
 import { LoginPolicyEnforcer } from 'src/modules/security-policy/services/login-policy-enforcer';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
+import { AuditLogRecorder } from 'src/modules/audit-logs/services/audit-log-recorder';
+import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
 
 /** Wrong codes tolerated before the reset code is thrown away. */
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
@@ -67,6 +66,7 @@ export class AuthMobileService {
     private readonly loginActivityRecorder: LoginActivityRecorder,
     private readonly sessionRegistry: SessionRegistry,
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
+    private readonly auditLogRecorder: AuditLogRecorder,
   ) {}
 
   async registerUser(data: CreateUserDto) {
@@ -103,6 +103,8 @@ export class AuthMobileService {
         outcome: 'INVALID_CREDENTIALS',
         failureReason: 'No account matches this email',
       });
+      // Unattributable — no account to hang the entry on, so it stays off the
+      // app's Activity Logs. The sign-in trail still keeps it for the portal.
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -115,6 +117,10 @@ export class AuthMobileService {
         userId: account.user.user_id,
         outcome: 'INVALID_CREDENTIALS',
         failureReason: 'Account signs in through a social provider',
+      });
+      await this.recordSignIn(account, attempt, {
+        outcome: 'FAILURE',
+        description: 'Sign-in refused: account uses a social provider',
       });
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -133,6 +139,10 @@ export class AuthMobileService {
         outcome: 'INVALID_CREDENTIALS',
         failureReason: 'Incorrect password',
       });
+      await this.recordSignIn(account, attempt, {
+        outcome: 'FAILURE',
+        description: 'Sign-in failed: incorrect password',
+      });
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -150,6 +160,10 @@ export class AuthMobileService {
         outcome: 'CREDENTIAL_EXPIRED',
         failureReason: message,
       });
+      await this.recordSignIn(account, attempt, {
+        outcome: 'DENIED',
+        description: 'Sign-in refused: temporary credentials expired',
+      });
       throw new ForbiddenException(message);
     }
 
@@ -161,6 +175,10 @@ export class AuthMobileService {
       ...attempt,
       userId: account.user.user_id,
       outcome: 'SUCCESS',
+    });
+    await this.recordSignIn(account, attempt, {
+      outcome: 'SUCCESS',
+      description: 'Signed in with email and password',
     });
 
     // The session is what makes this token revocable — see `SessionGuard`.
@@ -189,10 +207,55 @@ export class AuthMobileService {
   }
 
   /** Ends only the calling device's session; other devices stay signed in. */
-  async logout(user: JwtPayload): Promise<void> {
+  async logout(user: JwtPayload, context: RequestContextDto): Promise<void> {
     if (user.sid) {
       await this.sessionRegistry.revoke(user.sid);
     }
+
+    await this.auditLogRecorder.record({
+      action: 'auth.mobile.signed-out',
+      description: 'Signed out of the app',
+      category: 'AUTHENTICATION',
+      actor: user,
+      targetType: 'user',
+      targetLabel: user.email,
+      targetId: user.sub,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      source: 'MOBILE',
+    });
+  }
+
+  /**
+   * The app's Activity Logs entry beside the sign-in trail — `LoginActivity`
+   * feeds the portal's monitor, this row is what the account holder sees.
+   */
+  private async recordSignIn(
+    account: {
+      email: string;
+      user: { user_id: string; role: { type: RoleType } };
+    },
+    attempt: { ipAddress?: string; userAgent?: string },
+    entry: { outcome: 'SUCCESS' | 'FAILURE' | 'DENIED'; description: string },
+  ): Promise<void> {
+    await this.auditLogRecorder.record({
+      action: 'auth.mobile.sign-in',
+      description: entry.description,
+      category: 'AUTHENTICATION',
+      severity: entry.outcome === 'SUCCESS' ? 'INFO' : 'NOTICE',
+      outcome: entry.outcome,
+      actor: {
+        sub: account.user.user_id,
+        email: account.email,
+        role_type: account.user.role.type,
+      },
+      targetType: 'user',
+      targetLabel: account.email,
+      targetId: account.user.user_id,
+      ipAddress: attempt.ipAddress,
+      userAgent: attempt.userAgent,
+      source: 'MOBILE',
+    });
   }
 
   async uploadID(
@@ -290,8 +353,12 @@ export class AuthMobileService {
   ): Promise<VerifyFaceResponseDto> {
     const session = await this.requireSession(registrationId);
 
+    // Face verification is a volunteer-only step: it matches the selfie against
+    // the uploaded ID. Beneficiary sessions are ID-less and never enrol a face.
     if (!session.idFrontImageUrl) {
-      return this.captureFaceWithoutId(registrationId, session, selfie);
+      throw new BadRequestException(
+        'Face verification is only required for ID-backed registrations',
+      );
     }
 
     const canVerifyFace =
@@ -368,65 +435,6 @@ export class AuthMobileService {
     };
   }
 
-  /**
-   * Face step for ID-less sessions: there is no ID photo to match against, so
-   * the selfie is only checked for a usable face and enrolled as the embedding.
-   */
-  private async captureFaceWithoutId(
-    registrationId: string,
-    session: RegistrationSessionDto,
-    selfie: Express.Multer.File,
-  ): Promise<VerifyFaceResponseDto> {
-    if (
-      session.step !== 'session_started' &&
-      session.step !== 'face_verified'
-    ) {
-      throw new BadRequestException(
-        'Invalid registration step for face verification',
-      );
-    }
-
-    let embedding: FrEmbedResult;
-    try {
-      embedding = await this.frServiceClient.embedImage(
-        selfie.buffer,
-        selfie.originalname,
-        selfie.mimetype,
-      );
-    } catch (error) {
-      const detail =
-        error instanceof Error ? error.message : 'Face capture failed';
-      if (this.isFaceDetectionError(detail)) {
-        throw new BadRequestException(detail);
-      }
-      throw new BadGatewayException(
-        'Face verification service is unavailable. Please try again shortly.',
-      );
-    }
-
-    const selfieKey = `${registrationId}/selfie-${selfie.originalname}`;
-    const selfieUrl = await this.s3Service.uploadToS3(selfieKey, selfie.buffer);
-
-    await this.saveSession(registrationId, {
-      ...session,
-      selfieUrl,
-      faceMatch: true,
-      faceSimilarity: embedding.detScore,
-      selfieEmbedding: embedding.embedding,
-      step: 'face_verified',
-      ocrData: null,
-    });
-
-    return {
-      registrationId,
-      match: true,
-      similarity: embedding.detScore,
-      threshold: 0,
-      step: 'face_verified',
-      message: 'Face captured successfully',
-    };
-  }
-
   async extractId(registrationId: string): Promise<ExtractIdResponseDto> {
     const session = await this.requireSession(registrationId);
 
@@ -483,7 +491,10 @@ export class AuthMobileService {
     };
   }
 
-  async registerFromSession(data: RegisterFromSessionDto) {
+  async registerFromSession(
+    data: RegisterFromSessionDto,
+    context: RequestContextDto = {},
+  ) {
     const session = await this.requireSession(data.registrationId);
 
     await this.requireVerifiedEmail(data.account.email);
@@ -511,7 +522,8 @@ export class AuthMobileService {
     // and the email OTP is what vouches for them. Every ID-backed role still needs
     // the face that was matched against the ID.
     let biometric: CreateUserDto['biometric'];
-    if (!isIdLess) {
+    let schoolIdUrl: string | undefined;
+    if (session.idFrontImageUrl) {
       if (
         !session.faceMatch ||
         !session.selfieUrl ||
@@ -530,6 +542,9 @@ export class AuthMobileService {
         embedding_type: EmbeddingType.FACE,
         isActive: true,
       };
+      schoolIdUrl = this.s3Service.buildObjectUrl(
+        this.s3Service.resolveObjectKey(session.idFrontImageUrl),
+      );
     }
 
     // A failed attempt leaves the session and the verified-email flag intact, so
@@ -553,13 +568,33 @@ export class AuthMobileService {
       phone_number: data.phone_number,
       avatar: data.avatar,
       account: data.account,
-      school_info: data.school_info,
+      school_info: { ...data.school_info, school_id_url: schoolIdUrl },
       biometric,
     });
 
     const normalizedEmail = data.account.email.trim().toLowerCase();
     await this.clearOtpState(normalizedEmail);
     await this.redisService.delete(this.registrationKey(data.registrationId));
+
+    await this.auditLogRecorder.record({
+      action: 'auth.mobile.registered',
+      description: isIdLess
+        ? 'Account created with email verification'
+        : 'Account created with ID upload and face verification',
+      category: 'AUTHENTICATION',
+      actor: {
+        sub: user.user_id,
+        email: normalizedEmail,
+        role_type: data.role_type,
+      },
+      targetType: 'user',
+      targetLabel: normalizedEmail,
+      targetId: user.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      source: 'MOBILE',
+      metadata: { role: data.role_type },
+    });
 
     return user;
   }
@@ -753,6 +788,7 @@ export class AuthMobileService {
    */
   async requestPasswordReset(
     email: string,
+    context: RequestContextDto = {},
   ): Promise<ForgotPasswordResponseDto> {
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -813,6 +849,27 @@ export class AuthMobileService {
       DurationUtils.TEN_MINUTES,
     );
 
+    // Someone asked to reset this password — worth a row even before the code is
+    // used, so the holder can spot a request they did not make.
+    await this.auditLogRecorder.record({
+      action: 'auth.mobile.password-reset.requested',
+      description: 'Password reset code requested by email',
+      category: 'AUTHENTICATION',
+      severity: 'NOTICE',
+      // The recorder re-reads the real role off the user row; see resetPassword.
+      actor: {
+        sub: account.user.user_id,
+        email: normalizedEmail,
+        role_type: RoleType.VOLUNTEER,
+      },
+      targetType: 'user',
+      targetLabel: normalizedEmail,
+      targetId: account.user.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      source: 'MOBILE',
+    });
+
     return {
       email: normalizedEmail,
       sent: true,
@@ -870,6 +927,7 @@ export class AuthMobileService {
   /** Step 3: write the new password, then sign the account out of every device. */
   async resetPassword(
     data: ResetPasswordDto,
+    context: RequestContextDto = {},
   ): Promise<ResetPasswordResponseDto> {
     const normalizedEmail = data.email.trim().toLowerCase();
 
@@ -910,6 +968,27 @@ export class AuthMobileService {
     // Anyone still holding a token issued under the old password is signed out — the
     // reset is only worth something if a thief's session dies with it.
     await this.sessionRegistry.revokeAllForUser(account.user.user_id);
+
+    await this.auditLogRecorder.record({
+      action: 'auth.mobile.password-reset',
+      description:
+        'Password reset by email code; other devices were signed out',
+      category: 'AUTHENTICATION',
+      severity: 'NOTICE',
+      // The recorder re-reads the real role off the user row; this is only the
+      // fallback if the account vanished in between.
+      actor: {
+        sub: account.user.user_id,
+        email: normalizedEmail,
+        role_type: RoleType.VOLUNTEER,
+      },
+      targetType: 'user',
+      targetLabel: normalizedEmail,
+      targetId: account.user.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      source: 'MOBILE',
+    });
 
     return { email: normalizedEmail, updated: true };
   }

@@ -90,6 +90,8 @@ export class SessionsSiteService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
       metadata: {
+        // Lets the owner's own activity trail pick this entry up.
+        subject_user_id: session.user_id,
         session_source: session.source,
         // Where the revoked session itself signed in from — not where the
         // administrator was sitting, which the entry already records.
@@ -220,7 +222,7 @@ function toActiveSession(
     // The record's copy is what the token was signed with; the account row wins when
     // the role changed after sign-in.
     role_type: (user?.role.type as RoleType) ?? session.role_type,
-    is_restricted: user?.is_restricted ?? false,
+    is_restricted: user?.accounts[0]?.is_restricted ?? false,
     ip_address: session.ip_address,
     user_agent: session.user_agent,
     source: session.source,

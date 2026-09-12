@@ -71,9 +71,13 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>CARES needs photo library access to upload your school ID.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
+<<<<<<< HEAD
 	<string>CARES needs your location to let you join events and verify your attendance at the venue.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>CARES needs your location to let you join events and verify your attendance at the venue.</string>
+=======
+	<string>CARES uses your location to confirm you are at the event venue when checking in.</string>
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 
 	<!--
 	  Donor social sign-in. Both providers read their configuration from here on iOS,

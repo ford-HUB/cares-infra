@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
-import '../beneficiary/data/beneficiary_personal_profile_store.dart';
-import '../beneficiary/domain/beneficiary_personal_profile.dart';
-import '../beneficiary/widgets/beneficiary_verification_gate.dart';
 import '../data/certificate_data.dart';
 import '../data/event_category_colors.dart';
 import '../data/event_feedback_store.dart';
@@ -35,7 +32,6 @@ class EventDetailsScreen extends StatefulWidget {
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
-  final _verificationStore = BeneficiaryPersonalProfileStore.instance;
   bool _isCheckingLocation = false;
   bool _isRequestingPermission = false;
 
@@ -43,7 +39,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onFeedbackChanged);
-    _verificationStore.addListener(_onFeedbackChanged);
     if (widget.event.isCompleted) {
       // Prototype scenario: the volunteer already joined and attended.
       _store.seedCompletedEventParticipation(email: _participantEmail);
@@ -53,7 +48,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   @override
   void dispose() {
     _feedbackStore.removeListener(_onFeedbackChanged);
-    _verificationStore.removeListener(_onFeedbackChanged);
     super.dispose();
   }
 
@@ -89,6 +83,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _isRegistered =>
       _store.isRegistered(widget.event.id, _participantEmail);
 
+<<<<<<< HEAD
   /// Beneficiaries must have a verified identity/residency document on file
   /// before they can join an event.
   bool get _isBeneficiary => isBeneficiarySession;
@@ -172,6 +167,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final locationAllowed = await _ensureLocationPermission();
     if (!locationAllowed || !mounted) return;
 
+=======
+  Future<void> _confirmJoin() async {
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
     final confirmed = await showEventJoinConfirmationDialog(
       context,
       widget.event,
@@ -685,12 +683,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!isCompleted && !isRegistered && _blockedByVerification)
-                    BeneficiaryVerificationBanner(
-                      state: _verificationState,
-                      document: _verificationDocument,
-                      onAction: _openVerificationGate,
-                    ),
                   isCompleted
                       ? (feedbackSubmitted
                             ? FilledButton.icon(
@@ -775,12 +767,29 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 )
                               : const SizedBox.shrink(),
                           label: Text(
+<<<<<<< HEAD
                             _isRequestingPermission
                                 ? 'Checking location access...'
                                 : _blockedByVerification
                                 ? 'Verify Document to Join'
                                 : 'Join Event',
                           ),
+=======
+                            _isCheckingLocation
+                                ? 'Checking...'
+                                : 'Verify Attendance',
+                          ),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                          ),
+                        )
+                      : FilledButton(
+                          onPressed: event.slotsLeft > 0 ? _confirmJoin : null,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                          ),
+                          child: const Text('Join Event'),
+>>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
                         ),
                 ],
               ),

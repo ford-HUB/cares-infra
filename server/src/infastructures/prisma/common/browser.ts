@@ -22,6 +22,21 @@ export * from './enums.js';
  */
 export type User = Prisma.UserModel
 /**
+ * Model ResidencyDocument
+ * Proof of residency (barangay certificate, clearance) a mobile user uploaded
+ * to change their address. The address itself is read off the file by OCR
+ * and written to `User.current_address`; the file stays on record here.
+ */
+export type ResidencyDocument = Prisma.ResidencyDocumentModel
+/**
+ * Model UserRoleAvatar
+ * A mobile user's profile photo for one side of their account. The role
+ * switcher is local to the app, so the same person can be a volunteer, donor
+ * and beneficiary; each side keeps its own picture here instead of sharing
+ * `User.avatar`.
+ */
+export type UserRoleAvatar = Prisma.UserRoleAvatarModel
+/**
  * Model UserSchoolInfo
  * 
  */
@@ -43,7 +58,9 @@ export type Major = Prisma.MajorModel
 export type YearLevel = Prisma.YearLevelModel
 /**
  * Model UserVerification
- * 
+ * One ID check per submission. The biometric enrolled for that check hangs off the
+ * verification rather than the user, so a face scan is always tied to the review
+ * it was captured for.
  */
 export type UserVerification = Prisma.UserVerificationModel
 /**

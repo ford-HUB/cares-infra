@@ -16,11 +16,9 @@ class StaticSessionUser {
     this.phoneNumber = '',
     this.schoolIdNumber = '',
     Set<String>? interests,
-    Set<String>? skills,
     Set<String>? causes,
     Set<String>? volunteerPreferences,
   }) : interests = interests ?? {},
-       skills = skills ?? {},
        causes = causes ?? {},
        volunteerPreferences = volunteerPreferences ?? {};
 
@@ -36,7 +34,6 @@ class StaticSessionUser {
   String phoneNumber;
   String schoolIdNumber;
   final Set<String> interests;
-  final Set<String> skills;
   final Set<String> causes;
   final Set<String> volunteerPreferences;
 
@@ -97,9 +94,6 @@ class StaticSessionUser {
     interests
       ..clear()
       ..addAll(data.interests);
-    skills
-      ..clear()
-      ..addAll(data.skills);
     causes
       ..clear()
       ..addAll(data.causes);
@@ -123,7 +117,6 @@ class StaticSessionUser {
       phoneNumber: data.phoneNumber,
       schoolIdNumber: data.schoolIdNumber,
       interests: Set<String>.from(data.interests),
-      skills: Set<String>.from(data.skills),
       causes: Set<String>.from(data.causes),
       volunteerPreferences: Set<String>.from(data.volunteerPreferences),
     );

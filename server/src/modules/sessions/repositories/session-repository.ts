@@ -8,7 +8,7 @@ export interface SessionUserRow {
   lastname: string;
   avatar: string | null;
   portal_department: string | null;
-  is_restricted: boolean;
+  accounts: { is_restricted: boolean }[];
   role: { type: string };
 }
 
@@ -30,7 +30,7 @@ export class SessionRepository {
         lastname: true,
         avatar: true,
         portal_department: true,
-        is_restricted: true,
+        accounts: { select: { is_restricted: true }, take: 1 },
         role: { select: { type: true } },
       },
     });

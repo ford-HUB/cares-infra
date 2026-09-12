@@ -1,100 +1,155 @@
-import { MOCK_API_DELAY_MS, delay } from '../constants/durations'
+import { formatTicketReference } from '../constants/support-tickets'
 import type {
   SupportTicket,
+  SupportTicketPriority,
   SupportTicketReply,
   SupportTicketStatus,
+  SupportTicketType,
 } from '../types/support-ticket'
-import { mockSupportTickets } from './mock-data'
+import { apiClient, parseApiError } from './api-client'
+
+/** Backend wraps successful responses in an { ok, data } envelope. */
+type ApiEnvelope<T> = { ok: true; message?: string; data: T }
+
+const SUPPORT_TICKETS_URL = '/api/v1/support-tickets'
+
+interface SupportTicketReplyApiResponse {
+  support_ticket_reply_id: string
+  author_id: string | null
+  author_name: string
+  author_type: 'STAFF' | 'REQUESTER'
+  body: string
+  created_at: string
+}
+
+interface SupportTicketApiResponse {
+  support_ticket_id: string
+  reference_number: number
+  subject: string
+  description: string
+  type: string
+  status: string
+  priority: string
+  requester_id: string
+  requester_firstname: string
+  requester_lastname: string
+  requester_email: string
+  requester_role_type: string
+  assignee_id: string | null
+  assignee_name: string | null
+  source: 'PORTAL' | 'MOBILE'
+  replies: SupportTicketReplyApiResponse[]
+  created_at: string
+  updated_at: string
+}
+
+interface SupportTicketListApiResponse {
+  items: SupportTicketApiResponse[]
+  total: number
+}
+
+/** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is snake_case. */
+const SOURCE_LABELS: Record<SupportTicketApiResponse['source'], string> = {
+  MOBILE: 'Mobile app',
+  PORTAL: 'Staff portal',
+}
+
+function mapReply(reply: SupportTicketReplyApiResponse): SupportTicketReply {
+  return {
+    id: reply.support_ticket_reply_id,
+    author: reply.author_name,
+    authorType: reply.author_type === 'STAFF' ? 'staff' : 'requester',
+    body: reply.body,
+    createdAt: reply.created_at,
+  }
+}
+
+function mapTicket(data: SupportTicketApiResponse): SupportTicket {
+  return {
+    id: data.support_ticket_id,
+    reference: formatTicketReference(data.reference_number),
+    subject: data.subject,
+    description: data.description,
+    type: data.type.toLowerCase() as SupportTicketType,
+    status: data.status.toLowerCase() as SupportTicketStatus,
+    priority: data.priority.toLowerCase() as SupportTicketPriority,
+    requester: {
+      name: `${data.requester_firstname} ${data.requester_lastname}`,
+      email: data.requester_email,
+      role: data.requester_role_type.toLowerCase(),
+    },
+    assignee: data.assignee_name ?? undefined,
+    source: SOURCE_LABELS[data.source] ?? data.source,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    replies: data.replies.map(mapReply),
+  }
+}
 
 /**
- * The support-ticket endpoints are not built yet, so this module serves the fixture
- * list and keeps mutations in memory. Swap each function for an `apiClient` call —
- * the signatures already match what the endpoint will return.
+ * The whole queue in one read — the portal filters and sorts client-side. The server
+ * caps the row count; `total` is the full match count when the cap bites.
  */
-let tickets: SupportTicket[] = structuredClone(mockSupportTickets)
-
 export async function fetchSupportTickets(): Promise<SupportTicket[]> {
-  await delay(MOCK_API_DELAY_MS.default)
-  return structuredClone(tickets)
+  try {
+    const { data: body } = await apiClient.get<
+      ApiEnvelope<SupportTicketListApiResponse>
+    >(SUPPORT_TICKETS_URL)
+    return body.data.items.map(mapTicket)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
 }
 
 export interface SupportTicketUpdate {
   status: SupportTicketStatus
   /** Optional note posted to the thread alongside the status change. */
   note?: string
-  author: string
 }
 
+/** Every mutation returns the updated ticket, so the store swaps one row in place. */
 export async function updateSupportTicket(
   id: string,
   update: SupportTicketUpdate,
-): Promise<SupportTicket[]> {
-  await delay(MOCK_API_DELAY_MS.default)
-
-  const now = new Date().toISOString()
-  const note = update.note?.trim()
-
-  tickets = tickets.map((ticket) =>
-    ticket.id === id
-      ? {
-          ...ticket,
-          status: update.status,
-          updatedAt: now,
-          replies: note
-            ? [
-                ...ticket.replies,
-                {
-                  id: `r-${Date.now()}`,
-                  author: update.author,
-                  authorType: 'staff' as const,
-                  body: note,
-                  createdAt: now,
-                },
-              ]
-            : ticket.replies,
-        }
-      : ticket,
-  )
-  return structuredClone(tickets)
+): Promise<SupportTicket> {
+  try {
+    const note = update.note?.trim()
+    const { data: body } = await apiClient.patch<
+      ApiEnvelope<SupportTicketApiResponse>
+    >(`${SUPPORT_TICKETS_URL}/${id}`, {
+      status: update.status.toUpperCase(),
+      ...(note ? { note } : {}),
+    })
+    return mapTicket(body.data)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
 }
 
 export async function assignSupportTicket(
   id: string,
-  assignee: string,
-): Promise<SupportTicket[]> {
-  tickets = tickets.map((ticket) =>
-    ticket.id === id
-      ? { ...ticket, assignee, updatedAt: new Date().toISOString() }
-      : ticket,
-  )
-  return structuredClone(tickets)
+  assigneeId: string,
+): Promise<SupportTicket> {
+  try {
+    const { data: body } = await apiClient.patch<
+      ApiEnvelope<SupportTicketApiResponse>
+    >(`${SUPPORT_TICKETS_URL}/${id}`, { assignee_id: assigneeId })
+    return mapTicket(body.data)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
 }
 
 export async function replyToSupportTicket(
   id: string,
-  author: string,
   body: string,
-): Promise<SupportTicket[]> {
-  await delay(MOCK_API_DELAY_MS.default)
-
-  const reply: SupportTicketReply = {
-    id: `r-${Date.now()}`,
-    author,
-    authorType: 'staff',
-    body,
-    createdAt: new Date().toISOString(),
+): Promise<SupportTicket> {
+  try {
+    const { data: response } = await apiClient.post<
+      ApiEnvelope<SupportTicketApiResponse>
+    >(`${SUPPORT_TICKETS_URL}/${id}/replies`, { body })
+    return mapTicket(response.data)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
   }
-
-  tickets = tickets.map((ticket) =>
-    ticket.id === id
-      ? {
-          ...ticket,
-          replies: [...ticket.replies, reply],
-          // A reply on an untouched ticket means someone picked it up.
-          status: ticket.status === 'open' ? 'in_progress' : ticket.status,
-          updatedAt: reply.createdAt,
-        }
-      : ticket,
-  )
-  return structuredClone(tickets)
 }

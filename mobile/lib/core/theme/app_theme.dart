@@ -93,6 +93,15 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      // Edge-swipe back on every route: Android's predictive back drags the
+      // page with the finger (needs enableOnBackInvokedCallback in the
+      // manifest), iOS gets the native swipe-from-edge pop.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       scaffoldBackgroundColor: AppColors.background,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
