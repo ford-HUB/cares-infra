@@ -5,10 +5,6 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/session/role_account_store.dart';
 
-import 'package:mobile/core/session/app_role.dart';
-
-import 'package:mobile/core/session/role_session.dart';
-
 import 'package:mobile/core/theme/app_theme.dart';
 
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
@@ -24,16 +20,11 @@ import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
-import 'package:mobile/features/dashboard/screens/switch_role_screen.dart';
 import 'package:mobile/features/dashboard/screens/profile_screens.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
 
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 
-<<<<<<< HEAD
-import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_section_edit_screen.dart';
-
-=======
 import 'package:mobile/features/dashboard/presentation/screens/account_security_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/activity_logs_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/location_records_screen.dart';
@@ -41,7 +32,6 @@ import 'package:mobile/features/dashboard/presentation/screens/permissions_scree
 import 'package:mobile/features/dashboard/presentation/screens/mobile_profile_edit_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/role_unlock_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_tab_skeleton.dart';
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 import 'package:mobile/features/dashboard/presentation/widgets/stats_row.dart';
 
 /// Profile tab for every mobile role. On first build it pulls the signed-in
@@ -175,8 +165,6 @@ class _ProfileTabBody extends StatelessWidget {
     this.isDonor = false,
 
     this.onOpenDonations,
-
-    this.onVolunteerProfileUpdated,
   });
 
   final String displayName;
@@ -202,18 +190,12 @@ class _ProfileTabBody extends StatelessWidget {
 
   final VoidCallback? onOpenDonations;
 
-<<<<<<< HEAD
-  /// Called after a volunteer edits their interests, skills, or availability
-  /// from the section edit icons.
-  final ValueChanged<VolunteerProfile>? onVolunteerProfileUpdated;
-=======
   /// The role's record from the server, null until synced.
   final MobileProfile? server;
 
   final String? syncError;
 
   final VoidCallback onRetrySync;
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 
   void _showMockAction(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -238,44 +220,9 @@ class _ProfileTabBody extends StatelessWidget {
     await DonorProfileSectionEditScreen.open(context, section);
   }
 
-<<<<<<< HEAD
-  Future<void> _editVolunteerSection(
-    BuildContext context,
-
-    VolunteerProfileSection section,
-  ) async {
-    final saved = await VolunteerProfileSectionEditScreen.open(
-      context,
-
-      section,
-
-      initialProfile: volunteerProfile,
-    );
-
-    if (saved != null) {
-      onVolunteerProfileUpdated?.call(saved);
-    }
-  }
-
-  Future<void> _editAssistanceSection(
-    BuildContext context,
-
-    BeneficiaryProfileSection section,
-  ) async {
-    await BeneficiaryAssistanceEditScreen.open(context, section);
-  }
-
-  Future<void> _switchRole(BuildContext context) async {
-    await SwitchRoleScreen.open(context);
-  }
-
-=======
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
   void _signOut(BuildContext context) {
     AuthSession.clear();
     RoleAccountStore.instance.clear();
-
-    RoleSession.instance.clear();
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
@@ -296,13 +243,6 @@ class _ProfileTabBody extends StatelessWidget {
 
     final requestStore = AssistanceRequestStore.instance;
 
-<<<<<<< HEAD
-    final roleSession = RoleSession.instance;
-
-    final beneficiaryProfile = BeneficiaryProfileStore.instance.profile;
-
-=======
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
     final donorProfile = DonorProfileStore.instance.profile;
 
     final donorPersonal = DonorPersonalProfileStore.instance.profile;
@@ -605,202 +545,6 @@ class _ProfileTabBody extends StatelessWidget {
                         ],
                       ),
                   ] else if (isBeneficiary) ...[
-<<<<<<< HEAD
-                    _SectionTitle(
-                      title: 'Personal Information',
-
-                      onEdit: onEditProfile,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    _InfoRow(
-                      icon: Icons.badge_outlined,
-
-                      label: 'Full name',
-
-                      value: personalProfile.fullName.isEmpty
-                          ? displayName
-                          : personalProfile.fullName,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _InfoRow(
-                      icon: Icons.call_outlined,
-
-                      label: 'Contact number',
-
-                      value: personalProfile.contactNumber.isEmpty
-                          ? 'Not set'
-                          : personalProfile.contactNumber,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _InfoRow(
-                      icon: Icons.home_outlined,
-
-                      label: 'Address',
-
-                      value: personalProfile.address.isEmpty
-                          ? 'Not set'
-                          : personalProfile.address,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _InfoRow(
-                      icon: Icons.cake_outlined,
-
-                      label: 'Date of birth',
-
-                      value: personalProfile.dateOfBirth.isEmpty
-                          ? 'Not set'
-                          : personalProfile.dateOfBirth,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _InfoRow(
-                      icon: Icons.verified_user_outlined,
-
-                      label: 'Verification documents',
-
-                      value:
-                          '${personalProfile.verifiedDocumentCount}/'
-                          '${personalProfile.documents.length} verified',
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(
-                      title: 'Assistance Needs',
-
-                      onEdit: () => _editAssistanceSection(
-                        context,
-
-                        BeneficiaryProfileSection.assistanceNeeds,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    if (beneficiaryProfile.assistanceNeeds.isEmpty)
-                      _EmptySectionHint(
-                        message:
-                            'Tap the edit icon to tell CARES what your household '
-                            'needs.',
-                      )
-                    else
-                      Wrap(
-                        spacing: 8,
-
-                        runSpacing: 8,
-
-                        children: [
-                          for (final need
-                              in beneficiaryProfile.assistanceNeedLabels)
-                            _ChipTag(label: need),
-                        ],
-                      ),
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(
-                      title: 'Household Situation',
-
-                      onEdit: () => _editAssistanceSection(
-                        context,
-
-                        BeneficiaryProfileSection.household,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    if (beneficiaryProfile.householdSituation.isEmpty)
-                      _EmptySectionHint(
-                        message:
-                            'Tap the edit icon to add your household situation.',
-                      )
-                    else
-                      Wrap(
-                        spacing: 8,
-
-                        runSpacing: 8,
-
-                        children: [
-                          for (final item
-                              in beneficiaryProfile.householdSituationLabels)
-                            _ChipTag(label: item),
-                        ],
-                      ),
-
-                    const SizedBox(height: 12),
-
-                    _InfoRow(
-                      icon: Icons.groups_outlined,
-
-                      label: 'Household size',
-
-                      value: beneficiaryProfile.householdSize != null
-                          ? beneficiaryProfile.householdSizeLabel
-                          : latestRequest == null
-                          ? 'Not set'
-                          : '${latestRequest.householdSize} members',
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(
-                      title: 'Visit Availability',
-
-                      onEdit: () => _editAssistanceSection(
-                        context,
-
-                        BeneficiaryProfileSection.visitAvailability,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    _InfoRow(
-                      icon: Icons.event_available_outlined,
-
-                      label: 'Preferred days & times',
-
-                      value: beneficiaryProfile.availabilityLabel,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(title: 'Needs Assessment'),
-
-                    const SizedBox(height: 8),
-
-                    NeedsAssessmentCard(summary: kMockNeedsAssessment),
-
-                    const SizedBox(height: 12),
-
-                    // _InfoRow(
-                    //   icon: Icons.assignment_outlined,
-
-                    //   label: 'Latest request',
-
-                    //   value: latestRequest?.title ?? 'None filed yet',
-                    // ),
-                  ] else ...[
-                    _SectionTitle(
-                      title: 'Interests',
-
-                      onEdit: () => _editVolunteerSection(
-                        context,
-
-                        VolunteerProfileSection.interests,
-                      ),
-                    ),
-=======
                     // Beneficiaries see only the header, completion and
                     // request stats here; their details live in the edit flow.
                   ] else ...[
@@ -846,7 +590,6 @@ class _ProfileTabBody extends StatelessWidget {
                     ],
 
                     _SectionTitle(title: 'Interests'),
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 
                     const SizedBox(height: 8),
 
@@ -873,19 +616,7 @@ class _ProfileTabBody extends StatelessWidget {
                   if (!isBeneficiary) ...[
                     const SizedBox(height: 20),
 
-<<<<<<< HEAD
-                    _SectionTitle(
-                      title: 'Skills',
-
-                      onEdit: () => _editVolunteerSection(
-                        context,
-
-                        VolunteerProfileSection.skills,
-                      ),
-                    ),
-=======
                     _SectionTitle(title: 'Account'),
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
 
                     const SizedBox(height: 8),
 
@@ -920,31 +651,6 @@ class _ProfileTabBody extends StatelessWidget {
                           onTap: () => ProfileCertificatesScreen.open(context),
                         ),
                       ),
-<<<<<<< HEAD
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(
-                      title: 'Availability',
-
-                      onEdit: () => _editVolunteerSection(
-                        context,
-
-                        VolunteerProfileSection.availability,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    _InfoRow(
-                      icon: Icons.event_available_outlined,
-
-                      label: 'Availability',
-
-                      value: profile.availability,
-                    ),
-=======
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
                   ],
 
                   const SizedBox(height: 20),
@@ -968,20 +674,6 @@ class _ProfileTabBody extends StatelessWidget {
                     ),
                   ),
 
-<<<<<<< HEAD
-                  if (roleSession.canSwitchRole)
-                    _MenuTile(
-                      icon: Icons.swap_horiz_rounded,
-
-                      label: 'Change Role',
-
-                      trailingLabel: roleSession.activeRole.label,
-
-                      onTap: () => _switchRole(context),
-                    ),
-
-                  if (isDonor)
-=======
                   _MenuTile(
                     icon: Icons.verified_user_outlined,
 
@@ -992,7 +684,6 @@ class _ProfileTabBody extends StatelessWidget {
 
                   // Geolocation records are a volunteer-only feature.
                   if (!isDonor && !isBeneficiary)
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
                     _MenuTile(
                       icon: Icons.location_on_outlined,
 
@@ -2111,14 +1802,8 @@ class _SectionTitle extends StatelessWidget {
 
   final String title;
 
-<<<<<<< HEAD
-  /// Optional per-section edit action — used by the beneficiary assistance,
-  /// household, and visit-availability cards, and by the volunteer interests,
-  /// skills, and availability cards.
-=======
   /// Optional per-section edit action — used by the personal-information and
   /// donor preference cards.
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
   final VoidCallback? onEdit;
 
   @override

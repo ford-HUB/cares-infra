@@ -19,55 +19,28 @@ enum DashboardTab {
   final String label;
 }
 
-/// One entry of the bottom bar. Each role supplies its own list, so the
-/// navigation changes with the active role.
-class DashboardNavItem {
-  const DashboardNavItem({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-}
-
-/// The navigation of each role, as shown by that role's dashboard shell.
-abstract final class DashboardNavItems {
-  static const volunteer = [
-    DashboardNavItem(icon: Icons.home_outlined, label: 'Home'),
-    DashboardNavItem(icon: Icons.calendar_month_outlined, label: 'Events'),
-    DashboardNavItem(icon: Icons.bar_chart_outlined, label: 'Activity'),
-    DashboardNavItem(icon: Icons.emoji_events_outlined, label: 'Ranks'),
-    DashboardNavItem(icon: Icons.person_outline, label: 'Profile'),
-  ];
-
-  static const beneficiary = [
-    DashboardNavItem(icon: Icons.home_outlined, label: 'Home'),
-    DashboardNavItem(icon: Icons.calendar_month_outlined, label: 'Events'),
-    DashboardNavItem(icon: Icons.request_page_outlined, label: 'Requests'),
-    DashboardNavItem(icon: Icons.bar_chart_outlined, label: 'Activity'),
-    DashboardNavItem(icon: Icons.person_outline, label: 'Profile'),
-  ];
-
-  static const donor = [
-    DashboardNavItem(icon: Icons.home_outlined, label: 'Home'),
-    DashboardNavItem(icon: Icons.card_giftcard_rounded, label: 'Donations'),
-    DashboardNavItem(icon: Icons.bar_chart_outlined, label: 'Activity'),
-    DashboardNavItem(icon: Icons.emoji_events_outlined, label: 'Ranks'),
-    DashboardNavItem(icon: Icons.person_outline, label: 'Profile'),
-  ];
-}
-
 class DashboardBottomNav extends StatelessWidget {
   const DashboardBottomNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    this.items = DashboardNavItems.volunteer,
+    this.eventsTabLabel,
+    this.ranksTabLabel,
+    this.ranksTabIcon,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  /// Navigation entries for the active role.
-  final List<DashboardNavItem> items;
+  /// Overrides [DashboardTab.ranks] without changing the shared layout or
+  /// navigation order (e.g. 'Request' for the beneficiary dashboard).
+  final String? ranksTabLabel;
+  final IconData? ranksTabIcon;
+
+  /// Overrides the label of [DashboardTab.events] without changing the
+  /// shared layout, icons, or navigation order (e.g. 'Campaigns' for the
+  /// donor dashboard vs the default 'Events' for volunteers).
+  final String? eventsTabLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -80,11 +53,19 @@ class DashboardBottomNav extends StatelessWidget {
           height: 52,
           child: Row(
             children: [
-              for (var i = 0; i < items.length; i++)
+              for (var i = 0; i < DashboardTab.values.length; i++)
                 Expanded(
                   child: _NavItem(
-                    icon: items[i].icon,
-                    label: items[i].label,
+                    icon: DashboardTab.values[i] == DashboardTab.ranks
+                        ? (ranksTabIcon ?? DashboardTab.values[i].icon)
+                        : DashboardTab.values[i].icon,
+                    label: switch (DashboardTab.values[i]) {
+                      DashboardTab.events =>
+                        eventsTabLabel ?? DashboardTab.events.label,
+                      DashboardTab.ranks =>
+                        ranksTabLabel ?? DashboardTab.ranks.label,
+                      final tab => tab.label,
+                    },
                     selected: currentIndex == i,
                     onTap: () => onTap(i),
                   ),

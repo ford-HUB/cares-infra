@@ -107,8 +107,12 @@ export class AnnouncementsRepository {
     const roles = [...new Set(audiences.flatMap((one) => AUDIENCE_ROLES[one]))];
     if (roles.length === 0) return 0;
 
-    return this.prisma.user.count({
-      where: { is_restricted: false, role: { type: { in: roles } } },
+    // Restriction is on the account; the role is on the user it signs in as.
+    return this.prisma.account.count({
+      where: {
+        is_restricted: false,
+        user: { role: { type: { in: roles } } },
+      },
     });
   }
 

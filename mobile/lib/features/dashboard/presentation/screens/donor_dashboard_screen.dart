@@ -138,15 +138,6 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
                 ),
               ),
             ),
-<<<<<<< HEAD
-          ),
-          DashboardBottomNav(
-            currentIndex: _currentTab,
-            items: DashboardNavItems.donor,
-            onTap: (index) => setState(() => _currentTab = index),
-          ),
-        ],
-=======
             DashboardBottomNav(
               currentIndex: _currentTab,
               onTap: (index) => setState(() => _currentTab = index),
@@ -154,7 +145,6 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
             ),
           ],
         ),
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
       ),
     );
   }

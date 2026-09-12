@@ -3,14 +3,12 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
-import '../data/event_category_colors.dart';
 import '../data/event_feedback_store.dart';
 import '../data/event_registration_store.dart';
 import '../data/mock_events.dart';
+import '../utils/geo_utils.dart';
 import '../widgets/completed_event_widgets.dart';
 import '../widgets/event_registration_dialogs.dart';
-import '../widgets/location_check_dialogs.dart';
-import '../widgets/location_permission_dialogs.dart';
 import 'certificate_review_screen.dart';
 import 'event_feedback_screen.dart';
 
@@ -33,7 +31,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
   bool _isCheckingLocation = false;
-  bool _isRequestingPermission = false;
 
   @override
   void initState() {
@@ -83,93 +80,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _isRegistered =>
       _store.isRegistered(widget.event.id, _participantEmail);
 
-<<<<<<< HEAD
-  /// Beneficiaries must have a verified identity/residency document on file
-  /// before they can join an event.
-  bool get _isBeneficiary => isBeneficiarySession;
-
-  BeneficiaryVerificationState get _verificationState =>
-      _verificationStore.verificationState;
-
-  VerificationDocument? get _verificationDocument =>
-      switch (_verificationState) {
-        BeneficiaryVerificationState.rejected =>
-          _verificationStore.profile.rejectedDocument,
-        BeneficiaryVerificationState.underReview =>
-          _verificationStore.profile.documentUnderReview,
-        _ => null,
-      };
-
-  bool get _blockedByVerification =>
-      _isBeneficiary && !_verificationStore.canJoinEvents;
-
-  Future<void> _openVerificationGate() async {
-    final uploaded = await showBeneficiaryVerificationRequiredDialog(context);
-    if (!mounted) return;
-    setState(() {});
-    if (uploaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Document submitted. You can join events once it is verified.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  /// Location access is required before anyone — volunteer or beneficiary —
-  /// can be registered for an event. Returns true only once the device grants
-  /// permission.
-  Future<bool> _ensureLocationPermission() async {
-    final proceed = await showLocationPermissionRequestDialog(
-      context,
-      widget.event,
-    );
-    if (!proceed || !mounted) return false;
-
-    while (true) {
-      setState(() => _isRequestingPermission = true);
-      final result = await requestEventLocationPermission();
-      if (!mounted) return false;
-      setState(() => _isRequestingPermission = false);
-
-      if (result.isGranted) return true;
-
-      final action = await showLocationPermissionDeniedDialog(context, result);
-      if (!mounted) return false;
-
-      switch (action) {
-        case LocationDeniedAction.tryAgain:
-          continue;
-        case LocationDeniedAction.openSettings:
-          if (result.outcome == LocationPermissionOutcome.serviceDisabled) {
-            await Geolocator.openLocationSettings();
-          } else {
-            await Geolocator.openAppSettings();
-          }
-          if (!mounted) return false;
-          continue;
-        case LocationDeniedAction.cancel:
-          return false;
-      }
-    }
-  }
-
   Future<void> _confirmJoin() async {
-    if (_blockedByVerification) {
-      await _openVerificationGate();
-      return;
-    }
-
-    // Ask for location access before anything is registered.
-    final locationAllowed = await _ensureLocationPermission();
-    if (!locationAllowed || !mounted) return;
-
-=======
-  Future<void> _confirmJoin() async {
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
     final confirmed = await showEventJoinConfirmationDialog(
       context,
       widget.event,
@@ -184,48 +95,113 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     await showEventRegistrationSuccessDialog(context);
   }
 
-  /// Static location check — reads mock distance data instead of the device
-  /// GPS, then lets the participant record attendance when inside the radius.
-  Future<void> _checkLocation() async {
+  Future<void> _verifyGeolocation() async {
     final participation = _participation;
-    if (participation == null || _isCheckingLocation) return;
+    if (participation == null) return;
 
     setState(() => _isCheckingLocation = true);
-    final verifyAttendance = await runStaticLocationCheck(
-      context,
-      widget.event,
-    );
-    if (!mounted) return;
-    setState(() => _isCheckingLocation = false);
 
-    if (!verifyAttendance) return;
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        _showGeoResult(
+          success: false,
+          message:
+              'Location services are disabled. Please enable them and try again.',
+        );
+        return;
+      }
 
-    _store.markAttendanceVerified(
-      widget.event.id,
-      participation.participantEmail,
-    );
-    setState(() {});
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
 
-    if (!mounted) return;
-    await showAttendanceVerifiedDialog(context);
+      if (permission == LocationPermission.denied) {
+        _showGeoResult(
+          success: false,
+          message:
+              'Location permission is required to verify event attendance.',
+        );
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showGeoResult(
+          success: false,
+          message:
+              'Location permission is permanently denied. Enable it in device settings.',
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      final distance = GeoUtils.distanceInMeters(
+        fromLatitude: position.latitude,
+        fromLongitude: position.longitude,
+        toLatitude: widget.event.venueLatitude,
+        toLongitude: widget.event.venueLongitude,
+      );
+
+      if (distance <= widget.event.attendanceRadiusMeters) {
+        _store.markAttendanceVerified(
+          widget.event.id,
+          participation.participantEmail,
+        );
+        setState(() {});
+        _showGeoResult(
+          success: true,
+          message:
+              'Attendance recorded. You are within the event venue area '
+              '(${distance.round()}m from location).',
+        );
+      } else {
+        _showGeoResult(
+          success: false,
+          message:
+              'You are ${distance.round()}m from the venue. '
+              'You must be within ${widget.event.attendanceRadiusMeters.round()}m to check in.',
+        );
+      }
+    } catch (error) {
+      _showGeoResult(
+        success: false,
+        message: 'Unable to get your location. Please try again.',
+      );
+    } finally {
+      if (mounted) setState(() => _isCheckingLocation = false);
+    }
   }
 
-  /// Cancels participation locally and returns the event to its join state.
-  Future<void> _cancelParticipation() async {
-    final confirmed = await showCancelParticipationDialog(
-      context,
-      widget.event,
-    );
-    if (!confirmed || !mounted) return;
-
-    _store.cancelParticipation(widget.event.id, _participantEmail);
-    setState(() {});
-
+  void _showGeoResult({required bool success, required String message}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Your participation has been cancelled.'),
-        behavior: SnackBarBehavior.floating,
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              success ? Icons.location_on_rounded : Icons.location_off_rounded,
+              color: success ? AppColors.primary : AppColors.error,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(success ? 'Attendance Verified' : 'Check-in Failed'),
+            ),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
@@ -367,42 +343,15 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                     ),
                                   ),
                                 ),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: eventCategoryColor(
-                                        event.category,
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      event.category,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isCompleted) ...[
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Completed',
-                                      style: TextStyle(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.9,
-                                        ),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                              Text(
+                                isCompleted
+                                    ? '${event.category} · Completed'
+                                    : event.category,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
@@ -704,59 +653,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 ),
                               ))
                       : isRegistered
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FilledButton.icon(
-                              onPressed:
-                                  _isCheckingLocation || participation == null
-                                  ? null
-                                  : _checkLocation,
-                              icon: _isCheckingLocation
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.my_location_rounded),
-                              label: Text(
-                                _isCheckingLocation
-                                    ? 'Verifying your location...'
-                                    : 'Verify Location',
-                              ),
-                              style: FilledButton.styleFrom(
-                                minimumSize: const Size.fromHeight(52),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            OutlinedButton.icon(
-                              onPressed: _isCheckingLocation
-                                  ? null
-                                  : _cancelParticipation,
-
-                              label: const Text('Cancel Participation'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.error,
-                                side: BorderSide(
-                                  color: AppColors.error.withValues(alpha: 0.5),
-                                ),
-                                minimumSize: const Size.fromHeight(48),
-                              ),
-                            ),
-                          ],
-                        )
-                      : FilledButton.icon(
+                      ? FilledButton.icon(
                           onPressed:
-                              event.slotsLeft > 0 && !_isRequestingPermission
-                              ? _confirmJoin
-                              : null,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                          ),
-                          icon: _isRequestingPermission
+                              _isCheckingLocation || participation == null
+                              ? null
+                              : _verifyGeolocation,
+                          icon: _isCheckingLocation
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
@@ -765,16 +667,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : const SizedBox.shrink(),
+                              : const Icon(Icons.my_location_rounded),
                           label: Text(
-<<<<<<< HEAD
-                            _isRequestingPermission
-                                ? 'Checking location access...'
-                                : _blockedByVerification
-                                ? 'Verify Document to Join'
-                                : 'Join Event',
-                          ),
-=======
                             _isCheckingLocation
                                 ? 'Checking...'
                                 : 'Verify Attendance',
@@ -789,7 +683,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                             minimumSize: const Size.fromHeight(52),
                           ),
                           child: const Text('Join Event'),
->>>>>>> b9e7830bed6470d46c3822e3904dc72b99d68b4f
                         ),
                 ],
               ),

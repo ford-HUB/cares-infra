@@ -1,111 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/constants/uclm_departments.dart';
+import 'package:mobile/features/dashboard/data/volunteer_account_service.dart';
 import 'package:mobile/features/dashboard/data/volunteer_profile_service.dart';
+import 'package:mobile/features/dashboard/domain/volunteer_account_profile.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/selectable_options_section.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/selection_section_card.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile_hours_section.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/personal_information_section.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/volunteer_profile_form_sections.dart';
 import 'package:mobile/features/interests/data/interests_service.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
 
-/// The volunteer profile sections that can be edited on their own.
-enum VolunteerProfileSection { interests, skills, availability }
-
-extension VolunteerProfileSectionX on VolunteerProfileSection {
-  String get title => switch (this) {
-    VolunteerProfileSection.interests => 'Interests',
-    VolunteerProfileSection.skills => 'Skills',
-    VolunteerProfileSection.availability => 'Availability',
-  };
-
-  String get intro => switch (this) {
-    VolunteerProfileSection.interests =>
-      'Update the causes you care about so CARES can match you with the right '
-          'events.',
-    VolunteerProfileSection.skills =>
-      'Tell coordinators what you can contribute when you join an event.',
-    VolunteerProfileSection.availability =>
-      'Set the days you can volunteer and how many hours you can give a week.',
-  };
-
-  IconData get icon => switch (this) {
-    VolunteerProfileSection.interests => Icons.favorite_outline_rounded,
-    VolunteerProfileSection.skills => Icons.workspace_premium_outlined,
-    VolunteerProfileSection.availability => Icons.event_available_outlined,
-  };
-}
-
-/// Focused editor for one volunteer profile section, opened from the edit icon
-/// beside that section on the volunteer profile.
-class VolunteerProfileSectionEditScreen extends StatefulWidget {
-  const VolunteerProfileSectionEditScreen({
+/// Post-onboarding profile management — view and edit all volunteer information.
+class VolunteerProfileEditScreen extends StatefulWidget {
+  const VolunteerProfileEditScreen({
     super.key,
-    required this.section,
     this.initialProfile,
+    this.fallbackEmail,
+    this.fallbackFirstName,
   });
 
-  final VolunteerProfileSection section;
   final VolunteerProfile? initialProfile;
-
-  static Future<VolunteerProfile?> open(
-    BuildContext context,
-    VolunteerProfileSection section, {
-    VolunteerProfile? initialProfile,
-  }) {
-    return Navigator.of(context).push<VolunteerProfile>(
-      MaterialPageRoute<VolunteerProfile>(
-        builder: (_) => VolunteerProfileSectionEditScreen(
-          section: section,
-          initialProfile: initialProfile,
-        ),
-      ),
-    );
-  }
+  final String? fallbackEmail;
+  final String? fallbackFirstName;
 
   @override
-  State<VolunteerProfileSectionEditScreen> createState() =>
-      _VolunteerProfileSectionEditScreenState();
+  State<VolunteerProfileEditScreen> createState() =>
+      _VolunteerProfileEditScreenState();
 }
 
-class _VolunteerProfileSectionEditScreenState
-    extends State<VolunteerProfileSectionEditScreen> {
+class _VolunteerProfileEditScreenState
+    extends State<VolunteerProfileEditScreen> {
   final VolunteerProfileService _profileService = VolunteerProfileService();
+  final VolunteerAccountService _accountService = VolunteerAccountService();
 
-  final Set<UserInterest> _interests = {};
-  final Set<String> _skills = {};
-  final Set<String> _availability = {};
-  int? _hoursPerWeek;
-  bool _profileComplete = false;
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  /// Server rejection of the phone number (already on another account).
+  String? _phoneConflict;
+  final _idNumberController = TextEditingController();
+
+  final Set<UserInterest> _selectedInterests = {};
+
+  String? _department;
+  String? _course;
 
   List<InterestCatalogItem> _catalog = const [];
   bool _isLoading = true;
   bool _isSaving = false;
   String? _loadError;
 
-  bool get _needsCatalog =>
-      widget.section == VolunteerProfileSection.interests;
-
   @override
   void initState() {
     super.initState();
-    _applyProfile(widget.initialProfile);
+    _applyVolunteerProfile(widget.initialProfile);
     _loadData();
   }
 
-  void _applyProfile(VolunteerProfile? profile) {
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _idNumberController.dispose();
+    super.dispose();
+  }
+
+  void _applyVolunteerProfile(VolunteerProfile? profile) {
     if (profile == null) return;
-    _interests
+    _selectedInterests
       ..clear()
       ..addAll(profile.interests);
-    _skills
-      ..clear()
-      ..addAll(profile.skills);
-    _availability
-      ..clear()
-      ..addAll(profile.availability);
-    _hoursPerWeek = profile.hoursPerWeek;
-    _profileComplete = profile.profileComplete;
+  }
+
+  void _applyAccountProfile(VolunteerAccountProfile profile) {
+    _firstNameController.text = profile.firstName;
+    _lastNameController.text = profile.lastName;
+    _emailController.text = profile.email;
+    _phoneController.text = normalizePhilippinePhone(profile.phoneNumber);
+    _idNumberController.text = profile.idNumber ?? '';
+    _department = profile.department ?? UclmDepartments.names.first;
+    _course = profile.course ?? _defaultCourseFor(_department);
+  }
+
+  void _applyFallbackAccount() {
+    _firstNameController.text = widget.fallbackFirstName?.trim() ?? '';
+    _lastNameController.text = '';
+    _emailController.text = widget.fallbackEmail?.trim() ?? '';
+    _department ??= UclmDepartments.names.first;
+    _course ??= _defaultCourseFor(_department);
+  }
+
+  String? _defaultCourseFor(String? department) {
+    final courses = UclmDepartments.coursesFor(department ?? '');
+    if (courses.isEmpty) return null;
+    return courses.first;
   }
 
   Future<void> _loadData() async {
@@ -115,34 +110,33 @@ class _VolunteerProfileSectionEditScreenState
     });
 
     try {
-      // Only the interests editor needs the catalog; the other sections use
-      // the static option lists in VolunteerProfileOptions.
-      final catalog = _needsCatalog
-          ? await _profileService.fetchInterestCatalog()
-          : const <InterestCatalogItem>[];
-
-      if (widget.initialProfile == null) {
-        final profile = await _profileService.fetchProfile();
-        if (!mounted) return;
-        _applyProfile(profile);
-      }
+      final results = await Future.wait([
+        _profileService.fetchInterestCatalog(),
+        _accountService.fetchAccount(),
+      ]);
 
       if (!mounted) return;
 
+      final catalog = results[0] as List<InterestCatalogItem>;
+      final account = results[1] as VolunteerAccountProfile;
+
       setState(() {
         _catalog = catalog;
+        _applyAccountProfile(account);
         _isLoading = false;
       });
     } on ApiException catch (error) {
       if (!mounted) return;
+      _applyFallbackAccount();
       setState(() {
         _loadError = error.message;
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
+      _applyFallbackAccount();
       setState(() {
-        _loadError = 'Could not load this section. Please try again.';
+        _loadError = 'Could not load your profile. Please try again.';
         _isLoading = false;
       });
     }
@@ -171,20 +165,10 @@ class _VolunteerProfileSectionEditScreenState
     if (interest == null) return;
 
     setState(() {
-      if (_interests.contains(interest)) {
-        _interests.remove(interest);
+      if (_selectedInterests.contains(interest)) {
+        _selectedInterests.remove(interest);
       } else {
-        _interests.add(interest);
-      }
-    });
-  }
-
-  void _toggleString(Set<String> set, String value) {
-    setState(() {
-      if (set.contains(value)) {
-        set.remove(value);
-      } else {
-        set.add(value);
+        _selectedInterests.add(interest);
       }
     });
   }
@@ -195,94 +179,74 @@ class _VolunteerProfileSectionEditScreenState
     );
   }
 
-  bool get _isValid => switch (widget.section) {
-    VolunteerProfileSection.interests => _interests.isNotEmpty,
-    VolunteerProfileSection.skills => _skills.isNotEmpty,
-    VolunteerProfileSection.availability => _availability.isNotEmpty,
-  };
-
-  String get _validationMessage => switch (widget.section) {
-    VolunteerProfileSection.interests => 'Select at least one interest.',
-    VolunteerProfileSection.skills => 'Select at least one skill.',
-    VolunteerProfileSection.availability => 'Select at least one day.',
-  };
-
   Future<void> _save() async {
-    if (!_isValid) {
-      _showMessage(_validationMessage);
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final phone = normalizePhilippinePhone(_phoneController.text);
+
+    if (firstName.isEmpty || lastName.isEmpty) {
+      _showMessage('Please enter your first and last name.');
+      return;
+    }
+
+    if (phone.isEmpty) {
+      _showMessage('Please enter your phone number.');
+      return;
+    }
+    if (!isValidPhilippinePhone(phone)) {
+      _showMessage('Enter an 11-digit PH mobile number (09XXXXXXXXX).');
+      return;
+    }
+
+    if (_selectedInterests.isEmpty) {
+      _showMessage('Please pick at least one interest.');
       return;
     }
 
     setState(() => _isSaving = true);
+    FocusManager.instance.primaryFocus?.unfocus();
 
     try {
-      final saved = await _profileService.saveProfile(
+      final account = await _accountService.saveAccount(
+        VolunteerAccountProfile(
+          firstName: firstName,
+          lastName: lastName,
+          email: _emailController.text.trim(),
+          phoneNumber: phone,
+          idNumber: _idNumberController.text.trim().isEmpty
+              ? null
+              : _idNumberController.text.trim(),
+          department: _department,
+          course: _course,
+        ),
+      );
+
+      final savedProfile = await _profileService.saveProfile(
         VolunteerProfile(
-          interests: _interests,
-          skills: _skills,
-          availability: _availability,
-          hoursPerWeek: _hoursPerWeek,
-          profileComplete: _profileComplete,
+          interests: _selectedInterests,
+          profileComplete: widget.initialProfile?.profileComplete ?? false,
         ),
       );
 
       if (!mounted) return;
 
-      _showMessage('${widget.section.title} updated.');
-      Navigator.of(context).pop(saved);
+      Navigator.of(context).pop(
+        VolunteerProfileEditResult(account: account, profile: savedProfile),
+      );
     } on ApiException catch (error) {
       if (!mounted) return;
+      final conflict = RegistrationConflict.fromException(error);
+      if (conflict?.field == RegistrationConflictField.phoneNumber) {
+        setState(() => _phoneConflict = conflict!.message);
+      }
       _showMessage(error.message);
     } catch (_) {
       if (!mounted) return;
-      _showMessage('Could not save this section. Please try again.');
+      _showMessage('Could not save your profile. Please try again.');
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
       }
-    }
-  }
-
-  List<Widget> _sectionFields() {
-    switch (widget.section) {
-      case VolunteerProfileSection.interests:
-        return [
-          SelectableOptionsSection(
-            title: 'Interests',
-            subtitle: 'What areas are you passionate about?',
-            options: _interestOptions,
-            selected: _interests.map((interest) => interest.label).toSet(),
-            onToggle: _toggleInterestByLabel,
-            emptyMessage: 'No interests available right now.',
-          ),
-        ];
-
-      case VolunteerProfileSection.skills:
-        return [
-          SelectableOptionsSection(
-            title: 'Skills',
-            subtitle: 'What can you contribute?',
-            options: VolunteerProfileOptions.skills,
-            selected: _skills,
-            onToggle: (value) => _toggleString(_skills, value),
-          ),
-        ];
-
-      case VolunteerProfileSection.availability:
-        return [
-          SelectionSectionCard(
-            title: 'Availability',
-            subtitle: 'Which days are you available?',
-            options: VolunteerProfileOptions.availability,
-            selected: _availability,
-            onToggle: (value) => _toggleString(_availability, value),
-          ),
-          const SizedBox(height: 16),
-          VolunteerProfileHoursSection(
-            selectedHours: _hoursPerWeek,
-            onChanged: (value) => setState(() => _hoursPerWeek = value),
-          ),
-        ];
     }
   }
 
@@ -294,9 +258,9 @@ class _VolunteerProfileSectionEditScreenState
         backgroundColor: AppColors.background,
         elevation: 0,
         foregroundColor: AppColors.primaryDark,
-        title: Text(
-          'Edit ${widget.section.title}',
-          style: const TextStyle(fontWeight: FontWeight.w800),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: _isLoading
@@ -317,40 +281,26 @@ class _VolunteerProfileSectionEditScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                widget.section.icon,
-                                size: 20,
-                                color: AppColors.primaryDark,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                widget.section.intro,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  height: 1.45,
-                                  color: AppColors.secondary.withValues(
-                                    alpha: 0.95,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        PersonalInformationSection(
+                          firstNameController: _firstNameController,
+                          lastNameController: _lastNameController,
+                          emailController: _emailController,
+                          phoneController: _phoneController,
+                          idNumberController: _idNumberController,
+                          department: _department,
+                          course: _course,
+                          phoneError: _phoneConflict,
+                          onPhoneChanged: (_) =>
+                              setState(() => _phoneConflict = null),
                         ),
-                        const SizedBox(height: 20),
-                        ..._sectionFields(),
+                        const SizedBox(height: 16),
+                        VolunteerProfileFormSections(
+                          interestOptions: _interestOptions,
+                          selectedInterestLabels: _selectedInterests
+                              .map((interest) => interest.label)
+                              .toSet(),
+                          onToggleInterest: _toggleInterestByLabel,
+                        ),
                       ],
                     ),
                   ),
@@ -370,7 +320,7 @@ class _VolunteerProfileSectionEditScreenState
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Save Changes'),
+                          : const Text('Save Profile'),
                     ),
                   ),
                 ),
@@ -378,6 +328,16 @@ class _VolunteerProfileSectionEditScreenState
             ),
     );
   }
+}
+
+class VolunteerProfileEditResult {
+  const VolunteerProfileEditResult({
+    required this.account,
+    required this.profile,
+  });
+
+  final VolunteerAccountProfile account;
+  final VolunteerProfile profile;
 }
 
 class _InlineErrorBanner extends StatelessWidget {
