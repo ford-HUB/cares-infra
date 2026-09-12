@@ -8,9 +8,14 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/auth_login_service.dart';
+import 'package:mobile/features/auth/data/donor_auth_service.dart';
+import 'package:mobile/features/auth/data/social_auth_client.dart';
+import 'package:mobile/features/auth/presentation/screens/register_donor_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:mobile/features/auth/presentation/widgets/donor_only_sign_in_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/forgot_password_dialog.dart';
+import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 import 'package:mobile/features/auth/presentation/widgets/weather_panel.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
@@ -31,6 +36,13 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isSigningIn = false;
 
   final AuthLoginService _authLoginService = AuthLoginService();
+  final SocialAuthClient _socialAuthClient = SocialAuthClient();
+  final DonorAuthService _donorAuthService = DonorAuthService();
+
+  /// Which provider button is mid-flight, so only that one shows a spinner.
+  SocialAuthProvider? _pendingProvider;
+
+  bool get _isBusy => _isSigningIn || _pendingProvider != null;
 
   @override
   void initState() {
@@ -63,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _signIn() async {
-    if (_isSigningIn) return;
+    if (_isBusy) return;
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -110,11 +122,84 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  /// Google / Facebook sign-in for donors who registered through a provider.
+  ///
+  /// The provider token goes to `POST /v1/auth/donor/oauth`. A known donor is
+  /// signed straight in; an account the server has never seen gets a dialog
+  /// explaining that social sign-in is donor-only and, if they agree, is sent
+  /// on to the donor sign-up to finish registering with that same provider.
+  Future<void> _signInWithProvider(SocialAuthProvider provider) async {
+    if (_isBusy) return;
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _pendingProvider = provider);
+
+    AuthSession.clear();
+
+    try {
+      final token = await _socialAuthClient.signIn(provider);
+      final result = await _donorAuthService.exchangeProviderToken(token);
+      if (!mounted) return;
+
+      if (result.isSignedIn) {
+        final session = result.session!;
+        AuthSession.setAccessToken(session.accessToken);
+
+        DashboardRouter.navigateToRoleDashboard(
+          context,
+          roleType: session.roleType,
+          email: session.email,
+          firstName: session.firstName,
+          profileComplete: session.hasInterests,
+          hasInterests: session.hasInterests,
+        );
+        return;
+      }
+
+      if (result.needsRegistration) {
+        // The provider vouched for them but there is no CARES account yet. The
+        // cached provider session is dropped so the sign-up's own button can run
+        // the consent flow cleanly and mint a fresh ticket.
+        await _socialAuthClient.signOut();
+        if (!mounted) return;
+
+        final proceed = await showDonorOnlySignInDialog(
+          context,
+          provider: provider,
+          email: result.profile?.email ?? '',
+        );
+        if (!mounted || !proceed) return;
+
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const RegisterDonorScreen()),
+        );
+        return;
+      }
+
+      _showMessage('${provider.label} sign-in did not complete. Try again.');
+    } on SocialAuthException catch (error) {
+      // Backing out of the provider sheet is a choice, not a failure to report.
+      if (!error.cancelled && mounted) {
+        _showMessage(error.message);
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      _showMessage(error.message);
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage('${provider.label} sign-in failed. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() => _pendingProvider = null);
+      }
+    }
+  }
+
   /// Runs the whole reset flow: the dialog collects the email and the emailed
   /// code, and only once it hands back a token do we open the new-password
   /// screen. The email already typed into the form is carried in as a head start.
   Future<void> _forgotPassword() async {
-    if (_isSigningIn) return;
+    if (_isBusy) return;
 
     final result = await showForgotPasswordDialog(
       context,
@@ -315,7 +400,8 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             const SizedBox(height: 4),
             Text(
-              'Use the email and password you registered with.',
+              'Use the email and password you registered with, or the '
+              'Google / Facebook account you signed up through.',
               style: TextStyle(
                 fontSize: 12.5,
                 height: 1.35,
@@ -330,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen>
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: _isSigningIn ? null : _forgotPassword,
+                onPressed: _isBusy ? null : _forgotPassword,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   minimumSize: const Size(0, 32),
@@ -348,7 +434,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: _isSigningIn ? null : _signIn,
+              onPressed: _isBusy ? null : _signIn,
               child: _isSigningIn
                   ? const SizedBox(
                       width: 22,
@@ -359,6 +445,16 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                     )
                   : const Text('Sign In'),
+            ),
+            const SizedBox(height: 20),
+            // Donors who signed up through Google / Facebook have no password to
+            // type, so the same providers sign them in here.
+            SocialAuthButtons(
+              compact: true,
+              dividerLabel: 'donors continue with',
+              enabled: !_isBusy,
+              pendingProvider: _pendingProvider,
+              onProviderTap: _signInWithProvider,
             ),
           ],
         ),

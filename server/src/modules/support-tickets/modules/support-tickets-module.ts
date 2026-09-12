@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
+import { SupportTicketsMobileModule } from './support-tickets-mobile-module';
 import { SupportTicketsSiteModule } from './support-tickets-site-module';
 
-/**
- * Site-only for now: tickets are raised from the Flutter app through a channel that
- * does not exist yet, so there is no mobile half to wire up.
- */
+/** Mobile files and follows up on tickets; the portal works the queue. */
 @Module({
-  imports: [SupportTicketsSiteModule],
+  imports: [SupportTicketsMobileModule, SupportTicketsSiteModule],
 })
 export class SupportTicketsModule {}

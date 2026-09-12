@@ -146,7 +146,8 @@ export class UsersSiteService {
       throw new NotFoundException('User not found');
     }
 
-    const storedUrl = kind === 'avatar' ? user.avatar : user.signature_url;
+    const storedUrl =
+      kind === 'avatar' ? user.avatar : user.accounts[0]?.signature_url;
     if (!storedUrl) {
       throw new NotFoundException(
         `${kind === 'avatar' ? 'Profile photo' : 'Signature'} not found`,
@@ -283,7 +284,7 @@ export class UsersSiteService {
       userAgent: context.userAgent,
       // The reason the account was restricted for is worth carrying over — it is
       // cleared by the write, so the trail is the only place it survives.
-      reason: target.restriction_reason,
+      reason: target.accounts[0]?.restriction_reason ?? null,
       changes: [{ field: 'is_restricted', before: 'true', after: 'false' }],
       metadata: { role: target.role.type },
     });
@@ -298,7 +299,7 @@ export class UsersSiteService {
     context: RequestContextDto = {},
   ): Promise<ManagedUserDto> {
     const target = await this.requireVisibleUser(caller, userId);
-    const ipAddress = data.ip_address ?? target.last_login_ip;
+    const ipAddress = data.ip_address ?? target.accounts[0]?.last_login_ip;
 
     if (!ipAddress) {
       throw new BadRequestException(
@@ -728,8 +729,8 @@ function toManagedUserDetail(row: UserDetailRow): ManagedUserDetailDto {
       province: row.address_province,
     },
     has_avatar: Boolean(row.avatar),
-    has_signature: Boolean(row.signature_url),
-    restricted_at: row.restricted_at?.toISOString() ?? null,
+    has_signature: Boolean(row.accounts[0]?.signature_url),
+    restricted_at: row.accounts[0]?.restricted_at?.toISOString() ?? null,
     updated_at: row.updatedAt.toISOString(),
     school_info: school
       ? {
@@ -769,8 +770,9 @@ function expiryFromNow(hours: number): Date {
 
 function toManagedUser(row: ManagedUserRow): ManagedUserDto {
   const hasPendingVerification =
-    row.user_verifications[0]?.status === VerificationStatus.PENDING;
-  const credentialExpiresAt = row.accounts[0]?.credential_expires_at ?? null;
+    row.user_verifications[0]?.status === VerificationStatus.N;
+  const account = row.accounts[0];
+  const credentialExpiresAt = account?.credential_expires_at ?? null;
   // A lapsed credential is reported ahead of a pending verification: it is the reason
   // the account cannot sign in, and the one an administrator can act on from here.
   const credentialExpired =
@@ -780,10 +782,10 @@ function toManagedUser(row: ManagedUserRow): ManagedUserDto {
     user_id: row.user_id,
     firstname: row.firstname,
     lastname: row.lastname,
-    email: row.accounts[0]?.email ?? '',
+    email: account?.email ?? '',
     role_type: row.role.type,
     department: row.portal_department,
-    status: row.is_restricted
+    status: account?.is_restricted
       ? 'restricted'
       : credentialExpired
         ? 'expired'
@@ -791,8 +793,8 @@ function toManagedUser(row: ManagedUserRow): ManagedUserDto {
           ? 'pending'
           : 'active',
     credential_expires_at: credentialExpiresAt?.toISOString() ?? null,
-    restriction_reason: row.restriction_reason,
-    last_login_ip: row.last_login_ip,
+    restriction_reason: account?.restriction_reason ?? null,
+    last_login_ip: account?.last_login_ip ?? null,
     blocked_ips: row.blocked_ips.map((blocked) => blocked.ip_address),
     created_at: row.createdAt.toISOString(),
   };

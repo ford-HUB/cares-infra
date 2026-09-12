@@ -5,7 +5,7 @@ Future<void> showProfileCompletionSuccessDialog(
   BuildContext context, {
   String message =
       'Your volunteer profile has been completed successfully. '
-      'You can now explore programs matched to your interests and skills.',
+      'You can now explore programs matched to your interests.',
 }) {
   return showDialog<void>(
     context: context,

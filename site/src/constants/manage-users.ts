@@ -1,4 +1,4 @@
-import type { ManagedUser } from '../types/manage-users'
+import type { ManagedUser, ManagedUserVerificationStatus } from '../types/manage-users'
 
 /** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const USER_ROW_HEIGHT_PX = 44
@@ -65,3 +65,10 @@ export const USER_GUTTER_CELL =
 
 /** Roles that carry a portal signature — the panel only shows that section for these. */
 export const PORTAL_ROLE_VALUES = ['admin', 'director', 'coordinator']
+
+/** Labels for the single-letter verification codes the server stores. */
+export const VERIFICATION_STATUS_LABELS: Record<ManagedUserVerificationStatus, string> = {
+  N: 'Pending',
+  F: 'Failed',
+  V: 'Verified',
+}

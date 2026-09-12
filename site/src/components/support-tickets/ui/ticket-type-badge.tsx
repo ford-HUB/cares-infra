@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   Bug,
+  Flag,
   CalendarDays,
   HelpCircle,
   KeyRound,
@@ -20,6 +21,7 @@ const typeStyles: Record<SupportTicketType, { icon: LucideIcon; className: strin
   event: { icon: CalendarDays, className: 'bg-emerald-50 text-emerald-700' },
   mobile_app: { icon: Smartphone, className: 'bg-indigo-50 text-indigo-700' },
   feature_request: { icon: Lightbulb, className: 'bg-teal-50 text-teal-700' },
+  report: { icon: Flag, className: 'bg-rose-50 text-rose-700' },
   other: { icon: HelpCircle, className: 'bg-gray-100 text-gray-600' },
 }
 

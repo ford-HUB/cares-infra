@@ -1,11 +1,18 @@
 import { z } from 'zod';
-import { GenderType } from '../../../infastructures/prisma/common/client';
+import {
+  GenderType,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 import {
   PortalProfileResponseSchema,
   UpdatePortalProfileSchema,
 } from '../validators/profile-site-validator';
 
-export type ProfileAssetKind = 'avatar' | 'signature';
+/**
+ * `avatar` / `signature` are the portal's assets on the user row;
+ * `avatar:<ROLE>` is a mobile role's own photo (see `UserRoleAvatar`).
+ */
+export type ProfileAssetKind = 'avatar' | 'signature' | `avatar:${RoleType}`;
 
 export type PortalProfileDto = z.infer<typeof PortalProfileResponseSchema>;
 export type UpdatePortalProfileDto = z.infer<typeof UpdatePortalProfileSchema>;

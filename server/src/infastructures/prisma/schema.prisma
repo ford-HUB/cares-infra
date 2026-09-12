@@ -28,18 +28,16 @@ model User {
   address_barangay   String?
   address_city       String?
   address_province   String?
-  signature_url      String?
-  is_restricted      Boolean            @default(false)
-  restricted_at      DateTime?
-  restriction_reason String?
-  last_login_ip      String?
+  /// Beneficiaries only — how many people the assistance has to cover.
+  household_size     Int?
+  residency_documents ResidencyDocument[]
+  role_avatars       UserRoleAvatar[]
   blocked_ips        BlockedIp[]
   login_activities   LoginActivity[]
   audit_logs         AuditLog[]
   permission_overrides UserPermissionOverride[]
   action_suspensions   UserActionSuspension[]
   user_school_info   UserSchoolInfo[]
-  user_biometrics    UserBiometric[]
   accounts           Account[]
   user_verifications UserVerification[]
   user_interest      UserInterest?
@@ -63,9 +61,45 @@ model User {
   updatedAt          DateTime           @updatedAt
 }
 
+/// Proof of residency (barangay certificate, clearance) a mobile user uploaded
+/// to change their address. The address itself is read off the file by OCR
+/// and written to `User.current_address`; the file stays on record here.
+model ResidencyDocument {
+  residency_document_id String   @id @default(uuid())
+  user                  User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id               String
+  file_url              String
+  file_name             String
+  mime_type             String
+  size_bytes            Int
+  /// What OCR read off the document — the address it set at the time.
+  extracted_address     String
+  createdAt             DateTime @default(now())
+
+  @@index([user_id, createdAt])
+}
+
+/// A mobile user's profile photo for one side of their account. The role
+/// switcher is local to the app, so the same person can be a volunteer, donor
+/// and beneficiary; each side keeps its own picture here instead of sharing
+/// `User.avatar`.
+model UserRoleAvatar {
+  user_role_avatar_id String   @id @default(uuid())
+  user                User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id             String
+  role_type           RoleType
+  avatar_url          String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([user_id, role_type])
+}
+
 model UserSchoolInfo {
   user_school_info_id String     @id @default(uuid())
   id_number           String     @unique
+  /// Scan of the school ID presented at registration; absent for ID-less roles.
+  school_id_url       String?
   graduation_year     Int
   graduation_month    Int
   graduation_day      Int
@@ -105,18 +139,23 @@ model YearLevel {
   updatedAt        DateTime         @updatedAt
 }
 
+/// N = pending, F = failed, V = verified.
 enum VerificationStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  N
+  F
+  V
 }
 
+/// One ID check per submission. The biometric enrolled for that check hangs off the
+/// verification rather than the user, so a face scan is always tied to the review
+/// it was captured for.
 model UserVerification {
   user_verification_id String             @id @default(uuid())
   user_id              String
   user                 User               @relation(fields: [user_id], references: [user_id])
-  school_id_url        String
-  status               VerificationStatus @default(PENDING)
+  user_biometric_id    String?            @unique
+  user_biometric       UserBiometric?     @relation(fields: [user_biometric_id], references: [user_biometric_id])
+  status               VerificationStatus @default(N)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 }
@@ -133,8 +172,7 @@ model UserBiometric {
   embedding         Json?
   embedding_type    EmbeddingType @default(FACE)
   isActive          Boolean       @default(true)
-  user_id           String
-  user              User          @relation(fields: [user_id], references: [user_id])
+  user_verification UserVerification?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 }
@@ -434,6 +472,12 @@ model Account {
   credential_expires_at DateTime?
   /// The administrator who issued the credential in force — null for self-registration.
   provisioned_by_user_id String?
+  /// Portal signatory image (directors/coordinators); printed onto certificates.
+  signature_url      String?
+  is_restricted      Boolean   @default(false)
+  restricted_at      DateTime?
+  restriction_reason String?
+  last_login_ip      String?
   user       User     @relation(fields: [user_id], references: [user_id])
   user_id    String
   createdAt  DateTime @default(now())
@@ -691,6 +735,10 @@ enum SupportTicketType {
   EVENT
   MOBILE_APP
   FEATURE_REQUEST
+  /// Flagging another user, event, campaign, or content — raised from the app's
+  /// "Report a Problem" flow rather than a help request about the reporter's own
+  /// account.
+  REPORT
   OTHER
 }
 

@@ -14,6 +14,7 @@ export class AccountSettingsRepository {
         password: true,
         user: {
           select: {
+            firstname: true,
             role: {
               select: { type: true },
             },

@@ -73,92 +73,106 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  void _goToPreviousPage() {
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-              child: Row(
-                children: [
-                  const CaresLogo(size: 44, showShadow: true),
-                  const Spacer(),
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 250),
-                    opacity: _isLandingPage ? 0 : 1,
-                    child: IgnorePointer(
-                      ignoring: _isLandingPage,
-                      child: TextButton(
-                        onPressed: _goToLogin,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+    return PopScope(
+      canPop: _currentPage == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goToPreviousPage();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: Row(
+                  children: [
+                    const CaresLogo(size: 44, showShadow: true),
+                    const Spacer(),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 250),
+                      opacity: _isLandingPage ? 0 : 1,
+                      child: IgnorePointer(
+                        ignoring: _isLandingPage,
+                        child: TextButton(
+                          onPressed: _goToLogin,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            minimumSize: const Size(0, 44),
                           ),
-                          minimumSize: const Size(0, 44),
-                        ),
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                          child: const Text(
+                            'Skip',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _pageCount,
-                physics: const BouncingScrollPhysics(),
-                onPageChanged: (index) => setState(() => _currentPage = index),
-                itemBuilder: (context, index) {
-                  if (index == _landingPageIndex) {
-                    return const OnboardingLandingPage();
-                  }
-                  return OnboardingIntroPage(
-                    data: kOnboardingIntroPages[index],
-                  );
-                },
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _pageCount,
+                  physics: const BouncingScrollPhysics(),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
+                  itemBuilder: (context, index) {
+                    if (index == _landingPageIndex) {
+                      return const OnboardingLandingPage();
+                    }
+                    return OnboardingIntroPage(
+                      data: kOnboardingIntroPages[index],
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            OnboardingPageIndicator(
-              count: _pageCount,
-              currentIndex: _currentPage,
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(28, 0, 28, 32),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                child: SizedBox(
-                  key: ValueKey(_isLandingPage),
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _onPrimaryAction,
-                    child: Text(
-                      _isLandingPage
-                          ? 'Get Started'
-                          : _isLastIntroPage
-                          ? 'Continue'
-                          : 'Next',
+              const SizedBox(height: 8),
+              OnboardingPageIndicator(
+                count: _pageCount,
+                currentIndex: _currentPage,
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28, 0, 28, 32),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: SizedBox(
+                    key: ValueKey(_isLandingPage),
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _onPrimaryAction,
+                      child: Text(
+                        _isLandingPage
+                            ? 'Get Started'
+                            : _isLastIntroPage
+                            ? 'Continue'
+                            : 'Next',
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

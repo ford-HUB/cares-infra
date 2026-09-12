@@ -68,7 +68,7 @@ export class ProfileSiteService {
       ? await this.uploadImage(userId, 'signature', files.signature)
       : undefined;
 
-    if (isDirector && !existing.signature_url && !signatureUrl) {
+    if (isDirector && !existing.accounts[0]?.signature_url && !signatureUrl) {
       throw new BadRequestException('Director signature image is required');
     }
 
@@ -128,7 +128,8 @@ export class ProfileSiteService {
 
     const user = await this.loadProfile(userId);
 
-    const storedUrl = kind === 'avatar' ? user.avatar : user.signature_url;
+    const storedUrl =
+      kind === 'avatar' ? user.avatar : user.accounts[0]?.signature_url;
     if (!storedUrl) {
       throw new NotFoundException(
         `${kind === 'avatar' ? 'Profile photo' : 'Signature'} not found`,
@@ -204,14 +205,15 @@ export class ProfileSiteService {
           user.phone_number?.trim(),
         );
     const profileComplete =
-      hasCoreFields && (!isDirector || Boolean(user.signature_url));
+      hasCoreFields &&
+      (!isDirector || Boolean(user.accounts[0]?.signature_url));
 
     return {
       firstname: user.firstname,
       lastname: user.lastname,
       email,
       has_profile_image: Boolean(user.avatar),
-      has_signature: Boolean(user.signature_url),
+      has_signature: Boolean(user.accounts[0]?.signature_url),
       department: user.portal_department,
       phone_number: user.phone_number,
       gender: user.gender,

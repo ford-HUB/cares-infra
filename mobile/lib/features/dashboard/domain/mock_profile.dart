@@ -8,8 +8,6 @@ class MockVolunteerProfile {
     required this.serviceHours,
     required this.activitiesCompleted,
     required this.interests,
-    required this.skills,
-    required this.availability,
     required this.profileCompletionPercent,
   });
 
@@ -21,8 +19,6 @@ class MockVolunteerProfile {
   final int serviceHours;
   final int activitiesCompleted;
   final List<String> interests;
-  final List<String> skills;
-  final String availability;
   final int profileCompletionPercent;
 }
 
@@ -45,12 +41,6 @@ abstract final class MockProfiles {
         'Academic activities',
         'Community outreach',
       ],
-      skills: const [
-        'Event coordination',
-        'Public speaking',
-        'First aid basics',
-      ],
-      availability: 'Weekends · 4 hrs/week',
       profileCompletionPercent: 62,
     );
   }

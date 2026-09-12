@@ -38,8 +38,7 @@ const accessUserSelect = {
   firstname: true,
   lastname: true,
   portal_department: true,
-  is_restricted: true,
-  accounts: { select: { email: true }, take: 1 },
+  accounts: { select: { email: true, is_restricted: true }, take: 1 },
   role: { select: { type: true } },
   permission_overrides: {
     select: {

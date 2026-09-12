@@ -9,7 +9,6 @@ import 'package:mobile/features/dashboard/presentation/screens/events_tab_screen
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/ranks_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/volunteer_home_tab.dart';
-import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_edit_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_setup_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
@@ -67,12 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadVolunteerProfile();
-    if (!_hasInterests) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _promptForInterests();
-      });
-    }
+    _loadVolunteerProfile().then((_) => _promptForInterests());
   }
 
   /// First-time volunteers have no interests on file, so the picker blocks
@@ -81,8 +75,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// token (e.g. straight after registration) because the save could never
   /// be accepted — the next real login carries `has_interests: false` and
   /// prompts then.
+  ///
+  /// Only runs after the profile fetch has settled: callers such as the role
+  /// switcher land here with `hasInterests: false` as a placeholder, so the
+  /// server's record — not the constructor flag — decides whether to prompt.
+  /// If the fetch failed we have no record to trust and stay quiet rather
+  /// than re-asking someone who may already have chosen.
   Future<void> _promptForInterests() async {
     if (!mounted || _hasInterests || !AuthSession.isSignedIn) return;
+    if (_volunteerProfile == null) return;
 
     final selected = await showInterestSelectionDialog(context);
     if (!mounted || selected == null) return;
@@ -147,68 +148,55 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _openProfileEdit() async {
-    final result = await Navigator.of(context).push<VolunteerProfileEditResult>(
-      MaterialPageRoute(
-        builder: (_) => VolunteerProfileEditScreen(
-          initialProfile: _volunteerProfile,
-          fallbackEmail: widget.email,
-          fallbackFirstName: widget.firstName,
-        ),
-      ),
-    );
-
-    if (!mounted || result == null) return;
-
-    setState(() {
-      _volunteerProfile = result.profile;
-      _profileComplete = result.profile.profileComplete;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          Expanded(
-            child: DashboardRefreshShell(
-              onRefresh: _refreshAll,
-              child: IndexedStack(
-                key: ValueKey(_refreshVersion),
-                index: _currentTab,
-                children: [
-                  VolunteerHomeTab(
-                    firstName: _firstName,
-                    points: widget.points,
-                    showProfileCompletionCard:
-                        !_isLoadingProfile && !_profileComplete,
-                    onCompleteProfile: _openProfileSetup,
-                  ),
-                  const EventsTabScreen(),
-                  const ActivityTabScreen(),
-                  RanksTabScreen(
-                    displayName: _displayName,
-                    points: widget.points,
-                  ),
-                  ProfileTabScreen(
-                    displayName: _displayName,
-                    email: widget.email,
-                    points: widget.points,
-                    volunteerProfile: _volunteerProfile,
-                    profileComplete: _profileComplete,
-                    onEditProfile: _openProfileEdit,
-                  ),
-                ],
+    // Back gesture on a secondary tab returns to Home before leaving the app.
+    return PopScope(
+      canPop: _currentTab == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _currentTab = 0);
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Column(
+          children: [
+            Expanded(
+              child: DashboardRefreshShell(
+                onRefresh: _refreshAll,
+                child: IndexedStack(
+                  key: ValueKey(_refreshVersion),
+                  index: _currentTab,
+                  children: [
+                    VolunteerHomeTab(
+                      firstName: _firstName,
+                      points: widget.points,
+                      showProfileCompletionCard:
+                          !_isLoadingProfile && !_profileComplete,
+                      onCompleteProfile: _openProfileSetup,
+                    ),
+                    const EventsTabScreen(),
+                    const ActivityTabScreen(),
+                    RanksTabScreen(
+                      displayName: _displayName,
+                      points: widget.points,
+                    ),
+                    ProfileTabScreen(
+                      displayName: _displayName,
+                      email: widget.email,
+                      points: widget.points,
+                      volunteerProfile: _volunteerProfile,
+                      profileComplete: _profileComplete,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          DashboardBottomNav(
-            currentIndex: _currentTab,
-            onTap: (index) => setState(() => _currentTab = index),
-          ),
-        ],
+            DashboardBottomNav(
+              currentIndex: _currentTab,
+              onTap: (index) => setState(() => _currentTab = index),
+            ),
+          ],
+        ),
       ),
     );
   }

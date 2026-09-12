@@ -6,8 +6,7 @@ class ProfileCompletionCard extends StatelessWidget {
     super.key,
     this.onTap,
     this.title = 'Complete Your Volunteer Profile',
-    this.subtitle =
-        'Add skills, interests & availability to unlock AI Matching',
+    this.subtitle = 'Add your interests to unlock AI Matching',
     this.icon = Icons.person_add_alt_1_outlined,
   });
 

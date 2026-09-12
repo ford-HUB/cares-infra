@@ -5,6 +5,10 @@ import { Public } from 'src/shared/decorators/public-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
+  RequestContext,
+  type RequestContextDto,
+} from 'src/shared/decorators/request-context-decorator';
+import {
   isPortalRole,
   PORTAL_ROLE_TYPES,
 } from 'src/shared/constants/portal-role-types';
@@ -46,10 +50,12 @@ export class InterestsMobileController {
   async saveUserInterests(
     @CurrentUser() user: JwtPayload,
     @ZBody(SaveUserInterestsSchema) data: SaveUserInterestsDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<SaveUserInterestsResponseDto> {
     return this.interestsMobileService.saveUserInterests(
       user.sub,
       data.selected,
+      { actor: user, context },
     );
   }
 

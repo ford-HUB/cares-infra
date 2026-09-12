@@ -55,23 +55,30 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       ),
     ];
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: DashboardRefreshShell(
-          onRefresh: _refreshAll,
-          edgeOffset: 0,
-          child: IndexedStack(
-            key: ValueKey(_refreshVersion),
-            index: _currentIndex,
-            children: tabs,
+    // Back gesture on a secondary tab returns to Home before leaving the app.
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _currentIndex = 0);
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: DashboardRefreshShell(
+            onRefresh: _refreshAll,
+            edgeOffset: 0,
+            child: IndexedStack(
+              key: ValueKey(_refreshVersion),
+              index: _currentIndex,
+              children: tabs,
+            ),
           ),
         ),
-      ),
-      bottomNavigationBar: DashboardBottomNav(
-        currentIndex: _currentIndex,
-        isDonorMode: isDonorMode,
-        onTap: (index) => setState(() => _currentIndex = index),
+        bottomNavigationBar: DashboardBottomNav(
+          currentIndex: _currentIndex,
+          isDonorMode: isDonorMode,
+          onTap: (index) => setState(() => _currentIndex = index),
+        ),
       ),
     );
   }

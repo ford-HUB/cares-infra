@@ -497,7 +497,7 @@ function toAccessUser(
     email: row.accounts[0]?.email ?? '',
     role_type: row.role.type,
     department: row.portal_department,
-    is_restricted: row.is_restricted,
+    is_restricted: row.accounts[0]?.is_restricted ?? false,
     is_protected: isProtected,
     effective_permissions: effective,
     granted_count: granted,

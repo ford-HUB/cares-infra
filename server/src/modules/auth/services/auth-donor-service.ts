@@ -274,9 +274,10 @@ export class AuthDonorService {
       throw new UnauthorizedException('This account is no longer available');
     }
 
-    if (user.is_restricted) {
-      const message = user.restriction_reason
-        ? `Account restricted: ${user.restriction_reason}`
+    const account = user.accounts[0];
+    if (account?.is_restricted) {
+      const message = account.restriction_reason
+        ? `Account restricted: ${account.restriction_reason}`
         : 'This account has been restricted by an administrator';
       await this.loginActivityRecorder.record({
         ...attempt,
@@ -287,7 +288,7 @@ export class AuthDonorService {
       throw new ForbiddenException(message);
     }
 
-    const email = user.accounts[0]?.email ?? attempt.email;
+    const email = account?.email ?? attempt.email;
 
     if (ipAddress) {
       await this.authRepository.recordLoginIp(userId, ipAddress);

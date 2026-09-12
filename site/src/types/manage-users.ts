@@ -73,8 +73,11 @@ export interface ManagedUserSchoolInfo {
   graduationDate: string
 }
 
+/** Server status codes: N = pending, F = failed, V = verified. */
+export type ManagedUserVerificationStatus = 'N' | 'F' | 'V'
+
 export interface ManagedUserVerification {
-  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  status: ManagedUserVerificationStatus
   submittedAt: string
 }
 

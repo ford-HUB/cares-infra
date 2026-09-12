@@ -100,6 +100,31 @@ export class SupportTicketsRepository {
     });
   }
 
+  /** Every ticket the requester filed, newest activity first — the app's own queue. */
+  async listTicketsForRequester(
+    requesterId: string,
+  ): Promise<SupportTicketRow[]> {
+    return this.prisma.supportTicket.findMany({
+      where: { requester_id: requesterId },
+      include: ticketInclude,
+      orderBy: [{ updatedAt: 'desc' }],
+    });
+  }
+
+  /**
+   * Scoped by requester so a guessed id from another account reads as missing, not
+   * as forbidden — the app never learns the ticket exists.
+   */
+  async findTicketForRequester(
+    id: string,
+    requesterId: string,
+  ): Promise<SupportTicketRow | null> {
+    return this.prisma.supportTicket.findFirst({
+      where: { support_ticket_id: id, requester_id: requesterId },
+      include: ticketInclude,
+    });
+  }
+
   async createTicket(
     data: CreateSupportTicketInput,
   ): Promise<SupportTicketRow> {

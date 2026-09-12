@@ -23,9 +23,6 @@ class _VolunteerProfileSetupScreenState
   final VolunteerProfileService _profileService = VolunteerProfileService();
 
   final Set<UserInterest> _selectedInterests = {};
-  final Set<String> _selectedSkills = {};
-  final Set<String> _selectedAvailability = {};
-  int? _hoursPerWeek;
 
   List<InterestCatalogItem> _catalog = const [];
   bool _isLoading = true;
@@ -44,13 +41,6 @@ class _VolunteerProfileSetupScreenState
     _selectedInterests
       ..clear()
       ..addAll(profile.interests);
-    _selectedSkills
-      ..clear()
-      ..addAll(profile.skills);
-    _selectedAvailability
-      ..clear()
-      ..addAll(profile.availability);
-    _hoursPerWeek = profile.hoursPerWeek;
   }
 
   Future<void> _loadCatalog() async {
@@ -115,16 +105,6 @@ class _VolunteerProfileSetupScreenState
     });
   }
 
-  void _toggleString(Set<String> set, String value) {
-    setState(() {
-      if (set.contains(value)) {
-        set.remove(value);
-      } else {
-        set.add(value);
-      }
-    });
-  }
-
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
@@ -132,10 +112,8 @@ class _VolunteerProfileSetupScreenState
   }
 
   Future<void> _submit() async {
-    if (_selectedInterests.isEmpty ||
-        _selectedSkills.isEmpty ||
-        _selectedAvailability.isEmpty) {
-      _showMessage('Please complete interests, skills, and availability.');
+    if (_selectedInterests.isEmpty) {
+      _showMessage('Please pick at least one interest.');
       return;
     }
 
@@ -144,13 +122,7 @@ class _VolunteerProfileSetupScreenState
 
     try {
       final saved = await _profileService.saveProfile(
-        VolunteerProfile(
-          interests: _selectedInterests,
-          skills: _selectedSkills,
-          availability: _selectedAvailability,
-          hoursPerWeek: _hoursPerWeek,
-          profileComplete: true,
-        ),
+        VolunteerProfile(interests: _selectedInterests, profileComplete: true),
       );
       if (!mounted) return;
 
@@ -203,7 +175,7 @@ class _VolunteerProfileSetupScreenState
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Your interests and skills help CARES match you with the right volunteer opportunities.',
+                          'Your interests help CARES match you with the right volunteer opportunities.',
                           style: TextStyle(
                             fontSize: 14,
                             height: 1.45,
@@ -216,16 +188,7 @@ class _VolunteerProfileSetupScreenState
                           selectedInterestLabels: _selectedInterests
                               .map((interest) => interest.label)
                               .toSet(),
-                          selectedSkills: _selectedSkills,
-                          selectedAvailability: _selectedAvailability,
-                          hoursPerWeek: _hoursPerWeek,
                           onToggleInterest: _toggleInterestByLabel,
-                          onToggleSkill: (value) =>
-                              _toggleString(_selectedSkills, value),
-                          onToggleAvailability: (value) =>
-                              _toggleString(_selectedAvailability, value),
-                          onHoursChanged: (value) =>
-                              setState(() => _hoursPerWeek = value),
                         ),
                       ],
                     ),

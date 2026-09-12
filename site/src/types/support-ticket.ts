@@ -23,6 +23,8 @@ export type SupportTicketType =
   | 'event'
   | 'mobile_app'
   | 'feature_request'
+  /** Flagging another user, event, campaign, or content — not a request about the reporter's own account. */
+  | 'report'
   | 'other'
 
 export interface SupportTicketRequester {

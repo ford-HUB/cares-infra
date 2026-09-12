@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
-import '../beneficiary/data/beneficiary_personal_profile_store.dart';
-import '../beneficiary/domain/beneficiary_personal_profile.dart';
-import '../beneficiary/widgets/beneficiary_verification_gate.dart';
 import '../data/certificate_data.dart';
 import '../data/event_feedback_store.dart';
 import '../data/event_registration_store.dart';
@@ -33,14 +30,12 @@ class EventDetailsScreen extends StatefulWidget {
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
-  final _verificationStore = BeneficiaryPersonalProfileStore.instance;
   bool _isCheckingLocation = false;
 
   @override
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onFeedbackChanged);
-    _verificationStore.addListener(_onFeedbackChanged);
     if (widget.event.isCompleted) {
       // Prototype scenario: the volunteer already joined and attended.
       _store.seedCompletedEventParticipation(email: _participantEmail);
@@ -50,7 +45,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   @override
   void dispose() {
     _feedbackStore.removeListener(_onFeedbackChanged);
-    _verificationStore.removeListener(_onFeedbackChanged);
     super.dispose();
   }
 
@@ -86,47 +80,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _isRegistered =>
       _store.isRegistered(widget.event.id, _participantEmail);
 
-  /// Beneficiaries must have a verified identity/residency document on file
-  /// before they can join an event.
-  bool get _isBeneficiary => isBeneficiarySession;
-
-  BeneficiaryVerificationState get _verificationState =>
-      _verificationStore.verificationState;
-
-  VerificationDocument? get _verificationDocument =>
-      switch (_verificationState) {
-        BeneficiaryVerificationState.rejected =>
-          _verificationStore.profile.rejectedDocument,
-        BeneficiaryVerificationState.underReview =>
-          _verificationStore.profile.documentUnderReview,
-        _ => null,
-      };
-
-  bool get _blockedByVerification =>
-      _isBeneficiary && !_verificationStore.canJoinEvents;
-
-  Future<void> _openVerificationGate() async {
-    final uploaded = await showBeneficiaryVerificationRequiredDialog(context);
-    if (!mounted) return;
-    setState(() {});
-    if (uploaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Document submitted. You can join events once it is verified.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
   Future<void> _confirmJoin() async {
-    if (_blockedByVerification) {
-      await _openVerificationGate();
-      return;
-    }
-
     final confirmed = await showEventJoinConfirmationDialog(
       context,
       widget.event,
@@ -678,12 +632,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!isCompleted && !isRegistered && _blockedByVerification)
-                    BeneficiaryVerificationBanner(
-                      state: _verificationState,
-                      document: _verificationDocument,
-                      onAction: _openVerificationGate,
-                    ),
                   isCompleted
                       ? (feedbackSubmitted
                             ? FilledButton.icon(
@@ -734,11 +682,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                           style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(52),
                           ),
-                          child: Text(
-                            _blockedByVerification
-                                ? 'Verify Document to Join'
-                                : 'Join Event',
-                          ),
+                          child: const Text('Join Event'),
                         ),
                 ],
               ),

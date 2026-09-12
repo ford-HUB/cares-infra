@@ -120,9 +120,40 @@ export class AuditLogRepository {
 
     return { rows, total };
   }
+
+  /**
+   * One account's trail, for the app. Same keyset paging as [listLogs]. Covers
+   * every entry that concerns the account, not only the ones it wrote: a staff
+   * restriction, a permission change or a revoked session targets the user rather
+   * than being performed by them, and the holder should still see it.
+   */
+  async listForAccount(input: ListForAccountInput) {
+    return this.prisma.auditLog.findMany({
+      where: {
+        OR: [
+          { actor_user_id: input.userId },
+          { target_type: 'user', target_id: input.userId },
+          // Entries whose target is another record (a session) name the owner here.
+          { metadata: { path: ['subject_user_id'], equals: input.userId } },
+        ],
+      },
+      orderBy: [{ createdAt: 'desc' }, { audit_log_id: 'desc' }],
+      take: input.limit,
+      ...(input.cursor
+        ? { cursor: { audit_log_id: input.cursor }, skip: 1 }
+        : {}),
+    });
+  }
 }
 
 export type AuditLogRow = Prisma.AuditLogGetPayload<object>;
+
+export interface ListForAccountInput {
+  userId: string;
+  /** Id of the last row already returned; the page starts after it. */
+  cursor?: string;
+  limit: number;
+}
 
 function buildWhere(
   input: Omit<ListAuditLogsInput, 'cursor' | 'limit'>,

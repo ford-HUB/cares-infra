@@ -49,6 +49,7 @@ export const TICKET_TYPE_LABELS: Record<SupportTicketType, string> = {
   event: 'Event',
   mobile_app: 'Mobile App',
   feature_request: 'Feature Request',
+  report: 'Report',
   other: 'Other',
 }
 

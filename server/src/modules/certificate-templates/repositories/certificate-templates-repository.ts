@@ -16,7 +16,10 @@ const templateInclude = {
     orderBy: { position: 'asc' },
     include: {
       coordinator: {
-        select: { user_id: true, signature_url: true },
+        select: {
+          user_id: true,
+          accounts: { select: { signature_url: true }, take: 1 },
+        },
       },
     },
   },
@@ -61,9 +64,8 @@ const coordinatorSelect = {
   firstname: true,
   lastname: true,
   portal_department: true,
-  signature_url: true,
   role: { select: { type: true } },
-  accounts: { select: { email: true }, take: 1 },
+  accounts: { select: { email: true, signature_url: true }, take: 1 },
 } satisfies Prisma.UserSelect;
 
 export type CoordinatorRow = Prisma.UserGetPayload<{
@@ -208,7 +210,7 @@ export class CertificateTemplatesRepository {
   async listCoordinators(): Promise<CoordinatorRow[]> {
     return this.prisma.user.findMany({
       where: {
-        is_restricted: false,
+        accounts: { none: { is_restricted: true } },
         role: { type: { in: PORTAL_ROLE_TYPES as unknown as RoleType[] } },
       },
       select: coordinatorSelect,

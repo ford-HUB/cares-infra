@@ -46,9 +46,6 @@ class _VolunteerProfileEditScreenState
   final _idNumberController = TextEditingController();
 
   final Set<UserInterest> _selectedInterests = {};
-  final Set<String> _selectedSkills = {};
-  final Set<String> _selectedAvailability = {};
-  int? _hoursPerWeek;
 
   String? _department;
   String? _course;
@@ -80,13 +77,6 @@ class _VolunteerProfileEditScreenState
     _selectedInterests
       ..clear()
       ..addAll(profile.interests);
-    _selectedSkills
-      ..clear()
-      ..addAll(profile.skills);
-    _selectedAvailability
-      ..clear()
-      ..addAll(profile.availability);
-    _hoursPerWeek = profile.hoursPerWeek;
   }
 
   void _applyAccountProfile(VolunteerAccountProfile profile) {
@@ -183,16 +173,6 @@ class _VolunteerProfileEditScreenState
     });
   }
 
-  void _toggleString(Set<String> set, String value) {
-    setState(() {
-      if (set.contains(value)) {
-        set.remove(value);
-      } else {
-        set.add(value);
-      }
-    });
-  }
-
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
@@ -218,10 +198,8 @@ class _VolunteerProfileEditScreenState
       return;
     }
 
-    if (_selectedInterests.isEmpty ||
-        _selectedSkills.isEmpty ||
-        _selectedAvailability.isEmpty) {
-      _showMessage('Please complete interests, skills, and availability.');
+    if (_selectedInterests.isEmpty) {
+      _showMessage('Please pick at least one interest.');
       return;
     }
 
@@ -246,9 +224,6 @@ class _VolunteerProfileEditScreenState
       final savedProfile = await _profileService.saveProfile(
         VolunteerProfile(
           interests: _selectedInterests,
-          skills: _selectedSkills,
-          availability: _selectedAvailability,
-          hoursPerWeek: _hoursPerWeek,
           profileComplete: widget.initialProfile?.profileComplete ?? false,
         ),
       );
@@ -324,16 +299,7 @@ class _VolunteerProfileEditScreenState
                           selectedInterestLabels: _selectedInterests
                               .map((interest) => interest.label)
                               .toSet(),
-                          selectedSkills: _selectedSkills,
-                          selectedAvailability: _selectedAvailability,
-                          hoursPerWeek: _hoursPerWeek,
                           onToggleInterest: _toggleInterestByLabel,
-                          onToggleSkill: (value) =>
-                              _toggleString(_selectedSkills, value),
-                          onToggleAvailability: (value) =>
-                              _toggleString(_selectedAvailability, value),
-                          onHoursChanged: (value) =>
-                              setState(() => _hoursPerWeek = value),
                         ),
                       ],
                     ),

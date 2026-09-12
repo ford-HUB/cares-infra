@@ -37,7 +37,6 @@ export function SupportTicketsPage() {
   const reply = useSupportTicketStore((s) => s.reply)
 
   const user = useAuthStore((s) => s.user)
-  const staffName = user ? `${user.firstName} ${user.lastName}` : 'Admin Support'
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TicketStatusFilter>(
@@ -132,15 +131,15 @@ export function SupportTicketsPage() {
   const handleUpdate = (status: SupportTicketStatus, note: string) => {
     if (!selected) return
     void runMutation(
-      () => updateTicket(selected.id, { status, note, author: staffName }),
+      () => updateTicket(selected.id, { status, note }),
       `${selected.reference} marked ${TICKET_STATUS_LABELS[status]}`,
     ).then(() => setUpdateOpen(false))
   }
 
   const handleAssignToMe = () => {
-    if (!selected) return
+    if (!selected || !user) return
     void runMutation(
-      () => assign(selected.id, staffName),
+      () => assign(selected.id, user.id),
       `${selected.reference} assigned to you`,
     )
   }
@@ -148,7 +147,7 @@ export function SupportTicketsPage() {
   const handleReply = (body: string) => {
     if (!selected) return
     void runMutation(
-      () => reply(selected.id, staffName, body),
+      () => reply(selected.id, body),
       `Reply sent to ${selected.requester.name}`,
     )
   }

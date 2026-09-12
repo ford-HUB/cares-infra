@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/services/camera_bootstrap.dart';
 import 'package:mobile/core/session/donor_session.dart';
+import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/screens/app_flow.dart';
@@ -34,6 +35,7 @@ Future<void> main() async {
 void _handleSessionEnded(String? message) {
   StaticUserSession.instance.signOut();
   DonorSession.instance.signOut();
+  RoleAccountStore.instance.clear();
 
   final navigator = rootNavigatorKey.currentState;
   if (navigator == null) return;

@@ -100,7 +100,7 @@ class _BeneficiaryHomeTabState extends State<BeneficiaryHomeTab> {
                 onTap: widget.onCompleteProfile,
                 title: 'Complete Your Profile',
                 subtitle:
-                    'Add your needs, household details & visit days to speed up assistance',
+                    'Add your contact details & household size to speed up assistance',
                 icon: Icons.assignment_ind_outlined,
               ),
             ],

@@ -1,5 +1,9 @@
 import { AuthMobileService } from '../services/auth-mobile-service';
 import {
+  RequestContext,
+  type RequestContextDto,
+} from 'src/shared/decorators/request-context-decorator';
+import {
   BadRequestException,
   Body,
   Controller,
@@ -99,8 +103,11 @@ export class AuthMobileController {
   @Post('logout')
   @HttpCode(200)
   @ResponseMessage('Signed out')
-  async logout(@CurrentUser() user: JwtPayload): Promise<void> {
-    await this.authMobileService.logout(user);
+  async logout(
+    @CurrentUser() user: JwtPayload,
+    @RequestContext() context: RequestContextDto,
+  ): Promise<void> {
+    await this.authMobileService.logout(user, context);
   }
 
   @Post('start-session')
@@ -172,8 +179,9 @@ export class AuthMobileController {
   @ZSerialize(RegisterUserResponseSchema)
   async registerFromSession(
     @ZBody(RegisterFromSessionSchema) data: RegisterFromSessionDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<RegisterUserResponseDto> {
-    return await this.authMobileService.registerFromSession(data);
+    return await this.authMobileService.registerFromSession(data, context);
   }
 
   @Post('extract-id')
@@ -203,8 +211,12 @@ export class AuthMobileController {
   @ZSerialize(ForgotPasswordResponseSchema)
   async forgotPassword(
     @ZBody(ForgotPasswordSchema) body: ForgotPasswordDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<ForgotPasswordResponseDto> {
-    return await this.authMobileService.requestPasswordReset(body.email);
+    return await this.authMobileService.requestPasswordReset(
+      body.email,
+      context,
+    );
   }
 
   @Post('verify-reset-otp')
@@ -228,8 +240,9 @@ export class AuthMobileController {
   @ZSerialize(ResetPasswordResponseSchema)
   async resetPassword(
     @ZBody(ResetPasswordSchema) body: ResetPasswordDto,
+    @RequestContext() context: RequestContextDto,
   ): Promise<ResetPasswordResponseDto> {
-    return await this.authMobileService.resetPassword(body);
+    return await this.authMobileService.resetPassword(body, context);
   }
 
   @Post('verification-status')
