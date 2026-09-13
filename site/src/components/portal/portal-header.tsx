@@ -122,10 +122,15 @@ export function PortalHeader({
 
           {menuOpen && (
             <div className="absolute top-16 right-4 z-50 w-56 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
-              <p className="px-4 py-1 text-sm font-semibold text-gray-900">
+              <p className="truncate px-4 py-1 text-sm font-semibold text-gray-900">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="px-4 pb-2 text-xs text-gray-500">{user?.email}</p>
+              <p
+                className="truncate px-4 pb-2 text-xs text-gray-500"
+                title={user?.email}
+              >
+                {user?.email}
+              </p>
               <button
                 type="button"
                 onClick={handleOpenSettings}

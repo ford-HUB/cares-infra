@@ -222,10 +222,15 @@ class EventCategoryFilters extends StatelessWidget {
     super.key,
     required this.selected,
     required this.onSelected,
+    this.categories = kEventFilterCategories,
   });
 
   final String selected;
   final ValueChanged<String> onSelected;
+
+  /// Chip labels, "All" first. Volunteers get the interests their matched
+  /// events carry; the prototype default is the fixture's category list.
+  final List<String> categories;
 
   @override
   Widget build(BuildContext context) {
@@ -233,10 +238,10 @@ class EventCategoryFilters extends StatelessWidget {
       height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: kEventFilterCategories.length,
+        itemCount: categories.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final category = kEventFilterCategories[index];
+          final category = categories[index];
           final isSelected = selected == category;
           final categoryColor = eventCategoryColor(category);
 
@@ -507,11 +512,18 @@ class EventsEmptyState extends StatelessWidget {
     required this.query,
     required this.hasActiveFilters,
     required this.onClearFilters,
+    this.title,
+    this.message,
   });
 
   final String query;
   final bool hasActiveFilters;
   final VoidCallback onClearFilters;
+
+  /// Override the default copy when the list is empty for a reason other
+  /// than the search or filter — e.g. no events match the volunteer's interests.
+  final String? title;
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -536,9 +548,9 @@ class EventsEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              query.trim().isEmpty
-                  ? 'No events found'
-                  : 'No matches for "$query"',
+              query.trim().isNotEmpty
+                  ? 'No matches for "$query"'
+                  : title ?? 'No events found',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 17,
@@ -548,7 +560,9 @@ class EventsEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Try a different search term or filter.',
+              hasActiveFilters
+                  ? 'Try a different search term or filter.'
+                  : message ?? 'Try a different search term or filter.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

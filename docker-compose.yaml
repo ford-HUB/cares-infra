@@ -18,12 +18,14 @@ services:
       - FR_SERVICE_URL=http://fr-service:8001
       - OCR_SERVICE_URL=http://ocr-service:8002
       - UCID_SERVICE_URL=http://ucid-service:8003
+      - NLP_SERVICE_URL=http://nlp-service:8004
     depends_on:
       - db
       - redis
       - fr-service
       - ocr-service
       - ucid-service
+      - nlp-service
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
@@ -108,6 +110,23 @@ services:
       - VALID_THRESHOLD=0.50
     volumes:
       - ./microservices/ucid-service/models:/app/models
+
+  nlp-service:
+    build:
+      context: ./microservices/nlp-service
+      dockerfile: Dockerfile
+    container_name: nlp_service
+    ports:
+      - "8004:8004"
+    environment:
+      - PORT=8004
+      - CORS_ORIGINS=*
+      - MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
+      - MATCH_THRESHOLD=0.45
+      - TOP_K=3
+      - SEMANTIC_WEIGHT=0.65
+    volumes:
+      - ./microservices/nlp-service/app:/app/app
 
 volumes:
   postgres_data:

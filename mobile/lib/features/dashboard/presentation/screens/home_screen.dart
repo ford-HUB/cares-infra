@@ -53,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _refreshVersion = 0;
   late bool _profileComplete = widget.profileComplete;
   late bool _hasInterests = widget.hasInterests;
+  // Bumped when interests change so the home tab's recommendations refetch.
+  int _interestsVersion = 0;
   VolunteerProfile? _volunteerProfile;
   bool _isLoadingProfile = true;
 
@@ -90,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _hasInterests = true;
+      _interestsVersion++;
       final profile = _volunteerProfile;
       if (profile != null) {
         _volunteerProfile = profile.copyWith(interests: selected);
@@ -173,6 +176,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       showProfileCompletionCard:
                           !_isLoadingProfile && !_profileComplete,
                       onCompleteProfile: _openProfileSetup,
+                      onSeeAllEvents: () => setState(() => _currentTab = 1),
+                      interestsVersion: _interestsVersion,
+                      onInterestsChanged: () => setState(() {
+                        _hasInterests = true;
+                        _interestsVersion++;
+                      }),
                     ),
                     const EventsTabScreen(),
                     const ActivityTabScreen(),
