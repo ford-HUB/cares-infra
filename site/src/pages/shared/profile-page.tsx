@@ -36,6 +36,7 @@ export function ProfilePage({ homePath }: ProfilePageProps) {
   const [modalOpen, setModalOpen] = useState(false)
 
   const isDirector = user?.role === 'director'
+  const isCoordinator = user?.role === 'coordinator'
   const profileComplete = isPortalProfileComplete(profile, {
     requireSignature: isDirector,
     isDirector,
@@ -207,6 +208,7 @@ export function ProfilePage({ homePath }: ProfilePageProps) {
         onSubmit={profileForm.onSubmit}
         saving={profileForm.saving}
         isDirector={profileForm.isDirector}
+        isCoordinator={isCoordinator}
         avatarPreview={profileForm.avatarPreview}
         signaturePreview={profileForm.signaturePreview}
         showRemoteAvatar={profileForm.showRemoteAvatar}

@@ -158,6 +158,57 @@ export async function fetchMonthlyReports(): Promise<MonthlyReport[]> {
   return body.data.items.map(mapReport)
 }
 
+/** One attachment on the way in — the bytes ride along as a base64 data URL. */
+export interface MonthlyReportAttachment {
+  fileName: string
+  /** `data:<mime>;base64,...` as produced by `FileReader.readAsDataURL`. */
+  content: string
+}
+
+export interface MonthlyReportSubmission {
+  title: string
+  period: string
+  department: ReportDepartment
+  summary: string
+  metrics: {
+    events: number
+    volunteers: number
+    serviceHours: number
+    beneficiaries: number
+  }
+  documents: MonthlyReportAttachment[]
+}
+
+/**
+ * The coordinator's half: one JSON body carrying the figures and every file, so a
+ * submission lands whole or not at all. Returns the report as the board now holds it.
+ */
+export async function submitMonthlyReport(
+  submission: MonthlyReportSubmission,
+): Promise<MonthlyReport> {
+  const { data: body } = await apiClient.post<{
+    ok: true
+    data: MonthlyReportApiResponse
+  }>('/api/v1/monthly-reports', {
+    title: submission.title.trim(),
+    period: submission.period,
+    department: submission.department,
+    summary: submission.summary.trim(),
+    metrics: {
+      events: submission.metrics.events,
+      volunteers: submission.metrics.volunteers,
+      service_hours: submission.metrics.serviceHours,
+      beneficiaries: submission.metrics.beneficiaries,
+    },
+    documents: submission.documents.map((document) => ({
+      file_name: document.fileName,
+      content: document.content,
+    })),
+  })
+
+  return mapReport(body.data)
+}
+
 export interface MonthlyReportDecision {
   decision: 'approved' | 'returned'
   /** Required when returning — it is the only thing the coordinator gets back. */

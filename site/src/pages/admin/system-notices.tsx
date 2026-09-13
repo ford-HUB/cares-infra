@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { AnnouncementDialog } from '../../components/maintenance/ui/announcement-dialog'
 import { ContentShell } from '../../components/portal/ui/content-shell'
+import { AnnouncementBoard } from '../../components/system-notices/announcement-board'
 import { NoticeFeed, type NoticeDayGroup } from '../../components/system-notices/notice-feed'
 import { SystemNoticeBanner } from '../../components/system-notices/system-notice-banner'
 import { SystemNoticesSkeleton } from '../../components/system-notices/ui/system-notices-skeleton'
@@ -15,6 +16,7 @@ import {
   MAINTENANCE_POLL_INTERVAL_MS,
   blankAnnouncement,
   formatNoticeDay,
+  isAnnouncementLiveFor,
   type AnnouncementStateFilter,
 } from '../../constants/maintenance'
 import { ADMIN_MAINTENANCE_PATH } from '../../constants/routes'
@@ -41,6 +43,9 @@ export function SystemNoticesPage() {
   // keep the link: on Maintenance a notice sits beside the downtime that prompted it.
   const writesHere = role === 'director'
   const canWrite = role === 'admin' || writesHere
+  // A coordinator reads, never writes: they see what the director addressed to them
+  // and is live on the portal — not the chronology of drafts and schedules.
+  const readsOnly = role === 'coordinator'
 
   const [filter, setFilter] = useState<AnnouncementStateFilter>(
     ANNOUNCEMENT_STATE_FILTER_ALL,
@@ -81,6 +86,11 @@ export function SystemNoticesPage() {
     return published[0]?.publishAt ?? null
   }, [announcements])
 
+  const forCoordinators = useMemo(
+    () => announcements.filter((one) => isAnnouncementLiveFor(one, 'coordinators')),
+    [announcements],
+  )
+
   const groups = useMemo(() => {
     const matching =
       filter === ANNOUNCEMENT_STATE_FILTER_ALL
@@ -108,6 +118,36 @@ export function SystemNoticesPage() {
       ]
     }, [])
   }, [announcements, filter])
+
+  if (readsOnly) {
+    return (
+      <ContentShell>
+        <header className="mb-4">
+          <h1 className="text-[15px] font-semibold text-gray-900">Notices</h1>
+          <p className="mt-0.5 text-[13px] text-gray-600">
+            Announcements from the director addressed to coordinators.
+          </p>
+        </header>
+
+        {error ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => void fetchAll()}
+              className="font-medium underline underline-offset-2 hover:text-red-900"
+            >
+              Retry
+            </button>
+          </div>
+        ) : initialized ? (
+          <AnnouncementBoard announcements={forCoordinators} />
+        ) : (
+          <SystemNoticesSkeleton groups={1} rowsPerGroup={3} />
+        )}
+      </ContentShell>
+    )
+  }
 
   return (
     <ContentShell>

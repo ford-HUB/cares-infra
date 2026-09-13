@@ -1,5 +1,4 @@
 import {
-  RANKING_BOARDS,
   RANKING_PERIODS,
   RANKING_VIEWS,
   boardCriteria,
@@ -23,6 +22,8 @@ import { VolunteerRankingTable } from './volunteer-ranking-table'
 interface RankingsBoardProps {
   view: RankingView
   board: RankingBoard
+  /** The tabs on offer; a coordinator's board has no donor side. */
+  boards: { value: RankingBoard; label: string }[]
   period: RankingPeriod
   settings: RankingSettings
   volunteers: VolunteerRankingEntry[]
@@ -48,6 +49,7 @@ const PODIUM_SIZE = 3
 export function RankingsBoard({
   view,
   board,
+  boards,
   period,
   settings,
   volunteers,
@@ -160,7 +162,7 @@ export function RankingsBoard({
           paints over the panel border so the two read as a single surface.
         */}
         <div role="tablist" aria-label="Ranking board" className="-mb-px flex gap-1">
-          {RANKING_BOARDS.map((item) => (
+          {boards.map((item) => (
             <button
               key={item.value}
               type="button"

@@ -8,7 +8,9 @@ import {
 } from '../../constants/event-filters'
 import type { EventSortKey } from '../../constants/manage-events'
 import { ContentShell } from '../portal/ui/content-shell'
+import { usePortalRole } from '../../store/auth-store'
 import { useEventStore } from '../../store/event-store'
+import { useProfileStore } from '../../store/profile-store'
 import type { EventTableRow } from '../../types/event'
 import { CancelEventModal } from './modals/cancel-event-modal'
 import { DeleteEventModal } from './modals/delete-event-modal'
@@ -26,6 +28,17 @@ interface ActionMenuState {
 export function ManageEvents() {
   const { events, loading, initialized, error, fetchEvents, removeEvent, cancelEvent } =
     useEventStore()
+
+  // A coordinator's events are scoped to the college on their profile; the form pins
+  // category and department to it. Other roles get the open form.
+  const isCoordinator = usePortalRole() === 'coordinator'
+  const profileDepartment = useProfileStore((s) => s.profile?.department)
+  const ensureProfile = useProfileStore((s) => s.ensureProfile)
+  const lockedDepartment = isCoordinator ? (profileDepartment ?? '') : undefined
+
+  useEffect(() => {
+    if (isCoordinator) void ensureProfile()
+  }, [ensureProfile, isCoordinator])
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedType, setSelectedType] = useState('')
@@ -221,6 +234,7 @@ export function ManageEvents() {
       {showCreateModal && (
         <EventFormModal
           mode="create"
+          lockedDepartment={lockedDepartment}
           onClose={() => setShowCreateModal(false)}
           onSaved={() => void fetchEvents()}
         />
@@ -230,6 +244,7 @@ export function ManageEvents() {
         <EventFormModal
           mode="edit"
           eventId={editRow.event_id}
+          lockedDepartment={lockedDepartment}
           defaultValues={{
             title: editRow.rawEvent.title,
             description: editRow.rawEvent.description,

@@ -32,11 +32,13 @@ type SortKey = 'name' | 'modified' | 'type' | 'size'
 
 interface ReportFileListProps {
   reports: MonthlyReport[]
-  folders: ReportFolder[]
+  /** Director's folders. Omit both this and `onMove` for a read-only listing. */
+  folders?: ReportFolder[]
   /** Folder assignment per report id; absent while a report sits under its college. */
-  folderOf: Map<string, string>
+  folderOf?: Map<string, string>
   onOpenDocument: (report: MonthlyReport, documentId: string) => void
-  onMove: (report: MonthlyReport, folderId: string | null) => void
+  /** Filing action; when absent the ⋮ menu is not drawn and rows are read-only. */
+  onMove?: (report: MonthlyReport, folderId: string | null) => void
 }
 
 const COLUMNS: { key: SortKey; label: string; className: string }[] = [
@@ -89,8 +91,8 @@ function compare(a: FileRow, b: FileRow, key: SortKey): number {
  */
 export function ReportFileList({
   reports,
-  folders,
-  folderOf,
+  folders = [],
+  folderOf = new Map(),
   onOpenDocument,
   onMove,
 }: ReportFileListProps) {
@@ -138,7 +140,7 @@ export function ReportFileList({
               ))}
           </button>
         ))}
-        <span className="w-7 shrink-0" />
+        {onMove && <span className="w-7 shrink-0" />}
       </div>
 
       <ul className="divide-y divide-gray-100">
@@ -180,40 +182,42 @@ export function ReportFileList({
               </span>
             </button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={`File ${report.reference} in a folder`}
-                  className="w-7 shrink-0 rounded-md p-1 text-gray-400 opacity-0 transition-colors group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Move report to folder</DropdownMenuLabel>
-                {folders.length === 0 && (
-                  <DropdownMenuItem disabled>No folders yet</DropdownMenuItem>
-                )}
-                {folders.map((folder) => (
-                  <DropdownMenuItem
-                    key={folder.id}
-                    disabled={folder.id === folderOf.get(report.id)}
-                    onSelect={() => onMove(report, folder.id)}
+            {onMove && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={`File ${report.reference} in a folder`}
+                    className="w-7 shrink-0 rounded-md p-1 text-gray-400 opacity-0 transition-colors group-hover:opacity-100 hover:bg-gray-200 hover:text-gray-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
                   >
-                    <FolderInput className="h-3.5 w-3.5" />
-                    <span className="truncate">{folder.name}</span>
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Move report to folder</DropdownMenuLabel>
+                  {folders.length === 0 && (
+                    <DropdownMenuItem disabled>No folders yet</DropdownMenuItem>
+                  )}
+                  {folders.map((folder) => (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      disabled={folder.id === folderOf.get(report.id)}
+                      onSelect={() => onMove(report, folder.id)}
+                    >
+                      <FolderInput className="h-3.5 w-3.5" />
+                      <span className="truncate">{folder.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={!folderOf.has(report.id)}
+                    onSelect={() => onMove(report, null)}
+                  >
+                    Back to {report.department} folder
                   </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={!folderOf.has(report.id)}
-                  onSelect={() => onMove(report, null)}
-                >
-                  Back to {report.department} folder
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </li>
         ))}
       </ul>

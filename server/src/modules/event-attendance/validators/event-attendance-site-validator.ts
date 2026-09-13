@@ -28,6 +28,8 @@ export const EventAttendeeResponseSchema = z.object({
   event_id: z.number(),
   event_title: z.string(),
   event_started: z.string(),
+  /** The college the event was run for; null for non-School events. */
+  event_department: z.string().nullable(),
   user_id: z.string(),
   firstname: z.string(),
   lastname: z.string(),

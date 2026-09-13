@@ -7,7 +7,9 @@ import {
   fetchReportFolders,
   moveReportToFolder,
   renameReportFolder,
+  submitMonthlyReport,
   type MonthlyReportDecision,
+  type MonthlyReportSubmission,
 } from '../services/monthly-report-service'
 import { parseApiError } from '../services/api-client'
 import type { MonthlyReport, ReportFolder } from '../types/monthly-report'
@@ -21,6 +23,8 @@ interface MonthlyReportState {
   initialized: boolean
   error: string | null
   fetchReports: () => Promise<void>
+  /** Coordinator submission; the new report joins the board at the top. */
+  submit: (submission: MonthlyReportSubmission) => Promise<MonthlyReport>
   decide: (id: string, decision: MonthlyReportDecision) => Promise<void>
   createFolder: (name: string) => Promise<void>
   renameFolder: (id: string, name: string) => Promise<void>
@@ -74,6 +78,12 @@ export const useMonthlyReportStore = create<MonthlyReportState>((set) => ({
         error: parseApiError(error),
       })
     }
+  },
+
+  submit: async (submission) => {
+    const created = await submitMonthlyReport(submission)
+    set((state) => ({ reports: [created, ...state.reports] }))
+    return created
   },
 
   decide: async (id, decision) => {

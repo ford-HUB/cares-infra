@@ -22,6 +22,8 @@ import { ManageUsersPage } from '../pages/admin/manage-users'
 import { MonthlyReportsPage } from '../pages/admin/monthly-reports'
 import { QueueReviewerPage } from '../pages/admin/queue-reviewer'
 import { RankingCustomizationPage } from '../pages/admin/ranking-customization'
+import { UploadReportPage } from '../pages/admin/upload-report'
+import { DepartmentFilesPage } from '../pages/admin/department-files'
 import { RankingsPage } from '../pages/admin/rankings'
 import { SecurityPoliciesPage } from '../pages/admin/security-policies'
 import { SupportTicketsPage } from '../pages/admin/support-tickets'
@@ -83,21 +85,59 @@ export const adminRoutes: RouteObject[] = [
               { path: 'support-tickets', element: <SupportTicketsPage /> },
             ],
           },
-          // Reviewing and the filed library are two different jobs, so they are two
-          // screens; `post-requirements` is the queue's original path, kept working.
-          { path: 'report-queue', element: <QueueReviewerPage /> },
-          { path: 'post-requirements', element: <QueueReviewerPage /> },
-          { path: 'monthly-reports', element: <MonthlyReportsPage /> },
-          { path: 'internal-donation-tracking', element: <InternalDonationTrackingPage /> },
+          {
+            // Reviewing and the filed library are the director's two screens;
+            // `post-requirements` is the queue's original path, kept working. The
+            // nav hides both from coordinators, and the routes match.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [
+              { path: 'report-queue', element: <QueueReviewerPage /> },
+              { path: 'post-requirements', element: <QueueReviewerPage /> },
+              { path: 'monthly-reports', element: <MonthlyReportsPage /> },
+            ],
+          },
+          {
+            // The coordinator's half: submit a report, then read the filed record.
+            element: <ProtectedPortal roles={['coordinator']} />,
+            children: [
+              { path: 'upload-report', element: <UploadReportPage /> },
+              { path: 'department-files', element: <DepartmentFilesPage /> },
+            ],
+          },
+          {
+            // The nav shows Donation to directors only; the route matches so a
+            // coordinator typing the URL is bounced instead of landing on the ledger.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [
+              { path: 'internal-donation-tracking', element: <InternalDonationTrackingPage /> },
+            ],
+          },
           { path: 'event-list', element: <ManageEventsPage /> },
           { path: 'attendance-log', element: <AttendanceLogPage /> },
           { path: 'event-attendees', element: <EventAttendeesPage /> },
-          { path: 'event-map', element: <EventMapPage /> },
+          {
+            // The nav shows Map to directors only; the route matches so a coordinator
+            // typing the URL is bounced instead of reaching the school-wide map.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [{ path: 'event-map', element: <EventMapPage /> }],
+          },
           { path: 'event-calendar', element: <EventCalendarPage /> },
           { path: 'rankings', element: <RankingsPage /> },
-          { path: 'ranking-customization', element: <RankingCustomizationPage /> },
-          { path: 'templates-list', element: <CertificateTemplatesPage /> },
-          { path: 'deployed-certificate-templates', element: <DeployedCertificatesPage /> },
+          {
+            // Ranking Customization is director-only in the nav; the route matches so
+            // a coordinator typing the URL is bounced to their dashboard.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [{ path: 'ranking-customization', element: <RankingCustomizationPage /> }],
+          },
+          {
+            // Manage Certificate is director-only in the nav; the routes match so a
+            // coordinator typing either URL is bounced to their dashboard.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [
+              { path: 'templates-list', element: <CertificateTemplatesPage /> },
+              { path: 'deployed-certificate-templates', element: <DeployedCertificatesPage /> },
+            ],
+          },
           { path: 'notifications', element: <NotificationsPage /> },
           { path: 'payment-status', element: createPlaceholderPage('Payment Status')() },
           { path: 'map', element: createPlaceholderPage('Map')() },

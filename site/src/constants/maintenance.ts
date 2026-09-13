@@ -320,3 +320,19 @@ export function formatNoticeDay(timestamp: string): string {
   if (offset === 1) return 'Tomorrow'
   return day.format(day.isSame(today, 'year') ? 'dddd, MMM D' : 'MMM D, YYYY')
 }
+
+/**
+ * Whether a notice is showing to one audience right now: the director addressed it
+ * to them, it goes out on the portal, and it is live — drafts, scheduled notices and
+ * anything that has expired are the writer's business, not the reader's.
+ */
+export function isAnnouncementLiveFor(
+  announcement: Announcement,
+  audience: AnnouncementAudience,
+): boolean {
+  return (
+    announcement.state === 'published' &&
+    announcement.audiences.includes(audience) &&
+    announcement.channels.includes('portal')
+  )
+}

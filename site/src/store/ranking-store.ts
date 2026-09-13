@@ -3,9 +3,11 @@ import { RANKING_DEFAULT_SETTINGS } from '../constants/ranking'
 import {
   getRankingSettings,
   getRankingTrend,
+  listDepartmentVolunteerRankings,
   listDonorRankings,
   listVolunteerRankings,
   updateRankingSettings,
+  volunteerTrendOf,
 } from '../services/shared/ranking-service'
 import type {
   DonorRankingEntry,
@@ -27,7 +29,13 @@ interface RankingState {
   saving: boolean
   /** False until the first fetch settles, so nothing renders shipped defaults first. */
   initialized: boolean
-  fetchRankings: () => Promise<void>
+  /**
+   * Which college the standings are counted for. A coordinator's board is scored from
+   * their own department's attendance and has no donor side; undefined is the whole
+   * school, both boards.
+   */
+  scopeDepartment?: string
+  fetchRankings: (scopeDepartment?: string) => Promise<void>
   saveSettings: (settings: RankingSettings) => Promise<boolean>
 }
 
@@ -45,10 +53,24 @@ export const useRankingStore = create<RankingState>((set, get) => ({
   saving: false,
   initialized: false,
 
-  fetchRankings: async () => {
-    set({ loading: true })
+  fetchRankings: async (scopeDepartment) => {
+    set({ loading: true, scopeDepartment })
     const settingsResult = await getRankingSettings()
     const settings = settingsResult.data
+
+    if (scopeDepartment !== undefined) {
+      const volunteerResult = await listDepartmentVolunteerRankings(scopeDepartment, settings)
+      set({
+        settings,
+        volunteers: volunteerResult.data,
+        donors: [],
+        volunteerTrend: volunteerTrendOf(volunteerResult.data),
+        donorTrend: EMPTY_TREND,
+        loading: false,
+        initialized: true,
+      })
+      return
+    }
 
     const [volunteerResult, donorResult, volunteerTrend, donorTrend] = await Promise.all([
       listVolunteerRankings(settings),
@@ -79,7 +101,7 @@ export const useRankingStore = create<RankingState>((set, get) => ({
 
     set({ settings: result.data, saving: false })
     // The rates just changed, so the standings on file are stale by definition.
-    await get().fetchRankings()
+    await get().fetchRankings(get().scopeDepartment)
     return true
   },
 }))

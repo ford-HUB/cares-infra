@@ -15,6 +15,7 @@ interface EventAttendeeResponse {
   event_id: number
   event_title: string
   event_started: string
+  event_department: string | null
   user_id: string
   firstname: string
   lastname: string
@@ -53,6 +54,7 @@ function toEventAttendee(row: EventAttendeeResponse): EventAttendee {
     eventId: row.event_id,
     eventTitle: row.event_title,
     eventDate: row.event_started,
+    eventDepartment: row.event_department ?? undefined,
     firstName: row.firstname,
     lastName: row.lastname,
     email: row.email,

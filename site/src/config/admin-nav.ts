@@ -15,12 +15,14 @@ import {
 import {
   ADMIN_BASE_PATH,
   ADMIN_CHAT_PATH,
+  ADMIN_DEPARTMENT_FILES_PATH,
   ADMIN_EVENT_MAP_PATH,
   ADMIN_MAIL_INBOX_PATH,
   ADMIN_MAINTENANCE_PATH,
   ADMIN_SUPPORT_TICKETS_PATH,
   ADMIN_SYSTEM_NOTICES_PATH,
   ADMIN_SYSTEM_SERVICES_PATH,
+  ADMIN_UPLOAD_REPORT_PATH,
 } from '../constants/routes'
 import type { PortalNavConfig } from '../types/nav'
 import type { PortalRole } from '../types/portal-roles'
@@ -89,7 +91,8 @@ export const adminNav: PortalNavConfig = {
       icon: LibraryBig,
       roles: OPERATIONS_ROLES,
       children: [
-        { label: 'Donation', to: '/admin/internal-donation-tracking' },
+        // Donations are the director's ledger; coordinators track attendance only.
+        { label: 'Donation', to: '/admin/internal-donation-tracking', roles: ['director'] },
         { label: 'Attendance', to: '/admin/attendance-log' },
       ],
     },
@@ -101,7 +104,8 @@ export const adminNav: PortalNavConfig = {
       children: [
         { label: 'Event', to: '/admin/event-list' },
         { label: 'Attendees', to: '/admin/event-attendees' },
-        { label: 'Map', to: ADMIN_EVENT_MAP_PATH },
+        // The map spans every college; a coordinator works one department at a time.
+        { label: 'Map', to: ADMIN_EVENT_MAP_PATH, roles: ['director'] },
         { label: 'Calendar', to: '/admin/event-calendar' },
       ],
     },
@@ -109,7 +113,8 @@ export const adminNav: PortalNavConfig = {
       type: 'group',
       label: 'Manage Certificate',
       icon: CreditCard,
-      roles: OPERATIONS_ROLES,
+      // Certificates are issued and signed by the director; coordinators never see them.
+      roles: ['director'],
       children: [
         { label: 'Customization', to: '/admin/templates-list' },
         { label: 'Live Certificates', to: '/admin/deployed-certificate-templates' },
@@ -121,7 +126,8 @@ export const adminNav: PortalNavConfig = {
       icon: Trophy,
       roles: OPERATIONS_ROLES,
       children: [
-        { label: 'Customization', to: '/admin/ranking-customization' },
+        // The ladder is set school-wide by the director; coordinators only read it.
+        { label: 'Customization', to: '/admin/ranking-customization', roles: ['director'] },
         { label: 'Ranking', to: '/admin/rankings' },
       ],
     },
@@ -131,8 +137,14 @@ export const adminNav: PortalNavConfig = {
       icon: FileText,
       roles: OPERATIONS_ROLES,
       children: [
-        { label: 'Queue Reviewer', to: '/admin/report-queue' },
-        { label: 'Monthly Report', to: '/admin/monthly-reports' },
+        // The director decides; the coordinator submits. Each role sees its own
+        // half of the line in the same slot.
+        { label: 'Queue Reviewer', to: '/admin/report-queue', roles: ['director'] },
+        { label: 'Upload Report', to: ADMIN_UPLOAD_REPORT_PATH, roles: ['coordinator'] },
+        // The director's library has folders of its own; the coordinator gets the
+        // filed record per department and nothing to rearrange.
+        { label: 'Monthly Report', to: '/admin/monthly-reports', roles: ['director'] },
+        { label: 'Department Files', to: ADMIN_DEPARTMENT_FILES_PATH, roles: ['coordinator'] },
       ],
     },
     { type: 'section', label: 'Administration' },

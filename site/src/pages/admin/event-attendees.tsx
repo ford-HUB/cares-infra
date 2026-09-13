@@ -10,11 +10,13 @@ import {
   type AttendeeStatusFilter,
 } from '../../constants/attendees'
 import { useAttendeeStore } from '../../store/attendee-store'
+import { usePortalRole } from '../../store/auth-store'
+import { useProfileStore } from '../../store/profile-store'
 import type { AttendeeEventOption, EventAttendee } from '../../types/attendee'
 import { exportAttendeesCsv } from '../../utils/export-attendees-csv'
 
 export function EventAttendeesPage() {
-  const attendees = useAttendeeStore((s) => s.attendees)
+  const roster = useAttendeeStore((s) => s.attendees)
   const loading = useAttendeeStore((s) => s.loading)
   const initialized = useAttendeeStore((s) => s.initialized)
   const error = useAttendeeStore((s) => s.error)
@@ -28,9 +30,25 @@ export function EventAttendeesPage() {
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<EventAttendee | null>(null)
 
+  // A coordinator sees only the volunteers on their own college's events. Until the
+  // profile has loaded the department is unknown, so the roster stays empty rather
+  // than flashing the whole school's list.
+  const isCoordinator = usePortalRole() === 'coordinator'
+  const profileDepartment = useProfileStore((s) => s.profile?.department)
+  const ensureProfile = useProfileStore((s) => s.ensureProfile)
+
   useEffect(() => {
     void fetchAttendees()
-  }, [fetchAttendees])
+    if (isCoordinator) void ensureProfile()
+  }, [ensureProfile, fetchAttendees, isCoordinator])
+
+  const attendees = useMemo(
+    () =>
+      isCoordinator
+        ? roster.filter((attendee) => attendee.eventDepartment === profileDepartment)
+        : roster,
+    [isCoordinator, profileDepartment, roster],
+  )
 
   // The picker is derived from the roster itself, so an event can never be selected
   // that has nobody on it — soonest event first, past events after.

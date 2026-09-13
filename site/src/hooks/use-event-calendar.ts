@@ -4,7 +4,9 @@ import {
   CALENDAR_CATEGORY_FILTER_ALL,
   CALENDAR_DATE_FORMATS,
 } from '../constants/calendar'
+import { usePortalRole } from '../store/auth-store'
 import { useCalendarStore } from '../store/calendar-store'
+import { useProfileStore } from '../store/profile-store'
 import type { CalendarEvent, CalendarView } from '../types/calendar'
 import type { EventCategory } from '../types/event'
 import { weekDays } from '../utils/calendar-layout'
@@ -36,7 +38,7 @@ function rangeLabel(cursor: Dayjs, view: CalendarView): string {
  * centred on, the category filter, and the event opened in the detail modal.
  */
 export function useEventCalendar() {
-  const events = useCalendarStore((s) => s.events)
+  const allEvents = useCalendarStore((s) => s.events)
   const loading = useCalendarStore((s) => s.loading)
   const initialized = useCalendarStore((s) => s.initialized)
   const error = useCalendarStore((s) => s.error)
@@ -49,9 +51,24 @@ export function useEventCalendar() {
   )
   const [selected, setSelected] = useState<CalendarEvent | null>(null)
 
+  // A coordinator sees only their own college on the calendar. Until the profile has
+  // loaded the department is unknown, so nothing is shown rather than the whole school.
+  const isCoordinator = usePortalRole() === 'coordinator'
+  const profileDepartment = useProfileStore((s) => s.profile?.department)
+  const ensureProfile = useProfileStore((s) => s.ensureProfile)
+
   useEffect(() => {
     void fetchEvents()
-  }, [fetchEvents])
+    if (isCoordinator) void ensureProfile()
+  }, [ensureProfile, fetchEvents, isCoordinator])
+
+  const events = useMemo(
+    () =>
+      isCoordinator
+        ? allEvents.filter((event) => event.department === profileDepartment)
+        : allEvents,
+    [allEvents, isCoordinator, profileDepartment],
+  )
 
   const goPrevious = useCallback(
     () => setCursor((current) => current.subtract(1, STEP_UNIT[view])),

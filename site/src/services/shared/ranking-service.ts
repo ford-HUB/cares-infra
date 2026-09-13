@@ -10,6 +10,7 @@ import {
   RANKING_DEFAULT_SETTINGS,
   RANKING_TREND_MONTHS,
 } from '../../constants/ranking'
+import type { EventAttendee } from '../../types/attendee'
 import type {
   DonorRankingEntry,
   RankingBoard,
@@ -17,6 +18,7 @@ import type {
   RankingTrend,
   VolunteerRankingEntry,
 } from '../../types/ranking'
+import { listEventAttendees } from '../attendee-service'
 
 /** Points are always derived from the saved criteria, never stored on the fixture. */
 export function volunteerPoints(hours: number, pointsPerHour: number): number {
@@ -97,6 +99,52 @@ export async function listVolunteerRankings(settings: RankingSettings): Promise<
   }
 }
 
+/**
+ * A coordinator's board is not a fixture: it is scored from the attendance record of
+ * their own college's events. One row per volunteer, credited only for events the
+ * validator marked completed — a pending or absent record earns nothing.
+ */
+export async function listDepartmentVolunteerRankings(
+  department: string,
+  settings: RankingSettings,
+): Promise<{ success: boolean; data: VolunteerRankingEntry[] }> {
+  const result = await listEventAttendees()
+  if (!result.success || !result.data) return { success: false, data: [] }
+
+  const byVolunteer = new Map<string, Omit<VolunteerRankingEntry, 'points' | 'rank'>>()
+
+  result.data
+    .filter(
+      (attendee: EventAttendee) =>
+        attendee.eventDepartment === department && attendee.status === 'completed',
+    )
+    .forEach((attendee) => {
+      const activeAt = attendee.checkedOutAt ?? attendee.checkedInAt ?? attendee.registeredAt
+      const current = byVolunteer.get(attendee.email)
+
+      byVolunteer.set(attendee.email, {
+        id: attendee.email,
+        firstName: attendee.firstName,
+        lastName: attendee.lastName,
+        email: attendee.email,
+        department: attendee.department ?? department,
+        hours: (current?.hours ?? 0) + (attendee.hoursRendered ?? 0),
+        eventsJoined: (current?.eventsJoined ?? 0) + 1,
+        lastActiveAt:
+          current && dayjs(current.lastActiveAt).isAfter(activeAt)
+            ? current.lastActiveAt
+            : activeAt,
+      })
+    })
+
+  return {
+    success: true,
+    data: rankBy([...byVolunteer.values()], (entry) =>
+      volunteerPoints(entry.hours, settings.volunteerPointsPerHour),
+    ),
+  }
+}
+
 export async function listDonorRankings(settings: RankingSettings): Promise<{
   success: boolean
   data: DonorRankingEntry[]
@@ -141,37 +189,57 @@ function cumulative(total: number, profile: number[]): number[] {
   })
 }
 
+interface TrendLeader {
+  id: string
+  name: string
+  rank: number
+  points: number
+}
+
+/** The race chart for whichever top three is handed in — fixture or department board. */
+function trendOf(top: TrendLeader[]): RankingTrend {
+  return {
+    labels: trendLabels(),
+    series: top.map((entry, index) => ({
+      id: entry.id,
+      name: entry.name,
+      rank: entry.rank,
+      values: cumulative(entry.points, TREND_PROFILES[index] ?? TREND_PROFILES[0]),
+    })),
+  }
+}
+
+export function volunteerTrendOf(entries: VolunteerRankingEntry[]): RankingTrend {
+  return trendOf(
+    entries.slice(0, TREND_SIZE).map((entry) => ({
+      id: entry.id,
+      name: `${entry.firstName} ${entry.lastName}`,
+      rank: entry.rank,
+      points: entry.points,
+    })),
+  )
+}
+
 export async function getRankingTrend(
   board: RankingBoard,
   settings: RankingSettings,
 ): Promise<{ success: boolean; data: RankingTrend }> {
-  const top =
-    board === 'volunteer'
-      ? (await listVolunteerRankings(settings)).data
-          .slice(0, TREND_SIZE)
-          .map((entry) => ({
-            id: entry.id,
-            name: `${entry.firstName} ${entry.lastName}`,
-            rank: entry.rank,
-            points: entry.points,
-          }))
-      : (await listDonorRankings(settings)).data.slice(0, TREND_SIZE).map((entry) => ({
-          id: entry.id,
-          name: entry.name,
-          rank: entry.rank,
-          points: entry.points,
-        }))
+  if (board === 'volunteer') {
+    return {
+      success: true,
+      data: volunteerTrendOf((await listVolunteerRankings(settings)).data),
+    }
+  }
 
   return {
     success: true,
-    data: {
-      labels: trendLabels(),
-      series: top.map((entry, index) => ({
+    data: trendOf(
+      (await listDonorRankings(settings)).data.slice(0, TREND_SIZE).map((entry) => ({
         id: entry.id,
         name: entry.name,
         rank: entry.rank,
-        values: cumulative(entry.points, TREND_PROFILES[index] ?? TREND_PROFILES[0]),
+        points: entry.points,
       })),
-    },
+    ),
   }
 }

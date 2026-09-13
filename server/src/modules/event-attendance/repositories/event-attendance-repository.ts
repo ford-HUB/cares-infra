@@ -7,7 +7,12 @@ import { PrismaService } from '../../../infastructures/prisma/prisma-service';
  */
 const ROSTER_INCLUDE = {
   event: {
-    select: { event_id: true, title: true, event_started: true },
+    select: {
+      event_id: true,
+      title: true,
+      event_started: true,
+      department: true,
+    },
   },
   user: {
     select: {

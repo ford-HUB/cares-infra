@@ -8,6 +8,7 @@ export function RankingsPage() {
     setView,
     board,
     setBoard,
+    boards,
     period,
     setPeriod,
     settings,
@@ -23,6 +24,7 @@ export function RankingsPage() {
       <RankingsBoard
         view={view}
         board={board}
+        boards={boards}
         period={period}
         settings={settings}
         volunteers={volunteers}

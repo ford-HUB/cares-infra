@@ -25,6 +25,12 @@ interface EventFormModalProps {
   mode: 'create' | 'edit'
   eventId?: number
   defaultValues?: Partial<EventFormValues>
+  /**
+   * A coordinator only runs events for their own college: category is pinned to
+   * School, department to this value, and the beneficiary programme is off the table.
+   * Undefined leaves every choice open (admin, director).
+   */
+  lockedDepartment?: string
   onClose: () => void
   onSaved: () => void
 }
@@ -40,10 +46,12 @@ export function EventFormModal({
   mode,
   eventId,
   defaultValues,
+  lockedDepartment,
   onClose,
   onSaved,
 }: EventFormModalProps) {
   const { addEvent, editEvent } = useEventStore()
+  const scoped = lockedDepartment !== undefined
   const [previews, setPreviews] = useState<string[]>([])
   const [selectedLocation, setSelectedLocation] = useState<{ lng: number; lat: number } | null>(
     null,
@@ -65,10 +73,12 @@ export function EventFormModal({
       location: defaultValues?.location ?? '',
       max_participants: defaultValues?.max_participants ?? 50,
       organizer_name: defaultValues?.organizer_name ?? '',
-      category: (defaultValues?.category as EventCategory | undefined) ?? 'Community',
-      department: defaultValues?.department ?? '',
+      category: scoped
+        ? 'School'
+        : ((defaultValues?.category as EventCategory | undefined) ?? 'Community'),
+      department: scoped ? lockedDepartment : (defaultValues?.department ?? ''),
       specified_category: defaultValues?.specified_category ?? '',
-      beneficiary_applicable: defaultValues?.beneficiary_applicable ?? false,
+      beneficiary_applicable: scoped ? false : (defaultValues?.beneficiary_applicable ?? false),
       max_beneficiaries: defaultValues?.max_beneficiaries,
       funds_donation: defaultValues?.funds_donation ?? false,
       goods_donation: defaultValues?.goods_donation ?? false,
@@ -189,16 +199,18 @@ export function EventFormModal({
       location: data.location,
       max_participants: data.max_participants,
       organizer_name: data.organizer_name,
-      category: data.category as EventCategory,
-      department: data.department,
-      specified_category: data.specified_category,
+      // The locked fields are re-asserted here so a devtools edit cannot widen the scope.
+      category: scoped ? 'School' : (data.category as EventCategory),
+      department: scoped ? lockedDepartment : data.department,
+      specified_category: scoped ? undefined : data.specified_category,
       event_images: data.event_images,
-      beneficiary_applicable: data.beneficiary_applicable,
-      max_beneficiaries: data.beneficiary_applicable ? data.max_beneficiaries : undefined,
-      funds_donation: data.beneficiary_applicable ? data.funds_donation : false,
-      goods_donation: data.beneficiary_applicable ? data.goods_donation : false,
+      beneficiary_applicable: scoped ? false : data.beneficiary_applicable,
+      max_beneficiaries:
+        !scoped && data.beneficiary_applicable ? data.max_beneficiaries : undefined,
+      funds_donation: !scoped && data.beneficiary_applicable ? data.funds_donation : false,
+      goods_donation: !scoped && data.beneficiary_applicable ? data.goods_donation : false,
       goods_types:
-        data.beneficiary_applicable && data.goods_donation ? data.goods_types : [],
+        !scoped && data.beneficiary_applicable && data.goods_donation ? data.goods_types : [],
       geojson: (data.geojson as Geometry | null) ?? null,
       area_sqm: data.area_sqm ?? null,
       marker_lat: data.marker_lat ?? null,
@@ -425,28 +437,50 @@ export function EventFormModal({
             </Field>
           </div>
 
+          {/*
+            Locked selects are rendered without `register`: a disabled input drops out of
+            the submitted values, so the defaults above carry the value instead.
+          */}
           <Field label="Category" error={errors.category?.message}>
-            <select className={inputClass(!!errors.category)} {...register('category')}>
-              <option value="">Select category</option>
-              {EVENT_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            {scoped ? (
+              <select className={inputClass(false)} value="School" disabled>
+                <option value="School">School</option>
+              </select>
+            ) : (
+              <select className={inputClass(!!errors.category)} {...register('category')}>
+                <option value="">Select category</option>
+                {EVENT_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            )}
           </Field>
 
           {category === 'School' && (
             <Field label="Department" error={errors.department?.message}>
-              <select className={inputClass(!!errors.department)} {...register('department')}>
-                <option value="">Select department</option>
-                <option value={ALL_DEPARTMENTS}>All Departments</option>
-                {EVENT_DEPARTMENTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
+              {scoped ? (
+                <select
+                  className={inputClass(!!errors.department)}
+                  value={lockedDepartment}
+                  disabled
+                >
+                  <option value={lockedDepartment}>
+                    {lockedDepartment || 'Set your department on your profile first'}
                   </option>
-                ))}
-              </select>
+                </select>
+              ) : (
+                <select className={inputClass(!!errors.department)} {...register('department')}>
+                  <option value="">Select department</option>
+                  <option value={ALL_DEPARTMENTS}>All Departments</option>
+                  {EVENT_DEPARTMENTS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              )}
             </Field>
           )}
 
@@ -459,10 +493,12 @@ export function EventFormModal({
             </Field>
           )}
 
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" {...register('beneficiary_applicable')} />
-            Beneficiary applicable
-          </label>
+          {!scoped && (
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" {...register('beneficiary_applicable')} />
+              Beneficiary applicable
+            </label>
+          )}
 
           {beneficiaryApplicable && (
             <Field label="Max beneficiaries (optional)" error={errors.max_beneficiaries?.message}>

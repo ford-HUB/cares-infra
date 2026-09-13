@@ -138,3 +138,23 @@ export function formatReportPeriodShort(period: string): string {
 
 export const PERIOD_FILTER_ALL = 'all' as const
 export type PeriodFilter = string | typeof PERIOD_FILTER_ALL
+
+/* -------------------------------------------------------------------------- */
+/* Coordinator submission                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** Mirrors the server's per-file cap on `POST /api/v1/monthly-reports`. */
+export const REPORT_DOCUMENT_MAX_BYTES = 15 * 1024 * 1024
+export const REPORT_DOCUMENT_MAX_COUNT = 10
+export const REPORT_DOCUMENT_ACCEPT =
+  '.pdf,.docx,.xlsx,.png,.jpg,.jpeg,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png,image/jpeg,image/webp'
+
+export const REPORT_TITLE_MAX_LENGTH = 200
+export const REPORT_SUMMARY_MAX_LENGTH = 4000
+
+/** The same statuses read from the coordinator's side of the line. */
+export const REPORT_STATUS_SUBMITTER_HINTS: Record<MonthlyReportStatus, string> = {
+  under_review: 'With the director — it can no longer be edited.',
+  approved: 'Approved and filed under your department.',
+  returned: 'Sent back with a note; upload a corrected copy.',
+}

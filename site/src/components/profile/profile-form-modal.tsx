@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
+import { DEPARTMENT_COURSES } from '../../constants/event'
 import { ImageUploadField } from './ui/image-upload-field'
 import type { DirectorProfileFormValues, ProfileFormValues } from '../../validators/profile-schema'
 
@@ -11,6 +12,8 @@ interface ProfileFormModalProps {
   onClose: () => void
   saving: boolean
   isDirector: boolean
+  /** Coordinators belong to a college, so their department is picked, not typed. */
+  isCoordinator: boolean
   avatarPreview: string | null
   signaturePreview: string | null
   showRemoteAvatar: boolean
@@ -29,6 +32,7 @@ export function ProfileFormModal({
   onClose,
   saving,
   isDirector,
+  isCoordinator,
   avatarPreview,
   signaturePreview,
   showRemoteAvatar,
@@ -40,10 +44,18 @@ export function ProfileFormModal({
 }: ProfileFormModalProps) {
   const {
     register,
+    watch,
     formState: { errors },
   } = form
 
   if (!open) return null
+
+  // A department saved before the list existed stays selectable rather than vanishing.
+  const currentDepartment = watch('department' as keyof ProfileFormValues) as string | undefined
+  const departmentOptions = Object.keys(DEPARTMENT_COURSES)
+  if (currentDepartment && !departmentOptions.includes(currentDepartment)) {
+    departmentOptions.push(currentDepartment)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -177,13 +189,28 @@ export function ProfileFormModal({
             {!isDirector && (
               <div>
                 <label htmlFor="department" className="mb-0.5 block text-xs font-medium text-gray-700">
-                  Department / office
+                  {isCoordinator ? 'Department' : 'Department / office'}
                 </label>
-                <input
-                  id="department"
-                  className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
-                  {...form.register('department' as keyof ProfileFormValues)}
-                />
+                {isCoordinator ? (
+                  <select
+                    id="department"
+                    className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+                    {...form.register('department' as keyof ProfileFormValues)}
+                  >
+                    <option value="">Select a department</option>
+                    {departmentOptions.map((department) => (
+                      <option key={department} value={department}>
+                        {department}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    id="department"
+                    className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+                    {...form.register('department' as keyof ProfileFormValues)}
+                  />
+                )}
                 {'department' in errors && errors.department && (
                   <p className="mt-0.5 text-[10px] text-red-600">{errors.department.message}</p>
                 )}

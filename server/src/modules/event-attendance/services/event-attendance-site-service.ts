@@ -28,6 +28,7 @@ export class EventAttendanceSiteService {
       event_id: row.event.event_id,
       event_title: row.event.title,
       event_started: row.event.event_started.toISOString(),
+      event_department: row.event.department,
       user_id: row.user.user_id,
       firstname: row.user.firstname,
       lastname: row.user.lastname,

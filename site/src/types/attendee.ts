@@ -21,6 +21,8 @@ export interface EventAttendee {
   eventId: number
   eventTitle: string
   eventDate: string
+  /** The college the event was run for; undefined for non-School events. */
+  eventDepartment?: string
   firstName: string
   lastName: string
   email: string

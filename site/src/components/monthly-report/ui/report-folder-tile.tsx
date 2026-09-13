@@ -11,8 +11,9 @@ import { FolderGlyph } from './folder-glyph'
 interface ReportFolderTileProps {
   folder: LibraryFolder
   onOpen: (folder: LibraryFolder) => void
-  onRename: (folder: LibraryFolder) => void
-  onDelete: (folder: LibraryFolder) => void
+  /** Folder management; omitted on read-only boards, where no folder is custom. */
+  onRename?: (folder: LibraryFolder) => void
+  onDelete?: (folder: LibraryFolder) => void
 }
 
 /**
@@ -26,7 +27,7 @@ export function ReportFolderTile({
   onRename,
   onDelete,
 }: ReportFolderTileProps) {
-  const custom = folder.kind === 'custom'
+  const custom = folder.kind === 'custom' && onRename && onDelete
 
   return (
     <div className="group relative">
