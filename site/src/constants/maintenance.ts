@@ -180,14 +180,14 @@ export const ANNOUNCEMENT_AUDIENCES: AnnouncementAudience[] = [
   'volunteers',
   'beneficiaries',
   'donors',
-  'staff',
+  'coordinators',
 ]
 
 export const AUDIENCE_LABELS: Record<AnnouncementAudience, string> = {
   volunteers: 'Volunteers',
   beneficiaries: 'Beneficiaries',
   donors: 'Donors',
-  staff: 'Staff',
+  coordinators: 'Coordinators',
 }
 
 export const ANNOUNCEMENT_CHANNELS: AnnouncementChannel[] = ['portal', 'mobile', 'email']
@@ -282,7 +282,7 @@ export const AUDIENCE_SIZES: Record<AnnouncementAudience, number> = {
   volunteers: 1180,
   beneficiaries: 640,
   donors: 210,
-  staff: 46,
+  coordinators: 46,
 }
 
 /** How many accounts a notice addressed to these audiences could reach. */

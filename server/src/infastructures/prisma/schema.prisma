@@ -1107,7 +1107,7 @@ enum AnnouncementAudience {
   VOLUNTEERS
   BENEFICIARIES
   DONORS
-  STAFF
+  COORDINATORS
 }
 
 enum AnnouncementChannel {

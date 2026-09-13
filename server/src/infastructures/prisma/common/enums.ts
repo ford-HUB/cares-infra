@@ -360,7 +360,7 @@ export const AnnouncementAudience = {
   VOLUNTEERS: 'VOLUNTEERS',
   BENEFICIARIES: 'BENEFICIARIES',
   DONORS: 'DONORS',
-  STAFF: 'STAFF'
+  COORDINATORS: 'COORDINATORS'
 } as const
 
 export type AnnouncementAudience = (typeof AnnouncementAudience)[keyof typeof AnnouncementAudience]

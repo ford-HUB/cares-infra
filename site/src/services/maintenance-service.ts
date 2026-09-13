@@ -26,7 +26,7 @@ const ANNOUNCEMENTS_PATH = '/api/v1/announcements'
 
 /** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is lowercase. */
 type ApiAnnouncementTone = 'INFO' | 'WARNING' | 'CRITICAL'
-type ApiAnnouncementAudience = 'VOLUNTEERS' | 'BENEFICIARIES' | 'DONORS' | 'STAFF'
+type ApiAnnouncementAudience = 'VOLUNTEERS' | 'BENEFICIARIES' | 'DONORS' | 'COORDINATORS'
 type ApiAnnouncementChannel = 'PORTAL' | 'MOBILE' | 'EMAIL'
 type ApiAnnouncementState = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'EXPIRED'
 

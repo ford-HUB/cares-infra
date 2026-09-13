@@ -74,7 +74,7 @@ export interface MaintenanceWindow {
 export type AnnouncementTone = 'info' | 'warning' | 'critical'
 
 /** Who an announcement is addressed to. */
-export type AnnouncementAudience = 'volunteers' | 'beneficiaries' | 'donors' | 'staff'
+export type AnnouncementAudience = 'volunteers' | 'beneficiaries' | 'donors' | 'coordinators'
 
 /** Where it is delivered. */
 export type AnnouncementChannel = 'portal' | 'mobile' | 'email'

@@ -42,7 +42,7 @@ const AUDIENCE_ROLES: Record<AnnouncementAudience, RoleType[]> = {
   VOLUNTEERS: [RoleType.VOLUNTEER],
   BENEFICIARIES: [RoleType.BENEFICIARY],
   DONORS: [RoleType.DONOR],
-  STAFF: [RoleType.ADMIN, RoleType.DIRECTOR, RoleType.COORDINATOR],
+  COORDINATORS: [RoleType.COORDINATOR],
 };
 
 @Injectable()
