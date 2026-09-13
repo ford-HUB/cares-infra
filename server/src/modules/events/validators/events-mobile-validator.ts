@@ -43,8 +43,8 @@ export const RecommendedEventSchema = z.object({
   beneficiary_applicable: z.boolean(),
   marker_lat: z.number().nullable(),
   marker_lng: z.number().nullable(),
-  /** True when the event carries at least one image; the bytes come from the image route. */
-  has_image: z.boolean(),
+  /** How many images the event carries; each streams from `GET /events/:id/images/:index`. */
+  image_count: z.number().int().min(0),
   /** Interests the volunteer selected that this event was tagged with, best first. */
   matched_interests: z.array(MatchedInterestSchema),
   /** Highest score across matched_interests — what the list is ordered by. */

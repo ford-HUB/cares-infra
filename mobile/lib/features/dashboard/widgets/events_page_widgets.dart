@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/event_category_colors.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
+import 'event_image_carousel.dart';
 
 class EventsPageHeader extends StatelessWidget {
   const EventsPageHeader({super.key, required this.subtitle});
@@ -335,27 +336,10 @@ class EventCatalogCard extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      Container(
+                      EventImageCarousel(
+                        imageUrls: event.imageUrls,
                         height: 120,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              categoryColor.withValues(alpha: 0.14),
-                              categoryColor.withValues(alpha: 0.30),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: Center(
-                          child: Icon(
-                            Icons.event_available_rounded,
-                            size: 44,
-                            color: categoryColor.withValues(alpha: 0.45),
-                          ),
-                        ),
+                        placeholder: _CategoryPlaceholder(color: categoryColor),
                       ),
                       Positioned(
                         top: 12,
@@ -500,6 +484,36 @@ class EventCatalogCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tinted fallback for a card with no photos, or while one is still loading.
+class _CategoryPlaceholder extends StatelessWidget {
+  const _CategoryPlaceholder({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.14),
+            color.withValues(alpha: 0.30),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.event_available_rounded,
+          size: 44,
+          color: color.withValues(alpha: 0.45),
         ),
       ),
     );

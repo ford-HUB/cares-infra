@@ -6,7 +6,7 @@ import {
   EVENT_PIN_FOCUS_ZOOM,
 } from '../../../constants/event'
 import { EVENT_PIN_ACCENTS } from '../../../constants/event-map'
-import { GEOAPIFY_API_KEY, geoapifyRasterTileUrl } from '../../../constants/geoapify'
+import { MAPBOX_ACCESS_TOKEN, MAPBOX_MAP_STYLE } from '../../../constants/mapbox'
 import { apiClient } from '../../../services/api-client'
 import type { EventMapPin } from '../../../types/event'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -28,21 +28,6 @@ const FALLBACK_PIN_ICON = `
     <circle cx="8.5" cy="8.5" r="1.5" />
     <path d="m21 15-5-5L5 21" />
   </svg>`
-
-function geoapifyStyle(): mapboxgl.StyleSpecification {
-  return {
-    version: 8,
-    sources: {
-      'geoapify-tiles': {
-        type: 'raster',
-        tiles: [geoapifyRasterTileUrl()],
-        tileSize: 256,
-        attribution: '© OpenStreetMap contributors © Geoapify',
-      },
-    },
-    layers: [{ id: 'geoapify-tiles', type: 'raster', source: 'geoapify-tiles' }],
-  }
-}
 
 /**
  * Build the marker DOM for one event: a round thumbnail of the event image
@@ -119,13 +104,13 @@ export function EventLocationsMap({
   }, [onSelect])
 
   useEffect(() => {
-    if (!containerRef.current || !GEOAPIFY_API_KEY) return
+    if (!containerRef.current || !MAPBOX_ACCESS_TOKEN) return
 
-    mapboxgl.accessToken = GEOAPIFY_API_KEY
+    mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: geoapifyStyle(),
+      style: MAPBOX_MAP_STYLE,
       bounds: CEBU_PROVINCE_BOUNDS,
       fitBoundsOptions: { padding: CEBU_BOUNDS_PADDING },
     })
@@ -207,10 +192,10 @@ export function EventLocationsMap({
     mapRef.current?.fitBounds(CEBU_PROVINCE_BOUNDS, { padding: CEBU_BOUNDS_PADDING })
   }, [resetToken])
 
-  if (!GEOAPIFY_API_KEY) {
+  if (!MAPBOX_ACCESS_TOKEN) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-        Geoapify key missing. Add <code className="font-mono">VITE_GEOAPIFY_API_KEY</code> to your{' '}
+        Mapbox token missing. Add <code className="font-mono">VITE_MAPBOX_TOKEN</code> to your{' '}
         <code className="font-mono">.env</code> file to load the event map.
       </div>
     )

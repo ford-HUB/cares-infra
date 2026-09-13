@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/activity_data.dart';
 import '../../data/event_feedback_store.dart';
 import '../../data/event_registration_store.dart';
+import '../../domain/cares_event.dart';
 import '../../data/mock_events.dart';
 import '../../screens/event_details_screen.dart';
 import '../../widgets/completed_event_widgets.dart';

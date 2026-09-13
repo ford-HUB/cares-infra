@@ -63,11 +63,16 @@ export class EventsMobileService {
     }
 
     const labels = new Map(catalog.map((i) => [i.code, i.label]));
+    const active = new Set(catalog.map((i) => i.code));
     const tags = await this.tagEvents(events, catalog);
 
     const recommended: RecommendedEventDto[] = [];
     for (const event of events) {
-      const matched = (tags.get(event.event_id) ?? [])
+      const matched = this.withCategoryTag(
+        event,
+        tags.get(event.event_id),
+        active,
+      )
         .filter((tag) => selected.has(tag.code as InterestCode))
         .map((tag) => ({
           code: tag.code as InterestCode,
@@ -165,6 +170,35 @@ export class EventsMobileService {
     return tags;
   }
 
+  /**
+   * The organizer's own category pick is a stronger signal than anything read
+   * out of the copy, so it always tags the event at full score; the NLP tags
+   * only add interests the category does not already cover. "Others" falls
+   * back to the specified category when that names a real interest.
+   */
+  private withCategoryTag(
+    event: OpenEvent,
+    nlpTags: NlpInterestScore[] | undefined,
+    active: Set<string>,
+  ): NlpInterestScore[] {
+    const code = this.categoryCode(event, active);
+    const rest = (nlpTags ?? []).filter((tag) => tag.code !== code);
+    if (!code) return rest;
+    return [{ code, score: 1, semantic: 1, lexical: 1 }, ...rest];
+  }
+
+  private categoryCode(event: OpenEvent, active: Set<string>): string | null {
+    const candidates = [event.category, event.specified_category ?? ''];
+    for (const raw of candidates) {
+      const code = raw
+        .trim()
+        .toUpperCase()
+        .replace(/[\s-]+/g, '_');
+      if (code && code !== InterestCode.OTHERS && active.has(code)) return code;
+    }
+    return null;
+  }
+
   private tagsKey(event: OpenEvent, catalogHash: string): string {
     const copyHash = this.hash(`${event.title}\n${event.description}`);
     return `cache:events:interest-tags:${event.event_id}:${copyHash}:${catalogHash}`;
@@ -193,7 +227,7 @@ export class EventsMobileService {
       beneficiary_applicable: event.beneficiary_applicable,
       marker_lat: event.marker_lat ?? null,
       marker_lng: event.marker_lng ?? null,
-      has_image: event.images.length > 0,
+      image_count: event.images.length,
       matched_interests: matched,
       match_score: Math.max(...matched.map((m) => m.score)),
     };

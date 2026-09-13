@@ -1,3 +1,5 @@
+import type { Geometry, MultiPolygon, Polygon } from 'geojson'
+
 /** Normalised address suggestion used across the app. */
 export interface AddressSuggestion {
   id: string
@@ -6,24 +8,36 @@ export interface AddressSuggestion {
   lng: number
 }
 
-/** Raw result item from the Geoapify geocoding autocomplete endpoint (format=json). */
-export interface GeoapifyAutocompleteResult {
-  place_id: string
-  formatted: string
-  lat: number
-  lon: number
+/** One named level of a Mapbox Geocoding v6 result's address context. */
+interface MapboxContextEntry {
   name?: string
-  address_line1?: string
-  city?: string
-  county?: string
-  municipality?: string
-  district?: string
-  suburb?: string
-  state?: string
 }
 
-export interface GeoapifyAutocompleteResponse {
-  results?: GeoapifyAutocompleteResult[]
+/** Raw feature from the Mapbox Search Box `forward` and Geocoding v6 `reverse` endpoints. */
+export interface MapboxGeocodingFeature {
+  id: string
+  properties: {
+    mapbox_id: string
+    feature_type?: string
+    name?: string
+    name_preferred?: string
+    full_address?: string
+    place_formatted?: string
+    coordinates: { longitude: number; latitude: number }
+    context?: {
+      address?: MapboxContextEntry
+      street?: MapboxContextEntry
+      neighborhood?: MapboxContextEntry
+      locality?: MapboxContextEntry
+      place?: MapboxContextEntry
+      district?: MapboxContextEntry
+      region?: MapboxContextEntry
+    }
+  }
+}
+
+export interface MapboxGeocodingResponse {
+  features?: MapboxGeocodingFeature[]
 }
 
 /** A place resolved from a clicked point, including the building footprint when available. */
@@ -31,19 +45,8 @@ export interface PlaceDetails {
   label: string
   lat: number
   lng: number
-  geometry: import('geojson').Polygon | import('geojson').MultiPolygon | null
+  geometry: Polygon | MultiPolygon | null
 }
 
-export interface GeoapifyPlaceDetailsFeature {
-  properties?: {
-    formatted?: string
-    lat?: number
-    lon?: number
-    feature_type?: string
-  }
-  geometry?: import('geojson').Geometry
-}
-
-export interface GeoapifyPlaceDetailsResponse {
-  features?: GeoapifyPlaceDetailsFeature[]
-}
+/** Candidate footprint geometries read off the map at the clicked point. */
+export type FootprintCandidate = Geometry | null | undefined

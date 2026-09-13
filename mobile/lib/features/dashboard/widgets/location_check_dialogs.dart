@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 import '../data/mock_location_checks.dart';
 
 /// Runs the static "Check Location" flow: a short verifying state, then the

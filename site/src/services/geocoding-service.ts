@@ -1,80 +1,89 @@
 import area from '@turf/area'
+import { booleanPointInPolygon, point, polygon } from '@turf/turf'
+import type { MultiPolygon, Polygon } from 'geojson'
 import {
   ADDRESS_AUTOCOMPLETE_MIN_CHARS,
   ALLOWED_UNIVERSITY_NAMES,
-  CEBU_METRO_ALLOWED_AREAS,
-  CEBU_METRO_EXCLUDED_AREAS,
-  GEOAPIFY_API_KEY,
+  CEBU_PROVINCE_OUTLINE,
+  MAPBOX_ACCESS_TOKEN,
   MAX_AUTO_TRACE_AREA_SQM,
   UNIVERSITY_KEYWORDS,
-  geoapifyAutocompleteUrl,
-  geoapifyPlaceDetailsUrl,
-} from '../constants/geoapify'
+  mapboxAutocompleteUrl,
+  mapboxReverseGeocodeUrl,
+} from '../constants/mapbox'
 import type {
   AddressSuggestion,
-  GeoapifyPlaceDetailsFeature,
-  GeoapifyAutocompleteResponse,
-  GeoapifyAutocompleteResult,
-  GeoapifyPlaceDetailsResponse,
+  FootprintCandidate,
+  MapboxGeocodingFeature,
+  MapboxGeocodingResponse,
   PlaceDetails,
 } from '../types/geocoding'
 
+const cebuProvince = polygon([[...CEBU_PROVINCE_OUTLINE, CEBU_PROVINCE_OUTLINE[0]]])
+
 /**
  * Decide whether a suggestion should appear:
- * - University/college results: only "University of Cebu" branches (incl. the
- *   Lapu-Lapu and Mandaue campus); every other university is hidden.
- * - Other places: must sit in an allowed Metro Cebu municipality and not in an
- *   excluded area (e.g. Lapu-Lapu City / Mactan).
+ * - Must lie anywhere in Cebu province (Cebu City, Mandaue, Lapu-Lapu, the
+ *   north and south towns alike). Mapbox leaves `region` empty for Philippine
+ *   addresses, so this is a geometric test rather than a name match.
+ * - University/college results: only "University of Cebu" branches; every other
+ *   university is hidden.
  */
-function isAllowedSuggestion(r: GeoapifyAutocompleteResult): boolean {
-  const haystack = [
-    r.name,
-    r.address_line1,
-    r.city,
-    r.county,
-    r.municipality,
-    r.district,
-    r.suburb,
-    r.formatted,
-  ]
+function isAllowedSuggestion(f: MapboxGeocodingFeature): boolean {
+  const { properties: p } = f
+  const { longitude, latitude } = p.coordinates
+  if (!booleanPointInPolygon(point([longitude, latitude]), cebuProvince)) return false
+
+  const haystack = [p.name, p.name_preferred, p.full_address, p.place_formatted]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
 
   const isUniversity = UNIVERSITY_KEYWORDS.some((k) => haystack.includes(k))
-  if (isUniversity) {
-    return ALLOWED_UNIVERSITY_NAMES.some((name) => haystack.includes(name))
-  }
-
-  if (CEBU_METRO_EXCLUDED_AREAS.some((area) => haystack.includes(area))) return false
-  return CEBU_METRO_ALLOWED_AREAS.some((area) => haystack.includes(area))
+  return !isUniversity || ALLOWED_UNIVERSITY_NAMES.some((name) => haystack.includes(name))
 }
 
 /**
- * Fetch address suggestions from Geoapify for the given query.
- * Returns an empty list on missing key, short query, aborted requests, or errors.
+ * Human-readable one-line label for a search feature. POIs carry the venue name
+ * separately from the address, so it is prefixed when the address lacks it.
+ */
+function featureLabel(f: MapboxGeocodingFeature): string {
+  const { name, full_address, place_formatted } = f.properties
+  const address = full_address ?? place_formatted ?? ''
+  if (!name) return address
+  if (!address) return name
+  return address.toLowerCase().includes(name.toLowerCase()) ? address : `${name}, ${address}`
+}
+
+/**
+ * Fetch address suggestions from the Mapbox Search Box API for the given query.
+ * Returns an empty list on missing token, short query, aborted requests, or errors.
  */
 export async function autocompleteAddress(
   query: string,
   signal?: AbortSignal,
 ): Promise<AddressSuggestion[]> {
   const text = query.trim()
-  if (!GEOAPIFY_API_KEY || text.length < ADDRESS_AUTOCOMPLETE_MIN_CHARS) {
+  if (!MAPBOX_ACCESS_TOKEN || text.length < ADDRESS_AUTOCOMPLETE_MIN_CHARS) {
     return []
   }
 
   try {
-    const res = await fetch(geoapifyAutocompleteUrl(text), { signal })
+    const res = await fetch(mapboxAutocompleteUrl(text), { signal })
     if (!res.ok) return []
-    const data: GeoapifyAutocompleteResponse = await res.json()
-    return (data.results ?? [])
-      .filter((r) => typeof r.lat === 'number' && typeof r.lon === 'number')
+    const data: MapboxGeocodingResponse = await res.json()
+    return (data.features ?? [])
+      .filter(
+        (f) =>
+          typeof f.properties?.coordinates?.latitude === 'number' &&
+          typeof f.properties?.coordinates?.longitude === 'number',
+      )
       .filter(isAllowedSuggestion)
-      .map((r) => ({
-        id: r.place_id,
-        label: r.formatted,
-        lat: r.lat,
-        lng: r.lon,
+      .map((f) => ({
+        id: f.properties.mapbox_id ?? f.id,
+        label: featureLabel(f),
+        lat: f.properties.coordinates.latitude,
+        lng: f.properties.coordinates.longitude,
       }))
   } catch {
     return []
@@ -82,58 +91,53 @@ export async function autocompleteAddress(
 }
 
 /**
- * Pick the tightest usable footprint from a place-details response: the smallest
- * polygon that still fits {@link MAX_AUTO_TRACE_AREA_SQM}. Geoapify returns both
- * the building and the surrounding campus/landuse polygon, and only the building
- * makes sense as an attendance boundary.
+ * Pick the tightest usable footprint from the candidates read off the map: the
+ * smallest polygon that still fits {@link MAX_AUTO_TRACE_AREA_SQM}. Only a
+ * building-sized outline makes sense as an attendance boundary.
  */
-function pickFootprint(
-  features: GeoapifyPlaceDetailsFeature[],
-): GeoapifyPlaceDetailsFeature | undefined {
-  return features
+function pickFootprint(candidates: FootprintCandidate[]): Polygon | MultiPolygon | undefined {
+  return candidates
     .filter(
-      (f) => f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon',
+      (g): g is Polygon | MultiPolygon =>
+        g?.type === 'Polygon' || g?.type === 'MultiPolygon',
     )
-    .map((f) => ({
-      feature: f,
-      areaSqM: area({ type: 'Feature', geometry: f.geometry!, properties: {} }),
+    .map((geometry) => ({
+      geometry,
+      areaSqM: area({ type: 'Feature', geometry, properties: {} }),
     }))
     .filter(({ areaSqM }) => areaSqM > 0 && areaSqM <= MAX_AUTO_TRACE_AREA_SQM)
-    .sort((a, b) => a.areaSqM - b.areaSqM)[0]?.feature
+    .sort((a, b) => a.areaSqM - b.areaSqM)[0]?.geometry
 }
 
 /**
- * Resolve the place (and its building footprint, when available) at the given
- * coordinates via Geoapify Place Details. Returns null on error or no result.
+ * Resolve the place at the given coordinates via Mapbox reverse geocoding.
+ * Mapbox's geocoder returns points only, so the building footprint comes from
+ * `footprints` — geometries the caller read off the rendered map at that spot.
+ * Returns null on error or no result.
  */
 export async function getPlaceDetails(
   lat: number,
   lng: number,
   signal?: AbortSignal,
+  footprints: FootprintCandidate[] = [],
 ): Promise<PlaceDetails | null> {
-  if (!GEOAPIFY_API_KEY) return null
+  if (!MAPBOX_ACCESS_TOKEN) return null
 
   try {
-    const res = await fetch(geoapifyPlaceDetailsUrl(lat, lng), { signal })
+    const res = await fetch(mapboxReverseGeocodeUrl(lat, lng), { signal })
     if (!res.ok) return null
-    const data: GeoapifyPlaceDetailsResponse = await res.json()
-    const features = data.features ?? []
-    if (features.length === 0) return null
+    const data: MapboxGeocodingResponse = await res.json()
+    const feature = data.features?.[0]
+    if (!feature) return null
 
-    const withPolygon = pickFootprint(features)
-    const props = withPolygon?.properties ?? features[0].properties
-    const label = props?.formatted ?? features[0].properties?.formatted ?? ''
+    const label = featureLabel(feature)
     if (!label) return null
 
     return {
       label,
-      lat: props?.lat ?? lat,
-      lng: props?.lon ?? lng,
-      geometry:
-        withPolygon?.geometry?.type === 'Polygon' ||
-        withPolygon?.geometry?.type === 'MultiPolygon'
-          ? withPolygon.geometry
-          : null,
+      lat: feature.properties.coordinates?.latitude ?? lat,
+      lng: feature.properties.coordinates?.longitude ?? lng,
+      geometry: pickFootprint(footprints) ?? null,
     }
   } catch {
     return null

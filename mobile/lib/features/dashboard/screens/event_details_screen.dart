@@ -5,12 +5,16 @@ import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
 import '../data/event_feedback_store.dart';
 import '../data/event_registration_store.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 import '../utils/geo_utils.dart';
 import '../widgets/completed_event_widgets.dart';
+import '../widgets/event_image_carousel.dart';
 import '../widgets/event_registration_dialogs.dart';
+import '../widgets/event_status_sheet.dart';
+import '../widgets/location_permission_dialogs.dart';
 import 'certificate_review_screen.dart';
 import 'event_feedback_screen.dart';
+import 'event_route_map_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({super.key, required this.event});
@@ -88,12 +92,70 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
     if (!confirmed || !mounted) return;
 
+    if (!await _ensureLocationPermission()) return;
+    if (!mounted) return;
+
     _store.register(widget.event, email: _participantEmail);
     setState(() {});
 
     if (!mounted) return;
     await showEventRegistrationSuccessDialog(context);
   }
+
+  /// Location must be on before joining, since check-in depends on it. When
+  /// the permission is already granted this is silent; otherwise the user is
+  /// walked through the explanation → device prompt → denied loop.
+  Future<bool> _ensureLocationPermission() async {
+    var result = await requestEventLocationPermission();
+    if (result.isGranted) return true;
+
+    var explained = false;
+    while (true) {
+      if (!mounted) return false;
+      if (!explained && result.outcome == LocationPermissionOutcome.denied) {
+        explained = true;
+        final allow = await showLocationPermissionRequestDialog(
+          context,
+          widget.event,
+        );
+        if (!allow) return false;
+      } else {
+        final action = await showLocationPermissionDeniedDialog(
+          context,
+          result,
+        );
+        switch (action) {
+          case LocationDeniedAction.cancel:
+            return false;
+          case LocationDeniedAction.openSettings:
+            if (result.outcome == LocationPermissionOutcome.serviceDisabled) {
+              await Geolocator.openLocationSettings();
+            } else {
+              await Geolocator.openAppSettings();
+            }
+            continue;
+          case LocationDeniedAction.tryAgain:
+            break;
+        }
+      }
+      result = await requestEventLocationPermission();
+      if (result.isGranted) return true;
+    }
+  }
+
+  Future<void> _showStatus() async {
+    final participation = _participation;
+    if (participation == null) return;
+
+    final checkIn = await showEventStatusSheet(
+      context,
+      event: widget.event,
+      participation: participation,
+    );
+    if (checkIn && mounted) await _verifyGeolocation();
+  }
+
+  void _openRouteMap() => EventRouteMapScreen.open(context, widget.event);
 
   Future<void> _verifyGeolocation() async {
     final participation = _participation;
@@ -296,64 +358,71 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     background: Stack(
                       fit: StackFit.expand,
                       children: [
-                        const DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryLight,
-                              ],
-                            ),
-                          ),
+                        EventImageCarousel(
+                          imageUrls: event.imageUrls,
+                          placeholder: const _HeroPlaceholder(),
                         ),
-                        Positioned(
-                          right: -30,
-                          bottom: -30,
-                          child: Icon(
-                            Icons.event_available_rounded,
-                            size: 180,
-                            color: Colors.white.withValues(alpha: 0.12),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 72, 20, 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              if (event.isFeatured)
-                                Container(
-                                  margin: const EdgeInsets.only(bottom: 10),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.22),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Text(
-                                    'Featured Event',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              Text(
-                                isCompleted
-                                    ? '${event.category} · Completed'
-                                    : event.category,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                        // Photos vary; the scrim keeps the back arrow and
+                        // category legible over any of them. Overlays ignore
+                        // touches so a swipe anywhere still moves the deck.
+                        if (event.imageUrls.isNotEmpty)
+                          IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.35),
+                                    Colors.transparent,
+                                    Colors.black.withValues(alpha: 0.55),
+                                  ],
+                                  stops: const [0, 0.4, 1],
                                 ),
                               ),
-                            ],
+                            ),
+                          ),
+                        IgnorePointer(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 72, 20, 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                if (event.isFeatured)
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.22,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Text(
+                                      'Featured Event',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                Text(
+                                  isCompleted
+                                      ? '${event.category} · Completed'
+                                      : event.category,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -653,29 +722,54 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 ),
                               ))
                       : isRegistered
-                      ? FilledButton.icon(
-                          onPressed:
-                              _isCheckingLocation || participation == null
-                              ? null
-                              : _verifyGeolocation,
-                          icon: _isCheckingLocation
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _openRouteMap,
+                                icon: const Icon(Icons.route_rounded),
+                                label: const Text('Route Map'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  side: const BorderSide(
+                                    color: AppColors.primary,
+                                    width: 1.5,
                                   ),
-                                )
-                              : const Icon(Icons.my_location_rounded),
-                          label: Text(
-                            _isCheckingLocation
-                                ? 'Checking...'
-                                : 'Verify Attendance',
-                          ),
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                          ),
+                                  minimumSize: const Size.fromHeight(52),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed:
+                                    _isCheckingLocation || participation == null
+                                    ? null
+                                    : _showStatus,
+                                icon: _isCheckingLocation
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : Icon(
+                                        participation?.attendanceVerified ==
+                                                true
+                                            ? Icons.verified_rounded
+                                            : Icons.how_to_reg_rounded,
+                                      ),
+                                label: Text(
+                                  _isCheckingLocation ? 'Checking...' : 'Status',
+                                ),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
+                                ),
+                              ),
+                            ),
+                          ],
                         )
                       : FilledButton(
                           onPressed: event.slotsLeft > 0 ? _confirmJoin : null,
@@ -690,6 +784,38 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The gradient hero drawn when the event has no photos.
+class _HeroPlaceholder extends StatelessWidget {
+  const _HeroPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.primary, AppColors.primaryLight],
+            ),
+          ),
+        ),
+        Positioned(
+          right: -30,
+          bottom: -30,
+          child: Icon(
+            Icons.event_available_rounded,
+            size: 180,
+            color: Colors.white.withValues(alpha: 0.12),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,4 +1,5 @@
-import 'package:mobile/features/dashboard/data/mock_events.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/features/dashboard/domain/cares_event.dart';
 
 /// One interest the volunteer picked that the server's NLP tagging found in
 /// an event. [score] is the blended 0–1 confidence; the UI shows the label.
@@ -40,6 +41,7 @@ class RecommendedEvent {
     required this.beneficiaryApplicable,
     required this.matchedInterests,
     required this.matchScore,
+    this.imageCount = 0,
     this.markerLat,
     this.markerLng,
   });
@@ -60,6 +62,7 @@ class RecommendedEvent {
       beneficiaryApplicable: json['beneficiary_applicable'] as bool? ?? false,
       markerLat: (json['marker_lat'] as num?)?.toDouble(),
       markerLng: (json['marker_lng'] as num?)?.toDouble(),
+      imageCount: json['image_count'] as int? ?? 0,
       matchedInterests: (json['matched_interests'] as List<dynamic>? ?? [])
           .map((e) => MatchedInterest.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -82,12 +85,25 @@ class RecommendedEvent {
   final double? markerLat;
   final double? markerLng;
 
+  /// Images sit in a private bucket; the server streams them by index.
+  final int imageCount;
+
   /// Best match first, as ordered by the server.
   final List<MatchedInterest> matchedInterests;
   final double matchScore;
 
   int get slotsLeft =>
       (maxParticipants - participants).clamp(0, maxParticipants);
+
+  /// Authenticated image stream per index, in upload order.
+  List<String> get imageUrls {
+    if (imageCount == 0) return const [];
+    final api = ApiClient();
+    return List.generate(
+      imageCount,
+      (index) => api.uri('/events/$id/images/$index').toString(),
+    );
+  }
 
   /// The event details screen is still built on the prototype event model;
   /// this projects a server row onto it so a recommended card opens the same
@@ -122,6 +138,7 @@ class RecommendedEvent {
       venueLongitude: markerLng ?? 0,
       openToBeneficiaries: beneficiaryApplicable,
       isCompleted: status == 'Completed',
+      imageUrls: imageUrls,
     );
   }
 }
