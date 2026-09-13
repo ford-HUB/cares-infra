@@ -16,6 +16,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { ZBody, ZParam, ZSerialize } from 'nest-zod';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
+import { RoleType } from '../../../infastructures/prisma/common/client';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
@@ -58,8 +59,10 @@ export class EventsSiteController {
   /**
    * Event images sit in a private bucket, so the portal cannot point an `<img>` at the
    * stored S3 URL — it fetches the bytes through this authenticated route instead.
+   * Volunteers read the same stream for the cards on their events tab.
    */
   @Get(':id/images/:index')
+  @Roles(...PORTAL_ROLE_TYPES, RoleType.VOLUNTEER)
   async getEventImage(
     @ZParam('id', EventIdParamSchema) id: number,
     @ZParam('index', EventImageIndexParamSchema) index: number,

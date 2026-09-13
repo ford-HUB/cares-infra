@@ -1,5 +1,6 @@
 import 'event_feedback_store.dart';
 import 'event_registration_store.dart';
+import '../domain/cares_event.dart';
 import 'mock_events.dart';
 
 class CaresCertificate {

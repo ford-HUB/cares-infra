@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 
 /// Summary panel shown on a completed event: event details plus the
 /// participation, feedback, and certificate statuses of the volunteer.

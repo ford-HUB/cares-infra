@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 
 Future<bool> showEventJoinConfirmationDialog(
   BuildContext context,

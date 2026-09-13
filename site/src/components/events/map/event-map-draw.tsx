@@ -7,9 +7,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { DEFAULT_MAP_CENTER } from '../../../constants/event'
 import {
   FALLBACK_GEOFENCE_RADIUS_M,
-  GEOAPIFY_API_KEY,
-  geoapifyRasterTileUrl,
-} from '../../../constants/geoapify'
+  MAPBOX_ACCESS_TOKEN,
+  MAPBOX_BUILDING_LAYER,
+  MAPBOX_MAP_STYLE,
+} from '../../../constants/mapbox'
 import { getPlaceDetails } from '../../../services/geocoding-service'
 import type { PlaceDetails } from '../../../types/geocoding'
 import { ConfirmBuildingModal } from './confirm-building-modal'
@@ -122,19 +123,16 @@ const DRAW_STYLES: object[] = [
   },
 ]
 
-function geoapifyStyle(): mapboxgl.StyleSpecification {
-  return {
-    version: 8,
-    sources: {
-      'geoapify-tiles': {
-        type: 'raster',
-        tiles: [geoapifyRasterTileUrl()],
-        tileSize: 256,
-        attribution: '© OpenStreetMap contributors © Geoapify',
-      },
-    },
-    layers: [{ id: 'geoapify-tiles', type: 'raster', source: 'geoapify-tiles' }],
-  }
+/**
+ * Building outlines rendered under `point`, read straight off the Mapbox Streets
+ * tiles. Only features already drawn are returned, so callers must wait for the
+ * map to settle (`idle`) after moving it before asking.
+ */
+function buildingFootprintsAt(map: mapboxgl.Map, point: mapboxgl.PointLike): Geometry[] {
+  if (!map.getLayer(MAPBOX_BUILDING_LAYER)) return []
+  return map
+    .queryRenderedFeatures(point, { layers: [MAPBOX_BUILDING_LAYER] })
+    .map((feature) => feature.geometry)
 }
 
 export function EventMapDraw({
@@ -275,14 +273,14 @@ export function EventMapDraw({
   )
 
   useEffect(() => {
-    if (!containerRef.current || !GEOAPIFY_API_KEY) return
+    if (!containerRef.current || !MAPBOX_ACCESS_TOKEN) return
 
     let cancelled = false
-    mapboxgl.accessToken = GEOAPIFY_API_KEY
+    mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: geoapifyStyle(),
+      style: MAPBOX_MAP_STYLE,
       center: DEFAULT_MAP_CENTER,
       zoom: 12,
     })
@@ -359,13 +357,14 @@ export function EventMapDraw({
      * Resolve the building under the pointer and hand it to the confirmation
      * modal — nothing on the map changes until the operator says yes.
      */
-    const handleBuildingSelect = async (lngLat: mapboxgl.LngLat) => {
+    const handleBuildingSelect = async (lngLat: mapboxgl.LngLat, point: mapboxgl.Point) => {
       detailsAbortRef.current?.abort()
       const controller = new AbortController()
       detailsAbortRef.current = controller
 
       setDetecting(true)
-      const details = await getPlaceDetails(lngLat.lat, lngLat.lng, controller.signal)
+      const footprints = buildingFootprintsAt(map, point)
+      const details = await getPlaceDetails(lngLat.lat, lngLat.lng, controller.signal, footprints)
       if (controller.signal.aborted) return
       setDetecting(false)
       if (!details) return
@@ -394,7 +393,7 @@ export function EventMapDraw({
         return
       }
       // Anywhere else: offer to trace the building that was double-clicked.
-      void handleBuildingSelect(e.lngLat)
+      void handleBuildingSelect(e.lngLat, e.point)
     })
 
     /**
@@ -588,16 +587,25 @@ export function EventMapDraw({
     detailsAbortRef.current = controller
 
     setDetecting(true)
-    void getPlaceDetails(focus.lat, focus.lng, controller.signal).then((details) => {
-      if (controller.signal.aborted) return
-      setDetecting(false)
-      if (draw.getAll().features.length > 0) return
-      applyGeometry(
-        draw,
-        details?.geometry ?? circlePolygon(focus.lng, focus.lat, FALLBACK_GEOFENCE_RADIUS_M),
-      )
-      placeMarker(focus.lng, focus.lat)
-    })
+    // The building layer is only queryable once the fly-in has rendered its
+    // tiles, so wait for the map to settle before reading footprints.
+    const settled = new Promise<void>((resolve) => map.once('idle', () => resolve()))
+    void settled
+      .then(() => {
+        if (controller.signal.aborted) return null
+        const footprints = buildingFootprintsAt(map, map.project([focus.lng, focus.lat]))
+        return getPlaceDetails(focus.lat, focus.lng, controller.signal, footprints)
+      })
+      .then((details) => {
+        if (controller.signal.aborted) return
+        setDetecting(false)
+        if (draw.getAll().features.length > 0) return
+        applyGeometry(
+          draw,
+          details?.geometry ?? circlePolygon(focus.lng, focus.lat, FALLBACK_GEOFENCE_RADIUS_M),
+        )
+        placeMarker(focus.lng, focus.lat)
+      })
   }, [applyGeometry, focus, placeMarker, ready])
 
   /** Replace the drawn area with the confirmed building's footprint. */
@@ -623,10 +631,10 @@ export function EventMapDraw({
       circlePolygon(pendingPlace.lng, pendingPlace.lat, FALLBACK_GEOFENCE_RADIUS_M))
     : null
 
-  if (!GEOAPIFY_API_KEY) {
+  if (!MAPBOX_ACCESS_TOKEN) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-        Geoapify key missing. Add <code className="font-mono">VITE_GEOAPIFY_API_KEY</code> to your{' '}
+        Mapbox token missing. Add <code className="font-mono">VITE_MAPBOX_TOKEN</code> to your{' '}
         <code className="font-mono">.env</code> file.
       </div>
     )

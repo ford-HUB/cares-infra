@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/event_category_colors.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 import '../screens/event_details_screen.dart';
 
 class FeaturedEventsCarousel extends StatefulWidget {

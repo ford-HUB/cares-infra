@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 
 /// Result of asking the device for location access before joining an event.
 enum LocationPermissionOutcome {

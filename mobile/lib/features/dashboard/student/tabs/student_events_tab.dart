@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/mock_donations.dart';
+import '../../domain/cares_event.dart';
 import '../../data/mock_events.dart';
 import '../../screens/donation_details_screen.dart';
 import '../../screens/event_details_screen.dart';

@@ -1,4 +1,4 @@
-import 'mock_events.dart';
+import '../domain/cares_event.dart';
 
 /// Static distances (in metres) between the participant and each event venue.
 /// The prototype's "Check Location" flow reads these instead of the device

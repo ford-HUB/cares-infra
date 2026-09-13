@@ -16,6 +16,17 @@ export class EventsRepository {
     });
   }
 
+  /** Events a volunteer can still join, soonest first — the pool the recommender ranks. */
+  async findOpenForVolunteers() {
+    return this.prisma.event.findMany({
+      where: {
+        status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
+        event_ended: { gte: new Date() },
+      },
+      orderBy: { event_started: 'asc' },
+    });
+  }
+
   async findById(id: number) {
     return this.prisma.event.findUnique({
       where: { event_id: id },

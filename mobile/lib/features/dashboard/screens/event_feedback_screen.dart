@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/event_feedback_store.dart';
-import '../data/mock_events.dart';
+import '../domain/cares_event.dart';
 
 /// Post-event feedback form. Submitting here unlocks the event certificate.
 class EventFeedbackScreen extends StatefulWidget {

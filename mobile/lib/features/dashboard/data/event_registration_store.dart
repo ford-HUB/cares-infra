@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/session/static_user_session.dart';
+import '../domain/cares_event.dart';
 import '../data/mock_events.dart';
 
 class EventParticipation {

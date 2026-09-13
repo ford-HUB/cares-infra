@@ -1,3 +1,4 @@
+import '../domain/cares_event.dart';
 import 'mock_events.dart';
 
 enum ActivityStatus { registered, attended }

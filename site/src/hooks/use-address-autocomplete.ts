@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   ADDRESS_AUTOCOMPLETE_DEBOUNCE_MS,
   ADDRESS_AUTOCOMPLETE_MIN_CHARS,
-} from '../constants/geoapify'
+} from '../constants/mapbox'
 import { autocompleteAddress } from '../services/geocoding-service'
 import type { AddressSuggestion } from '../types/geocoding'
 
