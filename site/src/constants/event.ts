@@ -76,6 +76,20 @@ export const DEPARTMENT_COURSES: Record<string, string[]> = {
 
 export const EVENT_DEPARTMENTS = Object.keys(DEPARTMENT_COURSES)
 
+/**
+ * Whether an event belongs to a coordinator's college. Departments are compared
+ * loosely — the value is free text on the profile and on the event, so casing and
+ * stray spacing must not hide a coordinator's own event from them.
+ */
+export function isEventInDepartment(
+  eventDepartment: string | undefined,
+  department: string,
+): boolean {
+  const scope = department.trim().toLowerCase()
+  if (!scope) return false
+  return (eventDepartment ?? '').trim().toLowerCase() === scope
+}
+
 /** Event image upload limits. */
 export const EVENT_IMAGE_MAX_COUNT = 3
 export const EVENT_IMAGE_MAX_BYTES = 3 * 1024 * 1024 // 3MB

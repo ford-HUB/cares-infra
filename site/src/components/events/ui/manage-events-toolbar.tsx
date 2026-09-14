@@ -1,4 +1,4 @@
-import { Plus, Search, X } from 'lucide-react'
+import { Building2, Plus, Search, X } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   EVENT_STATUS_FILTERS,
@@ -19,6 +19,8 @@ interface ManageEventsToolbarProps {
   hasActiveFilters: boolean
   /** False until the first fetch settles, so the counts don't flash "0 of 0 events". */
   initialized: boolean
+  /** The college a coordinator is scoped to; absent for admins and directors. */
+  scopeLabel?: string
   onSearchChange: (value: string) => void
   onTimeChange: (value: EventTimeFilter) => void
   onStatusChange: (value: EventStatusFilter) => void
@@ -41,6 +43,7 @@ export function ManageEventsToolbar({
   upcoming,
   hasActiveFilters,
   initialized,
+  scopeLabel,
   onSearchChange,
   onTimeChange,
   onStatusChange,
@@ -50,8 +53,17 @@ export function ManageEventsToolbar({
 }: ManageEventsToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-xl font-semibold text-gray-900">All Events</h1>
+      <div className="flex flex-wrap items-baseline gap-3">
+        <h1 className="text-xl font-semibold text-gray-900">
+          {scopeLabel ? 'Department Events' : 'All Events'}
+        </h1>
+        {/* A scoped list must say so, or an empty table reads as "no events exist". */}
+        {scopeLabel && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--cares-primary)]/10 px-2.5 py-0.5 text-[12px] font-medium text-[var(--cares-primary)]">
+            <Building2 className="h-3 w-3" />
+            {scopeLabel}
+          </span>
+        )}
         {initialized ? (
           <>
             <p className="text-[13px] text-gray-500">

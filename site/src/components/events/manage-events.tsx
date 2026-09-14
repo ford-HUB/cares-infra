@@ -6,6 +6,7 @@ import {
   type EventStatusFilter,
   type EventTimeFilter,
 } from '../../constants/event-filters'
+import { isEventInDepartment } from '../../constants/event'
 import type { EventSortKey } from '../../constants/manage-events'
 import { ContentShell } from '../portal/ui/content-shell'
 import { usePortalRole } from '../../store/auth-store'
@@ -29,10 +30,12 @@ export function ManageEvents() {
   const { events, loading, initialized, error, fetchEvents, removeEvent, cancelEvent } =
     useEventStore()
 
-  // A coordinator's events are scoped to the college on their profile; the form pins
-  // category and department to it. Other roles get the open form.
+  // A coordinator's events are scoped to the college on their profile: the list
+  // shows only that college's events, and the form pins category and department to
+  // it. Other roles see every event and get the open form.
   const isCoordinator = usePortalRole() === 'coordinator'
   const profileDepartment = useProfileStore((s) => s.profile?.department)
+  const profileInitialized = useProfileStore((s) => s.initialized)
   const ensureProfile = useProfileStore((s) => s.ensureProfile)
   const lockedDepartment = isCoordinator ? (profileDepartment ?? '') : undefined
 
@@ -69,7 +72,21 @@ export function ManageEvents() {
     void fetchEvents()
   }, [fetchEvents])
 
-  const rows = useMemo(() => events.map(formatEventRow), [events])
+  const allRows = useMemo(() => events.map(formatEventRow), [events])
+
+  /**
+   * The only set this screen ever works from. Filtering here — rather than in the
+   * table — is what keeps another college's event out of the type list, the counts,
+   * the row actions, and the detail and edit modals, which all read from these rows.
+   */
+  const rows = useMemo(() => {
+    if (!isCoordinator) return allRows
+    const scope = profileDepartment?.trim() ?? ''
+    // Until the profile lands there is no scope to apply, and showing every college's
+    // events in the meantime would be exactly what this is meant to prevent.
+    if (!scope) return []
+    return allRows.filter((row) => isEventInDepartment(row.department, scope))
+  }, [allRows, isCoordinator, profileDepartment])
 
   const eventTypes = useMemo(() => [...new Set(rows.map((e) => e.type))].sort(), [rows])
 
@@ -178,7 +195,8 @@ export function ManageEvents() {
         total={rows.length}
         upcoming={upcomingCount}
         hasActiveFilters={hasActiveFilters}
-        initialized={initialized}
+        initialized={initialized && (!isCoordinator || profileInitialized)}
+        scopeLabel={isCoordinator ? (profileDepartment ?? 'No department assigned') : undefined}
         onSearchChange={resetToFirstPage(setSearchTerm)}
         onTimeChange={resetToFirstPage(setTimeFilter)}
         onStatusChange={resetToFirstPage(setStatusFilter)}
@@ -199,7 +217,7 @@ export function ManageEvents() {
       <ManageEventsTable
         events={filteredEvents}
         loading={loading}
-        initialized={initialized}
+        initialized={initialized && (!isCoordinator || profileInitialized)}
         page={page}
         sortConfig={sortConfig}
         hasActiveFilters={hasActiveFilters}

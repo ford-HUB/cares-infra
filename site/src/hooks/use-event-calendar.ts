@@ -4,6 +4,7 @@ import {
   CALENDAR_CATEGORY_FILTER_ALL,
   CALENDAR_DATE_FORMATS,
 } from '../constants/calendar'
+import { isEventInDepartment } from '../constants/event'
 import { usePortalRole } from '../store/auth-store'
 import { useCalendarStore } from '../store/calendar-store'
 import { useProfileStore } from '../store/profile-store'
@@ -65,7 +66,9 @@ export function useEventCalendar() {
   const events = useMemo(
     () =>
       isCoordinator
-        ? allEvents.filter((event) => event.department === profileDepartment)
+        ? allEvents.filter((event) =>
+            isEventInDepartment(event.department, profileDepartment ?? ''),
+          )
         : allEvents,
     [allEvents, isCoordinator, profileDepartment],
   )
