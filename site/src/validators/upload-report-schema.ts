@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import {
   DEPARTMENT_ORDER,
-  REPORT_DOCUMENT_MAX_COUNT,
   REPORT_SUMMARY_MAX_LENGTH,
   REPORT_TITLE_MAX_LENGTH,
 } from '../constants/monthly-report'
@@ -17,14 +16,6 @@ const countSchema = z
   .number({ message: 'Enter a whole number' })
   .int('Enter a whole number')
   .min(0, 'Cannot be negative')
-
-/**
- * The attachments the coordinator picked, kept as `File`s until submit — they are
- * read into data URLs only once the rest of the form is valid.
- */
-const attachmentSchema = z.custom<File>((value) => value instanceof File, {
-  message: 'Attach a file',
-})
 
 export const uploadReportSchema = z.object({
   title: z
@@ -48,11 +39,10 @@ export const uploadReportSchema = z.object({
     serviceHours: countSchema,
     beneficiaries: countSchema,
   }),
-  documents: z
-    .array(attachmentSchema)
-    .min(1, 'Attach at least one report file')
-    .max(REPORT_DOCUMENT_MAX_COUNT, `Attach up to ${REPORT_DOCUMENT_MAX_COUNT} files`),
 })
+
+// Attachments are not part of the schema: they live on the upload page as files
+// being read, with their own progress and errors — see `useUploadReportForm`.
 
 export type UploadReportFormValues = z.infer<typeof uploadReportSchema>
 
@@ -62,5 +52,4 @@ export const uploadReportDefaultValues: UploadReportFormValues = {
   department: 'CCS',
   summary: '',
   metrics: { events: 0, volunteers: 0, serviceHours: 0, beneficiaries: 0 },
-  documents: [],
 }

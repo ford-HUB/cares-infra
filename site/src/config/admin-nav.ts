@@ -144,7 +144,7 @@ export const adminNav: PortalNavConfig = {
         // The director's library has folders of its own; the coordinator gets the
         // filed record per department and nothing to rearrange.
         { label: 'Monthly Report', to: '/admin/monthly-reports', roles: ['director'] },
-        { label: 'Department Files', to: ADMIN_DEPARTMENT_FILES_PATH, roles: ['coordinator'] },
+        { label: 'Monthly Report', to: ADMIN_DEPARTMENT_FILES_PATH, roles: ['coordinator'] },
       ],
     },
     { type: 'section', label: 'Administration' },

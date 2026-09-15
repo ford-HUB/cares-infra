@@ -57,7 +57,7 @@ export function DepartmentFilesPage() {
   return (
     <ContentShell variant="full" className="flex h-full flex-col">
       <MonthlyReportToolbar
-        title="Department Files"
+        title="Monthly Report"
         description="Approved monthly reports on record, filed under each department."
         noun="on record"
         search={search}

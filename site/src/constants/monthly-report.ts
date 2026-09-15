@@ -146,8 +146,52 @@ export type PeriodFilter = string | typeof PERIOD_FILTER_ALL
 /** Mirrors the server's per-file cap on `POST /api/v1/monthly-reports`. */
 export const REPORT_DOCUMENT_MAX_BYTES = 15 * 1024 * 1024
 export const REPORT_DOCUMENT_MAX_COUNT = 10
-export const REPORT_DOCUMENT_ACCEPT =
-  '.pdf,.docx,.xlsx,.png,.jpg,.jpeg,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png,image/jpeg,image/webp'
+/**
+ * What a coordinator may attach: PDF, Word, and images. Spreadsheets are not report
+ * documents — the figures go in the form — so `.xlsx` is turned away at the picker
+ * and again on drop.
+ */
+export const REPORT_DOCUMENT_ALLOWED_TYPES: {
+  extensions: string[]
+  mimes: string[]
+  kind: ReportDocumentKind
+}[] = [
+  { extensions: ['pdf'], mimes: ['application/pdf'], kind: 'pdf' },
+  {
+    extensions: ['docx'],
+    mimes: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    kind: 'docx',
+  },
+  {
+    extensions: ['png', 'jpg', 'jpeg', 'webp'],
+    mimes: ['image/png', 'image/jpeg', 'image/webp'],
+    kind: 'image',
+  },
+]
+
+export const REPORT_DOCUMENT_ACCEPT = REPORT_DOCUMENT_ALLOWED_TYPES.flatMap((type) => [
+  ...type.extensions.map((extension) => `.${extension}`),
+  ...type.mimes,
+]).join(',')
+
+/** Human reading of the allow-list, for the dropzone hint. */
+export const REPORT_DOCUMENT_FORMAT_HINT = 'Files must be in PDF, Word, PNG or JPG format.'
+
+/** The kind a picked file will be stored as, or null when it is not allowed. */
+export function reportDocumentKindFor(file: File): ReportDocumentKind | null {
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+  const match = REPORT_DOCUMENT_ALLOWED_TYPES.find(
+    (type) => type.mimes.includes(file.type) || type.extensions.includes(extension),
+  )
+  return match?.kind ?? null
+}
+
+/** The two pages of Upload Report, in order. */
+export const UPLOAD_REPORT_STEPS = [
+  { key: 'details', label: 'Report details' },
+  { key: 'files', label: 'Upload files' },
+] as const
+export type UploadReportStep = (typeof UPLOAD_REPORT_STEPS)[number]['key']
 
 export const REPORT_TITLE_MAX_LENGTH = 200
 export const REPORT_SUMMARY_MAX_LENGTH = 4000
