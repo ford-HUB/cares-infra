@@ -202,3 +202,21 @@ export const REPORT_STATUS_SUBMITTER_HINTS: Record<MonthlyReportStatus, string> 
   approved: 'Approved and filed under your department.',
   returned: 'Sent back with a note; upload a corrected copy.',
 }
+
+/**
+ * The report department a portal profile's college maps to. Profiles carry the
+ * college as free text (a code or its full name); reports carry the code. Null
+ * when the profile's college is not one the report board files under.
+ */
+export function reportDepartmentFor(
+  profileDepartment: string | null | undefined,
+): ReportDepartment | null {
+  const needle = profileDepartment?.trim().toLowerCase()
+  if (!needle) return null
+  return (
+    DEPARTMENT_ORDER.find(
+      (code) =>
+        code.toLowerCase() === needle || DEPARTMENT_LABELS[code].toLowerCase() === needle,
+    ) ?? null
+  )
+}

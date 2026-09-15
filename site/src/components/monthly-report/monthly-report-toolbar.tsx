@@ -19,6 +19,8 @@ interface MonthlyReportToolbarProps {
   total: number
   /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
+  /** What the month picker filters by — `reporting period` unless a page says otherwise. */
+  periodLabel?: string
   onSearchChange: (value: string) => void
   onPeriodChange: (value: PeriodFilter) => void
 }
@@ -33,6 +35,7 @@ export function MonthlyReportToolbar({
   shown,
   total,
   initialized,
+  periodLabel = 'reporting period',
   onSearchChange,
   onPeriodChange,
 }: MonthlyReportToolbarProps) {
@@ -65,12 +68,14 @@ export function MonthlyReportToolbar({
         </div>
 
         <select
-          aria-label="Filter by reporting period"
+          aria-label={`Filter by ${periodLabel}`}
           value={period}
           onChange={(event) => onPeriodChange(event.target.value as PeriodFilter)}
           className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
         >
-          <option value={PERIOD_FILTER_ALL}>All periods</option>
+          <option value={PERIOD_FILTER_ALL}>
+            All {periodLabel === 'reporting period' ? 'periods' : `${periodLabel}s`}
+          </option>
           {periods.map((one) => (
             <option key={one} value={one}>
               {formatReportPeriod(one)}
