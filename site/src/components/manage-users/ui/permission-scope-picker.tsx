@@ -1,5 +1,6 @@
 import { RotateCcw } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ModuleToggle } from '../../access-control/ui/module-toggle'
 import type { AccessCatalog, PermissionKey } from '../../../types/access-control'
 
 interface PermissionScopePickerProps {
@@ -11,6 +12,8 @@ interface PermissionScopePickerProps {
   customised: boolean
   disabled: boolean
   onToggle: (permission: PermissionKey, next: boolean) => void
+  /** The module header's tick — moves every action in the module together. */
+  onToggleAll: (permissions: PermissionKey[], next: boolean) => void
   onReset: () => void
 }
 
@@ -27,6 +30,7 @@ export function PermissionScopePicker({
   customised,
   disabled,
   onToggle,
+  onToggleAll,
   onReset,
 }: PermissionScopePickerProps) {
   if (loading || !catalog) {
@@ -69,7 +73,14 @@ export function PermissionScopePicker({
         return (
           <section key={module} className="rounded-lg border border-gray-200">
             <header className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-3 py-2">
-              <h4 className="text-[13px] font-semibold text-gray-800">{module}</h4>
+              <ModuleToggle
+                module={module}
+                idPrefix="scope"
+                permissions={entries}
+                selected={selected}
+                disabled={disabled}
+                onToggleAll={onToggleAll}
+              />
               <span className="text-[11px] tabular-nums text-gray-500">
                 {entries.filter((entry) => selected.has(entry.key)).length}/{entries.length}
               </span>

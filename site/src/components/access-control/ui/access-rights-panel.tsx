@@ -74,13 +74,17 @@ export function AccessRightsPanel({
   const dirty = hasPendingChanges(selected, granted)
   const activeSuspensions = detail?.suspensions.filter((entry) => entry.active) ?? []
 
-  const toggle = (permission: PermissionKey, next: boolean) => {
+  const toggle = (permission: PermissionKey, next: boolean) => toggleMany([permission], next)
+
+  const toggleMany = (permissions: PermissionKey[], next: boolean) => {
     setSelected((current) => {
       const updated = new Set(current)
-      if (next) {
-        updated.add(permission)
-      } else {
-        updated.delete(permission)
+      for (const permission of permissions) {
+        if (next) {
+          updated.add(permission)
+        } else {
+          updated.delete(permission)
+        }
       }
       return updated
     })
@@ -151,9 +155,11 @@ export function AccessRightsPanel({
           {!loading && !error && detail && (
             <>
               <p className="rounded-lg bg-gray-50 px-3 py-2 text-[12px] text-gray-600">
-                Ticked actions are what this account can do. Unticking one inherited
-                from the <span className="capitalize">{user.role}</span> role revokes it
-                for this person only; suspensions sit on top and are lifted separately.
+                Ticked actions are what this account can do. Tick a module heading to
+                grant the whole module, or untick it to remove the module from this
+                person's portal. Unticking an action inherited from the{' '}
+                <span className="capitalize">{user.role}</span> role revokes it for this
+                person only; suspensions sit on top and are lifted separately.
               </p>
 
               {byModule.map((group) => (
@@ -172,6 +178,7 @@ export function AccessRightsPanel({
                     )
                   }
                   onToggle={toggle}
+                  onToggleAll={toggleMany}
                   onLiftSuspension={onLiftSuspension}
                 />
               ))}

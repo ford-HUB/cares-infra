@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import {
+  PermissionKey,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 
 export const LoginSchema = z
   .object({
@@ -21,8 +24,15 @@ export const LoginResponseSchema = z.object({
   access_token: z.string(),
 });
 
+/**
+ * The rights in force for the account — baseline + grants − revokes − active
+ * suspensions. The portal builds its navigation and route guards from this list.
+ */
+const PermissionsSchema = z.array(z.enum(PermissionKey));
+
 export const AdminLoginResponseSchema = LoginResponseSchema.extend({
   lastname: z.string(),
+  permissions: PermissionsSchema,
 });
 
 export const MeResponseSchema = z.object({
@@ -33,6 +43,7 @@ export const MeResponseSchema = z.object({
   role_type: z.enum(RoleType),
   /** The root operator account — its sign-in email is fixed. */
   is_protected: z.boolean(),
+  permissions: PermissionsSchema,
 });
 
 /** Mirrors the portal's Request Access form limits (site/src/constants/request-access.ts). */

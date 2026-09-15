@@ -1,7 +1,11 @@
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import type { PermissionKey } from '../../../types/access-control'
+import { navGateAllows, type NavChildItem } from '../../../types/nav'
 import type { PortalRole } from '../../../types/portal-roles'
+
+const EMPTY_PERMISSIONS: ReadonlySet<PermissionKey> = new Set()
 
 interface ExpandableNavGroupProps {
   icon: LucideIcon
@@ -9,8 +13,9 @@ interface ExpandableNavGroupProps {
   collapsed: boolean
   expanded: boolean
   onToggle: () => void
-  children: { label: string; to: string; roles?: PortalRole[] }[]
+  children: NavChildItem[]
   userRole?: PortalRole
+  permissions?: ReadonlySet<PermissionKey>
 }
 
 export function ExpandableNavGroup({
@@ -21,9 +26,10 @@ export function ExpandableNavGroup({
   onToggle,
   children,
   userRole,
+  permissions = EMPTY_PERMISSIONS,
 }: ExpandableNavGroupProps) {
-  const visibleChildren = children.filter(
-    (child) => !child.roles || (userRole && child.roles.includes(userRole)),
+  const visibleChildren = children.filter((child) =>
+    navGateAllows(child, userRole, permissions),
   )
 
   if (visibleChildren.length === 0) return null

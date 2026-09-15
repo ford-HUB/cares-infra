@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { useEffect } from 'react'
 import type { PortalNavConfig } from '../../types/nav'
 import { useChatRealtime } from '../../hooks/use-chat-realtime'
+import { usePermissionSync } from '../../hooks/use-permission-sync'
 import { usePortalLayout } from '../../hooks/use-portal-layout'
 import { useAuthStore } from '../../store/auth-store'
 import { useProfileStore } from '../../store/profile-store'
@@ -26,6 +27,7 @@ export function PortalLayout({ nav, title }: PortalLayoutProps) {
   } = usePortalLayout()
 
   useChatRealtime()
+  usePermissionSync()
 
   useEffect(() => {
     if (user) {
@@ -43,6 +45,7 @@ export function PortalLayout({ nav, title }: PortalLayoutProps) {
           title={title}
           collapsed={sidebarCollapsed}
           userRole={user?.role}
+          permissions={user?.permissions}
         />
       </div>
 

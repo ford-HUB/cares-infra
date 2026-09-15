@@ -1,21 +1,30 @@
 import { useMemo, useState } from 'react'
-import type { NavItem, PortalNavConfig } from '../../types/nav'
+import type { PermissionKey } from '../../types/access-control'
+import {
+  navGateAllows,
+  type NavGate,
+  type NavItem,
+  type PortalNavConfig,
+} from '../../types/nav'
 import type { PortalRole } from '../../types/portal-roles'
 import { ExpandableNavGroup } from './ui/expandable-nav-group'
 import { MenuItem } from './ui/menu-item'
 import { NavSectionLabel } from './ui/nav-section-label'
 
 /**
- * Keeps only what the role may see, then drops any section heading left with no
- * item under it.
+ * Keeps only what the role may see and the account is permitted to open, then drops
+ * any section heading left with no item under it.
  */
-function visibleNavItems(items: NavItem[], userRole?: PortalRole): NavItem[] {
-  const allowed = (roles?: PortalRole[]) =>
-    !roles || (!!userRole && roles.includes(userRole))
+function visibleNavItems(
+  items: NavItem[],
+  userRole: PortalRole | undefined,
+  permissions: ReadonlySet<PermissionKey>,
+): NavItem[] {
+  const allowed = (gate: NavGate) => navGateAllows(gate, userRole, permissions)
 
   const permitted = items.filter((item) => {
-    if (!allowed(item.roles)) return false
-    if (item.type === 'group') return item.children.some((child) => allowed(child.roles))
+    if (!allowed(item)) return false
+    if (item.type === 'group') return item.children.some(allowed)
     return true
   })
 
@@ -31,6 +40,8 @@ interface PortalSidebarProps {
   title?: string
   collapsed: boolean
   userRole?: PortalRole
+  /** The session's effective rights; anything gated on a right not held is hidden. */
+  permissions?: PermissionKey[]
 }
 
 export function PortalSidebar({
@@ -38,6 +49,7 @@ export function PortalSidebar({
   title,
   collapsed,
   userRole,
+  permissions,
 }: PortalSidebarProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Dashboard: true,
@@ -47,9 +59,11 @@ export function PortalSidebar({
     setExpandedGroups((prev) => ({ ...prev, [label]: !prev[label] }))
   }
 
+  const held = useMemo(() => new Set(permissions ?? []), [permissions])
+
   const visibleItems = useMemo(
-    () => visibleNavItems(config.items, userRole),
-    [config.items, userRole],
+    () => visibleNavItems(config.items, userRole, held),
+    [config.items, userRole, held],
   )
 
   const firstSectionLabel = visibleItems.find((item) => item.type === 'section')?.label
@@ -108,6 +122,7 @@ export function PortalSidebar({
               expanded={!!expandedGroups[item.label]}
               onToggle={() => toggleGroup(item.label)}
               userRole={userRole}
+              permissions={held}
             >
               {item.children}
             </ExpandableNavGroup>

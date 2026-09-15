@@ -10,6 +10,8 @@ export interface AdminLoginApiResponse {
   firstname: string
   lastname: string
   has_interests: boolean
+  /** Effective rights — baseline + grants − revokes − active suspensions. */
+  permissions: string[]
   access_token: string
 }
 
@@ -20,6 +22,7 @@ export interface MeApiResponse {
   lastname: string
   role_type: string
   is_protected: boolean
+  permissions: string[]
 }
 
 export interface BackendSuccess<T> {

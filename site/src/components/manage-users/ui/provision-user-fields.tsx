@@ -17,6 +17,7 @@ type ProvisionUserFieldsProps = Pick<
   | 'selected'
   | 'scopeCustomised'
   | 'togglePermission'
+  | 'togglePermissions'
   | 'resetScope'
 > & {
   scopeOpen: boolean
@@ -52,6 +53,7 @@ export function ProvisionUserFields({
   selected,
   scopeCustomised,
   togglePermission,
+  togglePermissions,
   resetScope,
   scopeOpen,
   onScopeOpenChange,
@@ -227,6 +229,7 @@ export function ProvisionUserFields({
               customised={scopeCustomised}
               disabled={submitting}
               onToggle={togglePermission}
+              onToggleAll={togglePermissions}
               onReset={resetScope}
             />
           </div>

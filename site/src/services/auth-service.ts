@@ -18,6 +18,7 @@ function mapLoginResponse(data: AdminLoginApiResponse): AuthUser {
     role: mapRoleTypeToPortalRole(data.role_type),
     firstName: data.firstname,
     lastName: data.lastname,
+    permissions: data.permissions ?? [],
   }
 }
 
@@ -29,6 +30,7 @@ function mapMeResponse(data: MeApiResponse): AuthUser {
     firstName: data.firstname,
     lastName: data.lastname,
     isProtected: data.is_protected,
+    permissions: data.permissions ?? [],
   }
 }
 

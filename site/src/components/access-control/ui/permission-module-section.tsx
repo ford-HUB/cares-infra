@@ -5,6 +5,7 @@ import type {
   PermissionKey,
   PermissionSource,
 } from '../../../types/access-control'
+import { ModuleToggle } from './module-toggle'
 import { PermissionSourceBadge } from './rights-badges'
 
 interface PermissionModuleSectionProps {
@@ -15,10 +16,15 @@ interface PermissionModuleSectionProps {
   suspensionOf: (permission: PermissionKey) => ActionSuspension | undefined
   disabled: boolean
   onToggle: (permission: PermissionKey, next: boolean) => void
+  /** The module header's tick — grants or revokes every action listed under it. */
+  onToggleAll: (permissions: PermissionKey[], next: boolean) => void
   onLiftSuspension: (suspensionId: string) => void
 }
 
-/** One module's actions, each with its own toggle, provenance, and suspension notice. */
+/**
+ * One module's actions, each with its own toggle, provenance, and suspension notice,
+ * under a header tick that moves the whole module at once.
+ */
 export function PermissionModuleSection({
   module,
   permissions,
@@ -27,6 +33,7 @@ export function PermissionModuleSection({
   suspensionOf,
   disabled,
   onToggle,
+  onToggleAll,
   onLiftSuspension,
 }: PermissionModuleSectionProps) {
   const grantedCount = permissions.filter((entry) => selected.has(entry.key)).length
@@ -34,7 +41,14 @@ export function PermissionModuleSection({
   return (
     <section className="rounded-lg border border-gray-200">
       <header className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-3 py-2">
-        <h4 className="text-[13px] font-semibold text-gray-800">{module}</h4>
+        <ModuleToggle
+          module={module}
+          idPrefix="rights"
+          permissions={permissions}
+          selected={selected}
+          disabled={disabled}
+          onToggleAll={onToggleAll}
+        />
         <span className="text-[11px] tabular-nums text-gray-500">
           {grantedCount}/{permissions.length}
         </span>

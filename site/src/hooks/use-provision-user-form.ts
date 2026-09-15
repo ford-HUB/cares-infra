@@ -52,18 +52,25 @@ export function useProvisionUserForm(onCreated?: () => void) {
     setSelected(new Set(baseline))
   }, [baseline, scopeCustomised])
 
-  const togglePermission = useCallback((permission: PermissionKey, next: boolean) => {
+  const togglePermissions = useCallback((permissions: PermissionKey[], next: boolean) => {
     setScopeCustomised(true)
     setSelected((current) => {
       const updated = new Set(current)
-      if (next) {
-        updated.add(permission)
-      } else {
-        updated.delete(permission)
+      for (const permission of permissions) {
+        if (next) {
+          updated.add(permission)
+        } else {
+          updated.delete(permission)
+        }
       }
       return updated
     })
   }, [])
+
+  const togglePermission = useCallback(
+    (permission: PermissionKey, next: boolean) => togglePermissions([permission], next),
+    [togglePermissions],
+  )
 
   const resetScope = useCallback(() => {
     setScopeCustomised(false)
@@ -110,6 +117,7 @@ export function useProvisionUserForm(onCreated?: () => void) {
     selected,
     scopeCustomised,
     togglePermission,
+    togglePermissions,
     resetScope,
     credentials,
     reset,

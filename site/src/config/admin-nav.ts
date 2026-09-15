@@ -24,6 +24,7 @@ import {
   ADMIN_SYSTEM_SERVICES_PATH,
   ADMIN_UPLOAD_REPORT_PATH,
 } from '../constants/routes'
+import { PORTAL_PERMISSION as P } from '../constants/portal-permissions'
 import type { PortalNavConfig } from '../types/nav'
 import type { PortalRole } from '../types/portal-roles'
 
@@ -34,8 +35,14 @@ import type { PortalRole } from '../types/portal-roles'
 const OPERATIONS_ROLES: PortalRole[] = ['director', 'coordinator']
 
 /**
- * One portal UI for every portal role. Access differs per item: add `roles` to an
- * item or a child to hide it from roles that shouldn't see it.
+ * One portal UI for every portal role. Access differs per item, on two gates that
+ * must both pass: `roles` hides an item from roles that shouldn't see it at all, and
+ * `permission` ties it to the module right an admin grants or revokes per account in
+ * Access Control — untick "View donations" for a coordinator and Donation drops out
+ * of their sidebar on the next sync. Items with neither are open to everyone.
+ *
+ * Rankings and Notices have no catalog right of their own yet, so they stay on the
+ * role gate alone.
  */
 export const adminNav: PortalNavConfig = {
   portalTitle: 'CARES Admin Portal',
@@ -54,7 +61,13 @@ export const adminNav: PortalNavConfig = {
     { type: 'link', label: 'User Profile', to: '/admin/profile', icon: CircleUser },
 
     { type: 'section', label: 'Support' },
-    { type: 'link', label: 'Chat', to: ADMIN_CHAT_PATH, icon: MessageSquare },
+    {
+      type: 'link',
+      label: 'Chat',
+      to: ADMIN_CHAT_PATH,
+      icon: MessageSquare,
+      permission: P.CHAT_ACCESS,
+    },
     {
       type: 'link',
       label: 'Mail Inbox',
@@ -62,6 +75,7 @@ export const adminNav: PortalNavConfig = {
       icon: Mail,
       // Each admin links a personal Google mailbox — nothing here is shared.
       roles: ['admin'],
+      permission: P.MAIL_ACCESS,
     },
     {
       type: 'link',
@@ -71,6 +85,7 @@ export const adminNav: PortalNavConfig = {
       // Tickets come in from every portal and the mobile app; only the system
       // operator triages them.
       roles: ['admin'],
+      permission: P.SUPPORT_TICKET_MANAGE,
     },
 
     { type: 'section', label: 'Management' },
@@ -80,9 +95,14 @@ export const adminNav: PortalNavConfig = {
       icon: Users,
       roles: ['admin', 'director'],
       children: [
-        { label: 'Request', to: '/admin/user-request', roles: ['director'] },
-        { label: 'Master', to: '/admin/manage-users' },
-        { label: 'Access Control', to: '/admin/access-control', roles: ['admin'] },
+        { label: 'Request', to: '/admin/user-request', roles: ['director'], permission: P.USERS_VIEW },
+        { label: 'Master', to: '/admin/manage-users', permission: P.USERS_VIEW },
+        {
+          label: 'Access Control',
+          to: '/admin/access-control',
+          roles: ['admin'],
+          permission: P.ACCESS_CONTROL_VIEW,
+        },
       ],
     },
     {
@@ -91,9 +111,10 @@ export const adminNav: PortalNavConfig = {
       icon: LibraryBig,
       roles: OPERATIONS_ROLES,
       children: [
-        // Donations are the director's ledger; coordinators track attendance only.
-        { label: 'Donation', to: '/admin/internal-donation-tracking', roles: ['director'] },
-        { label: 'Attendance', to: '/admin/attendance-log' },
+        // Donations follow the account's "View donations" right — the director
+        // baseline holds it, a coordinator's is whatever the admin set.
+        { label: 'Donation', to: '/admin/internal-donation-tracking', permission: P.DONATIONS_VIEW },
+        { label: 'Attendance', to: '/admin/attendance-log', permission: P.ATTENDANCE_VIEW },
       ],
     },
     {
@@ -101,6 +122,7 @@ export const adminNav: PortalNavConfig = {
       label: 'Manage Event',
       icon: FileText,
       roles: OPERATIONS_ROLES,
+      permission: P.EVENTS_VIEW,
       children: [
         { label: 'Event', to: '/admin/event-list' },
         { label: 'Attendees', to: '/admin/event-attendees' },
@@ -115,6 +137,7 @@ export const adminNav: PortalNavConfig = {
       icon: CreditCard,
       // Certificates are issued and signed by the director; coordinators never see them.
       roles: ['director'],
+      permission: P.CERTIFICATES_VIEW,
       children: [
         { label: 'Customization', to: '/admin/templates-list' },
         { label: 'Live Certificates', to: '/admin/deployed-certificate-templates' },
@@ -136,6 +159,7 @@ export const adminNav: PortalNavConfig = {
       label: 'Reports',
       icon: FileText,
       roles: OPERATIONS_ROLES,
+      permission: P.REPORTS_VIEW,
       children: [
         // The director decides; the coordinator submits. Each role sees its own
         // half of the line in the same slot.
@@ -154,10 +178,10 @@ export const adminNav: PortalNavConfig = {
       icon: ShieldCheck,
       roles: ['admin'],
       children: [
-        { label: 'Audit Logs', to: '/admin/audit-logs' },
-        { label: 'Login Activity', to: '/admin/login-activity' },
-        { label: 'Active Sessions', to: '/admin/active-sessions' },
-        { label: 'Security Policies', to: '/admin/security-policies' },
+        { label: 'Audit Logs', to: '/admin/audit-logs', permission: P.SECURITY_AUDIT_VIEW },
+        { label: 'Login Activity', to: '/admin/login-activity', permission: P.SECURITY_AUDIT_VIEW },
+        { label: 'Active Sessions', to: '/admin/active-sessions', permission: P.SECURITY_SESSION_REVOKE },
+        { label: 'Security Policies', to: '/admin/security-policies', permission: P.SECURITY_POLICY_MANAGE },
       ],
     },
     {
@@ -165,10 +189,25 @@ export const adminNav: PortalNavConfig = {
       label: 'System',
       icon: Server,
       children: [
-        { label: 'Performance', to: '/admin/system-performance', roles: ['admin'] },
+        {
+          label: 'Performance',
+          to: '/admin/system-performance',
+          roles: ['admin'],
+          permission: P.SYSTEM_PERFORMANCE_VIEW,
+        },
         { label: 'Notices', to: ADMIN_SYSTEM_NOTICES_PATH },
-        { label: 'Services', to: ADMIN_SYSTEM_SERVICES_PATH, roles: ['admin'] },
-        { label: 'Maintenance', to: ADMIN_MAINTENANCE_PATH, roles: ['admin'] },
+        {
+          label: 'Services',
+          to: ADMIN_SYSTEM_SERVICES_PATH,
+          roles: ['admin'],
+          permission: P.SYSTEM_SERVICE_MANAGE,
+        },
+        {
+          label: 'Maintenance',
+          to: ADMIN_MAINTENANCE_PATH,
+          roles: ['admin'],
+          permission: P.SYSTEM_MAINTENANCE_MANAGE,
+        },
       ],
     },
   ],

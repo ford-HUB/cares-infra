@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { EDITABLE_BASELINE_ROLES } from '../../../constants/access-control'
 import type { AccessCatalog, PermissionKey } from '../../../types/access-control'
+import { ModuleToggle } from './module-toggle'
 
 interface RoleBaselinesModalProps {
   open: boolean
@@ -52,13 +53,17 @@ export function RoleBaselinesModal({
       permissions: catalog.permissions.filter((entry) => entry.module === module),
     })) ?? []
 
-  const toggle = (permission: PermissionKey, next: boolean) => {
+  const toggle = (permission: PermissionKey, next: boolean) => toggleMany([permission], next)
+
+  const toggleMany = (permissions: PermissionKey[], next: boolean) => {
     setSelected((current) => {
       const updated = new Set(current)
-      if (next) {
-        updated.add(permission)
-      } else {
-        updated.delete(permission)
+      for (const permission of permissions) {
+        if (next) {
+          updated.add(permission)
+        } else {
+          updated.delete(permission)
+        }
       }
       return updated
     })
@@ -95,10 +100,19 @@ export function RoleBaselinesModal({
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 py-4">
           {groups.map((group) => (
             <section key={group.module} className="rounded-lg border border-gray-200">
-              <header className="border-b border-gray-100 bg-gray-50 px-3 py-2">
-                <h4 className="text-[13px] font-semibold text-gray-800">
-                  {group.module}
-                </h4>
+              <header className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-3 py-2">
+                <ModuleToggle
+                  module={group.module}
+                  idPrefix="baseline"
+                  permissions={group.permissions}
+                  selected={selected}
+                  disabled={saving}
+                  onToggleAll={toggleMany}
+                />
+                <span className="text-[11px] tabular-nums text-gray-500">
+                  {group.permissions.filter((entry) => selected.has(entry.key)).length}/
+                  {group.permissions.length}
+                </span>
               </header>
               <ul className="divide-y divide-gray-100">
                 {group.permissions.map((entry) => (

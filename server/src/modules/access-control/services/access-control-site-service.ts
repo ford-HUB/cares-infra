@@ -120,6 +120,26 @@ export class AccessControlSiteService {
   }
 
   /**
+   * The rights a signed-in portal account holds right now, for the session payload.
+   * Unlike `getUserDetail` this never throws on an app-side role — a volunteer simply
+   * carries no portal rights — so the sign-in path stays clean.
+   */
+  async effectivePermissionsFor(userId: string): Promise<PermissionKey[]> {
+    const row = await this.accessControlRepository.findUser(userId);
+    if (
+      !row ||
+      !(PORTAL_ROLE_TYPES as readonly RoleType[]).includes(row.role.type)
+    ) {
+      return [];
+    }
+
+    const baseline = await this.baselineFor(row.role.type);
+    const suspensions = toSuspensionViews(row, Date.now());
+
+    return resolveEffective(row, baseline, suspensions).effective;
+  }
+
+  /**
    * Takes the complete set of actions the user should end up with and stores only the
    * departures from the role baseline, so a later baseline change still reaches users
    * who were never customised.

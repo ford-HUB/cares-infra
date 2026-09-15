@@ -31,6 +31,7 @@ import { LoginActivityRecorder } from 'src/modules/login-activity/services/login
 import { SessionRegistry } from 'src/modules/sessions/services/session-registry';
 import { LoginPolicyEnforcer } from 'src/modules/security-policy/services/login-policy-enforcer';
 import { AuditLogRecorder } from 'src/modules/audit-logs/services/audit-log-recorder';
+import { AccessControlSiteService } from 'src/modules/access-control/services/access-control-site-service';
 import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
 import {
   RoleType,
@@ -48,6 +49,7 @@ export class AuthSiteService {
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
     private readonly auditLogRecorder: AuditLogRecorder,
     private readonly nodemailerService: NodemailerService,
+    private readonly accessControlSiteService: AccessControlSiteService,
   ) {}
 
   async adminLogin(
@@ -245,6 +247,9 @@ export class AuthSiteService {
       firstname: account.user.firstname,
       lastname: account.user.lastname,
       has_interests: account.user.user_interest !== null,
+      permissions: await this.accessControlSiteService.effectivePermissionsFor(
+        account.user.user_id,
+      ),
       access_token: this.jwtService.sign({
         sub: account.user.user_id,
         email: account.email,
@@ -335,6 +340,9 @@ export class AuthSiteService {
       lastname: profile.lastname,
       role_type: profile.role.type,
       is_protected: isProtectedAdminEmail(email, this.configService),
+      permissions: await this.accessControlSiteService.effectivePermissionsFor(
+        profile.user_id,
+      ),
     };
   }
 

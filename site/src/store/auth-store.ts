@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { SESSION_ENDED_EVENT } from '../constants/session'
 import type { AuthUser, PortalRole } from '../types/portal-roles'
 import type { LoginPayload } from '../types/auth'
+import type { PermissionKey } from '../types/access-control'
 import { useProfileStore } from './profile-store'
 import {
   getSession,
@@ -18,6 +19,12 @@ interface AuthState {
   error: string | null
   login: (payload: LoginPayload) => Promise<AuthUser | null>
   checkAuth: () => Promise<boolean>
+  /**
+   * Re-reads the session quietly — no loading flag, no redirect — and swaps the user
+   * in only when something changed. This is how an admin's Access Control edit
+   * reaches an already-open portal without a sign-out.
+   */
+  refreshPermissions: () => Promise<void>
   logout: () => Promise<void>
   clearError: () => void
 }
@@ -53,6 +60,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     return false
   },
 
+  refreshPermissions: async () => {
+    const current = useAuthStore.getState().user
+    if (!current) return
+
+    const res = await getSession()
+    // A revoked token is already handled by the SESSION_ENDED_EVENT listener below; a
+    // network blip is not a reason to change anything on screen.
+    if (!res.success || !res.data) return
+
+    const next = res.data
+    if (samePermissions(current.permissions, next.permissions) && current.role === next.role) {
+      return
+    }
+
+    set({ user: { ...current, role: next.role, permissions: next.permissions } })
+  },
+
   logout: async () => {
     await logoutSession()
     // The profile store caches for the whole session now, so it has to be dropped
@@ -82,8 +106,21 @@ window.addEventListener(SESSION_ENDED_EVENT, (event) => {
   })
 })
 
+function samePermissions(a: PermissionKey[], b: PermissionKey[]): boolean {
+  if (a.length !== b.length) return false
+  const held = new Set(a)
+  return b.every((permission) => held.has(permission))
+}
+
 export function usePortalRole(): PortalRole | null {
   return useAuthStore((s) => s.user?.role ?? null)
+}
+
+/** Whether the signed-in account currently holds a right. Unauthenticated → false. */
+export function usePermission(permission: PermissionKey | undefined): boolean {
+  return useAuthStore((s) =>
+    !permission ? true : (s.user?.permissions.includes(permission) ?? false),
+  )
 }
 
 export function isCoordinatorRole(role: PortalRole | null): boolean {
