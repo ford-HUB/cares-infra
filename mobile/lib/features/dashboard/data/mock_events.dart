@@ -26,6 +26,8 @@ final kMockFeaturedEvents = [
     venueLongitude: 123.8854,
     isFeatured: true,
     openToBeneficiaries: true,
+    organizerDescription:
+        'Gawad Kalinga Cebu has been running community feeding and housing programs across Metro Cebu since 2008, working with student volunteers and local barangays.',
   ),
   CaresEvent(
     id: 'featured-2',

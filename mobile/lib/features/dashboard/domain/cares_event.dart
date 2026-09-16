@@ -24,6 +24,7 @@ class CaresEvent {
     this.hoursCompleted,
     this.imageAsset,
     this.imageUrls = const [],
+    this.organizerDescription,
   });
 
   final String id;
@@ -60,6 +61,11 @@ class CaresEvent {
   /// Server-streamed images (authenticated URLs), in upload order. Empty on
   /// the prototype fixture, which still draws the category placeholder.
   final List<String> imageUrls;
+
+  /// Short blurb about the organizer shown under "About the organizer".
+  /// Null on server rows for now; the details screen falls back to a generic
+  /// line built from [organization].
+  final String? organizerDescription;
 
   String get monthLabel {
     const months = [
@@ -108,6 +114,48 @@ class CaresEvent {
   }
 
   String get statusLabel => isCompleted ? 'Completed' : 'Upcoming';
+
+  /// Assumed length of an event when the server gives no end time — the
+  /// geofence keeps recording this long after [startsAt].
+  static const Duration defaultDuration = Duration(hours: 4);
+
+  /// How early before [startsAt] the tracker starts recording, so the
+  /// volunteer's approach to the venue is captured too.
+  static const Duration trackingLeadTime = Duration(minutes: 30);
+
+  /// [date] combined with the clock time parsed out of [time] (`'8:00 AM'`).
+  /// Falls back to midnight when [time] does not parse.
+  DateTime get startsAt {
+    final match = RegExp(
+      r'^\s*(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])?',
+    ).firstMatch(time);
+    if (match == null) return DateTime(date.year, date.month, date.day);
+    var hour = int.parse(match.group(1)!);
+    final minute = int.tryParse(match.group(2) ?? '') ?? 0;
+    final meridiem = match.group(3)?.toUpperCase();
+    if (meridiem == 'PM' && hour < 12) hour += 12;
+    if (meridiem == 'AM' && hour == 12) hour = 0;
+    return DateTime(date.year, date.month, date.day, hour, minute);
+  }
+
+  DateTime get endsAt {
+    final hours = hoursCompleted;
+    final duration = hours != null && hours > 0
+        ? Duration(hours: hours)
+        : defaultDuration;
+    return startsAt.add(duration);
+  }
+
+  /// Window in which the geofence records coordinates for this event.
+  DateTime get trackingStartsAt => startsAt.subtract(trackingLeadTime);
+
+  bool isTrackingWindowOpen(DateTime now) =>
+      !isCompleted && !now.isBefore(trackingStartsAt) && now.isBefore(endsAt);
+
+  bool isSameDay(DateTime other) =>
+      date.year == other.year &&
+      date.month == other.month &&
+      date.day == other.day;
 
   bool matchesQuery(String query) {
     if (query.trim().isEmpty) return true;

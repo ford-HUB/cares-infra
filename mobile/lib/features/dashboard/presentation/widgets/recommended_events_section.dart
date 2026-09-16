@@ -5,11 +5,12 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/skeleton.dart';
 import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_empty_state.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/matched_events_carousel.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/home_section_header.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/recommended_event_tile.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 
-/// "Matched for you" on the volunteer home tab: a swipeable deck of open events
+/// "Recommended Events" on the volunteer home tab: a list of open events
 /// whose copy the server's NLP matched to the interests this volunteer picked.
 /// Remount the widget (new key) to force a refetch — pull-to-refresh and an
 /// interest change both do that.
@@ -62,8 +63,8 @@ class _RecommendedEventsSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SectionHeader(onSeeAll: widget.onSeeAll),
-        const SizedBox(height: 8),
+        HomeSectionHeader(title: 'Recommended Events', onSeeAll: widget.onSeeAll),
+        const SizedBox(height: 6),
         page.when(
           loading: () => const _RecommendedSkeleton(),
           error: (error, _) => _RecommendedError(
@@ -84,52 +85,19 @@ class _RecommendedEventsSectionState
                     'No open events match your interests yet. Check back soon or browse all events.',
               );
             }
-            return MatchedEventsCarousel(
-              events: data.events.take(widget.maxItems).toList(),
-              onEventTap: (event) =>
-                  EventDetailsScreen.open(context, event.toCaresEvent()),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final event in data.events.take(widget.maxItems))
+                  RecommendedEventTile(
+                    event: event,
+                    onTap: () =>
+                        EventDetailsScreen.open(context, event.toCaresEvent()),
+                  ),
+              ],
             );
           },
         ),
-      ],
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({this.onSeeAll});
-
-  final VoidCallback? onSeeAll;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.auto_awesome, size: 18, color: AppColors.primary),
-        const SizedBox(width: 6),
-        const Expanded(
-          child: Text(
-            'Matched for you',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-        if (onSeeAll != null)
-          TextButton(
-            onPressed: onSeeAll,
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              visualDensity: VisualDensity.compact,
-            ),
-            child: const Text(
-              'See all',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            ),
-          ),
       ],
     );
   }
@@ -234,36 +202,31 @@ class _RecommendedSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SkeletonLoader(
-      child: SizedBox(
-        height: 218,
-        child: SkeletonCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Row(
-                children: [
-                  SkeletonBox(width: 110, height: 18, radius: 9),
-                  Spacer(),
-                  SkeletonBox(width: 70, height: 18, radius: 9),
+      child: Column(
+        children: [
+          for (var i = 0; i < 3; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: const [
+                  SkeletonBox(width: 84, height: 84, radius: 14),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonBox(height: 16),
+                        SizedBox(height: 10),
+                        SkeletonBox(width: 150, height: 12),
+                        SizedBox(height: 8),
+                        SkeletonBox(width: 120, height: 12),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              SizedBox(height: 16),
-              SkeletonBox(width: 220, height: 16),
-              SizedBox(height: 8),
-              SkeletonBox(width: 160, height: 16),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  SkeletonBox(width: 70, height: 22, radius: 11),
-                  SizedBox(width: 6),
-                  SkeletonBox(width: 90, height: 22, radius: 11),
-                ],
-              ),
-              Spacer(),
-              SkeletonBox(height: 12),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }

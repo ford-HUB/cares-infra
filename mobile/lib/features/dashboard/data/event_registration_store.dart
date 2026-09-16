@@ -6,12 +6,14 @@ import '../data/mock_events.dart';
 
 class EventParticipation {
   EventParticipation({
-    required this.eventId,
+    required this.event,
     required this.participantEmail,
     required this.participantName,
     required this.registeredAt,
-  });
+  }) : eventId = event.id;
 
+  /// The joined event — the geofence tracker reads its venue and schedule.
+  final CaresEvent event;
   final String eventId;
   final String participantEmail;
   final String participantName;
@@ -30,6 +32,9 @@ class EventRegistrationStore extends ChangeNotifier {
 
   String _key(String eventId, String email) =>
       '$eventId|${email.trim().toLowerCase()}';
+
+  List<EventParticipation> participationsForEvent(String eventId) =>
+      _participations.values.where((p) => p.eventId == eventId).toList();
 
   List<EventParticipation> participationsForEmail(String email) {
     final normalized = email.trim().toLowerCase();
@@ -61,7 +66,7 @@ class EventRegistrationStore extends ChangeNotifier {
     if (existing != null) return existing;
 
     final participation = EventParticipation(
-      eventId: event.id,
+      event: event,
       participantEmail: participantEmail,
       participantName: participantName,
       registeredAt: DateTime.now(),
@@ -89,7 +94,7 @@ class EventRegistrationStore extends ChangeNotifier {
       var participation = _participations[key];
       if (participation == null) {
         participation = EventParticipation(
-          eventId: event.id,
+          event: event,
           participantEmail: participantEmail,
           participantName: participantName,
           registeredAt: event.date.subtract(const Duration(days: 7)),

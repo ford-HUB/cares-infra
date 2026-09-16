@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/dashboard/domain/mock_location_records.dart';
+import 'package:mobile/features/dashboard/data/location_records_repository.dart';
+import 'package:mobile/features/dashboard/domain/location_records.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/location_record_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
 /// One day's CSV: file facts up top, then a preview of the first rows in the
-/// same columns the server receives.
-///
-/// Design-only — Share and Delete show a snackbar instead of touching disk.
-class LocationRecordDetailScreen extends StatelessWidget {
+/// same columns the server receives. Rows come from SQLite for that day;
+/// Delete removes both the rows and the CSV on disk.
+class LocationRecordDetailScreen extends StatefulWidget {
   const LocationRecordDetailScreen({
     super.key,
     required this.file,
@@ -19,27 +19,93 @@ class LocationRecordDetailScreen extends StatelessWidget {
   final LocationRecordFile file;
   final DateTime today;
 
-  static void open(
+  static Future<void> open(
     BuildContext context, {
     required LocationRecordFile file,
     required DateTime today,
   }) {
-    Navigator.of(context).push(
+    return Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LocationRecordDetailScreen(file: file, today: today),
       ),
     );
   }
 
-  void _mock(BuildContext context, String text) {
+  @override
+  State<LocationRecordDetailScreen> createState() =>
+      _LocationRecordDetailScreenState();
+}
+
+class _LocationRecordDetailScreenState
+    extends State<LocationRecordDetailScreen> {
+  final _repository = LocationRecordsRepository();
+
+  static const _previewLimit = 25;
+
+  List<LocationCapture> _preview = const [];
+  int _inArea = 0;
+  bool _loading = true;
+
+  LocationRecordFile get file => widget.file;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final preview = await _repository.preview(
+      file.dayKey,
+      limit: _previewLimit,
+    );
+    final inArea = await _repository.inAreaCount(file.dayKey);
+    if (!mounted) return;
+    setState(() {
+      _preview = preview;
+      _inArea = inArea;
+      _loading = false;
+    });
+  }
+
+  void _snack(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
     );
   }
 
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete this file?'),
+        content: Text(
+          '${file.fileName} and its ${file.captureCount} captures will be '
+          'removed from this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.heart),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _repository.deleteDay(file.dayKey);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final inArea = file.preview.where((c) => c.inArea).length;
+    final synced = file.syncState == LocationRecordSyncState.synced;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -47,7 +113,7 @@ class LocationRecordDetailScreen extends StatelessWidget {
         children: [
           ProfileEditHeader(
             onBack: () => Navigator.of(context).pop(),
-            title: locationRecordDayLabel(file.date, today),
+            title: locationRecordDayLabel(file.date, widget.today),
             subtitle: file.fileName,
           ),
           Expanded(
@@ -78,18 +144,26 @@ class LocationRecordDetailScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       _Fact(label: 'Captures', value: '${file.captureCount}'),
                       _Fact(
+                        label: 'Pending',
+                        value: file.pendingCount == 0
+                            ? 'All uploaded'
+                            : '${file.pendingCount} waiting',
+                      ),
+                      _Fact(
                         label: 'File size',
                         value: '${file.sizeKb.toStringAsFixed(1)} KB',
                       ),
-                      _Fact(
+                      const _Fact(
                         label: 'Interval',
-                        value: 'Every 2 min while checked in',
+                        value: 'Every second while an event runs',
                       ),
-                      _Fact(
+                      const _Fact(
                         label: 'Columns',
-                        value: MockLocationRecords.csvHeader,
+                        value: LocationRecords.csvHeader,
                         mono: true,
                       ),
+                      if (file.path != null)
+                        _Fact(label: 'Path', value: file.path!, mono: true),
                     ],
                   ),
                 ),
@@ -106,8 +180,8 @@ class LocationRecordDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'first ${file.preview.length} of ${file.captureCount} · '
-                      '$inArea in area',
+                      'first ${_preview.length} of ${file.captureCount} · '
+                      '$_inArea in area',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -116,14 +190,25 @@ class LocationRecordDetailScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                _CsvPreviewTable(rows: file.preview),
+                if (_loading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  )
+                else
+                  _CsvPreviewTable(rows: _preview),
                 const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () =>
-                            _mock(context, 'Share sheet coming soon.'),
+                        onPressed: () => _snack('Share sheet coming soon.'),
                         icon: const Icon(Icons.ios_share_rounded, size: 18),
                         label: const Text('Share CSV'),
                       ),
@@ -131,10 +216,7 @@ class LocationRecordDetailScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: file.syncState ==
-                                LocationRecordSyncState.synced
-                            ? () => _mock(context, 'File removed from device.')
-                            : null,
+                        onPressed: synced ? _delete : null,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.heart,
                           side: BorderSide(
@@ -147,7 +229,7 @@ class LocationRecordDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (file.syncState != LocationRecordSyncState.synced)
+                if (!synced)
                   const Padding(
                     padding: EdgeInsets.only(top: 8),
                     child: Text(

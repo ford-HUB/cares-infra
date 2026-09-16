@@ -142,6 +142,106 @@ Future<bool> showEventJoinConfirmationDialog(
   ).then((value) => value ?? false);
 }
 
+/// Asks the volunteer to confirm leaving an event they already joined.
+/// Resolves to `true` only when they tap "Yes, Cancel".
+Future<bool> showEventCancelConfirmationDialog(
+  BuildContext context,
+  CaresEvent event,
+) {
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: true,
+    builder: (ctx) => Dialog(
+      backgroundColor: AppColors.surface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.event_busy_rounded,
+                size: 32,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Cancel Registration?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                height: 1.25,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'You will be removed from "${event.title}" and your slot will be '
+              'released to other volunteers. You can register again while '
+              'slots remain.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.55,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      side: const BorderSide(color: AppColors.inputFill),
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Keep',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Yes, Cancel',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  ).then((value) => value ?? false);
+}
+
 Future<void> showEventRegistrationSuccessDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
