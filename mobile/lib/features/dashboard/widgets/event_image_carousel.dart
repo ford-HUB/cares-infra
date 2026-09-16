@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Event photos for a card header. One image is static; two or more auto-
-/// advance every [interval] and loop, with a dot strip showing the position.
+/// Event photos for a card header. One image is static; two or more cross-
+/// fade to the next every [interval] and loop, with a dot strip showing the
+/// position. A tap skips ahead; a finger held on the photo pauses the loop.
 /// The URLs point at the server's private image stream, so every request
 /// carries the session's bearer token.
 ///
@@ -26,15 +27,17 @@ class EventImageCarousel extends StatefulWidget {
   /// Fixed height, or null to fill whatever the parent gives (a hero).
   final double? height;
 
-  /// How long each image stays before the deck slides to the next one.
+  /// How long each image stays before it fades to the next one.
   final Duration interval;
+
+  /// Length of the cross-fade between two photos.
+  static const fadeDuration = Duration(milliseconds: 900);
 
   @override
   State<EventImageCarousel> createState() => _EventImageCarouselState();
 }
 
 class _EventImageCarouselState extends State<EventImageCarousel> {
-  final PageController _controller = PageController();
   Timer? _timer;
   int _page = 0;
 
@@ -56,10 +59,26 @@ class _EventImageCarouselState extends State<EventImageCarousel> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _precacheAround(_page);
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
-    _controller.dispose();
     super.dispose();
+  }
+
+  /// Warm the next photo so the fade lands on pixels, not a spinner.
+  void _precacheAround(int index) {
+    final urls = widget.imageUrls;
+    if (urls.length < 2) return;
+    final next = urls[(index + 1) % urls.length];
+    precacheImage(
+      NetworkImage(next, headers: ApiClient().authHeaders()),
+      context,
+    );
   }
 
   void _startTimer() {
@@ -69,13 +88,10 @@ class _EventImageCarouselState extends State<EventImageCarousel> {
   }
 
   void _advance() {
-    if (!mounted || !_controller.hasClients) return;
+    if (!mounted || widget.imageUrls.isEmpty) return;
     final next = (_page + 1) % widget.imageUrls.length;
-    _controller.animateToPage(
-      next,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOutCubic,
-    );
+    setState(() => _page = next);
+    _precacheAround(next);
   }
 
   @override
@@ -90,44 +106,54 @@ class _EventImageCarouselState extends State<EventImageCarousel> {
       Stack(
         fit: StackFit.expand,
         children: [
-          // A finger on the deck pauses the slideshow so a swipe isn't undone
-          // by the next tick.
+          // A finger on the photo pauses the loop; a tap skips ahead and
+          // the timer restarts from that photo.
           Listener(
             onPointerDown: (_) => _timer?.cancel(),
             onPointerUp: (_) => _startTimer(),
             onPointerCancel: (_) => _startTimer(),
-            child: PageView.builder(
-              controller: _controller,
-              physics: _autoplay
-                  ? const PageScrollPhysics()
-                  : const NeverScrollableScrollPhysics(),
-              itemCount: widget.imageUrls.length,
-              onPageChanged: (index) => setState(() => _page = index),
-              itemBuilder: (context, index) => Image.network(
-                widget.imageUrls[index],
-                headers: headers,
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-                errorBuilder: (_, _, _) => widget.placeholder,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      widget.placeholder,
-                      const Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.primary,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _autoplay ? _advance : null,
+              child: AnimatedSwitcher(
+                duration: EventImageCarousel.fadeDuration,
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                // Keep the outgoing photo underneath so the fade never shows
+                // the placeholder between two images.
+                layoutBuilder: (current, previous) => Stack(
+                  fit: StackFit.expand,
+                  children: [...previous, ?current],
+                ),
+                child: KeyedSubtree(
+                  key: ValueKey(_page),
+                  child: Image.network(
+                    widget.imageUrls[_page],
+                    headers: headers,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    errorBuilder: (_, _, _) => widget.placeholder,
+                    loadingBuilder: (context, child, progress) {
+                      if (progress == null) return child;
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          widget.placeholder,
+                          const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),

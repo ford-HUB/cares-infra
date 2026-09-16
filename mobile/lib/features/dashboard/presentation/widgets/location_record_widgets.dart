@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/dashboard/domain/mock_location_records.dart';
+import 'package:mobile/features/dashboard/domain/location_records.dart';
 
 const _months = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

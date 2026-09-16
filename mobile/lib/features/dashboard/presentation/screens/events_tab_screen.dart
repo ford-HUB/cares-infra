@@ -6,12 +6,18 @@ import 'package:mobile/core/widgets/skeleton.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 import 'package:mobile/features/dashboard/data/mock_events.dart';
 import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/event_category_tiles.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/event_list_card.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/event_week_strip.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/home_section_header.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/events_page_widgets.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 
-/// Browse and search events — mirrors the donor/student catalog layout
-/// (search, category filters, event cards).
+/// Browse and search events: a day strip across the top, search, an
+/// "All Events" row of category tiles, then the "Popular Events" list of
+/// compact cards. One 20px gutter lines every block up; the horizontal rows
+/// bleed to the screen edge but start on that same gutter.
 ///
 /// Volunteers see the events the server matched to their interests (title and
 /// description read by nlp-service), so the list is empty until something
@@ -32,6 +38,12 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
   final _searchFocusNode = FocusNode();
   String _query = '';
   String _selectedCategory = 'All';
+
+  /// Midnight-normalised day picked on the strip, or null for every date.
+  DateTime? _selectedDay;
+
+  static const _gutter = 20.0;
+  static const _stripDays = 14;
 
   @override
   void initState() {
@@ -54,12 +66,27 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
     return event.tags.contains(chip);
   }
 
+  static DateTime _dayOf(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  bool _matchesDay(CaresEvent event) =>
+      _selectedDay == null || _dayOf(event.date) == _selectedDay;
+
   List<CaresEvent> _filter(List<CaresEvent> source, String chip) {
     return source
         .where(
-          (event) => _matchesChip(event, chip) && event.matchesQuery(_query),
+          (event) =>
+              _matchesChip(event, chip) &&
+              _matchesDay(event) &&
+              event.matchesQuery(_query),
         )
         .toList();
+  }
+
+  /// Today plus the next [_stripDays] - 1 days.
+  List<DateTime> get _stripRange {
+    final today = _dayOf(DateTime.now());
+    return List.generate(_stripDays, (i) => today.add(Duration(days: i)));
   }
 
   /// "All" plus every interest the matched events were tagged with, in the
@@ -76,7 +103,9 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
   List<String> get _suggestions => smartSearchSuggestionsFor(_query);
 
   bool get _hasActiveFilters =>
-      _query.trim().isNotEmpty || _selectedCategory != 'All';
+      _query.trim().isNotEmpty ||
+      _selectedCategory != 'All' ||
+      _selectedDay != null;
 
   String _subtitle(int count, {bool loading = false}) {
     if (loading) return 'Finding events that match your interests…';
@@ -105,7 +134,10 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
 
   void _clearFilters() {
     _clearSearch();
-    setState(() => _selectedCategory = 'All');
+    setState(() {
+      _selectedCategory = 'All';
+      _selectedDay = null;
+    });
   }
 
   Future<void> _chooseInterests() async {
@@ -132,16 +164,17 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
               );
 
     final source = catalog.valueOrNull?.events ?? const <CaresEvent>[];
-    // No chips until something matched — an empty catalog has nothing to
+    // No tiles until something matched — an empty catalog has nothing to
     // narrow, and the row would only advertise interests with no events.
     final chips = _chipsFor(source);
     final showChips = source.isNotEmpty && chips.length > 1;
-    // A chip picked before a refetch may no longer exist; fall back to All
+    // A tile picked before a refetch may no longer exist; fall back to All
     // rather than filtering everything out against a label nothing carries.
     final activeChip = chips.contains(_selectedCategory)
         ? _selectedCategory
         : 'All';
     final events = _filter(source, activeChip);
+    final eventDays = {for (final event in source) _dayOf(event.date)};
 
     return GestureDetector(
       onTap: () => _searchFocusNode.unfocus(),
@@ -162,7 +195,22 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  padding: const EdgeInsets.only(top: 16),
+                  child: EventWeekStrip(
+                    days: _stripRange,
+                    selected: _selectedDay,
+                    eventDays: eventDays,
+                    gutter: _gutter,
+                    onSelected: (day) {
+                      setState(() => _selectedDay = day);
+                      _searchFocusNode.unfocus();
+                    },
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(_gutter, 16, _gutter, 0),
                   child: SmartEventSearchBar(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
@@ -175,24 +223,29 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
                   ),
                 ),
               ),
-              if (showChips)
-                SliverToBoxAdapter(
+              if (showChips) ...[
+                const SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: EventCategoryFilters(
-                      selected: activeChip,
-                      categories: chips,
-                      onSelected: (category) {
-                        setState(() => _selectedCategory = category);
-                        _searchFocusNode.unfocus();
-                      },
-                    ),
+                    padding: EdgeInsets.fromLTRB(_gutter, 24, _gutter, 12),
+                    child: HomeSectionHeader(title: 'All Events'),
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: EventCategoryTiles(
+                    categories: chips,
+                    selected: activeChip,
+                    gutter: _gutter,
+                    onSelected: (category) {
+                      setState(() => _selectedCategory = category);
+                      _searchFocusNode.unfocus();
+                    },
+                  ),
+                ),
+              ],
               ...catalog.when(
                 loading: () => [
                   const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    padding: EdgeInsets.fromLTRB(_gutter, 24, _gutter, 24),
                     sliver: SliverToBoxAdapter(child: _CatalogSkeleton()),
                   ),
                 ],
@@ -227,16 +280,30 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
                     )
                   else
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                        _gutter,
+                        24,
+                        _gutter,
+                        24,
+                      ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
-                          final event = events[index];
-                          return EventCatalogCard(
-                            event: event,
-                            onTap: () =>
-                                EventDetailsScreen.open(context, event),
+                          if (index == 0) {
+                            return const Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: HomeSectionHeader(title: 'Popular Events'),
+                            );
+                          }
+                          final event = events[index - 1];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: EventListCard(
+                              event: event,
+                              onTap: () =>
+                                  EventDetailsScreen.open(context, event),
+                            ),
                           );
-                        }, childCount: events.length),
+                        }, childCount: events.length + 1),
                       ),
                     ),
                 ],
@@ -370,29 +437,33 @@ class _CatalogSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SkeletonLoader(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < 3; i++)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: SkeletonBox(width: 140, height: 18),
+          ),
+          for (var i = 0; i < 4; i++)
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 12),
               child: SkeletonCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(12),
+                child: Row(
                   children: const [
-                    SkeletonBox(height: 110, radius: 0),
-                    Padding(
-                      padding: EdgeInsets.all(16),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SkeletonBox(width: 200, height: 16),
-                          SizedBox(height: 8),
-                          SkeletonBox(width: 140, height: 12),
+                          SkeletonBox(width: 180, height: 16),
+                          SizedBox(height: 10),
+                          SkeletonBox(width: 110, height: 12),
                           SizedBox(height: 6),
-                          SkeletonBox(width: 160, height: 12),
+                          SkeletonBox(width: 150, height: 12),
                         ],
                       ),
                     ),
+                    SizedBox(width: 12),
+                    SkeletonBox(width: 84, height: 84, radius: 14),
                   ],
                 ),
               ),
