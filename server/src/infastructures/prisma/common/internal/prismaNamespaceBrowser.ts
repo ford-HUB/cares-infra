@@ -89,7 +89,8 @@ export const ModelName = {
   MonthlyReport: 'MonthlyReport',
   MonthlyReportDocument: 'MonthlyReportDocument',
   MonthlyReportTrailEntry: 'MonthlyReportTrailEntry',
-  Announcement: 'Announcement'
+  Announcement: 'Announcement',
+  Notification: 'Notification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -724,6 +725,23 @@ export const AnnouncementScalarFieldEnum = {
 } as const
 
 export type AnnouncementScalarFieldEnum = (typeof AnnouncementScalarFieldEnum)[keyof typeof AnnouncementScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  notification_id: 'notification_id',
+  user_id: 'user_id',
+  title: 'title',
+  description: 'description',
+  category: 'category',
+  tone: 'tone',
+  href: 'href',
+  dedupe_key: 'dedupe_key',
+  read_at: 'read_at',
+  dismissed_at: 'dismissed_at',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const SortOrder = {

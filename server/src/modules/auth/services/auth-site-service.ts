@@ -240,6 +240,10 @@ export class AuthSiteService {
       userAgent,
     });
 
+    const rights = await this.accessControlSiteService.sessionRightsFor(
+      account.user.user_id,
+    );
+
     return {
       user_id: account.user.user_id,
       role_type: account.user.role.type,
@@ -247,9 +251,8 @@ export class AuthSiteService {
       firstname: account.user.firstname,
       lastname: account.user.lastname,
       has_interests: account.user.user_interest !== null,
-      permissions: await this.accessControlSiteService.effectivePermissionsFor(
-        account.user.user_id,
-      ),
+      permissions: rights.permissions,
+      suspensions: rights.suspensions,
       access_token: this.jwtService.sign({
         sub: account.user.user_id,
         email: account.email,
@@ -332,6 +335,9 @@ export class AuthSiteService {
     }
 
     const email = profile.accounts[0]?.email ?? user.email;
+    const rights = await this.accessControlSiteService.sessionRightsFor(
+      profile.user_id,
+    );
 
     return {
       user_id: profile.user_id,
@@ -340,9 +346,8 @@ export class AuthSiteService {
       lastname: profile.lastname,
       role_type: profile.role.type,
       is_protected: isProtectedAdminEmail(email, this.configService),
-      permissions: await this.accessControlSiteService.effectivePermissionsFor(
-        profile.user_id,
-      ),
+      permissions: rights.permissions,
+      suspensions: rights.suspensions,
     };
   }
 

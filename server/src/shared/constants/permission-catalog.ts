@@ -276,6 +276,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.REPORTS_VIEW,
     PermissionKey.REPORTS_PUBLISH,
     PermissionKey.SECURITY_AUDIT_VIEW,
+    // Directors write the notices coordinators read; the portal's Notices screen
+    // offers its composer on this right rather than on the role.
+    PermissionKey.SYSTEM_NOTICE_MANAGE,
     PermissionKey.CHAT_ACCESS,
     PermissionKey.MAIL_ACCESS,
     PermissionKey.SUPPORT_TICKET_MANAGE,

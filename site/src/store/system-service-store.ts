@@ -11,6 +11,9 @@ import {
 } from '../services/system-service-service'
 import type { ServiceLogEntry, SystemService } from '../types/system-service'
 
+/** How long after "Run now" to re-read the roster for the run's outcome. */
+const RUN_SETTLE_REFRESH_MS = 3000
+
 interface SystemServiceState {
   services: SystemService[]
   /** False until the first read settles, so the duty banner doesn't flash "0 of 0". */
@@ -104,6 +107,12 @@ export const useSystemServiceStore = create<SystemServiceState>((set) => ({
       service.id,
       () => triggerServiceRun(service.id),
       `${service.name} triggered.`,
+    )
+    // The response may catch the run in flight; a follow-up read a moment later
+    // swaps the live bar for the finished tick without waiting on the 15s poll.
+    window.setTimeout(
+      () => void useSystemServiceStore.getState().fetchServices({ silent: true }),
+      RUN_SETTLE_REFRESH_MS,
     )
   },
 

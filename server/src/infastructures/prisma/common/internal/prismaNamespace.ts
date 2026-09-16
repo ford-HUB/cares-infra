@@ -422,7 +422,8 @@ export const ModelName = {
   MonthlyReport: 'MonthlyReport',
   MonthlyReportDocument: 'MonthlyReportDocument',
   MonthlyReportTrailEntry: 'MonthlyReportTrailEntry',
-  Announcement: 'Announcement'
+  Announcement: 'Announcement',
+  Notification: 'Notification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement"
+    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3328,6 +3329,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Notification: {
+      payload: Prisma.$NotificationPayload<ExtArgs>
+      fields: Prisma.NotificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NotificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NotificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        findFirst: {
+          args: Prisma.NotificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NotificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        findMany: {
+          args: Prisma.NotificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        create: {
+          args: Prisma.NotificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        createMany: {
+          args: Prisma.NotificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NotificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        delete: {
+          args: Prisma.NotificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        update: {
+          args: Prisma.NotificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.NotificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NotificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NotificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.NotificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        aggregate: {
+          args: Prisma.NotificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotification>
+        }
+        groupBy: {
+          args: Prisma.NotificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NotificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3985,6 +4060,23 @@ export const AnnouncementScalarFieldEnum = {
 export type AnnouncementScalarFieldEnum = (typeof AnnouncementScalarFieldEnum)[keyof typeof AnnouncementScalarFieldEnum]
 
 
+export const NotificationScalarFieldEnum = {
+  notification_id: 'notification_id',
+  user_id: 'user_id',
+  title: 'title',
+  description: 'description',
+  category: 'category',
+  tone: 'tone',
+  href: 'href',
+  dedupe_key: 'dedupe_key',
+  read_at: 'read_at',
+  dismissed_at: 'dismissed_at',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4591,6 +4683,34 @@ export type EnumAnnouncementStateFieldRefInput<$PrismaModel> = FieldRefInputType
 export type ListEnumAnnouncementStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AnnouncementState[]'>
     
 
+
+/**
+ * Reference to a field of type 'NotificationCategory'
+ */
+export type EnumNotificationCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'NotificationCategory[]'
+ */
+export type ListEnumNotificationCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationCategory[]'>
+    
+
+
+/**
+ * Reference to a field of type 'NotificationTone'
+ */
+export type EnumNotificationToneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationTone'>
+    
+
+
+/**
+ * Reference to a field of type 'NotificationTone[]'
+ */
+export type ListEnumNotificationToneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationTone[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4740,6 +4860,7 @@ export type GlobalOmitConfig = {
   monthlyReportDocument?: Prisma.MonthlyReportDocumentOmit
   monthlyReportTrailEntry?: Prisma.MonthlyReportTrailEntryOmit
   announcement?: Prisma.AnnouncementOmit
+  notification?: Prisma.NotificationOmit
 }
 
 /* Types for Logging */

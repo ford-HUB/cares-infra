@@ -8,7 +8,8 @@ import {
   DONATION_STATUS_LABELS,
   type DonationStatusFilter,
 } from '../../constants/internal-donation'
-import { useAuthStore, usePortalRole } from '../../store/auth-store'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { useAuthStore, usePermission, useSuspension } from '../../store/auth-store'
 import { useInternalDonationStore } from '../../store/internal-donation-store'
 import type { DonationStatus } from '../../types/internal-donation'
 
@@ -20,7 +21,10 @@ export function InternalDonationTrackingPage() {
   const fetchDonations = useInternalDonationStore((s) => s.fetchDonations)
   const advance = useInternalDonationStore((s) => s.advance)
 
-  const role = usePortalRole()
+  // Moving a donation along is the "Record donations" right in Access Control;
+  // without it the modal is read-only, whatever the role.
+  const canRecord = usePermission(PORTAL_PERMISSION.DONATIONS_RECORD)
+  const recordSuspension = useSuspension(PORTAL_PERMISSION.DONATIONS_RECORD)
   const user = useAuthStore((s) => s.user)
   const actor = user ? `${user.firstName} ${user.lastName}` : 'Portal'
 
@@ -99,7 +103,8 @@ export function InternalDonationTrackingPage() {
         key={selected?.id ?? 'none'}
         donation={selected}
         saving={saving}
-        canAct={role === 'director'}
+        canAct={canRecord}
+        actSuspension={recordSuspension}
         onClose={() => setSelectedId(null)}
         onAdvance={handleAdvance}
       />

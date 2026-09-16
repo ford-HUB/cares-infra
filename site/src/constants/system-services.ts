@@ -94,6 +94,43 @@ export const SERVICE_TRIGGER_MODES: ServiceTriggerMode[] = [
 /** Interval choices staff pick from — a free-text minutes field invites typos. */
 export const SERVICE_INTERVAL_PRESETS = [5, 10, 15, 30, 60, 180, 360, 720] as const
 
+/**
+ * Cron schedules staff pick from, each with the expression it stands for. Six-field
+ * expressions carry a leading seconds field, which is how anything under a minute is
+ * said; the scheduler accepts both shapes. The last entry is the escape hatch — pick
+ * it and the raw expression becomes editable.
+ */
+export const SERVICE_CRON_CUSTOM = 'custom' as const
+
+export const SERVICE_CRON_PRESETS: { label: string; expression: string }[] = [
+  { label: 'Every 30 seconds', expression: '*/30 * * * * *' },
+  { label: 'Every minute', expression: '* * * * *' },
+  { label: 'Every 5 minutes', expression: '*/5 * * * *' },
+  { label: 'Every 15 minutes', expression: '*/15 * * * *' },
+  { label: 'Every 30 minutes', expression: '*/30 * * * *' },
+  { label: 'Every hour', expression: '0 * * * *' },
+  { label: 'Every 6 hours', expression: '0 */6 * * *' },
+  { label: 'Daily at midnight', expression: '0 0 * * *' },
+  { label: 'Weekdays at 8:00 AM', expression: '0 8 * * 1-5' },
+  { label: 'Sundays at 3:00 AM', expression: '0 3 * * 0' },
+  { label: 'First of the month at midnight', expression: '0 0 1 * *' },
+]
+
+/** The preset an expression belongs to, or `custom` when it matches none. */
+export function cronPresetFor(expression: string): string {
+  const trimmed = expression.trim().replace(/\s+/g, ' ')
+  return (
+    SERVICE_CRON_PRESETS.find((preset) => preset.expression === trimmed)?.expression ??
+    SERVICE_CRON_CUSTOM
+  )
+}
+
+/** Five fields (minute first) or six (seconds first) — anything else is a typo. */
+export function isValidCronShape(expression: string): boolean {
+  const fields = expression.trim().split(/\s+/).length
+  return fields === 5 || fields === 6
+}
+
 /** Runtime caps, in minutes. A run still going at the cap is killed. */
 export const SERVICE_RUNTIME_PRESETS = [1, 2, 5, 10, 15, 30, 60] as const
 
@@ -124,8 +161,13 @@ export function describeTrigger(trigger: ServiceTrigger): string {
         : `Every ${trigger.intervalMinutes} min`
     case 'daily':
       return `Daily at ${trigger.dailyAt}`
-    case 'cron':
-      return `Cron ${trigger.cronExpression}`
+    case 'cron': {
+      // A preset reads as its label; only a hand-written expression shows raw.
+      const preset = SERVICE_CRON_PRESETS.find(
+        (one) => one.expression === trigger.cronExpression.trim().replace(/\s+/g, ' '),
+      )
+      return preset ? preset.label : `Cron ${trigger.cronExpression}`
+    }
     case 'manual':
       return 'Manual only'
   }
@@ -133,6 +175,8 @@ export function describeTrigger(trigger: ServiceTrigger): string {
 
 /** Compact run length — seconds under a minute, `m s` above it. */
 export function formatRuntime(seconds: number): string {
+  // A sweep that finishes in a few hundred milliseconds is a real run, not "0s".
+  if (seconds > 0 && seconds < 1) return `${seconds.toFixed(1)}s`
   if (seconds < 60) return `${Math.round(seconds)}s`
   const minutes = Math.floor(seconds / 60)
   const rest = Math.round(seconds % 60)

@@ -1,6 +1,6 @@
 export type PortalRole = 'admin' | 'director' | 'coordinator'
 
-import type { PermissionKey } from './access-control'
+import type { PermissionKey, SessionSuspension } from './access-control'
 
 export interface AuthUser {
   id: string
@@ -17,6 +17,12 @@ export interface AuthUser {
    * lands here on the next sync, and the portal redraws to match.
    */
   permissions: PermissionKey[]
+  /**
+   * Suspensions in force on this account. A suspended right is already missing from
+   * `permissions`; this is what lets the portal keep the module or button on screen,
+   * locked and red, and say why on hover instead of making it vanish.
+   */
+  suspensions: SessionSuspension[]
 }
 
 export interface ApiResponse<T> {

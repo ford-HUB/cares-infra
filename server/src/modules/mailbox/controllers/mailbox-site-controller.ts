@@ -12,13 +12,15 @@ import {
 import type { Request, Response } from 'express';
 import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { GmailOAuthGuard } from 'src/infastructures/passport/guards/gmail-oauth-guard';
 import type { GmailOAuthResult } from 'src/infastructures/passport/strategies/gmail-strategy';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { Public } from 'src/shared/decorators/public-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
+import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   ListMailQueryDto,
@@ -61,15 +63,16 @@ type GmailCallbackRequest = Omit<Request, 'user'> & {
 };
 
 /**
- * Admin only. The mailbox is the system operator's support channel, and each admin
- * links their own Google account — nothing here is shared between portal users.
+ * Needs the "Use mail inbox" right. Each portal account links its own Google
+ * account — nothing here is shared between portal users.
  */
 @Controller('v1/mailbox')
 export class MailboxSiteController {
   constructor(private readonly mailboxSiteService: MailboxSiteService) {}
 
   @Get('connection')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @ResponseMessage('Mailbox connection')
   @ZSerialize(MailboxConnectionResponseSchema)
   async getConnection(
@@ -79,7 +82,8 @@ export class MailboxSiteController {
   }
 
   @Post('connection')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @HttpCode(200)
   @ResponseMessage('Google authorization link created')
   @ZSerialize(MailboxAuthorizeResponseSchema)
@@ -90,7 +94,8 @@ export class MailboxSiteController {
   }
 
   @Delete('connection')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @ResponseMessage('Google account disconnected')
   @ZSerialize(MailboxDisconnectResponseSchema)
   async disconnect(
@@ -129,7 +134,8 @@ export class MailboxSiteController {
   }
 
   @Get('messages')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @ResponseMessage('Mail messages')
   @ZSerialize(MailListResponseSchema)
   async listMail(
@@ -140,7 +146,8 @@ export class MailboxSiteController {
   }
 
   @Post('messages')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @ResponseMessage('Message sent')
   @ZSerialize(SendMailResponseSchema)
   async sendMail(
@@ -151,7 +158,8 @@ export class MailboxSiteController {
   }
 
   @Get('messages/:messageId')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @ResponseMessage('Mail message')
   @ZSerialize(MailDetailSchema)
   async getMail(
@@ -162,7 +170,8 @@ export class MailboxSiteController {
   }
 
   @Patch('messages/:messageId/read-state')
-  @Roles(RoleType.ADMIN)
+  @Roles(...PORTAL_ROLE_TYPES)
+  @RequirePermission(PermissionKey.MAIL_ACCESS)
   @ResponseMessage('Message updated')
   @ZSerialize(MailSummarySchema)
   async markRead(

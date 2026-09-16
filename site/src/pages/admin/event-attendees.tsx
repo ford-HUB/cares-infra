@@ -10,7 +10,8 @@ import {
   type AttendeeStatusFilter,
 } from '../../constants/attendees'
 import { useAttendeeStore } from '../../store/attendee-store'
-import { usePortalRole } from '../../store/auth-store'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
 import { useProfileStore } from '../../store/profile-store'
 import type { AttendeeEventOption, EventAttendee } from '../../types/attendee'
 import { exportAttendeesCsv } from '../../utils/export-attendees-csv'
@@ -34,6 +35,8 @@ export function EventAttendeesPage() {
   // profile has loaded the department is unknown, so the roster stays empty rather
   // than flashing the whole school's list.
   const isCoordinator = usePortalRole() === 'coordinator'
+  const canExport = usePermission(PORTAL_PERMISSION.ATTENDANCE_EXPORT)
+  const exportSuspension = useSuspension(PORTAL_PERMISSION.ATTENDANCE_EXPORT)
   const profileDepartment = useProfileStore((s) => s.profile?.department)
   const ensureProfile = useProfileStore((s) => s.ensureProfile)
 
@@ -108,7 +111,10 @@ export function EventAttendeesPage() {
 
     const selectedEvent = events.find((option) => String(option.eventId) === eventFilter)
     const slug = selectedEvent
-      ? selectedEvent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      ? selectedEvent.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
       : 'all-events'
 
     exportAttendeesCsv(filtered, `attendees-${slug}.csv`)
@@ -128,7 +134,8 @@ export function EventAttendeesPage() {
         onSearchChange={resetToFirstPage(setSearch)}
         onEventChange={resetToFirstPage(setEventFilter)}
         onStatusChange={resetToFirstPage(setStatusFilter)}
-        onExport={handleExport}
+        onExport={canExport ? handleExport : undefined}
+        exportSuspension={exportSuspension}
       />
 
       {error && (

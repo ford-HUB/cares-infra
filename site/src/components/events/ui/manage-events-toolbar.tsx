@@ -1,5 +1,7 @@
 import { Building2, Plus, Search, X } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import type { SessionSuspension } from '../../../types/access-control'
+import { LockedActionButton } from '../../portal/ui/locked-action'
 import {
   EVENT_STATUS_FILTERS,
   EVENT_TIME_FILTERS,
@@ -26,7 +28,10 @@ interface ManageEventsToolbarProps {
   onStatusChange: (value: EventStatusFilter) => void
   onTypeChange: (value: string) => void
   onClearFilters: () => void
-  onCreate: () => void
+  /** Omitted when the account lacks the create right — the button is not drawn. */
+  onCreate?: () => void
+  /** Set when the create right is suspended — the button is drawn locked instead. */
+  createSuspension?: SessionSuspension
 }
 
 const selectClass =
@@ -50,6 +55,7 @@ export function ManageEventsToolbar({
   onTypeChange,
   onClearFilters,
   onCreate,
+  createSuspension,
 }: ManageEventsToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -145,14 +151,24 @@ export function ManageEventsToolbar({
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex h-9 items-center gap-2 rounded-lg bg-[var(--cares-primary)] px-3 text-[13px] text-white transition-opacity hover:opacity-90"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Create Event
-        </button>
+        {createSuspension ? (
+          <LockedActionButton
+            suspension={createSuspension}
+            icon={Plus}
+            label="Create Event"
+          />
+        ) : (
+          onCreate && (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="flex h-9 items-center gap-2 rounded-lg bg-[var(--cares-primary)] px-3 text-[13px] text-white transition-opacity hover:opacity-90"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Create Event
+            </button>
+          )
+        )}
       </div>
     </div>
   )

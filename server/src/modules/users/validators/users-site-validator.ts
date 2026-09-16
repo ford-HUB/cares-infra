@@ -37,17 +37,19 @@ const CredentialLifetimeSchema = z.coerce
 /**
  * `manual` carries the email the requester asked from, `generate` has the server mint
  * one. The password is always generated either way — an administrator choosing a
- * password for someone else is the thing this flow exists to avoid.
+ * password for someone else is the thing this flow exists to avoid. The person's name
+ * and phone are not collected here — they belong to the account holder, who fills them
+ * in once signed in. `recipient_email` is the inbox the credentials are mailed to.
  */
 export const ProvisionUserSchema = z
   .object({
     mode: z.enum(['manual', 'generate']),
-    firstname: z.string().trim().min(1, 'First name is required').max(80),
-    lastname: z.string().trim().min(1, 'Last name is required').max(80),
     email: z.email('A valid email address is required').max(160).optional(),
+    recipient_email: z
+      .email('A valid recipient email address is required')
+      .max(160),
     role_type: ProvisionableRoleSchema,
     department: z.string().trim().max(120).optional(),
-    phone_number: z.string().trim().min(7).max(25).optional(),
     /**
      * The complete set of actions the account should hold. Omit it to leave the
      * account on its role's baseline; the server stores only the departures.
@@ -68,6 +70,24 @@ export const ProvisionUserSchema = z
       });
     }
   });
+
+/**
+ * The pre-check the add-user form runs on the recipient address before submitting.
+ * Loose on purpose — a malformed value comes back as `valid: false` with a reason,
+ * not as a 400, so the form can show it inline next to the field.
+ */
+export const CheckProvisionEmailSchema = z
+  .object({
+    email: z.string().trim().min(1, 'An email address is required').max(160),
+  })
+  .strict();
+
+export const ProvisionEmailCheckResponseSchema = z.object({
+  email: z.string(),
+  valid: z.boolean(),
+  /** Why the address was rejected; null when it passed every check. */
+  reason: z.string().nullable(),
+});
 
 export const ReissueCredentialsSchema = z
   .object({
@@ -180,7 +200,17 @@ export const IssuedCredentialsSchema = z.object({
   expires_at: z.iso.datetime(),
 });
 
+/**
+ * Whether the credential mail reached SMTP. Null when nothing was mailed (a re-issue);
+ * the dialog shows the credential either way, so a failed send is a notice, not an error.
+ */
+export const CredentialDeliverySchema = z.object({
+  recipient: z.string(),
+  sent: z.boolean(),
+});
+
 export const ProvisionedUserResponseSchema = z.object({
   user: ManagedUserSchema,
   credentials: IssuedCredentialsSchema,
+  delivery: CredentialDeliverySchema.nullable(),
 });

@@ -8,6 +8,9 @@ import type { CertificateTemplate } from '../../../types/certificate-template'
 import { CertificateCategoryBadge } from './certificate-category-badge'
 import { CertificateCanvas } from './certificate-canvas'
 import { CertificateStatusBadge } from './certificate-status-badge'
+import { PORTAL_PERMISSION } from '../../../constants/portal-permissions'
+import { usePermission, useSuspension } from '../../../store/auth-store'
+import { LockedActionButton } from '../../portal/ui/locked-action'
 import { CertificateTemplateActions } from './certificate-template-actions'
 
 interface CertificateTemplateCardProps {
@@ -28,6 +31,8 @@ export function CertificateTemplateCard({
   onSelect,
   onAction,
 }: CertificateTemplateCardProps) {
+  const canManage = usePermission(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
+  const manageSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
   const deployable = template.status === 'published'
 
   return (
@@ -75,17 +80,13 @@ export function CertificateTemplateCard({
 
         <dl className="flex items-center gap-4 border-t border-gray-100 pt-2">
           <div className="min-w-0">
-            <dt className="text-[11px] tracking-wider text-gray-500 uppercase">
-              Issued
-            </dt>
+            <dt className="text-[11px] tracking-wider text-gray-500 uppercase">Issued</dt>
             <dd className="text-[13px] font-semibold text-gray-900 tabular-nums">
               {formatNumber(template.issued)}
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-[11px] tracking-wider text-gray-500 uppercase">
-              Events
-            </dt>
+            <dt className="text-[11px] tracking-wider text-gray-500 uppercase">Events</dt>
             <dd className="text-[13px] font-semibold text-gray-900 tabular-nums">
               {template.deployedEvents}
             </dd>
@@ -102,25 +103,48 @@ export function CertificateTemplateCard({
       </CardContent>
 
       <CardFooter className="flex items-center gap-1.5 border-t border-gray-100 px-3 py-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => onAction('customize', template)}
-        >
-          <Wand2 className="h-3.5 w-3.5" />
-          Customize
-        </Button>
-        <Button
-          size="sm"
-          className="flex-1"
-          disabled={!deployable}
-          title={deployable ? undefined : 'Only published templates can be deployed'}
-          onClick={() => onAction('deploy', template)}
-        >
-          <Rocket className="h-3.5 w-3.5" />
-          Deploy
-        </Button>
+        {canManage ? (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onAction('customize', template)}
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              Customize
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1"
+              disabled={!deployable}
+              title={deployable ? undefined : 'Only published templates can be deployed'}
+              onClick={() => onAction('deploy', template)}
+            >
+              <Rocket className="h-3.5 w-3.5" />
+              Deploy
+            </Button>
+          </>
+        ) : manageSuspension ? (
+          <>
+            <LockedActionButton
+              suspension={manageSuspension}
+              icon={Wand2}
+              label="Customize"
+              size="sm"
+              side="top"
+            />
+            <LockedActionButton
+              suspension={manageSuspension}
+              icon={Rocket}
+              label="Deploy"
+              size="sm"
+              side="top"
+            />
+          </>
+        ) : (
+          <span className="flex-1 text-[11px] text-gray-400">View only</span>
+        )}
         <CertificateTemplateActions template={template} onAction={onAction} />
       </CardFooter>
     </Card>

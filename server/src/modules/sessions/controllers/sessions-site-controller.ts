@@ -1,6 +1,6 @@
 import { Controller, Delete, Get } from '@nestjs/common';
 import { ZParam, ZQuery, ZSerialize } from 'nest-zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import {
   RequestContext,
   type RequestContextDto,
@@ -8,6 +8,8 @@ import {
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
+import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   ListSessionsQueryDto,
@@ -27,7 +29,8 @@ import {
 
 /** Every account's signed-in devices are visible here, so it stays admin-only. */
 @Controller('v1/sessions')
-@Roles(RoleType.ADMIN)
+@Roles(...PORTAL_ROLE_TYPES)
+@RequirePermission(PermissionKey.SECURITY_SESSION_REVOKE)
 export class SessionsSiteController {
   constructor(private readonly sessionsSiteService: SessionsSiteService) {}
 

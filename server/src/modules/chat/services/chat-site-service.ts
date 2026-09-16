@@ -14,7 +14,7 @@ import type {
   ChatReadReceiptDto,
   SendChatMessageDto,
 } from '../dto/chat-site-dto';
-import { ChatGateway } from '../gateways/chat-gateway';
+import { ChatGateway } from '../../../gateways/chat.gateway';
 import {
   ChatRepository,
   type ChatMessageRow,

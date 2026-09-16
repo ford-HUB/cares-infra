@@ -92,6 +92,36 @@ export class RedisService implements OnModuleDestroy {
     }, []);
   }
 
+  /**
+   * Prepends to a capped list — newest first, trimmed to `max` entries. Used for
+   * short histories (a scheduler's recent runs) where only the tail matters.
+   */
+  async pushCapped(key: string, value: unknown, max: number): Promise<void> {
+    await this.redis
+      .multi()
+      .lpush(key, JSON.stringify(value))
+      .ltrim(key, 0, max - 1)
+      .exec();
+  }
+
+  /** Reads a list written by `pushCapped`, newest first. Unparsable entries are dropped. */
+  async listAll<T>(key: string): Promise<T[]> {
+    const values = await this.redis.lrange(key, 0, -1);
+    return values.reduce<T[]>((parsed, value) => {
+      try {
+        parsed.push(JSON.parse(value) as T);
+      } catch {
+        // A malformed entry is treated as absent rather than failing the whole read.
+      }
+      return parsed;
+    }, []);
+  }
+
+  /** Round-trip to the server — the diagnostics check's liveness probe. */
+  async ping(): Promise<void> {
+    await this.redis.ping();
+  }
+
   async onModuleDestroy(): Promise<void> {
     await this.redis.quit();
   }

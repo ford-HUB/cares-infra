@@ -10,6 +10,8 @@ import { RequestLoggerMiddleware } from './shared/middlewares/logger';
 import { JwtMiddleware } from './infastructures/jwt/jwt-middleware';
 import { PrismaModule } from './infastructures/prisma/prisma-module';
 import { RedisModule } from './infastructures/redis/redis-module';
+import { MetricsModule } from './infastructures/metrics/metrics-module';
+import { RequestMetricsMiddleware } from './infastructures/metrics/request-metrics-middleware';
 import { AuthModule } from './modules/auth/modules/auth-module';
 import { HealthController } from './health-controller';
 import { S3Module } from './infastructures/s3/s3-module';
@@ -32,9 +34,17 @@ import { MonthlyReportsModule } from './modules/monthly-reports/modules/monthly-
 import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
 import { ChatModule } from './modules/chat/modules/chat-module';
 import { AnnouncementsModule } from './modules/announcements/modules/announcements-module';
+import { OverviewModule } from './modules/overview/modules/overview-module';
+import { NotificationsModule } from './modules/notifications/modules/notifications-module';
+import { SystemServicesModule } from './modules/system-services/modules/system-services-module';
+import { SystemPerformanceModule } from './modules/system-performance/modules/system-performance-module';
+import { SystemDiagnosticsModule } from './modules/system-diagnostics/modules/system-diagnostics-module';
+import { GatewaysModule } from './gateways/gateways.module';
+import { SchedulersModule } from './schedulers/schedulers.module';
 import { JwtModule } from './infastructures/jwt/jwt-module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth-guard';
 import { RolesGuard } from './shared/guards/roles-guard';
+import { PermissionsGuard } from './shared/guards/permissions-guard';
 import { SessionGuard } from './shared/guards/session-guard';
 
 @Module({
@@ -46,6 +56,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     PrismaModule,
     JwtModule,
     RedisModule,
+    MetricsModule,
     S3Module,
     MicroservicesModule,
     AuthModule,
@@ -67,6 +78,13 @@ import { SessionGuard } from './shared/guards/session-guard';
     MailboxModule,
     ChatModule,
     AnnouncementsModule,
+    OverviewModule,
+    GatewaysModule,
+    NotificationsModule,
+    SchedulersModule,
+    SystemServicesModule,
+    SystemPerformanceModule,
+    SystemDiagnosticsModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -83,12 +101,18 @@ import { SessionGuard } from './shared/guards/session-guard';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    {
+      // After RolesGuard: the role admits a person to the portal, the rights ticked
+      // in Access Control decide what they may do there.
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(RequestLoggerMiddleware)
+      .apply(RequestLoggerMiddleware, RequestMetricsMiddleware)
       .forRoutes({ path: '*path', method: RequestMethod.ALL });
 
     consumer

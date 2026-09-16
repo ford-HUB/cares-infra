@@ -16,6 +16,8 @@ interface AdminDashboardSkeletonProps {
 
 const STAT_CARDS = 4
 const METRIC_TILES = 5
+/** The coordinator grid adds Ongoing and Completed Events beside Upcoming. */
+const DEPARTMENT_METRIC_TILES = 7
 const GRADIENT_TILES = 4
 
 const tile = (count: number) => Array.from({ length: count }, (_, index) => index)
@@ -35,8 +37,12 @@ export function AdminDashboardSkeleton({ isCoordinator }: AdminDashboardSkeleton
         <SectionCardSkeleton
           title={isCoordinator ? 'Department Metrics' : 'System Metrics'}
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {tile(METRIC_TILES).map((index) => (
+          <div
+            className={`grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 ${
+              isCoordinator ? 'xl:grid-cols-4' : 'xl:grid-cols-5'
+            }`}
+          >
+            {tile(isCoordinator ? DEPARTMENT_METRIC_TILES : METRIC_TILES).map((index) => (
               <MetricTileSkeleton key={index} />
             ))}
           </div>

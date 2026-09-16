@@ -55,8 +55,7 @@ export function CoreLoadGrid({ cores }: CoreLoadGridProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                Core {core.id} — {Math.round(core.usagePercent)}%, mostly{' '}
-                {core.runningWhat.toLowerCase()}.
+                Core {core.id} — {Math.round(core.usagePercent)}% busy.
               </TooltipContent>
             </Tooltip>
           )
@@ -65,7 +64,7 @@ export function CoreLoadGrid({ cores }: CoreLoadGridProps) {
 
       <p className="mt-2 text-[11px] text-gray-400">
         Amber from {CPU_STRAINED_PERCENT}%, red from {CPU_CRITICAL_PERCENT}% — hover a
-        core for what it is running.
+        core for its exact load.
       </p>
     </div>
   )

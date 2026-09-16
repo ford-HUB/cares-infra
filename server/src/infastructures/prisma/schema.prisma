@@ -56,6 +56,7 @@ model User {
   reviewed_monthly_reports      MonthlyReport[]                @relation("MonthlyReportReviewer")
   monthly_report_folders        MonthlyReportFolder[]          @relation("MonthlyReportFolderCreator")
   authored_announcements        Announcement[]                 @relation("AnnouncementAuthor")
+  notifications                 Notification[]                 @relation("UserNotifications")
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -1152,4 +1153,50 @@ model Announcement {
 
   @@index([state])
   @@index([publish_at])
+}
+
+/// What a portal notification is about — one value per portal module, so a feed can
+/// be scoped to the modules a role works in.
+enum NotificationCategory {
+  EVENT
+  REPORT
+  ACCESS
+  SYSTEM
+  VOLUNTEER
+  CERTIFICATE
+  DONATION
+  USER_REQUEST
+  SECURITY
+  SUPPORT
+  MAIL
+}
+
+/// How loudly a notification asks for attention.
+enum NotificationTone {
+  INFO
+  ATTENTION
+  CRITICAL
+}
+
+/// One row per recipient. A notice addressed to a role is fanned out to every account
+/// holding that role at publish time, so read and dismissed state are per person and
+/// a later hire does not inherit a backlog.
+model Notification {
+  notification_id String               @id @default(uuid())
+  user            User                 @relation("UserNotifications", fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id         String
+  title           String
+  description     String
+  category        NotificationCategory
+  tone            NotificationTone     @default(INFO)
+  /// Portal path the row opens — the screen the notice is about.
+  href            String?
+  /// Set by schedulers so a repeated sweep cannot notify the same thing twice.
+  dedupe_key      String?
+  read_at         DateTime?
+  dismissed_at    DateTime?
+  createdAt       DateTime             @default(now())
+
+  @@unique([dedupe_key, user_id])
+  @@index([user_id, dismissed_at, createdAt])
 }

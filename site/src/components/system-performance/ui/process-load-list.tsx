@@ -50,7 +50,8 @@ export function ProcessLoadList({ processes, busyPercent }: ProcessLoadListProps
               </div>
               <p className="text-[11px] text-gray-400 tabular-nums">
                 {PROCESS_OWNER_LABELS[process.owner]} ·{' '}
-                {formatNumber(process.memoryMb)} MB · {process.threads} threads
+                {formatNumber(process.memoryMb)} MB
+                {process.threads !== null && ` · ${process.threads} threads`}
               </p>
             </li>
           )

@@ -9,6 +9,7 @@ import {
   USER_ROW_HEIGHT_PX,
 } from '../../constants/manage-users'
 import { useRowsPerPage } from '../../hooks/use-rows-per-page'
+import type { SessionSuspension } from '../../types/access-control'
 import type { ManagedUser } from '../../types/manage-users'
 import { TablePagination } from '../portal/ui/table-pagination'
 import { UserAvatar } from '../portal/ui/user-avatar'
@@ -24,11 +25,15 @@ interface ManageUsersTableProps {
   page: number
   onPageChange: (page: number) => void
   onView: (user: ManagedUser) => void
-  onRestrict: (user: ManagedUser) => void
-  onUnrestrict: (user: ManagedUser) => void
-  onBlockIp: (user: ManagedUser) => void
-  onUnblockIp: (user: ManagedUser) => void
+  /** Each pair is optional: without the right, the row menu leaves that action out. */
+  onRestrict?: (user: ManagedUser) => void
+  onUnrestrict?: (user: ManagedUser) => void
+  onBlockIp?: (user: ManagedUser) => void
+  onUnblockIp?: (user: ManagedUser) => void
   onReissueCredentials?: (user: ManagedUser) => void
+  /** Suspended rights — the matching menu entry is drawn locked rather than left out. */
+  restrictSuspension?: SessionSuspension
+  blockIpSuspension?: SessionSuspension
 }
 
 const cellBorder = USER_CELL_BORDER
@@ -47,6 +52,8 @@ export function ManageUsersTable({
   onBlockIp,
   onUnblockIp,
   onReissueCredentials,
+  restrictSuspension,
+  blockIpSuspension,
 }: ManageUsersTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { rowsPerPage, remainder } = useRowsPerPage(
@@ -74,10 +81,7 @@ export function ManageUsersTable({
       aria-busy={showSkeleton}
       className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
     >
-      <div
-        ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto overflow-x-auto"
-      >
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-auto">
         <table className="w-full min-w-[48rem] table-fixed border-separate border-spacing-0">
           <thead className="sticky top-0 z-20">
             <tr>
@@ -138,7 +142,10 @@ export function ManageUsersTable({
                     </div>
                   </td>
 
-                  <td className={`${cellBorder} ${cellBase} text-gray-600`} title={user.email}>
+                  <td
+                    className={`${cellBorder} ${cellBase} text-gray-600`}
+                    title={user.email}
+                  >
                     {user.email}
                   </td>
 
@@ -163,7 +170,9 @@ export function ManageUsersTable({
                     <UserStatusBadge status={user.status} />
                   </td>
 
-                  <td className={`${cellBorder} ${cellBase} overflow-visible px-2 text-right`}>
+                  <td
+                    className={`${cellBorder} ${cellBase} overflow-visible px-2 text-right`}
+                  >
                     <UserActionsMenu
                       user={user}
                       onView={onView}
@@ -172,6 +181,8 @@ export function ManageUsersTable({
                       onBlockIp={onBlockIp}
                       onUnblockIp={onUnblockIp}
                       onReissueCredentials={onReissueCredentials}
+                      restrictSuspension={restrictSuspension}
+                      blockIpSuspension={blockIpSuspension}
                     />
                   </td>
                 </tr>

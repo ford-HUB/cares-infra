@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { Megaphone } from 'lucide-react'
+import { LockedActionButton } from '../../components/portal/ui/locked-action'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { AnnouncementDialog } from '../../components/maintenance/ui/announcement-dialog'
 import { ContentShell } from '../../components/portal/ui/content-shell'
 import { AnnouncementBoard } from '../../components/system-notices/announcement-board'
-import { NoticeFeed, type NoticeDayGroup } from '../../components/system-notices/notice-feed'
+import {
+  NoticeFeed,
+  type NoticeDayGroup,
+} from '../../components/system-notices/notice-feed'
 import { SystemNoticeBanner } from '../../components/system-notices/system-notice-banner'
 import { SystemNoticesSkeleton } from '../../components/system-notices/ui/system-notices-skeleton'
 import {
@@ -20,7 +24,8 @@ import {
   type AnnouncementStateFilter,
 } from '../../constants/maintenance'
 import { ADMIN_MAINTENANCE_PATH } from '../../constants/routes'
-import { usePortalRole } from '../../store/auth-store'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
 import { useMaintenanceStore } from '../../store/maintenance-store'
 import type { Announcement } from '../../types/maintenance'
 
@@ -38,11 +43,13 @@ export function SystemNoticesPage() {
   const saveNotice = useMaintenanceStore((s) => s.saveNotice)
 
   const role = usePortalRole()
-  // Directors write notices but have no Maintenance screen to write them on, so the
-  // composer opens here instead of sending them to a page they cannot reach. Admins
-  // keep the link: on Maintenance a notice sits beside the downtime that prompted it.
-  const writesHere = role === 'director'
-  const canWrite = role === 'admin' || writesHere
+  // Writing is the "Manage notices" right in Access Control. Whoever holds it and is
+  // not an admin has no Maintenance screen to write on, so the composer opens here
+  // instead of sending them to a page they cannot reach. Admins keep the link: on
+  // Maintenance a notice sits beside the downtime that prompted it.
+  const canWrite = usePermission(PORTAL_PERMISSION.SYSTEM_NOTICE_MANAGE)
+  const writeSuspension = useSuspension(PORTAL_PERMISSION.SYSTEM_NOTICE_MANAGE)
+  const writesHere = canWrite && role !== 'admin'
   // A coordinator reads, never writes: they see what the director addressed to them
   // and is live on the portal — not the chronology of drafts and schedules.
   const readsOnly = role === 'coordinator'
@@ -159,6 +166,15 @@ export function SystemNoticesPage() {
             and when it went out.
           </p>
         </div>
+
+        {writeSuspension && (
+          <LockedActionButton
+            suspension={writeSuspension}
+            icon={Megaphone}
+            label="Write a notice"
+            size="sm"
+          />
+        )}
 
         {canWrite &&
           (writesHere ? (

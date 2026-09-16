@@ -4,6 +4,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TEMPLATE_ORIENTATION_LABELS } from '../../constants/certificate-templates'
 import { formatDateShort, formatNumber } from '../../constants/formatting'
 import type { CertificateTemplate } from '../../types/certificate-template'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePermission, useSuspension } from '../../store/auth-store'
+import { LockedActionButton } from '../portal/ui/locked-action'
 import { CertificateCategoryBadge } from './ui/certificate-category-badge'
 import { CertificateCanvas } from './ui/certificate-canvas'
 import { CertificateStatusBadge } from './ui/certificate-status-badge'
@@ -25,6 +28,8 @@ export function CertificateTemplateDetail({
   onClose,
   onAction,
 }: CertificateTemplateDetailProps) {
+  const canManage = usePermission(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
+  const manageSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
   const deployable = template.status === 'published'
 
   return (
@@ -70,9 +75,7 @@ export function CertificateTemplateDetail({
 
         <dl className="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3">
           <div>
-            <dt className="text-[11px] tracking-wider text-gray-500 uppercase">
-              Issued
-            </dt>
+            <dt className="text-[11px] tracking-wider text-gray-500 uppercase">Issued</dt>
             <dd className="text-lg leading-tight font-semibold text-gray-900 tabular-nums">
               {formatNumber(template.issued)}
             </dd>
@@ -117,27 +120,48 @@ export function CertificateTemplateDetail({
           Updated {formatDateShort(template.updatedAt)} by {template.updatedBy}
         </p>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onAction('customize', template)}
-          >
-            <Wand2 className="h-3.5 w-3.5" />
-            Customize
-          </Button>
-          <Button
-            className="flex-1"
-            size="sm"
-            disabled={!deployable}
-            title={deployable ? undefined : 'Only published templates can be deployed'}
-            onClick={() => onAction('deploy', template)}
-          >
-            <Rocket className="h-3.5 w-3.5" />
-            Deploy
-          </Button>
-        </div>
+        {manageSuspension && (
+          <div className="flex items-center gap-2">
+            <LockedActionButton
+              suspension={manageSuspension}
+              icon={Wand2}
+              label="Customize"
+              size="sm"
+              side="top"
+            />
+            <LockedActionButton
+              suspension={manageSuspension}
+              icon={Rocket}
+              label="Deploy"
+              size="sm"
+              side="top"
+            />
+          </div>
+        )}
+
+        {canManage && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onAction('customize', template)}
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              Customize
+            </Button>
+            <Button
+              className="flex-1"
+              size="sm"
+              disabled={!deployable}
+              title={deployable ? undefined : 'Only published templates can be deployed'}
+              onClick={() => onAction('deploy', template)}
+            >
+              <Rocket className="h-3.5 w-3.5" />
+              Deploy
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

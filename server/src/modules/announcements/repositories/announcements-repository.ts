@@ -38,7 +38,7 @@ export interface SetAnnouncementStateInput {
 }
 
 /** Which account roles each audience label addresses. */
-const AUDIENCE_ROLES: Record<AnnouncementAudience, RoleType[]> = {
+export const AUDIENCE_ROLES: Record<AnnouncementAudience, RoleType[]> = {
   VOLUNTEERS: [RoleType.VOLUNTEER],
   BENEFICIARIES: [RoleType.BENEFICIARY],
   DONORS: [RoleType.DONOR],

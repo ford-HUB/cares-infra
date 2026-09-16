@@ -7,7 +7,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { promises as dns } from 'dns';
+import { z } from 'zod';
 import {
+  NotificationCategory,
+  NotificationTone,
   PermissionKey,
   PermissionOverrideEffect,
   RoleType,
@@ -26,6 +30,7 @@ import {
   generateTemporaryPassword,
 } from '../../../shared/utils/temporary-credential-utils';
 import { TemplateUtils } from '../../../shared/utils/templete-utils';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { AccessControlRepository } from '../../access-control/repositories/access-control-repository';
 import type { OverrideInput } from '../../access-control/repositories/access-control-repository';
@@ -39,6 +44,7 @@ import type {
   ManagedUserDto,
   ManagedUserDetailDto,
   ManagedUserListDto,
+  ProvisionEmailCheckDto,
   ProvisionUserDto,
   ProvisionedUserDto,
   ReissueCredentialsDto,
@@ -66,17 +72,27 @@ const EMAIL_GENERATION_ATTEMPTS = 5;
 /** Where a restricted user is told to appeal; the same inbox that reads access requests. */
 const DEFAULT_SUPPORT_EMAIL = 'careeesadmin@gmail.com';
 
+/** Where the credential mail's sign-in button points when SITE_URL is unset. */
+const DEFAULT_PORTAL_URL = 'http://localhost:5173';
+
 /**
  * Provisioned accounts are minted under a domain nothing is delivered to (see
  * `DEFAULT_PROVISIONED_EMAIL_DOMAIN`); mailing them would only bounce.
  */
 const UNDELIVERABLE_EMAIL_DOMAINS = new Set([DEFAULT_PROVISIONED_EMAIL_DOMAIN]);
 
-/** An admin sees every account; a director sees everyone except other admins. */
+/**
+ * An admin sees every account; a director sees everyone except other admins; a
+ * coordinator granted "View accounts" sees the app-side roles and other
+ * coordinators — never the people above them.
+ */
 const VISIBLE_ROLES: Record<string, readonly RoleType[]> = {
   [RoleType.ADMIN]: Object.values(RoleType),
   [RoleType.DIRECTOR]: Object.values(RoleType).filter(
     (role) => role !== RoleType.ADMIN,
+  ),
+  [RoleType.COORDINATOR]: Object.values(RoleType).filter(
+    (role) => role !== RoleType.ADMIN && role !== RoleType.DIRECTOR,
   ),
 };
 
@@ -94,6 +110,7 @@ export class UsersSiteService {
     private readonly configService: ConfigService,
     private readonly sessionRegistry: SessionRegistry,
     private readonly nodemailerService: NodemailerService,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async listUsers(
@@ -334,6 +351,17 @@ export class UsersSiteService {
       },
     });
 
+    // Every admin hears about a block, not just the one who placed it — a second
+    // pair of eyes on the address is the point of surfacing it.
+    await this.notificationScheduler.publish({
+      title: `${ipAddress} blocked for ${displayName(target)}`,
+      description: `${data.reason?.trim() || 'No reason given.'} Sign-ins from this address are refused until it is unblocked.`,
+      category: NotificationCategory.SECURITY,
+      tone: NotificationTone.ATTENTION,
+      href: '/admin/login-activity',
+      roles: [RoleType.ADMIN],
+    });
+
     return this.reload(userId);
   }
 
@@ -393,24 +421,34 @@ export class UsersSiteService {
       );
     }
 
-    const firstname = data.firstname.trim();
-    const lastname = data.lastname.trim();
+    const recipientEmail = data.recipient_email.trim().toLowerCase();
+    const emailCheck = await this.checkRecipientEmail(recipientEmail);
+    if (!emailCheck.valid) {
+      throw new BadRequestException(
+        emailCheck.reason ?? 'The recipient email address is not valid',
+      );
+    }
+
+    // The form no longer asks for a name — the inbox the credential goes to is the
+    // best stand-in until the person completes their own profile.
+    const { firstname, lastname } = nameFromEmail(recipientEmail);
     const email =
       data.mode === 'manual'
         ? await this.claimManualEmail(data.email)
         : await this.mintUnusedEmail(firstname, lastname);
 
-    const phoneNumber = await this.claimPhoneNumber(data.phone_number);
     const { password, passwordHash } = await this.issuePassword();
     const expiresAt = expiryFromNow(data.expires_in_hours);
     const role = await this.usersRepository.findOrCreateRole(data.role_type);
+    const department = data.department?.trim() || null;
 
     const created = await this.usersRepository.createProvisionedUser({
       firstname,
       lastname,
       roleId: role.role_id,
-      department: data.department?.trim() || null,
-      phoneNumber,
+      department,
+      // `User.phone_number` is unique and required; nobody's real number is known here.
+      phoneNumber: generatePlaceholderPhone(),
       email,
       passwordHash,
       credentialExpiresAt: expiresAt,
@@ -424,10 +462,19 @@ export class UsersSiteService {
       data.permissions,
     );
 
+    const sent = await this.sendCredentialsMail({
+      recipientEmail,
+      signInEmail: email,
+      password,
+      roleType: data.role_type,
+      department,
+      expiresAt,
+      expiresInHours: data.expires_in_hours,
+    });
+
     await this.auditLogRecorder.record({
       action: 'user.provisioned',
-      description:
-        `Created a ${data.role_type.toLowerCase()} account for ${firstname} ${lastname}`.trim(),
+      description: `Created a ${data.role_type.toLowerCase()} account for ${recipientEmail}`,
       category: 'USER_MANAGEMENT',
       // A new account with portal rights is the heaviest thing this screen creates —
       // it is reviewed on the same footing as handing out a restriction.
@@ -451,16 +498,118 @@ export class UsersSiteService {
         // Whether the address was typed from the request or minted by the server
         // changes what the entry means on review.
         email_source: data.mode,
-        department: data.department?.trim() || 'none',
+        department: department ?? 'none',
+        recipient_email: recipientEmail,
+        credentials_mailed: String(sent),
         granted: String(scopeChanges.granted),
         revoked: String(scopeChanges.revoked),
       },
     });
 
+    await this.notificationScheduler.publish({
+      title: `${data.role_type.toLowerCase()} account issued to ${recipientEmail}`,
+      description: `Signs in as ${email}${department ? ` · ${department}` : ''}. Credentials ${
+        sent ? 'were emailed and' : 'were NOT emailed —'
+      } expire ${formatNoticeDate(expiresAt)}.`,
+      category: NotificationCategory.USER_REQUEST,
+      tone: sent ? NotificationTone.INFO : NotificationTone.ATTENTION,
+      href: '/admin/manage-users',
+      roles: [RoleType.ADMIN],
+      dedupeKey: `user-provisioned:${created.user_id}`,
+    });
+
     return {
       user: await this.reload(created.user_id),
       credentials: { email, password, expires_at: expiresAt.toISOString() },
+      delivery: { recipient: recipientEmail, sent },
     };
+  }
+
+  /**
+   * The pre-check behind the add-user form's recipient field, and the gate `provisionUser`
+   * re-runs before it writes anything. Shape first, then a domain that can actually
+   * receive mail (an MX or A record), then no account already on the address.
+   */
+  async checkRecipientEmail(
+    candidate: string,
+  ): Promise<ProvisionEmailCheckDto> {
+    const email = candidate.trim().toLowerCase();
+    const reject = (reason: string): ProvisionEmailCheckDto => ({
+      email,
+      valid: false,
+      reason,
+    });
+
+    if (!z.email().safeParse(email).success) {
+      return reject('Enter a valid email address, e.g. name@uclm.edu.ph');
+    }
+
+    if (!isDeliverableEmail(email)) {
+      return reject('That domain cannot receive email');
+    }
+
+    const domain = email.split('@')[1];
+    if (!(await domainAcceptsMail(domain))) {
+      return reject(`No mail server was found for ${domain}`);
+    }
+
+    if (await this.usersRepository.findAccountByEmail(email)) {
+      return reject('An account already uses that email address');
+    }
+
+    return { email, valid: true, reason: null };
+  }
+
+  /**
+   * Mails the issued credential to the inbox the administrator named. Best-effort:
+   * the account exists by now, and the dialog shows the same credential, so a mail
+   * failure is reported back rather than turning the creation into an error.
+   */
+  private async sendCredentialsMail(input: {
+    recipientEmail: string;
+    signInEmail: string;
+    password: string;
+    roleType: RoleType;
+    department: string | null;
+    expiresAt: Date;
+    expiresInHours: number;
+  }): Promise<boolean> {
+    const supportEmail =
+      this.configService.get<string>('ACCESS_REQUEST_EMAIL')?.trim() ||
+      DEFAULT_SUPPORT_EMAIL;
+    const portalUrl =
+      this.configService.get<string>('SITE_URL')?.trim() || DEFAULT_PORTAL_URL;
+
+    try {
+      const html = await TemplateUtils.compileTemplate(
+        'temporary-account-credentials.html',
+        {
+          recipientEmail: input.recipientEmail,
+          signInEmail: input.signInEmail,
+          password: input.password,
+          role: input.roleType.toLowerCase(),
+          department: input.department,
+          expiresAt: formatNoticeDate(input.expiresAt),
+          expiresInHours: input.expiresInHours,
+          portalUrl,
+          supportEmail,
+        },
+      );
+
+      await this.nodemailerService.sendEmail(
+        input.recipientEmail,
+        'Your temporary CARES portal account',
+        html,
+        { replyTo: supportEmail },
+      );
+      return true;
+    } catch (error) {
+      this.logger.warn(
+        `Failed to mail the issued credentials for ${input.signInEmail} to ${input.recipientEmail}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return false;
+    }
   }
 
   /**
@@ -525,6 +674,8 @@ export class UsersSiteService {
         password,
         expires_at: expiresAt.toISOString(),
       },
+      // A re-issue is read out by the administrator; nothing is mailed.
+      delivery: null,
     };
   }
 
@@ -561,26 +712,6 @@ export class UsersSiteService {
     throw new BadRequestException(
       'Could not generate an unused email address — try again',
     );
-  }
-
-  /**
-   * `User.phone_number` is unique and required. An account provisioned from an emailed
-   * request usually has no phone behind it, so one is stubbed until the person fills
-   * their own profile in.
-   */
-  private async claimPhoneNumber(candidate?: string): Promise<string> {
-    const phone = candidate?.trim();
-    if (!phone) {
-      return generatePlaceholderPhone();
-    }
-
-    if (await this.usersRepository.findUserByPhone(phone)) {
-      throw new BadRequestException(
-        'Another account already uses that phone number',
-      );
-    }
-
-    return phone;
   }
 
   /** Generated against the live policy, then re-checked through the same gate a typed password passes. */
@@ -689,6 +820,47 @@ export class UsersSiteService {
 function isDeliverableEmail(email: string): boolean {
   const domain = email.split('@')[1]?.toLowerCase();
   return Boolean(domain) && !UNDELIVERABLE_EMAIL_DOMAINS.has(domain);
+}
+
+/**
+ * Whether anything answers for the domain — an MX record, or failing that an A/AAAA
+ * record, which SMTP falls back to. A lookup error (no such domain, DNS unreachable)
+ * counts as "no": the point is to catch a typo before a credential is mailed into it.
+ */
+async function domainAcceptsMail(domain: string): Promise<boolean> {
+  try {
+    const mx = await dns.resolveMx(domain);
+    if (mx.length > 0) return true;
+  } catch {
+    // Fall through to the address lookup.
+  }
+
+  try {
+    const addresses = await dns.lookup(domain, { all: true });
+    return addresses.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A placeholder name from the recipient address, e.g. `jay.delacruz@…` → Jay Delacruz.
+ * `User.firstname`/`lastname` are required columns, and the form deliberately stops
+ * asking for them — the person corrects this the first time they open their profile.
+ */
+function nameFromEmail(email: string): { firstname: string; lastname: string } {
+  const capitalise = (part: string) =>
+    part ? part[0].toUpperCase() + part.slice(1) : part;
+  const [first = '', ...rest] = email
+    .split('@')[0]
+    .split(/[._\-+]+/)
+    .map((part) => part.replace(/[^a-z0-9]/gi, ''))
+    .filter(Boolean);
+
+  return {
+    firstname: capitalise(first) || 'New',
+    lastname: rest.map(capitalise).join(' ') || 'User',
+  };
 }
 
 /** e.g. "10 September 2026, 14:05 (Asia/Manila)" — a person reads this, not a parser. */

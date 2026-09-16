@@ -6,7 +6,8 @@ interface CertificateTemplatesEmptyProps {
   filtered: boolean
   errored: boolean
   onClearFilters: () => void
-  onCreate: () => void
+  /** Omitted when the account lacks the manage right — the zero state only explains. */
+  onCreate?: () => void
 }
 
 /** Designed zero state — the screen never renders a bare empty grid. */
@@ -43,9 +44,11 @@ export function CertificateTemplatesEmpty({
             Clear filters
           </Button>
         ) : (
-          <Button size="sm" onClick={onCreate}>
-            New template
-          </Button>
+          onCreate && (
+            <Button size="sm" onClick={onCreate}>
+              New template
+            </Button>
+          )
         ))}
     </div>
   )

@@ -24,15 +24,24 @@ export function PortalHeader({
 }: PortalHeaderProps) {
   const { user, logout } = useAuthStore()
   const profile = useProfileStore((s) => s.profile)
-  const unreadCount = useNotificationStore((s) => s.unreadCount())
+  const unreadCount = useNotificationStore((s) => s.feed?.summary.unread ?? 0)
   const loadNotifications = useNotificationStore((s) => s.load)
+  const connectNotifications = useNotificationStore((s) => s.connect)
+  const disconnectNotifications = useNotificationStore((s) => s.disconnect)
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // The header is mounted for the whole portal session, so it owns the feed: one
+  // fetch for the backlog, then the socket for anything that arrives while signed in.
+  // A desktop alert's click lands on the screen the notice is about.
+  const userId = user?.id ?? null
   useEffect(() => {
+    if (!userId) return
     void loadNotifications()
-  }, [loadNotifications])
+    connectNotifications((href) => navigate(href))
+    return () => disconnectNotifications()
+  }, [userId, loadNotifications, connectNotifications, disconnectNotifications, navigate])
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -87,13 +96,22 @@ export function PortalHeader({
           <button
             type="button"
             onClick={() => navigate(ADMIN_NOTIFICATIONS_PATH)}
-            className="relative rounded-lg p-2 hover:bg-gray-100"
-            aria-label="Notifications"
+            className="relative rounded-lg p-2 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
+            aria-label={
+              unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
+            }
           >
-            <Bell className="h-5 w-5 text-gray-500" />
+            <Bell
+              className={`h-5 w-5 ${unreadCount > 0 ? 'text-gray-700' : 'text-gray-500'}`}
+            />
+            {/* How many notices have not been opened yet — the same number the page's
+                "Unread only" filter shows. Capped so a long absence stays legible. */}
             {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
-                {unreadCount}
+              <span
+                aria-hidden
+                className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] leading-none font-semibold text-white ring-2 ring-white tabular-nums"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </button>

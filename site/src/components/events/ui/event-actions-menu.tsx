@@ -1,6 +1,8 @@
 import { Ban, Edit2, Eye, Trash2 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { SessionSuspension } from '../../../types/access-control'
 import type { EventTableRow } from '../../../types/event'
+import { LockedMenuItem } from '../../portal/ui/locked-action'
 
 interface EventActionsMenuProps {
   event: EventTableRow
@@ -8,9 +10,13 @@ interface EventActionsMenuProps {
   anchor: DOMRect
   onClose: () => void
   onView: (event: EventTableRow) => void
-  onEdit: (event: EventTableRow) => void
-  onCancel: (event: EventTableRow) => void
-  onDelete: (event: EventTableRow) => void
+  /** Each write is optional: a handler the account has no right to is left out of the menu. */
+  onEdit?: (event: EventTableRow) => void
+  onCancel?: (event: EventTableRow) => void
+  onDelete?: (event: EventTableRow) => void
+  /** Suspended rights — the matching entries are kept, locked and red, not left out. */
+  updateSuspension?: SessionSuspension
+  deleteSuspension?: SessionSuspension
 }
 
 const MENU_WIDTH_PX = 200
@@ -32,6 +38,8 @@ export function EventActionsMenu({
   onEdit,
   onCancel,
   onDelete,
+  updateSuspension,
+  deleteSuspension,
 }: EventActionsMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
@@ -128,12 +136,27 @@ export function EventActionsMenu({
         View details
       </button>
 
-      <button type="button" role="menuitem" className={itemClass} onClick={run(onEdit)}>
-        <Edit2 className="h-4 w-4 text-gray-400" />
-        Edit event
-      </button>
+      {updateSuspension ? (
+        <LockedMenuItem suspension={updateSuspension} icon={Edit2} label="Edit event" />
+      ) : (
+        onEdit && (
+          <button
+            type="button"
+            role="menuitem"
+            className={itemClass}
+            onClick={run(onEdit)}
+          >
+            <Edit2 className="h-4 w-4 text-gray-400" />
+            Edit event
+          </button>
+        )
+      )}
 
-      {event.status !== 'Cancelled' && (
+      {updateSuspension && event.status !== 'Cancelled' && (
+        <LockedMenuItem suspension={updateSuspension} icon={Ban} label="Cancel event" />
+      )}
+
+      {!updateSuspension && onCancel && event.status !== 'Cancelled' && (
         <button
           type="button"
           role="menuitem"
@@ -145,17 +168,32 @@ export function EventActionsMenu({
         </button>
       )}
 
-      <div className="my-1 border-t border-gray-100" />
+      {deleteSuspension && (
+        <>
+          <div className="my-1 border-t border-gray-100" />
+          <LockedMenuItem
+            suspension={deleteSuspension}
+            icon={Trash2}
+            label="Delete event"
+          />
+        </>
+      )}
 
-      <button
-        type="button"
-        role="menuitem"
-        className={`${itemClass} text-red-600 hover:bg-red-50 focus-visible:bg-red-50`}
-        onClick={run(onDelete)}
-      >
-        <Trash2 className="h-4 w-4" />
-        Delete event
-      </button>
+      {!deleteSuspension && onDelete && (
+        <>
+          <div className="my-1 border-t border-gray-100" />
+
+          <button
+            type="button"
+            role="menuitem"
+            className={`${itemClass} text-red-600 hover:bg-red-50 focus-visible:bg-red-50`}
+            onClick={run(onDelete)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete event
+          </button>
+        </>
+      )}
     </div>
   )
 }

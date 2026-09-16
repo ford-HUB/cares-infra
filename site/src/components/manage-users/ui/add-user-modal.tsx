@@ -16,7 +16,7 @@ type AddUserModalProps = ReturnType<typeof useProvisionUserForm> & {
  */
 export function AddUserModal({ open, onClose, ...provision }: AddUserModalProps) {
   const [scopeOpen, setScopeOpen] = useState(false)
-  const { onSubmit, submitting, credentials, reset } = provision
+  const { onSubmit, submitting, credentials, delivery, reset } = provision
 
   if (!open) return null
 
@@ -36,8 +36,10 @@ export function AddUserModal({ open, onClose, ...provision }: AddUserModalProps)
             </h3>
             <p className="mt-0.5 text-[13px] text-gray-500">
               {credentials
-                ? 'Hand these credentials to the requester.'
-                : 'Issue a portal account for an approved access request.'}
+                ? delivery?.sent
+                  ? `Also sent to ${delivery.recipient}.`
+                  : 'Hand these credentials to the requester.'
+                : 'Issue a temporary portal account and email its credentials.'}
             </p>
           </div>
 
@@ -54,7 +56,7 @@ export function AddUserModal({ open, onClose, ...provision }: AddUserModalProps)
         {credentials ? (
           <>
             <div className="flex-1 overflow-y-auto px-6 py-5">
-              <IssuedCredentialsPanel credentials={credentials} />
+              <IssuedCredentialsPanel credentials={credentials} delivery={delivery} />
             </div>
 
             <footer className="flex justify-end border-t border-gray-100 px-6 py-4">

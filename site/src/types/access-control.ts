@@ -66,6 +66,17 @@ export interface ActionSuspension {
   active: boolean
 }
 
+/**
+ * A suspension as the suspended account itself sees it on its session — enough to
+ * lock the module or button in place and explain why on hover.
+ */
+export interface SessionSuspension {
+  permission: PermissionKey
+  reason: string
+  issuedAt: string
+  expiresAt?: string
+}
+
 /** Everything the rights panel shows — one request, fetched when the panel opens. */
 export interface AccessUserDetail extends AccessUser {
   rolePermissions: PermissionKey[]
@@ -90,9 +101,4 @@ export interface AccessUsersResult {
 }
 
 /** How a single permission ended up on or off, for the panel's per-row badge. */
-export type PermissionSource =
-  | 'inherited'
-  | 'granted'
-  | 'revoked'
-  | 'suspended'
-  | 'unset'
+export type PermissionSource = 'inherited' | 'granted' | 'revoked' | 'suspended' | 'unset'

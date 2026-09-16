@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { DeployedCertificate } from '../../../types/deployed-certificate'
+import { PORTAL_PERMISSION } from '../../../constants/portal-permissions'
+import { usePermission, useSuspension } from '../../../store/auth-store'
+import { LockedDropdownItem } from '../../portal/ui/locked-action'
 
 interface DeployedCertificateActionsProps {
   deployment: DeployedCertificate
@@ -26,6 +29,8 @@ export function DeployedCertificateActions({
   deployment,
   onAction,
 }: DeployedCertificateActionsProps) {
+  const canIssue = usePermission(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
+  const issueSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
   const running = deployment.status === 'distributing'
 
   return (
@@ -52,20 +57,34 @@ export function DeployedCertificateActions({
           <Table2 className="h-3.5 w-3.5" />
           Export recipient list
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {running ? (
-          <DropdownMenuItem onSelect={() => onAction('pause', deployment)}>
-            <PauseCircle className="h-3.5 w-3.5" />
-            Pause distribution
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem
-            disabled={deployment.status === 'completed'}
-            onSelect={() => onAction('resume', deployment)}
-          >
-            <PlayCircle className="h-3.5 w-3.5" />
-            Resume distribution
-          </DropdownMenuItem>
+        {issueSuspension && (
+          <>
+            <DropdownMenuSeparator />
+            <LockedDropdownItem
+              suspension={issueSuspension}
+              icon={running ? PauseCircle : PlayCircle}
+              label={running ? 'Pause distribution' : 'Resume distribution'}
+            />
+          </>
+        )}
+        {canIssue && (
+          <>
+            <DropdownMenuSeparator />
+            {running ? (
+              <DropdownMenuItem onSelect={() => onAction('pause', deployment)}>
+                <PauseCircle className="h-3.5 w-3.5" />
+                Pause distribution
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                disabled={deployment.status === 'completed'}
+                onSelect={() => onAction('resume', deployment)}
+              >
+                <PlayCircle className="h-3.5 w-3.5" />
+                Resume distribution
+              </DropdownMenuItem>
+            )}
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

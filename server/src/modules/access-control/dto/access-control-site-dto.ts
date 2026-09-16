@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { PermissionKey } from '../../../infastructures/prisma/common/client';
 import {
   AccessCatalogResponseSchema,
   AccessUserDetailSchema,
@@ -7,6 +8,7 @@ import {
   ActionSuspensionSchema,
   ListAccessUsersQuerySchema,
   RolePermissionsResponseSchema,
+  SessionSuspensionSchema,
   SuspendActionsSchema,
   UpdateRolePermissionsSchema,
   UpdateUserPermissionsSchema,
@@ -29,3 +31,10 @@ export type AccessUserDto = z.infer<typeof AccessUserSchema>;
 export type AccessUserListDto = z.infer<typeof AccessUserListResponseSchema>;
 export type AccessUserDetailDto = z.infer<typeof AccessUserDetailSchema>;
 export type ActionSuspensionDto = z.infer<typeof ActionSuspensionSchema>;
+export type SessionSuspensionDto = z.infer<typeof SessionSuspensionSchema>;
+
+/** The rights a signed-in account holds now, plus the suspensions that shaped them. */
+export interface SessionRightsDto {
+  permissions: PermissionKey[];
+  suspensions: SessionSuspensionDto[];
+}

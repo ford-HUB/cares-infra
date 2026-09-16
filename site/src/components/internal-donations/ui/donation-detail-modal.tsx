@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react'
-import { Loader2, Mail, X } from 'lucide-react'
+import { ArrowRight, Loader2, Mail, X, XCircle } from 'lucide-react'
+import type { SessionSuspension } from '../../../types/access-control'
+import { LockedActionButton } from '../../portal/ui/locked-action'
 import {
   DONATION_ADVANCE_LABELS,
   DONATION_STATUS_HINTS,
@@ -20,6 +22,8 @@ interface DonationDetailModalProps {
   saving: boolean
   /** Only the director may move a donation; everyone else reads. */
   canAct: boolean
+  /** Set when the record right is suspended — the actions are drawn locked instead. */
+  actSuspension?: SessionSuspension
   onClose: () => void
   onAdvance: (status: DonationStatus, note: string) => void
 }
@@ -33,6 +37,7 @@ export function DonationDetailModal({
   donation,
   saving,
   canAct,
+  actSuspension,
   onClose,
   onAdvance,
 }: DonationDetailModalProps) {
@@ -97,9 +102,7 @@ export function DonationDetailModal({
               </>
             ) : (
               <>
-                <Field label="Drop-off location">
-                  {donation.dropOffLocation ?? '—'}
-                </Field>
+                <Field label="Drop-off location">{donation.dropOffLocation ?? '—'}</Field>
                 <Field label="Items">
                   <ul className="space-y-0.5">
                     {(donation.items ?? []).map((item) => (
@@ -113,9 +116,7 @@ export function DonationDetailModal({
             )}
 
             <Field label="Pledged on">{formatDateShort(donation.createdAt)}</Field>
-            <Field label="Current step">
-              {DONATION_STATUS_HINTS[donation.status]}
-            </Field>
+            <Field label="Current step">{DONATION_STATUS_HINTS[donation.status]}</Field>
           </section>
 
           <section>
@@ -154,7 +155,31 @@ export function DonationDetailModal({
             </p>
           )}
 
-          {!isTerminal && !canAct && (
+          {!isTerminal && !canAct && actSuspension && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[12px] text-red-700">
+                Recording donations is suspended on your account.
+              </p>
+              <div className="flex flex-wrap justify-end gap-2">
+                <LockedActionButton
+                  suspension={actSuspension}
+                  icon={XCircle}
+                  label={DONATION_ADVANCE_LABELS.declined}
+                  side="top"
+                />
+                {next && (
+                  <LockedActionButton
+                    suspension={actSuspension}
+                    icon={ArrowRight}
+                    label={DONATION_ADVANCE_LABELS[next]}
+                    side="top"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {!isTerminal && !canAct && !actSuspension && (
             <p className="text-[12px] text-gray-500">
               Only the director can move a donation forward.
             </p>

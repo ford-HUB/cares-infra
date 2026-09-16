@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
@@ -27,6 +29,7 @@ const TicketIdParamSchema = z.uuid('A valid support ticket id is required');
 /** The queue is worked by the whole portal staff, not admins alone. */
 @Controller('v1/support-tickets')
 @Roles(...PORTAL_ROLE_TYPES)
+@RequirePermission(PermissionKey.SUPPORT_TICKET_MANAGE)
 export class SupportTicketsSiteController {
   constructor(
     private readonly supportTicketsSiteService: SupportTicketsSiteService,

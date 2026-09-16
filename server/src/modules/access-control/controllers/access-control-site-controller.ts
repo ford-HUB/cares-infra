@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
   RequestContext,
@@ -9,6 +9,8 @@ import {
 } from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
+import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type { PortalRoleType } from 'src/shared/constants/portal-role-types';
 import type {
@@ -38,11 +40,13 @@ const UserIdParamSchema = z.uuid('A valid user id is required');
 const SuspensionIdParamSchema = z.uuid('A valid suspension id is required');
 
 /**
- * Admin only. Directors manage accounts through `v1/users`, but deciding what a role
- * or a person is allowed to do is a system-operator concern.
+ * Reading rights needs "View rights"; changing anything needs "Manage rights". Both
+ * default to the admin baseline only, but either can be granted to another portal
+ * account — or suspended on an admin — in Access Control itself.
  */
 @Controller('v1/access-control')
-@Roles(RoleType.ADMIN)
+@Roles(...PORTAL_ROLE_TYPES)
+@RequirePermission(PermissionKey.ACCESS_CONTROL_VIEW)
 export class AccessControlSiteController {
   constructor(
     private readonly accessControlSiteService: AccessControlSiteService,
@@ -74,6 +78,7 @@ export class AccessControlSiteController {
   }
 
   @Patch('users/:id/permissions')
+  @RequirePermission(PermissionKey.ACCESS_CONTROL_MANAGE)
   @ResponseMessage('Access rights updated')
   @ZSerialize(AccessUserDetailSchema)
   async updateUserPermissions(
@@ -91,6 +96,7 @@ export class AccessControlSiteController {
   }
 
   @Post('users/:id/suspensions')
+  @RequirePermission(PermissionKey.ACCESS_CONTROL_MANAGE)
   @ResponseMessage('Actions suspended')
   @ZSerialize(AccessUserDetailSchema)
   async suspendActions(
@@ -108,6 +114,7 @@ export class AccessControlSiteController {
   }
 
   @Delete('users/:id/suspensions/:suspensionId')
+  @RequirePermission(PermissionKey.ACCESS_CONTROL_MANAGE)
   @ResponseMessage('Suspension lifted')
   @ZSerialize(AccessUserDetailSchema)
   async liftSuspension(
@@ -125,6 +132,7 @@ export class AccessControlSiteController {
   }
 
   @Patch('roles/:roleType/permissions')
+  @RequirePermission(PermissionKey.ACCESS_CONTROL_MANAGE)
   @ResponseMessage('Role baseline updated')
   @ZSerialize(RolePermissionsResponseSchema)
   async updateRolePermissions(

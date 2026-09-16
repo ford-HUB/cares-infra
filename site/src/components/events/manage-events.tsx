@@ -8,8 +8,9 @@ import {
 } from '../../constants/event-filters'
 import { isEventInDepartment } from '../../constants/event'
 import type { EventSortKey } from '../../constants/manage-events'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { ContentShell } from '../portal/ui/content-shell'
-import { usePortalRole } from '../../store/auth-store'
+import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
 import { useEventStore } from '../../store/event-store'
 import { useProfileStore } from '../../store/profile-store'
 import type { EventTableRow } from '../../types/event'
@@ -38,6 +39,17 @@ export function ManageEvents() {
   const profileInitialized = useProfileStore((s) => s.initialized)
   const ensureProfile = useProfileStore((s) => s.ensureProfile)
   const lockedDepartment = isCoordinator ? (profileDepartment ?? '') : undefined
+
+  // Each write on this screen is its own right in Access Control; a control whose
+  // right the account lacks is not drawn. Cancelling is a change to an event, so it
+  // rides on the edit right.
+  const canCreate = usePermission(PORTAL_PERMISSION.EVENTS_CREATE)
+  const canUpdate = usePermission(PORTAL_PERMISSION.EVENTS_UPDATE)
+  const canDelete = usePermission(PORTAL_PERMISSION.EVENTS_DELETE)
+  // Suspended rights keep their control on screen, locked and red, with the reason on hover.
+  const createSuspension = useSuspension(PORTAL_PERMISSION.EVENTS_CREATE)
+  const updateSuspension = useSuspension(PORTAL_PERMISSION.EVENTS_UPDATE)
+  const deleteSuspension = useSuspension(PORTAL_PERMISSION.EVENTS_DELETE)
 
   useEffect(() => {
     if (isCoordinator) void ensureProfile()
@@ -196,7 +208,9 @@ export function ManageEvents() {
         upcoming={upcomingCount}
         hasActiveFilters={hasActiveFilters}
         initialized={initialized && (!isCoordinator || profileInitialized)}
-        scopeLabel={isCoordinator ? (profileDepartment ?? 'No department assigned') : undefined}
+        scopeLabel={
+          isCoordinator ? (profileDepartment ?? 'No department assigned') : undefined
+        }
         onSearchChange={resetToFirstPage(setSearchTerm)}
         onTimeChange={resetToFirstPage(setTimeFilter)}
         onStatusChange={resetToFirstPage(setStatusFilter)}
@@ -205,7 +219,8 @@ export function ManageEvents() {
           clearFilters()
           setPage(1)
         }}
-        onCreate={() => setShowCreateModal(true)}
+        onCreate={canCreate ? () => setShowCreateModal(true) : undefined}
+        createSuspension={createSuspension}
       />
 
       {error && (
@@ -230,7 +245,7 @@ export function ManageEvents() {
           clearFilters()
           setPage(1)
         }}
-        onCreate={() => setShowCreateModal(true)}
+        onCreate={canCreate ? () => setShowCreateModal(true) : undefined}
       />
 
       {actionMenu && activeMenuEvent && (
@@ -239,12 +254,28 @@ export function ManageEvents() {
           anchor={actionMenu.anchor}
           onClose={closeActionMenu}
           onView={setDetailRow}
-          onEdit={setEditRow}
-          onCancel={(event) =>
-            setCancelState({ isOpen: true, eventName: event.title, eventCode: event.event_id })
+          updateSuspension={updateSuspension}
+          deleteSuspension={deleteSuspension}
+          onEdit={canUpdate ? setEditRow : undefined}
+          onCancel={
+            canUpdate
+              ? (event) =>
+                  setCancelState({
+                    isOpen: true,
+                    eventName: event.title,
+                    eventCode: event.event_id,
+                  })
+              : undefined
           }
-          onDelete={(event) =>
-            setDeleteState({ isOpen: true, eventName: event.title, eventId: event.id })
+          onDelete={
+            canDelete
+              ? (event) =>
+                  setDeleteState({
+                    isOpen: true,
+                    eventName: event.title,
+                    eventId: event.id,
+                  })
+              : undefined
           }
         />
       )}
@@ -312,4 +343,3 @@ export function ManageEvents() {
     </ContentShell>
   )
 }
-

@@ -3,13 +3,9 @@ import { create } from 'zustand'
 import { SESSION_ENDED_EVENT } from '../constants/session'
 import type { AuthUser, PortalRole } from '../types/portal-roles'
 import type { LoginPayload } from '../types/auth'
-import type { PermissionKey } from '../types/access-control'
+import type { PermissionKey, SessionSuspension } from '../types/access-control'
 import { useProfileStore } from './profile-store'
-import {
-  getSession,
-  login,
-  logoutSession,
-} from '../services/auth-service'
+import { getSession, login, logoutSession } from '../services/auth-service'
 
 interface AuthState {
   user: AuthUser | null
@@ -70,11 +66,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!res.success || !res.data) return
 
     const next = res.data
-    if (samePermissions(current.permissions, next.permissions) && current.role === next.role) {
+    if (
+      samePermissions(current.permissions, next.permissions) &&
+      sameSuspensions(current.suspensions, next.suspensions) &&
+      current.role === next.role
+    ) {
       return
     }
 
-    set({ user: { ...current, role: next.role, permissions: next.permissions } })
+    set({
+      user: {
+        ...current,
+        role: next.role,
+        permissions: next.permissions,
+        suspensions: next.suspensions,
+      },
+    })
   },
 
   logout: async () => {
@@ -112,6 +119,18 @@ function samePermissions(a: PermissionKey[], b: PermissionKey[]): boolean {
   return b.every((permission) => held.has(permission))
 }
 
+/**
+ * Same set of suspensions, by what the portal shows of them. A lift or a new
+ * suspension changes the list; an admin editing a reason changes an entry.
+ */
+function sameSuspensions(a: SessionSuspension[], b: SessionSuspension[]): boolean {
+  if (a.length !== b.length) return false
+  const key = (entry: SessionSuspension) =>
+    `${entry.permission}|${entry.reason}|${entry.issuedAt}|${entry.expiresAt ?? ''}`
+  const held = new Set(a.map(key))
+  return b.every((entry) => held.has(key(entry)))
+}
+
 export function usePortalRole(): PortalRole | null {
   return useAuthStore((s) => s.user?.role ?? null)
 }
@@ -120,6 +139,28 @@ export function usePortalRole(): PortalRole | null {
 export function usePermission(permission: PermissionKey | undefined): boolean {
   return useAuthStore((s) =>
     !permission ? true : (s.user?.permissions.includes(permission) ?? false),
+  )
+}
+
+const NO_SUSPENSIONS: SessionSuspension[] = []
+
+/** The suspensions in force on the signed-in account; empty when signed out. */
+export function useSessionSuspensions(): SessionSuspension[] {
+  return useAuthStore((s) => s.user?.suspensions ?? NO_SUSPENSIONS)
+}
+
+/**
+ * The suspension locking one right on the signed-in account, if any. Pair with
+ * `usePermission`: when this returns an entry the right is not held *because* of it,
+ * and the screen should show the locked control rather than hide it.
+ */
+export function useSuspension(
+  permission: PermissionKey | undefined,
+): SessionSuspension | undefined {
+  return useAuthStore((s) =>
+    permission
+      ? s.user?.suspensions.find((entry) => entry.permission === permission)
+      : undefined,
   )
 }
 

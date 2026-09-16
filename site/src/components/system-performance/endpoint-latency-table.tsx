@@ -86,7 +86,7 @@ export function EndpointLatencyTable({
                       <span
                         className={cn(
                           'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide',
-                          HTTP_METHOD_STYLES[endpoint.method],
+                          HTTP_METHOD_STYLES[endpoint.method] ?? HTTP_METHOD_STYLES.GET,
                         )}
                       >
                         {endpoint.method}

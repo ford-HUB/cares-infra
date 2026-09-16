@@ -20,14 +20,18 @@ import {
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
+  SERVICE_CRON_CUSTOM,
+  SERVICE_CRON_PRESETS,
   SERVICE_INTERVAL_PRESETS,
   SERVICE_OVERLAP_HINTS,
   SERVICE_OVERLAP_LABELS,
   SERVICE_RETRY_PRESETS,
   SERVICE_RUNTIME_PRESETS,
   SERVICE_TRIGGER_MODES,
+  cronPresetFor,
   describeTrigger,
   formatRuntime,
+  isValidCronShape,
 } from '../../../constants/system-services'
 import type { ServiceScheduleUpdate } from '../../../services/system-service-service'
 import type {
@@ -77,6 +81,11 @@ export function ServiceScheduleDialog({
   const [cronExpression, setCronExpression] = useState(
     service?.trigger.cronExpression ?? '0 * * * *',
   )
+  // Which dropdown entry is showing. Derived from the expression on open, so a saved
+  // preset comes back as its label; "custom" stays put while the raw field is edited.
+  const [cronPreset, setCronPreset] = useState<string>(() =>
+    cronPresetFor(service?.trigger.cronExpression ?? '0 * * * *'),
+  )
   const [maxRuntimeMinutes, setMaxRuntimeMinutes] = useState(
     service?.duration.maxRuntimeMinutes ?? 5,
   )
@@ -99,7 +108,7 @@ export function ServiceScheduleDialog({
   const overlapping =
     mode === 'interval' && maxRuntimeMinutes >= intervalMinutes
 
-  const invalidCron = mode === 'cron' && cronExpression.trim().split(/\s+/).length !== 5
+  const invalidCron = mode === 'cron' && !isValidCronShape(cronExpression)
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -164,19 +173,54 @@ export function ServiceScheduleDialog({
             )}
 
             {mode === 'cron' && (
-              <div className="space-y-1.5">
-                <Label htmlFor="service-cron">Cron expression</Label>
-                <Input
-                  id="service-cron"
-                  value={cronExpression}
-                  onChange={(event) => setCronExpression(event.target.value)}
-                  placeholder="0 3 * * 0"
-                  className="font-mono"
-                  aria-invalid={invalidCron}
-                />
-                <p className="text-[12px] text-gray-500">
-                  Five fields: minute, hour, day of month, month, day of week.
-                </p>
+              <div className="space-y-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="service-cron-preset">Schedule</Label>
+                  <Select
+                    value={cronPreset}
+                    onValueChange={(value) => {
+                      setCronPreset(value)
+                      if (value !== SERVICE_CRON_CUSTOM) setCronExpression(value)
+                    }}
+                  >
+                    <SelectTrigger id="service-cron-preset" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_CRON_PRESETS.map((preset) => (
+                        <SelectItem key={preset.expression} value={preset.expression}>
+                          <span className="flex items-baseline gap-2">
+                            {preset.label}
+                            <span className="font-mono text-[11px] text-gray-400">
+                              {preset.expression}
+                            </span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={SERVICE_CRON_CUSTOM}>Custom expression…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {cronPreset === SERVICE_CRON_CUSTOM ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="service-cron">Cron expression</Label>
+                    <Input
+                      id="service-cron"
+                      value={cronExpression}
+                      onChange={(event) => setCronExpression(event.target.value)}
+                      placeholder="0 3 * * 0"
+                      className="font-mono"
+                      aria-invalid={invalidCron}
+                    />
+                    <p className="text-[12px] text-gray-500">
+                      Five fields — minute, hour, day of month, month, day of week — or
+                      six with seconds first.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-mono text-[12px] text-gray-500">{cronExpression}</p>
+                )}
               </div>
             )}
 

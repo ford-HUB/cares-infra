@@ -4,7 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
-import { EventStatus } from '../../../infastructures/prisma/common/client';
+import {
+  EventStatus,
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 import { resolveImageMimeType } from '../../../shared/utils/image-mime';
 import { S3Service } from '../../../infastructures/s3/s3-service';
 import type { RequestContextDto } from '../../../shared/decorators/request-context-decorator';
@@ -18,6 +23,7 @@ import {
   UpdateDonationsDto,
   UpdateEventDto,
 } from '../dto/events-site-dto';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
 import { EventsRepository } from '../repositories/events-repository';
 import {
   EVENT_ALLOWED_IMAGE_MIMES,
@@ -35,6 +41,7 @@ export class EventsSiteService {
     private readonly eventsRepository: EventsRepository,
     private readonly s3Service: S3Service,
     private readonly auditLogRecorder: AuditLogRecorder,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async listEvents(): Promise<EventDto[]> {
@@ -100,6 +107,20 @@ export class EventsSiteService {
         starts_at: created.event_started.toISOString(),
         location: created.location,
       },
+    });
+
+    // The people who will run it hear about it now; the start-time reminder comes
+    // from the scheduler sweep closer to the day.
+    await this.notificationScheduler.publish({
+      title: `${created.title} was published`,
+      description: `Starts ${formatEventStart(created.event_started)}${
+        created.department ? ` · ${created.department}` : ''
+      }. Volunteer registration is open.`,
+      category: NotificationCategory.EVENT,
+      tone: NotificationTone.INFO,
+      href: '/admin/event-list',
+      roles: [RoleType.DIRECTOR, RoleType.COORDINATOR],
+      dedupeKey: `event-published:${created.event_id}`,
     });
 
     return this.mapToDto(created);
@@ -423,4 +444,16 @@ function formatEventValue(value: EventFieldValue | undefined): string {
   if (value === null || value === undefined) return 'none';
   if (value instanceof Date) return value.toISOString();
   return String(value);
+}
+
+/** "Sat, Sep 20, 6:00 AM" in the portal's timezone — a person reads this. */
+function formatEventStart(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: process.env.TZ || 'Asia/Manila',
+  }).format(date);
 }

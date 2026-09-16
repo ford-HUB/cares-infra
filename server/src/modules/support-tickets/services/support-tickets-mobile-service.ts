@@ -5,11 +5,15 @@ import {
 } from '@nestjs/common';
 import {
   LoginSource,
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
   SupportTicketAuthorType,
   SupportTicketPriority,
   SupportTicketStatus,
   SupportTicketType,
 } from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
 import type {
   ConfirmSupportTicketFixDto,
   CreateSupportTicketDto,
@@ -53,6 +57,7 @@ export class SupportTicketsMobileService {
   constructor(
     private readonly supportTicketsRepository: SupportTicketsRepository,
     private readonly auditLogRecorder: AuditLogRecorder,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async listMyTickets(userId: string): Promise<MobileSupportTicketListDto> {
@@ -86,6 +91,24 @@ export class SupportTicketsMobileService {
       action: 'support.ticket.created',
       description: `Sent a support request: ${data.subject}`,
       metadata: { type: data.type },
+    });
+
+    // Triage happens on the portal; a new ticket is the admins' cue to pick it up.
+    const excerpt =
+      data.description.length > 140
+        ? `${data.description.slice(0, 140)}…`
+        : data.description;
+    await this.notificationScheduler.publish({
+      title: `Ticket #${row.reference_number}: ${data.subject}`,
+      description: `${data.type.replace('_', ' ').toLowerCase()} · ${row.priority.toLowerCase()} priority. ${excerpt}`,
+      category: NotificationCategory.SUPPORT,
+      tone:
+        row.priority === SupportTicketPriority.HIGH
+          ? NotificationTone.ATTENTION
+          : NotificationTone.INFO,
+      href: '/admin/support-tickets',
+      roles: [RoleType.ADMIN],
+      dedupeKey: `ticket-created:${row.support_ticket_id}`,
     });
 
     return toMobileSupportTicket(row);

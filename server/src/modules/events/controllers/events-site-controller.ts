@@ -16,7 +16,10 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { ZBody, ZParam, ZSerialize } from 'nest-zod';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import {
+  PermissionKey,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
@@ -25,6 +28,7 @@ import {
 } from 'src/shared/decorators/request-context-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
 import type {
   CreateEventDto,
   EventDto,
@@ -86,6 +90,7 @@ export class EventsSiteController {
   }
 
   @Post()
+  @RequirePermission(PermissionKey.EVENTS_CREATE)
   @ResponseMessage('Event created')
   @ZSerialize(EventResponseSchema)
   @UseInterceptors(FilesInterceptor('event_images', EVENT_MAX_IMAGE_COUNT))
@@ -99,6 +104,7 @@ export class EventsSiteController {
   }
 
   @Put(':id')
+  @RequirePermission(PermissionKey.EVENTS_UPDATE)
   @ResponseMessage('Event updated')
   @ZSerialize(EventResponseSchema)
   @UseInterceptors(FilesInterceptor('event_images', EVENT_MAX_IMAGE_COUNT))
@@ -113,6 +119,7 @@ export class EventsSiteController {
   }
 
   @Patch(':id/donations')
+  @RequirePermission(PermissionKey.EVENTS_UPDATE)
   @ResponseMessage('Donation options updated')
   @ZSerialize(EventResponseSchema)
   async updateDonations(
@@ -125,6 +132,7 @@ export class EventsSiteController {
   }
 
   @Patch(':id/cancel')
+  @RequirePermission(PermissionKey.EVENTS_UPDATE)
   @ResponseMessage('Event cancelled')
   @ZSerialize(EventResponseSchema)
   async cancelEvent(
@@ -136,6 +144,7 @@ export class EventsSiteController {
   }
 
   @Delete(':id')
+  @RequirePermission(PermissionKey.EVENTS_DELETE)
   @ResponseMessage('Event deleted')
   @ZSerialize(DeleteEventResponseSchema)
   async deleteEvent(

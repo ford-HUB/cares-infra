@@ -24,9 +24,15 @@ import {
 } from '../../services/shared/deployed-certificate-service'
 import { useDeployedCertificateStore } from '../../store/deployed-certificate-store'
 import type { DeployedCertificate } from '../../types/deployed-certificate'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePermission } from '../../store/auth-store'
+
+/** Anything that hands certificates out or holds them back — the "Issue certificates" right. */
+const ISSUE_ACTIONS = new Set(['pause', 'resume', 'remind'])
 
 export function DeployedCertificatesPage() {
   const navigate = useNavigate()
+  const canIssue = usePermission(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
   const deployments = useDeployedCertificateStore((s) => s.deployments)
   const loading = useDeployedCertificateStore((s) => s.loading)
   const initialized = useDeployedCertificateStore((s) => s.initialized)
@@ -134,6 +140,12 @@ export function DeployedCertificatesPage() {
   }
 
   const handleAction = (action: string, deployment: DeployedCertificate) => {
+    // The controls for these are hidden without the right; this catches anything
+    // that still reaches the dispatcher, such as a stale menu.
+    if (ISSUE_ACTIONS.has(action) && !canIssue) {
+      toast.error('Distributing certificates needs the "Issue certificates" right')
+      return
+    }
     if (action === 'preview') {
       setSelectedId(deployment.id)
       return

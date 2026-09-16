@@ -18,16 +18,30 @@ import {
   type TemplateStatusFilter,
   type TemplateViewMode,
 } from '../../constants/certificate-templates'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { ADMIN_DEPLOYED_CERTIFICATES_PATH } from '../../constants/routes'
 import { countCertificateTemplates } from '../../services/shared/certificate-service'
+import { usePermission, useSuspension } from '../../store/auth-store'
 import { useCertificateTemplateStore } from '../../store/certificate-template-store'
 import type {
   CertificateTemplate,
   CertificateTemplateStatus,
 } from '../../types/certificate-template'
 
+/** Everything that changes a template — the "Manage templates" right covers them all. */
+const TEMPLATE_WRITE_ACTIONS = new Set([
+  'customize',
+  'duplicate',
+  'archive',
+  'restore',
+  'delete',
+  'deploy',
+])
+
 export function CertificateTemplatesPage() {
   const navigate = useNavigate()
+  const canManage = usePermission(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
+  const manageSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_TEMPLATE_MANAGE)
   const templates = useCertificateTemplateStore((s) => s.templates)
   const loading = useCertificateTemplateStore((s) => s.loading)
   const initialized = useCertificateTemplateStore((s) => s.initialized)
@@ -158,6 +172,12 @@ export function CertificateTemplatesPage() {
   }
 
   const handleAction = (action: string, template: CertificateTemplate) => {
+    // The controls for these are hidden without the right; this catches anything
+    // that still reaches the dispatcher, such as a stale menu.
+    if (TEMPLATE_WRITE_ACTIONS.has(action) && !canManage) {
+      toast.error('Managing templates needs the "Manage templates" right')
+      return
+    }
     if (action === 'customize') {
       setCustomizingId(template.id)
       return
@@ -191,7 +211,8 @@ export function CertificateTemplatesPage() {
         onStatusChange={setStatus}
         onCategoryChange={setCategory}
         onViewChange={setView}
-        onCreate={() => setCreating(true)}
+        onCreate={canManage ? () => setCreating(true) : undefined}
+        createSuspension={manageSuspension}
       />
 
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
@@ -201,7 +222,7 @@ export function CertificateTemplatesPage() {
               filtered={filtered}
               errored={Boolean(error)}
               onClearFilters={clearFilters}
-              onCreate={() => setCreating(true)}
+              onCreate={canManage ? () => setCreating(true) : undefined}
             />
           ) : view === 'grid' ? (
             <CertificateTemplateGallery

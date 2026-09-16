@@ -1,10 +1,12 @@
-import { Check, Copy, TriangleAlert } from 'lucide-react'
+import { Check, Copy, MailCheck, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { formatRelativeTime, formatTimestamp } from '../../../constants/formatting'
-import type { IssuedCredentials } from '../../../types/manage-users'
+import type { CredentialDelivery, IssuedCredentials } from '../../../types/manage-users'
 
 interface IssuedCredentialsPanelProps {
   credentials: IssuedCredentials
+  /** Null when nothing was mailed (a re-issue is read out, not sent). */
+  delivery?: CredentialDelivery | null
 }
 
 /** How long the "copied" tick stays up before the button goes back to its idle state. */
@@ -52,17 +54,36 @@ function CredentialRow({ label, value }: { label: string; value: string }) {
 /**
  * The credential as issued. It is shown once — the password is stored hashed, so
  * nothing can read it back and an administrator who closes this has to re-issue.
+ * `delivery` says whether the same credential also went out by email; a failed send
+ * is a notice here, not an error, because the account already exists.
  */
-export function IssuedCredentialsPanel({ credentials }: IssuedCredentialsPanelProps) {
+export function IssuedCredentialsPanel({
+  credentials,
+  delivery = null,
+}: IssuedCredentialsPanelProps) {
   return (
     <div className="space-y-4">
-      <div className="flex gap-2.5 rounded-lg bg-amber-50 px-3 py-2.5 text-[12px] text-amber-800">
-        <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-        <p>
-          Copy these now — the password is stored hashed and cannot be shown again.
-          Hand them to the requester directly.
-        </p>
-      </div>
+      {delivery?.sent ? (
+        <div className="flex gap-2.5 rounded-lg bg-green-50 px-3 py-2.5 text-[12px] text-green-800">
+          <MailCheck className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            The temporary account details were emailed to{' '}
+            <span className="font-medium">{delivery.recipient}</span>. Copy them here
+            too — the password is stored hashed and cannot be shown again.
+          </p>
+        </div>
+      ) : (
+        <div className="flex gap-2.5 rounded-lg bg-amber-50 px-3 py-2.5 text-[12px] text-amber-800">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            {delivery
+              ? `The email to ${delivery.recipient} could not be sent. `
+              : ''}
+            Copy these now — the password is stored hashed and cannot be shown again.
+            Hand them to the requester directly.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3 rounded-lg border border-gray-200 p-3">
         <CredentialRow label="Email" value={credentials.email} />

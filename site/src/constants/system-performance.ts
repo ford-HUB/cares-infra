@@ -169,12 +169,14 @@ export const PROCESS_OWNER_LABELS: Record<ProcessOwner, string> = {
   microservices: 'Python ML',
   database: 'PostgreSQL',
   site: 'Static site',
+  other: 'Other',
 }
 
 /** Method chips in the endpoint table — reads, writes, and deletes at a glance. */
 export const HTTP_METHOD_STYLES: Record<HttpMethod, string> = {
   GET: 'bg-gray-100 text-gray-600',
   POST: 'bg-blue-50 text-blue-700',
+  PUT: 'bg-amber-50 text-amber-700',
   PATCH: 'bg-amber-50 text-amber-700',
   DELETE: 'bg-red-50 text-red-700',
 }
@@ -241,7 +243,7 @@ export function analyseCpu(
       id: 'saturated-cores',
       state: saturated.length > cores.length / 2 ? 'critical' : 'strained',
       title: `${saturated.length} of ${cores.length} cores are pinned above ${CPU_CRITICAL_PERCENT}%`,
-      detail: `Core ${hottest.id} is at ${Math.round(hottest.usagePercent)}% running ${hottest.runningWhat.toLowerCase()}. Work queued behind a pinned core shows up as the slow tail, not as an error.`,
+      detail: `Core ${hottest.id} is at ${Math.round(hottest.usagePercent)}%. Work queued behind a pinned core shows up as the slow tail, not as an error.`,
     })
   }
 

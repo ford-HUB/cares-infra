@@ -14,7 +14,8 @@ import {
   type UserStatusFilter,
 } from '../../constants/manage-users'
 import { useProvisionUserForm } from '../../hooks/use-provision-user-form'
-import { usePortalRole } from '../../store/auth-store'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
 import { useManageUsersStore } from '../../store/manage-users-store'
 import { getManagedUserDetail } from '../../services/manage-user-service'
 import type {
@@ -41,7 +42,8 @@ export function ManageUsersPage() {
 
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>(USER_ROLE_FILTER_ALL)
-  const [statusFilter, setStatusFilter] = useState<UserStatusFilter>(USER_STATUS_FILTER_ALL)
+  const [statusFilter, setStatusFilter] =
+    useState<UserStatusFilter>(USER_STATUS_FILTER_ALL)
   const [page, setPage] = useState(1)
 
   const [detailsUser, setDetailsUser] = useState<ManagedUser | null>(null)
@@ -60,6 +62,16 @@ export function ManageUsersPage() {
   // A director asks for an account; an administrator issues it — the same split the
   // server enforces, so the controls a director cannot use are not shown to them.
   const canProvision = usePortalRole() === 'admin'
+  // The per-account rights from Access Control. A control the account has no right
+  // to is not drawn, so the row menu and the toolbar shrink to what is allowed.
+  const canRestrict = usePermission(PORTAL_PERMISSION.USERS_RESTRICT)
+  const canBlockIp = usePermission(PORTAL_PERMISSION.USERS_BLOCK_IP)
+  const canExport = usePermission(PORTAL_PERMISSION.USERS_EXPORT)
+  // A right pulled by a suspension is the one exception: the control stays on screen,
+  // locked and red, so the person can see what was taken and why.
+  const restrictSuspension = useSuspension(PORTAL_PERMISSION.USERS_RESTRICT)
+  const blockIpSuspension = useSuspension(PORTAL_PERMISSION.USERS_BLOCK_IP)
+  const exportSuspension = useSuspension(PORTAL_PERMISSION.USERS_EXPORT)
 
   useEffect(() => {
     void fetchUsers()
@@ -82,10 +94,12 @@ export function ManageUsersPage() {
   const roles = useMemo(() => [...new Set(users.map((user) => user.role))], [users])
   const activeCount = users.filter((user) => user.status === 'active').length
 
-  const resetToFirstPage = <T,>(apply: (value: T) => void) => (value: T) => {
-    apply(value)
-    setPage(1)
-  }
+  const resetToFirstPage =
+    <T,>(apply: (value: T) => void) =>
+    (value: T) => {
+      apply(value)
+      setPage(1)
+    }
 
   const runMutation = useCallback(
     async (
@@ -209,14 +223,15 @@ export function ManageUsersPage() {
         onSearchChange={resetToFirstPage(setSearch)}
         onRoleChange={resetToFirstPage(setRoleFilter)}
         onStatusChange={resetToFirstPage(setStatusFilter)}
-        onExport={() => exportUsersCsv(filtered)}
+        onExport={canExport ? () => exportUsersCsv(filtered) : undefined}
+        exportSuspension={exportSuspension}
         onAddUser={canProvision ? () => setAddUserOpen(true) : undefined}
       />
 
       {truncated && (
         <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
-          Showing the first {users.length} of {total} accounts. Narrow the search to
-          reach the rest.
+          Showing the first {users.length} of {total} accounts. Narrow the search to reach
+          the rest.
         </p>
       )}
 
@@ -227,11 +242,13 @@ export function ManageUsersPage() {
         page={page}
         onPageChange={setPage}
         onView={setDetailsUser}
-        onRestrict={setRestrictingUser}
-        onUnrestrict={handleUnrestrict}
-        onBlockIp={setBlockingIpUser}
-        onUnblockIp={handleUnblockIp}
+        onRestrict={canRestrict ? setRestrictingUser : undefined}
+        onUnrestrict={canRestrict ? handleUnrestrict : undefined}
+        onBlockIp={canBlockIp ? setBlockingIpUser : undefined}
+        onUnblockIp={canBlockIp ? handleUnblockIp : undefined}
         onReissueCredentials={canProvision ? setReissueUser : undefined}
+        restrictSuspension={restrictSuspension}
+        blockIpSuspension={blockIpSuspension}
       />
 
       <UserDetailsModal

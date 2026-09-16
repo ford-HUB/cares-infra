@@ -9,6 +9,8 @@ import {
   type TemplateStatusFilter,
   type TemplateViewMode,
 } from '../../constants/certificate-templates'
+import type { SessionSuspension } from '../../types/access-control'
+import { LockedActionButton } from '../portal/ui/locked-action'
 
 interface CertificateTemplatesToolbarProps {
   search: string
@@ -23,7 +25,10 @@ interface CertificateTemplatesToolbarProps {
   onStatusChange: (value: TemplateStatusFilter) => void
   onCategoryChange: (value: TemplateCategoryFilter) => void
   onViewChange: (value: TemplateViewMode) => void
-  onCreate: () => void
+  /** Omitted when the account lacks the manage right — the button is not drawn. */
+  onCreate?: () => void
+  /** Set when the manage right is suspended — the button is drawn locked instead. */
+  createSuspension?: SessionSuspension
 }
 
 const selectClass =
@@ -42,6 +47,7 @@ export function CertificateTemplatesToolbar({
   onCategoryChange,
   onViewChange,
   onCreate,
+  createSuspension,
 }: CertificateTemplatesToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -71,9 +77,7 @@ export function CertificateTemplatesToolbar({
         <select
           aria-label="Filter by status"
           value={status}
-          onChange={(event) =>
-            onStatusChange(event.target.value as TemplateStatusFilter)
-          }
+          onChange={(event) => onStatusChange(event.target.value as TemplateStatusFilter)}
           className={selectClass}
         >
           {TEMPLATE_STATUS_FILTERS.map((option) => (
@@ -115,10 +119,20 @@ export function CertificateTemplatesToolbar({
           </ToggleGroupItem>
         </ToggleGroup>
 
-        <Button size="sm" className="h-9" onClick={onCreate}>
-          <Plus className="h-3.5 w-3.5" />
-          New template
-        </Button>
+        {createSuspension ? (
+          <LockedActionButton
+            suspension={createSuspension}
+            icon={Plus}
+            label="New template"
+          />
+        ) : (
+          onCreate && (
+            <Button size="sm" className="h-9" onClick={onCreate}>
+              <Plus className="h-3.5 w-3.5" />
+              New template
+            </Button>
+          )
+        )}
       </div>
     </div>
   )

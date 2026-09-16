@@ -10,11 +10,9 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-  formatFileSize,
-  formatNumber,
-  formatTimestamp,
-} from '../../constants/formatting'
+import type { SessionSuspension } from '../../types/access-control'
+import { LockedActionButton } from '../portal/ui/locked-action'
+import { formatFileSize, formatNumber, formatTimestamp } from '../../constants/formatting'
 import {
   DOCUMENT_KIND_LABELS,
   REPORT_TRAIL_DOT_STYLES,
@@ -33,8 +31,11 @@ interface ReportReviewPanelProps {
   initialized: boolean
   saving: boolean
   onOpenDocument: (document: ReportDocument) => void
-  onApprove: () => void
-  onReturn: () => void
+  /** Both omitted when the account lacks the publish right — the panel reads only. */
+  onApprove?: () => void
+  /** Set when the publish right is suspended — Return/Approve are drawn locked instead. */
+  publishSuspension?: SessionSuspension
+  onReturn?: () => void
 }
 
 function Metric({
@@ -70,6 +71,7 @@ export function ReportReviewPanel({
   saving,
   onOpenDocument,
   onApprove,
+  publishSuspension,
   onReturn,
 }: ReportReviewPanelProps) {
   if (!initialized) return <ReportReviewPanelSkeleton />
@@ -113,7 +115,27 @@ export function ReportReviewPanel({
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            {report.status === 'under_review' && (
+            {publishSuspension &&
+              (report.status === 'under_review' || report.status === 'returned') && (
+                <>
+                  {report.status === 'under_review' && (
+                    <LockedActionButton
+                      suspension={publishSuspension}
+                      icon={RotateCcw}
+                      label="Return"
+                      size="sm"
+                    />
+                  )}
+                  <LockedActionButton
+                    suspension={publishSuspension}
+                    icon={CheckCircle2}
+                    label={report.status === 'returned' ? 'Approve anyway' : 'Approve'}
+                    size="sm"
+                  />
+                </>
+              )}
+
+            {report.status === 'under_review' && onApprove && onReturn && (
               <>
                 <button
                   type="button"
@@ -136,7 +158,7 @@ export function ReportReviewPanel({
               </>
             )}
 
-            {report.status === 'returned' && (
+            {report.status === 'returned' && !publishSuspension && (
               <button
                 type="button"
                 disabled={saving}
@@ -247,32 +269,32 @@ export function ReportReviewPanel({
           </p>
           <ul className="space-y-2">
             {report.documents.map((document) => (
-                <li
-                  key={document.id}
-                  className="flex items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2"
-                >
-                  <DocumentKindIcon kind={document.kind} className="h-8 w-8" />
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="truncate text-[12px] font-medium text-gray-900"
-                      title={document.name}
-                    >
-                      {document.name}
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      {DOCUMENT_KIND_LABELS[document.kind]} ·{' '}
-                      {formatFileSize(document.sizeBytes)}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onOpenDocument(document)}
-                    className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
+              <li
+                key={document.id}
+                className="flex items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2"
+              >
+                <DocumentKindIcon kind={document.kind} className="h-8 w-8" />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="truncate text-[12px] font-medium text-gray-900"
+                    title={document.name}
                   >
-                    <Eye className="h-3.5 w-3.5" />
-                    Open Docs
-                  </button>
-                </li>
+                    {document.name}
+                  </p>
+                  <p className="text-[10px] text-gray-400">
+                    {DOCUMENT_KIND_LABELS[document.kind]} ·{' '}
+                    {formatFileSize(document.sizeBytes)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenDocument(document)}
+                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  Open Docs
+                </button>
+              </li>
             ))}
           </ul>
         </section>

@@ -13,6 +13,8 @@ import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   ChatConversationDto,
@@ -36,6 +38,7 @@ const AttachmentIdParamSchema = z.uuid('A valid attachment id is required');
 
 @Controller('v1/chat')
 @Roles(...PORTAL_ROLE_TYPES)
+@RequirePermission(PermissionKey.CHAT_ACCESS)
 export class ChatSiteController {
   constructor(private readonly chatSiteService: ChatSiteService) {}
 

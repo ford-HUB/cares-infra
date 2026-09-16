@@ -350,6 +350,7 @@ export type UserWhereInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportListRelationFilter
   monthly_report_folders?: Prisma.MonthlyReportFolderListRelationFilter
   authored_announcements?: Prisma.AnnouncementListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }
 
@@ -398,6 +399,7 @@ export type UserOrderByWithRelationInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportOrderByRelationAggregateInput
   monthly_report_folders?: Prisma.MonthlyReportFolderOrderByRelationAggregateInput
   authored_announcements?: Prisma.AnnouncementOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
   role?: Prisma.RoleOrderByWithRelationInput
 }
 
@@ -449,6 +451,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   reviewed_monthly_reports?: Prisma.MonthlyReportListRelationFilter
   monthly_report_folders?: Prisma.MonthlyReportFolderListRelationFilter
   authored_announcements?: Prisma.AnnouncementListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }, "user_id" | "phone_number">
 
@@ -546,6 +549,7 @@ export type UserCreateInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -594,6 +598,7 @@ export type UserUncheckedCreateInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -640,6 +645,7 @@ export type UserUpdateInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -688,6 +694,7 @@ export type UserUncheckedUpdateInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -1305,6 +1312,20 @@ export type UserUpdateOneWithoutAuthored_announcementsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuthored_announcementsInput, Prisma.UserUpdateWithoutAuthored_announcementsInput>, Prisma.UserUncheckedUpdateWithoutAuthored_announcementsInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type UserCreateWithoutResidency_documentsInput = {
   user_id?: string
   firstname: string
@@ -1348,6 +1369,7 @@ export type UserCreateWithoutResidency_documentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1395,6 +1417,7 @@ export type UserUncheckedCreateWithoutResidency_documentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutResidency_documentsInput = {
@@ -1456,6 +1479,7 @@ export type UserUpdateWithoutResidency_documentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1503,6 +1527,7 @@ export type UserUncheckedUpdateWithoutResidency_documentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRole_avatarsInput = {
@@ -1548,6 +1573,7 @@ export type UserCreateWithoutRole_avatarsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1595,6 +1621,7 @@ export type UserUncheckedCreateWithoutRole_avatarsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRole_avatarsInput = {
@@ -1656,6 +1683,7 @@ export type UserUpdateWithoutRole_avatarsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1703,6 +1731,7 @@ export type UserUncheckedUpdateWithoutRole_avatarsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUser_school_infoInput = {
@@ -1748,6 +1777,7 @@ export type UserCreateWithoutUser_school_infoInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1795,6 +1825,7 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_school_infoInput = {
@@ -1856,6 +1887,7 @@ export type UserUpdateWithoutUser_school_infoInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1903,6 +1935,7 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUser_verificationsInput = {
@@ -1948,6 +1981,7 @@ export type UserCreateWithoutUser_verificationsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1995,6 +2029,7 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_verificationsInput = {
@@ -2056,6 +2091,7 @@ export type UserUpdateWithoutUser_verificationsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2103,6 +2139,7 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -2149,6 +2186,7 @@ export type UserCreateWithoutRoleInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -2195,6 +2233,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -2290,6 +2329,7 @@ export type UserCreateWithoutPermission_overridesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2337,6 +2377,7 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPermission_overridesInput = {
@@ -2398,6 +2439,7 @@ export type UserUpdateWithoutPermission_overridesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2445,6 +2487,7 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAction_suspensionsInput = {
@@ -2490,6 +2533,7 @@ export type UserCreateWithoutAction_suspensionsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2537,6 +2581,7 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAction_suspensionsInput = {
@@ -2598,6 +2643,7 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2645,6 +2691,7 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBlocked_ipsInput = {
@@ -2690,6 +2737,7 @@ export type UserCreateWithoutBlocked_ipsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2737,6 +2785,7 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBlocked_ipsInput = {
@@ -2798,6 +2847,7 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2845,6 +2895,7 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLogin_activitiesInput = {
@@ -2890,6 +2941,7 @@ export type UserCreateWithoutLogin_activitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2937,6 +2989,7 @@ export type UserUncheckedCreateWithoutLogin_activitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLogin_activitiesInput = {
@@ -2998,6 +3051,7 @@ export type UserUpdateWithoutLogin_activitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3045,6 +3099,7 @@ export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAudit_logsInput = {
@@ -3090,6 +3145,7 @@ export type UserCreateWithoutAudit_logsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3137,6 +3193,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAudit_logsInput = {
@@ -3198,6 +3255,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3245,6 +3303,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -3290,6 +3349,7 @@ export type UserCreateWithoutAccountsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3337,6 +3397,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -3398,6 +3459,7 @@ export type UserUpdateWithoutAccountsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3445,6 +3507,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOauth_identitiesInput = {
@@ -3490,6 +3553,7 @@ export type UserCreateWithoutOauth_identitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3537,6 +3601,7 @@ export type UserUncheckedCreateWithoutOauth_identitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOauth_identitiesInput = {
@@ -3598,6 +3663,7 @@ export type UserUpdateWithoutOauth_identitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3645,6 +3711,7 @@ export type UserUncheckedUpdateWithoutOauth_identitiesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutGmail_connectionInput = {
@@ -3690,6 +3757,7 @@ export type UserCreateWithoutGmail_connectionInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3737,6 +3805,7 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGmail_connectionInput = {
@@ -3798,6 +3867,7 @@ export type UserUpdateWithoutGmail_connectionInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3845,6 +3915,7 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUser_interestInput = {
@@ -3890,6 +3961,7 @@ export type UserCreateWithoutUser_interestInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3937,6 +4009,7 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_interestInput = {
@@ -3998,6 +4071,7 @@ export type UserUpdateWithoutUser_interestInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4045,6 +4119,7 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEvent_attendancesInput = {
@@ -4090,6 +4165,7 @@ export type UserCreateWithoutEvent_attendancesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4137,6 +4213,7 @@ export type UserUncheckedCreateWithoutEvent_attendancesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEvent_attendancesInput = {
@@ -4198,6 +4275,7 @@ export type UserUpdateWithoutEvent_attendancesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4245,6 +4323,7 @@ export type UserUncheckedUpdateWithoutEvent_attendancesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutChat_participantsInput = {
@@ -4290,6 +4369,7 @@ export type UserCreateWithoutChat_participantsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4337,6 +4417,7 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutChat_participantsInput = {
@@ -4398,6 +4479,7 @@ export type UserUpdateWithoutChat_participantsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4445,6 +4527,7 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutChat_messagesInput = {
@@ -4490,6 +4573,7 @@ export type UserCreateWithoutChat_messagesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4537,6 +4621,7 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutChat_messagesInput = {
@@ -4598,6 +4683,7 @@ export type UserUpdateWithoutChat_messagesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4645,6 +4731,7 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSupport_ticketsInput = {
@@ -4690,6 +4777,7 @@ export type UserCreateWithoutSupport_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4737,6 +4825,7 @@ export type UserUncheckedCreateWithoutSupport_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSupport_ticketsInput = {
@@ -4787,6 +4876,7 @@ export type UserCreateWithoutAssigned_support_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4834,6 +4924,7 @@ export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAssigned_support_ticketsInput = {
@@ -4895,6 +4986,7 @@ export type UserUpdateWithoutSupport_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4942,6 +5034,7 @@ export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAssigned_support_ticketsInput = {
@@ -4998,6 +5091,7 @@ export type UserUpdateWithoutAssigned_support_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5045,6 +5139,7 @@ export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSupport_ticket_repliesInput = {
@@ -5090,6 +5185,7 @@ export type UserCreateWithoutSupport_ticket_repliesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5137,6 +5233,7 @@ export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSupport_ticket_repliesInput = {
@@ -5198,6 +5295,7 @@ export type UserUpdateWithoutSupport_ticket_repliesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5245,6 +5343,7 @@ export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEdited_certificate_templatesInput = {
@@ -5290,6 +5389,7 @@ export type UserCreateWithoutEdited_certificate_templatesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5337,6 +5437,7 @@ export type UserUncheckedCreateWithoutEdited_certificate_templatesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEdited_certificate_templatesInput = {
@@ -5398,6 +5499,7 @@ export type UserUpdateWithoutEdited_certificate_templatesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5445,6 +5547,7 @@ export type UserUncheckedUpdateWithoutEdited_certificate_templatesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCertificate_signatory_linesInput = {
@@ -5490,6 +5593,7 @@ export type UserCreateWithoutCertificate_signatory_linesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5537,6 +5641,7 @@ export type UserUncheckedCreateWithoutCertificate_signatory_linesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCertificate_signatory_linesInput = {
@@ -5598,6 +5703,7 @@ export type UserUpdateWithoutCertificate_signatory_linesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5645,6 +5751,7 @@ export type UserUncheckedUpdateWithoutCertificate_signatory_linesInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCertificate_deploymentsInput = {
@@ -5690,6 +5797,7 @@ export type UserCreateWithoutCertificate_deploymentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5737,6 +5845,7 @@ export type UserUncheckedCreateWithoutCertificate_deploymentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCertificate_deploymentsInput = {
@@ -5798,6 +5907,7 @@ export type UserUpdateWithoutCertificate_deploymentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5845,6 +5955,7 @@ export type UserUncheckedUpdateWithoutCertificate_deploymentsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMonthly_report_foldersInput = {
@@ -5890,6 +6001,7 @@ export type UserCreateWithoutMonthly_report_foldersInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5937,6 +6049,7 @@ export type UserUncheckedCreateWithoutMonthly_report_foldersInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMonthly_report_foldersInput = {
@@ -5998,6 +6111,7 @@ export type UserUpdateWithoutMonthly_report_foldersInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6045,6 +6159,7 @@ export type UserUncheckedUpdateWithoutMonthly_report_foldersInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSubmitted_monthly_reportsInput = {
@@ -6090,6 +6205,7 @@ export type UserCreateWithoutSubmitted_monthly_reportsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6137,6 +6253,7 @@ export type UserUncheckedCreateWithoutSubmitted_monthly_reportsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubmitted_monthly_reportsInput = {
@@ -6187,6 +6304,7 @@ export type UserCreateWithoutReviewed_monthly_reportsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6234,6 +6352,7 @@ export type UserUncheckedCreateWithoutReviewed_monthly_reportsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewed_monthly_reportsInput = {
@@ -6295,6 +6414,7 @@ export type UserUpdateWithoutSubmitted_monthly_reportsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6342,6 +6462,7 @@ export type UserUncheckedUpdateWithoutSubmitted_monthly_reportsInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutReviewed_monthly_reportsInput = {
@@ -6398,6 +6519,7 @@ export type UserUpdateWithoutReviewed_monthly_reportsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6445,6 +6567,7 @@ export type UserUncheckedUpdateWithoutReviewed_monthly_reportsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuthored_announcementsInput = {
@@ -6490,6 +6613,7 @@ export type UserCreateWithoutAuthored_announcementsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6537,6 +6661,7 @@ export type UserUncheckedCreateWithoutAuthored_announcementsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuthored_announcementsInput = {
@@ -6598,6 +6723,7 @@ export type UserUpdateWithoutAuthored_announcementsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6645,6 +6771,211 @@ export type UserUncheckedUpdateWithoutAuthored_announcementsInput = {
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateManyRoleInput = {
@@ -6711,6 +7042,7 @@ export type UserUpdateWithoutRoleInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -6757,6 +7089,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -6809,6 +7142,7 @@ export type UserCountOutputType = {
   reviewed_monthly_reports: number
   monthly_report_folders: number
   authored_announcements: number
+  notifications: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -6836,6 +7170,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reviewed_monthly_reports?: boolean | UserCountOutputTypeCountReviewed_monthly_reportsArgs
   monthly_report_folders?: boolean | UserCountOutputTypeCountMonthly_report_foldersArgs
   authored_announcements?: boolean | UserCountOutputTypeCountAuthored_announcementsArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
 }
 
 /**
@@ -7016,6 +7351,13 @@ export type UserCountOutputTypeCountAuthored_announcementsArgs<ExtArgs extends r
   where?: Prisma.AnnouncementWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_id?: boolean
@@ -7062,6 +7404,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reviewed_monthly_reports?: boolean | Prisma.User$reviewed_monthly_reportsArgs<ExtArgs>
   monthly_report_folders?: boolean | Prisma.User$monthly_report_foldersArgs<ExtArgs>
   authored_announcements?: boolean | Prisma.User$authored_announcementsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -7159,6 +7502,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reviewed_monthly_reports?: boolean | Prisma.User$reviewed_monthly_reportsArgs<ExtArgs>
   monthly_report_folders?: boolean | Prisma.User$monthly_report_foldersArgs<ExtArgs>
   authored_announcements?: boolean | Prisma.User$authored_announcementsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -7198,6 +7542,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reviewed_monthly_reports: Prisma.$MonthlyReportPayload<ExtArgs>[]
     monthly_report_folders: Prisma.$MonthlyReportFolderPayload<ExtArgs>[]
     authored_announcements: Prisma.$AnnouncementPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
     role: Prisma.$RolePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -7642,6 +7987,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   reviewed_monthly_reports<T extends Prisma.User$reviewed_monthly_reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewed_monthly_reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonthlyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   monthly_report_folders<T extends Prisma.User$monthly_report_foldersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$monthly_report_foldersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonthlyReportFolderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   authored_announcements<T extends Prisma.User$authored_announcementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$authored_announcementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AnnouncementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -8702,6 +9048,30 @@ export type User$authored_announcementsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.AnnouncementScalarFieldEnum | Prisma.AnnouncementScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Loader2, ShieldOff, X } from 'lucide-react'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import type {
   AccessCatalog,
   AccessUser,
@@ -7,6 +8,7 @@ import type {
   PermissionKey,
 } from '../../../types/access-control'
 import {
+  activeSuspensionOf,
   grantedPermissions,
   hasPendingChanges,
   permissionSource,
@@ -23,6 +25,12 @@ interface AccessRightsPanelProps {
   loading: boolean
   error?: string
   saving: boolean
+  /**
+   * The account may see rights but not change them — every toggle is frozen and the
+   * footer offers no save, reset, or suspend. This is the "View rights" right on its
+   * own, without "Manage rights".
+   */
+  readOnly?: boolean
   onClose: () => void
   onSave: (permissions: PermissionKey[]) => void
   onSuspend: () => void
@@ -36,6 +44,7 @@ export function AccessRightsPanel({
   loading,
   error,
   saving,
+  readOnly = false,
   onClose,
   onSave,
   onSuspend,
@@ -74,12 +83,16 @@ export function AccessRightsPanel({
   const dirty = hasPendingChanges(selected, granted)
   const activeSuspensions = detail?.suspensions.filter((entry) => entry.active) ?? []
 
-  const toggle = (permission: PermissionKey, next: boolean) => toggleMany([permission], next)
+  const toggle = (permission: PermissionKey, next: boolean) =>
+    toggleMany([permission], next)
 
+  // A suspended action's toggle is locked in the UI; skipping it here keeps a module
+  // tick from moving it either.
   const toggleMany = (permissions: PermissionKey[], next: boolean) => {
     setSelected((current) => {
       const updated = new Set(current)
       for (const permission of permissions) {
+        if (suspended.has(permission)) continue
         if (next) {
           updated.add(permission)
         } else {
@@ -99,11 +112,7 @@ export function AccessRightsPanel({
       >
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <UserAvatar
-              firstName={user.firstName}
-              lastName={user.lastName}
-              size="lg"
-            />
+            <UserAvatar firstName={user.firstName} lastName={user.lastName} size="lg" />
             <div className="min-w-0">
               <h3 className="truncate text-base font-semibold text-gray-900">
                 {user.firstName} {user.lastName}
@@ -154,6 +163,13 @@ export function AccessRightsPanel({
 
           {!loading && !error && detail && (
             <>
+              {readOnly && (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
+                  You can view this account's rights but not change them — that needs the
+                  "Manage rights" right on your own account.
+                </p>
+              )}
+
               <p className="rounded-lg bg-gray-50 px-3 py-2 text-[12px] text-gray-600">
                 Ticked actions are what this account can do. Tick a module heading to
                 grant the whole module, or untick it to remove the module from this
@@ -162,26 +178,24 @@ export function AccessRightsPanel({
                 person only; suspensions sit on top and are lifted separately.
               </p>
 
-              {byModule.map((group) => (
-                <PermissionModuleSection
-                  key={group.module}
-                  module={group.module}
-                  permissions={group.permissions}
-                  selected={selected}
-                  disabled={saving}
-                  sourceOf={(permission) =>
-                    permissionSource(permission, detail, granted, suspended)
-                  }
-                  suspensionOf={(permission) =>
-                    detail.suspensions.find(
-                      (entry) => entry.active && entry.permission === permission,
-                    )
-                  }
-                  onToggle={toggle}
-                  onToggleAll={toggleMany}
-                  onLiftSuspension={onLiftSuspension}
-                />
-              ))}
+              <TooltipProvider delayDuration={150}>
+                {byModule.map((group) => (
+                  <PermissionModuleSection
+                    key={group.module}
+                    module={group.module}
+                    permissions={group.permissions}
+                    selected={selected}
+                    disabled={saving || readOnly}
+                    sourceOf={(permission) =>
+                      permissionSource(permission, detail, granted, suspended)
+                    }
+                    suspensionOf={(permission) => activeSuspensionOf(permission, detail)}
+                    onToggle={toggle}
+                    onToggleAll={toggleMany}
+                    onLiftSuspension={onLiftSuspension}
+                  />
+                ))}
+              </TooltipProvider>
             </>
           )}
         </div>
@@ -189,7 +203,7 @@ export function AccessRightsPanel({
         <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-5 py-3">
           <button
             type="button"
-            disabled={!detail || saving || user.isProtected}
+            disabled={!detail || saving || user.isProtected || readOnly}
             onClick={onSuspend}
             title={
               user.isProtected
@@ -205,7 +219,7 @@ export function AccessRightsPanel({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              disabled={!dirty || saving}
+              disabled={!dirty || saving || readOnly}
               onClick={() => setSelected(new Set(granted))}
               className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-700 hover:bg-gray-100 disabled:opacity-50"
             >
@@ -213,7 +227,7 @@ export function AccessRightsPanel({
             </button>
             <button
               type="button"
-              disabled={!dirty || saving}
+              disabled={!dirty || saving || readOnly}
               onClick={() => onSave([...selected])}
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--cares-primary)] px-4 py-2 text-[13px] font-medium text-white hover:opacity-90 disabled:opacity-50"
             >

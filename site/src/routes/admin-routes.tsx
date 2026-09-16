@@ -2,9 +2,10 @@ import type { RouteObject } from 'react-router-dom'
 import type { PortalRole } from '../types/portal-roles'
 import { AdminPortalLayout } from '../components/portal/admin-portal-layout'
 import { ProtectedPortal } from '../components/portal/protected-portal'
-import { ADMIN_ONLY_ROLES, PORTAL_ROLES } from '../constants/auth'
+import { PORTAL_ROLES } from '../constants/auth'
 import { PORTAL_PERMISSION as P } from '../constants/portal-permissions'
 import { AdminDashboard } from '../pages/admin/admin-dashboard'
+import { StatisticsPage } from '../pages/admin/statistics'
 import { AdminProfile } from '../pages/admin/admin-profile'
 import { AdminSettingsLayout } from '../pages/admin/admin-settings'
 import { AccessControlPage } from '../pages/admin/access-control'
@@ -32,6 +33,7 @@ import { SupportTicketsPage } from '../pages/admin/support-tickets'
 import { SystemNoticesPage } from '../pages/admin/system-notices'
 import { SystemPerformancePage } from '../pages/admin/system-performance'
 import { SystemServicesPage } from '../pages/admin/system-services'
+import { SystemDiagnosticsPage } from '../pages/admin/system-diagnostics'
 import { UserRequestPage } from '../pages/admin/user-request'
 import { ChatPage } from '../pages/shared/chat-page'
 import { createPlaceholderPage } from '../pages/shared/create-placeholder-page'
@@ -42,12 +44,11 @@ import { settingsChildRoutes } from './settings-child-routes'
 /** Program operations — the roles the tracker, event and report screens serve. */
 const OPERATIONS_ROLES: PortalRole[] = ['director', 'coordinator']
 
-const Statistics = createPlaceholderPage('Statistics', 'Charts and analytics for CARES programs.')
-
 /**
- * Every guarded page carries the same module right as its sidebar entry, so hiding
- * an item from the nav and refusing its URL are one decision. A right an admin
- * revokes in Access Control reaches these guards on the next sync.
+ * Every guarded page carries the same right as its sidebar entry, so hiding an item
+ * from the nav and refusing its URL are one decision, and both follow what an admin
+ * ticks in Access Control on the next sync. Roles narrow a guard only where the nav
+ * does the same — see the note on `adminNav`.
  */
 const gated = (permission: string, roles: PortalRole[] = PORTAL_ROLES) => (
   <ProtectedPortal roles={roles} permission={permission} />
@@ -63,7 +64,7 @@ export const adminRoutes: RouteObject[] = [
         children: [
           { index: true, element: <AdminDashboard /> },
           { path: 'overview', element: <AdminDashboard /> },
-          { path: 'statistics', element: <Statistics /> },
+          { path: 'statistics', element: <StatisticsPage /> },
           { path: 'profile', element: <AdminProfile /> },
           { path: 'system-notices', element: <SystemNoticesPage /> },
           {
@@ -71,15 +72,19 @@ export const adminRoutes: RouteObject[] = [
             children: [{ path: 'chat', element: <ChatPage /> }],
           },
           {
-            element: gated(P.SYSTEM_PERFORMANCE_VIEW, ADMIN_ONLY_ROLES),
+            element: gated(P.SYSTEM_PERFORMANCE_VIEW),
             children: [{ path: 'system-performance', element: <SystemPerformancePage /> }],
           },
           {
-            element: gated(P.SYSTEM_SERVICE_MANAGE, ADMIN_ONLY_ROLES),
+            element: gated(P.SYSTEM_SERVICE_MANAGE),
             children: [{ path: 'system-services', element: <SystemServicesPage /> }],
           },
           {
-            element: gated(P.SYSTEM_MAINTENANCE_MANAGE, ADMIN_ONLY_ROLES),
+            element: gated(P.SYSTEM_SERVICE_MANAGE),
+            children: [{ path: 'system-diagnostics', element: <SystemDiagnosticsPage /> }],
+          },
+          {
+            element: gated(P.SYSTEM_MAINTENANCE_MANAGE),
             children: [{ path: 'maintenance', element: <MaintenancePage /> }],
           },
           {
@@ -95,52 +100,53 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // Admin-only, nested so the rest of the portal keeps PORTAL_ROLES.
-            element: gated(P.ACCESS_CONTROL_VIEW, ADMIN_ONLY_ROLES),
+            element: gated(P.ACCESS_CONTROL_VIEW),
             children: [{ path: 'access-control', element: <AccessControlPage /> }],
           },
           {
-            // The policy decides who can sign in at all, matching the server's
-            // @Roles(ADMIN) on /api/v1/security-policy.
-            element: gated(P.SECURITY_POLICY_MANAGE, ADMIN_ONLY_ROLES),
+            // The policy decides who can sign in at all — the same right the server
+            // requires on /api/v1/security-policy.
+            element: gated(P.SECURITY_POLICY_MANAGE),
             children: [{ path: 'security-policies', element: <SecurityPoliciesPage /> }],
           },
           {
-            // The sign-in trail exposes every account's IPs — admin-only, matching
-            // the server's @Roles(ADMIN) on /api/v1/login-activity. Audit Logs sits
-            // under the same right in the nav, so the route matches.
-            element: gated(P.SECURITY_AUDIT_VIEW, ADMIN_ONLY_ROLES),
+            // The sign-in trail exposes every account's IPs; the server requires the
+            // same right on /api/v1/login-activity and /api/v1/audit-logs.
+            element: gated(P.SECURITY_AUDIT_VIEW),
             children: [
               { path: 'login-activity', element: <LoginActivityPage /> },
               { path: 'audit-logs', element: <AuditLogsPage /> },
             ],
           },
           {
-            // Every account's signed-in devices are listed and revocable here,
-            // matching the server's @Roles(ADMIN) on /api/v1/sessions.
-            element: gated(P.SECURITY_SESSION_REVOKE, ADMIN_ONLY_ROLES),
+            // Every account's signed-in devices are listed and revocable here — the
+            // same right the server requires on /api/v1/sessions.
+            element: gated(P.SECURITY_SESSION_REVOKE),
             children: [{ path: 'active-sessions', element: <ActiveSessionsPage /> }],
           },
           {
-            // Each admin links their own Google mailbox; it is not a shared inbox.
-            element: gated(P.MAIL_ACCESS, ADMIN_ONLY_ROLES),
+            // Each account links its own Google mailbox; it is not a shared inbox.
+            element: gated(P.MAIL_ACCESS),
             children: [{ path: 'mail-inbox', element: <MailInboxPage /> }],
           },
           {
-            // The nav shows Support Tickets to admins only; the route matches.
-            element: gated(P.SUPPORT_TICKET_MANAGE, ADMIN_ONLY_ROLES),
+            element: gated(P.SUPPORT_TICKET_MANAGE),
             children: [{ path: 'support-tickets', element: <SupportTicketsPage /> }],
           },
           {
-            // Reviewing and the filed library are the director's two screens;
-            // `post-requirements` is the queue's original path, kept working. The
-            // nav hides both from coordinators, and the routes match.
-            element: gated(P.REPORTS_VIEW, ['director']),
+            // Reviewing follows the "Publish reports" right, whoever holds it;
+            // `post-requirements` is the queue's original path, kept working.
+            element: gated(P.REPORTS_PUBLISH),
             children: [
               { path: 'report-queue', element: <QueueReviewerPage /> },
               { path: 'post-requirements', element: <QueueReviewerPage /> },
-              { path: 'monthly-reports', element: <MonthlyReportsPage /> },
             ],
+          },
+          {
+            // The filed library is the director's screen; the coordinator has their
+            // own filed record below.
+            element: gated(P.REPORTS_VIEW, ['director']),
+            children: [{ path: 'monthly-reports', element: <MonthlyReportsPage /> }],
           },
           {
             // The coordinator's half: submit a report, then read the filed record.
@@ -184,9 +190,9 @@ export const adminRoutes: RouteObject[] = [
             children: [{ path: 'ranking-customization', element: <RankingCustomizationPage /> }],
           },
           {
-            // Manage Certificate is director-only in the nav; the routes match so a
-            // coordinator typing either URL is bounced to their dashboard.
-            element: gated(P.CERTIFICATES_VIEW, ['director']),
+            // Held by the director baseline; a coordinator granted "View
+            // certificates" reaches it too.
+            element: gated(P.CERTIFICATES_VIEW, OPERATIONS_ROLES),
             children: [
               { path: 'templates-list', element: <CertificateTemplatesPage /> },
               { path: 'deployed-certificate-templates', element: <DeployedCertificatesPage /> },

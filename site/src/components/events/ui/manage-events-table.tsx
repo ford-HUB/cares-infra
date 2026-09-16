@@ -37,7 +37,8 @@ interface ManageEventsTableProps {
   /** Row whose actions menu is currently open, so its trigger can stay highlighted. */
   activeActionsEventId: number | null
   onClearFilters: () => void
-  onCreate: () => void
+  /** Omitted when the account lacks the create right — the empty state only offers Clear. */
+  onCreate?: () => void
 }
 
 const cellBorder = EVENT_CELL_BORDER
@@ -143,17 +144,19 @@ export function ManageEventsTable({
                   className="h-32 text-center text-sm text-gray-500"
                 >
                   <p>{hasActiveFilters ? 'No events match your filters' : 'No events found'}</p>
-                  <button
-                    type="button"
-                    onClick={hasActiveFilters ? onClearFilters : onCreate}
-                    className={`mt-3 rounded-lg px-3 py-1.5 text-[13px] ${
-                      hasActiveFilters
-                        ? 'border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        : 'bg-[var(--cares-primary)] text-white hover:opacity-90'
-                    }`}
-                  >
-                    {hasActiveFilters ? 'Clear filters' : 'Create your first event'}
-                  </button>
+                  {(hasActiveFilters || onCreate) && (
+                    <button
+                      type="button"
+                      onClick={hasActiveFilters ? onClearFilters : onCreate}
+                      className={`mt-3 rounded-lg px-3 py-1.5 text-[13px] ${
+                        hasActiveFilters
+                          ? 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                          : 'bg-[var(--cares-primary)] text-white hover:opacity-90'
+                      }`}
+                    >
+                      {hasActiveFilters ? 'Clear filters' : 'Create your first event'}
+                    </button>
+                  )}
                 </td>
               </tr>
             )}

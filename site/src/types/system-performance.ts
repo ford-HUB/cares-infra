@@ -30,12 +30,10 @@ export type HealthState = 'healthy' | 'strained' | 'critical'
 export interface CpuCore {
   id: number
   usagePercent: number
-  /** Which workload the scheduler is mostly running there, for the analysis card. */
-  runningWhat: string
 }
 
 /** Which deployable a process belongs to — where staff go when it is the culprit. */
-export type ProcessOwner = 'server' | 'microservices' | 'database' | 'site'
+export type ProcessOwner = 'server' | 'microservices' | 'database' | 'site' | 'other'
 
 export interface ProcessLoad {
   id: string
@@ -44,10 +42,11 @@ export interface ProcessLoad {
   /** Share of *total* host capacity, so the column sums toward CPU busy. */
   cpuPercent: number
   memoryMb: number
-  threads: number
+  /** Null where the host does not report a thread count. */
+  threads: number | null
 }
 
-export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 /** Server-side timing for one route — the loading time staff actually wait on. */
 export interface EndpointLatency {
@@ -65,6 +64,7 @@ export interface EndpointLatency {
 
 /** Browser-side load of one portal screen, split into the phases staff can feel. */
 export interface PageLoadTiming {
+  /** The portal route the screen lives at. */
   id: string
   label: string
   /** Wait before the first byte — server and network. */
@@ -83,6 +83,14 @@ export interface PerformanceHost {
   vcpu: number
   memoryGb: number
   uptimeHours: number
+}
+
+/** What one live tick brings back: the newest reading and the breakdown it drives. */
+export interface PerformanceTick {
+  sample: PerformanceSample | null
+  cores: CpuCore[]
+  processes: ProcessLoad[]
+  loadAverage: [number, number, number]
 }
 
 /** Everything the performance page draws, read as one snapshot. */

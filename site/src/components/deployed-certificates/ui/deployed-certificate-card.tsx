@@ -6,6 +6,9 @@ import { CertificateCanvas } from '../../certificate-templates/ui/certificate-ca
 import { CertificateCategoryBadge } from '../../certificate-templates/ui/certificate-category-badge'
 import { formatDateShort, formatNumber } from '../../../constants/formatting'
 import type { DeployedCertificate } from '../../../types/deployed-certificate'
+import { PORTAL_PERMISSION } from '../../../constants/portal-permissions'
+import { usePermission, useSuspension } from '../../../store/auth-store'
+import { LockedActionButton } from '../../portal/ui/locked-action'
 import { DeployedCertificateActions } from './deployed-certificate-actions'
 import { DeploymentStatusBadge } from './deployment-status-badge'
 import { DistributionBar } from './distribution-bar'
@@ -28,6 +31,8 @@ export function DeployedCertificateCard({
   onSelect,
   onAction,
 }: DeployedCertificateCardProps) {
+  const canIssue = usePermission(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
+  const issueSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
   const pending = Math.max(deployment.participants - deployment.distributed, 0)
   const canRemind = pending > 0 && deployment.status !== 'scheduled'
 
@@ -83,9 +88,7 @@ export function DeployedCertificateCard({
 
         <div className="flex items-center justify-between gap-2 text-[11px] text-gray-400">
           <CertificateCategoryBadge category={deployment.category} />
-          <span className="truncate tabular-nums">
-            {formatNumber(pending)} pending
-          </span>
+          <span className="truncate tabular-nums">{formatNumber(pending)} pending</span>
         </div>
       </CardContent>
 
@@ -99,20 +102,31 @@ export function DeployedCertificateCard({
           <Eye className="h-3.5 w-3.5" />
           Preview
         </Button>
-        <Button
-          size="sm"
-          className="flex-1"
-          disabled={!canRemind}
-          title={
-            canRemind
-              ? undefined
-              : 'Nothing to chase — every covered participant has their certificate'
-          }
-          onClick={() => onAction('remind', deployment)}
-        >
-          <Send className="h-3.5 w-3.5" />
-          Remind
-        </Button>
+        {issueSuspension && (
+          <LockedActionButton
+            suspension={issueSuspension}
+            icon={Send}
+            label="Remind"
+            size="sm"
+            side="top"
+          />
+        )}
+        {canIssue && (
+          <Button
+            size="sm"
+            className="flex-1"
+            disabled={!canRemind}
+            title={
+              canRemind
+                ? undefined
+                : 'Nothing to chase — every covered participant has their certificate'
+            }
+            onClick={() => onAction('remind', deployment)}
+          >
+            <Send className="h-3.5 w-3.5" />
+            Remind
+          </Button>
+        )}
         <DeployedCertificateActions deployment={deployment} onAction={onAction} />
       </CardFooter>
     </Card>

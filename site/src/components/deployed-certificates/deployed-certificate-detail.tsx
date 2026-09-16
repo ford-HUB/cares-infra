@@ -14,6 +14,9 @@ import { SignatoryAvatar } from '../certificate-templates/ui/signatory-avatar'
 import { TEMPLATE_ORIENTATION_LABELS } from '../../constants/certificate-templates'
 import { formatDateShort, formatNumber } from '../../constants/formatting'
 import type { DeployedCertificate } from '../../types/deployed-certificate'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePermission, useSuspension } from '../../store/auth-store'
+import { LockedActionButton } from '../portal/ui/locked-action'
 import { DeploymentStatusBadge } from './ui/deployment-status-badge'
 import { DistributionBar } from './ui/distribution-bar'
 
@@ -36,6 +39,8 @@ export function DeployedCertificateDetail({
   onOpenChange,
   onAction,
 }: DeployedCertificateDetailProps) {
+  const canIssue = usePermission(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
+  const issueSuspension = useSuspension(PORTAL_PERMISSION.CERTIFICATES_ISSUE)
   const pending = Math.max(deployment.participants - deployment.distributed, 0)
   const unopened = Math.max(deployment.distributed - deployment.claimed, 0)
   const canRemind = pending > 0 && deployment.status !== 'scheduled'
@@ -76,9 +81,7 @@ export function DeployedCertificateDetail({
             <div className="space-y-1">
               <p className="flex items-center gap-1.5 text-[12px] text-gray-500">
                 <CalendarDays className="h-3 w-3 shrink-0" />
-                <span className="truncate">
-                  {formatDateShort(deployment.event.date)}
-                </span>
+                <span className="truncate">{formatDateShort(deployment.event.date)}</span>
               </p>
               <p className="flex items-center gap-1.5 text-[12px] text-gray-500">
                 <MapPin className="h-3 w-3 shrink-0" />
@@ -150,8 +153,7 @@ export function DeployedCertificateDetail({
             </div>
 
             <p className="border-t border-gray-100 pt-3 text-[11px] text-gray-400">
-              Deployed {formatDateShort(deployment.deployedAt)} by{' '}
-              {deployment.deployedBy}
+              Deployed {formatDateShort(deployment.deployedAt)} by {deployment.deployedBy}
             </p>
           </div>
         </div>
@@ -172,19 +174,30 @@ export function DeployedCertificateDetail({
             <Download className="h-3.5 w-3.5" />
             Download sheets
           </Button>
-          <Button
-            size="sm"
-            disabled={!canRemind}
-            title={
-              canRemind
-                ? undefined
-                : 'Nothing to chase — every covered participant has their certificate'
-            }
-            onClick={() => onAction('remind', deployment)}
-          >
-            <Send className="h-3.5 w-3.5" />
-            Remind {formatNumber(pending)}
-          </Button>
+          {issueSuspension && (
+            <LockedActionButton
+              suspension={issueSuspension}
+              icon={Send}
+              label={`Remind ${formatNumber(pending)}`}
+              size="sm"
+              side="top"
+            />
+          )}
+          {canIssue && (
+            <Button
+              size="sm"
+              disabled={!canRemind}
+              title={
+                canRemind
+                  ? undefined
+                  : 'Nothing to chase — every covered participant has their certificate'
+              }
+              onClick={() => onAction('remind', deployment)}
+            >
+              <Send className="h-3.5 w-3.5" />
+              Remind {formatNumber(pending)}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

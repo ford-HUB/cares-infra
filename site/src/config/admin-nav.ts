@@ -20,6 +20,7 @@ import {
   ADMIN_MAIL_INBOX_PATH,
   ADMIN_MAINTENANCE_PATH,
   ADMIN_SUPPORT_TICKETS_PATH,
+  ADMIN_SYSTEM_DIAGNOSTICS_PATH,
   ADMIN_SYSTEM_NOTICES_PATH,
   ADMIN_SYSTEM_SERVICES_PATH,
   ADMIN_UPLOAD_REPORT_PATH,
@@ -35,14 +36,18 @@ import type { PortalRole } from '../types/portal-roles'
 const OPERATIONS_ROLES: PortalRole[] = ['director', 'coordinator']
 
 /**
- * One portal UI for every portal role. Access differs per item, on two gates that
- * must both pass: `roles` hides an item from roles that shouldn't see it at all, and
- * `permission` ties it to the module right an admin grants or revokes per account in
- * Access Control — untick "View donations" for a coordinator and Donation drops out
- * of their sidebar on the next sync. Items with neither are open to everyone.
+ * One portal UI for every portal role. What an item needs is its `permission` — the
+ * right an admin grants or revokes per account in Access Control. Grant "View
+ * accounts" to a coordinator and Manage Users appears in their sidebar on the next
+ * sync; untick "View donations" and Donation drops out. The server checks the same
+ * right on every request behind the screen.
  *
- * Rankings and Notices have no catalog right of their own yet, so they stay on the
- * role gate alone.
+ * `roles` is kept only where the right alone cannot decide: the same right served
+ * by a different screen per role (the director's report library vs the
+ * coordinator's filed record), a screen scoped to one role's job (the school-wide
+ * map, the account-request form), items with no catalog right yet (Rankings,
+ * Notices), and the operations groups the admin — a system operator, not a program
+ * operator — is kept out of by design.
  */
 export const adminNav: PortalNavConfig = {
   portalTitle: 'CARES Admin Portal',
@@ -73,8 +78,7 @@ export const adminNav: PortalNavConfig = {
       label: 'Mail Inbox',
       to: ADMIN_MAIL_INBOX_PATH,
       icon: Mail,
-      // Each admin links a personal Google mailbox — nothing here is shared.
-      roles: ['admin'],
+      // Each account links a personal Google mailbox — nothing here is shared.
       permission: P.MAIL_ACCESS,
     },
     {
@@ -82,9 +86,8 @@ export const adminNav: PortalNavConfig = {
       label: 'Support Tickets',
       to: ADMIN_SUPPORT_TICKETS_PATH,
       icon: LifeBuoy,
-      // Tickets come in from every portal and the mobile app; only the system
-      // operator triages them.
-      roles: ['admin'],
+      // Tickets come in from every portal and the mobile app; whoever holds the
+      // right triages them.
       permission: P.SUPPORT_TICKET_MANAGE,
     },
 
@@ -93,16 +96,11 @@ export const adminNav: PortalNavConfig = {
       type: 'group',
       label: 'Manage Users',
       icon: Users,
-      roles: ['admin', 'director'],
       children: [
+        // A director asks the admin for an account; the form is theirs alone.
         { label: 'Request', to: '/admin/user-request', roles: ['director'], permission: P.USERS_VIEW },
         { label: 'Master', to: '/admin/manage-users', permission: P.USERS_VIEW },
-        {
-          label: 'Access Control',
-          to: '/admin/access-control',
-          roles: ['admin'],
-          permission: P.ACCESS_CONTROL_VIEW,
-        },
+        { label: 'Access Control', to: '/admin/access-control', permission: P.ACCESS_CONTROL_VIEW },
       ],
     },
     {
@@ -135,8 +133,8 @@ export const adminNav: PortalNavConfig = {
       type: 'group',
       label: 'Manage Certificate',
       icon: CreditCard,
-      // Certificates are issued and signed by the director; coordinators never see them.
-      roles: ['director'],
+      // Held by the director baseline; a coordinator sees it once granted "View certificates".
+      roles: OPERATIONS_ROLES,
       permission: P.CERTIFICATES_VIEW,
       children: [
         { label: 'Customization', to: '/admin/templates-list' },
@@ -161,9 +159,8 @@ export const adminNav: PortalNavConfig = {
       roles: OPERATIONS_ROLES,
       permission: P.REPORTS_VIEW,
       children: [
-        // The director decides; the coordinator submits. Each role sees its own
-        // half of the line in the same slot.
-        { label: 'Queue Reviewer', to: '/admin/report-queue', roles: ['director'] },
+        // Reviewing is the "Publish reports" right; submitting is the coordinator's job.
+        { label: 'Queue Reviewer', to: '/admin/report-queue', permission: P.REPORTS_PUBLISH },
         { label: 'Upload Report', to: ADMIN_UPLOAD_REPORT_PATH, roles: ['coordinator'] },
         // The director's library has folders of its own; the coordinator gets the
         // filed record per department and nothing to rearrange.
@@ -176,7 +173,6 @@ export const adminNav: PortalNavConfig = {
       type: 'group',
       label: 'Security',
       icon: ShieldCheck,
-      roles: ['admin'],
       children: [
         { label: 'Audit Logs', to: '/admin/audit-logs', permission: P.SECURITY_AUDIT_VIEW },
         { label: 'Login Activity', to: '/admin/login-activity', permission: P.SECURITY_AUDIT_VIEW },
@@ -189,25 +185,11 @@ export const adminNav: PortalNavConfig = {
       label: 'System',
       icon: Server,
       children: [
-        {
-          label: 'Performance',
-          to: '/admin/system-performance',
-          roles: ['admin'],
-          permission: P.SYSTEM_PERFORMANCE_VIEW,
-        },
+        { label: 'Performance', to: '/admin/system-performance', permission: P.SYSTEM_PERFORMANCE_VIEW },
         { label: 'Notices', to: ADMIN_SYSTEM_NOTICES_PATH },
-        {
-          label: 'Services',
-          to: ADMIN_SYSTEM_SERVICES_PATH,
-          roles: ['admin'],
-          permission: P.SYSTEM_SERVICE_MANAGE,
-        },
-        {
-          label: 'Maintenance',
-          to: ADMIN_MAINTENANCE_PATH,
-          roles: ['admin'],
-          permission: P.SYSTEM_MAINTENANCE_MANAGE,
-        },
+        { label: 'Services', to: ADMIN_SYSTEM_SERVICES_PATH, permission: P.SYSTEM_SERVICE_MANAGE },
+        { label: 'Diagnostics', to: ADMIN_SYSTEM_DIAGNOSTICS_PATH, permission: P.SYSTEM_SERVICE_MANAGE },
+        { label: 'Maintenance', to: ADMIN_MAINTENANCE_PATH, permission: P.SYSTEM_MAINTENANCE_MANAGE },
       ],
     },
   ],

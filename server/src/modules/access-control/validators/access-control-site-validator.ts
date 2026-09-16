@@ -131,6 +131,18 @@ export const ActionSuspensionSchema = z.object({
   active: z.boolean(),
 });
 
+/**
+ * What the suspended account itself is told: which action, why, and for how long. It
+ * rides on the session payload so the portal can show the locked module or button
+ * in place, rather than making it vanish without explanation.
+ */
+export const SessionSuspensionSchema = z.object({
+  permission: z.enum(PermissionKey),
+  reason: z.string(),
+  issued_at: z.iso.datetime(),
+  expires_at: z.iso.datetime().nullable(),
+});
+
 export const AccessUserDetailSchema = AccessUserSchema.extend({
   /** The role baseline this user inherits, before any per-user change. */
   role_permissions: z.array(z.enum(PermissionKey)),

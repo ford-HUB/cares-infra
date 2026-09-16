@@ -383,3 +383,29 @@ export const AnnouncementState = {
 } as const
 
 export type AnnouncementState = (typeof AnnouncementState)[keyof typeof AnnouncementState]
+
+
+export const NotificationCategory = {
+  EVENT: 'EVENT',
+  REPORT: 'REPORT',
+  ACCESS: 'ACCESS',
+  SYSTEM: 'SYSTEM',
+  VOLUNTEER: 'VOLUNTEER',
+  CERTIFICATE: 'CERTIFICATE',
+  DONATION: 'DONATION',
+  USER_REQUEST: 'USER_REQUEST',
+  SECURITY: 'SECURITY',
+  SUPPORT: 'SUPPORT',
+  MAIL: 'MAIL'
+} as const
+
+export type NotificationCategory = (typeof NotificationCategory)[keyof typeof NotificationCategory]
+
+
+export const NotificationTone = {
+  INFO: 'INFO',
+  ATTENTION: 'ATTENTION',
+  CRITICAL: 'CRITICAL'
+} as const
+
+export type NotificationTone = (typeof NotificationTone)[keyof typeof NotificationTone]

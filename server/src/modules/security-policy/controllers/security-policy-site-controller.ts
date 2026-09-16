@@ -1,6 +1,6 @@
 import { Controller, Get, Put } from '@nestjs/common';
 import { ZBody, ZSerialize } from 'nest-zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
   RequestContext,
@@ -8,6 +8,8 @@ import {
 } from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
+import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   SecurityPolicyDto,
@@ -25,7 +27,8 @@ import {
  * access the policy exists to deny.
  */
 @Controller('v1/security-policy')
-@Roles(RoleType.ADMIN)
+@Roles(...PORTAL_ROLE_TYPES)
+@RequirePermission(PermissionKey.SECURITY_POLICY_MANAGE)
 export class SecurityPolicySiteController {
   constructor(private readonly securityPolicyService: SecurityPolicyService) {}
 

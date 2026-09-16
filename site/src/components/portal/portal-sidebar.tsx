@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { PermissionKey } from '../../types/access-control'
+import type { PermissionKey, SessionSuspension } from '../../types/access-control'
 import {
   navGateAllows,
   type NavGate,
@@ -12,19 +12,27 @@ import { MenuItem } from './ui/menu-item'
 import { NavSectionLabel } from './ui/nav-section-label'
 
 /**
- * Keeps only what the role may see and the account is permitted to open, then drops
- * any section heading left with no item under it.
+ * Keeps what the role may see and the account is permitted to open — plus what the
+ * account *would* hold but for an active suspension, which is drawn locked rather
+ * than dropped — then removes any section heading left with no item under it.
  */
 function visibleNavItems(
   items: NavItem[],
   userRole: PortalRole | undefined,
   permissions: ReadonlySet<PermissionKey>,
+  suspensions: ReadonlyMap<PermissionKey, SessionSuspension>,
 ): NavItem[] {
   const allowed = (gate: NavGate) => navGateAllows(gate, userRole, permissions)
+  // Role passes and the only thing missing is a suspended right.
+  const suspended = (gate: NavGate) =>
+    gate.permission !== undefined &&
+    suspensions.has(gate.permission) &&
+    navGateAllows({ roles: gate.roles }, userRole, permissions)
+  const shown = (gate: NavGate) => allowed(gate) || suspended(gate)
 
   const permitted = items.filter((item) => {
-    if (!allowed(item)) return false
-    if (item.type === 'group') return item.children.some(allowed)
+    if (!shown(item)) return false
+    if (item.type === 'group') return item.children.some(shown)
     return true
   })
 
@@ -42,6 +50,11 @@ interface PortalSidebarProps {
   userRole?: PortalRole
   /** The session's effective rights; anything gated on a right not held is hidden. */
   permissions?: PermissionKey[]
+  /**
+   * Suspensions in force on the session. A right in here is absent from
+   * `permissions`, but its module is still drawn — locked, red, and explained on hover.
+   */
+  suspensions?: SessionSuspension[]
 }
 
 export function PortalSidebar({
@@ -50,6 +63,7 @@ export function PortalSidebar({
   collapsed,
   userRole,
   permissions,
+  suspensions,
 }: PortalSidebarProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Dashboard: true,
@@ -60,10 +74,14 @@ export function PortalSidebar({
   }
 
   const held = useMemo(() => new Set(permissions ?? []), [permissions])
+  const locked = useMemo(
+    () => new Map((suspensions ?? []).map((entry) => [entry.permission, entry])),
+    [suspensions],
+  )
 
   const visibleItems = useMemo(
-    () => visibleNavItems(config.items, userRole, held),
-    [config.items, userRole, held],
+    () => visibleNavItems(config.items, userRole, held, locked),
+    [config.items, userRole, held, locked],
   )
 
   const firstSectionLabel = visibleItems.find((item) => item.type === 'section')?.label
@@ -109,6 +127,7 @@ export function PortalSidebar({
                 label={item.label}
                 to={item.to}
                 collapsed={collapsed}
+                suspension={item.permission ? locked.get(item.permission) : undefined}
               />
             )
           }
@@ -123,6 +142,8 @@ export function PortalSidebar({
               onToggle={() => toggleGroup(item.label)}
               userRole={userRole}
               permissions={held}
+              suspensions={locked}
+              suspension={item.permission ? locked.get(item.permission) : undefined}
             >
               {item.children}
             </ExpandableNavGroup>

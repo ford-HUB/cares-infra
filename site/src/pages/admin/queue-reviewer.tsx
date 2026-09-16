@@ -15,7 +15,9 @@ import {
   REPORT_STATUS_RANK,
   type ReportStatusFilter,
 } from '../../constants/monthly-report'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { useMonthlyReportScope } from '../../hooks/use-monthly-report-scope'
+import { usePermission, useSuspension } from '../../store/auth-store'
 import { useMonthlyReportStore } from '../../store/monthly-report-store'
 import type { MonthlyReportCounts } from '../../types/monthly-report'
 
@@ -25,6 +27,11 @@ import type { MonthlyReportCounts } from '../../types/monthly-report'
  * screen for the Monthly Report library, filed under their college.
  */
 export function QueueReviewerPage() {
+  // Approving or returning a submission is the "Publish reports" right; without it
+  // the queue can be read and its documents opened, but no decision is offered.
+  const canPublish = usePermission(PORTAL_PERMISSION.REPORTS_PUBLISH)
+  const publishSuspension = useSuspension(PORTAL_PERMISSION.REPORTS_PUBLISH)
+
   const {
     reports,
     scoped,
@@ -152,8 +159,9 @@ export function QueueReviewerPage() {
           initialized={initialized}
           saving={saving}
           onOpenDocument={(document) => setPreviewDocumentId(document.id)}
-          onApprove={() => setDecision('approved')}
-          onReturn={() => setDecision('returned')}
+          onApprove={canPublish ? () => setDecision('approved') : undefined}
+          onReturn={canPublish ? () => setDecision('returned') : undefined}
+          publishSuspension={publishSuspension}
         />
       </div>
 

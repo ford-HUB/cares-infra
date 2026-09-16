@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ZBody, ZParam, ZSerialize } from 'nest-zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
@@ -20,6 +20,7 @@ import {
 } from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   CertificateTemplateDto,
@@ -72,7 +73,7 @@ export class CertificateTemplatesSiteController {
   }
 
   @Post()
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.CERTIFICATES_TEMPLATE_MANAGE)
   @ResponseMessage('Certificate template created')
   @ZSerialize(CertificateTemplateResponseSchema)
   async createTemplate(
@@ -93,7 +94,7 @@ export class CertificateTemplatesSiteController {
    * people signing it drift out of step.
    */
   @Put(':id')
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.CERTIFICATES_TEMPLATE_MANAGE)
   @ResponseMessage('Certificate template saved')
   @ZSerialize(CertificateTemplateResponseSchema)
   async saveTemplate(
@@ -111,7 +112,7 @@ export class CertificateTemplatesSiteController {
   }
 
   @Delete(':id')
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.CERTIFICATES_TEMPLATE_MANAGE)
   @ResponseMessage('Certificate template deleted')
   @ZSerialize(DeleteCertificateTemplateResponseSchema)
   async deleteTemplate(

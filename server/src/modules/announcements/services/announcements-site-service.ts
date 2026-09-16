@@ -1,5 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { AnnouncementState } from '../../../infastructures/prisma/common/client';
+import {
+  AnnouncementState,
+  AnnouncementTone,
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
 import type {
   AnnouncementDto,
   AnnouncementListDto,
@@ -8,6 +15,7 @@ import type {
   SetAnnouncementStateDto,
 } from '../dto/announcements-site-dto';
 import {
+  AUDIENCE_ROLES,
   AnnouncementsRepository,
   type AnnouncementRow,
   type SaveAnnouncementInput,
@@ -17,6 +25,7 @@ import {
 export class AnnouncementsSiteService {
   constructor(
     private readonly announcementsRepository: AnnouncementsRepository,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   /**
@@ -116,11 +125,43 @@ export class AnnouncementsSiteService {
         ? row.reach
         : await this.announcementsRepository.countAudience(row.audiences);
 
-    return this.announcementsRepository.setState(row.announcement_id, {
-      state: AnnouncementState.PUBLISHED,
-      publishAt,
-      reach,
+    const published = await this.announcementsRepository.setState(
+      row.announcement_id,
+      {
+        state: AnnouncementState.PUBLISHED,
+        publishAt,
+        reach,
+      },
+    );
+
+    // The portal-side audience gets it in their inbox too. App-side roles have no
+    // portal feed, so only coordinators — plus every director and admin, who read
+    // the System Notices board regardless of who a notice was addressed to.
+    const portalRoles = new Set<RoleType>([RoleType.ADMIN, RoleType.DIRECTOR]);
+    for (const audience of row.audiences) {
+      for (const role of AUDIENCE_ROLES[audience]) {
+        if (role === RoleType.COORDINATOR) portalRoles.add(role);
+      }
+    }
+
+    await this.notificationScheduler.publish({
+      title: row.title,
+      description:
+        row.body.length > 200 ? `${row.body.slice(0, 200)}…` : row.body,
+      category: NotificationCategory.SYSTEM,
+      tone:
+        row.tone === AnnouncementTone.CRITICAL
+          ? NotificationTone.CRITICAL
+          : row.tone === AnnouncementTone.WARNING
+            ? NotificationTone.ATTENTION
+            : NotificationTone.INFO,
+      href: '/admin/system-notices',
+      roles: [...portalRoles],
+      // A notice re-published after being taken down is not news twice.
+      dedupeKey: `announcement:${row.announcement_id}`,
     });
+
+    return published;
   }
 
   private async requireAnnouncement(id: string): Promise<AnnouncementRow> {

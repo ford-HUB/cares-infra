@@ -7,9 +7,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import {
   PermissionKey,
+  NotificationCategory,
+  NotificationTone,
   PermissionOverrideEffect,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
 import {
   PERMISSION_CATALOG,
   PERMISSION_MODULES,
@@ -31,6 +34,7 @@ import type {
   AccessUserListDto,
   ListAccessUsersQueryDto,
   RolePermissionsDto,
+  SessionRightsDto,
   SuspendActionsDto,
   UpdateRolePermissionsDto,
   UpdateUserPermissionsDto,
@@ -60,6 +64,7 @@ export class AccessControlSiteService {
     private readonly accessControlRepository: AccessControlRepository,
     private readonly configService: ConfigService,
     private readonly auditLogRecorder: AuditLogRecorder,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   private isProtected(row: AccessUserRow): boolean {
@@ -120,23 +125,40 @@ export class AccessControlSiteService {
   }
 
   /**
-   * The rights a signed-in portal account holds right now, for the session payload.
-   * Unlike `getUserDetail` this never throws on an app-side role — a volunteer simply
-   * carries no portal rights — so the sign-in path stays clean.
+   * The rights a signed-in portal account holds right now, for the session payload,
+   * together with the active suspensions that took some of them away — the portal
+   * keeps a suspended module or button on screen, locked, and shows the reason and
+   * window on hover. Unlike `getUserDetail` this never throws on an app-side role —
+   * a volunteer simply carries no portal rights — so the sign-in path stays clean.
    */
-  async effectivePermissionsFor(userId: string): Promise<PermissionKey[]> {
+  async sessionRightsFor(userId: string): Promise<SessionRightsDto> {
     const row = await this.accessControlRepository.findUser(userId);
     if (
       !row ||
       !(PORTAL_ROLE_TYPES as readonly RoleType[]).includes(row.role.type)
     ) {
-      return [];
+      return { permissions: [], suspensions: [] };
     }
 
     const baseline = await this.baselineFor(row.role.type);
     const suspensions = toSuspensionViews(row, Date.now());
 
-    return resolveEffective(row, baseline, suspensions).effective;
+    return {
+      permissions: resolveEffective(row, baseline, suspensions).effective,
+      suspensions: suspensions
+        .filter((suspension) => suspension.active)
+        .map((suspension) => ({
+          permission: suspension.permission,
+          reason: suspension.reason,
+          issued_at: suspension.issued_at,
+          expires_at: suspension.expires_at,
+        })),
+    };
+  }
+
+  /** The permission list alone — what the request guard checks on every call. */
+  async effectivePermissionsFor(userId: string): Promise<PermissionKey[]> {
+    return (await this.sessionRightsFor(userId)).permissions;
   }
 
   /**
@@ -212,6 +234,24 @@ export class AccessControlSiteService {
       changes,
       metadata: { role: row.role.type },
     });
+
+    // The person whose rights moved is told what changed; a no-op save says nothing.
+    if (changes.length > 0) {
+      const granted = changes.filter(
+        (change) => change.after === 'allowed',
+      ).length;
+      const revoked = changes.length - granted;
+      await this.notificationScheduler.publish({
+        title: 'Your access scope was updated',
+        description: `${describeRightsChange(granted, revoked)}${
+          reason ? ` Reason: ${reason}` : ''
+        }`,
+        category: NotificationCategory.ACCESS,
+        tone: revoked > 0 ? NotificationTone.ATTENTION : NotificationTone.INFO,
+        href: '/admin/profile',
+        userIds: [row.user_id],
+      });
+    }
 
     return updated;
   }
@@ -316,6 +356,19 @@ export class AccessControlSiteService {
       },
     });
 
+    await this.notificationScheduler.publish({
+      title: `${permissions.length} action${permissions.length === 1 ? '' : 's'} suspended on your account`,
+      description: `${permissions.map(permissionLabel).join(', ')} — ${data.reason}${
+        expiresAt
+          ? ` Lifts ${formatNoticeDate(expiresAt)}.`
+          : ' Until lifted by an administrator.'
+      }`,
+      category: NotificationCategory.ACCESS,
+      tone: NotificationTone.ATTENTION,
+      href: '/admin/profile',
+      userIds: [row.user_id],
+    });
+
     return this.getUserDetail(userId);
   }
 
@@ -355,6 +408,16 @@ export class AccessControlSiteService {
         { field: suspension.permission, before: 'suspended', after: 'allowed' },
       ],
       metadata: { suspension_id: suspensionId },
+    });
+
+    await this.notificationScheduler.publish({
+      title: `Suspension lifted: ${permissionLabel(suspension.permission)}`,
+      description: 'You can use this action again.',
+      category: NotificationCategory.ACCESS,
+      tone: NotificationTone.INFO,
+      href: '/admin/profile',
+      userIds: [row.user_id],
+      dedupeKey: `suspension-lifted:${suspensionId}`,
     });
 
     return this.getUserDetail(userId);
@@ -546,4 +609,33 @@ function toAccessUserDetail(
     })),
     suspensions: toSuspensionViews(row, now),
   };
+}
+
+/** The catalogue's label for a right, so the notice reads "Manage events", not a key. */
+function permissionLabel(permission: PermissionKey): string {
+  return (
+    PERMISSION_CATALOG.find((entry) => entry.key === permission)?.label ??
+    permission
+  );
+}
+
+function describeRightsChange(granted: number, revoked: number): string {
+  const parts: string[] = [];
+  if (granted > 0)
+    parts.push(`${granted} right${granted === 1 ? '' : 's'} granted`);
+  if (revoked > 0)
+    parts.push(`${revoked} right${revoked === 1 ? '' : 's'} revoked`);
+  return `${parts.join(', ')}.`;
+}
+
+/** e.g. "10 September 2026, 14:05" — a person reads this, not a parser. */
+function formatNoticeDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: process.env.TZ || 'Asia/Manila',
+  }).format(date);
 }

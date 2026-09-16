@@ -2,5 +2,6 @@ allowBuilds:
   '@nestjs/core': true
   '@prisma/engines': false
   bcrypt: false
+  msgpackr-extract: set this to true or false
   prisma: true
   unrs-resolver: false

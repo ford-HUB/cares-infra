@@ -1,16 +1,25 @@
 import { Ban, KeyRound, MoreVertical, RotateCcw, ShieldOff, UserPen } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { SessionSuspension } from '../../../types/access-control'
 import type { ManagedUser } from '../../../types/manage-users'
+import { LockedMenuItem } from '../../portal/ui/locked-action'
 
 interface UserActionsMenuProps {
   user: ManagedUser
   onView: (user: ManagedUser) => void
-  onRestrict: (user: ManagedUser) => void
-  onUnrestrict: (user: ManagedUser) => void
-  onBlockIp: (user: ManagedUser) => void
-  onUnblockIp: (user: ManagedUser) => void
+  /** Each pair is optional: without the right, that action is left out of the menu. */
+  onRestrict?: (user: ManagedUser) => void
+  onUnrestrict?: (user: ManagedUser) => void
+  onBlockIp?: (user: ManagedUser) => void
+  onUnblockIp?: (user: ManagedUser) => void
   /** Undefined for a caller who cannot issue credentials — the item is then hidden. */
   onReissueCredentials?: (user: ManagedUser) => void
+  /**
+   * Set when the right behind an action is suspended. The entry is then kept in the
+   * menu, locked and red, with the reason and window on hover.
+   */
+  restrictSuspension?: SessionSuspension
+  blockIpSuspension?: SessionSuspension
 }
 
 const MENU_WIDTH_PX = 184
@@ -28,6 +37,8 @@ export function UserActionsMenu({
   onBlockIp,
   onUnblockIp,
   onReissueCredentials,
+  restrictSuspension,
+  blockIpSuspension,
 }: UserActionsMenuProps) {
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -48,7 +59,8 @@ export function UserActionsMenu({
 
     const onPointerDown = (event: MouseEvent) => {
       const target = event.target as Node
-      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return
+      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target))
+        return
       setOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
@@ -105,31 +117,46 @@ export function UserActionsMenu({
           className="fixed z-50 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
           onClick={(event) => event.stopPropagation()}
         >
-          <button type="button" role="menuitem" className={itemClass} onClick={run(onView)}>
+          <button
+            type="button"
+            role="menuitem"
+            className={itemClass}
+            onClick={run(onView)}
+          >
             <UserPen className="h-4 w-4 text-gray-400" />
             View details
           </button>
 
-          {user.status === 'restricted' ? (
-            <button
-              type="button"
-              role="menuitem"
-              className={`${itemClass} text-[var(--cares-primary)] hover:bg-green-50`}
-              onClick={run(onUnrestrict)}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Lift restriction
-            </button>
+          {restrictSuspension ? (
+            <LockedMenuItem
+              suspension={restrictSuspension}
+              icon={user.status === 'restricted' ? RotateCcw : ShieldOff}
+              label={user.status === 'restricted' ? 'Lift restriction' : 'Restrict'}
+            />
+          ) : user.status === 'restricted' ? (
+            onUnrestrict && (
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-[var(--cares-primary)] hover:bg-green-50`}
+                onClick={run(onUnrestrict)}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Lift restriction
+              </button>
+            )
           ) : (
-            <button
-              type="button"
-              role="menuitem"
-              className={`${itemClass} text-red-600 hover:bg-red-50`}
-              onClick={run(onRestrict)}
-            >
-              <ShieldOff className="h-4 w-4" />
-              Restrict
-            </button>
+            onRestrict && (
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-red-600 hover:bg-red-50`}
+                onClick={run(onRestrict)}
+              >
+                <ShieldOff className="h-4 w-4" />
+                Restrict
+              </button>
+            )
           )}
 
           {onReissueCredentials && (
@@ -144,26 +171,36 @@ export function UserActionsMenu({
             </button>
           )}
 
-          {user.blockedIps.length > 0 ? (
-            <button
-              type="button"
-              role="menuitem"
-              className={`${itemClass} text-[var(--cares-primary)] hover:bg-green-50`}
-              onClick={run(onUnblockIp)}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Unblock IP
-            </button>
+          {blockIpSuspension ? (
+            <LockedMenuItem
+              suspension={blockIpSuspension}
+              icon={user.blockedIps.length > 0 ? RotateCcw : Ban}
+              label={user.blockedIps.length > 0 ? 'Unblock IP' : 'Block IP'}
+            />
+          ) : user.blockedIps.length > 0 ? (
+            onUnblockIp && (
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-[var(--cares-primary)] hover:bg-green-50`}
+                onClick={run(onUnblockIp)}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Unblock IP
+              </button>
+            )
           ) : (
-            <button
-              type="button"
-              role="menuitem"
-              className={`${itemClass} text-red-600 hover:bg-red-50`}
-              onClick={run(onBlockIp)}
-            >
-              <Ban className="h-4 w-4" />
-              Block IP
-            </button>
+            onBlockIp && (
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-red-600 hover:bg-red-50`}
+                onClick={run(onBlockIp)}
+              >
+                <Ban className="h-4 w-4" />
+                Block IP
+              </button>
+            )
           )}
         </div>
       )}

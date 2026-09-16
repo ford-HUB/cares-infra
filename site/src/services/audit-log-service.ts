@@ -14,7 +14,7 @@ import type {
 import { apiClient, parseApiError } from './api-client'
 
 /** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is kebab-case. */
-const CATEGORY_FROM_API: Record<string, AuditLogCategory> = {
+export const CATEGORY_FROM_API: Record<string, AuditLogCategory> = {
   AUTHENTICATION: 'authentication',
   ACCESS_CONTROL: 'access-control',
   USER_MANAGEMENT: 'user-management',

@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 import {
-  derivePerformanceDetail,
-  fetchNextPerformanceSample,
   fetchPerformanceSnapshot,
+  fetchPerformanceTick,
 } from '../services/system-performance-service'
 import {
   DEFAULT_PERFORMANCE_RANGE,
@@ -57,27 +56,38 @@ export const useSystemPerformanceStore = create<SystemPerformanceState>((set, ge
 
   tick: async () => {
     const { snapshot, range } = get()
-    if (!snapshot || snapshot.samples.length === 0) return
+    if (!snapshot) return
 
-    const previous = snapshot.samples[snapshot.samples.length - 1]
-    const sample = await fetchNextPerformanceSample(previous)
+    let tick
+    try {
+      tick = await fetchPerformanceTick()
+    } catch {
+      // A missed tick leaves the last reading in place; the next one catches up.
+      return
+    }
+    const { sample, cores, processes, loadAverage } = tick
+    if (!sample) return
+
+    const current = get().snapshot
+    if (!current) return
+
+    // The sampler and this timer run on different clocks, so the same reading can
+    // come back twice; appending it again would draw a flat step that never happened.
+    const last = current.samples[current.samples.length - 1]
     const { points } = findPerformanceRange(range)
-    const samples = [...snapshot.samples, sample].slice(-points)
-    const { cores, processes } = derivePerformanceDetail(sample, snapshot.host.vcpu)
-    const busy = sample.cpuUser + sample.cpuSystem + sample.cpuIoWait
+    const samples =
+      last && last.at === sample.at
+        ? current.samples
+        : [...current.samples, sample].slice(-points)
 
     set({
       snapshot: {
-        ...snapshot,
+        ...current,
         capturedAt: sample.at,
         samples,
         cores,
         processes,
-        loadAverage: [
-          Number(((busy / 100) * snapshot.host.vcpu).toFixed(2)),
-          snapshot.loadAverage[1],
-          snapshot.loadAverage[2],
-        ],
+        loadAverage,
       },
     })
   },

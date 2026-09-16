@@ -1,5 +1,7 @@
 import { Download, Search } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import type { SessionSuspension } from '../../types/access-control'
+import { LockedActionButton } from '../portal/ui/locked-action'
 import {
   ATTENDEE_EVENT_FILTER_ALL,
   ATTENDEE_STATUS_FILTERS,
@@ -20,7 +22,10 @@ interface AttendeesToolbarProps {
   onSearchChange: (value: string) => void
   onEventChange: (value: string) => void
   onStatusChange: (value: AttendeeStatusFilter) => void
-  onExport: () => void
+  /** Omitted when the account lacks the export right — the button is not drawn. */
+  onExport?: () => void
+  /** Set when the export right is suspended — the button is drawn locked instead. */
+  exportSuspension?: SessionSuspension
 }
 
 const selectClass =
@@ -38,6 +43,7 @@ export function AttendeesToolbar({
   onEventChange,
   onStatusChange,
   onExport,
+  exportSuspension,
 }: AttendeesToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -93,14 +99,24 @@ export function AttendeesToolbar({
           ))}
         </select>
 
-        <button
-          type="button"
-          onClick={onExport}
-          className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          <Download className="h-3.5 w-3.5" />
-          Export
-        </button>
+        {exportSuspension ? (
+          <LockedActionButton
+            suspension={exportSuspension}
+            icon={Download}
+            label="Export"
+          />
+        ) : (
+          onExport && (
+            <button
+              type="button"
+              onClick={onExport}
+              className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </button>
+          )
+        )}
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { Controller, Get, Patch, Post } from '@nestjs/common';
 import { ZBody, ZParam, ZSerialize } from 'nest-zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
@@ -9,6 +9,7 @@ import {
 } from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   CertificateDeploymentDto,
@@ -45,7 +46,7 @@ export class CertificateDeploymentsSiteController {
   }
 
   @Post()
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.CERTIFICATES_ISSUE)
   @ResponseMessage('Template deployed')
   @ZSerialize(CertificateDeploymentResponseSchema)
   async deploy(
@@ -57,7 +58,7 @@ export class CertificateDeploymentsSiteController {
   }
 
   @Patch(':id/status')
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.CERTIFICATES_ISSUE)
   @ResponseMessage('Deployment updated')
   @ZSerialize(CertificateDeploymentResponseSchema)
   async updateStatus(

@@ -21,16 +21,29 @@ export type ProvisionMode = 'manual' | 'generate'
 
 export interface ProvisionUserPayload {
   mode: ProvisionMode
-  firstName: string
-  lastName: string
   /** Required in `manual` mode; the server mints one in `generate` mode. */
   email?: string
+  /** The inbox the issued credentials are mailed to. */
+  recipientEmail: string
   role: string
   department?: string
-  phoneNumber?: string
   /** The complete set of actions the account should hold; omit to keep the role baseline. */
   permissions?: string[]
   expiresInHours: number
+}
+
+/** The server's verdict on a recipient address before the form is submitted. */
+export interface ProvisionEmailCheck {
+  email: string
+  valid: boolean
+  /** Why it was rejected; null when it passed. */
+  reason: string | null
+}
+
+/** Whether the credential mail reached SMTP; null when nothing was mailed (a re-issue). */
+export interface CredentialDelivery {
+  recipient: string
+  sent: boolean
 }
 
 /**
@@ -48,6 +61,13 @@ export interface ProvisionUserResult {
   message?: string
   user?: ManagedUser
   credentials?: IssuedCredentials
+  delivery?: CredentialDelivery | null
+}
+
+export interface ProvisionEmailCheckResult {
+  success: boolean
+  message?: string
+  check?: ProvisionEmailCheck
 }
 
 export interface ManageUsersResult {

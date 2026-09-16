@@ -1,11 +1,12 @@
 import { Controller, Get, Patch, Post } from '@nestjs/common';
 import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   AnnouncementDto,
@@ -48,7 +49,7 @@ export class AnnouncementsSiteController {
   }
 
   @Post()
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.SYSTEM_NOTICE_MANAGE)
   @ResponseMessage('Announcement created')
   @ZSerialize(AnnouncementResponseSchema)
   async createAnnouncement(
@@ -59,7 +60,7 @@ export class AnnouncementsSiteController {
   }
 
   @Patch(':id')
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.SYSTEM_NOTICE_MANAGE)
   @ResponseMessage('Announcement saved')
   @ZSerialize(AnnouncementResponseSchema)
   async updateAnnouncement(
@@ -70,7 +71,7 @@ export class AnnouncementsSiteController {
   }
 
   @Patch(':id/state')
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.SYSTEM_NOTICE_MANAGE)
   @ResponseMessage('Announcement state updated')
   @ZSerialize(AnnouncementResponseSchema)
   async setState(
@@ -81,7 +82,7 @@ export class AnnouncementsSiteController {
   }
 
   @Patch(':id/pinned')
-  @Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+  @RequirePermission(PermissionKey.SYSTEM_NOTICE_MANAGE)
   @ResponseMessage('Announcement pin updated')
   @ZSerialize(AnnouncementResponseSchema)
   async setPinned(

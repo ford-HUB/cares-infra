@@ -4,13 +4,22 @@ import type {
   AdminLoginApiResponse,
   LoginPayload,
   MeApiResponse,
+  SessionSuspensionApi,
 } from '../types/auth'
+import type { SessionSuspension } from '../types/access-control'
 import type { ApiResponse, AuthUser } from '../types/portal-roles'
-import {
-  apiClient,
-  parseApiError,
-  toApiResponse,
-} from './api-client'
+import { apiClient, parseApiError, toApiResponse } from './api-client'
+function mapSuspensions(
+  suspensions: SessionSuspensionApi[] | undefined,
+): SessionSuspension[] {
+  return (suspensions ?? []).map((entry) => ({
+    permission: entry.permission,
+    reason: entry.reason,
+    issuedAt: entry.issued_at,
+    expiresAt: entry.expires_at ?? undefined,
+  }))
+}
+
 function mapLoginResponse(data: AdminLoginApiResponse): AuthUser {
   return {
     id: data.user_id,
@@ -19,6 +28,7 @@ function mapLoginResponse(data: AdminLoginApiResponse): AuthUser {
     firstName: data.firstname,
     lastName: data.lastname,
     permissions: data.permissions ?? [],
+    suspensions: mapSuspensions(data.suspensions),
   }
 }
 
@@ -31,12 +41,11 @@ function mapMeResponse(data: MeApiResponse): AuthUser {
     lastName: data.lastname,
     isProtected: data.is_protected,
     permissions: data.permissions ?? [],
+    suspensions: mapSuspensions(data.suspensions),
   }
 }
 
-export async function login(
-  payload: LoginPayload,
-): Promise<ApiResponse<AuthUser>> {
+export async function login(payload: LoginPayload): Promise<ApiResponse<AuthUser>> {
   try {
     const { data: body } = await apiClient.post<{
       ok: true

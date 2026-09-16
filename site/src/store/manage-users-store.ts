@@ -9,6 +9,7 @@ import {
   unrestrictManagedUser,
 } from '../services/manage-user-service'
 import type {
+  CredentialDelivery,
   IssuedCredentials,
   ManagedUser,
   ManageUsersQuery,
@@ -23,6 +24,8 @@ interface MutationOutcome {
 /** Issuing a credential is a mutation that also hands back something to show once. */
 interface CredentialOutcome extends MutationOutcome {
   credentials?: IssuedCredentials
+  /** Set on provisioning only — whether the credential mail went out. */
+  delivery?: CredentialDelivery | null
 }
 
 interface ManageUsersState {
@@ -128,7 +131,12 @@ export const useManageUsersStore = create<ManageUsersState>((set, get) => {
         set({ users: [created, ...get().users], total: get().total + 1 })
       }
 
-      return { ok: true, message: result.message, credentials: result.credentials }
+      return {
+        ok: true,
+        message: result.message,
+        credentials: result.credentials,
+        delivery: result.delivery,
+      }
     },
 
     reissueCredentials: async (id, expiresInHours) => {

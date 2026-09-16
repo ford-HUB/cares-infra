@@ -1,12 +1,15 @@
 import { z } from 'zod';
 import {
   BlockUserIpSchema,
+  CheckProvisionEmailSchema,
+  CredentialDeliverySchema,
   IssuedCredentialsSchema,
   ListUsersQuerySchema,
   ManagedUserDetailSchema,
   ManagedUserListResponseSchema,
   ManagedUserSchema,
   ProvisionedUserResponseSchema,
+  ProvisionEmailCheckResponseSchema,
   ProvisionUserSchema,
   ReissueCredentialsSchema,
   RestrictUserSchema,
@@ -24,3 +27,8 @@ export type ProvisionUserDto = z.infer<typeof ProvisionUserSchema>;
 export type ReissueCredentialsDto = z.infer<typeof ReissueCredentialsSchema>;
 export type IssuedCredentialsDto = z.infer<typeof IssuedCredentialsSchema>;
 export type ProvisionedUserDto = z.infer<typeof ProvisionedUserResponseSchema>;
+export type CredentialDeliveryDto = z.infer<typeof CredentialDeliverySchema>;
+export type CheckProvisionEmailDto = z.infer<typeof CheckProvisionEmailSchema>;
+export type ProvisionEmailCheckDto = z.infer<
+  typeof ProvisionEmailCheckResponseSchema
+>;

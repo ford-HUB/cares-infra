@@ -270,3 +270,10 @@ export type MonthlyReportTrailEntry = Prisma.MonthlyReportTrailEntryModel
  * sweep runs on read, so a page that polls sees the flip without a scheduler.
  */
 export type Announcement = Prisma.AnnouncementModel
+/**
+ * Model Notification
+ * One row per recipient. A notice addressed to a role is fanned out to every account
+ * holding that role at publish time, so read and dismissed state are per person and
+ * a later hire does not inherit a backlog.
+ */
+export type Notification = Prisma.NotificationModel

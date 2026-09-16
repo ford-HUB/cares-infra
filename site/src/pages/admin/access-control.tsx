@@ -10,7 +10,9 @@ import {
   ACCESS_RIGHTS_FILTER_ALL,
   ACCESS_ROLE_FILTER_ALL,
 } from '../../constants/access-control'
+import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { useAccessControlStore } from '../../store/access-control-store'
+import { usePermission, useSuspension } from '../../store/auth-store'
 import type {
   AccessRightsFilter,
   AccessUser,
@@ -37,6 +39,11 @@ export function AccessControlPage() {
     liftSuspension,
     saveRoleBaseline,
   } = useAccessControlStore()
+
+  // "View rights" opens this screen; "Manage rights" is what lets the admin change
+  // anything on it. An admin whose manage right is suspended gets a read-only page.
+  const canManage = usePermission(PORTAL_PERMISSION.ACCESS_CONTROL_MANAGE)
+  const manageSuspension = useSuspension(PORTAL_PERMISSION.ACCESS_CONTROL_MANAGE)
 
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>(ACCESS_ROLE_FILTER_ALL)
@@ -89,7 +96,10 @@ export function AccessControlPage() {
     }
 
   const runMutation = useCallback(
-    async (action: () => Promise<{ ok: boolean; message?: string }>, fallback: string) => {
+    async (
+      action: () => Promise<{ ok: boolean; message?: string }>,
+      fallback: string,
+    ) => {
       setSaving(true)
       const result = await action()
       setSaving(false)
@@ -155,7 +165,8 @@ export function AccessControlPage() {
         onSearchChange={resetToFirstPage(setSearch)}
         onRoleChange={resetToFirstPage(setRoleFilter)}
         onRightsChange={resetToFirstPage(setRightsFilter)}
-        onEditBaselines={() => setBaselinesOpen(true)}
+        onEditBaselines={canManage ? () => setBaselinesOpen(true) : undefined}
+        editBaselinesSuspension={manageSuspension}
       />
 
       {/*
@@ -178,8 +189,8 @@ export function AccessControlPage() {
 
       {truncated && (
         <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
-          Showing the first {users.length} of {total} accounts. Narrow the search to
-          reach the rest.
+          Showing the first {users.length} of {total} accounts. Narrow the search to reach
+          the rest.
         </p>
       )}
 
@@ -201,6 +212,7 @@ export function AccessControlPage() {
         loading={detailLoading}
         error={detailError ?? undefined}
         saving={saving}
+        readOnly={!canManage}
         onClose={closePanel}
         onSave={handleSave}
         onSuspend={() => setSuspendOpen(true)}

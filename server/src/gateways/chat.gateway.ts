@@ -6,9 +6,12 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
-import { JwtService } from '../../../infastructures/jwt/jwt-service';
-import { isPortalRole } from '../../../shared/constants/portal-role-types';
-import type { ChatMessageDto, ChatReadReceiptDto } from '../dto/chat-site-dto';
+import { JwtService } from '../infastructures/jwt/jwt-service';
+import { isPortalRole } from '../shared/constants/portal-role-types';
+import type {
+  ChatMessageDto,
+  ChatReadReceiptDto,
+} from '../modules/chat/dto/chat-site-dto';
 
 /** Server → client event names; the portal listens for exactly these. */
 export const CHAT_MESSAGE_EVENT = 'chat:message';

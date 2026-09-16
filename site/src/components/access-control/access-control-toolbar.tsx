@@ -4,7 +4,8 @@ import {
   ACCESS_RIGHTS_FILTERS,
   ACCESS_ROLE_FILTER_ALL,
 } from '../../constants/access-control'
-import type { AccessRightsFilter } from '../../types/access-control'
+import type { AccessRightsFilter, SessionSuspension } from '../../types/access-control'
+import { LockedActionButton } from '../portal/ui/locked-action'
 
 interface AccessControlToolbarProps {
   search: string
@@ -20,7 +21,10 @@ interface AccessControlToolbarProps {
   onSearchChange: (value: string) => void
   onRoleChange: (value: string) => void
   onRightsChange: (value: AccessRightsFilter) => void
-  onEditBaselines: () => void
+  /** Omitted when the account may only view rights — the baselines button is not drawn. */
+  onEditBaselines?: () => void
+  /** Set when the manage right is suspended — the button is drawn locked instead. */
+  editBaselinesSuspension?: SessionSuspension
 }
 
 const selectClass =
@@ -40,6 +44,7 @@ export function AccessControlToolbar({
   onRoleChange,
   onRightsChange,
   onEditBaselines,
+  editBaselinesSuspension,
 }: AccessControlToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -100,9 +105,7 @@ export function AccessControlToolbar({
         <select
           aria-label="Filter by rights"
           value={rights}
-          onChange={(event) =>
-            onRightsChange(event.target.value as AccessRightsFilter)
-          }
+          onChange={(event) => onRightsChange(event.target.value as AccessRightsFilter)}
           className={selectClass}
         >
           {ACCESS_RIGHTS_FILTERS.map((option) => (
@@ -112,14 +115,24 @@ export function AccessControlToolbar({
           ))}
         </select>
 
-        <button
-          type="button"
-          onClick={onEditBaselines}
-          className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          Role baselines
-        </button>
+        {editBaselinesSuspension ? (
+          <LockedActionButton
+            suspension={editBaselinesSuspension}
+            icon={SlidersHorizontal}
+            label="Role baselines"
+          />
+        ) : (
+          onEditBaselines && (
+            <button
+              type="button"
+              onClick={onEditBaselines}
+              className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Role baselines
+            </button>
+          )
+        )}
       </div>
     </div>
   )

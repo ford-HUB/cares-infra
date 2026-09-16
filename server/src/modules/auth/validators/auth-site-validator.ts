@@ -3,6 +3,7 @@ import {
   PermissionKey,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
+import { SessionSuspensionSchema } from '../../access-control/validators/access-control-site-validator';
 
 export const LoginSchema = z
   .object({
@@ -30,9 +31,13 @@ export const LoginResponseSchema = z.object({
  */
 const PermissionsSchema = z.array(z.enum(PermissionKey));
 
+/** Active suspensions on the account, so the portal can show what was locked and why. */
+const SuspensionsSchema = z.array(SessionSuspensionSchema);
+
 export const AdminLoginResponseSchema = LoginResponseSchema.extend({
   lastname: z.string(),
   permissions: PermissionsSchema,
+  suspensions: SuspensionsSchema,
 });
 
 export const MeResponseSchema = z.object({
@@ -44,6 +49,7 @@ export const MeResponseSchema = z.object({
   /** The root operator account — its sign-in email is fixed. */
   is_protected: z.boolean(),
   permissions: PermissionsSchema,
+  suspensions: SuspensionsSchema,
 });
 
 /** Mirrors the portal's Request Access form limits (site/src/constants/request-access.ts). */

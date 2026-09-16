@@ -1,3 +1,4 @@
+import { DEPARTMENT_LABELS, DEPARTMENT_ORDER } from './monthly-report'
 import type { ManagedUser, ManagedUserVerificationStatus } from '../types/manage-users'
 
 /** Fixed row metrics — the grid measures its container against these to fill the viewport. */
@@ -27,6 +28,16 @@ export const PROVISIONABLE_ROLES = [
   { value: 'DIRECTOR', label: 'Director' },
   { value: 'COORDINATOR', label: 'Coordinator' },
 ] as const
+
+/**
+ * Departments an account can be provisioned into — the same colleges monthly reports
+ * are filed under. The value stored on the profile is the code, which is how the
+ * server's department aliases resolve it everywhere else.
+ */
+export const PROVISIONABLE_DEPARTMENTS = DEPARTMENT_ORDER.map((code) => ({
+  value: code,
+  label: `${code} — ${DEPARTMENT_LABELS[code]}`,
+}))
 
 /** Mirrors CREDENTIAL_MIN_HOURS/MAX_HOURS on the server — a stricter range is a 400. */
 export const CREDENTIAL_MIN_HOURS = 1

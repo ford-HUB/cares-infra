@@ -9,7 +9,10 @@ import {
 } from '@nestjs/common';
 import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
-import { RoleType } from 'src/infastructures/prisma/common/client';
+import {
+  PermissionKey,
+  RoleType,
+} from 'src/infastructures/prisma/common/client';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import {
   RequestContext,
@@ -17,13 +20,17 @@ import {
 } from 'src/shared/decorators/request-context-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
+import { RequirePermission } from 'src/shared/decorators/require-permission-decorator';
+import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   BlockUserIpDto,
+  CheckProvisionEmailDto,
   ManagedUserDetailDto,
   ListUsersQueryDto,
   ManagedUserDto,
   ManagedUserListDto,
+  ProvisionEmailCheckDto,
   ProvisionUserDto,
   ProvisionedUserDto,
   ReissueCredentialsDto,
@@ -32,11 +39,13 @@ import type {
 import { UsersSiteService } from '../services/users-site-service';
 import {
   BlockUserIpSchema,
+  CheckProvisionEmailSchema,
   ListUsersQuerySchema,
   ManagedUserDetailSchema,
   ManagedUserListResponseSchema,
   ManagedUserSchema,
   ProvisionedUserResponseSchema,
+  ProvisionEmailCheckResponseSchema,
   ProvisionUserSchema,
   ReissueCredentialsSchema,
   RestrictUserSchema,
@@ -45,7 +54,8 @@ import {
 const UserIdParamSchema = z.uuid('A valid user id is required');
 
 @Controller('v1/users')
-@Roles(RoleType.ADMIN, RoleType.DIRECTOR)
+@Roles(...PORTAL_ROLE_TYPES)
+@RequirePermission(PermissionKey.USERS_VIEW)
 export class UsersSiteController {
   constructor(private readonly usersSiteService: UsersSiteService) {}
 
@@ -73,6 +83,21 @@ export class UsersSiteController {
     @RequestContext() context: RequestContextDto,
   ): Promise<ProvisionedUserDto> {
     return this.usersSiteService.provisionUser(caller, data, context);
+  }
+
+  /**
+   * Pre-validates the inbox the add-user form will mail credentials to, so a typo is
+   * caught while the field still has focus rather than after the account exists.
+   * Declared before the `:id` routes so the literal segment wins the match.
+   */
+  @Post('check-email')
+  @Roles(RoleType.ADMIN)
+  @ResponseMessage('Email checked')
+  @ZSerialize(ProvisionEmailCheckResponseSchema)
+  async checkProvisionEmail(
+    @ZBody(CheckProvisionEmailSchema) data: CheckProvisionEmailDto,
+  ): Promise<ProvisionEmailCheckDto> {
+    return this.usersSiteService.checkRecipientEmail(data.email);
   }
 
   @Post(':id/reissue-credentials')
@@ -131,6 +156,7 @@ export class UsersSiteController {
   }
 
   @Patch(':id/restrict')
+  @RequirePermission(PermissionKey.USERS_RESTRICT)
   @ResponseMessage('User restricted')
   @ZSerialize(ManagedUserSchema)
   async restrictUser(
@@ -143,6 +169,7 @@ export class UsersSiteController {
   }
 
   @Patch(':id/unrestrict')
+  @RequirePermission(PermissionKey.USERS_RESTRICT)
   @ResponseMessage('Restriction lifted')
   @ZSerialize(ManagedUserSchema)
   async unrestrictUser(
@@ -154,6 +181,7 @@ export class UsersSiteController {
   }
 
   @Post(':id/block-ip')
+  @RequirePermission(PermissionKey.USERS_BLOCK_IP)
   @ResponseMessage('IP address blocked')
   @ZSerialize(ManagedUserSchema)
   async blockUserIp(
@@ -166,6 +194,7 @@ export class UsersSiteController {
   }
 
   @Delete(':id/block-ip')
+  @RequirePermission(PermissionKey.USERS_BLOCK_IP)
   @ResponseMessage('IP address unblocked')
   @ZSerialize(ManagedUserSchema)
   async unblockUserIp(

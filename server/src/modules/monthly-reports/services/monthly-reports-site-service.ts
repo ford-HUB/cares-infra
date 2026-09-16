@@ -9,8 +9,12 @@ import {
   MonthlyReportDocumentKind,
   MonthlyReportStatus,
   MonthlyReportTrailAction,
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { S3Service } from '../../../infastructures/s3/s3-service';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
 import type {
   CreateReportFolderDto,
@@ -68,6 +72,7 @@ export class MonthlyReportsSiteService {
   constructor(
     private readonly repository: MonthlyReportsRepository,
     private readonly s3Service: S3Service,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async listReports(
@@ -136,6 +141,19 @@ export class MonthlyReportsSiteService {
       throw error;
     }
 
+    // Directors review the queue; the notice is what tells them something landed in it.
+    await this.notificationScheduler.publish({
+      title: `${report.department} ${data.period} report awaits your review`,
+      description: `${report.submitted_by_name} submitted "${data.title}" (${reference}) with ${
+        stored.length
+      } attachment${stored.length === 1 ? '' : 's'}.`,
+      category: NotificationCategory.REPORT,
+      tone: NotificationTone.ATTENTION,
+      href: '/admin/monthly-reports',
+      roles: [RoleType.DIRECTOR],
+      dedupeKey: `report-submitted:${report.monthly_report_id}`,
+    });
+
     return toMonthlyReport(await this.requireReport(report.monthly_report_id));
   }
 
@@ -171,6 +189,28 @@ export class MonthlyReportsSiteService {
           ? MonthlyReportTrailAction.APPROVED
           : MonthlyReportTrailAction.RETURNED,
     });
+
+    // The coordinator who filed it is the only person the decision changes anything for.
+    if (row.submitted_by_user_id) {
+      const approved = decision.decision === MonthlyReportStatus.APPROVED;
+      const reviewerName = `${reviewer.firstname} ${reviewer.lastname}`.trim();
+      await this.notificationScheduler.publish({
+        title: approved
+          ? `Your ${row.period} report was approved`
+          : `Your ${row.period} report was returned`,
+        description: approved
+          ? `${reviewerName} approved ${row.reference} with no changes requested.`
+          : `${reviewerName} returned ${row.reference}${
+              decision.note ? `: ${decision.note}` : ' for revision.'
+            }`,
+        category: NotificationCategory.REPORT,
+        tone: approved ? NotificationTone.INFO : NotificationTone.ATTENTION,
+        href: approved ? '/admin/department-files' : '/admin/upload-report',
+        userIds: [row.submitted_by_user_id],
+        // A report can be returned more than once; each decision is its own notice.
+        dedupeKey: `report-decided:${row.monthly_report_id}:${row.updatedAt.getTime()}`,
+      });
+    }
 
     return toMonthlyReport(row);
   }

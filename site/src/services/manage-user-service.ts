@@ -10,6 +10,7 @@ import type {
   ManagedUserVerificationStatus,
   ManageUsersQuery,
   ManageUsersResult,
+  ProvisionEmailCheckResult,
   ProvisionUserPayload,
   ProvisionUserResult,
 } from '../types/manage-users'
@@ -39,6 +40,13 @@ interface IssuedCredentialsApiResponse {
 interface ProvisionedUserApiResponse {
   user: ManagedUserApiResponse
   credentials: IssuedCredentialsApiResponse
+  delivery: { recipient: string; sent: boolean } | null
+}
+
+interface ProvisionEmailCheckApiResponse {
+  email: string
+  valid: boolean
+  reason: string | null
 }
 
 interface ManagedUserListApiResponse {
@@ -318,12 +326,10 @@ export async function provisionManagedUser(
       data: ProvisionedUserApiResponse
     }>('/api/v1/users', {
       mode: payload.mode,
-      firstname: payload.firstName,
-      lastname: payload.lastName,
       ...(payload.email ? { email: payload.email } : {}),
+      recipient_email: payload.recipientEmail,
       role_type: payload.role,
       ...(payload.department ? { department: payload.department } : {}),
-      ...(payload.phoneNumber ? { phone_number: payload.phoneNumber } : {}),
       ...(payload.permissions ? { permissions: payload.permissions } : {}),
       expires_in_hours: payload.expiresInHours,
     })
@@ -333,7 +339,28 @@ export async function provisionManagedUser(
       message: 'Account created',
       user: mapApiUser(body.data.user),
       credentials: mapApiCredentials(body.data.credentials),
+      delivery: body.data.delivery,
     }
+  } catch (error) {
+    return { success: false, message: parseApiError(error) }
+  }
+}
+
+/**
+ * Asks the server whether an address can receive the credential mail — shape, a
+ * domain that accepts mail, and no account already on it. A rejection comes back as
+ * `check.valid === false` with a reason; `success: false` means the check itself failed.
+ */
+export async function checkProvisionEmail(
+  email: string,
+): Promise<ProvisionEmailCheckResult> {
+  try {
+    const { data: body } = await apiClient.post<{
+      ok: true
+      data: ProvisionEmailCheckApiResponse
+    }>('/api/v1/users/check-email', { email })
+
+    return { success: true, check: body.data }
   } catch (error) {
     return { success: false, message: parseApiError(error) }
   }
