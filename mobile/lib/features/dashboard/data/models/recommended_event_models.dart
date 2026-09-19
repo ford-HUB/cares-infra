@@ -148,6 +148,7 @@ class RecommendedEvent {
       venueLongitude: markerLng ?? 0,
       openToBeneficiaries: beneficiaryApplicable,
       isCompleted: status == 'Completed',
+      endDate: endsAt,
       imageUrls: imageUrls,
     );
   }

@@ -9,12 +9,14 @@ import type {
   EventRegistrationResponseDto,
   RecommendedEventsQueryDto,
   RecommendedEventsResponseDto,
+  RegisteredEventsResponseDto,
 } from '../dto/events-mobile-dto';
 import { EventsMobileService } from '../services/events-mobile-service';
 import {
   EventRegistrationResponseSchema,
   RecommendedEventsQuerySchema,
   RecommendedEventsResponseSchema,
+  RegisteredEventsResponseSchema,
 } from '../validators/events-mobile-validator';
 import { EventIdParamSchema } from '../validators/events-site-validator';
 
@@ -31,6 +33,16 @@ export class EventsMobileController {
     @ZQuery(RecommendedEventsQuerySchema) query: RecommendedEventsQueryDto,
   ): Promise<RecommendedEventsResponseDto> {
     return this.eventsMobileService.listRecommended(user.sub, query.limit);
+  }
+
+  @Get('registered')
+  @Roles(RoleType.VOLUNTEER)
+  @ResponseMessage('Registered events')
+  @ZSerialize(RegisteredEventsResponseSchema)
+  async listRegistered(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<RegisteredEventsResponseDto> {
+    return this.eventsMobileService.listRegistered(user.sub);
   }
 
   @Post(':id/register')

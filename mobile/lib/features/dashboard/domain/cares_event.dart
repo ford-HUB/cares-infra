@@ -22,6 +22,7 @@ class CaresEvent {
     this.openToBeneficiaries = false,
     this.isCompleted = false,
     this.hoursCompleted,
+    this.endDate,
     this.imageAsset,
     this.imageUrls = const [],
     this.organizerDescription,
@@ -56,6 +57,10 @@ class CaresEvent {
 
   /// Service hours credited to volunteers who completed the event.
   final int? hoursCompleted;
+
+  /// Exact end time from the server (`event_ended`). Null on prototype
+  /// fixtures, where [endsAt] is estimated from [hoursCompleted] instead.
+  final DateTime? endDate;
   final String? imageAsset;
 
   /// Server-streamed images (authenticated URLs), in upload order. Empty on
@@ -113,7 +118,11 @@ class CaresEvent {
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
-  String get statusLabel => isCompleted ? 'Completed' : 'Upcoming';
+  String get statusLabel => hasEnded()
+      ? 'Completed'
+      : isOngoing()
+      ? 'Ongoing'
+      : 'Upcoming';
 
   /// Numeric id on the server, or null for a prototype fixture. Server rows
   /// carry the `event-<id>` form (see `RecommendedEvent.toCaresEvent`).
@@ -153,6 +162,7 @@ class CaresEvent {
       openToBeneficiaries: openToBeneficiaries,
       isCompleted: isCompleted,
       hoursCompleted: hoursCompleted,
+      endDate: endDate,
       imageAsset: imageAsset,
       imageUrls: imageUrls,
       organizerDescription: organizerDescription,
@@ -183,6 +193,8 @@ class CaresEvent {
   }
 
   DateTime get endsAt {
+    final end = endDate;
+    if (end != null) return end;
     final hours = hoursCompleted;
     final duration = hours != null && hours > 0
         ? Duration(hours: hours)
@@ -195,6 +207,19 @@ class CaresEvent {
 
   bool isTrackingWindowOpen(DateTime now) =>
       !isCompleted && !now.isBefore(trackingStartsAt) && now.isBefore(endsAt);
+
+  /// The event is over: the server closed it out, or its end time has
+  /// passed on the device clock. Registered events move from "Registered"
+  /// to "Completed" on the activity page the moment this flips.
+  bool hasEnded([DateTime? now]) =>
+      isCompleted || !(now ?? DateTime.now()).isBefore(endsAt);
+
+  /// The event is happening right now — started but not yet [hasEnded].
+  /// Cancelling is locked once this is true.
+  bool isOngoing([DateTime? now]) {
+    final at = now ?? DateTime.now();
+    return !hasEnded(at) && !at.isBefore(startsAt);
+  }
 
   bool isSameDay(DateTime other) =>
       date.year == other.year &&

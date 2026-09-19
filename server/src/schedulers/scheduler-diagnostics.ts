@@ -133,6 +133,7 @@ export class SystemDiagnosticsChecker {
     @InjectQueue(SCHEDULER_QUEUES.cleanup) cleanupQueue: Queue,
     @InjectQueue(SCHEDULER_QUEUES.diagnostics) diagnosticsQueue: Queue,
     @InjectQueue(SCHEDULER_QUEUES.attendance) attendanceQueue: Queue,
+    @InjectQueue(SCHEDULER_QUEUES.events) eventsQueue: Queue,
   ) {
     this.queues = {
       email: emailQueue,
@@ -140,6 +141,7 @@ export class SystemDiagnosticsChecker {
       cleanup: cleanupQueue,
       diagnostics: diagnosticsQueue,
       attendance: attendanceQueue,
+      events: eventsQueue,
     };
   }
 

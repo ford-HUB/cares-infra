@@ -497,8 +497,10 @@ class EventInfoCard extends StatelessWidget {
             tint: AppColors.accentOrange,
             label: 'Date & time',
             value: '${event.longDateLabel} · ${event.time}',
-            trailing: event.isCompleted
+            trailing: event.hasEnded()
                 ? null
+                : event.isOngoing()
+                ? const _OngoingPill()
                 : _CountdownPill(daysUntil: event.daysUntil),
           ),
           const Padding(
@@ -608,6 +610,39 @@ class _CountdownPill extends StatelessWidget {
           fontWeight: FontWeight.w800,
           color: color,
         ),
+      ),
+    );
+  }
+}
+
+/// Replaces the countdown once the event has started: a pulsing-dot pill
+/// so "in progress" reads as live rather than as another date.
+class _OngoingPill extends StatelessWidget {
+  const _OngoingPill();
+
+  @override
+  Widget build(BuildContext context) {
+    const color = AppColors.accentOrange;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppColors.pillRadius),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, size: 8, color: color),
+          SizedBox(width: 6),
+          Text(
+            'Happening now',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
