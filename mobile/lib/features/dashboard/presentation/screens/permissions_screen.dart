@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -8,6 +9,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widg
 
 /// Permissions landing, opened from the Profile tab. Lists the device
 /// capabilities CARES uses and lets the person grant each one from here.
+/// On Android a second group covers what the attendance recorder needs to
+/// keep running with the app closed.
 ///
 /// Toggling a permission on triggers the OS prompt. Permissions can't be
 /// revoked from inside an app, so toggling one off (or re-enabling a blocked
@@ -18,9 +21,9 @@ class PermissionsScreen extends StatefulWidget {
   const PermissionsScreen({super.key});
 
   static void open(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()));
   }
 
   @override
@@ -52,6 +55,43 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     ),
   ];
 
+  /// Android only: what the foreground-service recorder needs to survive the
+  /// app being swiped away, the screen turning off, and a reboot.
+  static const List<AppPermissionItem> _backgroundItems = [
+    AppPermissionItem(
+      permission: Permission.locationAlways,
+      icon: Icons.my_location_outlined,
+      label: 'Background location',
+      description:
+          'Keeps recording your attendance coordinates while CARES is closed '
+          'or your screen is off, for the whole event.',
+    ),
+    AppPermissionItem(
+      permission: Permission.notification,
+      icon: Icons.notifications_active_outlined,
+      label: 'Notifications',
+      description:
+          'Shows the "Recording your location" indicator while an event you '
+          'joined is being recorded.',
+    ),
+    AppPermissionItem(
+      permission: Permission.ignoreBatteryOptimizations,
+      icon: Icons.battery_saver_outlined,
+      label: 'Unrestricted battery',
+      description:
+          'Stops your phone from pausing the recorder to save battery, so no '
+          'coordinates are missed.',
+    ),
+  ];
+
+  static bool get _showBackground =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  static List<AppPermissionItem> get _allItems => [
+    ..._items,
+    if (_showBackground) ..._backgroundItems,
+  ];
+
   final Map<Permission, AppPermissionState> _states = {};
   Permission? _busy;
   bool _loading = true;
@@ -76,7 +116,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
 
   Future<void> _refresh() async {
     final entries = await Future.wait(
-      _items.map((item) async {
+      _allItems.map((item) async {
         final status = await _statusOf(item.permission);
         return MapEntry(item.permission, permissionStateOf(status));
       }),
@@ -125,13 +165,15 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     final proceed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(revoking ? 'Turn off ${item.label}?' : 'Enable ${item.label}'),
+        title: Text(
+          revoking ? 'Turn off ${item.label}?' : 'Enable ${item.label}',
+        ),
         content: Text(
           revoking
               ? 'Permissions can only be turned off from your device\'s app '
-                  'settings. We\'ll take you there now.'
+                    'settings. We\'ll take you there now.'
               : '${item.label} access was blocked earlier. You can enable it '
-                  'from your device\'s app settings.',
+                    'from your device\'s app settings.',
         ),
         actions: [
           TextButton(
@@ -191,18 +233,52 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                       for (final item in _items)
                         PermissionToggleTile(
                           item: item,
-                          state: _states[item.permission] ??
+                          state:
+                              _states[item.permission] ??
                               AppPermissionState.notAllowed,
                           busy: _busy == item.permission,
                           onChanged: (value) => _toggle(item, value),
                         ),
+                      if (_showBackground) ...[
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Background recording',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primaryDark,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Turn these on so your coordinates keep being '
+                          'recorded for the whole event, even when you close '
+                          'the app.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.4,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        for (final item in _backgroundItems)
+                          PermissionToggleTile(
+                            item: item,
+                            state:
+                                _states[item.permission] ??
+                                AppPermissionState.notAllowed,
+                            busy: _busy == item.permission,
+                            onChanged: (value) => _toggle(item, value),
+                          ),
+                      ],
                       const SizedBox(height: 24),
                       const SecurityInfoNote(
                         icon: Icons.shield_outlined,
                         text:
-                            'Your location is only read while you check in to '
-                            'an event, and photos are only accessed when you '
-                            'pick one. Nothing is collected in the background.',
+                            'Your location is only recorded while an event '
+                            'you joined is running, and only to validate your '
+                            'attendance. Photos are only accessed when you '
+                            'pick one.',
                       ),
                     ],
                   ),

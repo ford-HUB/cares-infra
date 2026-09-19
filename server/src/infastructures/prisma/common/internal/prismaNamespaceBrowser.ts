@@ -75,6 +75,7 @@ export const ModelName = {
   UserInterest: 'UserInterest',
   Event: 'Event',
   EventAttendance: 'EventAttendance',
+  EventLocationPing: 'EventLocationPing',
   Conversation: 'Conversation',
   ConversationParticipant: 'ConversationParticipant',
   ChatMessage: 'ChatMessage',
@@ -485,6 +486,22 @@ export const EventAttendanceScalarFieldEnum = {
 } as const
 
 export type EventAttendanceScalarFieldEnum = (typeof EventAttendanceScalarFieldEnum)[keyof typeof EventAttendanceScalarFieldEnum]
+
+
+export const EventLocationPingScalarFieldEnum = {
+  event_location_ping_id: 'event_location_ping_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  captured_at: 'captured_at',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  accuracy_m: 'accuracy_m',
+  in_area: 'in_area',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type EventLocationPingScalarFieldEnum = (typeof EventLocationPingScalarFieldEnum)[keyof typeof EventLocationPingScalarFieldEnum]
 
 
 export const ConversationScalarFieldEnum = {

@@ -4,8 +4,18 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/domain/account_log.dart';
 
 const _months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -102,18 +112,16 @@ class _Chip extends StatelessWidget {
 /// One log line: category icon, title, detail, time. Flagged entries get an
 /// orange accent so unfamiliar activity stands out.
 class AccountLogTile extends StatelessWidget {
-  const AccountLogTile({
-    super.key,
-    required this.entry,
-    required this.isLast,
-  });
+  const AccountLogTile({super.key, required this.entry, required this.isLast});
 
   final AccountLogEntry entry;
   final bool isLast;
 
   @override
   Widget build(BuildContext context) {
-    final accent = entry.flagged ? AppColors.accentOrange : AppColors.primaryDark;
+    final accent = entry.flagged
+        ? AppColors.accentOrange
+        : AppColors.primaryDark;
 
     return IntrinsicHeight(
       child: Row(
@@ -129,10 +137,11 @@ class AccountLogTile extends StatelessWidget {
                   height: 34,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: (entry.flagged
-                            ? AppColors.accentOrange
-                            : AppColors.accentLight)
-                        .withValues(alpha: entry.flagged ? 0.15 : 0.55),
+                    color:
+                        (entry.flagged
+                                ? AppColors.accentOrange
+                                : AppColors.accentLight)
+                            .withValues(alpha: entry.flagged ? 0.15 : 0.55),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(entry.category.icon, size: 18, color: accent),
@@ -221,7 +230,11 @@ class AccountLogTile extends StatelessWidget {
 
 /// Day header between timeline groups.
 class AccountLogDayHeader extends StatelessWidget {
-  const AccountLogDayHeader({super.key, required this.label, required this.count});
+  const AccountLogDayHeader({
+    super.key,
+    required this.label,
+    required this.count,
+  });
 
   final String label;
   final int count;

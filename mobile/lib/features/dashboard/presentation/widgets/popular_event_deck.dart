@@ -80,7 +80,11 @@ class PopularEventDeckSkeleton extends StatelessWidget {
 }
 
 class PopularEventCard extends StatelessWidget {
-  const PopularEventCard({super.key, required this.event, required this.onOpen});
+  const PopularEventCard({
+    super.key,
+    required this.event,
+    required this.onOpen,
+  });
 
   final RecommendedEvent event;
   final VoidCallback onOpen;
@@ -143,7 +147,10 @@ class PopularEventCard extends StatelessWidget {
                       children: [
                         _Meta(
                           icon: Icons.calendar_today_rounded,
-                          text: homeEventRangeLabel(event.startsAt, event.endsAt),
+                          text: homeEventRangeLabel(
+                            event.startsAt,
+                            event.endsAt,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -226,7 +233,11 @@ class _JoinedCount extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.groups_rounded, size: 15, color: Color(0xFF6B7280)),
+            const Icon(
+              Icons.groups_rounded,
+              size: 15,
+              color: Color(0xFF6B7280),
+            ),
             const SizedBox(width: 5),
             Text(
               capacity == 0 ? '$joined joined' : '$joined / $capacity joined',

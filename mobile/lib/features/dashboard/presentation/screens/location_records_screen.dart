@@ -9,10 +9,10 @@ import 'package:mobile/features/dashboard/presentation/widgets/account_security_
 import 'package:mobile/features/dashboard/presentation/widgets/location_record_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Geolocation Records landing, opened from the Profile tab. One CSV per day of
+/// Geolocation Records landing, opened from the Profile tab. One entry per day of
 /// coordinate captures made during event attendance, with its upload state.
 ///
-/// Reads the real daily files through [LocationRecordsRepository] and
+/// Reads the day summaries through [LocationRecordsRepository] and
 /// refreshes live while the tracker is recording; "Upload now" pushes every
 /// event that still has pending rows.
 class LocationRecordsScreen extends StatefulWidget {
@@ -42,9 +42,8 @@ class _LocationRecordsScreenState extends State<LocationRecordsScreen> {
     return DateTime(now.year, now.month, now.day);
   }
 
-  int get _pendingCount => _files
-      .where((f) => f.syncState != LocationRecordSyncState.synced)
-      .length;
+  int get _pendingCount =>
+      _files.where((f) => f.syncState != LocationRecordSyncState.synced).length;
 
   @override
   void initState() {
@@ -88,9 +87,7 @@ class _LocationRecordsScreenState extends State<LocationRecordsScreen> {
     final error = result.error;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          error ?? '${result.uploaded} coordinates uploaded.',
-        ),
+        content: Text(error ?? '${result.uploaded} coordinates uploaded.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -108,8 +105,8 @@ class _LocationRecordsScreenState extends State<LocationRecordsScreen> {
             onBack: () => Navigator.of(context).pop(),
             title: 'Geolocation Records',
             subtitle:
-                'Daily CSV logs of the coordinates captured while you attend '
-                'events. Used only to validate your attendance.',
+                'Coordinates captured on this device while you attend events, '
+                'grouped by day. Used only to validate your attendance.',
           ),
           Expanded(
             child: ListView(
@@ -156,9 +153,7 @@ class _LocationRecordsScreenState extends State<LocationRecordsScreen> {
                                 ),
                               )
                             : const Icon(Icons.cloud_upload_outlined, size: 16),
-                        label: Text(
-                          _uploading ? 'Uploading…' : 'Upload now',
-                        ),
+                        label: Text(_uploading ? 'Uploading…' : 'Upload now'),
                       ),
                   ],
                 ),
@@ -267,9 +262,7 @@ class _RecordingStatusStrip extends StatelessWidget {
     final String text;
     if (recording) {
       final next = tracker.upcomingJoinedEvents;
-      final hint = next.isEmpty
-          ? 'a joined event'
-          : next.first.title;
+      final hint = next.isEmpty ? 'a joined event' : next.first.title;
       text =
           'Recording every second for $hint '
           '(${tracker.capturesThisSession} captures this session).';

@@ -262,7 +262,8 @@ class _CertificateListTile extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => downloadCertificate(context, certificate),
+                      onPressed: () =>
+                          downloadCertificate(context, certificate),
                       icon: const Icon(Icons.download_rounded),
                       color: AppColors.primary,
                       tooltip: 'Download certificate',
@@ -392,10 +393,7 @@ class _CertificateThumbnail extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'No. ${certificate.certificateNumber}',
-                style: const TextStyle(
-                  fontSize: 7,
-                  color: AppColors.textMuted,
-                ),
+                style: const TextStyle(fontSize: 7, color: AppColors.textMuted),
               ),
             ],
           ),

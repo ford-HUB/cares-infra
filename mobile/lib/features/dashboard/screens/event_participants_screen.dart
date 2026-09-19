@@ -108,8 +108,9 @@ class EventParticipantsScreen extends StatelessWidget {
                         separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemBuilder: (_, i) => _ParticipantTile(
                           row: rows[i],
-                          color: AppColors.communityRing[i %
-                              AppColors.communityRing.length],
+                          color:
+                              AppColors.communityRing[i %
+                                  AppColors.communityRing.length],
                         ),
                       ),
               ),

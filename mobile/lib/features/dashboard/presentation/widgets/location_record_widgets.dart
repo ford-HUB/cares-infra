@@ -4,14 +4,26 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/domain/location_records.dart';
 
 const _months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /// "Today" / "Yesterday" / "Wed, Sep 10" relative to [today].
 String locationRecordDayLabel(DateTime date, DateTime today) {
-  final diff = today.difference(DateTime(date.year, date.month, date.day)).inDays;
+  final diff = today
+      .difference(DateTime(date.year, date.month, date.day))
+      .inDays;
   if (diff == 0) return 'Today';
   if (diff == 1) return 'Yesterday';
   return '${_weekdays[date.weekday - 1]}, ${_months[date.month - 1]} ${date.day}';
@@ -23,7 +35,7 @@ Color locationSyncColor(LocationRecordSyncState state) => switch (state) {
   LocationRecordSyncState.uploading => AppColors.secondary,
 };
 
-/// Small pill showing whether the day's CSV has reached the server.
+/// Small pill showing whether the day's captures have reached the server.
 class LocationSyncBadge extends StatelessWidget {
   const LocationSyncBadge({super.key, required this.state});
 
@@ -47,7 +59,10 @@ class LocationSyncBadge extends StatelessWidget {
               child: SizedBox(
                 width: 9,
                 height: 9,
-                child: CircularProgressIndicator(strokeWidth: 1.5, color: color),
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: color,
+                ),
               ),
             )
           else
@@ -75,7 +90,7 @@ class LocationSyncBadge extends StatelessWidget {
   }
 }
 
-/// One daily CSV in the list: file icon, day label + filename, event and
+/// One day in the list: icon, day label + key, event and
 /// capture count, sync badge, chevron.
 class LocationRecordTile extends StatelessWidget {
   const LocationRecordTile({
@@ -139,7 +154,7 @@ class LocationRecordTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      file.fileName,
+                      file.dayKey,
                       style: const TextStyle(
                         fontSize: 11.5,
                         fontFamily: 'monospace',

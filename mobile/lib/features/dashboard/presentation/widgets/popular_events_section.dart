@@ -91,7 +91,11 @@ class PopularEventsSection extends ConsumerWidget {
 /// Dark poster card: a category-tinted backdrop stands in for a hero image,
 /// with title, organizer and schedule stacked above the booking button.
 class PopularEventCard extends StatelessWidget {
-  const PopularEventCard({super.key, required this.event, required this.onBook});
+  const PopularEventCard({
+    super.key,
+    required this.event,
+    required this.onBook,
+  });
 
   final RecommendedEvent event;
   final VoidCallback onBook;
@@ -280,10 +284,7 @@ class _BookButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppColors.pillRadius),
           ),
-          textStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-          ),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
         ),
         child: const Text('Book your slot'),
       ),

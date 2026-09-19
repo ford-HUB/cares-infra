@@ -51,6 +51,7 @@ class SmartEventSearchBar extends StatelessWidget {
     required this.showSuggestions,
     required this.suggestions,
     this.hintText = 'Search by title, tag, or location',
+    this.radius = AppColors.cardRadius,
   });
 
   final TextEditingController controller;
@@ -63,6 +64,10 @@ class SmartEventSearchBar extends StatelessWidget {
   final List<String> suggestions;
   final String hintText;
 
+  /// Corner radius of the field — the events tab passes [AppColors.pillRadius]
+  /// for a fully round search pill.
+  final double radius;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -71,7 +76,7 @@ class SmartEventSearchBar extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppColors.cardRadius),
+            borderRadius: BorderRadius.circular(radius),
             border: Border.all(
               color: focusNode.hasFocus
                   ? AppColors.primary.withValues(alpha: 0.35)

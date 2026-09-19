@@ -637,6 +637,50 @@ export type EnumGeoValidationMethodNullableWithAggregatesFilter<$PrismaModel = n
   _max?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
 }
 
+export type FloatFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type EnumGeoValidationMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGeoValidationMethodFilter<$PrismaModel> | $Enums.GeoValidationMethod
+}
+
+export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type EnumGeoValidationMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGeoValidationMethodWithAggregatesFilter<$PrismaModel> | $Enums.GeoValidationMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGeoValidationMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGeoValidationMethodFilter<$PrismaModel>
+}
+
 export type EnumSupportTicketTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.SupportTicketType | Prisma.EnumSupportTicketTypeFieldRefInput<$PrismaModel>
   in?: $Enums.SupportTicketType[] | Prisma.ListEnumSupportTicketTypeFieldRefInput<$PrismaModel>
@@ -1495,6 +1539,39 @@ export type NestedEnumGeoValidationMethodNullableWithAggregatesFilter<$PrismaMod
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumGeoValidationMethodNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumGeoValidationMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGeoValidationMethodFilter<$PrismaModel> | $Enums.GeoValidationMethod
+}
+
+export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type NestedEnumGeoValidationMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeoValidationMethod | Prisma.EnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GeoValidationMethod[] | Prisma.ListEnumGeoValidationMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGeoValidationMethodWithAggregatesFilter<$PrismaModel> | $Enums.GeoValidationMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGeoValidationMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGeoValidationMethodFilter<$PrismaModel>
 }
 
 export type NestedEnumSupportTicketTypeFilter<$PrismaModel = never> = {

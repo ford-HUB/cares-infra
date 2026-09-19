@@ -408,6 +408,7 @@ export const ModelName = {
   UserInterest: 'UserInterest',
   Event: 'Event',
   EventAttendance: 'EventAttendance',
+  EventLocationPing: 'EventLocationPing',
   Conversation: 'Conversation',
   ConversationParticipant: 'ConversationParticipant',
   ChatMessage: 'ChatMessage',
@@ -439,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification"
+    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2219,6 +2220,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EventLocationPing: {
+      payload: Prisma.$EventLocationPingPayload<ExtArgs>
+      fields: Prisma.EventLocationPingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventLocationPingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventLocationPingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>
+        }
+        findFirst: {
+          args: Prisma.EventLocationPingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventLocationPingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>
+        }
+        findMany: {
+          args: Prisma.EventLocationPingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>[]
+        }
+        create: {
+          args: Prisma.EventLocationPingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>
+        }
+        createMany: {
+          args: Prisma.EventLocationPingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventLocationPingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>[]
+        }
+        delete: {
+          args: Prisma.EventLocationPingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>
+        }
+        update: {
+          args: Prisma.EventLocationPingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventLocationPingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventLocationPingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventLocationPingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventLocationPingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventLocationPingPayload>
+        }
+        aggregate: {
+          args: Prisma.EventLocationPingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventLocationPing>
+        }
+        groupBy: {
+          args: Prisma.EventLocationPingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventLocationPingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventLocationPingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventLocationPingCountAggregateOutputType> | number
+        }
+      }
+    }
     Conversation: {
       payload: Prisma.$ConversationPayload<ExtArgs>
       fields: Prisma.ConversationFieldRefs
@@ -3820,6 +3895,22 @@ export const EventAttendanceScalarFieldEnum = {
 export type EventAttendanceScalarFieldEnum = (typeof EventAttendanceScalarFieldEnum)[keyof typeof EventAttendanceScalarFieldEnum]
 
 
+export const EventLocationPingScalarFieldEnum = {
+  event_location_ping_id: 'event_location_ping_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  captured_at: 'captured_at',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  accuracy_m: 'accuracy_m',
+  in_area: 'in_area',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type EventLocationPingScalarFieldEnum = (typeof EventLocationPingScalarFieldEnum)[keyof typeof EventLocationPingScalarFieldEnum]
+
+
 export const ConversationScalarFieldEnum = {
   conversation_id: 'conversation_id',
   last_message_at: 'last_message_at',
@@ -4845,6 +4936,7 @@ export type GlobalOmitConfig = {
   userInterest?: Prisma.UserInterestOmit
   event?: Prisma.EventOmit
   eventAttendance?: Prisma.EventAttendanceOmit
+  eventLocationPing?: Prisma.EventLocationPingOmit
   conversation?: Prisma.ConversationOmit
   conversationParticipant?: Prisma.ConversationParticipantOmit
   chatMessage?: Prisma.ChatMessageOmit

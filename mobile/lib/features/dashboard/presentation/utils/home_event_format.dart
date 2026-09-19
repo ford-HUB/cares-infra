@@ -21,7 +21,9 @@ String homeEventDateLabel(DateTime date) {
 /// "12–15 October, 26" when an event spans days, otherwise the single date.
 String homeEventRangeLabel(DateTime start, DateTime end) {
   final sameDay =
-      start.year == end.year && start.month == end.month && start.day == end.day;
+      start.year == end.year &&
+      start.month == end.month &&
+      start.day == end.day;
   if (sameDay || end.isBefore(start)) return homeEventDateLabel(start);
   if (start.year == end.year && start.month == end.month) {
     return '${start.day}–${homeEventDateLabel(end)}';

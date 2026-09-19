@@ -109,7 +109,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     setState(() {});
 
     if (!mounted) return;
-    await showEventRegistrationSuccessDialog(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("You're registered for this event.")),
+    );
   }
 
   Future<void> _confirmCancel() async {
@@ -246,7 +248,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                           EventMembersRow(
                             count: event.registeredCount,
                             capacity: event.totalCapacity,
-                            onViewAll: _openParticipants,
                           ),
                           const SizedBox(height: 16),
                           EventOrganizerRow(

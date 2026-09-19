@@ -5,7 +5,9 @@ import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/data/mock_events.dart';
+import 'package:mobile/features/dashboard/domain/cares_event.dart';
 import 'package:mobile/features/dashboard/domain/mock_activity.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/home_category_chips.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/completed_event_widgets.dart';
 
@@ -16,14 +18,41 @@ class ActivityTabScreen extends StatefulWidget {
   State<ActivityTabScreen> createState() => _ActivityTabScreenState();
 }
 
+/// Which slice of the page is showing. `all` stacks every section; the
+/// rest show just theirs so a tap on "Registered" is only joined events.
+enum _ActivityGroup { all, registered, completed, history }
+
+extension on _ActivityGroup {
+  String get label => switch (this) {
+    _ActivityGroup.all => 'All',
+    _ActivityGroup.registered => 'Registered',
+    _ActivityGroup.completed => 'Completed',
+    _ActivityGroup.history => 'History',
+  };
+
+  IconData get icon => switch (this) {
+    _ActivityGroup.all => Icons.grid_view_rounded,
+    _ActivityGroup.registered => Icons.how_to_reg_rounded,
+    _ActivityGroup.completed => Icons.task_alt_rounded,
+    _ActivityGroup.history => Icons.history_rounded,
+  };
+
+  /// Disc tint when the chip is idle — one brand green across the row, as
+  /// on the Events tab's time filter; the selected chip fills solid.
+  Color get color => AppColors.primary;
+}
+
 class _ActivityTabScreenState extends State<ActivityTabScreen> {
   final _registrationStore = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
+
+  _ActivityGroup _group = _ActivityGroup.all;
 
   @override
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onStoreChanged);
+    _registrationStore.addListener(_onStoreChanged);
     // Prototype scenario: the volunteer already joined and attended the
     // events that have since been completed.
     _registrationStore.seedCompletedEventParticipation(email: _userEmail);
@@ -32,6 +61,7 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
   @override
   void dispose() {
     _feedbackStore.removeListener(_onStoreChanged);
+    _registrationStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -42,17 +72,48 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
   String get _userEmail =>
       StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
+  /// Upcoming events the volunteer joined from the home/events tabs, newest
+  /// registration first. Completed ones show in their own section.
+  List<EventParticipation> get _registered {
+    final list = _registrationStore
+        .participationsForEmail(_userEmail)
+        .where((p) => !p.event.isCompleted)
+        .toList();
+    list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
+    return list;
+  }
+
+  /// A joined event rendered through the same card as the history rows.
+  MockActivityEntry _entryFor(CaresEvent event) => MockActivityEntry(
+    id: event.id,
+    eventTitle: event.title,
+    category: event.category,
+    date: event.longDateLabel,
+    location: event.location,
+    status: ActivityStatus.registered,
+    hours: 0,
+    pointsEarned: 0,
+  );
+
+  bool _showing(_ActivityGroup g) =>
+      _group == _ActivityGroup.all || _group == g;
+
   @override
   Widget build(BuildContext context) {
-    final summary = MockActivities.summary;
     final completedEvents = kMockCompletedEvents;
+    final registered = _registered;
+    // The static history keeps completed/cancelled samples only; live
+    // registrations come from the store so the two never double up.
+    final history = MockActivities.entries
+        .where((e) => e.status != ActivityStatus.registered)
+        .toList();
 
     return SafeArea(
       bottom: false,
       child: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,90 +135,137 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
                       color: AppColors.secondary.withValues(alpha: 0.95),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryChip(
-                          icon: Icons.schedule_outlined,
-                          color: _kHoursColor,
-                          value: '${summary.totalHours}',
-                          label: 'Total hrs',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SummaryChip(
-                          icon: Icons.event_available_outlined,
-                          color: _kJoinedColor,
-                          value: '${summary.eventsJoined}',
-                          label: 'Joined',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SummaryChip(
-                          icon: Icons.bolt,
-                          color: _kPointsColor,
-                          value: '${summary.pointsThisMonth}',
-                          label: 'Pts (month)',
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Completed events',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Give feedback to unlock your certificate.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: AppColors.secondary.withValues(alpha: 0.95),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...completedEvents.map(
-                    (event) => CompletedEventCard(
-                      event: event,
-                      feedbackSubmitted: _feedbackStore.hasSubmitted(
-                        event.id,
-                        _userEmail,
-                      ),
-                      onTap: () => EventDetailsScreen.open(context, event),
-                    ),
-                  ),
-                ],
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _GroupPanel(
+                selected: _group,
+                onSelected: (g) => setState(() => _group = g),
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            sliver: SliverList.separated(
-              itemCount: MockActivities.entries.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                return _ActivityCard(entry: MockActivities.entries[index]);
-              },
+          if (_showing(_ActivityGroup.registered))
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              sliver: SliverToBoxAdapter(
+                child: _Section(
+                  title: 'Registered events',
+                  subtitle: registered.isEmpty
+                      ? 'Events you join will show up here.'
+                      : 'Tap an event to see details or cancel.',
+                  children: [
+                    if (registered.isEmpty)
+                      const _EmptyRegistrations()
+                    else
+                      for (var i = 0; i < registered.length; i++) ...[
+                        if (i > 0) const SizedBox(height: 12),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => EventDetailsScreen.open(
+                            context,
+                            registered[i].event,
+                          ),
+                          child: _ActivityCard(
+                            entry: _entryFor(registered[i].event),
+                          ),
+                        ),
+                      ],
+                  ],
+                ),
+              ),
             ),
-          ),
+          if (_showing(_ActivityGroup.completed))
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              sliver: SliverToBoxAdapter(
+                child: _Section(
+                  title: 'Completed events',
+                  subtitle: 'Give feedback to unlock your certificate.',
+                  children: [
+                    ...completedEvents.map(
+                      (event) => CompletedEventCard(
+                        event: event,
+                        feedbackSubmitted: _feedbackStore.hasSubmitted(
+                          event.id,
+                          _userEmail,
+                        ),
+                        onTap: () => EventDetailsScreen.open(context, event),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (_showing(_ActivityGroup.history)) ...[
+            const SliverPadding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+              sliver: SliverToBoxAdapter(
+                child: _Section(
+                  title: 'History',
+                  subtitle: 'Past events and cancelled registrations.',
+                  children: [],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+              sliver: SliverList.separated(
+                itemCount: history.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  return _ActivityCard(entry: history[index]);
+                },
+              ),
+            ),
+          ],
+          const SliverToBoxAdapter(child: SizedBox(height: 28)),
         ],
       ),
+    );
+  }
+}
+
+/// Section header (title + one-line hint) over its cards.
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.title,
+    required this.subtitle,
+    required this.children,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppColors.primaryDark,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12.5,
+            color: AppColors.secondary.withValues(alpha: 0.95),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...children,
+      ],
     );
   }
 }
@@ -169,54 +277,89 @@ const _kPointsColor = Color(0xFFF9A825);
 const _kDateColor = Color(0xFF5C6BC0);
 const _kLocationColor = Color(0xFFE65100);
 
-class _SummaryChip extends StatelessWidget {
-  const _SummaryChip({
-    required this.icon,
-    required this.color,
-    required this.value,
-    required this.label,
-  });
+/// Group chip row: the home tab's icon-disc pills in the Events tab's green
+/// outline colouring — brand-green fill when active, white with a hairline
+/// otherwise. Scrolls horizontally and bleeds to the screen edge.
+class _GroupPanel extends StatelessWidget {
+  const _GroupPanel({required this.selected, required this.onSelected});
 
-  final IconData icon;
-  final Color color;
-  final String value;
-  final String label;
+  final _ActivityGroup selected;
+  final ValueChanged<_ActivityGroup> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    const groups = _ActivityGroup.values;
+    return SizedBox(
+      height: HomeCategoryChips.compactHeight,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        clipBehavior: Clip.none,
+        scrollDirection: Axis.horizontal,
+        itemCount: groups.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final group = groups[index];
+          return HomeCategoryChip(
+            label: group.label,
+            icon: group.icon,
+            color: group.color,
+            isSelected: group == selected,
+            onTap: () => onSelected(group),
+            compact: true,
+            outlined: true,
+            selectedColor: AppColors.primary,
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Dashed placeholder under "Registered events" until the volunteer joins
+/// something from the home or events tab.
+class _EmptyRegistrations extends StatelessWidget {
+  const _EmptyRegistrations();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.fieldBorder),
       ),
       child: Column(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: _kJoinedColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: color),
+            child: const Icon(
+              Icons.event_available_outlined,
+              color: _kJoinedColor,
+              size: 24,
+            ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+          const SizedBox(height: 10),
+          const Text(
+            'No registered events yet',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
-            label,
+            'Hit "Join now" on an event and it moves here.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
               color: AppColors.secondary.withValues(alpha: 0.95),
             ),
           ),

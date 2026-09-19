@@ -219,19 +219,17 @@ class EventStatusPill extends StatelessWidget {
 }
 
 /// "38 Members are joined:" with a stack of avatar discs and an orange
-/// "+N" overflow disc, and a link to the full list. Reads "Be the first to
-/// join" while nobody has registered.
+/// "+N" overflow disc. Reads "Be the first to join" while nobody has
+/// registered.
 class EventMembersRow extends StatelessWidget {
   const EventMembersRow({
     super.key,
     required this.count,
     required this.capacity,
-    required this.onViewAll,
   });
 
   final int count;
   final int capacity;
-  final VoidCallback onViewAll;
 
   static const _size = 30.0;
   static const _overlap = 10.0;
@@ -311,23 +309,6 @@ class EventMembersRow extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(width: 4),
-        TextButton(
-          onPressed: onViewAll,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.accentOrange,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            visualDensity: VisualDensity.compact,
-          ),
-          child: const Text(
-            'VIEW ALL',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ),
       ],
     );
   }

@@ -187,6 +187,15 @@ export type Event = Prisma.EventModel
  */
 export type EventAttendance = Prisma.EventAttendanceModel
 /**
+ * Model EventLocationPing
+ * One GPS reading from a volunteer's device, one per second while their recorder is
+ * on. Live readings arrive one at a time (GEOFENCE); readings buffered offline arrive
+ * later as a CSV batch (OFFLINE_SYNC). `event_id` is the device's best guess and is
+ * null when it could not name a joined event — the validation service re-assigns rows
+ * from the coordinates, so nothing here is authoritative about attendance.
+ */
+export type EventLocationPing = Prisma.EventLocationPingModel
+/**
  * Model Conversation
  * Direct (1:1) portal messaging. Participants are portal staff — volunteers use
  * the mobile app and are not addressable here.

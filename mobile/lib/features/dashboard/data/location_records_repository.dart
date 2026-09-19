@@ -1,23 +1,16 @@
 import '../../../core/session/static_user_session.dart';
 import '../domain/location_records.dart';
 import 'location_capture_db.dart';
-import 'location_csv_store.dart';
 import 'location_sync_service.dart';
 
 /// Read model for the Geolocation Records screens: one [LocationRecordFile]
-/// per day, built from the SQLite rows (counts, titles, sync state) and the
-/// daily CSV on disk (size, path).
+/// per day, built from the SQLite rows (counts, titles, sync state).
 class LocationRecordsRepository {
-  LocationRecordsRepository({
-    LocationCaptureDb? db,
-    LocationCsvStore? csv,
-    LocationSyncService? sync,
-  }) : _db = db ?? LocationCaptureDb.instance,
-       _csv = csv ?? LocationCsvStore.instance,
-       _sync = sync ?? LocationSyncService();
+  LocationRecordsRepository({LocationCaptureDb? db, LocationSyncService? sync})
+    : _db = db ?? LocationCaptureDb.instance,
+      _sync = sync ?? LocationSyncService();
 
   final LocationCaptureDb _db;
-  final LocationCsvStore _csv;
   final LocationSyncService _sync;
 
   String get _email =>
@@ -37,11 +30,10 @@ class LocationRecordsRepository {
               : day.eventTitles.join(' · '),
           captureCount: day.total,
           pendingCount: day.pending,
-          sizeKb: await _csv.sizeKbForDay(day.dayKey),
+          sizeKb: day.total * LocationRecords.bytesPerCapture / 1024,
           syncState: day.pending > 0
               ? LocationRecordSyncState.pending
               : LocationRecordSyncState.synced,
-          path: await _csv.pathForDay(day.dayKey),
         ),
       );
     }
@@ -59,22 +51,11 @@ class LocationRecordsRepository {
     return rows.where((r) => r.inArea).length;
   }
 
-  /// Removes the day's rows and its CSV file.
-  Future<void> deleteDay(String dayKey) async {
-    await _db.deleteDay(dayKey, _email);
-    await _csv.deleteDay(dayKey);
-  }
+  /// Removes the day's rows.
+  Future<void> deleteDay(String dayKey) => _db.deleteDay(dayKey, _email);
 
   /// Pushes every event that still has pending rows. Returns the number of
   /// rows accepted and the first error, if any event failed.
-  Future<({int uploaded, String? error})> uploadPending() async {
-    var uploaded = 0;
-    String? error;
-    for (final ref in await _db.eventsWithPending(_email)) {
-      final result = await _sync.syncEvent(eventId: ref.eventId, email: _email);
-      uploaded += result.uploaded;
-      error ??= result.error;
-    }
-    return (uploaded: uploaded, error: error);
-  }
+  Future<({int uploaded, String? error})> uploadPending() =>
+      _sync.syncPending(email: _email);
 }

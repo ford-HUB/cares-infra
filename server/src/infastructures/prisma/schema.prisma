@@ -46,6 +46,7 @@ model User {
   chat_participants  ConversationParticipant[]
   chat_messages      ChatMessage[]
   event_attendances  EventAttendance[]
+  location_pings     EventLocationPing[]
   support_tickets          SupportTicket[]      @relation("SupportTicketRequester")
   assigned_support_tickets SupportTicket[]      @relation("SupportTicketAssignee")
   support_ticket_replies   SupportTicketReply[] @relation("SupportTicketReplyAuthor")
@@ -607,6 +608,7 @@ model Event {
   marker_lng             Float?
   certificate_deployments CertificateDeployment[]
   attendances            EventAttendance[]
+  location_pings         EventLocationPing[]
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
 }
@@ -656,6 +658,30 @@ model EventAttendance {
   @@unique([event_id, user_id])
   @@index([event_id])
   @@index([user_id])
+}
+
+/// One GPS reading from a volunteer's device, one per second while their recorder is
+/// on. Live readings arrive one at a time (GEOFENCE); readings buffered offline arrive
+/// later as a CSV batch (OFFLINE_SYNC). `event_id` is the device's best guess and is
+/// null when it could not name a joined event — the validation service re-assigns rows
+/// from the coordinates, so nothing here is authoritative about attendance.
+model EventLocationPing {
+  event_location_ping_id Int                 @id @default(autoincrement())
+  event_id               Int?
+  event                  Event?              @relation(fields: [event_id], references: [event_id], onDelete: SetNull)
+  user_id                String
+  user                   User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  captured_at            DateTime
+  latitude               Float
+  longitude              Float
+  accuracy_m             Float
+  /// The device's own inside-the-geofence check at capture time.
+  in_area                Boolean
+  source                 GeoValidationMethod
+  createdAt              DateTime            @default(now())
+
+  @@index([event_id, user_id, captured_at])
+  @@index([user_id, captured_at])
 }
 
 /// Direct (1:1) portal messaging. Participants are portal staff — volunteers use
