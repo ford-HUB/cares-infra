@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../core/session/static_user_session.dart';
 import '../domain/cares_event.dart';
+import '../domain/tracked_event.dart';
 import '../data/mock_events.dart';
+import 'location_capture_db.dart';
 
 class EventParticipation {
   EventParticipation({
@@ -23,12 +27,17 @@ class EventParticipation {
 }
 
 /// In-memory event registration store for the static prototype phase.
+///
+/// Joins and cancellations are also mirrored to SQLite (`joined_events`) so
+/// the geofence recorder — which may be running in the background service
+/// with no UI alive — knows which events to record against.
 class EventRegistrationStore extends ChangeNotifier {
   EventRegistrationStore._();
 
   static final EventRegistrationStore instance = EventRegistrationStore._();
 
   final Map<String, EventParticipation> _participations = {};
+  final _db = LocationCaptureDb.instance;
 
   String _key(String eventId, String email) =>
       '$eventId|${email.trim().toLowerCase()}';
@@ -72,6 +81,9 @@ class EventRegistrationStore extends ChangeNotifier {
       registeredAt: DateTime.now(),
     );
     _participations[key] = participation;
+    unawaited(
+      _db.upsertJoinedEvent(TrackedEvent.fromEvent(event), participantEmail),
+    );
     notifyListeners();
     return participation;
   }
@@ -116,6 +128,7 @@ class EventRegistrationStore extends ChangeNotifier {
   /// state for this participant.
   void cancelParticipation(String eventId, String email) {
     final removed = _participations.remove(_key(eventId, email));
+    unawaited(_db.deleteJoinedEvent(eventId, email));
     if (removed != null) notifyListeners();
   }
 

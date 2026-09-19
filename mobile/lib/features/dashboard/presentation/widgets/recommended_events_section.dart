@@ -63,7 +63,10 @@ class _RecommendedEventsSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        HomeSectionHeader(title: 'Recommended Events', onSeeAll: widget.onSeeAll),
+        HomeSectionHeader(
+          title: 'Recommended Events',
+          onSeeAll: widget.onSeeAll,
+        ),
         const SizedBox(height: 6),
         page.when(
           loading: () => const _RecommendedSkeleton(),

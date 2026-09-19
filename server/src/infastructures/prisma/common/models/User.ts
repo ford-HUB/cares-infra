@@ -340,6 +340,7 @@ export type UserWhereInput = {
   chat_participants?: Prisma.ConversationParticipantListRelationFilter
   chat_messages?: Prisma.ChatMessageListRelationFilter
   event_attendances?: Prisma.EventAttendanceListRelationFilter
+  location_pings?: Prisma.EventLocationPingListRelationFilter
   support_tickets?: Prisma.SupportTicketListRelationFilter
   assigned_support_tickets?: Prisma.SupportTicketListRelationFilter
   support_ticket_replies?: Prisma.SupportTicketReplyListRelationFilter
@@ -389,6 +390,7 @@ export type UserOrderByWithRelationInput = {
   chat_participants?: Prisma.ConversationParticipantOrderByRelationAggregateInput
   chat_messages?: Prisma.ChatMessageOrderByRelationAggregateInput
   event_attendances?: Prisma.EventAttendanceOrderByRelationAggregateInput
+  location_pings?: Prisma.EventLocationPingOrderByRelationAggregateInput
   support_tickets?: Prisma.SupportTicketOrderByRelationAggregateInput
   assigned_support_tickets?: Prisma.SupportTicketOrderByRelationAggregateInput
   support_ticket_replies?: Prisma.SupportTicketReplyOrderByRelationAggregateInput
@@ -441,6 +443,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   chat_participants?: Prisma.ConversationParticipantListRelationFilter
   chat_messages?: Prisma.ChatMessageListRelationFilter
   event_attendances?: Prisma.EventAttendanceListRelationFilter
+  location_pings?: Prisma.EventLocationPingListRelationFilter
   support_tickets?: Prisma.SupportTicketListRelationFilter
   assigned_support_tickets?: Prisma.SupportTicketListRelationFilter
   support_ticket_replies?: Prisma.SupportTicketReplyListRelationFilter
@@ -539,6 +542,7 @@ export type UserCreateInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -588,6 +592,7 @@ export type UserUncheckedCreateInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -635,6 +640,7 @@ export type UserUpdateInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -684,6 +690,7 @@ export type UserUncheckedUpdateInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -1128,6 +1135,20 @@ export type UserUpdateOneRequiredWithoutEvent_attendancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEvent_attendancesInput, Prisma.UserUpdateWithoutEvent_attendancesInput>, Prisma.UserUncheckedUpdateWithoutEvent_attendancesInput>
 }
 
+export type UserCreateNestedOneWithoutLocation_pingsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLocation_pingsInput, Prisma.UserUncheckedCreateWithoutLocation_pingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLocation_pingsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutLocation_pingsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLocation_pingsInput, Prisma.UserUncheckedCreateWithoutLocation_pingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLocation_pingsInput
+  upsert?: Prisma.UserUpsertWithoutLocation_pingsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLocation_pingsInput, Prisma.UserUpdateWithoutLocation_pingsInput>, Prisma.UserUncheckedUpdateWithoutLocation_pingsInput>
+}
+
 export type UserCreateNestedOneWithoutChat_participantsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutChat_participantsInput, Prisma.UserUncheckedCreateWithoutChat_participantsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutChat_participantsInput
@@ -1359,6 +1380,7 @@ export type UserCreateWithoutResidency_documentsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -1407,6 +1429,7 @@ export type UserUncheckedCreateWithoutResidency_documentsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -1469,6 +1492,7 @@ export type UserUpdateWithoutResidency_documentsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -1517,6 +1541,7 @@ export type UserUncheckedUpdateWithoutResidency_documentsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -1563,6 +1588,7 @@ export type UserCreateWithoutRole_avatarsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -1611,6 +1637,7 @@ export type UserUncheckedCreateWithoutRole_avatarsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -1673,6 +1700,7 @@ export type UserUpdateWithoutRole_avatarsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -1721,6 +1749,7 @@ export type UserUncheckedUpdateWithoutRole_avatarsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -1767,6 +1796,7 @@ export type UserCreateWithoutUser_school_infoInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -1815,6 +1845,7 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -1877,6 +1908,7 @@ export type UserUpdateWithoutUser_school_infoInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -1925,6 +1957,7 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -1971,6 +2004,7 @@ export type UserCreateWithoutUser_verificationsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -2019,6 +2053,7 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -2081,6 +2116,7 @@ export type UserUpdateWithoutUser_verificationsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -2129,6 +2165,7 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -2176,6 +2213,7 @@ export type UserCreateWithoutRoleInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -2223,6 +2261,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -2319,6 +2358,7 @@ export type UserCreateWithoutPermission_overridesInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -2367,6 +2407,7 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -2429,6 +2470,7 @@ export type UserUpdateWithoutPermission_overridesInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -2477,6 +2519,7 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -2523,6 +2566,7 @@ export type UserCreateWithoutAction_suspensionsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -2571,6 +2615,7 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -2633,6 +2678,7 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -2681,6 +2727,7 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -2727,6 +2774,7 @@ export type UserCreateWithoutBlocked_ipsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -2775,6 +2823,7 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -2837,6 +2886,7 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -2885,6 +2935,7 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -2931,6 +2982,7 @@ export type UserCreateWithoutLogin_activitiesInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -2979,6 +3031,7 @@ export type UserUncheckedCreateWithoutLogin_activitiesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -3041,6 +3094,7 @@ export type UserUpdateWithoutLogin_activitiesInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -3089,6 +3143,7 @@ export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -3135,6 +3190,7 @@ export type UserCreateWithoutAudit_logsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -3183,6 +3239,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -3245,6 +3302,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -3293,6 +3351,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -3339,6 +3398,7 @@ export type UserCreateWithoutAccountsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -3387,6 +3447,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -3449,6 +3510,7 @@ export type UserUpdateWithoutAccountsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -3497,6 +3559,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -3543,6 +3606,7 @@ export type UserCreateWithoutOauth_identitiesInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -3591,6 +3655,7 @@ export type UserUncheckedCreateWithoutOauth_identitiesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -3653,6 +3718,7 @@ export type UserUpdateWithoutOauth_identitiesInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -3701,6 +3767,7 @@ export type UserUncheckedUpdateWithoutOauth_identitiesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -3747,6 +3814,7 @@ export type UserCreateWithoutGmail_connectionInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -3795,6 +3863,7 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -3857,6 +3926,7 @@ export type UserUpdateWithoutGmail_connectionInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -3905,6 +3975,7 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -3951,6 +4022,7 @@ export type UserCreateWithoutUser_interestInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -3999,6 +4071,7 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -4061,6 +4134,7 @@ export type UserUpdateWithoutUser_interestInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -4109,6 +4183,7 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -4155,6 +4230,7 @@ export type UserCreateWithoutEvent_attendancesInput = {
   oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -4203,6 +4279,7 @@ export type UserUncheckedCreateWithoutEvent_attendancesInput = {
   oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -4265,6 +4342,7 @@ export type UserUpdateWithoutEvent_attendancesInput = {
   oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -4313,6 +4391,215 @@ export type UserUncheckedUpdateWithoutEvent_attendancesInput = {
   oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutLocation_pingsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutLocation_pingsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutLocation_pingsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLocation_pingsInput, Prisma.UserUncheckedCreateWithoutLocation_pingsInput>
+}
+
+export type UserUpsertWithoutLocation_pingsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLocation_pingsInput, Prisma.UserUncheckedUpdateWithoutLocation_pingsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLocation_pingsInput, Prisma.UserUncheckedCreateWithoutLocation_pingsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLocation_pingsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLocation_pingsInput, Prisma.UserUncheckedUpdateWithoutLocation_pingsInput>
+}
+
+export type UserUpdateWithoutLocation_pingsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLocation_pingsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -4359,6 +4646,7 @@ export type UserCreateWithoutChat_participantsInput = {
   oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -4407,6 +4695,7 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -4469,6 +4758,7 @@ export type UserUpdateWithoutChat_participantsInput = {
   oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -4517,6 +4807,7 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -4563,6 +4854,7 @@ export type UserCreateWithoutChat_messagesInput = {
   oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -4611,6 +4903,7 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -4673,6 +4966,7 @@ export type UserUpdateWithoutChat_messagesInput = {
   oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -4721,6 +5015,7 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -4768,6 +5063,7 @@ export type UserCreateWithoutSupport_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
@@ -4816,6 +5112,7 @@ export type UserUncheckedCreateWithoutSupport_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
@@ -4867,6 +5164,7 @@ export type UserCreateWithoutAssigned_support_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
@@ -4915,6 +5213,7 @@ export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
@@ -4977,6 +5276,7 @@ export type UserUpdateWithoutSupport_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
@@ -5025,6 +5325,7 @@ export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
@@ -5082,6 +5383,7 @@ export type UserUpdateWithoutAssigned_support_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
@@ -5130,6 +5432,7 @@ export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
@@ -5176,6 +5479,7 @@ export type UserCreateWithoutSupport_ticket_repliesInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
@@ -5224,6 +5528,7 @@ export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
@@ -5286,6 +5591,7 @@ export type UserUpdateWithoutSupport_ticket_repliesInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
@@ -5334,6 +5640,7 @@ export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
@@ -5380,6 +5687,7 @@ export type UserCreateWithoutEdited_certificate_templatesInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -5428,6 +5736,7 @@ export type UserUncheckedCreateWithoutEdited_certificate_templatesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -5490,6 +5799,7 @@ export type UserUpdateWithoutEdited_certificate_templatesInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -5538,6 +5848,7 @@ export type UserUncheckedUpdateWithoutEdited_certificate_templatesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -5584,6 +5895,7 @@ export type UserCreateWithoutCertificate_signatory_linesInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -5632,6 +5944,7 @@ export type UserUncheckedCreateWithoutCertificate_signatory_linesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -5694,6 +6007,7 @@ export type UserUpdateWithoutCertificate_signatory_linesInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -5742,6 +6056,7 @@ export type UserUncheckedUpdateWithoutCertificate_signatory_linesInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -5788,6 +6103,7 @@ export type UserCreateWithoutCertificate_deploymentsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -5836,6 +6152,7 @@ export type UserUncheckedCreateWithoutCertificate_deploymentsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -5898,6 +6215,7 @@ export type UserUpdateWithoutCertificate_deploymentsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -5946,6 +6264,7 @@ export type UserUncheckedUpdateWithoutCertificate_deploymentsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -5992,6 +6311,7 @@ export type UserCreateWithoutMonthly_report_foldersInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -6040,6 +6360,7 @@ export type UserUncheckedCreateWithoutMonthly_report_foldersInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -6102,6 +6423,7 @@ export type UserUpdateWithoutMonthly_report_foldersInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -6150,6 +6472,7 @@ export type UserUncheckedUpdateWithoutMonthly_report_foldersInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -6196,6 +6519,7 @@ export type UserCreateWithoutSubmitted_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -6244,6 +6568,7 @@ export type UserUncheckedCreateWithoutSubmitted_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -6295,6 +6620,7 @@ export type UserCreateWithoutReviewed_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -6343,6 +6669,7 @@ export type UserUncheckedCreateWithoutReviewed_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -6405,6 +6732,7 @@ export type UserUpdateWithoutSubmitted_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -6453,6 +6781,7 @@ export type UserUncheckedUpdateWithoutSubmitted_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -6510,6 +6839,7 @@ export type UserUpdateWithoutReviewed_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -6558,6 +6888,7 @@ export type UserUncheckedUpdateWithoutReviewed_monthly_reportsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -6604,6 +6935,7 @@ export type UserCreateWithoutAuthored_announcementsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -6652,6 +6984,7 @@ export type UserUncheckedCreateWithoutAuthored_announcementsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -6714,6 +7047,7 @@ export type UserUpdateWithoutAuthored_announcementsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -6762,6 +7096,7 @@ export type UserUncheckedUpdateWithoutAuthored_announcementsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -6808,6 +7143,7 @@ export type UserCreateWithoutNotificationsInput = {
   chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
@@ -6856,6 +7192,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
   chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
   event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
   support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
@@ -6918,6 +7255,7 @@ export type UserUpdateWithoutNotificationsInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -6966,6 +7304,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -7032,6 +7371,7 @@ export type UserUpdateWithoutRoleInput = {
   chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
@@ -7079,6 +7419,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
   chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
   event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
   support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
   assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
@@ -7132,6 +7473,7 @@ export type UserCountOutputType = {
   chat_participants: number
   chat_messages: number
   event_attendances: number
+  location_pings: number
   support_tickets: number
   assigned_support_tickets: number
   support_ticket_replies: number
@@ -7160,6 +7502,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   chat_participants?: boolean | UserCountOutputTypeCountChat_participantsArgs
   chat_messages?: boolean | UserCountOutputTypeCountChat_messagesArgs
   event_attendances?: boolean | UserCountOutputTypeCountEvent_attendancesArgs
+  location_pings?: boolean | UserCountOutputTypeCountLocation_pingsArgs
   support_tickets?: boolean | UserCountOutputTypeCountSupport_ticketsArgs
   assigned_support_tickets?: boolean | UserCountOutputTypeCountAssigned_support_ticketsArgs
   support_ticket_replies?: boolean | UserCountOutputTypeCountSupport_ticket_repliesArgs
@@ -7284,6 +7627,13 @@ export type UserCountOutputTypeCountEvent_attendancesArgs<ExtArgs extends runtim
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountLocation_pingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventLocationPingWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountSupport_ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SupportTicketWhereInput
 }
@@ -7394,6 +7744,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   chat_participants?: boolean | Prisma.User$chat_participantsArgs<ExtArgs>
   chat_messages?: boolean | Prisma.User$chat_messagesArgs<ExtArgs>
   event_attendances?: boolean | Prisma.User$event_attendancesArgs<ExtArgs>
+  location_pings?: boolean | Prisma.User$location_pingsArgs<ExtArgs>
   support_tickets?: boolean | Prisma.User$support_ticketsArgs<ExtArgs>
   assigned_support_tickets?: boolean | Prisma.User$assigned_support_ticketsArgs<ExtArgs>
   support_ticket_replies?: boolean | Prisma.User$support_ticket_repliesArgs<ExtArgs>
@@ -7492,6 +7843,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   chat_participants?: boolean | Prisma.User$chat_participantsArgs<ExtArgs>
   chat_messages?: boolean | Prisma.User$chat_messagesArgs<ExtArgs>
   event_attendances?: boolean | Prisma.User$event_attendancesArgs<ExtArgs>
+  location_pings?: boolean | Prisma.User$location_pingsArgs<ExtArgs>
   support_tickets?: boolean | Prisma.User$support_ticketsArgs<ExtArgs>
   assigned_support_tickets?: boolean | Prisma.User$assigned_support_ticketsArgs<ExtArgs>
   support_ticket_replies?: boolean | Prisma.User$support_ticket_repliesArgs<ExtArgs>
@@ -7532,6 +7884,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     chat_participants: Prisma.$ConversationParticipantPayload<ExtArgs>[]
     chat_messages: Prisma.$ChatMessagePayload<ExtArgs>[]
     event_attendances: Prisma.$EventAttendancePayload<ExtArgs>[]
+    location_pings: Prisma.$EventLocationPingPayload<ExtArgs>[]
     support_tickets: Prisma.$SupportTicketPayload<ExtArgs>[]
     assigned_support_tickets: Prisma.$SupportTicketPayload<ExtArgs>[]
     support_ticket_replies: Prisma.$SupportTicketReplyPayload<ExtArgs>[]
@@ -7977,6 +8330,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   chat_participants<T extends Prisma.User$chat_participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$chat_participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chat_messages<T extends Prisma.User$chat_messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$chat_messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   event_attendances<T extends Prisma.User$event_attendancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$event_attendancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventAttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  location_pings<T extends Prisma.User$location_pingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$location_pingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventLocationPingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   support_tickets<T extends Prisma.User$support_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$support_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assigned_support_tickets<T extends Prisma.User$assigned_support_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assigned_support_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   support_ticket_replies<T extends Prisma.User$support_ticket_repliesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$support_ticket_repliesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -8808,6 +9162,30 @@ export type User$event_attendancesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.EventAttendanceScalarFieldEnum | Prisma.EventAttendanceScalarFieldEnum[]
+}
+
+/**
+ * User.location_pings
+ */
+export type User$location_pingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventLocationPing
+   */
+  select?: Prisma.EventLocationPingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventLocationPing
+   */
+  omit?: Prisma.EventLocationPingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventLocationPingInclude<ExtArgs> | null
+  where?: Prisma.EventLocationPingWhereInput
+  orderBy?: Prisma.EventLocationPingOrderByWithRelationInput | Prisma.EventLocationPingOrderByWithRelationInput[]
+  cursor?: Prisma.EventLocationPingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventLocationPingScalarFieldEnum | Prisma.EventLocationPingScalarFieldEnum[]
 }
 
 /**

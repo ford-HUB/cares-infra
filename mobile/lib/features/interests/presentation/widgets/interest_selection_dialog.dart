@@ -9,23 +9,38 @@ import 'package:mobile/features/interests/domain/user_interest.dart';
 /// about. Options mirror the portal's event categories. The dialog saves the
 /// picks itself and only closes once the server has accepted them; it returns
 /// the saved set, or `null` if it was dismissed without saving.
+///
+/// Pass [initialSelection] when editing an existing set — the save is a full
+/// replace, so anything not pre-checked here would be dropped. [dismissible]
+/// adds a close button and lets the user back out without saving.
 Future<Set<UserInterest>?> showInterestSelectionDialog(
   BuildContext context, {
   InterestsService? interestsService,
+  Set<UserInterest> initialSelection = const {},
+  bool dismissible = false,
 }) {
   return showDialog<Set<UserInterest>>(
     context: context,
-    barrierDismissible: false,
+    barrierDismissible: dismissible,
     builder: (_) => InterestSelectionDialog(
       interestsService: interestsService ?? InterestsService(),
+      initialSelection: initialSelection,
+      dismissible: dismissible,
     ),
   );
 }
 
 class InterestSelectionDialog extends StatefulWidget {
-  const InterestSelectionDialog({super.key, required this.interestsService});
+  const InterestSelectionDialog({
+    super.key,
+    required this.interestsService,
+    this.initialSelection = const {},
+    this.dismissible = false,
+  });
 
   final InterestsService interestsService;
+  final Set<UserInterest> initialSelection;
+  final bool dismissible;
 
   @override
   State<InterestSelectionDialog> createState() =>
@@ -33,7 +48,7 @@ class InterestSelectionDialog extends StatefulWidget {
 }
 
 class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
-  final Set<UserInterest> _selected = {};
+  late final Set<UserInterest> _selected = {...widget.initialSelection};
   bool _isSaving = false;
   String? _errorMessage;
 
@@ -81,7 +96,7 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
     final maxHeight = MediaQuery.sizeOf(context).height * 0.82;
 
     return PopScope(
-      canPop: false,
+      canPop: widget.dismissible && !_isSaving,
       child: Dialog(
         backgroundColor: AppColors.background,
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -92,9 +107,13 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(24, 28, 24, 16),
-                child: _DialogHeader(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+                child: _DialogHeader(
+                  onClose: widget.dismissible && !_isSaving
+                      ? () => Navigator.of(context).pop()
+                      : null,
+                ),
               ),
               Flexible(
                 child: GridView.builder(
@@ -136,11 +155,14 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
 }
 
 class _DialogHeader extends StatelessWidget {
-  const _DialogHeader();
+  const _DialogHeader({this.onClose});
+
+  /// Shown only when the dialog can be dismissed (editing from the profile).
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final header = Column(
       children: [
         Container(
           width: 56,
@@ -175,6 +197,29 @@ class _DialogHeader extends StatelessWidget {
             fontSize: 14,
             height: 1.45,
             color: AppColors.secondary.withValues(alpha: 0.95),
+          ),
+        ),
+      ],
+    );
+
+    if (onClose == null) return header;
+
+    // Overlay the close button on the corner so it adds no vertical space.
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        header,
+        Positioned(
+          top: -12,
+          right: -8,
+          child: IconButton(
+            onPressed: onClose,
+            icon: const Icon(Icons.close_rounded, size: 22),
+            color: AppColors.secondary,
+            tooltip: 'Close',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
         ),
       ],

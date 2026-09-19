@@ -17,7 +17,7 @@ import {
   type SchedulerQueueName,
   type SchedulerRunRecord,
   type SchedulerTrigger,
-} from '../../../schedulers/scheduler.registry';
+} from '../../../schedulers/scheduler-registry';
 import type {
   ServiceLogEntryDto,
   ServiceTriggerDto,
@@ -51,12 +51,14 @@ export class SystemServicesSiteService {
     @InjectQueue(SCHEDULER_QUEUES.notification) notificationQueue: Queue,
     @InjectQueue(SCHEDULER_QUEUES.cleanup) cleanupQueue: Queue,
     @InjectQueue(SCHEDULER_QUEUES.diagnostics) diagnosticsQueue: Queue,
+    @InjectQueue(SCHEDULER_QUEUES.attendance) attendanceQueue: Queue,
   ) {
     this.queues = {
       email: emailQueue,
       notification: notificationQueue,
       cleanup: cleanupQueue,
       diagnostics: diagnosticsQueue,
+      attendance: attendanceQueue,
     };
   }
 

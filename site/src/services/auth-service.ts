@@ -8,7 +8,7 @@ import type {
 } from '../types/auth'
 import type { SessionSuspension } from '../types/access-control'
 import type { ApiResponse, AuthUser } from '../types/portal-roles'
-import { apiClient, parseApiError, toApiResponse } from './api-client'
+import { apiClient, isAuthFailure, parseApiError, toApiResponse } from './api-client'
 function mapSuspensions(
   suspensions: SessionSuspensionApi[] | undefined,
 ): SessionSuspension[] {
@@ -76,7 +76,13 @@ export async function getSession(): Promise<ApiResponse<AuthUser>> {
     persistSession(user, token)
     return toApiResponse(user)
   } catch (error) {
-    clearSession()
+    // Only a refusal from the server means the session is gone. A network blip, a
+    // server restart or a 5xx must leave the token in place — wiping it here would
+    // sign the tab out silently while the store still shows the person as signed in,
+    // and every later request would go out without a bearer.
+    if (isAuthFailure(error)) {
+      clearSession()
+    }
     return { success: false, message: parseApiError(error), data: null }
   }
 }

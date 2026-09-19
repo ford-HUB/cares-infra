@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/skeleton.dart';
+import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_category_chips.dart';
@@ -26,6 +28,9 @@ import 'package:mobile/features/interests/presentation/widgets/interest_selectio
 /// volunteer's interests. The deck ranks them by how full they are; the list
 /// groups them by event type. Remount the widget (new key) to refetch —
 /// pull-to-refresh and an interest change both do that.
+///
+/// Events the volunteer has already joined (per [EventRegistrationStore])
+/// drop out of both sections — they live on the Activity tab instead.
 class VolunteerHomeTab extends ConsumerStatefulWidget {
   const VolunteerHomeTab({
     super.key,
@@ -64,14 +69,41 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
 
   String _category = 'All';
 
+  final _registrations = EventRegistrationStore.instance;
+
+  String get _participantEmail =>
+      StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+
   @override
   void initState() {
     super.initState();
+    _registrations.addListener(_onRegistrationsChanged);
     // autoDispose keeps the last value alive across a quick remount; a mount
     // is always a request for fresh data here.
     Future.microtask(() {
       if (mounted) ref.invalidate(recommendedEventsProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _registrations.removeListener(_onRegistrationsChanged);
+    super.dispose();
+  }
+
+  /// Joining or cancelling from the details screen moves the event between
+  /// this tab and Activity; rebuild so the list reflects it on return.
+  void _onRegistrationsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Everything the server sent minus the events this volunteer already
+  /// joined. The store keys on the details screen's `event-<id>` form.
+  List<RecommendedEvent> _unjoined(List<RecommendedEvent> events) {
+    final email = _participantEmail;
+    return events
+        .where((e) => !_registrations.isRegistered('event-${e.id}', email))
+        .toList();
   }
 
   void _open(RecommendedEvent event) =>
@@ -81,8 +113,10 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
   /// the chip row so both reflect the same choice. Does nothing until the
   /// events (and therefore the categories) have loaded.
   Future<void> _pickCategory() async {
-    final events = ref.read(recommendedEventsProvider).value?.events;
-    if (events == null || events.isEmpty) return;
+    final all = ref.read(recommendedEventsProvider).value?.events;
+    if (all == null) return;
+    final events = _unjoined(all);
+    if (events.isEmpty) return;
     final chips = _chipsFor(events);
     final picked = await showHomeCategoryFilterSheet(
       context,
@@ -154,13 +188,16 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
                 _PopularSlot(
                   page: page,
                   count: widget.popularCount,
+                  filter: _unjoined,
                   onOpen: _open,
                 ),
                 if (widget.showProfileCompletionCard) ...[
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: _gutter),
-                    child: ProfileCompletionCard(onTap: widget.onCompleteProfile),
+                    child: ProfileCompletionCard(
+                      onTap: widget.onCompleteProfile,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 8),
@@ -207,20 +244,23 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
             ),
           ];
         }
-        if (data.events.isEmpty) {
+        final events = _unjoined(data.events);
+        if (events.isEmpty) {
           return const [
             Padding(padding: inset, child: HomeStateCard.noMatches()),
           ];
         }
 
-        final chips = _chipsFor(data.events);
+        final chips = _chipsFor(events);
         // A chip picked before a refetch may no longer exist; fall back to
         // All rather than filtering everything out.
         final active = chips.contains(_category) ? _category : 'All';
         final filtered = active == 'All'
-            ? data.events
-            : data.events
-                  .where((e) => e.category.toLowerCase() == active.toLowerCase())
+            ? events
+            : events
+                  .where(
+                    (e) => e.category.toLowerCase() == active.toLowerCase(),
+                  )
                   .toList();
 
         return [
@@ -258,11 +298,15 @@ class _PopularSlot extends StatelessWidget {
   const _PopularSlot({
     required this.page,
     required this.count,
+    required this.filter,
     required this.onOpen,
   });
 
   final AsyncValue<RecommendedEventsPage> page;
   final int count;
+
+  /// Drops events that should not be offered (already joined).
+  final List<RecommendedEvent> Function(List<RecommendedEvent>) filter;
   final ValueChanged<RecommendedEvent> onOpen;
 
   /// Fullest first — the closest thing to "popular" the server exposes.
@@ -284,7 +328,7 @@ class _PopularSlot extends StatelessWidget {
         message: 'Events are unavailable right now',
       ),
       data: (data) {
-        final popular = _popular(data.events);
+        final popular = _popular(filter(data.events));
         if (!data.hasInterests) {
           return const _DeckPlaceholder(
             icon: Icons.auto_awesome_rounded,
@@ -297,7 +341,11 @@ class _PopularSlot extends StatelessWidget {
             message: 'No open events match your interests yet',
           );
         }
-        return PopularEventDeck(events: popular, gutter: gutter, onOpen: onOpen);
+        return PopularEventDeck(
+          events: popular,
+          gutter: gutter,
+          onOpen: onOpen,
+        );
       },
     );
   }

@@ -41,14 +41,20 @@ apiClient.interceptors.response.use(
 )
 
 /**
- * A 401 on a request that carried a bearer token. A 401 from the login endpoint is a
- * wrong password, not a lost session, and is left to the form to report.
+ * A 401 on any request other than the login endpoint, where it is a wrong password
+ * and is left to the form to report. Whether a token was sent does not matter: a
+ * bare request from a tab that still shows a signed-in user means the token was
+ * lost, and that is as much an ended session as a revoked one.
  */
 function isRevokedSession(error: AxiosError<BackendError>): boolean {
   if (error.response?.status !== 401) return false
-  const sentToken = Boolean(error.config?.headers?.Authorization)
   const isLogin = (error.config?.url ?? '').includes('/auth/admin/login')
-  return sentToken && !isLogin
+  return !isLogin
+}
+
+/** The server refused the credentials — as opposed to not answering at all. */
+export function isAuthFailure(error: unknown): boolean {
+  return isAxiosError(error) && error.response?.status === 401
 }
 
 export function parseApiError(error: unknown): string {

@@ -4,7 +4,7 @@ import {
   type DiagnosticCheck,
   type DiagnosticHistoryEntry,
   type DiagnosticReport,
-} from '../../../schedulers/scheduler.diagnostics';
+} from '../../../schedulers/scheduler-diagnostics';
 import type {
   DiagnosticCheckDto,
   SystemDiagnosticsDto,

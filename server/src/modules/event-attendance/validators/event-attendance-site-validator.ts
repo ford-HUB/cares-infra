@@ -49,3 +49,52 @@ export const EventAttendeeResponseSchema = z.object({
 export const EventAttendeeListResponseSchema = z.array(
   EventAttendeeResponseSchema,
 );
+
+/**
+ * What the geofence is seeing for one volunteer right now. Not `AttendanceStatus`:
+ * that is the post-event ruling and stays PENDING for everyone while the event runs.
+ */
+export const LiveAttendanceStateSchema = z.enum([
+  'in_area',
+  'outside_area',
+  'awaiting_sync',
+]);
+
+export const LiveEventSessionSchema = z.object({
+  event_id: z.number(),
+  title: z.string(),
+  location: z.string(),
+  started_at: z.string(),
+  ended_at: z.string(),
+  /** Equivalent-circle radius of the drawn fence, in metres; null when no fence. */
+  radius_meters: z.number().nullable(),
+  coordinator: z.string(),
+});
+
+export const LiveAttendeeResponseSchema = z.object({
+  event_attendance_id: z.string(),
+  user_id: z.string(),
+  firstname: z.string(),
+  lastname: z.string(),
+  email: z.string(),
+  phone_number: z.string().nullable(),
+  department: z.string().nullable(),
+  year_level: z.string().nullable(),
+  state: LiveAttendanceStateSchema,
+  status: z.enum(AttendanceStatus),
+  validation_method: z.enum(GeoValidationMethod).nullable(),
+  first_ping_at: z.string().nullable(),
+  last_ping_at: z.string().nullable(),
+  /** Metres from the fence at the last reading; 0 when inside. */
+  distance_meters: z.number().nullable(),
+  /** Share (0–1) of the event so far the readings place inside the fence. */
+  inside_ratio: z.number().nullable(),
+  remarks: z.string().nullable(),
+});
+
+export const LiveAttendanceSnapshotSchema = z.object({
+  /** Null when no event is running right now. */
+  session: LiveEventSessionSchema.nullable(),
+  attendees: z.array(LiveAttendeeResponseSchema),
+  captured_at: z.string(),
+});

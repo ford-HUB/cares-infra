@@ -1,10 +1,17 @@
 import {
+  BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
-import { InterestCode } from '../../../infastructures/prisma/common/client';
+import {
+  EventStatus,
+  InterestCode,
+  Prisma,
+} from '../../../infastructures/prisma/common/client';
 import {
   NlpEventMatch,
   NlpInterestScore,
@@ -14,6 +21,7 @@ import { RedisService } from '../../../infastructures/redis/redis-service';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
 import { InterestsRepository } from '../../interests/repositories/interests-repository';
 import {
+  EventRegistrationResponseDto,
   RecommendedEventDto,
   RecommendedEventsResponseDto,
 } from '../dto/events-mobile-dto';
@@ -56,7 +64,7 @@ export class EventsMobileService {
 
     const [catalog, events] = await Promise.all([
       this.interestsRepository.listActiveInterests(),
-      this.eventsRepository.findOpenForVolunteers(),
+      this.eventsRepository.findOpenForVolunteers(userId),
     ]);
     if (events.length === 0) {
       return { has_interests: true, events: [] };
@@ -91,6 +99,89 @@ export class EventsMobileService {
     );
 
     return { has_interests: true, events: recommended.slice(0, limit) };
+  }
+
+  /**
+   * Takes one slot on the event for the volunteer. Idempotent: a second call for
+   * an event they already joined just returns the current counts.
+   */
+  async register(
+    userId: string,
+    eventId: number,
+  ): Promise<EventRegistrationResponseDto> {
+    await this.assertOpen(eventId);
+
+    const counts = await this.withSerializationRetry(() =>
+      this.eventsRepository.register(eventId, userId),
+    );
+    if (!counts) {
+      throw new ConflictException('This event has no slots left');
+    }
+    return this.toRegistrationDto(eventId, counts, true);
+  }
+
+  /** Gives the slot back. Not registered is not an error — the counts still come back. */
+  async unregister(
+    userId: string,
+    eventId: number,
+  ): Promise<EventRegistrationResponseDto> {
+    const event = await this.eventsRepository.findById(eventId);
+    if (!event) throw new NotFoundException('Event not found');
+
+    const counts = await this.withSerializationRetry(() =>
+      this.eventsRepository.unregister(eventId, userId),
+    );
+    return this.toRegistrationDto(eventId, counts, false);
+  }
+
+  /** Registration only makes sense while the event is still ahead and accepting. */
+  private async assertOpen(eventId: number): Promise<void> {
+    const event = await this.eventsRepository.findById(eventId);
+    if (!event) throw new NotFoundException('Event not found');
+    const open =
+      (event.status === EventStatus.Upcoming ||
+        event.status === EventStatus.Ongoing) &&
+      event.event_ended.getTime() >= Date.now();
+    if (!open) {
+      throw new BadRequestException(
+        'This event is no longer accepting registrations',
+      );
+    }
+  }
+
+  /**
+   * Postgres aborts one of two serializable transactions that touch the same
+   * event at once (P2034); the loser simply runs again and sees the winner's row.
+   */
+  private async withSerializationRetry<T>(
+    run: () => Promise<T>,
+    attempts = 3,
+  ): Promise<T> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await run();
+      } catch (error) {
+        const retryable =
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2034' &&
+          attempt < attempts;
+        if (!retryable) throw error;
+      }
+    }
+  }
+
+  private toRegistrationDto(
+    eventId: number,
+    counts: { participants: number; max_participants: number },
+    isRegistered: boolean,
+  ): EventRegistrationResponseDto {
+    return {
+      event_id: eventId,
+      is_registered: isRegistered,
+      max_participants: counts.max_participants,
+      participants: counts.participants,
+      slots_left: Math.max(0, counts.max_participants - counts.participants),
+    };
   }
 
   /**
@@ -220,7 +311,12 @@ export class EventsMobileService {
       event_ended: event.event_ended.toISOString(),
       location: event.location,
       max_participants: event.max_participants,
-      participants: event.participants,
+      participants: event._count.attendances,
+      slots_left: Math.max(
+        0,
+        event.max_participants - event._count.attendances,
+      ),
+      is_registered: event.attendances.length > 0,
       organizer_name: event.organizer_name,
       category: event.category,
       status: event.status,

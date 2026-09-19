@@ -37,7 +37,9 @@ class MobileProfile {
       userId: json['user_id'] as String? ?? '',
       roleType: json['role_type'] as String? ?? '',
       profilingRole:
-          json['profiling_role'] as String? ?? json['role_type'] as String? ?? '',
+          json['profiling_role'] as String? ??
+          json['role_type'] as String? ??
+          '',
       firstName: json['firstname'] as String? ?? '',
       middleName: json['middle_name'] as String?,
       lastName: json['lastname'] as String? ?? '',

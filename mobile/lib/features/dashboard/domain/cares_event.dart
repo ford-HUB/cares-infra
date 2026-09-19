@@ -115,6 +115,50 @@ class CaresEvent {
 
   String get statusLabel => isCompleted ? 'Completed' : 'Upcoming';
 
+  /// Numeric id on the server, or null for a prototype fixture. Server rows
+  /// carry the `event-<id>` form (see `RecommendedEvent.toCaresEvent`).
+  int? get serverId {
+    final match = RegExp(r'^event-(\d+)$').firstMatch(id);
+    return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
+  /// The same event with fresh registration numbers — [slotsLeft] and
+  /// [capacityFilled] are re-derived so a joined card keeps all three in step.
+  CaresEvent withParticipants({
+    required int registeredCount,
+    required int totalCapacity,
+  }) {
+    return CaresEvent(
+      id: id,
+      title: title,
+      organization: organization,
+      date: date,
+      time: time,
+      location: location,
+      description: description,
+      slotsLeft: (totalCapacity - registeredCount).clamp(0, totalCapacity),
+      daysUntil: daysUntil,
+      capacityFilled: totalCapacity == 0
+          ? 0
+          : (registeredCount / totalCapacity).clamp(0, 1).toDouble(),
+      category: category,
+      tags: tags,
+      registeredCount: registeredCount,
+      totalCapacity: totalCapacity,
+      requirements: requirements,
+      venueLatitude: venueLatitude,
+      venueLongitude: venueLongitude,
+      attendanceRadiusMeters: attendanceRadiusMeters,
+      isFeatured: isFeatured,
+      openToBeneficiaries: openToBeneficiaries,
+      isCompleted: isCompleted,
+      hoursCompleted: hoursCompleted,
+      imageAsset: imageAsset,
+      imageUrls: imageUrls,
+      organizerDescription: organizerDescription,
+    );
+  }
+
   /// Assumed length of an event when the server gives no end time — the
   /// geofence keeps recording this long after [startsAt].
   static const Duration defaultDuration = Duration(hours: 4);

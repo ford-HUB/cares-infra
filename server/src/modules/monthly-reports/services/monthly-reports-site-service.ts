@@ -14,7 +14,7 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { S3Service } from '../../../infastructures/s3/s3-service';
-import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
 import type {
   CreateReportFolderDto,

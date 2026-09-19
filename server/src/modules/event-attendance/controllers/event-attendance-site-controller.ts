@@ -5,12 +5,14 @@ import { ResponseMessage } from 'src/shared/decorators/response-message-decorato
 import type {
   EventAttendeeDto,
   EventAttendeeQueryDto,
+  LiveAttendanceSnapshotDto,
 } from '../dto/event-attendance-site-dto';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import { EventAttendanceSiteService } from '../services/event-attendance-site-service';
 import {
   EventAttendeeListResponseSchema,
   EventAttendeeQuerySchema,
+  LiveAttendanceSnapshotSchema,
 } from '../validators/event-attendance-site-validator';
 
 /**
@@ -23,6 +25,17 @@ export class EventAttendanceSiteController {
   constructor(
     private readonly eventAttendanceSiteService: EventAttendanceSiteService,
   ) {}
+
+  /**
+   * One poll of the running event and who the geofence sees on site. The server
+   * picks the event so a director watching the page cannot drift onto a stale one.
+   */
+  @Get('live')
+  @ResponseMessage('Live attendance')
+  @ZSerialize(LiveAttendanceSnapshotSchema)
+  async getLiveAttendance(): Promise<LiveAttendanceSnapshotDto> {
+    return this.eventAttendanceSiteService.getLiveSnapshot();
+  }
 
   @Get()
   @ResponseMessage('Event attendees')

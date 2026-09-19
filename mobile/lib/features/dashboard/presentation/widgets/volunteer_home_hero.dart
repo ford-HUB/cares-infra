@@ -58,7 +58,12 @@ class VolunteerHomeHero extends StatelessWidget {
     final topInset = MediaQuery.paddingOf(context).top;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(gutter, topInset + _topPad, gutter, _bottomPad),
+      padding: EdgeInsets.fromLTRB(
+        gutter,
+        topInset + _topPad,
+        gutter,
+        _bottomPad,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -101,7 +106,6 @@ class VolunteerHomeHero extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _Welcome extends StatelessWidget {
@@ -162,7 +166,10 @@ class _Avatar extends StatelessWidget {
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18), width: 2),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.18),
+          width: 2,
+        ),
       ),
       child: CircleAvatar(
         radius: (VolunteerHomeHero._avatarSize - 8) / 2,

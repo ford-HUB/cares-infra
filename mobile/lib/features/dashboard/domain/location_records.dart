@@ -1,8 +1,9 @@
-/// Daily geolocation CSV logs kept on the device for attendance validation.
+/// Geolocation records kept on the device for attendance validation.
 ///
-/// Rows are recorded by `EventLocationTracker` once a second while a joined
-/// event's window is open, into SQLite (source of truth) and appended to that
-/// day's CSV file under the app documents folder.
+/// Fixes are recorded by `EventLocationTracker` once a second while
+/// recording is activated. Online they go straight to the server; offline
+/// they are stored in SQLite and synced as one CSV per event once the
+/// connection is back. The Records screens group those SQLite rows by day.
 enum LocationRecordSyncState { synced, pending, uploading }
 
 extension LocationRecordSyncStateX on LocationRecordSyncState {
@@ -30,7 +31,7 @@ class LocationCapture {
   final bool inArea;
 }
 
-/// One CSV file — one calendar day of captures.
+/// One calendar day of captures.
 class LocationRecordFile {
   const LocationRecordFile({
     required this.date,
@@ -39,7 +40,6 @@ class LocationRecordFile {
     required this.pendingCount,
     required this.sizeKb,
     required this.syncState,
-    this.path,
   });
 
   final DateTime date;
@@ -48,16 +48,14 @@ class LocationRecordFile {
   final String eventTitle;
   final int captureCount;
   final int pendingCount;
+
+  /// Estimated size of the day's rows as they upload (see
+  /// [LocationRecords.bytesPerCapture]).
   final double sizeKb;
   final LocationRecordSyncState syncState;
 
-  /// Absolute path of the CSV on the device, null when it hasn't been written.
-  final String? path;
-
   /// `yyyy-MM-dd`, the key the tracker groups rows by.
   String get dayKey => LocationRecords.dayKeyFor(date);
-
-  String get fileName => LocationRecords.fileNameFor(date);
 
   LocationRecordFile copyWith({LocationRecordSyncState? syncState}) =>
       LocationRecordFile(
@@ -67,17 +65,18 @@ class LocationRecordFile {
         pendingCount: pendingCount,
         sizeKb: sizeKb,
         syncState: syncState ?? this.syncState,
-        path: path,
       );
 }
 
 abstract final class LocationRecords {
   static const retentionDays = 30;
 
-  /// Columns of the daily on-device file. The first five are exactly what
-  /// the server ingests; `event_id` tells which joined event a row belongs
-  /// to when two events fall on one day.
-  static const csvHeader = 'time,latitude,longitude,accuracy_m,in_area,event_id';
+  /// Columns of the per-event CSV the server ingests; `time` is an ISO-8601
+  /// UTC timestamp.
+  static const csvHeader = 'time,latitude,longitude,accuracy_m,in_area';
+
+  /// Rough bytes of one CSV line, for the size shown on the Records screens.
+  static const bytesPerCapture = 40;
 
   /// How often a fix is written while an event window is open.
   static const captureInterval = Duration(seconds: 1);
@@ -87,8 +86,6 @@ abstract final class LocationRecords {
     final day = d.day.toString().padLeft(2, '0');
     return '${d.year}-$m-$day';
   }
-
-  static String fileNameFor(DateTime d) => 'geolocation_${dayKeyFor(d)}.csv';
 
   static DateTime? parseDayKey(String key) {
     final parts = key.split('-');

@@ -17,9 +17,9 @@ class ActivityLogsScreen extends ConsumerStatefulWidget {
   const ActivityLogsScreen({super.key});
 
   static void open(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ActivityLogsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const ActivityLogsScreen()));
   }
 
   @override

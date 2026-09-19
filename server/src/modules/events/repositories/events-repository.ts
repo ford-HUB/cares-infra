@@ -6,6 +6,9 @@ import {
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { PersistEventDto } from '../dto/events-site-dto';
 
+/** Thrown inside the register transaction to roll it back when no slot is left. */
+class EventFullError extends Error {}
+
 @Injectable()
 export class EventsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -16,15 +19,94 @@ export class EventsRepository {
     });
   }
 
-  /** Events a volunteer can still join, soonest first — the pool the recommender ranks. */
-  async findOpenForVolunteers() {
+  /**
+   * Events a volunteer can still join, soonest first — the pool the recommender
+   * ranks. Carries the live attendance count and whether this volunteer already
+   * has a row, so the app can show real slots and the joined state.
+   */
+  async findOpenForVolunteers(userId: string) {
     return this.prisma.event.findMany({
       where: {
         status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
         event_ended: { gte: new Date() },
       },
+      include: {
+        _count: { select: { attendances: true } },
+        attendances: {
+          where: { user_id: userId },
+          select: { event_attendance_id: true },
+        },
+      },
       orderBy: { event_started: 'asc' },
     });
+  }
+
+  /**
+   * Registers a volunteer: inserts their attendance row and rewrites the event's
+   * `participants` from the actual row count. Runs serializable so two volunteers
+   * racing for the last slot cannot both get it; the caller retries on a
+   * serialization failure. Returns null when the event is full (nothing is
+   * written) and the fresh counts otherwise. Already registered is a no-op that
+   * still returns the counts.
+   */
+  async register(eventId: number, userId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const existing = await tx.eventAttendance.findUnique({
+          where: { event_id_user_id: { event_id: eventId, user_id: userId } },
+          select: { event_attendance_id: true },
+        });
+        if (!existing) {
+          await tx.eventAttendance.create({
+            data: { event_id: eventId, user_id: userId },
+          });
+        }
+
+        const participants = await tx.eventAttendance.count({
+          where: { event_id: eventId },
+        });
+        const event = await tx.event.findUniqueOrThrow({
+          where: { event_id: eventId },
+          select: { max_participants: true },
+        });
+        if (!existing && participants > event.max_participants) {
+          // Roll the insert back: the transaction is discarded on a throw, so
+          // the sentinel is turned into a null return below.
+          throw new EventFullError();
+        }
+
+        await tx.event.update({
+          where: { event_id: eventId },
+          data: { participants },
+        });
+        return { participants, max_participants: event.max_participants };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    ).catch((error: unknown) => {
+      if (error instanceof EventFullError) return null;
+      throw error;
+    });
+  }
+
+  /** Drops the volunteer's attendance row and recounts `participants`. */
+  async unregister(eventId: number, userId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        await tx.eventAttendance.deleteMany({
+          where: { event_id: eventId, user_id: userId },
+        });
+        const participants = await tx.eventAttendance.count({
+          where: { event_id: eventId },
+        });
+        const event = await tx.event.update({
+          where: { event_id: eventId },
+          data: { participants },
+          select: { max_participants: true },
+        });
+        return { participants, max_participants: event.max_participants };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
   }
 
   async findById(id: number) {

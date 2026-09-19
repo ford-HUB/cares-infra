@@ -36,7 +36,12 @@ export const RecommendedEventSchema = z.object({
   event_ended: z.string(),
   location: z.string(),
   max_participants: z.number(),
+  /** Volunteers with an attendance row — the real registration count, not a cached figure. */
   participants: z.number(),
+  /** `max_participants - participants`, floored at zero. */
+  slots_left: z.number().int().min(0),
+  /** Whether the caller already holds one of those slots. */
+  is_registered: z.boolean(),
   organizer_name: z.string(),
   category: z.string(),
   status: z.enum(EventStatus),
@@ -55,4 +60,12 @@ export const RecommendedEventsResponseSchema = z.object({
   /** False when the volunteer has not picked interests yet, so the app can prompt. */
   has_interests: z.boolean(),
   events: z.array(RecommendedEventSchema),
+});
+
+export const EventRegistrationResponseSchema = z.object({
+  event_id: z.number(),
+  is_registered: z.boolean(),
+  max_participants: z.number(),
+  participants: z.number(),
+  slots_left: z.number().int().min(0),
 });

@@ -12,7 +12,7 @@ import {
   PermissionOverrideEffect,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
-import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import {
   PERMISSION_CATALOG,
   PERMISSION_MODULES,

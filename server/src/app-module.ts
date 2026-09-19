@@ -40,7 +40,7 @@ import { SystemServicesModule } from './modules/system-services/modules/system-s
 import { SystemPerformanceModule } from './modules/system-performance/modules/system-performance-module';
 import { SystemDiagnosticsModule } from './modules/system-diagnostics/modules/system-diagnostics-module';
 import { GatewaysModule } from './gateways/gateways.module';
-import { SchedulersModule } from './schedulers/schedulers.module';
+import { SchedulersModule } from './schedulers/schedulers-module';
 import { JwtModule } from './infastructures/jwt/jwt-module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth-guard';
 import { RolesGuard } from './shared/guards/roles-guard';

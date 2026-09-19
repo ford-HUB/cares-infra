@@ -63,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String get _displayName =>
       widget.displayName ?? HomeScreen.greetingFirstName(widget.firstName);
 
-
   @override
   void initState() {
     super.initState();

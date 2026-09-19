@@ -6,9 +6,9 @@ import 'package:mobile/features/dashboard/domain/location_records.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/location_record_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// One day's CSV: file facts up top, then a preview of the first rows in the
+/// One day's captures: facts up top, then a preview of the first rows in the
 /// same columns the server receives. Rows come from SQLite for that day;
-/// Delete removes both the rows and the CSV on disk.
+/// Delete removes the day's rows from the device.
 class LocationRecordDetailScreen extends StatefulWidget {
   const LocationRecordDetailScreen({
     super.key,
@@ -79,9 +79,9 @@ class _LocationRecordDetailScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete this file?'),
+        title: const Text('Delete this day?'),
         content: Text(
-          '${file.fileName} and its ${file.captureCount} captures will be '
+          '${file.dayKey} and its ${file.captureCount} captures will be '
           'removed from this device.',
         ),
         actions: [
@@ -114,7 +114,7 @@ class _LocationRecordDetailScreenState
           ProfileEditHeader(
             onBack: () => Navigator.of(context).pop(),
             title: locationRecordDayLabel(file.date, widget.today),
-            subtitle: file.fileName,
+            subtitle: file.dayKey,
           ),
           Expanded(
             child: ListView(
@@ -150,7 +150,7 @@ class _LocationRecordDetailScreenState
                             : '${file.pendingCount} waiting',
                       ),
                       _Fact(
-                        label: 'File size',
+                        label: 'Upload size',
                         value: '${file.sizeKb.toStringAsFixed(1)} KB',
                       ),
                       const _Fact(
@@ -162,8 +162,6 @@ class _LocationRecordDetailScreenState
                         value: LocationRecords.csvHeader,
                         mono: true,
                       ),
-                      if (file.path != null)
-                        _Fact(label: 'Path', value: file.path!, mono: true),
                     ],
                   ),
                 ),
@@ -339,8 +337,12 @@ class _CsvPreviewTable extends StatelessWidget {
               DataRow(
                 cells: [
                   DataCell(Text(r.time, style: _cellStyle)),
-                  DataCell(Text(r.latitude.toStringAsFixed(4), style: _cellStyle)),
-                  DataCell(Text(r.longitude.toStringAsFixed(4), style: _cellStyle)),
+                  DataCell(
+                    Text(r.latitude.toStringAsFixed(4), style: _cellStyle),
+                  ),
+                  DataCell(
+                    Text(r.longitude.toStringAsFixed(4), style: _cellStyle),
+                  ),
                   DataCell(Text('${r.accuracyMeters}', style: _cellStyle)),
                   DataCell(
                     Text(

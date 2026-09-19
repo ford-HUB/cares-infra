@@ -35,6 +35,7 @@ class RecommendedEvent {
     required this.location,
     required this.maxParticipants,
     required this.participants,
+    required this.isRegistered,
     required this.organizerName,
     required this.category,
     required this.status,
@@ -56,6 +57,7 @@ class RecommendedEvent {
       location: json['location'] as String? ?? '',
       maxParticipants: json['max_participants'] as int? ?? 0,
       participants: json['participants'] as int? ?? 0,
+      isRegistered: json['is_registered'] as bool? ?? false,
       organizerName: json['organizer_name'] as String? ?? '',
       category: json['category'] as String? ?? '',
       status: json['status'] as String? ?? 'Upcoming',
@@ -77,7 +79,12 @@ class RecommendedEvent {
   final DateTime endsAt;
   final String location;
   final int maxParticipants;
+
+  /// Volunteers holding a slot right now — counted from attendance rows.
   final int participants;
+
+  /// Whether the signed-in volunteer is one of [participants].
+  final bool isRegistered;
   final String organizerName;
   final String category;
   final String status;
@@ -94,6 +101,9 @@ class RecommendedEvent {
 
   int get slotsLeft =>
       (maxParticipants - participants).clamp(0, maxParticipants);
+
+  /// Mirrors [CaresEvent.serverId]: the id form the registration store keys on.
+  String get caresEventId => 'event-$id';
 
   /// Authenticated image stream per index, in upload order.
   List<String> get imageUrls {
@@ -117,7 +127,7 @@ class RecommendedEvent {
     final meridiem = startsAt.hour < 12 ? 'AM' : 'PM';
 
     return CaresEvent(
-      id: 'event-$id',
+      id: caresEventId,
       title: title,
       organization: organizerName,
       date: startsAt,

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/services/api_client.dart';
+import '../domain/location_records.dart';
 import 'location_capture_db.dart';
 
 /// Outcome of one sync attempt for one event.
@@ -28,27 +29,66 @@ class LocationSyncResult {
   bool get succeeded => error == null;
 }
 
-/// Turns pending SQLite captures into the server's CSV and pushes it.
+/// Pushes coordinates to the server — live one fix at a time while online,
+/// or as one CSV per event for whatever piled up in SQLite while offline.
 ///
-/// Flow: pending rows → CSV text → saved under
-/// `<app documents>/geolocation/<event>_<yyyy-MM-dd>.csv` → multipart upload
-/// → rows flipped to synced. Any failure after the file is written leaves the
-/// rows pending and the file on disk, so a later "Sync" simply retries.
+/// Offline flow: pending rows → CSV text → saved under
+/// `<app documents>/geolocation/uploads/<event>_<yyyy-MM-dd>.csv` → multipart
+/// upload → rows flipped to synced. Any failure after the file is written
+/// leaves the rows pending and the file on disk, so a later "Sync" simply
+/// retries.
 class LocationSyncService {
   LocationSyncService({ApiClient? apiClient, LocationCaptureDb? db})
     : _api = apiClient ?? ApiClient(),
       _db = db ?? LocationCaptureDb.instance;
 
-  /// Upload columns — the daily on-device file adds `event_id` after these.
-  static const csvHeader = 'time,latitude,longitude,accuracy_m,in_area';
+  static const csvHeader = LocationRecords.csvHeader;
 
   /// Server endpoint that ingests one event's CSV for the signed-in
   /// volunteer. Not built on the NestJS side yet — until it is, the request
   /// fails and rows stay pending, which is the same path as being offline.
   static const syncPath = '/attendance/geofence/mobile/sync';
 
+  /// Server endpoint that takes one fix as JSON while the volunteer is
+  /// online. Not built on the NestJS side yet either — a failure sends the
+  /// fix down the offline path instead.
+  static const livePath = '/attendance/geofence/mobile/coordinates';
+
+  /// Short so a slow server can't stack up one-second ticks.
+  static const liveTimeout = Duration(seconds: 8);
+
   final ApiClient _api;
   final LocationCaptureDb _db;
+
+  /// Sends one fix straight to the server. False on any failure — the caller
+  /// stores the row locally instead.
+  Future<bool> submitLive(LocationCaptureRow row) async {
+    try {
+      await _api.postJson(
+        livePath,
+        body: row.toLiveJson(),
+        timeout: liveTimeout,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Uploads every event that still has pending rows. Returns the number of
+  /// rows accepted and the first error, if any event failed.
+  Future<({int uploaded, String? error})> syncPending({
+    required String email,
+  }) async {
+    var uploaded = 0;
+    String? error;
+    for (final ref in await _db.eventsWithPending(email)) {
+      final result = await syncEvent(eventId: ref.eventId, email: email);
+      uploaded += result.uploaded;
+      error ??= result.error;
+    }
+    return (uploaded: uploaded, error: error);
+  }
 
   /// Uploads the event's pending rows. With [resync], and nothing pending,
   /// the whole trail is sent again — the manual button on the sync sheet, so

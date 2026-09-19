@@ -69,10 +69,7 @@ class ActivityLogsNotifier extends AutoDisposeAsyncNotifier<ActivityLogsState> {
           .fetchPage(cursor: current.nextCursor);
       state = AsyncData(
         ActivityLogsState(
-          entries: [
-            ...current.entries,
-            ...page.items.map((i) => i.toEntry()),
-          ],
+          entries: [...current.entries, ...page.items.map((i) => i.toEntry())],
           nextCursor: page.nextCursor,
         ),
       );

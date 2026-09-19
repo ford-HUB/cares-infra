@@ -51,6 +51,7 @@ class SmartEventSearchBar extends StatelessWidget {
     required this.showSuggestions,
     required this.suggestions,
     this.hintText = 'Search by title, tag, or location',
+    this.radius = AppColors.cardRadius,
   });
 
   final TextEditingController controller;
@@ -63,6 +64,10 @@ class SmartEventSearchBar extends StatelessWidget {
   final List<String> suggestions;
   final String hintText;
 
+  /// Corner radius of the field — the events tab passes [AppColors.pillRadius]
+  /// for a fully round search pill.
+  final double radius;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -71,7 +76,7 @@ class SmartEventSearchBar extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppColors.cardRadius),
+            borderRadius: BorderRadius.circular(radius),
             border: Border.all(
               color: focusNode.hasFocus
                   ? AppColors.primary.withValues(alpha: 0.35)
@@ -418,39 +423,41 @@ class EventCatalogCard extends StatelessWidget {
                               event.formattedDate,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: urgent
-                                  ? AppColors.accentOrange.withValues(
-                                      alpha: 0.12,
-                                    )
-                                  : AppColors.inputFill,
-                              borderRadius: BorderRadius.circular(
-                                AppColors.pillRadius,
+                          // No "0d left" on the day itself — the date says it.
+                          if (event.daysUntil > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
                               ),
-                              border: Border.all(
+                              decoration: BoxDecoration(
                                 color: urgent
                                     ? AppColors.accentOrange.withValues(
-                                        alpha: 0.25,
+                                        alpha: 0.12,
                                       )
-                                    : AppColors.borderLight,
+                                    : AppColors.inputFill,
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.pillRadius,
+                                ),
+                                border: Border.all(
+                                  color: urgent
+                                      ? AppColors.accentOrange.withValues(
+                                          alpha: 0.25,
+                                        )
+                                      : AppColors.borderLight,
+                                ),
+                              ),
+                              child: Text(
+                                event.countdownLeftLabel,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: urgent
+                                      ? AppColors.accentOrange
+                                      : AppColors.primary,
+                                ),
                               ),
                             ),
-                            child: Text(
-                              event.countdownLeftLabel,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: urgent
-                                    ? AppColors.accentOrange
-                                    : AppColors.primary,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 14),
