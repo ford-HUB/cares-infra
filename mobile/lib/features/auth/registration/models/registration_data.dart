@@ -25,6 +25,7 @@ class RegistrationData {
   String email = '';
   String phoneNumber = '';
   String schoolIdNumber = '';
+  String age = '';
   String address = '';
   String? dateOfBirth;
   String? gender;

@@ -30,6 +30,7 @@ class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
   late final TextEditingController _schoolIdController;
+  late final TextEditingController _ageController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
   bool _obscurePassword = true;
@@ -45,6 +46,7 @@ class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
     _emailController = TextEditingController(text: data.email);
     _phoneController = TextEditingController(text: data.phoneNumber);
     _schoolIdController = TextEditingController(text: data.schoolIdNumber);
+    _ageController = TextEditingController(text: data.age);
     _passwordController = TextEditingController(text: data.password);
     _confirmPasswordController = TextEditingController(
       text: data.confirmPassword,
@@ -60,6 +62,7 @@ class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
     data.email = _emailController.text.trim();
     data.phoneNumber = _phoneController.text.trim();
     data.schoolIdNumber = _schoolIdController.text.trim();
+    data.age = _ageController.text.trim();
     data.password = _passwordController.text;
     data.confirmPassword = _confirmPasswordController.text;
   }
@@ -71,6 +74,7 @@ class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
     _emailController.dispose();
     _phoneController.dispose();
     _schoolIdController.dispose();
+    _ageController.dispose();
     _passwordController.removeListener(_syncPassword);
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -158,6 +162,7 @@ class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
                 },
               ),
               const SizedBox(height: 16),
+
               AuthTextField(
                 controller: _schoolIdController,
                 label: 'School ID Number',
@@ -173,6 +178,34 @@ class _RegistrationFormStepState extends ConsumerState<RegistrationFormStep> {
                   if (v.length != 8) {
                     return 'Invalid School ID';
                   }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              AuthTextField(
+                controller: _ageController,
+                label: 'Age',
+                hintText: 'Enter your age',
+                icon: Icons.cake_outlined,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                maxLength: 2,
+                digitsOnly: true,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Age is required';
+                  }
+
+                  final age = int.tryParse(v);
+
+                  if (age == null) {
+                    return 'Enter a valid age';
+                  }
+
+                  if (age < 12 || age > 80) {
+                    return 'Age must be between 12 and 80';
+                  }
+
                   return null;
                 },
               ),
