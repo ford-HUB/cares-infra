@@ -177,9 +177,9 @@ class _DonationActivityCard extends StatelessWidget {
   final String email;
 
   void _open(BuildContext context) {
-    final campaign = donation.type == DonationType.goods
-        ? findDonationById(donation.campaignId)
-        : null;
+    // Both money and goods donations have a status to track, so open the
+    // status view whenever the campaign is still known.
+    final campaign = findDonationById(donation.campaignId);
     if (campaign != null) {
       DonationFlowScreen.openStatus(
         context,

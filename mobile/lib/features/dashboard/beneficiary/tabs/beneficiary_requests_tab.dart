@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/assistance_request_data.dart';
 import '../../screens/assistance_request_details_screen.dart';
 import '../../screens/assistance_request_form_screen.dart';
+import '../../screens/needs_assessment_screen.dart';
 import '../../widgets/assistance_request_widgets.dart';
 
 /// Beneficiary "Request" tab — where assistance needs are filed and tracked.
@@ -138,7 +139,24 @@ class _BeneficiaryRequestsTabState extends State<BeneficiaryRequestsTab> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    NeedsAssessmentCard(summary: kMockNeedsAssessment),
+                    NeedsAssessmentCard(
+                      summary: kMockNeedsAssessment,
+                      onTakeAssessment: () => NeedsAssessmentScreen.open(
+                        context,
+                        mode: NeedsAssessmentMode.take,
+                        summary: kMockNeedsAssessment,
+                      ),
+                      onViewAssessment: () => NeedsAssessmentScreen.open(
+                        context,
+                        mode: NeedsAssessmentMode.view,
+                        summary: kMockNeedsAssessment,
+                      ),
+                      onUpdateAssessment: () => NeedsAssessmentScreen.open(
+                        context,
+                        mode: NeedsAssessmentMode.update,
+                        summary: kMockNeedsAssessment,
+                      ),
+                    ),
                     const SizedBox(height: 18),
                     _RequestFilterBar(
                       filters: _filters,

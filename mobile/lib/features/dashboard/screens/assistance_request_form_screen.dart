@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/media_permissions.dart';
 import '../data/assistance_request_data.dart';
 
 /// Static "Request Assistance" form. Submitting files a mock request into the
@@ -25,21 +30,31 @@ class AssistanceRequestFormScreen extends StatefulWidget {
 class _AssistanceRequestFormScreenState
     extends State<AssistanceRequestFormScreen> {
   final _store = AssistanceRequestStore.instance;
-  final _titleController = TextEditingController();
+  final _otherNeedController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _householdController = TextEditingController(text: '5');
+  final _attachments = <RequestAttachment>[];
 
+  static const _maxAttachments = 3;
+  static const _allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+
+  String? _need;
   String _category = kAssistanceCategories.first;
   String _urgency = 'Normal';
   bool _isSubmitting = false;
 
+  bool get _isOtherNeed => _need == kOtherOption;
+
+  /// The request title: the chosen need, or what was typed under "Other".
+  String get _title =>
+      _isOtherNeed ? _otherNeedController.text.trim() : (_need ?? '');
+
   bool get _canSubmit =>
-      _titleController.text.trim().isNotEmpty &&
-      _descriptionController.text.trim().isNotEmpty;
+      _title.isNotEmpty && _descriptionController.text.trim().isNotEmpty;
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _otherNeedController.dispose();
     _descriptionController.dispose();
     _householdController.dispose();
     super.dispose();
@@ -55,11 +70,12 @@ class _AssistanceRequestFormScreenState
     if (!mounted) return;
 
     final request = _store.submit(
-      title: _titleController.text.trim(),
+      title: _title,
       category: _category,
       description: _descriptionController.text.trim(),
       urgency: _urgency,
       householdSize: int.tryParse(_householdController.text.trim()) ?? 1,
+      attachments: List.unmodifiable(_attachments),
     );
 
     setState(() => _isSubmitting = false);
@@ -67,6 +83,64 @@ class _AssistanceRequestFormScreenState
     await showRequestSubmittedDialog(context, request);
     if (!mounted) return;
     Navigator.of(context).pop(request);
+  }
+
+  bool get _canAddAttachment => _attachments.length < _maxAttachments;
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _addAttachment(RequestAttachment attachment) {
+    if (!_canAddAttachment) {
+      _showMessage('You can attach up to $_maxAttachments files.');
+      return;
+    }
+    setState(() => _attachments.add(attachment));
+  }
+
+  Future<void> _pickProofPhoto() async {
+    final permission = await MediaPermissions.ensureCamera();
+    if (!mounted) return;
+    if (!permission.isGranted) {
+      _showMessage(permission.message ?? 'Camera permission is required.');
+      return;
+    }
+
+    try {
+      final file = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+      if (file == null || !mounted) return;
+      final size = await File(file.path).length();
+      if (!mounted) return;
+      _addAttachment(
+        RequestAttachment(name: file.name, path: file.path, sizeBytes: size),
+      );
+    } catch (_) {
+      if (mounted) _showMessage('Could not open the camera.');
+    }
+  }
+
+  Future<void> _pickProofFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: _allowedExtensions,
+        withData: false,
+      );
+      final file = result?.files.single;
+      final path = file?.path;
+      if (file == null || path == null || !mounted) return;
+      _addAttachment(
+        RequestAttachment(name: file.name, path: path, sizeBytes: file.size),
+      );
+    } catch (_) {
+      if (mounted) _showMessage('Could not open the file picker.');
+    }
   }
 
   @override
@@ -123,14 +197,34 @@ class _AssistanceRequestFormScreenState
                 const SizedBox(height: 20),
                 const _FieldLabel('What do you need?'),
                 const SizedBox(height: 8),
-                TextField(
-                  controller: _titleController,
-                  textCapitalization: TextCapitalization.sentences,
-                  onChanged: (_) => setState(() {}),
-                  decoration: _inputDecoration(
-                    'e.g. Monthly food pack for household',
+                DropdownButtonFormField<String>(
+                  initialValue: _need,
+                  isExpanded: true,
+                  hint: const Text(
+                    'Select what you need',
+                    style: TextStyle(color: AppColors.textMuted),
                   ),
+                  decoration: _inputDecoration(''),
+                  items: kAssistanceNeedOptions
+                      .map(
+                        (need) =>
+                            DropdownMenuItem(value: need, child: Text(need)),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() => _need = value),
                 ),
+                if (_isOtherNeed) ...[
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _otherNeedController,
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.sentences,
+                    onChanged: (_) => setState(() {}),
+                    decoration: _inputDecoration(
+                      'Please specify what you need',
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 18),
                 const _FieldLabel('Assistance category'),
                 const SizedBox(height: 8),
@@ -199,6 +293,45 @@ class _AssistanceRequestFormScreenState
                     'needs...',
                   ),
                 ),
+                const SizedBox(height: 10),
+                const _FieldLabel('Proof / supporting documents'),
+                const SizedBox(height: 4),
+                const Text(
+                  'Optional. Attach an ID, bill, medical certificate, or a '
+                  'photo that supports your request (PDF or image, up to '
+                  '$_maxAttachments files).',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                for (var i = 0; i < _attachments.length; i++)
+                  _AttachmentTile(
+                    attachment: _attachments[i],
+                    onRemove: () => setState(() => _attachments.removeAt(i)),
+                  ),
+                if (_canAddAttachment)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _AttachmentButton(
+                          icon: Icons.photo_camera_outlined,
+                          label: 'Take photo',
+                          onTap: _pickProofPhoto,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _AttachmentButton(
+                          icon: Icons.upload_file_outlined,
+                          label: 'Choose file',
+                          onTap: _pickProofFile,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -213,7 +346,8 @@ class _AssistanceRequestFormScreenState
                     const Padding(
                       padding: EdgeInsets.only(bottom: 10),
                       child: Text(
-                        'Add a title and a description to submit your request.',
+                        'Choose what you need and describe your situation to '
+                        'submit your request.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -269,6 +403,142 @@ class _AssistanceRequestFormScreenState
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: AppColors.primary),
+      ),
+    );
+  }
+}
+
+/// Dashed-border action used to add a proof document.
+class _AttachmentButton extends StatelessWidget {
+  const _AttachmentButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.fieldFill,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderActive, width: 1.2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: AppColors.primaryDark),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One attached proof document with a thumbnail (for images) or file icon.
+class _AttachmentTile extends StatelessWidget {
+  const _AttachmentTile({required this.attachment, required this.onRemove});
+
+  final RequestAttachment attachment;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 4, 8),
+      decoration: AppDecorations.surfaceCard(radius: 12),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: attachment.isImage
+                  ? Image.file(
+                      File(attachment.path),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const _FileIcon(),
+                    )
+                  : const _FileIcon(),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  attachment.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  [
+                    attachment.extension.toUpperCase(),
+                    if (attachment.sizeLabel.isNotEmpty) attachment.sizeLabel,
+                  ].join(' · '),
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onRemove,
+            tooltip: 'Remove',
+            icon: const Icon(
+              Icons.close_rounded,
+              size: 20,
+              color: AppColors.textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FileIcon extends StatelessWidget {
+  const _FileIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.primary.withValues(alpha: 0.10),
+      child: const Icon(
+        Icons.description_outlined,
+        size: 22,
+        color: AppColors.primary,
       ),
     );
   }

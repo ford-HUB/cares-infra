@@ -171,7 +171,7 @@ class _FeaturedDonationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${donation.raisedLabel} raised of ${donation.goalLabel}',
+                    donation.fundingSummaryLabel,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 13,
@@ -190,7 +190,7 @@ class _FeaturedDonationCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          donation.progressPercentLabel,
+                          donation.acceptedDonationsLabel,
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontSize: 12,
@@ -332,23 +332,13 @@ class UpcomingDonationCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: donation.progress.clamp(0, 1),
-                          minHeight: 5,
-                          backgroundColor: AppColors.inputFill,
+                      child: Text(
+                        donation.compactFundingLabel,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.primary,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      '${donation.raisedLabel}/${donation.goalLabel}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
                       ),
                     ),
                     Icon(

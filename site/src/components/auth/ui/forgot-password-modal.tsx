@@ -15,7 +15,7 @@ interface ForgotPasswordModalProps {
 }
 
 export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps) {
-  const [sent, setSent] = useState(false)
+  const [sentTo, setSentTo] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -31,7 +31,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
   const onSubmit = handleSubmit(async (values) => {
     const res = await requestPortalPasswordReset(values.email)
     if (res.success) {
-      setSent(true)
+      setSentTo(values.email)
       toast.success(res.message)
       return
     }
@@ -39,7 +39,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
   })
 
   const handleClose = () => {
-    setSent(false)
+    setSentTo(null)
     reset()
     onClose()
   }
@@ -71,9 +71,20 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
           </button>
         </div>
 
-        {sent ? (
-          <div className="rounded-lg bg-[var(--cares-tag-volunteer-bg)] p-3 text-xs text-[var(--cares-tag-volunteer-text)]">
-            Check your inbox for password reset instructions. You can close this window.
+        {sentTo ? (
+          <div className="flex flex-col gap-3">
+            <div className="rounded-lg bg-[var(--cares-tag-volunteer-bg)] p-3 text-xs text-[var(--cares-tag-volunteer-text)]">
+              A reset link was sent to <strong>{sentTo}</strong>. Open the email and click{' '}
+              <strong>Reset Password</strong> to choose a new one. The link expires in 15
+              minutes.
+            </div>
+            <button
+              type="button"
+              onClick={() => setSentTo(null)}
+              className="text-xs font-medium text-[var(--cares-primary)] hover:underline"
+            >
+              Didn't get it? Send another link
+            </button>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-2.5">
@@ -97,7 +108,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
               disabled={isSubmitting}
               className="w-full rounded-lg bg-[var(--cares-primary)] py-2 text-xs font-semibold text-white hover:bg-[var(--cares-primary-hover)] disabled:opacity-60"
             >
-              {isSubmitting ? 'Sending...' : 'Send reset link'}
+              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
             </button>
           </form>
         )}

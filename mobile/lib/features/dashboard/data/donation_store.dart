@@ -23,6 +23,29 @@ extension DonationPaymentMethodMeta on DonationPaymentMethod {
   };
 }
 
+/// Lifecycle of a money donation. Paying does NOT complete the donation — it
+/// only pledges it. A Director then reviews the payment details (GCash
+/// reference, amount) and moves it forward:
+/// pledged → verifying (Director marked it Verified) → confirmed.
+enum MoneyDonationStatus { pledged, verifying, confirmed }
+
+extension MoneyDonationStatusMeta on MoneyDonationStatus {
+  String get label => switch (this) {
+    MoneyDonationStatus.pledged => 'Pledged',
+    MoneyDonationStatus.verifying => 'Verifying',
+    MoneyDonationStatus.confirmed => 'Confirmed',
+  };
+
+  String get upperLabel => label.toUpperCase();
+
+  /// Next status on the forward path, or null if terminal.
+  MoneyDonationStatus? get next => switch (this) {
+    MoneyDonationStatus.pledged => MoneyDonationStatus.verifying,
+    MoneyDonationStatus.verifying => MoneyDonationStatus.confirmed,
+    MoneyDonationStatus.confirmed => null,
+  };
+}
+
 /// Lifecycle of a goods donation. The forward path must progress in order and
 /// never skip: pledged → waitingForPickup → verifying → confirmed. The only
 /// branch is pledged → cancelled.
@@ -60,9 +83,10 @@ extension GoodsDonationStatusMeta on GoodsDonationStatus {
 
 /// A donation record.
 ///
-/// Money donations are created only after the simulated payment succeeds and
-/// are immediately complete. Goods donations are created when the user pledges
-/// and then advance through [goodsStatus] via the simulated pickup/verification
+/// Money donations are created only after the simulated payment succeeds, but
+/// they start as *pledged* — a Director must verify the payment reference and
+/// confirm before they count. Goods donations are created when the user
+/// pledges and then advance through [goodsStatus] via the pickup/verification
 /// steps — they are only "confirmed" at the end.
 class UserDonation {
   UserDonation({
@@ -74,9 +98,9 @@ class UserDonation {
     required this.donatedAt,
     this.amount = 0,
     this.paymentMethod,
+    this.paymentReference,
+    this.moneyStatus = MoneyDonationStatus.pledged,
     this.goodsItem,
-    this.goodsQuantity = 0,
-    this.goodsUnit,
     this.pickupAddress,
     this.pickupContact,
     this.pickupDate,
@@ -93,10 +117,15 @@ class UserDonation {
   final int amount;
   final DonationPaymentMethod? paymentMethod;
 
+  /// Reference number issued by the payment channel (e.g. the GCash Ref No.).
+  /// Recorded so the Director can match the payment during verification.
+  final String? paymentReference;
+
+  /// Mutable so the Director's verify / confirm actions can advance it.
+  MoneyDonationStatus moneyStatus;
+
   // Goods donation details — mutable so a pledged donation can be edited.
   String? goodsItem;
-  int goodsQuantity;
-  String? goodsUnit;
   String? pickupAddress;
   String? pickupContact;
   DateTime? pickupDate;
@@ -111,9 +140,6 @@ class UserDonation {
   final String donorEmail;
   final DateTime donatedAt;
 
-  String get quantityLabel =>
-      goodsUnit == null ? '$goodsQuantity' : '$goodsQuantity $goodsUnit';
-
   String? get pickupDateLabel =>
       pickupDate == null ? null : DonationStore.formatDateOnly(pickupDate!);
 
@@ -122,11 +148,17 @@ class UserDonation {
       : DonationStore.formatMinutes(pickupTimeMinutes!);
 
   String get statusLabel =>
-      type == DonationType.money ? 'Completed' : goodsStatus.label;
+      type == DonationType.money ? moneyStatus.label : goodsStatus.label;
 
-  bool get isComplete =>
-      type == DonationType.money ||
-      goodsStatus == GoodsDonationStatus.confirmed;
+  /// Label for the payment reference row, matching the channel used.
+  String get paymentReferenceLabel =>
+      paymentMethod == DonationPaymentMethod.gcash
+      ? 'GCash Reference No.'
+      : 'Payment Reference No.';
+
+  bool get isComplete => type == DonationType.money
+      ? moneyStatus == MoneyDonationStatus.confirmed
+      : goodsStatus == GoodsDonationStatus.confirmed;
 
   bool get isCancelled => goodsStatus == GoodsDonationStatus.cancelled;
 
@@ -176,14 +208,17 @@ class DonationStore extends ChangeNotifier {
     return null;
   }
 
-  /// Records a completed money donation. Call this ONLY after the simulated
-  /// payment succeeds. Returns the created record, including its generated ID.
-  UserDonation recordMoneyDonation({
+  /// Records a money donation once the simulated payment succeeds. The
+  /// donation starts at [MoneyDonationStatus.pledged] — it is NOT successful
+  /// yet. A Director verifies the payment ([markMoneyDonationVerified]) and
+  /// then confirms it ([confirmMoneyDonation]).
+  UserDonation recordMoneyPledge({
     required String campaignId,
     required String campaignTitle,
     required String donorEmail,
     required int amount,
     required DonationPaymentMethod paymentMethod,
+    required String paymentReference,
   }) {
     return _add(
       UserDonation(
@@ -193,10 +228,44 @@ class DonationStore extends ChangeNotifier {
         type: DonationType.money,
         amount: amount,
         paymentMethod: paymentMethod,
+        paymentReference: paymentReference,
         donorEmail: donorEmail.trim().toLowerCase(),
         donatedAt: DateTime.now(),
       ),
     );
+  }
+
+  /// Director action: the payment details were reviewed and marked Verified.
+  /// On the donor side the donation now reads "Verifying".
+  void markMoneyDonationVerified(String donationId) {
+    final donation = donationById(donationId);
+    if (donation == null || donation.type != DonationType.money) return;
+    if (donation.moneyStatus != MoneyDonationStatus.pledged) return;
+    donation.moneyStatus = MoneyDonationStatus.verifying;
+    notifyListeners();
+  }
+
+  /// Director action: the donation is confirmed. Only now does the donor see
+  /// "Donation Successful".
+  void confirmMoneyDonation(String donationId) {
+    final donation = donationById(donationId);
+    if (donation == null || donation.type != DonationType.money) return;
+    if (donation.moneyStatus != MoneyDonationStatus.verifying) return;
+    donation.moneyStatus = MoneyDonationStatus.confirmed;
+    notifyListeners();
+  }
+
+  /// Mock payment-channel reference, e.g. a 13-digit GCash Ref No. Static
+  /// prototype only — a real integration returns this from the gateway.
+  static String generatePaymentReference(DonationPaymentMethod method) {
+    final seed = DateTime.now().millisecondsSinceEpoch;
+    final digits = (seed % 10000000000000).toString().padLeft(13, '0');
+    return switch (method) {
+      DonationPaymentMethod.gcash => digits,
+      DonationPaymentMethod.maya => 'MY$digits',
+      DonationPaymentMethod.card => 'CD$digits',
+      DonationPaymentMethod.bank => 'BT$digits',
+    };
   }
 
   /// Records a goods donation at the moment the user pledges. The donation
@@ -207,8 +276,6 @@ class DonationStore extends ChangeNotifier {
     required String campaignTitle,
     required String donorEmail,
     required String goodsItem,
-    required int goodsQuantity,
-    required String goodsUnit,
     required String pickupAddress,
     required String pickupContact,
     required DateTime pickupDate,
@@ -221,8 +288,6 @@ class DonationStore extends ChangeNotifier {
         campaignTitle: campaignTitle,
         type: DonationType.goods,
         goodsItem: goodsItem,
-        goodsQuantity: goodsQuantity,
-        goodsUnit: goodsUnit,
         pickupAddress: pickupAddress,
         pickupContact: pickupContact,
         pickupDate: pickupDate,
@@ -238,8 +303,6 @@ class DonationStore extends ChangeNotifier {
   void updateGoodsDonation({
     required String donationId,
     required String goodsItem,
-    required int goodsQuantity,
-    required String goodsUnit,
     required String pickupAddress,
     required String pickupContact,
     required DateTime pickupDate,
@@ -249,8 +312,6 @@ class DonationStore extends ChangeNotifier {
     if (donation == null || !donation.canModify) return;
     donation
       ..goodsItem = goodsItem
-      ..goodsQuantity = goodsQuantity
-      ..goodsUnit = goodsUnit
       ..pickupAddress = pickupAddress
       ..pickupContact = pickupContact
       ..pickupDate = pickupDate

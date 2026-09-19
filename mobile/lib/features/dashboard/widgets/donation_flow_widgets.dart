@@ -364,6 +364,36 @@ class GoodsStatusTracker extends StatelessWidget {
   }
 }
 
+/// Vertical stepper for a money donation: Pledged → Verifying → Confirmed.
+class MoneyStatusTracker extends StatelessWidget {
+  const MoneyStatusTracker({super.key, required this.status});
+
+  final MoneyDonationStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = MoneyDonationStatus.values;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < steps.length; i++)
+          _StatusStep(
+            label: steps[i].label,
+            state: _stateFor(i),
+            isLast: i == steps.length - 1,
+          ),
+      ],
+    );
+  }
+
+  _StepState _stateFor(int index) {
+    if (status == MoneyDonationStatus.confirmed) return _StepState.done;
+    if (index < status.index) return _StepState.done;
+    if (index == status.index) return _StepState.current;
+    return _StepState.pending;
+  }
+}
+
 enum _StepState { done, current, pending, cancelled }
 
 class _StatusStep extends StatelessWidget {

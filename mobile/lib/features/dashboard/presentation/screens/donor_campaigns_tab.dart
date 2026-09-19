@@ -53,7 +53,7 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
     if (_query.trim().isNotEmpty) {
       return '$count result${count == 1 ? '' : 's'} found';
     }
-    return '$count campaigns available';
+    return '$count event${count == 1 ? '' : 's'} accepting donations';
   }
 
   void _applySuggestion(String suggestion) {
@@ -91,7 +91,10 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             slivers: [
               SliverToBoxAdapter(
-                child: DonationsPageHeader(subtitle: _subtitle),
+                child: DonationsPageHeader(
+                  title: 'Campaigns',
+                  subtitle: _subtitle,
+                ),
               ),
               SliverToBoxAdapter(
                 child: Padding(

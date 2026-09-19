@@ -6,9 +6,14 @@ import '../data/mock_donations.dart';
 import 'events_page_widgets.dart';
 
 class DonationsPageHeader extends StatelessWidget {
-  const DonationsPageHeader({super.key, required this.subtitle});
+  const DonationsPageHeader({
+    super.key,
+    required this.subtitle,
+    this.title = 'Donations',
+  });
 
   final String subtitle;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,7 @@ class DonationsPageHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Donations',
+            title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontSize: 30,
               fontWeight: FontWeight.w800,
@@ -237,12 +242,39 @@ class DonationCatalogCard extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (donation.eventDateLabel != null) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.event_outlined,
+                              size: 15,
+                              color: AppColors.textMuted,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                donation.location == null
+                                    ? donation.eventDateLabel!
+                                    : '${donation.eventDateLabel} · '
+                                          '${donation.location}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
                             child: Text(
-                              '${donation.raisedLabel} raised of ${donation.goalLabel}',
+                              donation.fundingSummaryLabel,
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -284,16 +316,6 @@ class DonationCatalogCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 14),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: donation.progress.clamp(0, 1),
-                          minHeight: 5,
-                          backgroundColor: AppColors.inputFill,
-                          color: AppColors.primary,
-                        ),
                       ),
                     ],
                   ),

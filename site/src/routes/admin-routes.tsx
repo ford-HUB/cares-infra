@@ -23,11 +23,13 @@ import { MailInboxPage } from '../pages/admin/mail-inbox'
 import { MaintenancePage } from '../pages/admin/maintenance'
 import { ManageUsersPage } from '../pages/admin/manage-users'
 import { MonthlyReportsPage } from '../pages/admin/monthly-reports'
+import { NeedsClustersPage } from '../pages/admin/needs-clusters'
 import { QueueReviewerPage } from '../pages/admin/queue-reviewer'
 import { RankingCustomizationPage } from '../pages/admin/ranking-customization'
 import { UploadReportPage } from '../pages/admin/upload-report'
 import { DepartmentFilesPage } from '../pages/admin/department-files'
 import { RankingsPage } from '../pages/admin/rankings'
+import { ResidentialNeedsPage } from '../pages/admin/residential-needs'
 import { SecurityPoliciesPage } from '../pages/admin/security-policies'
 import { SupportTicketsPage } from '../pages/admin/support-tickets'
 import { SystemNoticesPage } from '../pages/admin/system-notices'
@@ -65,6 +67,15 @@ export const adminRoutes: RouteObject[] = [
           { index: true, element: <AdminDashboard /> },
           { path: 'overview', element: <AdminDashboard /> },
           { path: 'statistics', element: <StatisticsPage /> },
+          {
+            // The needs survey is school-wide programme planning — the director's
+            // screen; the route matches so a coordinator typing the URL is bounced.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [
+              { path: 'residential-needs', element: <ResidentialNeedsPage /> },
+              { path: 'residential-needs/clusters', element: <NeedsClustersPage /> },
+            ],
+          },
           { path: 'profile', element: <AdminProfile /> },
           { path: 'system-notices', element: <SystemNoticesPage /> },
           {

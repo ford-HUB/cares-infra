@@ -86,7 +86,7 @@ class DonationReceiptScreen extends StatelessWidget {
                         const SizedBox(height: 12),
                         DonationStatusPill(
                           label: isMoney
-                              ? donation.statusLabel
+                              ? donation.moneyStatus.upperLabel
                               : donation.goodsStatus.upperLabel,
                           done: donation.isComplete,
                         ),
@@ -108,9 +108,13 @@ class DonationReceiptScreen extends StatelessWidget {
                             'Payment method',
                             donation.paymentMethod!.label,
                           ),
+                        if (donation.paymentReference != null)
+                          DonationSummaryRow(
+                            donation.paymentReferenceLabel,
+                            donation.paymentReference!,
+                          ),
                       ] else ...[
                         DonationSummaryRow('Item', donation.goodsItem ?? '—'),
-                        DonationSummaryRow('Quantity', donation.quantityLabel),
                         const DonationSummaryRow('Fulfillment', 'Pickup'),
                         if (donation.pickupDateLabel != null)
                           DonationSummaryRow(
@@ -133,12 +137,13 @@ class DonationReceiptScreen extends StatelessWidget {
                         DonationStore.formatDate(donation.donatedAt),
                       ),
                       DonationSummaryRow('Donation ID', donation.donationId),
-                      if (!isMoney)
-                        DonationSummaryRow(
-                          'Status',
-                          donation.goodsStatus.upperLabel,
-                          emphasize: true,
-                        ),
+                      DonationSummaryRow(
+                        'Status',
+                        isMoney
+                            ? donation.moneyStatus.upperLabel
+                            : donation.goodsStatus.upperLabel,
+                        emphasize: true,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),

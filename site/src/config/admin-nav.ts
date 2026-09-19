@@ -19,6 +19,7 @@ import {
   ADMIN_EVENT_MAP_PATH,
   ADMIN_MAIL_INBOX_PATH,
   ADMIN_MAINTENANCE_PATH,
+  ADMIN_RESIDENTIAL_NEEDS_PATH,
   ADMIN_SUPPORT_TICKETS_PATH,
   ADMIN_SYSTEM_DIAGNOSTICS_PATH,
   ADMIN_SYSTEM_NOTICES_PATH,
@@ -61,6 +62,9 @@ export const adminNav: PortalNavConfig = {
       children: [
         { label: 'Overview', to: '/admin/overview' },
         { label: 'Statistics', to: '/admin/statistics' },
+        // The household needs survey and its clusters — programme planning, so the
+        // director's alone.
+        { label: 'Residential Needs', to: ADMIN_RESIDENTIAL_NEEDS_PATH, roles: ['director'] },
       ],
     },
     { type: 'link', label: 'User Profile', to: '/admin/profile', icon: CircleUser },

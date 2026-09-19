@@ -49,11 +49,12 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final donation = widget.donation;
+    final showFunding = donation.acceptsMonetary;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Donation Details'),
+        title: const Text('Campaign Details'),
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
@@ -138,36 +139,77 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _StatBox(label: 'Raised', value: donation.raisedLabel),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _StatBox(label: 'Goal', value: donation.goalLabel),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: donation.progress.clamp(0, 1),
-              minHeight: 8,
-              backgroundColor: AppColors.inputFill,
-              color: AppColors.primary,
+          if (donation.eventDateLabel != null) ...[
+            _EventInfoRow(
+              icon: Icons.event_outlined,
+              label: 'Event date',
+              value: donation.eventDateLabel!,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${donation.progressPercentLabel} funded · ${donation.countdownLeftLabel}',
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 10),
+          ],
+          if (donation.location != null) ...[
+            _EventInfoRow(
+              icon: Icons.place_outlined,
+              label: 'Location',
+              value: donation.location!,
             ),
+            const SizedBox(height: 10),
+          ],
+          _EventInfoRow(
+            icon: Icons.volunteer_activism_outlined,
+            label: 'Accepted donations',
+            value: _acceptedDonationsSentence(donation),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+          if (showFunding) ...[
+            _StatBox(label: 'Money Raised', value: donation.raisedLabel),
+            const SizedBox(height: 8),
+            Text(
+              donation.countdownLeftLabel,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+          if (donation.acceptsGoods && donation.neededGoods.isNotEmpty) ...[
+            const Text(
+              'Goods this event needs',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final good in donation.neededGoods)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      good.name,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
           const Text(
             'About this campaign',
             style: TextStyle(
@@ -186,46 +228,102 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          // Container(
-          //   padding: const EdgeInsets.all(16),
-          //   decoration: BoxDecoration(
-          //     color: AppColors.surface,
-          //     borderRadius: BorderRadius.circular(14),
-          //     border: Border.all(color: AppColors.inputFill),
-          //   ),
-          //   child: Row(
-          //     children: [
-          //       Container(
-          //         width: 40,
-          //         height: 40,
-          //         decoration: BoxDecoration(
-          //           color: AppColors.primary.withValues(alpha: 0.1),
-          //           borderRadius: BorderRadius.circular(10),
-          //         ),
-          //         child: const Icon(
-          //           Icons.handshake_outlined,
-          //           size: 20,
-          //           color: AppColors.primary,
-          //         ),
-          //       ),
-          //       const SizedBox(width: 12),
-          //       const Expanded(
-          //         child: Text(
-          //           'Tap Donate to choose how you want to help — money or '
-          //           'goods. You can review everything before anything is '
-          //           'confirmed.',
-          //           style: TextStyle(
-          //             fontSize: 13,
-          //             color: AppColors.textSecondary,
-          //             height: 1.4,
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.inputFill),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.handshake_outlined,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Donors support this event through donations only — '
+                    'joining as a volunteer is not part of a donor account. '
+                    'Nothing is confirmed until you review your donation.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+String _acceptedDonationsSentence(CaresDonation donation) {
+  if (donation.acceptsMonetary && donation.acceptsGoods) {
+    return 'Money and goods';
+  }
+  if (donation.acceptsMonetary) return 'Money only';
+  if (donation.acceptsGoods) return 'Goods only';
+  return 'None';
+}
+
+class _EventInfoRow extends StatelessWidget {
+  const _EventInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

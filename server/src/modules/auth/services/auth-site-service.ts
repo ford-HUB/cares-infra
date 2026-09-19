@@ -5,6 +5,7 @@ import {
   AdminLoginResponseDto,
   LoginDto,
   MeResponseDto,
+  PortalForgotPasswordResponseDto,
 } from '../dto/auth-site-dto';
 import {
   ACCESS_REQUEST_ALLOWED_MIME_TYPES,
@@ -18,10 +19,17 @@ import {
   BadGatewayException,
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { createHash, randomBytes } from 'crypto';
+import { RedisService } from 'src/infastructures/redis/redis-service';
+import { TemplateUtils } from 'src/shared/utils/templete-utils';
+import { DurationUtils } from 'src/shared/utils/duration-utils';
 import { JwtService } from 'src/infastructures/jwt/jwt-service';
 import { JwtPayload } from 'src/shared/types/jwt-payload';
 import { isPortalRole } from 'src/shared/constants/portal-role-types';
@@ -38,9 +46,19 @@ import {
   type AuditSeverity,
 } from 'src/infastructures/prisma/common/client';
 
+/** Where the reset mail's button points when SITE_URL is unset. */
+const DEFAULT_PORTAL_URL = 'http://localhost:5173';
+/** Path on the portal that reads `?token=` and shows the new-password form. */
+const PORTAL_RESET_PASSWORD_PATH = '/reset-password';
+/** How long the emailed link works. */
+const RESET_LINK_TTL = DurationUtils.FIFTEEN_MINUTES;
+/** Minimum gap between two reset mails for the same address. */
+const RESET_LINK_COOLDOWN = DurationUtils.ONE_MINUTE * 2;
+
 @Injectable()
 export class AuthSiteService {
   constructor(
+    private readonly redisService: RedisService,
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -326,6 +344,143 @@ export class AuthSiteService {
       userAgent: attempt.userAgent,
       reason: entry.reason ?? null,
     });
+  }
+
+  /**
+   * "Forgot password" on the portal login page: confirm the email belongs to a portal
+   * account, then mail a single-use link. Unlike the mobile flow this hands out a
+   * link rather than a code, because the admin is already in a browser and the link
+   * lands them straight on the new-password form.
+   */
+  async requestPasswordReset(
+    email: string,
+    context: RequestContextDto = {},
+  ): Promise<PortalForgotPasswordResponseDto> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const account =
+      await this.authRepository.findAccountForLogin(normalizedEmail);
+    if (!account || !isPortalRole(account.user.role.type)) {
+      throw new NotFoundException(
+        'No administrator account is registered with this email',
+      );
+    }
+    if (!account.password) {
+      throw new BadRequestException(
+        'This account has no password to reset. Contact an administrator.',
+      );
+    }
+    if (account.is_restricted) {
+      throw new ForbiddenException(
+        'This account has been restricted by an administrator',
+      );
+    }
+
+    // One mail per cooldown window. A second request inside the window is refused
+    // outright — the first link is still on its way and still works.
+    const cooldownKey = this.resetCooldownKey(normalizedEmail);
+    if (await this.redisService.get<string>(cooldownKey)) {
+      const remaining = await this.redisService.ttl(cooldownKey);
+      const seconds = remaining > 0 ? remaining : RESET_LINK_COOLDOWN;
+      throw new HttpException(
+        `A reset link was sent recently. Please wait ${seconds} seconds before requesting another.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    // The raw token only ever exists in the email; Redis holds its hash, so a
+    // leaked dump cannot be turned into a working link.
+    const token = randomBytes(32).toString('hex');
+    const tokenHash = this.hashResetToken(token);
+    const portalUrl = (
+      this.configService.get<string>('SITE_URL')?.trim() || DEFAULT_PORTAL_URL
+    ).replace(/\/+$/, '');
+    const resetUrl = `${portalUrl}${PORTAL_RESET_PASSWORD_PATH}?token=${token}`;
+
+    const template = await TemplateUtils.compileTemplate(
+      'portal-password-reset-link.html',
+      {
+        username: account.user.firstname || normalizedEmail,
+        resetUrl,
+        portalUrl,
+        expiresInMinutes: RESET_LINK_TTL / 60,
+      },
+    );
+
+    try {
+      await this.nodemailerService.sendEmail(
+        normalizedEmail,
+        'Reset your CARES portal password',
+        template,
+      );
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : 'Email delivery failed';
+      throw new BadGatewayException(`Unable to send reset email. ${detail}`);
+    }
+
+    // A fresh request retires the previous link so only the newest mail works.
+    await this.clearPasswordResetState(normalizedEmail);
+    await this.redisService.set(
+      this.resetTokenKey(tokenHash),
+      normalizedEmail,
+      RESET_LINK_TTL,
+    );
+    await this.redisService.set(
+      this.resetEmailKey(normalizedEmail),
+      tokenHash,
+      RESET_LINK_TTL,
+    );
+    await this.redisService.set(cooldownKey, 'sent', RESET_LINK_COOLDOWN);
+
+    await this.auditLogRecorder.record({
+      action: 'auth.portal.password-reset.requested',
+      description: `Password reset link requested for ${normalizedEmail}`,
+      category: 'AUTHENTICATION',
+      severity: 'NOTICE',
+      actor: {
+        sub: account.user.user_id,
+        email: normalizedEmail,
+        role_type: account.user.role.type,
+      },
+      targetType: 'user',
+      targetLabel: normalizedEmail,
+      targetId: account.user.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+    });
+
+    return {
+      email: normalizedEmail,
+      expires_in_seconds: RESET_LINK_TTL,
+      retry_after_seconds: RESET_LINK_COOLDOWN,
+    };
+  }
+
+  private hashResetToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private resetTokenKey(tokenHash: string): string {
+    return `portal-password-reset:token:${tokenHash}`;
+  }
+
+  private resetEmailKey(email: string): string {
+    return `portal-password-reset:email:${email}`;
+  }
+
+  private resetCooldownKey(email: string): string {
+    return `portal-password-reset:cooldown:${email}`;
+  }
+
+  /** Drops the live link for this email, if any. The cooldown is left to run out. */
+  private async clearPasswordResetState(email: string): Promise<void> {
+    const emailKey = this.resetEmailKey(email);
+    const activeHash = await this.redisService.get<string>(emailKey);
+    if (activeHash) {
+      await this.redisService.delete(this.resetTokenKey(activeHash));
+    }
+    await this.redisService.delete(emailKey);
   }
 
   async getMe(user: JwtPayload): Promise<MeResponseDto> {
