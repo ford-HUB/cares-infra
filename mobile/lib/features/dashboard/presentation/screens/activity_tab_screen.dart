@@ -4,9 +4,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
-import 'package:mobile/features/dashboard/data/mock_events.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
-import 'package:mobile/features/dashboard/domain/mock_activity.dart';
+import 'package:mobile/features/dashboard/domain/volunteer_activity.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_category_chips.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/completed_event_widgets.dart';
@@ -20,21 +19,19 @@ class ActivityTabScreen extends StatefulWidget {
 
 /// Which slice of the page is showing. `all` stacks every section; the
 /// rest show just theirs so a tap on "Registered" is only joined events.
-enum _ActivityGroup { all, registered, completed, history }
+enum _ActivityGroup { all, registered, completed }
 
 extension on _ActivityGroup {
   String get label => switch (this) {
     _ActivityGroup.all => 'All',
     _ActivityGroup.registered => 'Registered',
     _ActivityGroup.completed => 'Completed',
-    _ActivityGroup.history => 'History',
   };
 
   IconData get icon => switch (this) {
     _ActivityGroup.all => Icons.grid_view_rounded,
     _ActivityGroup.registered => Icons.how_to_reg_rounded,
     _ActivityGroup.completed => Icons.task_alt_rounded,
-    _ActivityGroup.history => Icons.history_rounded,
   };
 
   /// Disc tint when the chip is idle — one brand green across the row, as
@@ -53,9 +50,6 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
     super.initState();
     _feedbackStore.addListener(_onStoreChanged);
     _registrationStore.addListener(_onStoreChanged);
-    // Prototype scenario: the volunteer already joined and attended the
-    // events that have since been completed.
-    _registrationStore.seedCompletedEventParticipation(email: _userEmail);
   }
 
   @override
@@ -72,19 +66,34 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
   String get _userEmail =>
       StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
-  /// Upcoming events the volunteer joined from the home/events tabs, newest
-  /// registration first. Completed ones show in their own section.
+  /// Server-backed events this volunteer holds a slot on. The store is
+  /// hydrated from `is_registered` on the recommended feed and updated by
+  /// every join/cancel, so fixture-only events never reach this page.
+  List<EventParticipation> get _participations => _registrationStore
+      .participationsForEmail(_userEmail)
+      .where((p) => p.event.serverId != null)
+      .toList();
+
+  /// Upcoming events the volunteer joined, newest registration first.
+  /// Completed ones show in their own section.
   List<EventParticipation> get _registered {
-    final list = _registrationStore
-        .participationsForEmail(_userEmail)
-        .where((p) => !p.event.isCompleted)
-        .toList();
+    final list = _participations.where((p) => !p.event.isCompleted).toList();
     list.sort((a, b) => b.registeredAt.compareTo(a.registeredAt));
     return list;
   }
 
-  /// A joined event rendered through the same card as the history rows.
-  MockActivityEntry _entryFor(CaresEvent event) => MockActivityEntry(
+  /// Joined events the server has since marked completed, latest first.
+  List<CaresEvent> get _completed {
+    final list = _participations
+        .where((p) => p.event.isCompleted)
+        .map((p) => p.event)
+        .toList();
+    list.sort((a, b) => b.date.compareTo(a.date));
+    return list;
+  }
+
+  /// A joined event rendered through the activity card.
+  VolunteerActivityEntry _entryFor(CaresEvent event) => VolunteerActivityEntry(
     id: event.id,
     eventTitle: event.title,
     category: event.category,
@@ -100,13 +109,8 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final completedEvents = kMockCompletedEvents;
     final registered = _registered;
-    // The static history keeps completed/cancelled samples only; live
-    // registrations come from the store so the two never double up.
-    final history = MockActivities.entries
-        .where((e) => e.status != ActivityStatus.registered)
-        .toList();
+    final completedEvents = _completed;
 
     return SafeArea(
       bottom: false,
@@ -159,7 +163,12 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
                       : 'Tap an event to see details or cancel.',
                   children: [
                     if (registered.isEmpty)
-                      const _EmptyRegistrations()
+                      const _EmptyState(
+                        icon: Icons.event_available_outlined,
+                        title: 'No registered events yet',
+                        message:
+                            'Hit "Join now" on an event and it moves here.',
+                      )
                     else
                       for (var i = 0; i < registered.length; i++) ...[
                         if (i > 0) const SizedBox(height: 12),
@@ -184,45 +193,32 @@ class _ActivityTabScreenState extends State<ActivityTabScreen> {
               sliver: SliverToBoxAdapter(
                 child: _Section(
                   title: 'Completed events',
-                  subtitle: 'Give feedback to unlock your certificate.',
+                  subtitle: completedEvents.isEmpty
+                      ? 'Events you attended will show up here.'
+                      : 'Give feedback to unlock your certificate.',
                   children: [
-                    ...completedEvents.map(
-                      (event) => CompletedEventCard(
-                        event: event,
-                        feedbackSubmitted: _feedbackStore.hasSubmitted(
-                          event.id,
-                          _userEmail,
+                    if (completedEvents.isEmpty)
+                      const _EmptyState(
+                        icon: Icons.task_alt_rounded,
+                        title: 'No completed events yet',
+                        message:
+                            'Once an event you joined wraps up, it lands here.',
+                      )
+                    else
+                      ...completedEvents.map(
+                        (event) => CompletedEventCard(
+                          event: event,
+                          feedbackSubmitted: _feedbackStore.hasSubmitted(
+                            event.id,
+                            _userEmail,
+                          ),
+                          onTap: () => EventDetailsScreen.open(context, event),
                         ),
-                        onTap: () => EventDetailsScreen.open(context, event),
                       ),
-                    ),
                   ],
                 ),
               ),
             ),
-          if (_showing(_ActivityGroup.history)) ...[
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-              sliver: SliverToBoxAdapter(
-                child: _Section(
-                  title: 'History',
-                  subtitle: 'Past events and cancelled registrations.',
-                  children: [],
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              sliver: SliverList.separated(
-                itemCount: history.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  return _ActivityCard(entry: history[index]);
-                },
-              ),
-            ),
-          ],
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
         ],
       ),
@@ -315,10 +311,17 @@ class _GroupPanel extends StatelessWidget {
   }
 }
 
-/// Dashed placeholder under "Registered events" until the volunteer joins
-/// something from the home or events tab.
-class _EmptyRegistrations extends StatelessWidget {
-  const _EmptyRegistrations();
+/// Placeholder card shown under a section that has nothing to list yet.
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -338,16 +341,12 @@ class _EmptyRegistrations extends StatelessWidget {
               color: _kJoinedColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.event_available_outlined,
-              color: _kJoinedColor,
-              size: 24,
-            ),
+            child: Icon(icon, color: _kJoinedColor, size: 24),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'No registered events yet',
-            style: TextStyle(
+          Text(
+            title,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -355,7 +354,7 @@ class _EmptyRegistrations extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Hit "Join now" on an event and it moves here.',
+            message,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
@@ -372,7 +371,7 @@ class _EmptyRegistrations extends StatelessWidget {
 class _ActivityCard extends StatelessWidget {
   const _ActivityCard({required this.entry});
 
-  final MockActivityEntry entry;
+  final VolunteerActivityEntry entry;
 
   Color _statusColor(ActivityStatus status) => switch (status) {
     ActivityStatus.completed => AppColors.primary,

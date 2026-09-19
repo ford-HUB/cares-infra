@@ -423,39 +423,41 @@ class EventCatalogCard extends StatelessWidget {
                               event.formattedDate,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: urgent
-                                  ? AppColors.accentOrange.withValues(
-                                      alpha: 0.12,
-                                    )
-                                  : AppColors.inputFill,
-                              borderRadius: BorderRadius.circular(
-                                AppColors.pillRadius,
+                          // No "0d left" on the day itself — the date says it.
+                          if (event.daysUntil > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
                               ),
-                              border: Border.all(
+                              decoration: BoxDecoration(
                                 color: urgent
                                     ? AppColors.accentOrange.withValues(
-                                        alpha: 0.25,
+                                        alpha: 0.12,
                                       )
-                                    : AppColors.borderLight,
+                                    : AppColors.inputFill,
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.pillRadius,
+                                ),
+                                border: Border.all(
+                                  color: urgent
+                                      ? AppColors.accentOrange.withValues(
+                                          alpha: 0.25,
+                                        )
+                                      : AppColors.borderLight,
+                                ),
+                              ),
+                              child: Text(
+                                event.countdownLeftLabel,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: urgent
+                                      ? AppColors.accentOrange
+                                      : AppColors.primary,
+                                ),
                               ),
                             ),
-                            child: Text(
-                              event.countdownLeftLabel,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: urgent
-                                    ? AppColors.accentOrange
-                                    : AppColors.primary,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 14),

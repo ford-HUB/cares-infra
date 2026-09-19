@@ -6,7 +6,7 @@ import {
   NotificationTone,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
-import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type {
   AnnouncementDto,
   AnnouncementListDto,

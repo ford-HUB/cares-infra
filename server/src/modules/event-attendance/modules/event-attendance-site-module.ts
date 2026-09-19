@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { EventAttendanceValidationModule } from './event-attendance-validation-module';
 import { EventAttendanceSiteController } from '../controllers/event-attendance-site-controller';
-import { EventAttendanceRepository } from '../repositories/event-attendance-repository';
 import { EventAttendanceSiteService } from '../services/event-attendance-site-service';
 
 @Module({
+  imports: [EventAttendanceValidationModule],
   controllers: [EventAttendanceSiteController],
-  providers: [EventAttendanceSiteService, EventAttendanceRepository],
+  providers: [EventAttendanceSiteService],
   exports: [EventAttendanceSiteService],
 })
 export class EventAttendanceSiteModule {}

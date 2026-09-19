@@ -30,7 +30,7 @@ import {
   generateTemporaryPassword,
 } from '../../../shared/utils/temporary-credential-utils';
 import { TemplateUtils } from '../../../shared/utils/templete-utils';
-import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { AccessControlRepository } from '../../access-control/repositories/access-control-repository';
 import type { OverrideInput } from '../../access-control/repositories/access-control-repository';

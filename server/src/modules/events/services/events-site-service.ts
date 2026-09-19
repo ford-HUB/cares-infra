@@ -23,7 +23,7 @@ import {
   UpdateDonationsDto,
   UpdateEventDto,
 } from '../dto/events-site-dto';
-import { NotificationScheduler } from '../../../schedulers/jobs/notification.scheduler';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import { EventsRepository } from '../repositories/events-repository';
 import {
   EVENT_ALLOWED_IMAGE_MIMES,

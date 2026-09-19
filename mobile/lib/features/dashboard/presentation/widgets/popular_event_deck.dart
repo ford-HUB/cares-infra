@@ -3,6 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/skeleton.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 import 'package:mobile/features/dashboard/presentation/utils/home_event_format.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/event_joined_count.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_event_image.dart';
 
 /// Horizontal deck of white poster cards: hero photo, then title, date,
@@ -165,7 +166,7 @@ class PopularEventCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _JoinedCount(
+                          child: EventJoinedCount(
                             joined: event.participants,
                             capacity: event.maxParticipants,
                           ),
@@ -211,58 +212,6 @@ class _SlotsBadge extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-    );
-  }
-}
-
-/// "38 / 50 joined" with a hairline capacity bar underneath — the server
-/// sends counts, not member photos, so the count is the honest version of
-/// the reference's avatar stack.
-class _JoinedCount extends StatelessWidget {
-  const _JoinedCount({required this.joined, required this.capacity});
-
-  final int joined;
-  final int capacity;
-
-  @override
-  Widget build(BuildContext context) {
-    final fill = capacity == 0 ? 0.0 : (joined / capacity).clamp(0.0, 1.0);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.groups_rounded,
-              size: 15,
-              color: Color(0xFF6B7280),
-            ),
-            const SizedBox(width: 5),
-            Text(
-              capacity == 0 ? '$joined joined' : '$joined / $capacity joined',
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(2),
-          child: SizedBox(
-            height: 3,
-            width: 96,
-            child: LinearProgressIndicator(
-              value: fill,
-              backgroundColor: const Color(0xFFE5E7EB),
-              color: fill >= 0.9 ? AppColors.accentOrange : AppColors.primary,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

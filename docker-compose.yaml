@@ -19,6 +19,7 @@ services:
       - OCR_SERVICE_URL=http://ocr-service:8002
       - UCID_SERVICE_URL=http://ucid-service:8003
       - NLP_SERVICE_URL=http://nlp-service:8004
+      - GPS_VALIDATOR_SERVICE_URL=http://gps-validator-service:8005
     depends_on:
       - db
       - redis
@@ -26,6 +27,7 @@ services:
       - ocr-service
       - ucid-service
       - nlp-service
+      - gps-validator-service
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
@@ -127,6 +129,25 @@ services:
       - SEMANTIC_WEIGHT=0.65
     volumes:
       - ./microservices/nlp-service/app:/app/app
+
+  gps-validator-service:
+    build:
+      context: ./microservices/gps-validator-service
+      dockerfile: Dockerfile
+    container_name: gps_validator_service
+    ports:
+      - "8005:8005"
+    environment:
+      - PORT=8005
+      - CORS_ORIGINS=*
+      - REQUIRED_COVERAGE_RATIO=0.90
+      - LATE_ENTRY_RATIO=0.50
+      - MAX_PING_GAP_SECONDS=120
+      - BOUNDARY_TOLERANCE_M=10
+      - MAX_SPEED_MPS=12
+      - MAX_ACCURACY_M=60
+    volumes:
+      - ./microservices/gps-validator-service/app:/app/app
 
 volumes:
   postgres_data:

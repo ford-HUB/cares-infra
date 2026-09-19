@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { SchedulersModule } from '../../../schedulers/schedulers.module';
+import { SchedulersModule } from '../../../schedulers/schedulers-module';
 import { SystemDiagnosticsSiteController } from '../controllers/system-diagnostics-site-controller';
 import { SystemDiagnosticsSiteService } from '../services/system-diagnostics-site-service';
 

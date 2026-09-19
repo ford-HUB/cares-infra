@@ -1,10 +1,5 @@
 import dayjs from 'dayjs'
 import type { AuditLogActor, AuditLogEntry } from '../types/audit-log'
-import type { AttendanceStatus, GeoValidationMethod } from '../types/attendee'
-import type {
-  LiveAttendanceSnapshot,
-  LiveAttendanceState,
-} from '../types/attendance'
 import type {
   Announcement,
   MaintenanceMode,
@@ -656,93 +651,6 @@ const auditSeeds: [number, AuditSeed][] = [
 export const mockAuditLogs: AuditLogEntry[] = auditSeeds
   .map(([minutesAgo, seed], index) => auditEntry(minutesAgo, seed, index))
   .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-
-/**
- * Live attendance monitor fixtures. Built on call, not at module load, and anchored to
- * *today* so the session always reads as a started, still-running event no matter when
- * the page is opened — a fixed date would show the director an empty monitor forever.
- *
- * `awaiting_sync` rows deliberately carry no pings at all: that is what the state
- * means — the device has pushed nothing yet.
- */
-interface LiveAttendeeSeed {
-  first: string
-  last: string
-  department: string
-  yearLevel: string
-  contact: string
-  state: LiveAttendanceState
-  /** Minutes after the event start; omitted for volunteers with no readings yet. */
-  firstPingMinutes?: number
-  /** Minutes before "now" that the latest reading landed. */
-  lastPingAgoMinutes?: number
-  distanceMeters?: number
-  insideRatio?: number
-  method?: GeoValidationMethod
-  remarks?: string
-}
-
-const LIVE_SESSION_START_HOUR = 8
-const LIVE_SESSION_END_HOUR = 16
-
-const liveAttendeeSeeds: LiveAttendeeSeed[] = [
-  { first: 'Bea', last: 'Fernandez', department: 'CBA', yearLevel: '2nd Year', contact: '+63 917 100 1301', state: 'in_area', firstPingMinutes: 4, lastPingAgoMinutes: 1, distanceMeters: 18, insideRatio: 0.99, method: 'geofence' },
-  { first: 'Miguel', last: 'Tan', department: 'CCS', yearLevel: '3rd Year', contact: '+63 917 100 1302', state: 'in_area', firstPingMinutes: 2, lastPingAgoMinutes: 1, distanceMeters: 42, insideRatio: 0.97, method: 'geofence' },
-  { first: 'Hannah', last: 'Sarmiento', department: 'CNAHS', yearLevel: '2nd Year', contact: '+63 917 100 1304', state: 'in_area', firstPingMinutes: 11, lastPingAgoMinutes: 2, distanceMeters: 65, insideRatio: 0.94, method: 'geofence' },
-  { first: 'Dave', last: 'Roque', department: 'CEA', yearLevel: '4th Year', contact: '+63 917 100 1305', state: 'in_area', firstPingMinutes: 6, lastPingAgoMinutes: 3, distanceMeters: 87, insideRatio: 0.91, method: 'geofence' },
-  { first: 'Nicole', last: 'Ybañez', department: 'CAS', yearLevel: '1st Year', contact: '+63 917 100 1307', state: 'in_area', firstPingMinutes: 19, lastPingAgoMinutes: 1, distanceMeters: 31, insideRatio: 0.88, method: 'geofence' },
-  { first: 'Jerome', last: 'Batucan', department: 'CCS', yearLevel: '2nd Year', contact: '+63 917 100 1308', state: 'in_area', firstPingMinutes: 3, lastPingAgoMinutes: 4, distanceMeters: 54, insideRatio: 0.96, method: 'geofence' },
-  { first: 'Ray', last: 'Padilla', department: 'CAS', yearLevel: '3rd Year', contact: '+63 917 100 1309', state: 'outside_area', firstPingMinutes: 8, lastPingAgoMinutes: 6, distanceMeters: 480, insideRatio: 0.62, method: 'geofence', remarks: 'Stepped out for a supply run — readings are outside the radius.' },
-  { first: 'Chesca', last: 'Lim', department: 'CCS', yearLevel: '2nd Year', contact: '+63 917 100 1310', state: 'outside_area', firstPingMinutes: 15, lastPingAgoMinutes: 22, distanceMeters: 1240, insideRatio: 0.34, method: 'geofence', remarks: 'Last reading is well beyond the geofence.' },
-  { first: 'Loraine', last: 'Abella', department: 'CAS', yearLevel: '1st Year', contact: '+63 917 100 1303', state: 'awaiting_sync', method: 'awaiting_sync', remarks: 'Device buffering offline — nothing pushed yet.' },
-  { first: 'Aira', last: 'Nacua', department: 'CCS', yearLevel: '1st Year', contact: '+63 917 100 1306', state: 'awaiting_sync', method: 'awaiting_sync' },
-  { first: 'Rico', last: 'Salazar', department: 'CNAHS', yearLevel: '1st Year', contact: '+63 917 100 1311', state: 'awaiting_sync', method: 'awaiting_sync' },
-  { first: 'Patricia', last: 'Uy', department: 'CBA', yearLevel: '4th Year', contact: '+63 917 100 1312', state: 'awaiting_sync' },
-  { first: 'Ellen', last: 'Manalo', department: 'CAS', yearLevel: '2nd Year', contact: '+63 917 100 1313', state: 'awaiting_sync', remarks: 'App not opened on site yet.' },
-]
-
-export function buildMockLiveAttendance(): LiveAttendanceSnapshot {
-  const now = dayjs()
-  const start = now.hour(LIVE_SESSION_START_HOUR).minute(0).second(0).millisecond(0)
-  const end = now.hour(LIVE_SESSION_END_HOUR).minute(0).second(0).millisecond(0)
-
-  return {
-    session: {
-      eventId: 103,
-      title: 'Feeding Program — Sitio Kalunasan',
-      location: 'Sitio Kalunasan, Cebu City',
-      startsAt: start.toISOString(),
-      endsAt: end.toISOString(),
-      radiusMeters: 150,
-      coordinator: 'Prof. Dela Cruz',
-    },
-    attendees: liveAttendeeSeeds.map((seed, index) => ({
-      id: `live-103-${index + 1}`,
-      firstName: seed.first,
-      lastName: seed.last,
-      email: `${seed.first}.${seed.last}`.toLowerCase().replace(/\s+/g, '') + '@uclm.edu.ph',
-      contactNumber: seed.contact,
-      department: seed.department,
-      yearLevel: seed.yearLevel,
-      state: seed.state,
-      // The AI service rules only once the event is over, so everyone is still pending.
-      status: 'pending' as AttendanceStatus,
-      validationMethod: seed.method ?? null,
-      firstPingAt:
-        seed.firstPingMinutes != null
-          ? start.add(seed.firstPingMinutes, 'minute').toISOString()
-          : null,
-      lastPingAt:
-        seed.lastPingAgoMinutes != null
-          ? now.subtract(seed.lastPingAgoMinutes, 'minute').toISOString()
-          : null,
-      distanceMeters: seed.distanceMeters ?? null,
-      insideRatio: seed.insideRatio,
-      remarks: seed.remarks,
-    })),
-    capturedAt: now.toISOString(),
-  }
-}
 
 /**
  * Maintenance fixtures. The system is live when the page first loads — the interesting

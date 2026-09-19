@@ -22,6 +22,7 @@ import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
 import 'package:mobile/features/dashboard/screens/profile_screens.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
+import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 
@@ -211,6 +212,22 @@ class _ProfileTabBody extends StatelessWidget {
 
   Future<void> _openEdit(BuildContext context) =>
       MobileProfileEditScreen.open(context, _roleType);
+
+  /// Opens the interest picker pre-filled with the saved set; the dialog
+  /// saves to the server itself, so a non-null result just means "re-sync".
+  Future<void> _editInterests(
+    BuildContext context,
+
+    Set<UserInterest> current,
+  ) async {
+    final selected = await showInterestSelectionDialog(
+      context,
+      initialSelection: current,
+      dismissible: true,
+    );
+    if (!context.mounted || selected == null) return;
+    onRetrySync();
+  }
 
   Future<void> _editDonorSection(
     BuildContext context,
@@ -597,6 +614,13 @@ class _ProfileTabBody extends StatelessWidget {
                       _EmptySectionHint(
                         message:
                             'Add your interests to get better event matches.',
+                        trailing: _AddChip(
+                          tooltip: 'Add interests',
+                          onTap: () => _editInterests(
+                            context,
+                            profile.selectedInterests,
+                          ),
+                        ),
                       )
                     else
                       Wrap(
@@ -604,9 +628,19 @@ class _ProfileTabBody extends StatelessWidget {
 
                         runSpacing: 8,
 
+                        crossAxisAlignment: WrapCrossAlignment.center,
+
                         children: [
                           for (final interest in profile.interests)
                             _ChipTag(label: interest),
+
+                          _AddChip(
+                            tooltip: 'Update interests',
+                            onTap: () => _editInterests(
+                              context,
+                              profile.selectedInterests,
+                            ),
+                          ),
                         ],
                       ),
                   ],
@@ -798,6 +832,8 @@ class _ResolvedProfile {
 
     required this.interests,
 
+    this.selectedInterests = const {},
+
     required this.profileCompletionPercent,
   });
 
@@ -852,6 +888,8 @@ class _ResolvedProfile {
           ? volunteerProfile.interestLabels
           : serverInterests,
 
+      selectedInterests: serverVolunteer?.interests ?? const {},
+
       profileCompletionPercent: profileComplete
           ? 100
           : VolunteerProfileCompletion.calculate(profile: volunteerProfile),
@@ -873,6 +911,9 @@ class _ResolvedProfile {
   final int activitiesCompleted;
 
   final List<String> interests;
+
+  /// The server-saved set, used to pre-fill the interest picker.
+  final Set<UserInterest> selectedInterests;
 
   final int profileCompletionPercent;
 }
@@ -1847,12 +1888,27 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _EmptySectionHint extends StatelessWidget {
-  const _EmptySectionHint({required this.message});
+  const _EmptySectionHint({required this.message, this.trailing});
 
   final String message;
 
+  /// Optional action shown beside the hint (e.g. the add-interests chip).
+  final Widget? trailing;
+
   @override
   Widget build(BuildContext context) {
+    final text = Text(
+      message,
+
+      style: TextStyle(
+        fontSize: 12,
+
+        height: 1.35,
+
+        color: AppColors.secondary.withValues(alpha: 0.95),
+      ),
+    );
+
     return Container(
       width: double.infinity,
 
@@ -1866,15 +1922,51 @@ class _EmptySectionHint extends StatelessWidget {
         border: Border.all(color: AppColors.fieldBorder),
       ),
 
-      child: Text(
-        message,
+      child: trailing == null
+          ? text
+          : Row(
+              children: [
+                Expanded(child: text),
 
-        style: TextStyle(
-          fontSize: 12,
+                const SizedBox(width: 8),
 
-          height: 1.35,
+                trailing!,
+              ],
+            ),
+    );
+  }
+}
 
-          color: AppColors.secondary.withValues(alpha: 0.95),
+/// Round "+" chip that sits at the end of a tag row and opens an editor.
+class _AddChip extends StatelessWidget {
+  const _AddChip({required this.onTap, required this.tooltip});
+
+  final VoidCallback onTap;
+
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+
+      child: Material(
+        color: Colors.white,
+
+        shape: const CircleBorder(side: BorderSide(color: AppColors.fieldBorder)),
+
+        clipBehavior: Clip.antiAlias,
+
+        child: InkWell(
+          onTap: onTap,
+
+          child: const SizedBox(
+            width: 32,
+
+            height: 32,
+
+            child: Icon(Icons.add_rounded, size: 18, color: AppColors.primary),
+          ),
         ),
       ),
     );

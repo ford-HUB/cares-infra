@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AttendanceStatus,
+  EventStatus,
   GeoValidationMethod,
   type Prisma,
 } from '../../../infastructures/prisma/common/client';
@@ -46,6 +48,17 @@ const ROSTER_INCLUDE = {
   },
 } as const;
 
+const EVENT_ZONE_SELECT = {
+  event_id: true,
+  title: true,
+  location: true,
+  organizer_name: true,
+  event_started: true,
+  event_ended: true,
+  geojson: true,
+  area_sqm: true,
+} as const;
+
 @Injectable()
 export class EventAttendanceRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -61,6 +74,134 @@ export class EventAttendanceRepository {
         { user: { firstname: 'asc' } },
       ],
     });
+  }
+
+  /** What the validator needs to judge one event: its window and its fence. */
+  async findEventForValidation(eventId: number) {
+    return this.prisma.event.findUnique({
+      where: { event_id: eventId },
+      select: EVENT_ZONE_SELECT,
+    });
+  }
+
+  /**
+   * The event the live monitor should be showing: started, not yet over, not
+   * cancelled. When two overlap, the one ending first — it is the one whose roster
+   * is about to be ruled on.
+   */
+  async findActiveEvent(now: Date) {
+    return this.prisma.event.findFirst({
+      where: {
+        event_started: { lte: now },
+        event_ended: { gt: now },
+        status: { not: EventStatus.Cancelled },
+      },
+      select: EVENT_ZONE_SELECT,
+      orderBy: { event_ended: 'asc' },
+    });
+  }
+
+  /** Events already over that still have volunteers nobody has ruled on. */
+  async findEndedEventIdsWithPending(now: Date, limit = 50): Promise<number[]> {
+    const rows = await this.prisma.eventAttendance.findMany({
+      where: {
+        status: AttendanceStatus.PENDING,
+        event: { event_ended: { lt: now } },
+      },
+      select: { event_id: true },
+      distinct: ['event_id'],
+      orderBy: { event_id: 'asc' },
+      take: limit,
+    });
+    return rows.map((row) => row.event_id);
+  }
+
+  /** PENDING rows the validator may rule on — a MANUAL ruling is never overridden. */
+  async findPendingAttendance(eventId: number, userIds?: string[]) {
+    return this.prisma.eventAttendance.findMany({
+      where: {
+        event_id: eventId,
+        status: AttendanceStatus.PENDING,
+        OR: [
+          { validation_method: null },
+          { validation_method: { not: GeoValidationMethod.MANUAL } },
+        ],
+        ...(userIds ? { user_id: { in: userIds } } : {}),
+      },
+      select: { event_attendance_id: true, user_id: true },
+    });
+  }
+
+  /**
+   * Every reading these volunteers made for the event, oldest first. Rows the device
+   * could not name an event for (`event_id` null) are pulled in by time instead, so
+   * an offline batch tagged `unassigned` still counts.
+   */
+  async findPingsForValidation(
+    eventId: number,
+    userIds: string[],
+    window: { from: Date; to: Date },
+  ) {
+    if (userIds.length === 0) return [];
+    return this.prisma.eventLocationPing.findMany({
+      where: {
+        user_id: { in: userIds },
+        OR: [
+          { event_id: eventId },
+          {
+            event_id: null,
+            captured_at: { gte: window.from, lte: window.to },
+          },
+        ],
+      },
+      select: {
+        user_id: true,
+        captured_at: true,
+        latitude: true,
+        longitude: true,
+        accuracy_m: true,
+        in_area: true,
+      },
+      orderBy: { captured_at: 'asc' },
+    });
+  }
+
+  /** Writes the validator's ruling on one row. Only a still-PENDING row is touched. */
+  async applyValidation(
+    eventAttendanceId: string,
+    ruling: {
+      status: AttendanceStatus;
+      hours_rendered: number;
+      first_ping_at: Date | null;
+      last_ping_at: Date | null;
+      remarks: string | null;
+    },
+  ): Promise<boolean> {
+    const { count } = await this.prisma.eventAttendance.updateMany({
+      where: {
+        event_attendance_id: eventAttendanceId,
+        status: AttendanceStatus.PENDING,
+      },
+      data: ruling,
+    });
+    return count > 0;
+  }
+
+  /**
+   * The event is over and these volunteers have pushed nothing: they stay PENDING,
+   * but the row now says why — the portal shows it as "awaiting sync".
+   */
+  async markAwaitingSync(eventAttendanceIds: string[]): Promise<number> {
+    if (eventAttendanceIds.length === 0) return 0;
+    const { count } = await this.prisma.eventAttendance.updateMany({
+      where: {
+        event_attendance_id: { in: eventAttendanceIds },
+        status: AttendanceStatus.PENDING,
+        validation_method: null,
+      },
+      data: { validation_method: GeoValidationMethod.AWAITING_SYNC },
+    });
+    return count;
   }
 
   async eventExists(eventId: number): Promise<boolean> {
@@ -128,4 +269,12 @@ export class EventAttendanceRepository {
 
 export type RosterRow = Awaited<
   ReturnType<EventAttendanceRepository['findRoster']>
+>[number];
+
+export type EventZoneRow = NonNullable<
+  Awaited<ReturnType<EventAttendanceRepository['findEventForValidation']>>
+>;
+
+export type ValidationPingRow = Awaited<
+  ReturnType<EventAttendanceRepository['findPingsForValidation']>
 >[number];

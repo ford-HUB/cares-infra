@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { GeoValidationMethod } from '../../../infastructures/prisma/common/client';
 import type {
   LiveCoordinateDto,
@@ -11,11 +11,15 @@ import {
   type NewLocationPing,
 } from '../repositories/event-attendance-repository';
 import { SYNC_CSV_HEADER } from '../validators/event-attendance-mobile-validator';
+import { EventAttendanceValidationService } from './event-attendance-validation-service';
 
 @Injectable()
 export class EventAttendanceMobileService {
+  private readonly logger = new Logger(EventAttendanceMobileService.name);
+
   constructor(
     private readonly eventAttendanceRepository: EventAttendanceRepository,
+    private readonly eventAttendanceValidationService: EventAttendanceValidationService,
   ) {}
 
   /** One reading straight from a connected device. */
@@ -36,6 +40,7 @@ export class EventAttendanceMobileService {
         source: GeoValidationMethod.GEOFENCE,
       },
     ]);
+    this.validateInBackground(eventId, userId);
     return { accepted };
   }
 
@@ -63,7 +68,25 @@ export class EventAttendanceMobileService {
     }
 
     const accepted = await this.eventAttendanceRepository.recordPings(pings);
+    this.validateInBackground(eventId, userId);
     return { accepted, skipped };
+  }
+
+  /**
+   * The device is waiting on a 200 and must not be held up by the validator, so
+   * the ruling runs after the response. It is a no-op while the event is still on;
+   * once the event is over, a late offline batch is judged the moment it lands.
+   */
+  private validateInBackground(eventId: number | null, userId: string): void {
+    if (eventId == null) return;
+    void this.eventAttendanceValidationService
+      .validateIfEnded(eventId, userId)
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(
+          `validation after upload failed for event ${eventId} user ${userId}: ${message}`,
+        );
+      });
   }
 
   /** A numeric id that names a real event; otherwise a null hint. */

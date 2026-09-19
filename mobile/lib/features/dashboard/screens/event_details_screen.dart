@@ -1,14 +1,18 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
 import '../data/event_feedback_store.dart';
 import '../data/event_location_tracker.dart';
+import '../data/event_registration_service.dart';
 import '../data/event_registration_store.dart';
 import '../domain/cares_event.dart';
+import '../presentation/providers/recommended_events_provider.dart';
 import '../widgets/event_details_widgets.dart';
 import '../widgets/event_reminder_sheet.dart';
 import 'event_participants_screen.dart';
@@ -40,15 +44,21 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
   final _tracker = EventLocationTracker.instance;
+  final _registrationApi = EventRegistrationService();
+
+  /// Starts as the event the card opened with; a join or cancellation
+  /// replaces it with the server's fresh slot numbers.
+  late CaresEvent _event = widget.event;
   bool _descriptionExpanded = false;
   bool _organizerExpanded = false;
+  bool _registrationBusy = false;
 
   @override
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onFeedbackChanged);
     _tracker.addListener(_onFeedbackChanged);
-    if (widget.event.isCompleted) {
+    if (_event.isCompleted) {
       // Prototype scenario: the volunteer already joined and attended.
       _store.seedCompletedEventParticipation(email: _participantEmail);
     }
@@ -69,10 +79,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
   bool get _feedbackSubmitted =>
-      _feedbackStore.hasSubmitted(widget.event.id, _participantEmail);
+      _feedbackStore.hasSubmitted(_event.id, _participantEmail);
 
   Future<void> _giveFeedback() async {
-    final submitted = await EventFeedbackScreen.open(context, widget.event);
+    final submitted = await EventFeedbackScreen.open(context, _event);
     if (!mounted || !submitted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
@@ -84,19 +94,19 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   void _viewCertificate() {
-    CertificateReviewScreen.open(context, certificateForEvent(widget.event));
+    CertificateReviewScreen.open(context, certificateForEvent(_event));
   }
 
   EventParticipation? get _participation =>
-      _store.participationFor(widget.event.id, _participantEmail);
+      _store.participationFor(_event.id, _participantEmail);
 
   bool get _isRegistered =>
-      _store.isRegistered(widget.event.id, _participantEmail);
+      _store.isRegistered(_event.id, _participantEmail);
 
   Future<void> _confirmJoin() async {
     final confirmed = await showEventJoinConfirmationDialog(
       context,
-      widget.event,
+      _event,
     );
 
     if (!confirmed || !mounted) return;
@@ -104,24 +114,81 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     if (!await _ensureLocationPermission()) return;
     if (!mounted) return;
 
-    _store.register(widget.event, email: _participantEmail);
+    // Server events take the slot on the server first; the fixture keeps the
+    // in-memory flow. Either way the local store drives the geofence tracker.
+    final synced = await _syncRegistration(join: true);
+    if (!synced || !mounted) return;
+
+    _store.register(_event, email: _participantEmail);
     _tracker.refresh();
     setState(() {});
 
-    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("You're registered for this event.")),
     );
   }
 
+  /// Registers or cancels on the server and redraws with the counts it sends
+  /// back, then refreshes the recommended lists so every card agrees. Returns
+  /// false when the server refused (full, closed, offline) — the message is
+  /// shown and nothing changes locally.
+  Future<bool> _syncRegistration({required bool join}) async {
+    final serverId = _event.serverId;
+    if (serverId == null || _registrationBusy) return serverId == null;
+
+    setState(() => _registrationBusy = true);
+    try {
+      final result = join
+          ? await _registrationApi.register(serverId)
+          : await _registrationApi.cancel(serverId);
+      if (!mounted) return false;
+      _event = _event.withParticipants(
+        registeredCount: result.participants,
+        totalCapacity: result.maxParticipants,
+      );
+      ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).invalidate(recommendedEventsProvider);
+      return true;
+    } on ApiException catch (error) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return false;
+    } catch (_) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            join
+                ? 'Could not register right now. Please try again.'
+                : 'Could not cancel right now. Please try again.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return false;
+    } finally {
+      if (mounted) setState(() => _registrationBusy = false);
+    }
+  }
+
   Future<void> _confirmCancel() async {
     final confirmed = await showEventCancelConfirmationDialog(
       context,
-      widget.event,
+      _event,
     );
     if (!confirmed || !mounted) return;
 
-    _store.cancelParticipation(widget.event.id, _participantEmail);
+    final synced = await _syncRegistration(join: false);
+    if (!synced || !mounted) return;
+
+    _store.cancelParticipation(_event.id, _participantEmail);
     _tracker.refresh();
     setState(() {});
 
@@ -144,7 +211,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         explained = true;
         final allow = await showLocationPermissionRequestDialog(
           context,
-          widget.event,
+          _event,
         );
         if (!allow) return false;
       } else {
@@ -176,21 +243,21 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     if (participation == null) return;
     await showEventSyncSheet(
       context,
-      event: widget.event,
+      event: _event,
       participation: participation,
     );
   }
 
-  void _openRouteMap() => EventRouteMapScreen.open(context, widget.event);
+  void _openRouteMap() => EventRouteMapScreen.open(context, _event);
 
   void _openParticipants() =>
-      EventParticipantsScreen.open(context, widget.event);
+      EventParticipantsScreen.open(context, _event);
 
-  void _openReminder() => showEventReminderSheet(context, widget.event);
+  void _openReminder() => showEventReminderSheet(context, _event);
 
   @override
   Widget build(BuildContext context) {
-    final event = widget.event;
+    final event = _event;
     final participation = _participation;
     final isRegistered = _isRegistered;
     final isCompleted = event.isCompleted;
@@ -456,7 +523,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       return Row(
         children: [
           OutlinedButton.icon(
-            onPressed: _confirmCancel,
+            onPressed: _registrationBusy ? null : _confirmCancel,
             icon: const Icon(Icons.close_rounded, size: 18),
             label: const Text('Cancel'),
             style: _pillCancelStyle,
@@ -480,7 +547,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     return EventRegisterBar(
       slotsLeft: event.slotsLeft,
       capacity: event.totalCapacity,
-      onRegister: event.slotsLeft > 0 ? _confirmJoin : null,
+      onRegister: event.slotsLeft > 0 && !_registrationBusy
+          ? _confirmJoin
+          : null,
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_category_icons.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/event_joined_count.dart';
 import 'package:mobile/features/dashboard/widgets/event_image_carousel.dart';
 
 /// Tall poster card for the events tab: a wide photo (or category-tinted
@@ -197,7 +198,13 @@ class _ActionPill extends StatelessWidget {
       border = AppColors.primary;
     }
 
-    final urgent = !event.isCompleted && !registered && event.daysUntil <= 3;
+    // Countdown only while there are still days to count — on the day itself
+    // "0d left" says nothing the date line doesn't, so it goes away.
+    final urgent =
+        !event.isCompleted &&
+        !registered &&
+        event.daysUntil > 0 &&
+        event.daysUntil <= 3;
 
     return Row(
       children: [
@@ -239,15 +246,13 @@ class _ActionPill extends StatelessWidget {
               color: AppColors.accentOrange,
             ),
           ),
-        ] else if (!event.isCompleted && event.slotsLeft > 0) ...[
+        ],
+        if (!event.isCompleted) ...[
           const SizedBox(width: 12),
-          Text(
-            '${event.slotsLeft} slot${event.slotsLeft == 1 ? '' : 's'} left',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textMuted,
-            ),
+          EventJoinedCount(
+            joined: event.registeredCount,
+            capacity: event.totalCapacity,
+            showBar: false,
           ),
         ],
       ],
