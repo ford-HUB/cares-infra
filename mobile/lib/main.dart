@@ -10,6 +10,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/screens/app_flow.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:mobile/features/dashboard/data/event_location_tracker.dart';
+import 'package:mobile/core/services/local_notifications.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// Root navigator, reachable from outside the widget tree so a session that
 /// dies mid-request can still be bounced to the login screen.
@@ -26,6 +28,8 @@ Future<void> main() async {
     // Weather falls back gracefully when .env is missing.
   }
   AuthSession.onSessionEnded = _handleSessionEnded;
+  // Device notifications: scheduled event reminders and feed pops.
+  await LocalNotifications.instance.initialize();
   // Geofence recorder for joined events: idle until an event's window opens.
   EventLocationTracker.instance.start();
   runApp(const ProviderScope(child: CaresApp()));
@@ -39,6 +43,8 @@ void _handleSessionEnded(String? message) {
   StaticUserSession.instance.signOut();
   DonorSession.instance.signOut();
   RoleAccountStore.instance.clear();
+  NotificationSync.instance.clear();
+  LocalNotifications.instance.cancelAll();
 
   final navigator = rootNavigatorKey.currentState;
   if (navigator == null) return;

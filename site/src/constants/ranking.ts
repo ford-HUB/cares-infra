@@ -9,9 +9,12 @@ import type {
 
 /**
  * The two boards are scored on different criteria and are never merged: a volunteer
- * earns points for time given, a donor for pesos given.
+ * earns points for every event attended and loses an escalating penalty for every
+ * registered event skipped; a donor earns points for pesos given.
  */
-export const VOLUNTEER_POINTS_PER_HOUR = 10
+export const VOLUNTEER_POINTS_PER_ATTENDANCE = 10
+export const VOLUNTEER_ABSENCE_PENALTY_STEP = 2
+export const VOLUNTEER_ABSENCE_RESET_DAYS = 7
 export const DONOR_PESOS_PER_POINT = 100
 
 export const RANKING_DEFAULT_VIEW: RankingView = 'dashboard'
@@ -32,7 +35,7 @@ export const RANKING_BOARDS: { value: RankingBoard; label: string }[] = [
 /** The scoring rule spelled out for the header — it moves with the saved settings. */
 export function boardCriteria(board: RankingBoard, settings: RankingSettings): string {
   return board === 'volunteer'
-    ? `${settings.volunteerPointsPerHour} points per service hour`
+    ? `+${settings.pointsPerAttendance} per event attended · a missed registration costs −${settings.absencePenaltyStep}, then −${settings.absencePenaltyStep * 2}, −${settings.absencePenaltyStep * 3}… for straight misses within ${settings.absenceResetDays} days`
     : `1 point per ₱${settings.donorPesosPerPoint} donated`
 }
 
@@ -43,7 +46,7 @@ export const RANKING_PERIODS: { value: RankingPeriod; label: string }[] = [
   { value: 'all', label: 'All Time' },
 ]
 
-/** Rows shown per board — the mock standings are a fixed top list, not paginated. */
+/** Rows shown per board — the standings are a fixed top list, not paginated. */
 export const RANKING_ROW_COUNT = 10
 
 export const RANKING_CELL_BASE = 'h-12 px-3 text-[13px] align-middle'
@@ -86,8 +89,8 @@ export const RANKING_MEDAL_FALLBACK = 'bg-white text-gray-600 ring-gray-200'
 export const VOLUNTEER_RANKING_COLUMNS = [
   { key: 'volunteer', label: 'Volunteer', width: 'w-[24rem]' },
   { key: 'department', label: 'Department', width: 'w-[12rem]' },
-  { key: 'hours', label: 'Hours', width: 'w-[7rem]' },
-  { key: 'events', label: 'Events', width: 'w-[7rem]' },
+  { key: 'attended', label: 'Attended', width: 'w-[7rem]' },
+  { key: 'missed', label: 'Missed', width: 'w-[7rem]' },
   { key: 'lastActive', label: 'Last Active', width: 'w-[10rem]' },
   { key: 'points', label: 'Points', width: 'w-[9rem]' },
 ] as const
@@ -156,7 +159,9 @@ export const RANKING_DEFAULT_TIERS: RankingTier[] = [
 ]
 
 export const RANKING_DEFAULT_SETTINGS: RankingSettings = {
-  volunteerPointsPerHour: VOLUNTEER_POINTS_PER_HOUR,
+  pointsPerAttendance: VOLUNTEER_POINTS_PER_ATTENDANCE,
+  absencePenaltyStep: VOLUNTEER_ABSENCE_PENALTY_STEP,
+  absenceResetDays: VOLUNTEER_ABSENCE_RESET_DAYS,
   donorPesosPerPoint: DONOR_PESOS_PER_POINT,
   defaultBoard: RANKING_DEFAULT_BOARD,
   defaultPeriod: RANKING_DEFAULT_PERIOD,
@@ -180,9 +185,13 @@ export function tierForRank(
   return tiers[index] ?? tiers[tiers.length - 1]
 }
 
-/** Bounds shared by the customization form and its Zod schema. */
-export const VOLUNTEER_POINTS_PER_HOUR_MIN = 1
-export const VOLUNTEER_POINTS_PER_HOUR_MAX = 500
+/** Bounds shared by the customization form, its Zod schema, and the server's. */
+export const VOLUNTEER_POINTS_PER_ATTENDANCE_MIN = 1
+export const VOLUNTEER_POINTS_PER_ATTENDANCE_MAX = 500
+export const VOLUNTEER_ABSENCE_PENALTY_STEP_MIN = 0
+export const VOLUNTEER_ABSENCE_PENALTY_STEP_MAX = 100
+export const VOLUNTEER_ABSENCE_RESET_DAYS_MIN = 1
+export const VOLUNTEER_ABSENCE_RESET_DAYS_MAX = 90
 export const DONOR_PESOS_PER_POINT_MIN = 1
 export const DONOR_PESOS_PER_POINT_MAX = 100000
 export const RANKING_TIER_LABEL_MAX = 24

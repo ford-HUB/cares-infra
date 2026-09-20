@@ -46,9 +46,17 @@ export const VolunteerProfileSectionSchema = z.object({
     })
     .nullable(),
   interests: z.array(z.enum(InterestCode)),
+  /**
+   * True when this side was opened by a director approving a role-access
+   * request rather than by registering as a volunteer. Such accounts never
+   * uploaded a school record, so the app hides that section.
+   */
+  access_granted_by_director: z.boolean(),
   service_hours: z.number(),
   activities_completed: z.number(),
   activities_registered: z.number(),
+  /** All-time leaderboard points under the portal's scoring rule. */
+  ranking_points: z.number().int(),
 });
 
 /** Donor-only section: how they sign in and where to reach them. */

@@ -22,10 +22,18 @@ export interface VolunteerRankingEntry extends RankedEntry {
   lastName: string
   email: string
   department: string
-  /** Verified service hours — points are `hours × VOLUNTEER_POINTS_PER_HOUR`. */
+  /** Credited service hours, shown for context — points never come from them. */
   hours: number
+  /** Events attended — each one earns `pointsPerAttendance`. */
   eventsJoined: number
-  lastActiveAt: string
+  /** Registered events the volunteer skipped — each one cost an escalating penalty. */
+  eventsMissed: number
+  pointsEarned: number
+  pointsDeducted: number
+  /** Straight misses still counting against the next one; 0 once the window passed. */
+  currentStreak: number
+  /** Null when the volunteer has yet to attend anything in the period. */
+  lastActiveAt: string | null
 }
 
 export interface DonorRankingEntry extends RankedEntry {
@@ -117,7 +125,12 @@ export interface RankColorCombo {
  * Rankings → Customization; the standings recompute from whatever is saved here.
  */
 export interface RankingSettings {
-  volunteerPointsPerHour: number
+  /** Points earned for every attended event. */
+  pointsPerAttendance: number
+  /** What the first miss costs; each straight miss inside the window adds it again. */
+  absencePenaltyStep: number
+  /** Misses further apart than this many days restart the penalty at the first step. */
+  absenceResetDays: number
   donorPesosPerPoint: number
   defaultBoard: RankingBoard
   defaultPeriod: RankingPeriod

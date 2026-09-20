@@ -6,8 +6,12 @@ import {
   RANKING_TIER_LABEL_MAX,
   RANKING_TIER_MAX_COUNT,
   RANKING_TIER_MIN_COUNT,
-  VOLUNTEER_POINTS_PER_HOUR_MAX,
-  VOLUNTEER_POINTS_PER_HOUR_MIN,
+  VOLUNTEER_ABSENCE_PENALTY_STEP_MAX,
+  VOLUNTEER_ABSENCE_PENALTY_STEP_MIN,
+  VOLUNTEER_ABSENCE_RESET_DAYS_MAX,
+  VOLUNTEER_ABSENCE_RESET_DAYS_MIN,
+  VOLUNTEER_POINTS_PER_ATTENDANCE_MAX,
+  VOLUNTEER_POINTS_PER_ATTENDANCE_MIN,
 } from '../constants/ranking'
 import { HEX_COLOR_PATTERN, RANK_FRAME_IDS } from '../constants/rank-frames'
 
@@ -44,10 +48,20 @@ const tierSchema = z.object({
 
 export const rankingCustomizationSchema = z
   .object({
-    volunteerPointsPerHour: wholeNumber(
-      VOLUNTEER_POINTS_PER_HOUR_MIN,
-      VOLUNTEER_POINTS_PER_HOUR_MAX,
-      'Points per service hour',
+    pointsPerAttendance: wholeNumber(
+      VOLUNTEER_POINTS_PER_ATTENDANCE_MIN,
+      VOLUNTEER_POINTS_PER_ATTENDANCE_MAX,
+      'Points per attendance',
+    ),
+    absencePenaltyStep: wholeNumber(
+      VOLUNTEER_ABSENCE_PENALTY_STEP_MIN,
+      VOLUNTEER_ABSENCE_PENALTY_STEP_MAX,
+      'Absence penalty',
+    ),
+    absenceResetDays: wholeNumber(
+      VOLUNTEER_ABSENCE_RESET_DAYS_MIN,
+      VOLUNTEER_ABSENCE_RESET_DAYS_MAX,
+      'Streak window',
     ),
     donorPesosPerPoint: wholeNumber(
       DONOR_PESOS_PER_POINT_MIN,

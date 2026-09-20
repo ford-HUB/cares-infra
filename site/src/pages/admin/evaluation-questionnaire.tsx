@@ -35,7 +35,7 @@ export function EvaluationQuestionnairePage() {
   }
 
   return (
-    <ContentShell variant="full" className="flex h-full flex-col">
+    <ContentShell variant="full" className="flex flex-col">
       <QuestionnaireToolbar
         form={form}
         initialized={initialized}

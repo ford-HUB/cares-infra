@@ -425,3 +425,20 @@ export const EvaluationResponseStatus = {
 } as const
 
 export type EvaluationResponseStatus = (typeof EvaluationResponseStatus)[keyof typeof EvaluationResponseStatus]
+
+
+export const UserRequestKind = {
+  ROLE_ACCESS: 'ROLE_ACCESS',
+  EVENT_JOIN: 'EVENT_JOIN'
+} as const
+
+export type UserRequestKind = (typeof UserRequestKind)[keyof typeof UserRequestKind]
+
+
+export const UserRequestStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DELETED: 'DELETED'
+} as const
+
+export type UserRequestStatus = (typeof UserRequestStatus)[keyof typeof UserRequestStatus]

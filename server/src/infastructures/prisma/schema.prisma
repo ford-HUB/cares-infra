@@ -53,12 +53,15 @@ model User {
   edited_certificate_templates  CertificateTemplate[]          @relation("CertificateTemplateEditor")
   certificate_signatory_lines   CertificateTemplateSignatory[]
   certificate_deployments       CertificateDeployment[]         @relation("CertificateDeploymentDeployer")
+  issued_certificates           IssuedCertificate[]
   submitted_monthly_reports     MonthlyReport[]                @relation("MonthlyReportSubmitter")
   reviewed_monthly_reports      MonthlyReport[]                @relation("MonthlyReportReviewer")
   monthly_report_folders        MonthlyReportFolder[]          @relation("MonthlyReportFolderCreator")
   authored_announcements        Announcement[]                 @relation("AnnouncementAuthor")
   notifications                 Notification[]                 @relation("UserNotifications")
   evaluation_responses          EvaluationResponse[]
+  user_requests                 UserRequest[]                  @relation("UserRequestRequester")
+  decided_user_requests         UserRequest[]                  @relation("UserRequestDecider")
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -608,9 +611,11 @@ model Event {
   marker_lat             Float?
   marker_lng             Float?
   certificate_deployments CertificateDeployment[]
+  issued_certificates    IssuedCertificate[]
   attendances            EventAttendance[]
   location_pings         EventLocationPing[]
   evaluation_responses   EvaluationResponse[]
+  user_requests          UserRequest[]
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
 }
@@ -979,6 +984,7 @@ model CertificateDeployment {
   deployed_by_user_id       String?
   deployed_by               User?                       @relation("CertificateDeploymentDeployer", fields: [deployed_by_user_id], references: [user_id], onDelete: SetNull)
   deployed_by_name          String                      @default("")
+  issued_certificates       IssuedCertificate[]
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime                    @updatedAt
 
@@ -987,6 +993,46 @@ model CertificateDeployment {
   @@index([status])
   @@index([event_id])
   @@index([createdAt])
+}
+
+/// One certificate the issuing sweep generated for one participant of one deployment.
+/// The sheet is frozen here in full — the deployment's design with every placeholder
+/// filled and each signature line pointing at the image it printed — so what the
+/// volunteer holds never changes if the event, the template or a coordinator's
+/// profile is edited afterwards.
+model IssuedCertificate {
+  issued_certificate_id     String                      @id @default(uuid())
+  /// Printed on the sheet, e.g. `CERT-2026-000123`.
+  certificate_number        String                      @unique
+  certificate_deployment_id String
+  deployment                CertificateDeployment       @relation(fields: [certificate_deployment_id], references: [certificate_deployment_id], onDelete: Cascade)
+  event_id                  Int
+  event                     Event                       @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  user_id                   String
+  user                      User                        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  /// What the placeholders were filled with, as they read on the day of issue.
+  recipient_name            String
+  event_name                String
+  event_date                DateTime
+  hours_rendered            Float                       @default(0)
+  organization              String
+  template_name             String
+  category                  CertificateTemplateCategory
+  orientation               CertificateOrientation
+  /// The deployment's frozen design plus, per signature line, the S3 key of the
+  /// coordinator's signature image at issue time (`StoredIssuedDesign`).
+  design                    Json
+  issued_at                 DateTime                    @default(now())
+  /// When the recipient first opened it in the app; null until then.
+  claimed_at                DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+
+  /// One certificate per participant per deployment; the sweep is idempotent on this.
+  @@unique([certificate_deployment_id, user_id])
+  @@index([user_id])
+  @@index([event_id])
+  @@index([issued_at])
 }
 
 /// Where a coordinator's monthly report sits. It leaves the director's queue the
@@ -1250,6 +1296,24 @@ model EvaluationForm {
   updatedAt          DateTime             @updatedAt
 }
 
+/// How the volunteer leaderboard is scored and how its tier ladder is cut. One row:
+/// the portal's Rankings → Customization edits it, the volunteer app reads the tiers
+/// to draw its avatar frames. `tiers` is the JSON the customization form edits (see
+/// the rankings validators) so a new frame design never needs a migration.
+model RankingSettings {
+  ranking_settings_id   String   @id @default(uuid())
+  /// Points a volunteer earns for every event they attended (COMPLETED).
+  points_per_attendance Int      @default(10)
+  /// First missed registration costs this much; each straight miss adds it again.
+  absence_penalty_step  Int      @default(2)
+  /// Misses further apart than this restart the penalty at the first step.
+  absence_reset_days    Int      @default(7)
+  default_period        String   @default("month")
+  tiers                 Json
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
 /// Whether every required question was answered when the volunteer submitted.
 enum EvaluationResponseStatus {
   COMPLETE
@@ -1277,4 +1341,70 @@ model EvaluationResponse {
   @@unique([event_id, user_id])
   @@index([event_id])
   @@index([user_id])
+}
+
+/// What a mobile user is asking the portal for. ROLE_ACCESS is a donor or
+/// beneficiary who passed the ID + face check and wants the volunteer side
+/// opened; EVENT_JOIN is a beneficiary asking to attend an event.
+enum UserRequestKind {
+  ROLE_ACCESS
+  EVENT_JOIN
+}
+
+/// DELETED is a recycle bin, not a hard delete — the director can restore a
+/// request to PENDING, which is why the trail is kept on a dropped row.
+enum UserRequestStatus {
+  PENDING
+  ACCEPTED
+  DELETED
+}
+
+/// One request filed from the mobile app for a director to rule on. The proof
+/// behind a ROLE_ACCESS request (ID sides, selfie) is copied off the Redis
+/// registration session at filing time so it outlives that session's TTL.
+model UserRequest {
+  user_request_id    String            @id @default(uuid())
+  /// Sequential tracking number; the portal renders it as `REQ-007`.
+  reference_number   Int               @unique @default(autoincrement())
+  kind               UserRequestKind
+  status             UserRequestStatus @default(PENDING)
+  user_id            String
+  user               User              @relation("UserRequestRequester", fields: [user_id], references: [user_id], onDelete: Cascade)
+  /// ROLE_ACCESS only — the role being asked for.
+  requested_role     RoleType?
+  /// EVENT_JOIN only — the event the beneficiary wants to attend.
+  event_id           Int?
+  event              Event?            @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  id_front_url       String?
+  id_back_url        String?
+  selfie_url         String?
+  /// The 512-dim face embedding from the session's match, kept so acceptance
+  /// can enrol the biometric without re-running the face service.
+  selfie_embedding   Json?
+  face_similarity    Float?
+  /// One-line statement of what is being asked for, written at filing time.
+  summary            String
+  decided_by_user_id String?
+  decided_by         User?             @relation("UserRequestDecider", fields: [decided_by_user_id], references: [user_id], onDelete: SetNull)
+  decided_at         DateTime?
+  trail              UserRequestTrailEntry[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([user_id])
+  @@index([status])
+  @@index([kind, status])
+}
+
+/// One line on a request's history — filed, accepted, removed, restored.
+model UserRequestTrailEntry {
+  user_request_trail_entry_id String      @id @default(uuid())
+  user_request_id             String
+  user_request                UserRequest @relation(fields: [user_request_id], references: [user_request_id], onDelete: Cascade)
+  label                       String
+  /// Who caused it — the requester for the filing, a portal account after that.
+  actor_name                  String
+  createdAt                   DateTime    @default(now())
+
+  @@index([user_request_id])
 }

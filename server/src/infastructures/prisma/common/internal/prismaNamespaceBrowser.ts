@@ -86,6 +86,7 @@ export const ModelName = {
   CertificateTemplateSignatory: 'CertificateTemplateSignatory',
   CertificateTemplateAsset: 'CertificateTemplateAsset',
   CertificateDeployment: 'CertificateDeployment',
+  IssuedCertificate: 'IssuedCertificate',
   MonthlyReportFolder: 'MonthlyReportFolder',
   MonthlyReport: 'MonthlyReport',
   MonthlyReportDocument: 'MonthlyReportDocument',
@@ -93,7 +94,10 @@ export const ModelName = {
   Announcement: 'Announcement',
   Notification: 'Notification',
   EvaluationForm: 'EvaluationForm',
-  EvaluationResponse: 'EvaluationResponse'
+  RankingSettings: 'RankingSettings',
+  EvaluationResponse: 'EvaluationResponse',
+  UserRequest: 'UserRequest',
+  UserRequestTrailEntry: 'UserRequestTrailEntry'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -657,6 +661,30 @@ export const CertificateDeploymentScalarFieldEnum = {
 export type CertificateDeploymentScalarFieldEnum = (typeof CertificateDeploymentScalarFieldEnum)[keyof typeof CertificateDeploymentScalarFieldEnum]
 
 
+export const IssuedCertificateScalarFieldEnum = {
+  issued_certificate_id: 'issued_certificate_id',
+  certificate_number: 'certificate_number',
+  certificate_deployment_id: 'certificate_deployment_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  recipient_name: 'recipient_name',
+  event_name: 'event_name',
+  event_date: 'event_date',
+  hours_rendered: 'hours_rendered',
+  organization: 'organization',
+  template_name: 'template_name',
+  category: 'category',
+  orientation: 'orientation',
+  design: 'design',
+  issued_at: 'issued_at',
+  claimed_at: 'claimed_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuedCertificateScalarFieldEnum = (typeof IssuedCertificateScalarFieldEnum)[keyof typeof IssuedCertificateScalarFieldEnum]
+
+
 export const MonthlyReportFolderScalarFieldEnum = {
   monthly_report_folder_id: 'monthly_report_folder_id',
   name: 'name',
@@ -777,6 +805,20 @@ export const EvaluationFormScalarFieldEnum = {
 export type EvaluationFormScalarFieldEnum = (typeof EvaluationFormScalarFieldEnum)[keyof typeof EvaluationFormScalarFieldEnum]
 
 
+export const RankingSettingsScalarFieldEnum = {
+  ranking_settings_id: 'ranking_settings_id',
+  points_per_attendance: 'points_per_attendance',
+  absence_penalty_step: 'absence_penalty_step',
+  absence_reset_days: 'absence_reset_days',
+  default_period: 'default_period',
+  tiers: 'tiers',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RankingSettingsScalarFieldEnum = (typeof RankingSettingsScalarFieldEnum)[keyof typeof RankingSettingsScalarFieldEnum]
+
+
 export const EvaluationResponseScalarFieldEnum = {
   evaluation_response_id: 'evaluation_response_id',
   form_id: 'form_id',
@@ -791,6 +833,40 @@ export const EvaluationResponseScalarFieldEnum = {
 } as const
 
 export type EvaluationResponseScalarFieldEnum = (typeof EvaluationResponseScalarFieldEnum)[keyof typeof EvaluationResponseScalarFieldEnum]
+
+
+export const UserRequestScalarFieldEnum = {
+  user_request_id: 'user_request_id',
+  reference_number: 'reference_number',
+  kind: 'kind',
+  status: 'status',
+  user_id: 'user_id',
+  requested_role: 'requested_role',
+  event_id: 'event_id',
+  id_front_url: 'id_front_url',
+  id_back_url: 'id_back_url',
+  selfie_url: 'selfie_url',
+  selfie_embedding: 'selfie_embedding',
+  face_similarity: 'face_similarity',
+  summary: 'summary',
+  decided_by_user_id: 'decided_by_user_id',
+  decided_at: 'decided_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserRequestScalarFieldEnum = (typeof UserRequestScalarFieldEnum)[keyof typeof UserRequestScalarFieldEnum]
+
+
+export const UserRequestTrailEntryScalarFieldEnum = {
+  user_request_trail_entry_id: 'user_request_trail_entry_id',
+  user_request_id: 'user_request_id',
+  label: 'label',
+  actor_name: 'actor_name',
+  createdAt: 'createdAt'
+} as const
+
+export type UserRequestTrailEntryScalarFieldEnum = (typeof UserRequestTrailEntryScalarFieldEnum)[keyof typeof UserRequestTrailEntryScalarFieldEnum]
 
 
 export const SortOrder = {

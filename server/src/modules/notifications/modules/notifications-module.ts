@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
+import { NotificationsMobileModule } from './notifications-mobile-module';
 import { NotificationsSiteModule } from './notifications-site-module';
 
 /**
- * Site-only: the portal inbox. Writing goes through the notification scheduler in
- * `src/schedulers`, which fans a role-addressed notice out to rows here. The mobile
- * app has its own push channel and does not read this table.
+ * One table, two readers: the portal inbox and the app's feed. Writing goes
+ * through the notification scheduler in `src/schedulers`, which fans a notice out
+ * to one row per recipient; the app polls its side and turns new rows into device
+ * notifications.
  */
 @Module({
-  imports: [NotificationsSiteModule],
-  exports: [NotificationsSiteModule],
+  imports: [NotificationsSiteModule, NotificationsMobileModule],
+  exports: [NotificationsSiteModule, NotificationsMobileModule],
 })
 export class NotificationsModule {}

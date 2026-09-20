@@ -42,13 +42,13 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
         <div className="relative z-10 w-full max-w-sm lg:mr-11 xl:mr-35 ">
           <div className="rounded-2xl border border-[var(--cares-border)] bg-white px-5 py-6 shadow-xl">
             <div className="mb-5 text-center">
-              <img
+              {/* <img
                 src="/transparent-logo.png"
                 alt="CARES"
                 className="mx-auto mb-3 h-24 w-24 rounded-full border border-[var(--cares-border)] bg-white object-contain p-1.5 shadow-sm "
-              />
-              <h1 className="text-lg font-bold text-[var(--cares-heading)]">
-                CARES Administrator Portal
+              /> */}
+              <h1 className="text-2xl font-bold text-[var(--cares-heading)]">
+                Administrator Portal
               </h1>
               <p className="mt-1 text-xs text-[var(--cares-muted)]">
                 Sign in to manage programs, events, and university outreach.
@@ -108,7 +108,7 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
               <button
                 type="button"
                 onClick={() => setForgotOpen(true)}
-                className="text-xs font-medium text-red-600 hover:underline"
+                className="text-xs font-medium text-[var(--color-primary)] hover:underline"
               >
                 Forgot password?
               </button>

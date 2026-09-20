@@ -90,6 +90,24 @@ class ApiClient {
     }, path);
   }
 
+  Future<Map<String, dynamic>> patchJson(
+    String path, {
+    required Map<String, dynamic> body,
+    Duration timeout = const Duration(seconds: 30),
+    bool authenticate = true,
+  }) async {
+    return _guard(() async {
+      final response = await _client
+          .patch(
+            uri(path),
+            headers: _jsonHeaders(authenticate: authenticate),
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+      return _parseResponse(response, authenticated: authenticate);
+    }, path);
+  }
+
   Future<Map<String, dynamic>> deleteJson(
     String path, {
     bool authenticate = true,

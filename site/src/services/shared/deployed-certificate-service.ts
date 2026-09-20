@@ -6,6 +6,7 @@ import type {
   CertificateOrientation,
 } from '../../types/certificate-template'
 import type {
+  CertificateRecipient,
   DeployedCertificate,
   DeployedCertificateCounts,
   DeploymentStatus,
@@ -178,6 +179,76 @@ export async function updateDeploymentStatus(
     }>(`${DEPLOYMENTS_URL}/${id}/status`, { status })
 
     return mapDeployment(body.data)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
+}
+
+interface CertificateRecipientApi {
+  id: string
+  certificate_number: string
+  user_id: string
+  recipient_name: string
+  hours_rendered: number
+  issued_at: string
+  claimed_at: string | null
+}
+
+/** Who the issuing sweep has reached on one deployment, and who has opened theirs. */
+export async function listCertificateRecipients(
+  deploymentId: string,
+): Promise<CertificateRecipient[]> {
+  try {
+    const { data: body } = await apiClient.get<{
+      ok: true
+      data: CertificateRecipientApi[]
+    }>(`${DEPLOYMENTS_URL}/${deploymentId}/recipients`)
+
+    return body.data.map((row) => ({
+      id: row.id,
+      certificateNumber: row.certificate_number,
+      userId: row.user_id,
+      name: row.recipient_name,
+      hoursRendered: row.hours_rendered,
+      issuedAt: row.issued_at,
+      claimedAt: row.claimed_at,
+    }))
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
+}
+
+/** What one "Remind" reached. */
+export interface RemindResult {
+  reminded: number
+  awaitingFeedback: number
+  awaitingAttendance: number
+}
+
+/**
+ * Nudges every covered participant who has no certificate yet to finish what is
+ * outstanding (the questionnaire, or an attendance sync). The server sends each person
+ * at most one reminder a day, so pressing it again the same day reaches no one new.
+ */
+export async function remindPendingRecipients(
+  deploymentId: string,
+): Promise<RemindResult> {
+  try {
+    const { data: body } = await apiClient.post<{
+      ok: true
+      data: {
+        deployment_id: string
+        reminded: number
+        awaiting_feedback: number
+        awaiting_attendance: number
+      }
+    }>(`${DEPLOYMENTS_URL}/${deploymentId}/remind`)
+
+    return {
+      reminded: body.data.reminded,
+      awaitingFeedback: body.data.awaiting_feedback,
+      awaitingAttendance: body.data.awaiting_attendance,
+    }
   } catch (error) {
     throw new Error(parseApiError(error), { cause: error })
   }

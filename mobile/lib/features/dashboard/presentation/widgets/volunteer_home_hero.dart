@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
+import 'package:mobile/features/dashboard/presentation/providers/leaderboard_provider.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
 /// Dark band across the top of the volunteer home tab: avatar + welcome on
@@ -9,18 +14,19 @@ import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen
 ///
 /// The avatar comes from the volunteer's [RoleAccount] — the photo stream
 /// `GET /profile/me/mobile` returned — and rebuilds when the store changes.
-/// The rank is a mock number for now until the leaderboard endpoint lands. Paints behind the status bar, so it reads the top
-/// inset itself instead of sitting inside a [SafeArea]; [height] is fixed
-/// from the same numbers so the tab can extend the dark ground down behind
-/// the popular deck.
-class VolunteerHomeHero extends StatelessWidget {
+/// The rank and the frame around the avatar come from the leaderboard: the
+/// border is the tier the volunteer's standing falls into, in the design and
+/// colours the portal set for it. Paints behind the status bar, so it reads
+/// the top inset itself instead of sitting inside a [SafeArea]; [height] is
+/// fixed from the same numbers so the tab can extend the dark ground down
+/// behind the popular deck.
+class VolunteerHomeHero extends ConsumerWidget {
   const VolunteerHomeHero({
     super.key,
     required this.displayName,
     required this.onSearchTap,
     required this.onFilterTap,
     this.filterActive = false,
-    this.showNotificationDot = true,
   });
 
   final String displayName;
@@ -29,10 +35,6 @@ class VolunteerHomeHero extends StatelessWidget {
 
   /// Marks the filter button when a category other than "All" is applied.
   final bool filterActive;
-  final bool showNotificationDot;
-
-  /// Mock volunteer rank shown in the header until the leaderboard is wired.
-  static const int mockRank = 12;
 
   /// Deep forest ground the whole header sits on.
   static const Color ink = Color(0xFF12291A);
@@ -54,8 +56,11 @@ class VolunteerHomeHero extends StatelessWidget {
       _bottomPad;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final topInset = MediaQuery.paddingOf(context).top;
+    final board = ref.watch(leaderboardProvider).asData?.value;
+    final me = board?.me;
+    final tier = board?.tierForRank(me?.rank);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -77,12 +82,19 @@ class VolunteerHomeHero extends StatelessWidget {
                 );
                 return Row(
                   children: [
-                    _Avatar(account: account, fallbackName: displayName),
-                    const SizedBox(width: 12),
+                    RankTierFrame(
+                      tier: tier,
+                      size: _avatarSize,
+                      child: _Avatar(
+                        account: account,
+                        fallbackName: displayName,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
                     Expanded(child: _Welcome(name: displayName)),
                     const SizedBox(width: 8),
-                    const _RankBlock(rank: mockRank),
-                    _NotificationBell(showDot: showNotificationDot),
+                    _RankBlock(rank: me?.rank, tier: tier),
+                    const _NotificationBell(),
                   ],
                 );
               },
@@ -162,17 +174,10 @@ class _Avatar extends StatelessWidget {
         ? AssetImage(asset)
         : null;
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.18),
-          width: 2,
-        ),
-      ),
       child: CircleAvatar(
-        radius: (VolunteerHomeHero._avatarSize - 8) / 2,
+        radius: (VolunteerHomeHero._avatarSize - 4) / 2,
         backgroundColor: account?.avatarColor ?? AppColors.primary,
         backgroundImage: image,
         child: image == null
@@ -196,10 +201,13 @@ class _Avatar extends StatelessWidget {
   }
 }
 
+/// The standing and its tier. Unranked reads as a dash rather than a number —
+/// the volunteer has no ruled attendance in the period yet.
 class _RankBlock extends StatelessWidget {
-  const _RankBlock({required this.rank});
+  const _RankBlock({required this.rank, required this.tier});
 
-  final int rank;
+  final int? rank;
+  final RankTier? tier;
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +216,7 @@ class _RankBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          'Your rank',
+          tier == null ? 'Your rank' : '${tier!.label} · rank',
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
@@ -220,7 +228,7 @@ class _RankBlock extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '#$rank',
+              rank == null ? '—' : '#$rank',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -240,13 +248,20 @@ class _RankBlock extends StatelessWidget {
   }
 }
 
+/// The dot follows the feed's unread count, so it clears as rows are read.
 class _NotificationBell extends StatelessWidget {
-  const _NotificationBell({required this.showDot});
-
-  final bool showDot;
+  const _NotificationBell();
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: NotificationSync.instance,
+      builder: (context, _) =>
+          _bell(context, NotificationSync.instance.unread > 0),
+    );
+  }
+
+  Widget _bell(BuildContext context, bool showDot) {
     return Stack(
       clipBehavior: Clip.none,
       children: [

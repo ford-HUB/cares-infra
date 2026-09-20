@@ -5,8 +5,12 @@ import {
   DONOR_PESOS_PER_POINT_MIN,
   RANKING_BOARDS,
   RANKING_PERIODS,
-  VOLUNTEER_POINTS_PER_HOUR_MAX,
-  VOLUNTEER_POINTS_PER_HOUR_MIN,
+  VOLUNTEER_ABSENCE_PENALTY_STEP_MAX,
+  VOLUNTEER_ABSENCE_PENALTY_STEP_MIN,
+  VOLUNTEER_ABSENCE_RESET_DAYS_MAX,
+  VOLUNTEER_ABSENCE_RESET_DAYS_MIN,
+  VOLUNTEER_POINTS_PER_ATTENDANCE_MAX,
+  VOLUNTEER_POINTS_PER_ATTENDANCE_MIN,
 } from '../../constants/ranking'
 import { formatCurrency, formatNumber } from '../../constants/formatting'
 import type { useRankingCustomizationForm } from '../../hooks/use-ranking-customization-form'
@@ -19,8 +23,9 @@ const inputClass =
 
 const cardClass = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm'
 
-/** An example figure, so a rate change reads as points before it is saved. */
-const SAMPLE_HOURS = 10
+/** Example figures, so a rate change reads as points before it is saved. */
+const SAMPLE_EVENTS = 5
+const SAMPLE_STREAK = 3
 const SAMPLE_AMOUNT = 5000
 
 export function RankingCustomizationForm({
@@ -35,8 +40,16 @@ export function RankingCustomizationForm({
   loading,
 }: RankingCustomizationFormProps) {
   const { errors, isDirty } = form.formState
-  const pointsPerHour = form.watch('volunteerPointsPerHour')
+  const pointsPerAttendance = form.watch('pointsPerAttendance')
+  const penaltyStep = form.watch('absencePenaltyStep')
+  const resetDays = form.watch('absenceResetDays')
   const pesosPerPoint = form.watch('donorPesosPerPoint')
+
+  // The escalation spelled out: −2, −4, −6 for three straight misses.
+  const streakExample = Array.from(
+    { length: SAMPLE_STREAK },
+    (_, index) => `−${(penaltyStep || 0) * (index + 1)}`,
+  ).join(', ')
 
   if (loading) {
     return (
@@ -52,29 +65,74 @@ export function RankingCustomizationForm({
       <section className={cardClass}>
         <h2 className="text-[15px] font-semibold text-gray-900">Scoring Criteria</h2>
         <p className="mt-1 text-[12px] text-gray-500">
-          The two boards are scored apart: volunteers on time given, donors on amount
-          given. Saving rescores both.
+          The two boards are scored apart: volunteers on attendance, donors on amount
+          given. Every event attended earns points; a registered event skipped costs a
+          penalty that grows with each straight miss and resets after the window.
+          Saving rescores both boards.
         </p>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-[13px] font-medium text-gray-700">
-              Points per service hour
+              Points per attendance
             </span>
             <input
               type="number"
-              min={VOLUNTEER_POINTS_PER_HOUR_MIN}
-              max={VOLUNTEER_POINTS_PER_HOUR_MAX}
-              {...form.register('volunteerPointsPerHour', { valueAsNumber: true })}
+              min={VOLUNTEER_POINTS_PER_ATTENDANCE_MIN}
+              max={VOLUNTEER_POINTS_PER_ATTENDANCE_MAX}
+              {...form.register('pointsPerAttendance', { valueAsNumber: true })}
               className={`${inputClass} mt-1.5 w-full`}
             />
             <span className="mt-1 block text-[12px] text-gray-500">
-              {SAMPLE_HOURS} hrs ={' '}
-              {formatNumber(SAMPLE_HOURS * (pointsPerHour || 0))} pts
+              {SAMPLE_EVENTS} events attended ={' '}
+              {formatNumber(SAMPLE_EVENTS * (pointsPerAttendance || 0))} pts
             </span>
-            {errors.volunteerPointsPerHour && (
+            {errors.pointsPerAttendance && (
               <span className="mt-1 block text-[12px] text-red-600">
-                {errors.volunteerPointsPerHour.message}
+                {errors.pointsPerAttendance.message}
+              </span>
+            )}
+          </label>
+
+          <label className="block">
+            <span className="text-[13px] font-medium text-gray-700">
+              Penalty per missed registration
+            </span>
+            <input
+              type="number"
+              min={VOLUNTEER_ABSENCE_PENALTY_STEP_MIN}
+              max={VOLUNTEER_ABSENCE_PENALTY_STEP_MAX}
+              {...form.register('absencePenaltyStep', { valueAsNumber: true })}
+              className={`${inputClass} mt-1.5 w-full`}
+            />
+            <span className="mt-1 block text-[12px] text-gray-500">
+              {SAMPLE_STREAK} straight misses = {streakExample} pts
+            </span>
+            {errors.absencePenaltyStep && (
+              <span className="mt-1 block text-[12px] text-red-600">
+                {errors.absencePenaltyStep.message}
+              </span>
+            )}
+          </label>
+
+          <label className="block">
+            <span className="text-[13px] font-medium text-gray-700">
+              Streak window (days)
+            </span>
+            <input
+              type="number"
+              min={VOLUNTEER_ABSENCE_RESET_DAYS_MIN}
+              max={VOLUNTEER_ABSENCE_RESET_DAYS_MAX}
+              {...form.register('absenceResetDays', { valueAsNumber: true })}
+              className={`${inputClass} mt-1.5 w-full`}
+            />
+            <span className="mt-1 block text-[12px] text-gray-500">
+              A miss more than {resetDays || 0} days after the last one, or after an
+              attended event, starts the penalty over.
+            </span>
+            {errors.absenceResetDays && (
+              <span className="mt-1 block text-[12px] text-red-600">
+                {errors.absenceResetDays.message}
               </span>
             )}
           </label>

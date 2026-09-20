@@ -4,10 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  InterestCode,
-  RoleType,
-} from '../../../infastructures/prisma/common/client';
+import { InterestCode } from '../../../infastructures/prisma/common/client';
+import { isPortalRole } from '../../../shared/constants/portal-role-types';
 import { UserInterestsResponseDto } from '../dto/interests-mobile-dto';
 import { InterestsRepository } from '../repositories/interests-repository';
 import { AuditLogRecorder } from '../../audit-logs/services/audit-log-recorder';
@@ -35,8 +33,11 @@ export class InterestsMobileService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.role.type !== RoleType.VOLUNTEER) {
-      throw new ForbiddenException('Only volunteers can save interests');
+    // Any mobile account may hold interests — the app's role switcher is
+    // local, so a beneficiary-registered user volunteering keeps their token
+    // role. Only portal staff are excluded.
+    if (isPortalRole(user.role.type)) {
+      throw new ForbiddenException('Only mobile accounts can save interests');
     }
 
     const activeCodes =

@@ -21,7 +21,10 @@ import { ADMIN_CERTIFICATE_TEMPLATES_PATH } from '../../constants/routes'
 import {
   countDeployedCertificates,
   distributionShare,
+  listCertificateRecipients,
+  remindPendingRecipients,
 } from '../../services/shared/deployed-certificate-service'
+import { exportCertificateRecipientsCsv } from '../../utils/export-certificate-recipients-csv'
 import { useDeployedCertificateStore } from '../../store/deployed-certificate-store'
 import type { DeployedCertificate } from '../../types/deployed-certificate'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
@@ -154,7 +157,45 @@ export function DeployedCertificatesPage() {
       void applyStatus(deployment, action === 'pause' ? 'paused' : 'distributing')
       return
     }
-    // Export, download and reminders wait on their own endpoints.
+    if (action === 'export') {
+      void listCertificateRecipients(deployment.id)
+        .then((recipients) => {
+          if (recipients.length === 0) {
+            toast('No certificates have been issued on this deployment yet')
+            return
+          }
+          exportCertificateRecipientsCsv(deployment, recipients)
+        })
+        .catch((error: unknown) =>
+          toast.error(
+            error instanceof Error ? error.message : 'Recipients could not be loaded',
+          ),
+        )
+      return
+    }
+    if (action === 'remind') {
+      void remindPendingRecipients(deployment.id)
+        .then(({ reminded, awaitingFeedback, awaitingAttendance }) => {
+          if (reminded === 0) {
+            toast('Nothing to chase — every covered participant has their certificate')
+            return
+          }
+          const parts = [
+            awaitingFeedback > 0 && `${awaitingFeedback} awaiting feedback`,
+            awaitingAttendance > 0 && `${awaitingAttendance} awaiting attendance`,
+          ].filter(Boolean)
+          toast.success(
+            `Reminded ${reminded} participant${reminded === 1 ? '' : 's'} (${parts.join(', ')})`,
+          )
+        })
+        .catch((error: unknown) =>
+          toast.error(
+            error instanceof Error ? error.message : 'The reminder could not be sent',
+          ),
+        )
+      return
+    }
+    // Sheet download waits on its own endpoint.
     toast(`${action} · ${deployment.event.name} — not wired yet`)
   }
 

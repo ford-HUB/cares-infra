@@ -1,20 +1,23 @@
-import { Check, FileText, Loader2, MapPin, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { CalendarDays, Check, ImageIcon, Loader2, MapPin, ScanFace, Trash2 } from 'lucide-react'
 import {
-  REQUEST_TYPE_STYLES,
+  REQUEST_KIND_STYLES,
+  formatEventDate,
   formatRequestTime,
-} from '../../../constants/beneficiary-requests'
-import { formatFileSize, formatRelativeTime } from '../../../constants/formatting'
-import type { BeneficiaryRequest } from '../../../types/beneficiary-request'
-import { RequestStatusPill, RequestTypeChip } from './request-type-chip'
+} from '../../../constants/user-requests'
+import { formatRelativeTime } from '../../../constants/formatting'
+import type { UserRequest, UserRequestAttachment } from '../../../types/user-request'
+import { RequestAttachmentPreview } from './request-attachment-preview'
+import { RequestKindChip, RequestStatusPill } from './request-type-chip'
 
 interface RequestTimelineItemProps {
-  request: BeneficiaryRequest
+  request: UserRequest
   /** True while this row's own accept/delete call is in flight. */
   busy: boolean
   /** Any decision in flight — keeps a second click from racing the first. */
   disabled: boolean
-  onAccept: (request: BeneficiaryRequest) => void
-  onDelete: (request: BeneficiaryRequest) => void
+  onAccept: (request: UserRequest) => void
+  onDelete: (request: UserRequest) => void
 }
 
 export function RequestTimelineItem({
@@ -25,12 +28,13 @@ export function RequestTimelineItem({
   onDelete,
 }: RequestTimelineItemProps) {
   const pending = request.status === 'pending'
+  const [preview, setPreview] = useState<UserRequestAttachment | null>(null)
 
   return (
     <li className="relative pl-10">
       {/* The dot sits on the rail drawn by the list, so it must keep this offset. */}
       <span
-        className={`absolute top-5 left-[13px] h-2.5 w-2.5 rounded-full ring-4 ring-gray-50 ${REQUEST_TYPE_STYLES[request.type].dot}`}
+        className={`absolute top-5 left-[13px] h-2.5 w-2.5 rounded-full ring-4 ring-gray-50 ${REQUEST_KIND_STYLES[request.kind].dot}`}
         aria-hidden
       />
 
@@ -39,7 +43,7 @@ export function RequestTimelineItem({
           <span className="font-mono text-xs font-semibold text-gray-500">
             {request.reference}
           </span>
-          <RequestTypeChip type={request.type} />
+          <RequestKindChip kind={request.kind} />
           <RequestStatusPill status={request.status} />
           <span
             className="ml-auto text-xs text-gray-500"
@@ -51,31 +55,55 @@ export function RequestTimelineItem({
 
         <h3 className="mt-2 text-sm font-semibold text-gray-900">
           {request.submitter.name}
+          <span className="ml-2 text-xs font-medium text-gray-500">
+            {request.submitter.role} account
+          </span>
         </h3>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
           <span>{request.submitter.email}</span>
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            {request.submitter.barangay}
-          </span>
+          {request.submitter.barangay && (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {request.submitter.barangay}
+            </span>
+          )}
         </p>
 
         <p className="mt-2 text-sm text-gray-700">{request.summary}</p>
 
+        {/* What the decision is about: the event for a join, the proof for an unlock. */}
+        {request.event && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5">
+            <CalendarDays className="h-3.5 w-3.5 text-gray-400" />
+            <span className="text-xs text-gray-700">{request.event.title}</span>
+            <span className="text-[11px] text-gray-400">
+              {formatEventDate(request.event.startsAt)}
+            </span>
+          </div>
+        )}
+
         {request.attachments.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2">
             {request.attachments.map((attachment) => (
-              <li
-                key={attachment.id}
-                className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5"
-              >
-                <FileText className="h-3.5 w-3.5 text-gray-400" />
-                <span className="text-xs text-gray-700">{attachment.label}</span>
-                <span className="text-[11px] text-gray-400">
-                  {formatFileSize(attachment.sizeBytes)}
-                </span>
+              <li key={attachment.kind}>
+                <button
+                  type="button"
+                  onClick={() => setPreview(attachment)}
+                  className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 hover:bg-gray-100"
+                >
+                  <ImageIcon className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-xs text-gray-700">{attachment.label}</span>
+                </button>
               </li>
             ))}
+            {request.faceSimilarity !== undefined && (
+              <li className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1.5">
+                <ScanFace className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-xs text-emerald-700">
+                  Face match {Math.round(request.faceSimilarity * 100)}%
+                </span>
+              </li>
+            )}
           </ul>
         )}
 
@@ -118,6 +146,10 @@ export function RequestTimelineItem({
           </div>
         )}
       </article>
+
+      {preview && (
+        <RequestAttachmentPreview attachment={preview} onClose={() => setPreview(null)} />
+      )}
     </li>
   )
 }

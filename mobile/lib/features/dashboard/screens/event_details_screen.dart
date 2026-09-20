@@ -45,6 +45,7 @@ class EventDetailsScreen extends StatefulWidget {
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
+  final _certificateStore = CertificateStore.instance;
   final _tracker = EventLocationTracker.instance;
   final _registrationApi = EventRegistrationService();
 
@@ -63,6 +64,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onFeedbackChanged);
+    _certificateStore.addListener(_onFeedbackChanged);
     _tracker.addListener(_onFeedbackChanged);
     _store.addListener(_onStoreChanged);
     _phaseTimer = Timer.periodic(
@@ -80,6 +82,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     _phaseTimer?.cancel();
     _store.removeListener(_onStoreChanged);
     _feedbackStore.removeListener(_onFeedbackChanged);
+    _certificateStore.removeListener(_onFeedbackChanged);
     _tracker.removeListener(_onFeedbackChanged);
     super.dispose();
   }
@@ -104,20 +107,48 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _feedbackSubmitted =>
       _feedbackStore.hasSubmitted(_event.id, _participantEmail);
 
+  /// The sheet the scheduler generated for this event, once it has.
+  CaresCertificate? get _certificate =>
+      _certificateStore.forEvent(_event.serverId);
+
   Future<void> _giveFeedback() async {
     final submitted = await EventFeedbackScreen.open(context, _event);
     if (!mounted || !submitted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Thank you for your feedback!'),
+        content: Text(
+          'Thank you for your feedback! Your certificate is being generated.',
+        ),
         behavior: SnackBarBehavior.floating,
       ),
     );
+    // The sweep may already have run for an earlier feedback; ask once.
+    _certificateStore.refresh();
   }
 
-  void _viewCertificate() {
-    CertificateReviewScreen.open(context, certificateForEvent(_event));
+  Future<void> _viewCertificate() async {
+    final certificate = _certificate;
+    if (certificate != null) {
+      CertificateReviewScreen.open(context, certificate);
+      return;
+    }
+    // Not issued yet: pull the wallet in case the sweep just ran, then say so.
+    await _certificateStore.refresh();
+    if (!mounted) return;
+    final refreshed = _certificate;
+    if (refreshed != null) {
+      CertificateReviewScreen.open(context, refreshed);
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Your certificate is still being generated — check back shortly.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   EventParticipation? get _participation =>
@@ -279,6 +310,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final isCompleted = event.hasEnded();
     final isOngoing = event.isOngoing();
     final feedbackSubmitted = _feedbackSubmitted;
+    final certificateIssued = _certificate != null;
 
     // The hero photo runs under the status bar, so its icons go light.
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -374,10 +406,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               participated:
                                   participation?.attendanceVerified ?? true,
                               feedbackSubmitted: feedbackSubmitted,
+                              certificateIssued: certificateIssued,
                             ),
                             const SizedBox(height: 16),
                             CertificateStatusBanner(
                               unlocked: feedbackSubmitted,
+                              issued: certificateIssued,
                             ),
                           ] else ...[
                             if (participation?.attendanceVerified == true) ...[
@@ -553,8 +587,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       return feedbackSubmitted
           ? FilledButton.icon(
               onPressed: _viewCertificate,
-              icon: const Icon(Icons.workspace_premium_rounded),
-              label: const Text('View Certificate'),
+              icon: Icon(
+                _certificate != null
+                    ? Icons.workspace_premium_rounded
+                    : Icons.hourglass_top_rounded,
+              ),
+              label: Text(
+                _certificate != null
+                    ? 'View Certificate'
+                    : 'Certificate generating',
+              ),
               style: _pillStyle,
             )
           : FilledButton.icon(

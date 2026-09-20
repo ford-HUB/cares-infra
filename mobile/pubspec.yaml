@@ -67,6 +67,10 @@ dependencies:
   # lottiefiles.com dropped into assets/lottie/interests/).
   lottie: ^3.3.1
   flutter_foreground_task: ^10.0.0
+  # Device notifications: scheduled event reminders and pops for new feed rows.
+  flutter_local_notifications: ^19.2.1
+  timezone: ^0.10.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

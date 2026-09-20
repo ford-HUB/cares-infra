@@ -1,8 +1,41 @@
-import 'event_feedback_store.dart';
-import 'event_registration_store.dart';
-import '../domain/cares_event.dart';
-import 'mock_events.dart';
+import 'package:flutter/foundation.dart';
 
+import 'certificate_service.dart';
+
+/// One signature line as printed on an issued certificate.
+class CertificateSignatory {
+  const CertificateSignatory({
+    required this.id,
+    required this.name,
+    required this.title,
+    required this.department,
+    this.signatureUrl,
+  });
+
+  factory CertificateSignatory.fromJson(Map<String, dynamic> json) {
+    return CertificateSignatory(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      department: json['department'] as String? ?? '',
+      signatureUrl: json['signature_url'] as String?,
+    );
+  }
+
+  final String id;
+  final String name;
+  final String title;
+  final String department;
+
+  /// API path of the signature image the line was issued with; null when the
+  /// coordinator had none uploaded on the day.
+  final String? signatureUrl;
+}
+
+/// A certificate the issuing scheduler generated for this volunteer from the
+/// template a director deployed to the event. Every field is as it read on
+/// the day of issue — the server froze the sheet, so nothing here moves if
+/// the event or template is edited later.
 class CaresCertificate {
   const CaresCertificate({
     required this.id,
@@ -13,18 +46,93 @@ class CaresCertificate {
     required this.certificateNumber,
     required this.hoursCompleted,
     this.eventDate,
+    this.eventId,
+    this.recipientName = '',
+    this.headline = '',
+    this.body = '',
+    this.category = 'participation',
+    this.orientation = 'landscape',
+    this.accent = 'emerald',
+    this.frame = 'plain',
+    this.sealLabel = '',
+    this.showSeal = false,
+    this.signatories = const [],
+    this.claimedAt,
   });
 
+  factory CaresCertificate.fromJson(Map<String, dynamic> json) {
+    final design = json['design'] as Map<String, dynamic>? ?? const {};
+    final signatories = (design['signatories'] as List<dynamic>? ?? const [])
+        .map((e) => CertificateSignatory.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return CaresCertificate(
+      id: json['id'] as String,
+      title: json['template_name'] as String? ?? 'Certificate',
+      eventName: json['event_name'] as String? ?? '',
+      organization: json['organization'] as String? ?? '',
+      issuedDate: DateTime.parse(json['issued_at'] as String).toLocal(),
+      certificateNumber: json['certificate_number'] as String? ?? '',
+      hoursCompleted: (json['hours_rendered'] as num?)?.toDouble() ?? 0,
+      eventDate: json['event_date'] == null
+          ? null
+          : DateTime.parse(json['event_date'] as String).toLocal(),
+      eventId: json['event_id'] as int?,
+      recipientName: json['recipient_name'] as String? ?? '',
+      headline: json['headline'] as String? ?? '',
+      body: json['body'] as String? ?? '',
+      category: json['category'] as String? ?? 'participation',
+      orientation: json['orientation'] as String? ?? 'landscape',
+      accent: design['accent'] as String? ?? 'emerald',
+      frame: design['frame'] as String? ?? 'plain',
+      sealLabel: design['seal_label'] as String? ?? '',
+      showSeal: design['show_seal'] as bool? ?? false,
+      signatories: signatories,
+      claimedAt: json['claimed_at'] == null
+          ? null
+          : DateTime.parse(json['claimed_at'] as String).toLocal(),
+    );
+  }
+
   final String id;
+
+  /// The deployed template's name — the award line on the sheet.
   final String title;
   final String eventName;
   final String organization;
   final DateTime issuedDate;
   final String certificateNumber;
-  final int hoursCompleted;
+  final double hoursCompleted;
 
-  /// Day the event itself took place (null for legacy demo certificates).
+  /// Day the event itself took place.
   final DateTime? eventDate;
+
+  /// Server id of the event, so a completed card can find its own certificate.
+  final int? eventId;
+
+  final String recipientName;
+
+  /// Headline and award text with every placeholder already filled in.
+  final String headline;
+  final String body;
+  final String category;
+  final String orientation;
+  final String accent;
+  final String frame;
+  final String sealLabel;
+  final bool showSeal;
+  final List<CertificateSignatory> signatories;
+
+  /// When this device (or another) first opened the certificate.
+  final DateTime? claimedAt;
+
+  bool get isLandscape => orientation == 'landscape';
+
+  String get hoursLabel {
+    final rounded = (hoursCompleted * 10).round() / 10;
+    final whole = rounded == rounded.roundToDouble();
+    return whole ? '${rounded.round()}h' : '${rounded.toStringAsFixed(1)}h';
+  }
 
   String? get eventDateLabel {
     final date = eventDate;
@@ -70,97 +178,112 @@ class CaresCertificate {
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
-  String downloadFileName(String recipientName) {
-    final safeName = recipientName
+  String downloadFileName(String recipient) {
+    final safeName = recipient
         .trim()
         .replaceAll(RegExp(r'[^\w\s-]'), '')
         .replaceAll(RegExp(r'\s+'), '_');
-    return 'CARES_${safeName.isEmpty ? 'Volunteer' : safeName}_$id.txt';
+    return 'CARES_${safeName.isEmpty ? 'Volunteer' : safeName}_$certificateNumber.txt';
   }
 
-  String downloadContent(String recipientName) {
+  String downloadContent(String recipient) {
+    final lines = signatories
+        .map((s) => '${s.name} — ${s.title}, ${s.department}')
+        .join('\n');
     return '''
-CARES — Certificate of Recognition
+CARES — ${headline.isEmpty ? 'Certificate' : headline}
 ==================================
 
 Certificate: $title
 Certificate No.: $certificateNumber
 
-This certifies that
-
-$recipientName
-
-has successfully completed volunteer service for
+${body.isEmpty ? 'This certifies that $recipient has successfully completed volunteer service for $eventName.' : body}
 
 $eventName
 $organization
 ${eventDateLabel == null ? '' : 'Held on $eventDateLabel'}
 
-Hours completed: $hoursCompleted
+Hours rendered: $hoursLabel
 Date issued: $issuedOnLabel
 
+${lines.isEmpty ? '' : 'Signed by:\n$lines\n'}
 CARES Community Action and Resource Engagement System
 ''';
   }
 }
 
-final kMockCertificates = [
-  CaresCertificate(
-    id: 'CERT-2026-001',
-    title: 'Community Service Certificate',
-    eventName: 'School Supplies Distribution',
-    organization: 'DepEd Volunteers',
-    issuedDate: DateTime(2026, 6, 21),
-    certificateNumber: 'CSC-2026-0041',
-    hoursCompleted: 4,
-  ),
-  CaresCertificate(
-    id: 'CERT-2026-002',
-    title: 'Volunteer Excellence Award',
-    eventName: 'Medical Mission — Minglanilla',
-    organization: 'CARES Health Team',
-    issuedDate: DateTime(2026, 5, 28),
-    certificateNumber: 'VEA-2026-0018',
-    hoursCompleted: 6,
-  ),
-];
-
-/// Mock certificate generated for a completed event once feedback is in.
-CaresCertificate certificateForEvent(CaresEvent event) {
-  final digits = RegExp(r'\d+').firstMatch(event.id)?.group(0) ?? '1';
-  final serial = digits.padLeft(4, '0');
-  return CaresCertificate(
-    id: 'CERT-${event.date.year}-$serial',
-    title: 'Certificate of Volunteer Participation',
-    eventName: event.title,
-    organization: event.organization,
-    issuedDate: event.date.add(const Duration(days: 1)),
-    certificateNumber: 'CARES-${event.date.year}-$serial',
-    hoursCompleted: event.hoursCompleted ?? 0,
-    eventDate: event.date,
-  );
-}
-
-/// Certificates the volunteer has actually received: one per completed event
-/// whose feedback was submitted, plus the earlier demo certificates.
+/// The volunteer's certificate wallet — what the issuing scheduler has
+/// generated for them. The truth lives on the server; this mirrors it so the
+/// activity tab, the event details screen and the wallet redraw together.
 ///
-/// This is the volunteer's certificate wallet — a certificate only lands here
-/// once the post-event feedback unlocked it.
-List<CaresCertificate> earnedCertificatesFor(String email) {
-  final feedbackStore = EventFeedbackStore.instance;
+/// A certificate lands here once the event is over, attendance was verified
+/// and the post-event feedback is in: the scheduler checks all three, so the
+/// wallet can show "generating" between the feedback going in and the sheet
+/// coming out.
+class CertificateStore extends ChangeNotifier {
+  CertificateStore._();
 
-  final fromEvents = EventRegistrationStore.instance
-      .participationsForEmail(email)
-      .map((p) => findEventById(p.eventId))
-      .whereType<CaresEvent>()
-      .where(
-        (event) =>
-            event.isCompleted && feedbackStore.hasSubmitted(event.id, email),
-      )
-      .map(certificateForEvent)
-      .toList();
+  static final CertificateStore instance = CertificateStore._();
 
-  final all = [...fromEvents, ...kMockCertificates]
-    ..sort((a, b) => b.issuedDate.compareTo(a.issuedDate));
-  return all;
+  final Map<String, CaresCertificate> _byId = {};
+  bool _hydrated = false;
+  bool _refreshing = false;
+
+  /// True once the server has answered at least once this session.
+  bool get hydrated => _hydrated;
+
+  List<CaresCertificate> get all {
+    final list = _byId.values.toList()
+      ..sort((a, b) => b.issuedDate.compareTo(a.issuedDate));
+    return list;
+  }
+
+  int get count => _byId.length;
+
+  /// The certificate for a server event, or null while none has been issued.
+  CaresCertificate? forEvent(int? serverEventId) {
+    if (serverEventId == null) return null;
+    for (final certificate in _byId.values) {
+      if (certificate.eventId == serverEventId) return certificate;
+    }
+    return null;
+  }
+
+  CaresCertificate? byId(String id) => _byId[id];
+
+  /// Replaces everything with the server's list.
+  void hydrate(List<CaresCertificate> certificates) {
+    _byId
+      ..clear()
+      ..addEntries(certificates.map((c) => MapEntry(c.id, c)));
+    _hydrated = true;
+    notifyListeners();
+  }
+
+  /// One certificate, freshly opened — keeps `claimedAt` in step.
+  void upsert(CaresCertificate certificate) {
+    _byId[certificate.id] = certificate;
+    notifyListeners();
+  }
+
+  /// Best effort: a failed wallet fetch leaves what is already held.
+  Future<void> refresh({CertificateService? service}) async {
+    if (_refreshing) return;
+    _refreshing = true;
+    try {
+      final certificates = await (service ?? CertificateService()).fetchMine();
+      hydrate(certificates);
+    } catch (_) {
+      // Leave the store as-is; the next refresh retries.
+    } finally {
+      _refreshing = false;
+    }
+  }
+
+  /// Forgets everything — on sign-out, so the next account starts clean.
+  void clear() {
+    _byId.clear();
+    _hydrated = false;
+    notifyListeners();
+  }
 }

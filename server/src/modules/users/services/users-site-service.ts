@@ -956,7 +956,12 @@ function toManagedUser(row: ManagedUserRow): ManagedUserDto {
     lastname: row.lastname,
     email: account?.email ?? '',
     role_type: row.role.type,
-    department: row.portal_department,
+    // Staff are provisioned into a portal department; volunteers and
+    // beneficiaries registered with a college on their school record.
+    department:
+      row.portal_department?.trim() ||
+      row.user_school_info[0]?.department.name ||
+      null,
     status: account?.is_restricted
       ? 'restricted'
       : credentialExpired

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/session/static_user_session.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/activity_data.dart';
+import '../../data/certificate_data.dart';
 import '../../data/event_feedback_store.dart';
 import '../../data/event_registration_store.dart';
 import '../../domain/cares_event.dart';
@@ -196,6 +197,9 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab> {
                   return CompletedEventCard(
                     event: event,
                     feedbackSubmitted: _hasFeedback(event),
+                    certificateIssued:
+                        CertificateStore.instance.forEvent(event.serverId) !=
+                        null,
                     onTap: () => EventDetailsScreen.open(context, event),
                   );
                 }, childCount: completedEvents.length),

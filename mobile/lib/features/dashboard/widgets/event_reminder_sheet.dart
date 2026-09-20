@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/event_reminder_scheduler.dart';
 import 'package:mobile/features/dashboard/data/event_reminder_store.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 
 /// Bottom sheet behind the bell on the event details screen: a switch for
-/// the email reminder and a row of lead-time chips. Writes straight to
+/// the device reminder and a row of lead-time chips. Writes straight to
 /// [EventReminderStore] so the bell updates as the user toggles.
 Future<void> showEventReminderSheet(BuildContext context, CaresEvent event) {
   return showModalBottomSheet<void>(
@@ -59,7 +60,7 @@ class _ReminderSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Email reminder',
+                            'Event reminder',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -68,7 +69,7 @@ class _ReminderSheet extends StatelessWidget {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'We will email you before the event starts.',
+                            'A notification on this phone before the event starts.',
                             style: TextStyle(
                               fontSize: 12.5,
                               color: Color(0xFF6B7280),
@@ -80,7 +81,10 @@ class _ReminderSheet extends StatelessWidget {
                     Switch.adaptive(
                       value: reminder.enabled,
                       activeTrackColor: AppColors.accentOrange,
-                      onChanged: (v) => store.setEnabled(event.id, v),
+                      onChanged: (v) {
+                        store.setEnabled(event.id, v);
+                        EventReminderScheduler.instance.sync(event);
+                      },
                     ),
                   ],
                 ),
@@ -111,8 +115,10 @@ class _ReminderSheet extends StatelessWidget {
                               _LeadChip(
                                 days: days,
                                 selected: reminder.daysBefore == days,
-                                onTap: () =>
-                                    store.setDaysBefore(event.id, days),
+                                onTap: () {
+                                  store.setDaysBefore(event.id, days);
+                                  EventReminderScheduler.instance.sync(event);
+                                },
                               ),
                           ],
                         ),
@@ -155,7 +161,7 @@ class _ReminderSheet extends StatelessWidget {
     final when = reminder.daysBefore == 1
         ? '1 day before'
         : '${reminder.daysBefore} days before';
-    return 'Sent $when, on ${sendOn.month}/${sendOn.day}/${sendOn.year}, to your account email.';
+    return 'Pops $when, on ${sendOn.month}/${sendOn.day}/${sendOn.year} at ${EventReminderScheduler.reminderHour}:00 AM, plus a final nudge an hour before the start.';
   }
 }
 

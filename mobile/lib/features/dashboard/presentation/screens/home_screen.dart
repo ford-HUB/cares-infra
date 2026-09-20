@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
+import 'package:mobile/core/services/local_notifications.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/volunteer_profile_service.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_profile.dart';
 import 'package:mobile/features/dashboard/presentation/screens/activity_tab_screen.dart';
@@ -9,9 +13,8 @@ import 'package:mobile/features/dashboard/presentation/screens/events_tab_screen
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/ranks_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/volunteer_home_tab.dart';
-import 'package:mobile/features/dashboard/presentation/screens/volunteer_profile_setup_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
+import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
@@ -47,7 +50,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentTab = 0;
   // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
   int _refreshVersion = 0;
@@ -56,17 +59,59 @@ class _HomeScreenState extends State<HomeScreen> {
   // Bumped when interests change so the home tab remounts and refetches.
   int _interestsVersion = 0;
   VolunteerProfile? _volunteerProfile;
-  bool _isLoadingProfile = true;
 
   final VolunteerProfileService _profileService = VolunteerProfileService();
 
   String get _displayName =>
       widget.displayName ?? HomeScreen.greetingFirstName(widget.firstName);
 
+  StreamSubscription<NotificationTap>? _tapSubscription;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadVolunteerProfile().then((_) => _promptForInterests());
+    _startNotifications();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tapSubscription?.cancel();
+    NotificationSync.instance.stop();
+    super.dispose();
+  }
+
+  /// Coming back from the background is the moment a ruling or reminder most
+  /// likely landed, so the feed is re-read right away rather than on the timer.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(NotificationSync.instance.refresh());
+    }
+  }
+
+  /// Asks for notification permission once the dashboard is up (not on the
+  /// login screen), starts the feed poll, and routes taps on any notification
+  /// — a scheduled reminder or a feed pop — into the notifications screen.
+  Future<void> _startNotifications() async {
+    if (!AuthSession.isSignedIn) return;
+    final notifier = LocalNotifications.instance;
+    await notifier.requestPermission();
+    NotificationSync.instance.start();
+
+    _tapSubscription = notifier.taps.listen((_) => _openNotifications());
+    final launch = notifier.launchTap;
+    if (launch != null) {
+      notifier.launchTap = null;
+      _openNotifications();
+    }
+  }
+
+  void _openNotifications() {
+    if (!mounted) return;
+    DashboardNotificationsScreen.open(context);
   }
 
   /// First-time volunteers have no interests on file, so the picker blocks
@@ -99,8 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadVolunteerProfile() async {
-    setState(() => _isLoadingProfile = true);
-
     try {
       final profile = await _profileService.fetchProfile();
       if (!mounted) return;
@@ -108,45 +151,23 @@ class _HomeScreenState extends State<HomeScreen> {
         _volunteerProfile = profile;
         _profileComplete = profile.profileComplete;
         if (profile.interests.isNotEmpty) _hasInterests = true;
-        _isLoadingProfile = false;
       });
     } on ApiException {
-      if (!mounted) return;
-      setState(() => _isLoadingProfile = false);
+      // Profile stays as it was; the shell still renders.
     } catch (_) {
-      if (!mounted) return;
-      setState(() => _isLoadingProfile = false);
+      // Same — a failed fetch never blocks the dashboard.
     }
   }
 
   /// Pull-to-refresh: refetch the shell's own data, then remount all tabs so
   /// each one reloads from scratch, not just the page that was pulled.
   Future<void> _refreshAll() async {
-    await _loadVolunteerProfile();
+    await Future.wait([
+      _loadVolunteerProfile(),
+      NotificationSync.instance.refresh(),
+    ]);
     if (!mounted) return;
     setState(() => _refreshVersion++);
-  }
-
-  Future<void> _openProfileSetup() async {
-    final wasIncomplete = !_profileComplete;
-
-    final saved = await Navigator.of(context).push<VolunteerProfile>(
-      MaterialPageRoute(
-        builder: (_) =>
-            VolunteerProfileSetupScreen(initialProfile: _volunteerProfile),
-      ),
-    );
-
-    if (!mounted || saved == null) return;
-
-    setState(() {
-      _volunteerProfile = saved;
-      _profileComplete = saved.profileComplete;
-    });
-
-    if (wasIncomplete && saved.profileComplete) {
-      await showProfileCompletionSuccessDialog(context);
-    }
   }
 
   @override
@@ -171,9 +192,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     VolunteerHomeTab(
                       key: ValueKey('home-$_interestsVersion'),
                       displayName: _displayName,
-                      showProfileCompletionCard:
-                          !_isLoadingProfile && !_profileComplete,
-                      onCompleteProfile: _openProfileSetup,
                       onSeeAllEvents: () => setState(() => _currentTab = 1),
                       onInterestsChanged: () => setState(() {
                         _hasInterests = true;
@@ -182,10 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const EventsTabScreen(),
                     const ActivityTabScreen(),
-                    RanksTabScreen(
-                      displayName: _displayName,
-                      points: widget.points,
-                    ),
+                    RanksTabScreen(displayName: _displayName),
                     ProfileTabScreen(
                       displayName: _displayName,
                       email: widget.email,

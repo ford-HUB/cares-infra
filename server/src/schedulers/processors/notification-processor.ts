@@ -133,6 +133,24 @@ export class NotificationProcessor extends CatalogedProcessor {
         userIds: coordinators,
         dedupeKey: `event-start:${event.event_id}`,
       });
+
+      // The volunteers who signed up get their own wording: what to do, and that
+      // a no-show now costs points. The app turns this row into a device pop.
+      const volunteers =
+        await this.schedulerRepository.findRegisteredVolunteerIds(
+          event.event_id,
+        );
+      if (volunteers.length > 0) {
+        written += await this.publish({
+          title: `${event.title} starts ${startsIn}`,
+          description: `Head to the venue for ${formatTimeOfDay(event.event_started)} — attendance is tracked by geofence once you arrive. Skipping a registered event costs ranking points.`,
+          category: NotificationCategory.EVENT,
+          tone: NotificationTone.ATTENTION,
+          href: `/events/${event.event_id}`,
+          userIds: volunteers,
+          dedupeKey: `event-start-volunteer:${event.event_id}`,
+        });
+      }
     }
     await this.note(job, `${written} notification(s) written`);
   }

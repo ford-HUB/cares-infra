@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
+import 'package:mobile/features/dashboard/data/models/user_request_models.dart';
 
-/// Whether a role can be used right now or still has to be unlocked.
-enum RoleAccountStatus { unlocked, locked }
+/// Whether a role can be used right now, still has to be unlocked, or has
+/// passed verification and is waiting on an administrator.
+enum RoleAccountStatus { unlocked, locked, pending }
 
 /// What the person has to do before a locked role opens up.
 enum RoleUnlockRequirement {
@@ -63,6 +65,10 @@ class RoleAccount {
 
   bool get isUnlocked => status == RoleAccountStatus.unlocked;
 
+  /// ID and face checks passed; an administrator still has to approve the
+  /// request before the role opens.
+  bool get isPending => status == RoleAccountStatus.pending;
+
   String get roleLabel => RoleAccountStore.labelFor(roleType);
 
   String get initial =>
@@ -75,12 +81,16 @@ class RoleAccount {
     return parts.length > 1 ? parts.sublist(1).join(' ') : '';
   }
 
-  /// Short line shown under the name in the switcher when the role is locked.
-  String get unlockHint => switch (requirement) {
-    RoleUnlockRequirement.none => 'Tap to activate',
-    RoleUnlockRequirement.idAndFaceVerification =>
-      'Verify your school ID and face to unlock',
-  };
+  /// Short line shown under the name in the switcher when the role is not
+  /// open yet.
+  String get unlockHint {
+    if (isPending) return 'Waiting for administrator approval';
+    return switch (requirement) {
+      RoleUnlockRequirement.none => 'Tap to activate',
+      RoleUnlockRequirement.idAndFaceVerification =>
+        'Verify your valid ID and face to unlock',
+    };
+  }
 
   RoleAccount copyWith({
     String? displayName,
@@ -250,8 +260,54 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Switches the active role. Locked roles are ignored — go through
-  /// [unlock] first.
+  /// Marks [roleType] as verified but awaiting administrator approval. The
+  /// role stays unusable until an admin approves it and [unlock] is called.
+  void markPending(String roleType) {
+    final type = normalize(roleType);
+    final account = _accounts[type];
+    if (account == null || account.isUnlocked) return;
+
+    _accounts[type] = account.copyWith(status: RoleAccountStatus.pending);
+    notifyListeners();
+  }
+
+  /// Mirrors the server's role-access requests onto the roles: an open
+  /// request keeps the role pending, an accepted one unlocks it. Roles with
+  /// no request on file are left as they are.
+  void applyRequestStatuses(Iterable<UserRequestResponse> requests) {
+    var changed = false;
+    for (final request in requests) {
+      if (request.kind != UserRequestKind.roleAccess) continue;
+      final role = request.requestedRole;
+      if (role == null) continue;
+      final type = normalize(role);
+      final account = _accounts[type];
+      if (account == null || account.isUnlocked) continue;
+
+      switch (request.status) {
+        case UserRequestStatus.accepted:
+          _accounts[type] = account.copyWith(
+            status: RoleAccountStatus.unlocked,
+            memberSince: _memberSinceNow(),
+          );
+          changed = true;
+        case UserRequestStatus.pending:
+          if (!account.isPending) {
+            _accounts[type] = account.copyWith(
+              status: RoleAccountStatus.pending,
+            );
+            changed = true;
+          }
+        case UserRequestStatus.deleted:
+        case UserRequestStatus.unknown:
+          break;
+      }
+    }
+    if (changed) notifyListeners();
+  }
+
+  /// Switches the active role. Locked and pending roles are ignored — go
+  /// through [unlock] first.
   void activate(String roleType) {
     final type = normalize(roleType);
     if (!isUnlocked(type) || _activeRoleType == type) return;

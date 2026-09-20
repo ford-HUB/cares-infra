@@ -24,6 +24,7 @@ import { EventAttendanceModule } from './modules/event-attendance/modules/event-
 import { EvaluationModule } from './modules/evaluation/modules/evaluation-module';
 import { CertificateTemplatesModule } from './modules/certificate-templates/modules/certificate-templates-module';
 import { CertificateDeploymentsModule } from './modules/certificate-deployments/modules/certificate-deployments-module';
+import { CertificatesModule } from './modules/certificates/modules/certificates-module';
 import { UsersModule } from './modules/users/modules/users-module';
 import { AccessControlModule } from './modules/access-control/modules/access-control-module';
 import { LoginActivityModule } from './modules/login-activity/modules/login-activity-module';
@@ -31,11 +32,13 @@ import { SessionsModule } from './modules/sessions/modules/sessions-module';
 import { AuditLogsModule } from './modules/audit-logs/modules/audit-logs-module';
 import { SecurityPolicyModule } from './modules/security-policy/modules/security-policy-module';
 import { SupportTicketsModule } from './modules/support-tickets/modules/support-tickets-module';
+import { UserRequestsModule } from './modules/user-requests/modules/user-requests-module';
 import { MonthlyReportsModule } from './modules/monthly-reports/modules/monthly-reports-module';
 import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
 import { ChatModule } from './modules/chat/modules/chat-module';
 import { AnnouncementsModule } from './modules/announcements/modules/announcements-module';
 import { OverviewModule } from './modules/overview/modules/overview-module';
+import { RankingsModule } from './modules/rankings/modules/rankings-module';
 import { NotificationsModule } from './modules/notifications/modules/notifications-module';
 import { SystemServicesModule } from './modules/system-services/modules/system-services-module';
 import { SystemPerformanceModule } from './modules/system-performance/modules/system-performance-module';
@@ -69,6 +72,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     EvaluationModule,
     CertificateTemplatesModule,
     CertificateDeploymentsModule,
+    CertificatesModule,
     UsersModule,
     AccessControlModule,
     LoginActivityModule,
@@ -76,11 +80,13 @@ import { SessionGuard } from './shared/guards/session-guard';
     AuditLogsModule,
     SecurityPolicyModule,
     SupportTicketsModule,
+    UserRequestsModule,
     MonthlyReportsModule,
     MailboxModule,
     ChatModule,
     AnnouncementsModule,
     OverviewModule,
+    RankingsModule,
     GatewaysModule,
     NotificationsModule,
     SchedulersModule,

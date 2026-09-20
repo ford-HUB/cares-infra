@@ -1,16 +1,16 @@
 import { create } from 'zustand'
 import { RANKING_DEFAULT_SETTINGS } from '../constants/ranking'
 import {
+  getDonorRankingTrend,
   getRankingSettings,
-  getRankingTrend,
-  listDepartmentVolunteerRankings,
+  getVolunteerRankingTrend,
   listDonorRankings,
   listVolunteerRankings,
   updateRankingSettings,
-  volunteerTrendOf,
 } from '../services/shared/ranking-service'
 import type {
   DonorRankingEntry,
+  RankingPeriod,
   RankingSettings,
   RankingTrend,
   VolunteerRankingEntry,
@@ -25,23 +25,27 @@ interface RankingState {
   /** Top-three participation race, one trend per board. */
   volunteerTrend: RankingTrend
   donorTrend: RankingTrend
+  /** The college the volunteer board is cut to — set for a coordinator, else null. */
+  scopeDepartment: string | null
+  /** The period the standings on file were counted over. */
+  period: RankingPeriod | null
   loading: boolean
   saving: boolean
   /** False until the first fetch settles, so nothing renders shipped defaults first. */
   initialized: boolean
+  error: string | null
   /**
-   * Which college the standings are counted for. A coordinator's board is scored from
-   * their own department's attendance and has no donor side; undefined is the whole
-   * school, both boards.
+   * Loads the settings and both boards. The server scopes the volunteer board to the
+   * caller, so a coordinator's college needs no passing in. Without a period the
+   * saved default is used.
    */
-  scopeDepartment?: string
-  fetchRankings: (scopeDepartment?: string) => Promise<void>
+  fetchRankings: (period?: RankingPeriod) => Promise<void>
   saveSettings: (settings: RankingSettings) => Promise<boolean>
 }
 
 /**
  * Settings and standings live together: the scoring rule is what produces the points,
- * so a saved change has to rescore both boards before the page can show them.
+ * so a saved change has to rescore the boards before the page can show them.
  */
 export const useRankingStore = create<RankingState>((set, get) => ({
   settings: RANKING_DEFAULT_SETTINGS,
@@ -49,44 +53,37 @@ export const useRankingStore = create<RankingState>((set, get) => ({
   donors: [],
   volunteerTrend: EMPTY_TREND,
   donorTrend: EMPTY_TREND,
+  scopeDepartment: null,
+  period: null,
   loading: false,
   saving: false,
   initialized: false,
+  error: null,
 
-  fetchRankings: async (scopeDepartment) => {
-    set({ loading: true, scopeDepartment })
+  fetchRankings: async (period) => {
+    set({ loading: true, error: null })
     const settingsResult = await getRankingSettings()
-    const settings = settingsResult.data
-
-    if (scopeDepartment !== undefined) {
-      const volunteerResult = await listDepartmentVolunteerRankings(scopeDepartment, settings)
-      set({
-        settings,
-        volunteers: volunteerResult.data,
-        donors: [],
-        volunteerTrend: volunteerTrendOf(volunteerResult.data),
-        donorTrend: EMPTY_TREND,
-        loading: false,
-        initialized: true,
-      })
-      return
-    }
+    const settings = settingsResult.data ?? get().settings
+    const resolvedPeriod = period ?? settings.defaultPeriod
 
     const [volunteerResult, donorResult, volunteerTrend, donorTrend] = await Promise.all([
-      listVolunteerRankings(settings),
+      listVolunteerRankings(resolvedPeriod),
       listDonorRankings(settings),
-      getRankingTrend('volunteer', settings),
-      getRankingTrend('donor', settings),
+      getVolunteerRankingTrend(resolvedPeriod),
+      getDonorRankingTrend(settings),
     ])
 
     set({
       settings,
-      volunteers: volunteerResult.data,
-      donors: donorResult.data,
-      volunteerTrend: volunteerTrend.data,
-      donorTrend: donorTrend.data,
+      volunteers: volunteerResult.data?.entries ?? [],
+      scopeDepartment: volunteerResult.data?.department ?? null,
+      donors: donorResult.data ?? [],
+      volunteerTrend: volunteerTrend.data ?? EMPTY_TREND,
+      donorTrend: donorTrend.data ?? EMPTY_TREND,
+      period: resolvedPeriod,
       loading: false,
       initialized: true,
+      error: settingsResult.message ?? volunteerResult.message ?? null,
     })
   },
 
@@ -94,14 +91,14 @@ export const useRankingStore = create<RankingState>((set, get) => ({
     set({ saving: true })
     const result = await updateRankingSettings(settings)
 
-    if (!result.success) {
-      set({ saving: false })
+    if (!result.success || !result.data) {
+      set({ saving: false, error: result.message ?? null })
       return false
     }
 
     set({ settings: result.data, saving: false })
     // The rates just changed, so the standings on file are stale by definition.
-    await get().fetchRankings(get().scopeDepartment)
+    await get().fetchRankings(get().period ?? undefined)
     return true
   },
 }))

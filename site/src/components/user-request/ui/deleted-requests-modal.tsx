@@ -1,12 +1,12 @@
 import { Loader2, RotateCcw, Trash2, X } from 'lucide-react'
 import { formatRelativeTime } from '../../../constants/formatting'
-import type { BeneficiaryRequest } from '../../../types/beneficiary-request'
-import { RequestTypeChip } from './request-type-chip'
+import type { UserRequest } from '../../../types/user-request'
+import { RequestKindChip } from './request-type-chip'
 
 interface DeletedRequestsModalProps {
-  requests: BeneficiaryRequest[]
+  requests: UserRequest[]
   busyId: string | null
-  onRestore: (request: BeneficiaryRequest) => void
+  onRestore: (request: UserRequest) => void
   onClose: () => void
 }
 
@@ -57,7 +57,7 @@ export function DeletedRequestsModal({
                     <span className="font-mono text-xs font-semibold text-gray-500">
                       {request.reference}
                     </span>
-                    <RequestTypeChip type={request.type} />
+                    <RequestKindChip kind={request.kind} />
                     <span className="ml-auto text-xs text-gray-500">
                       Removed {request.decidedAt ? formatRelativeTime(request.decidedAt) : ''}
                       {request.decidedBy ? ` by ${request.decidedBy}` : ''}

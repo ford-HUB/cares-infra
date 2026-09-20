@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { CalendarDays, Download, MapPin, Send } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -13,10 +15,16 @@ import { CertificateCategoryBadge } from '../certificate-templates/ui/certificat
 import { SignatoryAvatar } from '../certificate-templates/ui/signatory-avatar'
 import { TEMPLATE_ORIENTATION_LABELS } from '../../constants/certificate-templates'
 import { formatDateShort, formatNumber } from '../../constants/formatting'
-import type { DeployedCertificate } from '../../types/deployed-certificate'
+import { listCertificateRecipients } from '../../services/shared/deployed-certificate-service'
+import type {
+  CertificateRecipient,
+  DeployedCertificate,
+} from '../../types/deployed-certificate'
+import { exportCertificateRecipientsCsv } from '../../utils/export-certificate-recipients-csv'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { usePermission, useSuspension } from '../../store/auth-store'
 import { LockedActionButton } from '../portal/ui/locked-action'
+import { CertificateRecipientsList } from './ui/certificate-recipients-list'
 import { DeploymentStatusBadge } from './ui/deployment-status-badge'
 import { DistributionBar } from './ui/distribution-bar'
 
@@ -44,6 +52,48 @@ export function DeployedCertificateDetail({
   const pending = Math.max(deployment.participants - deployment.distributed, 0)
   const unopened = Math.max(deployment.distributed - deployment.claimed, 0)
   const canRemind = pending > 0 && deployment.status !== 'scheduled'
+
+  // The roll is fetched per open rather than kept in the store: it moves on the
+  // sweep's own clock and only this modal reads it. The result is keyed on what was
+  // asked for, so a stale answer for another row is never shown under this one.
+  const rollKey = `${deployment.id}:${deployment.distributed}`
+  const [roll, setRoll] = useState<{
+    key: string
+    rows: CertificateRecipient[] | null
+    error: string | null
+  }>({ key: '', rows: null, error: null })
+
+  useEffect(() => {
+    let cancelled = false
+    listCertificateRecipients(deployment.id)
+      .then((rows) => {
+        if (!cancelled) setRoll({ key: rollKey, rows, error: null })
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setRoll({
+            key: rollKey,
+            rows: null,
+            error:
+              error instanceof Error ? error.message : 'Recipients could not be loaded',
+          })
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [deployment.id, rollKey])
+
+  const recipients = roll.key === rollKey ? roll.rows : null
+  const recipientsError = roll.key === rollKey ? roll.error : null
+
+  const exportRecipients = () => {
+    if (!recipients || recipients.length === 0) {
+      toast('No certificates have been issued on this deployment yet')
+      return
+    }
+    exportCertificateRecipientsCsv(deployment, recipients)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -152,6 +202,12 @@ export function DeployedCertificateDetail({
               </ul>
             </div>
 
+            <CertificateRecipientsList
+              recipients={recipients}
+              error={recipientsError}
+              scheduled={deployment.status === 'scheduled'}
+            />
+
             <p className="border-t border-gray-100 pt-3 text-[11px] text-gray-400">
               Deployed {formatDateShort(deployment.deployedAt)} by {deployment.deployedBy}
             </p>
@@ -162,7 +218,8 @@ export function DeployedCertificateDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onAction('export', deployment)}
+            disabled={recipients === null || recipients.length === 0}
+            onClick={exportRecipients}
           >
             Export recipient list
           </Button>

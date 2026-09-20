@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
-import '../data/event_feedback_store.dart';
 import 'certificate_review_screen.dart';
 import 'help_support_screen.dart';
 export 'profile_analytics_screen.dart';
@@ -110,17 +109,20 @@ class ProfileCertificatesScreen extends StatefulWidget {
 }
 
 class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
-  final _feedbackStore = EventFeedbackStore.instance;
+  final _certificateStore = CertificateStore.instance;
 
   @override
   void initState() {
     super.initState();
-    _feedbackStore.addListener(_onStoreChanged);
+    _certificateStore.addListener(_onStoreChanged);
+    // Whatever the wallet already holds shows at once; the server's list
+    // replaces it when it lands.
+    _certificateStore.refresh();
   }
 
   @override
   void dispose() {
-    _feedbackStore.removeListener(_onStoreChanged);
+    _certificateStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -130,7 +132,7 @@ class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final certificates = earnedCertificatesFor(certificateWalletEmail());
+    final certificates = _certificateStore.all;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -152,37 +154,36 @@ class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
                 ),
               ),
             )
-          : ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: certificates.length + 1,
-              separatorBuilder: (_, index) => const SizedBox(height: 14),
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      '${certificates.length} certificate'
-                      '${certificates.length == 1 ? '' : 's'} received',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+          : RefreshIndicator(
+              onRefresh: _certificateStore.refresh,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemCount: certificates.length + 1,
+                separatorBuilder: (_, index) => const SizedBox(height: 14),
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '${certificates.length} certificate'
+                        '${certificates.length == 1 ? '' : 's'} received',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
+                    );
+                  }
+                  return _CertificateListTile(
+                    certificate: certificates[index - 1],
                   );
-                }
-                return _CertificateListTile(
-                  certificate: certificates[index - 1],
-                );
-              },
+                },
+              ),
             ),
     );
   }
 }
-
-/// Email the certificate wallet is keyed on for the static prototype.
-String certificateWalletEmail() =>
-    StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
 class _CertificateListTile extends StatelessWidget {
   const _CertificateListTile({required this.certificate});
@@ -190,6 +191,9 @@ class _CertificateListTile extends StatelessWidget {
   final CaresCertificate certificate;
 
   String get _recipientName {
+    if (certificate.recipientName.trim().isNotEmpty) {
+      return certificate.recipientName;
+    }
     final user = StaticUserSession.instance.currentUser;
     if (user == null || user.fullName.trim().isEmpty) return 'Volunteer';
     return user.fullName;
@@ -252,7 +256,7 @@ class _CertificateListTile extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             'Issued ${certificate.issuedMonthYear} · '
-                            '${certificate.hoursCompleted}h',
+                            '${certificate.hoursLabel}',
                             style: const TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,

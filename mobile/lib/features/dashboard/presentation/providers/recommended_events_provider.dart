@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/session/static_user_session.dart';
+import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/data/event_evaluation_service.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/data/event_registration_service.dart';
@@ -60,6 +61,7 @@ final registeredEventsProvider =
       }
 
       await _syncFeedback(ref, email);
+      await CertificateStore.instance.refresh();
       return events;
     });
 

@@ -347,12 +347,15 @@ export type UserWhereInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateListRelationFilter
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryListRelationFilter
   certificate_deployments?: Prisma.CertificateDeploymentListRelationFilter
+  issued_certificates?: Prisma.IssuedCertificateListRelationFilter
   submitted_monthly_reports?: Prisma.MonthlyReportListRelationFilter
   reviewed_monthly_reports?: Prisma.MonthlyReportListRelationFilter
   monthly_report_folders?: Prisma.MonthlyReportFolderListRelationFilter
   authored_announcements?: Prisma.AnnouncementListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
+  user_requests?: Prisma.UserRequestListRelationFilter
+  decided_user_requests?: Prisma.UserRequestListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }
 
@@ -398,12 +401,15 @@ export type UserOrderByWithRelationInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateOrderByRelationAggregateInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryOrderByRelationAggregateInput
   certificate_deployments?: Prisma.CertificateDeploymentOrderByRelationAggregateInput
+  issued_certificates?: Prisma.IssuedCertificateOrderByRelationAggregateInput
   submitted_monthly_reports?: Prisma.MonthlyReportOrderByRelationAggregateInput
   reviewed_monthly_reports?: Prisma.MonthlyReportOrderByRelationAggregateInput
   monthly_report_folders?: Prisma.MonthlyReportFolderOrderByRelationAggregateInput
   authored_announcements?: Prisma.AnnouncementOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   evaluation_responses?: Prisma.EvaluationResponseOrderByRelationAggregateInput
+  user_requests?: Prisma.UserRequestOrderByRelationAggregateInput
+  decided_user_requests?: Prisma.UserRequestOrderByRelationAggregateInput
   role?: Prisma.RoleOrderByWithRelationInput
 }
 
@@ -452,12 +458,15 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   edited_certificate_templates?: Prisma.CertificateTemplateListRelationFilter
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryListRelationFilter
   certificate_deployments?: Prisma.CertificateDeploymentListRelationFilter
+  issued_certificates?: Prisma.IssuedCertificateListRelationFilter
   submitted_monthly_reports?: Prisma.MonthlyReportListRelationFilter
   reviewed_monthly_reports?: Prisma.MonthlyReportListRelationFilter
   monthly_report_folders?: Prisma.MonthlyReportFolderListRelationFilter
   authored_announcements?: Prisma.AnnouncementListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
+  user_requests?: Prisma.UserRequestListRelationFilter
+  decided_user_requests?: Prisma.UserRequestListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }, "user_id" | "phone_number">
 
@@ -552,12 +561,15 @@ export type UserCreateInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -603,12 +615,15 @@ export type UserUncheckedCreateInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserUpdateInput = {
@@ -652,12 +667,15 @@ export type UserUpdateInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -703,12 +721,15 @@ export type UserUncheckedUpdateInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -1276,6 +1297,20 @@ export type UserUpdateOneWithoutCertificate_deploymentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCertificate_deploymentsInput, Prisma.UserUpdateWithoutCertificate_deploymentsInput>, Prisma.UserUncheckedUpdateWithoutCertificate_deploymentsInput>
 }
 
+export type UserCreateNestedOneWithoutIssued_certificatesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutIssued_certificatesInput, Prisma.UserUncheckedCreateWithoutIssued_certificatesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutIssued_certificatesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutIssued_certificatesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutIssued_certificatesInput, Prisma.UserUncheckedCreateWithoutIssued_certificatesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutIssued_certificatesInput
+  upsert?: Prisma.UserUpsertWithoutIssued_certificatesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutIssued_certificatesInput, Prisma.UserUpdateWithoutIssued_certificatesInput>, Prisma.UserUncheckedUpdateWithoutIssued_certificatesInput>
+}
+
 export type UserCreateNestedOneWithoutMonthly_report_foldersInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutMonthly_report_foldersInput, Prisma.UserUncheckedCreateWithoutMonthly_report_foldersInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutMonthly_report_foldersInput
@@ -1368,6 +1403,36 @@ export type UserUpdateOneRequiredWithoutEvaluation_responsesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEvaluation_responsesInput, Prisma.UserUpdateWithoutEvaluation_responsesInput>, Prisma.UserUncheckedUpdateWithoutEvaluation_responsesInput>
 }
 
+export type UserCreateNestedOneWithoutUser_requestsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUser_requestsInput, Prisma.UserUncheckedCreateWithoutUser_requestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_requestsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutDecided_user_requestsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDecided_user_requestsInput, Prisma.UserUncheckedCreateWithoutDecided_user_requestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDecided_user_requestsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutUser_requestsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUser_requestsInput, Prisma.UserUncheckedCreateWithoutUser_requestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUser_requestsInput
+  upsert?: Prisma.UserUpsertWithoutUser_requestsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUser_requestsInput, Prisma.UserUpdateWithoutUser_requestsInput>, Prisma.UserUncheckedUpdateWithoutUser_requestsInput>
+}
+
+export type UserUpdateOneWithoutDecided_user_requestsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDecided_user_requestsInput, Prisma.UserUncheckedCreateWithoutDecided_user_requestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDecided_user_requestsInput
+  upsert?: Prisma.UserUpsertWithoutDecided_user_requestsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDecided_user_requestsInput, Prisma.UserUpdateWithoutDecided_user_requestsInput>, Prisma.UserUncheckedUpdateWithoutDecided_user_requestsInput>
+}
+
 export type UserCreateWithoutResidency_documentsInput = {
   user_id?: string
   firstname: string
@@ -1408,12 +1473,15 @@ export type UserCreateWithoutResidency_documentsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1458,12 +1526,15 @@ export type UserUncheckedCreateWithoutResidency_documentsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutResidency_documentsInput = {
@@ -1522,12 +1593,15 @@ export type UserUpdateWithoutResidency_documentsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1572,12 +1646,15 @@ export type UserUncheckedUpdateWithoutResidency_documentsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutRole_avatarsInput = {
@@ -1620,12 +1697,15 @@ export type UserCreateWithoutRole_avatarsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1670,12 +1750,15 @@ export type UserUncheckedCreateWithoutRole_avatarsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutRole_avatarsInput = {
@@ -1734,12 +1817,15 @@ export type UserUpdateWithoutRole_avatarsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1784,12 +1870,15 @@ export type UserUncheckedUpdateWithoutRole_avatarsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutUser_school_infoInput = {
@@ -1832,12 +1921,15 @@ export type UserCreateWithoutUser_school_infoInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1882,12 +1974,15 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutUser_school_infoInput = {
@@ -1946,12 +2041,15 @@ export type UserUpdateWithoutUser_school_infoInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1996,12 +2094,15 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutUser_verificationsInput = {
@@ -2044,12 +2145,15 @@ export type UserCreateWithoutUser_verificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2094,12 +2198,15 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutUser_verificationsInput = {
@@ -2158,12 +2265,15 @@ export type UserUpdateWithoutUser_verificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2208,12 +2318,15 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -2257,12 +2370,15 @@ export type UserCreateWithoutRoleInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -2306,12 +2422,15 @@ export type UserUncheckedCreateWithoutRoleInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -2404,12 +2523,15 @@ export type UserCreateWithoutPermission_overridesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2454,12 +2576,15 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutPermission_overridesInput = {
@@ -2518,12 +2643,15 @@ export type UserUpdateWithoutPermission_overridesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2568,12 +2696,15 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutAction_suspensionsInput = {
@@ -2616,12 +2747,15 @@ export type UserCreateWithoutAction_suspensionsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2666,12 +2800,15 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutAction_suspensionsInput = {
@@ -2730,12 +2867,15 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2780,12 +2920,15 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutBlocked_ipsInput = {
@@ -2828,12 +2971,15 @@ export type UserCreateWithoutBlocked_ipsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2878,12 +3024,15 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutBlocked_ipsInput = {
@@ -2942,12 +3091,15 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2992,12 +3144,15 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutLogin_activitiesInput = {
@@ -3040,12 +3195,15 @@ export type UserCreateWithoutLogin_activitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3090,12 +3248,15 @@ export type UserUncheckedCreateWithoutLogin_activitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutLogin_activitiesInput = {
@@ -3154,12 +3315,15 @@ export type UserUpdateWithoutLogin_activitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3204,12 +3368,15 @@ export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutAudit_logsInput = {
@@ -3252,12 +3419,15 @@ export type UserCreateWithoutAudit_logsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3302,12 +3472,15 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutAudit_logsInput = {
@@ -3366,12 +3539,15 @@ export type UserUpdateWithoutAudit_logsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3416,12 +3592,15 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -3464,12 +3643,15 @@ export type UserCreateWithoutAccountsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3514,12 +3696,15 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -3578,12 +3763,15 @@ export type UserUpdateWithoutAccountsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3628,12 +3816,15 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutOauth_identitiesInput = {
@@ -3676,12 +3867,15 @@ export type UserCreateWithoutOauth_identitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3726,12 +3920,15 @@ export type UserUncheckedCreateWithoutOauth_identitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutOauth_identitiesInput = {
@@ -3790,12 +3987,15 @@ export type UserUpdateWithoutOauth_identitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3840,12 +4040,15 @@ export type UserUncheckedUpdateWithoutOauth_identitiesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutGmail_connectionInput = {
@@ -3888,12 +4091,15 @@ export type UserCreateWithoutGmail_connectionInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3938,12 +4144,15 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutGmail_connectionInput = {
@@ -4002,12 +4211,15 @@ export type UserUpdateWithoutGmail_connectionInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4052,12 +4264,15 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutUser_interestInput = {
@@ -4100,12 +4315,15 @@ export type UserCreateWithoutUser_interestInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4150,12 +4368,15 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutUser_interestInput = {
@@ -4214,12 +4435,15 @@ export type UserUpdateWithoutUser_interestInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4264,12 +4488,15 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutEvent_attendancesInput = {
@@ -4312,12 +4539,15 @@ export type UserCreateWithoutEvent_attendancesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4362,12 +4592,15 @@ export type UserUncheckedCreateWithoutEvent_attendancesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutEvent_attendancesInput = {
@@ -4426,12 +4659,15 @@ export type UserUpdateWithoutEvent_attendancesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4476,12 +4712,15 @@ export type UserUncheckedUpdateWithoutEvent_attendancesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutLocation_pingsInput = {
@@ -4524,12 +4763,15 @@ export type UserCreateWithoutLocation_pingsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4574,12 +4816,15 @@ export type UserUncheckedCreateWithoutLocation_pingsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutLocation_pingsInput = {
@@ -4638,12 +4883,15 @@ export type UserUpdateWithoutLocation_pingsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4688,12 +4936,15 @@ export type UserUncheckedUpdateWithoutLocation_pingsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutChat_participantsInput = {
@@ -4736,12 +4987,15 @@ export type UserCreateWithoutChat_participantsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4786,12 +5040,15 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutChat_participantsInput = {
@@ -4850,12 +5107,15 @@ export type UserUpdateWithoutChat_participantsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4900,12 +5160,15 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutChat_messagesInput = {
@@ -4948,12 +5211,15 @@ export type UserCreateWithoutChat_messagesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4998,12 +5264,15 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutChat_messagesInput = {
@@ -5062,12 +5331,15 @@ export type UserUpdateWithoutChat_messagesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5112,12 +5384,15 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutSupport_ticketsInput = {
@@ -5160,12 +5435,15 @@ export type UserCreateWithoutSupport_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5210,12 +5488,15 @@ export type UserUncheckedCreateWithoutSupport_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutSupport_ticketsInput = {
@@ -5263,12 +5544,15 @@ export type UserCreateWithoutAssigned_support_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5313,12 +5597,15 @@ export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutAssigned_support_ticketsInput = {
@@ -5377,12 +5664,15 @@ export type UserUpdateWithoutSupport_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5427,12 +5717,15 @@ export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserUpsertWithoutAssigned_support_ticketsInput = {
@@ -5486,12 +5779,15 @@ export type UserUpdateWithoutAssigned_support_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5536,12 +5832,15 @@ export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutSupport_ticket_repliesInput = {
@@ -5584,12 +5883,15 @@ export type UserCreateWithoutSupport_ticket_repliesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5634,12 +5936,15 @@ export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutSupport_ticket_repliesInput = {
@@ -5698,12 +6003,15 @@ export type UserUpdateWithoutSupport_ticket_repliesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5748,12 +6056,15 @@ export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutEdited_certificate_templatesInput = {
@@ -5796,12 +6107,15 @@ export type UserCreateWithoutEdited_certificate_templatesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5846,12 +6160,15 @@ export type UserUncheckedCreateWithoutEdited_certificate_templatesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutEdited_certificate_templatesInput = {
@@ -5910,12 +6227,15 @@ export type UserUpdateWithoutEdited_certificate_templatesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5960,12 +6280,15 @@ export type UserUncheckedUpdateWithoutEdited_certificate_templatesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutCertificate_signatory_linesInput = {
@@ -6008,12 +6331,15 @@ export type UserCreateWithoutCertificate_signatory_linesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6058,12 +6384,15 @@ export type UserUncheckedCreateWithoutCertificate_signatory_linesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutCertificate_signatory_linesInput = {
@@ -6122,12 +6451,15 @@ export type UserUpdateWithoutCertificate_signatory_linesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6172,12 +6504,15 @@ export type UserUncheckedUpdateWithoutCertificate_signatory_linesInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutCertificate_deploymentsInput = {
@@ -6220,12 +6555,15 @@ export type UserCreateWithoutCertificate_deploymentsInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6270,12 +6608,15 @@ export type UserUncheckedCreateWithoutCertificate_deploymentsInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutCertificate_deploymentsInput = {
@@ -6334,12 +6675,15 @@ export type UserUpdateWithoutCertificate_deploymentsInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6384,12 +6728,239 @@ export type UserUncheckedUpdateWithoutCertificate_deploymentsInput = {
   support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+}
+
+export type UserCreateWithoutIssued_certificatesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutIssued_certificatesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+}
+
+export type UserCreateOrConnectWithoutIssued_certificatesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutIssued_certificatesInput, Prisma.UserUncheckedCreateWithoutIssued_certificatesInput>
+}
+
+export type UserUpsertWithoutIssued_certificatesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutIssued_certificatesInput, Prisma.UserUncheckedUpdateWithoutIssued_certificatesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutIssued_certificatesInput, Prisma.UserUncheckedCreateWithoutIssued_certificatesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutIssued_certificatesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutIssued_certificatesInput, Prisma.UserUncheckedUpdateWithoutIssued_certificatesInput>
+}
+
+export type UserUpdateWithoutIssued_certificatesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutIssued_certificatesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutMonthly_report_foldersInput = {
@@ -6433,11 +7004,14 @@ export type UserCreateWithoutMonthly_report_foldersInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6483,11 +7057,14 @@ export type UserUncheckedCreateWithoutMonthly_report_foldersInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutMonthly_report_foldersInput = {
@@ -6547,11 +7124,14 @@ export type UserUpdateWithoutMonthly_report_foldersInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6597,11 +7177,14 @@ export type UserUncheckedUpdateWithoutMonthly_report_foldersInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutSubmitted_monthly_reportsInput = {
@@ -6645,11 +7228,14 @@ export type UserCreateWithoutSubmitted_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6695,11 +7281,14 @@ export type UserUncheckedCreateWithoutSubmitted_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutSubmitted_monthly_reportsInput = {
@@ -6748,11 +7337,14 @@ export type UserCreateWithoutReviewed_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6798,11 +7390,14 @@ export type UserUncheckedCreateWithoutReviewed_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutReviewed_monthly_reportsInput = {
@@ -6862,11 +7457,14 @@ export type UserUpdateWithoutSubmitted_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6912,11 +7510,14 @@ export type UserUncheckedUpdateWithoutSubmitted_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserUpsertWithoutReviewed_monthly_reportsInput = {
@@ -6971,11 +7572,14 @@ export type UserUpdateWithoutReviewed_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7021,11 +7625,14 @@ export type UserUncheckedUpdateWithoutReviewed_monthly_reportsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutAuthored_announcementsInput = {
@@ -7069,11 +7676,14 @@ export type UserCreateWithoutAuthored_announcementsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7119,11 +7729,14 @@ export type UserUncheckedCreateWithoutAuthored_announcementsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutAuthored_announcementsInput = {
@@ -7183,11 +7796,14 @@ export type UserUpdateWithoutAuthored_announcementsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7233,11 +7849,14 @@ export type UserUncheckedUpdateWithoutAuthored_announcementsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -7281,11 +7900,14 @@ export type UserCreateWithoutNotificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7331,11 +7953,14 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -7395,11 +8020,14 @@ export type UserUpdateWithoutNotificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7445,11 +8073,14 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserCreateWithoutEvaluation_responsesInput = {
@@ -7493,11 +8124,14 @@ export type UserCreateWithoutEvaluation_responsesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7543,11 +8177,14 @@ export type UserUncheckedCreateWithoutEvaluation_responsesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
 }
 
 export type UserCreateOrConnectWithoutEvaluation_responsesInput = {
@@ -7607,11 +8244,14 @@ export type UserUpdateWithoutEvaluation_responsesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7657,11 +8297,462 @@ export type UserUncheckedUpdateWithoutEvaluation_responsesInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+}
+
+export type UserCreateWithoutUser_requestsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutUser_requestsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+}
+
+export type UserCreateOrConnectWithoutUser_requestsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUser_requestsInput, Prisma.UserUncheckedCreateWithoutUser_requestsInput>
+}
+
+export type UserCreateWithoutDecided_user_requestsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutDecided_user_requestsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDecided_user_requestsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDecided_user_requestsInput, Prisma.UserUncheckedCreateWithoutDecided_user_requestsInput>
+}
+
+export type UserUpsertWithoutUser_requestsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUser_requestsInput, Prisma.UserUncheckedUpdateWithoutUser_requestsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUser_requestsInput, Prisma.UserUncheckedCreateWithoutUser_requestsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUser_requestsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUser_requestsInput, Prisma.UserUncheckedUpdateWithoutUser_requestsInput>
+}
+
+export type UserUpdateWithoutUser_requestsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUser_requestsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+}
+
+export type UserUpsertWithoutDecided_user_requestsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDecided_user_requestsInput, Prisma.UserUncheckedUpdateWithoutDecided_user_requestsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDecided_user_requestsInput, Prisma.UserUncheckedCreateWithoutDecided_user_requestsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDecided_user_requestsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDecided_user_requestsInput, Prisma.UserUncheckedUpdateWithoutDecided_user_requestsInput>
+}
+
+export type UserUpdateWithoutDecided_user_requestsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDecided_user_requestsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyRoleInput = {
@@ -7725,12 +8816,15 @@ export type UserUpdateWithoutRoleInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -7774,12 +8868,15 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
   certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
   submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
   reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
   monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -7829,12 +8926,15 @@ export type UserCountOutputType = {
   edited_certificate_templates: number
   certificate_signatory_lines: number
   certificate_deployments: number
+  issued_certificates: number
   submitted_monthly_reports: number
   reviewed_monthly_reports: number
   monthly_report_folders: number
   authored_announcements: number
   notifications: number
   evaluation_responses: number
+  user_requests: number
+  decided_user_requests: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -7859,12 +8959,15 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   edited_certificate_templates?: boolean | UserCountOutputTypeCountEdited_certificate_templatesArgs
   certificate_signatory_lines?: boolean | UserCountOutputTypeCountCertificate_signatory_linesArgs
   certificate_deployments?: boolean | UserCountOutputTypeCountCertificate_deploymentsArgs
+  issued_certificates?: boolean | UserCountOutputTypeCountIssued_certificatesArgs
   submitted_monthly_reports?: boolean | UserCountOutputTypeCountSubmitted_monthly_reportsArgs
   reviewed_monthly_reports?: boolean | UserCountOutputTypeCountReviewed_monthly_reportsArgs
   monthly_report_folders?: boolean | UserCountOutputTypeCountMonthly_report_foldersArgs
   authored_announcements?: boolean | UserCountOutputTypeCountAuthored_announcementsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   evaluation_responses?: boolean | UserCountOutputTypeCountEvaluation_responsesArgs
+  user_requests?: boolean | UserCountOutputTypeCountUser_requestsArgs
+  decided_user_requests?: boolean | UserCountOutputTypeCountDecided_user_requestsArgs
 }
 
 /**
@@ -8027,6 +9130,13 @@ export type UserCountOutputTypeCountCertificate_deploymentsArgs<ExtArgs extends 
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountIssued_certificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IssuedCertificateWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountSubmitted_monthly_reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MonthlyReportWhereInput
 }
@@ -8064,6 +9174,20 @@ export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Ty
  */
 export type UserCountOutputTypeCountEvaluation_responsesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EvaluationResponseWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountUser_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserRequestWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDecided_user_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserRequestWhereInput
 }
 
 
@@ -8109,12 +9233,15 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   edited_certificate_templates?: boolean | Prisma.User$edited_certificate_templatesArgs<ExtArgs>
   certificate_signatory_lines?: boolean | Prisma.User$certificate_signatory_linesArgs<ExtArgs>
   certificate_deployments?: boolean | Prisma.User$certificate_deploymentsArgs<ExtArgs>
+  issued_certificates?: boolean | Prisma.User$issued_certificatesArgs<ExtArgs>
   submitted_monthly_reports?: boolean | Prisma.User$submitted_monthly_reportsArgs<ExtArgs>
   reviewed_monthly_reports?: boolean | Prisma.User$reviewed_monthly_reportsArgs<ExtArgs>
   monthly_report_folders?: boolean | Prisma.User$monthly_report_foldersArgs<ExtArgs>
   authored_announcements?: boolean | Prisma.User$authored_announcementsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   evaluation_responses?: boolean | Prisma.User$evaluation_responsesArgs<ExtArgs>
+  user_requests?: boolean | Prisma.User$user_requestsArgs<ExtArgs>
+  decided_user_requests?: boolean | Prisma.User$decided_user_requestsArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -8209,12 +9336,15 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   edited_certificate_templates?: boolean | Prisma.User$edited_certificate_templatesArgs<ExtArgs>
   certificate_signatory_lines?: boolean | Prisma.User$certificate_signatory_linesArgs<ExtArgs>
   certificate_deployments?: boolean | Prisma.User$certificate_deploymentsArgs<ExtArgs>
+  issued_certificates?: boolean | Prisma.User$issued_certificatesArgs<ExtArgs>
   submitted_monthly_reports?: boolean | Prisma.User$submitted_monthly_reportsArgs<ExtArgs>
   reviewed_monthly_reports?: boolean | Prisma.User$reviewed_monthly_reportsArgs<ExtArgs>
   monthly_report_folders?: boolean | Prisma.User$monthly_report_foldersArgs<ExtArgs>
   authored_announcements?: boolean | Prisma.User$authored_announcementsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   evaluation_responses?: boolean | Prisma.User$evaluation_responsesArgs<ExtArgs>
+  user_requests?: boolean | Prisma.User$user_requestsArgs<ExtArgs>
+  decided_user_requests?: boolean | Prisma.User$decided_user_requestsArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -8251,12 +9381,15 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     edited_certificate_templates: Prisma.$CertificateTemplatePayload<ExtArgs>[]
     certificate_signatory_lines: Prisma.$CertificateTemplateSignatoryPayload<ExtArgs>[]
     certificate_deployments: Prisma.$CertificateDeploymentPayload<ExtArgs>[]
+    issued_certificates: Prisma.$IssuedCertificatePayload<ExtArgs>[]
     submitted_monthly_reports: Prisma.$MonthlyReportPayload<ExtArgs>[]
     reviewed_monthly_reports: Prisma.$MonthlyReportPayload<ExtArgs>[]
     monthly_report_folders: Prisma.$MonthlyReportFolderPayload<ExtArgs>[]
     authored_announcements: Prisma.$AnnouncementPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     evaluation_responses: Prisma.$EvaluationResponsePayload<ExtArgs>[]
+    user_requests: Prisma.$UserRequestPayload<ExtArgs>[]
+    decided_user_requests: Prisma.$UserRequestPayload<ExtArgs>[]
     role: Prisma.$RolePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -8698,12 +9831,15 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   edited_certificate_templates<T extends Prisma.User$edited_certificate_templatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$edited_certificate_templatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CertificateTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   certificate_signatory_lines<T extends Prisma.User$certificate_signatory_linesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$certificate_signatory_linesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CertificateTemplateSignatoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   certificate_deployments<T extends Prisma.User$certificate_deploymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$certificate_deploymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CertificateDeploymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  issued_certificates<T extends Prisma.User$issued_certificatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$issued_certificatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssuedCertificatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   submitted_monthly_reports<T extends Prisma.User$submitted_monthly_reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$submitted_monthly_reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonthlyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewed_monthly_reports<T extends Prisma.User$reviewed_monthly_reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewed_monthly_reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonthlyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   monthly_report_folders<T extends Prisma.User$monthly_report_foldersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$monthly_report_foldersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonthlyReportFolderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   authored_announcements<T extends Prisma.User$authored_announcementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$authored_announcementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AnnouncementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   evaluation_responses<T extends Prisma.User$evaluation_responsesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$evaluation_responsesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EvaluationResponsePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  user_requests<T extends Prisma.User$user_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  decided_user_requests<T extends Prisma.User$decided_user_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$decided_user_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -9695,6 +10831,30 @@ export type User$certificate_deploymentsArgs<ExtArgs extends runtime.Types.Exten
 }
 
 /**
+ * User.issued_certificates
+ */
+export type User$issued_certificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IssuedCertificate
+   */
+  select?: Prisma.IssuedCertificateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IssuedCertificate
+   */
+  omit?: Prisma.IssuedCertificateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IssuedCertificateInclude<ExtArgs> | null
+  where?: Prisma.IssuedCertificateWhereInput
+  orderBy?: Prisma.IssuedCertificateOrderByWithRelationInput | Prisma.IssuedCertificateOrderByWithRelationInput[]
+  cursor?: Prisma.IssuedCertificateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IssuedCertificateScalarFieldEnum | Prisma.IssuedCertificateScalarFieldEnum[]
+}
+
+/**
  * User.submitted_monthly_reports
  */
 export type User$submitted_monthly_reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -9836,6 +10996,54 @@ export type User$evaluation_responsesArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.EvaluationResponseScalarFieldEnum | Prisma.EvaluationResponseScalarFieldEnum[]
+}
+
+/**
+ * User.user_requests
+ */
+export type User$user_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserRequest
+   */
+  select?: Prisma.UserRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserRequest
+   */
+  omit?: Prisma.UserRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserRequestInclude<ExtArgs> | null
+  where?: Prisma.UserRequestWhereInput
+  orderBy?: Prisma.UserRequestOrderByWithRelationInput | Prisma.UserRequestOrderByWithRelationInput[]
+  cursor?: Prisma.UserRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserRequestScalarFieldEnum | Prisma.UserRequestScalarFieldEnum[]
+}
+
+/**
+ * User.decided_user_requests
+ */
+export type User$decided_user_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserRequest
+   */
+  select?: Prisma.UserRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserRequest
+   */
+  omit?: Prisma.UserRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserRequestInclude<ExtArgs> | null
+  where?: Prisma.UserRequestWhereInput
+  orderBy?: Prisma.UserRequestOrderByWithRelationInput | Prisma.UserRequestOrderByWithRelationInput[]
+  cursor?: Prisma.UserRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserRequestScalarFieldEnum | Prisma.UserRequestScalarFieldEnum[]
 }
 
 /**

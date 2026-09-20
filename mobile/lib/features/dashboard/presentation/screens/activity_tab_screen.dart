@@ -49,6 +49,7 @@ extension on _ActivityGroup {
 class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
   final _registrationStore = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
+  final _certificateStore = CertificateStore.instance;
 
   _ActivityGroup _group = _ActivityGroup.all;
 
@@ -61,6 +62,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
     super.initState();
     _feedbackStore.addListener(_onStoreChanged);
     _registrationStore.addListener(_onStoreChanged);
+    _certificateStore.addListener(_onStoreChanged);
     _phaseTimer = Timer.periodic(
       const Duration(minutes: 1),
       (_) => _onStoreChanged(),
@@ -72,6 +74,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
     _phaseTimer?.cancel();
     _feedbackStore.removeListener(_onStoreChanged);
     _registrationStore.removeListener(_onStoreChanged);
+    _certificateStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -125,10 +128,29 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
       _group == _ActivityGroup.all || _group == g;
 
   /// The completed card's call to action: the questionnaire while feedback
-  /// is outstanding, the certificate once it is in.
+  /// is outstanding, the certificate once the scheduler has issued it.
   Future<void> _onFeedbackTap(CaresEvent event) async {
     if (_feedbackStore.hasSubmitted(event.id, _userEmail)) {
-      CertificateReviewScreen.open(context, certificateForEvent(event));
+      final issued = _certificateStore.forEvent(event.serverId);
+      if (issued != null) {
+        CertificateReviewScreen.open(context, issued);
+        return;
+      }
+      await _certificateStore.refresh();
+      if (!mounted) return;
+      final refreshed = _certificateStore.forEvent(event.serverId);
+      if (refreshed != null) {
+        CertificateReviewScreen.open(context, refreshed);
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Your certificate is still being generated — check back shortly.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
     final submitted = await EventFeedbackScreen.open(context, event);
@@ -259,6 +281,9 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                               event.id,
                               _userEmail,
                             ),
+                            certificateIssued:
+                                _certificateStore.forEvent(event.serverId) !=
+                                null,
                             onTap: () =>
                                 EventDetailsScreen.open(context, event),
                             onFeedbackTap: () => _onFeedbackTap(event),

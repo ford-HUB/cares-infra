@@ -6,22 +6,18 @@ import { InlinePageHeader } from '../../components/portal/ui/page-chrome'
 import { UserRequestTimeline } from '../../components/user-request/user-request-timeline'
 import { DeletedRequestsModal } from '../../components/user-request/ui/deleted-requests-modal'
 import { UserRequestTimelineSkeleton } from '../../components/user-request/ui/user-request-timeline-skeleton'
-import { useAuthStore } from '../../store/auth-store'
-import { useBeneficiaryRequestStore } from '../../store/beneficiary-request-store'
-import type { BeneficiaryRequest } from '../../types/beneficiary-request'
+import { useUserRequestStore } from '../../store/user-request-store'
+import type { UserRequest } from '../../types/user-request'
 
 export function UserRequestPage() {
-  const requests = useBeneficiaryRequestStore((s) => s.requests)
-  const loading = useBeneficiaryRequestStore((s) => s.loading)
-  const initialized = useBeneficiaryRequestStore((s) => s.initialized)
-  const error = useBeneficiaryRequestStore((s) => s.error)
-  const fetchRequests = useBeneficiaryRequestStore((s) => s.fetchRequests)
-  const accept = useBeneficiaryRequestStore((s) => s.accept)
-  const remove = useBeneficiaryRequestStore((s) => s.remove)
-  const restore = useBeneficiaryRequestStore((s) => s.restore)
-
-  const user = useAuthStore((s) => s.user)
-  const actor = user ? `${user.firstName} ${user.lastName}` : 'Director'
+  const requests = useUserRequestStore((s) => s.requests)
+  const loading = useUserRequestStore((s) => s.loading)
+  const initialized = useUserRequestStore((s) => s.initialized)
+  const error = useUserRequestStore((s) => s.error)
+  const fetchRequests = useUserRequestStore((s) => s.fetchRequests)
+  const accept = useUserRequestStore((s) => s.accept)
+  const remove = useUserRequestStore((s) => s.remove)
+  const restore = useUserRequestStore((s) => s.restore)
 
   const [busyId, setBusyId] = useState<string | null>(null)
   const [binOpen, setBinOpen] = useState(false)
@@ -42,7 +38,7 @@ export function UserRequestPage() {
   )
 
   const runDecision = async (
-    request: BeneficiaryRequest,
+    request: UserRequest,
     action: () => Promise<void>,
     message: string,
   ) => {
@@ -50,31 +46,32 @@ export function UserRequestPage() {
     try {
       await action()
       toast.success(message)
-    } catch {
-      toast.error('The request could not be updated')
+    } catch (error) {
+      // The server's message says why — a full event, an already-decided row.
+      toast.error(error instanceof Error ? error.message : 'The request could not be updated')
     } finally {
       setBusyId(null)
     }
   }
 
-  const handleAccept = (request: BeneficiaryRequest) =>
+  const handleAccept = (request: UserRequest) =>
     void runDecision(
       request,
-      () => accept(request.id, actor),
+      () => accept(request.id),
       `${request.reference} accepted`,
     )
 
-  const handleDelete = (request: BeneficiaryRequest) =>
+  const handleDelete = (request: UserRequest) =>
     void runDecision(
       request,
-      () => remove(request.id, actor),
+      () => remove(request.id),
       `${request.reference} moved to deleted requests`,
     )
 
-  const handleRestore = (request: BeneficiaryRequest) =>
+  const handleRestore = (request: UserRequest) =>
     void runDecision(
       request,
-      () => restore(request.id, actor),
+      () => restore(request.id),
       `${request.reference} restored to the queue`,
     )
 
@@ -84,7 +81,7 @@ export function UserRequestPage() {
     <ContentShell>
       <InlinePageHeader
         title="User Request"
-        description="Beneficiary verification requests submitted from the volunteer app."
+        description="Volunteer access requests from donors and beneficiaries, and beneficiary event-join requests, submitted from the mobile app."
         action={
           <button
             type="button"

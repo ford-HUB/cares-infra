@@ -14,7 +14,6 @@ import 'package:mobile/features/dashboard/presentation/widgets/home_category_fil
 import 'package:mobile/features/dashboard/presentation/widgets/home_hero_particles.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/popular_event_deck.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_card.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/volunteer_home_hero.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
@@ -35,16 +34,12 @@ class VolunteerHomeTab extends ConsumerStatefulWidget {
   const VolunteerHomeTab({
     super.key,
     required this.displayName,
-    this.showProfileCompletionCard = true,
-    this.onCompleteProfile,
     this.onSeeAllEvents,
     this.onInterestsChanged,
     this.popularCount = 5,
   });
 
   final String displayName;
-  final bool showProfileCompletionCard;
-  final VoidCallback? onCompleteProfile;
 
   /// Opens the events tab from search and "View all". The filter button
   /// stays on this tab and drives the category list instead.
@@ -191,15 +186,6 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
                   filter: _unjoined,
                   onOpen: _open,
                 ),
-                if (widget.showProfileCompletionCard) ...[
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: _gutter),
-                    child: ProfileCompletionCard(
-                      onTap: widget.onCompleteProfile,
-                    ),
-                  ),
-                ],
                 const SizedBox(height: 8),
                 HomeSectionTitle(
                   title: 'Choose By Category',

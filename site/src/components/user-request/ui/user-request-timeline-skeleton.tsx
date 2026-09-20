@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import { REQUEST_SKELETON_ROWS } from '../../../constants/beneficiary-requests'
+import { REQUEST_SKELETON_ROWS } from '../../../constants/user-requests'
 
 export function UserRequestTimelineSkeleton({
   rows = REQUEST_SKELETON_ROWS,

@@ -11,11 +11,16 @@ class CompletedEventStatusCard extends StatelessWidget {
     required this.event,
     required this.participated,
     required this.feedbackSubmitted,
+    this.certificateIssued = false,
   });
 
   final CaresEvent event;
   final bool participated;
   final bool feedbackSubmitted;
+
+  /// True once the issuing scheduler has generated the sheet. Feedback alone
+  /// only unlocks it; the certificate itself arrives on the next sweep.
+  final bool certificateIssued;
 
   @override
   Widget build(BuildContext context) {
@@ -93,15 +98,21 @@ class CompletedEventStatusCard extends StatelessWidget {
                 : AppColors.accentOrange,
           ),
           CompletedEventStatusRow(
-            icon: feedbackSubmitted
+            icon: certificateIssued
                 ? Icons.workspace_premium_rounded
+                : feedbackSubmitted
+                ? Icons.hourglass_top_rounded
                 : Icons.lock_rounded,
             label: 'Certificate',
-            value: feedbackSubmitted
-                ? 'Available — Get Certificate'
+            value: certificateIssued
+                ? 'Issued — View Certificate'
+                : feedbackSubmitted
+                ? 'Generating — Ready shortly'
                 : 'Locked — Complete Feedback First',
-            valueColor: feedbackSubmitted
+            valueColor: certificateIssued
                 ? AppColors.primary
+                : feedbackSubmitted
+                ? AppColors.textSecondary
                 : AppColors.accentOrange,
           ),
         ],
@@ -164,15 +175,25 @@ class CompletedEventStatusRow extends StatelessWidget {
   }
 }
 
-/// Callout that explains the locked/unlocked certificate state.
+/// Callout that explains the certificate state: locked until feedback is in,
+/// generating while the scheduler has not cut the sheet yet, then issued.
 class CertificateStatusBanner extends StatelessWidget {
-  const CertificateStatusBanner({super.key, required this.unlocked});
+  const CertificateStatusBanner({
+    super.key,
+    required this.unlocked,
+    this.issued = false,
+  });
 
   final bool unlocked;
+  final bool issued;
 
   @override
   Widget build(BuildContext context) {
-    final color = unlocked ? AppColors.primary : AppColors.accentOrange;
+    final color = issued
+        ? AppColors.primary
+        : unlocked
+        ? AppColors.textSecondary
+        : AppColors.accentOrange;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -185,7 +206,11 @@ class CertificateStatusBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            unlocked ? Icons.lock_open_rounded : Icons.lock_rounded,
+            issued
+                ? Icons.workspace_premium_rounded
+                : unlocked
+                ? Icons.hourglass_top_rounded
+                : Icons.lock_rounded,
             size: 20,
             color: color,
           ),
@@ -195,8 +220,10 @@ class CertificateStatusBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  unlocked
-                      ? 'Certificate unlocked'
+                  issued
+                      ? 'Certificate issued'
+                      : unlocked
+                      ? 'Certificate on its way'
                       : 'Certificate locked — Complete Feedback First',
                   style: TextStyle(
                     fontSize: 14,
@@ -206,9 +233,12 @@ class CertificateStatusBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  unlocked
-                      ? 'Thank you for your feedback. Your certificate of '
-                            'participation is ready to view and download.'
+                  issued
+                      ? 'Your certificate for this event is ready to view '
+                            'and download.'
+                      : unlocked
+                      ? 'Thank you for your feedback. Your certificate is '
+                            'being generated and will appear here shortly.'
                       : 'Share your feedback about this event to unlock your '
                             'certificate of participation.',
                   style: const TextStyle(
@@ -234,11 +264,15 @@ class CompletedEventCard extends StatelessWidget {
     required this.event,
     required this.feedbackSubmitted,
     required this.onTap,
+    this.certificateIssued = false,
     this.onFeedbackTap,
   });
 
   final CaresEvent event;
   final bool feedbackSubmitted;
+
+  /// The scheduler has generated the sheet; the strip offers to open it.
+  final bool certificateIssued;
   final VoidCallback onTap;
 
   /// Tapping the feedback strip itself — the "Submit Feedback" / "View
@@ -399,8 +433,10 @@ class CompletedEventCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  feedbackSubmitted
+                                  certificateIssued
                                       ? 'Certificate available'
+                                      : feedbackSubmitted
+                                      ? 'Certificate generating'
                                       : 'Certificate locked',
                                   style: const TextStyle(
                                     fontSize: 12,

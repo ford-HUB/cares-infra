@@ -7,6 +7,7 @@ import '../domain/cares_event.dart';
 import '../domain/tracked_event.dart';
 import '../data/mock_events.dart';
 import 'location_capture_db.dart';
+import 'package:mobile/features/dashboard/data/event_reminder_scheduler.dart';
 
 class EventParticipation {
   EventParticipation({
@@ -86,6 +87,7 @@ class EventRegistrationStore extends ChangeNotifier {
     unawaited(
       _db.upsertJoinedEvent(TrackedEvent.fromEvent(event), participantEmail),
     );
+    unawaited(EventReminderScheduler.instance.sync(event));
     notifyListeners();
     return participation;
   }
@@ -98,6 +100,8 @@ class EventRegistrationStore extends ChangeNotifier {
     if (participation == null) return;
     participation.event = event;
     unawaited(_db.upsertJoinedEvent(TrackedEvent.fromEvent(event), email));
+    // A moved start time moves the reminders with it.
+    unawaited(EventReminderScheduler.instance.sync(event));
     notifyListeners();
   }
 
@@ -142,6 +146,7 @@ class EventRegistrationStore extends ChangeNotifier {
   void cancelParticipation(String eventId, String email) {
     final removed = _participations.remove(_key(eventId, email));
     unawaited(_db.deleteJoinedEvent(eventId, email));
+    unawaited(EventReminderScheduler.instance.cancel(eventId));
     if (removed != null) notifyListeners();
   }
 
