@@ -146,7 +146,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           _ocrData.lastname.trim().isNotEmpty &&
           _beneficiaryProfile.isComplete &&
           _ocrData.gender.trim().isNotEmpty &&
-          _ocrData.age > 0 &&
+          _ocrData.age >= 12 &&
+          _ocrData.age <= 80 &&
           _ocrData.currentAddress.trim().isNotEmpty &&
           isValidPhilippinePhone(_ocrData.phoneNumber);
     }
@@ -169,7 +170,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         baseValid &&
             _ocrData.majorName.trim().isNotEmpty &&
             _ocrData.yearLevelName.trim().isNotEmpty &&
-            _ocrData.graduationYear >= 1900 &&
+            _ocrData.graduationYear >= 2026 &&
             _ocrData.graduationMonth >= 1 &&
             _ocrData.graduationMonth <= 12 &&
             _ocrData.graduationDay >= 1 &&

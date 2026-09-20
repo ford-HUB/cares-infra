@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
@@ -10,6 +9,7 @@ import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
+import 'package:mobile/features/auth/services/location_service.dart';
 
 class RegisterOcrReviewStep extends StatefulWidget {
   const RegisterOcrReviewStep({
@@ -49,6 +49,10 @@ class RegisterOcrReviewStep extends StatefulWidget {
 class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   static const _genders = ['MALE', 'FEMALE', 'OTHER'];
   static const _yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  static final _graduationYears = List<String>.generate(
+    DateTime.now().year - 1950 + 1,
+    (index) => '${DateTime.now().year - index}',
+  );
   static const _shsGradeLevels = ['Grade 11', 'Grade 12'];
   static final _twoDigitInputFormatters = [
     FilteringTextInputFormatter.digitsOnly,
@@ -82,6 +86,52 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   String? _selectedDepartment;
   String? _selectedCourse;
   String? _selectedYearLevel;
+  String? _selectedCity;
+  String? _selectedBarangay;
+  String? _ageError;
+  String? get graduationDateError {
+    final monthText = _gradMonth.text.trim();
+    final dayText = _gradDay.text.trim();
+    final yearText = _gradYear.text.trim();
+
+    // Don't show an error while the fields are still empty.
+    if (monthText.isEmpty && dayText.isEmpty && yearText.isEmpty) {
+      return null;
+    }
+
+    final month = int.tryParse(monthText);
+    final day = int.tryParse(dayText);
+    final year = int.tryParse(yearText);
+
+    // Require all three parts.
+    if (month == null || day == null || year == null) {
+      return 'Please enter a valid graduation date.';
+    }
+
+    // Year must be 2026 or later.
+    if (year < 2026) {
+      return 'Graduation year must be 2026 or later.';
+    }
+
+    // Month must be 1-12.
+    if (month < 1 || month > 12) {
+      return 'Please enter a valid graduation date.';
+    }
+
+    // Check the actual number of days in the month.
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+
+    if (day < 1 || day > daysInMonth) {
+      return 'Please enter a valid graduation date.';
+    }
+
+    return null;
+  }
+
+  List<Location> _locations = [];
+  List<String> _barangays = [];
+  bool _loadingLocations = true;
+  bool _loadingBarangays = false;
 
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
@@ -100,6 +150,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   @override
   void initState() {
     super.initState();
+    _loadLocations();
+
     _firstname = TextEditingController();
     _lastname = TextEditingController();
     _middleName = TextEditingController();
@@ -133,6 +185,30 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       focusConflictField(this, _phoneFocus);
     } else if (widget.idNumberError != null) {
       focusConflictField(this, _idNumberFocus);
+    }
+  }
+
+  Future<void> _loadLocations() async {
+    try {
+      final locations = await LocationService.getCebuCitiesMunicipalities();
+
+      if (!mounted) return;
+
+      setState(() {
+        _locations = locations;
+        _loadingLocations = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _locations = [];
+        _loadingLocations = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to load cities/municipalities: $e')),
+      );
     }
   }
 
@@ -290,11 +366,84 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _notifyParent();
   }
 
+  void _updateAddress() {
+    if (_selectedCity != null && _selectedBarangay != null) {
+      _address.text = '$_selectedBarangay, $_selectedCity';
+    } else {
+      _address.text = '';
+    }
+  }
+
+  Future<void> _onCityChanged(String? cityName) async {
+    final selectedLocation = _locations.firstWhere(
+      (location) => location.name == cityName,
+      orElse: () => const Location(code: '', name: '', type: ''),
+    );
+
+    setState(() {
+      _selectedCity = cityName;
+      _selectedBarangay = null;
+      _barangays = [];
+      _loadingBarangays = cityName != null;
+    });
+
+    _updateAddress();
+    _notifyParent();
+
+    if (cityName == null || selectedLocation.code.isEmpty) {
+      setState(() {
+        _loadingBarangays = false;
+      });
+      return;
+    }
+
+    try {
+      final barangays = await LocationService.getBarangays(
+        selectedLocation.code,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _barangays = barangays;
+        _loadingBarangays = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _barangays = [];
+        _loadingBarangays = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to load barangays: $e')));
+    }
+  }
+
+  String? get ageError {
+    final value = _age.text.trim();
+
+    if (value.isEmpty) {
+      return 'Please enter your age.';
+    }
+
+    final age = int.tryParse(value);
+
+    if (age == null || age < 12 || age > 80) {
+      return 'Please enter a valid age to continue.';
+    }
+
+    return null;
+  }
+
   void _notifyParent() {
     if (!mounted || widget.isExtracting || widget.extractFailed) return;
 
     final base = _effectiveData;
-    final age = int.tryParse(_age.text.trim()) ?? 0;
+    final ageText = _age.text.trim();
+    final age = int.tryParse(ageText);
     final gradYear = int.tryParse(_gradYear.text.trim()) ?? 0;
     final gradMonth = int.tryParse(_gradMonth.text.trim()) ?? 0;
     final gradDay = int.tryParse(_gradDay.text.trim()) ?? 0;
@@ -310,7 +459,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         lastname: fieldOrParsed(_lastname.text, base.lastname),
         middleName: fieldOrParsed(_middleName.text, base.middleName),
         gender: _gender.trim().isNotEmpty ? _gender : base.gender,
-        age: age > 0 ? age : base.age,
+        age: age != null && age >= 1 && age <= 100 ? age : 0,
         currentAddress: fieldOrParsed(_address.text, base.currentAddress),
         phoneNumber: fieldOrParsed(_phone.text, base.phoneNumber),
         idNumber: fieldOrParsed(_idNumber.text, base.idNumber),
@@ -486,30 +635,76 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 _notifyParent();
               },
             ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                RegisterFormField(
+                  label: 'Age',
+                  controller: _age,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (_) {
+                    setState(() {});
+                    _notifyParent();
+                  },
+                ),
+
+                if (_age.text.trim().isNotEmpty &&
+                    (int.tryParse(_age.text.trim()) == null ||
+                        int.parse(_age.text.trim()) < 12 ||
+                        int.parse(_age.text.trim()) > 80))
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.08),
+                      border: Border.all(color: Colors.red),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Please enter a correct age between 12 and 80 to continue.',
+                      style: TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 14),
-            RegisterFormField(
-              label: 'Age',
-              controller: _age,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (_) => _notifyParent(),
+            _dropdown(
+              label: 'City / Municipality',
+              value: _selectedCity,
+              items: _locations.map((location) => location.name).toList(),
+              hint: _loadingLocations
+                  ? 'Loading Cities/Municipalities...'
+                  : 'Select City / Municipality',
+              enabled: !_loadingLocations && _locations.isNotEmpty,
+              onChanged: _onCityChanged,
+            ),
+
+            const SizedBox(height: 14),
+            _dropdown(
+              label: 'Barangay',
+              value: _selectedBarangay,
+              items: _barangays,
+              hint: _loadingBarangays
+                  ? 'Loading barangays...'
+                  : 'Select Barangay',
+              enabled:
+                  _selectedCity != null &&
+                  !_loadingBarangays &&
+                  _barangays.isNotEmpty,
+              onChanged: (value) {
+                setState(() {
+                  _selectedBarangay = value;
+                });
+                _updateAddress();
+                _notifyParent();
+              },
             ),
             const SizedBox(height: 14),
             RegisterFormField(
               label: 'Address',
               controller: _address,
               maxLines: 2,
-              onChanged: (_) => _notifyParent(),
-            ),
-            const SizedBox(height: 14),
-            RegisterFormField(
-              label: 'Phone number',
-              hint: '+639XXXXXXXXX',
-              controller: _phone,
-              focusNode: _phoneFocus,
-              errorText: widget.phoneError ?? philippinePhoneError(_phone.text),
-              keyboardType: TextInputType.phone,
-              inputFormatters: const [PhilippinePhoneFormatter()],
               onChanged: (_) => _notifyParent(),
             ),
           ],
@@ -570,13 +765,19 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ],
             if (_isAlumni) ...[
               const SizedBox(height: 14),
-              RegisterFormField(
+              _dropdown(
                 label: 'Graduated year',
-                controller: _gradYear,
-                focusNode: _gradYearFocus,
-                keyboardType: TextInputType.number,
-                inputFormatters: _fourDigitInputFormatters,
-                onChanged: _onGradYearChanged,
+                value:
+                    _gradYear.text.isNotEmpty &&
+                        _graduationYears.contains(_gradYear.text)
+                    ? _gradYear.text
+                    : null,
+                items: _graduationYears,
+                hint: 'Select your graduation year',
+                onChanged: (value) {
+                  _gradYear.text = value ?? '';
+                  _notifyParent();
+                },
               ),
             ],
             if (_isStudent) ...[
@@ -600,7 +801,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       inputFormatters: _twoDigitInputFormatters,
-                      onChanged: _onGradMonthChanged,
+                      onChanged: (_) {
+                        setState(() {});
+                        _onGradMonthChanged(_gradMonth.text);
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -612,7 +816,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       inputFormatters: _twoDigitInputFormatters,
-                      onChanged: _onGradDayChanged,
+                      onChanged: (_) {
+                        setState(() {});
+                        _onGradDayChanged(_gradDay.text);
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -625,7 +832,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
                       inputFormatters: _fourDigitInputFormatters,
-                      onChanged: _onGradYearChanged,
+                      errorText: graduationDateError,
+                      onChanged: (_) {
+                        setState(() {});
+                        _onGradYearChanged(_gradYear.text);
+                      },
                     ),
                   ),
                 ],
