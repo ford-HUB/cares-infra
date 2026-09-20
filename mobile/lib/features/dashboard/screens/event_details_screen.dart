@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -53,11 +55,20 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool _organizerExpanded = false;
   bool _registrationBusy = false;
 
+  /// Redraws once a minute so the screen crosses from upcoming to ongoing to
+  /// finished on its own while it stays open.
+  Timer? _phaseTimer;
+
   @override
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onFeedbackChanged);
     _tracker.addListener(_onFeedbackChanged);
+    _store.addListener(_onStoreChanged);
+    _phaseTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _onFeedbackChanged(),
+    );
     if (_event.isCompleted) {
       // Prototype scenario: the volunteer already joined and attended.
       _store.seedCompletedEventParticipation(email: _participantEmail);
@@ -66,6 +77,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   @override
   void dispose() {
+    _phaseTimer?.cancel();
+    _store.removeListener(_onStoreChanged);
     _feedbackStore.removeListener(_onFeedbackChanged);
     _tracker.removeListener(_onFeedbackChanged);
     super.dispose();
@@ -73,6 +86,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   void _onFeedbackChanged() {
     if (mounted) setState(() {});
+  }
+
+  /// A feed refresh may have swapped in a newer copy of a joined event
+  /// (status flipped, end time corrected) — follow it while the screen is up.
+  void _onStoreChanged() {
+    final refreshed = _store.participationFor(_event.id, _participantEmail);
+    if (!mounted) return;
+    setState(() {
+      if (refreshed != null) _event = refreshed.event;
+    });
   }
 
   String get _participantEmail =>
@@ -146,10 +169,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         registeredCount: result.participants,
         totalCapacity: result.maxParticipants,
       );
-      ProviderScope.containerOf(
-        context,
-        listen: false,
-      ).invalidate(recommendedEventsProvider);
+      final container = ProviderScope.containerOf(context, listen: false);
+      container.invalidate(recommendedEventsProvider);
+      container.invalidate(registeredEventsProvider);
       return true;
     } on ApiException catch (error) {
       if (!mounted) return false;
@@ -260,7 +282,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final event = _event;
     final participation = _participation;
     final isRegistered = _isRegistered;
-    final isCompleted = event.isCompleted;
+    // Ended on the server or by the clock — either way the join/cancel
+    // controls are gone and the completed section takes over.
+    final isCompleted = event.hasEnded();
+    final isOngoing = event.isOngoing();
     final feedbackSubmitted = _feedbackSubmitted;
 
     // The hero photo runs under the status bar, so its icons go light.
@@ -302,6 +327,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 const EventStatusPill(
                                   label: 'COMPLETED',
                                   color: AppColors.primary,
+                                ),
+                              ] else if (isRegistered && isOngoing) ...[
+                                const SizedBox(width: 10),
+                                const EventStatusPill(
+                                  label: 'ONGOING',
+                                  color: AppColors.accentOrange,
                                 ),
                               ] else if (isRegistered) ...[
                                 const SizedBox(width: 10),
@@ -385,6 +416,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     participation: participation,
                     isRegistered: isRegistered,
                     isCompleted: isCompleted,
+                    isOngoing: isOngoing,
                     feedbackSubmitted: feedbackSubmitted,
                   ),
                 ),
@@ -502,9 +534,20 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     required EventParticipation? participation,
     required bool isRegistered,
     required bool isCompleted,
+    required bool isOngoing,
     required bool feedbackSubmitted,
   }) {
+    // A finished event has no Cancel or Sync — only the feedback /
+    // certificate follow-up for those who joined.
     if (isCompleted) {
+      if (!isRegistered) {
+        return FilledButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.event_busy_rounded),
+          label: const Text('Event has ended'),
+          style: _pillStyle,
+        );
+      }
       return feedbackSubmitted
           ? FilledButton.icon(
               onPressed: _viewCertificate,
@@ -520,10 +563,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             );
     }
     if (isRegistered) {
+      // Once the event has started the slot is locked in: Cancel stays
+      // visible but disabled, and Sync keeps working for attendance.
+      final canCancel = !_registrationBusy && !isOngoing;
       return Row(
         children: [
           OutlinedButton.icon(
-            onPressed: _registrationBusy ? null : _confirmCancel,
+            onPressed: canCancel ? _confirmCancel : null,
             icon: const Icon(Icons.close_rounded, size: 18),
             label: const Text('Cancel'),
             style: _pillCancelStyle,

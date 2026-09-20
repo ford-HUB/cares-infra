@@ -181,7 +181,7 @@ class _ActionPill extends StatelessWidget {
     final Color foreground;
     final Color border;
 
-    if (event.isCompleted) {
+    if (event.hasEnded()) {
       label = 'View details';
       fill = AppColors.inputFill;
       foreground = AppColors.textPrimary;
@@ -201,7 +201,7 @@ class _ActionPill extends StatelessWidget {
     // Countdown only while there are still days to count — on the day itself
     // "0d left" says nothing the date line doesn't, so it goes away.
     final urgent =
-        !event.isCompleted &&
+        !event.hasEnded() &&
         !registered &&
         event.daysUntil > 0 &&
         event.daysUntil <= 3;
@@ -219,7 +219,7 @@ class _ActionPill extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (registered && !event.isCompleted) ...[
+                  if (registered && !event.hasEnded()) ...[
                     Icon(Icons.check_rounded, size: 15, color: foreground),
                     const SizedBox(width: 6),
                   ],
@@ -247,7 +247,7 @@ class _ActionPill extends StatelessWidget {
             ),
           ),
         ],
-        if (!event.isCompleted) ...[
+        if (!event.hasEnded()) ...[
           const SizedBox(width: 12),
           EventJoinedCount(
             joined: event.registeredCount,

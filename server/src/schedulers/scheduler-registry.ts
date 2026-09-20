@@ -9,6 +9,7 @@ export const SCHEDULER_QUEUES = {
   cleanup: 'cleanup',
   diagnostics: 'diagnostics',
   attendance: 'attendance',
+  events: 'events',
 } as const;
 
 export type SchedulerQueueName =
@@ -126,6 +127,17 @@ export const SCHEDULER_DEFINITIONS: SchedulerDefinition[] = [
     owner: 'server',
     trigger: { every: 5 * MINUTE },
     maxRuntimeMs: 4 * MINUTE,
+    attempts: 2,
+  },
+  {
+    id: 'advance-event-status',
+    queue: SCHEDULER_QUEUES.events,
+    name: 'Advance event status',
+    description:
+      'Every minute, marks events that have started as Ongoing and events past their end time as Completed, so the portal and the mobile app show the live phase.',
+    owner: 'server',
+    trigger: { every: 1 * MINUTE },
+    maxRuntimeMs: 1 * MINUTE,
     attempts: 2,
   },
   {

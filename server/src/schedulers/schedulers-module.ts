@@ -2,16 +2,19 @@ import { BullModule } from '@nestjs/bullmq';
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventAttendanceValidationModule } from '../modules/event-attendance/modules/event-attendance-validation-module';
+import { EventStatusModule } from '../modules/events/modules/event-status-module';
 import { NotificationsModule } from '../modules/notifications/modules/notifications-module';
 import { AttendanceScheduler } from './jobs/attendance-scheduler';
 import { CleanupScheduler } from './jobs/cleanup-scheduler';
 import { DiagnosticsScheduler } from './jobs/diagnostics-scheduler';
 import { EmailScheduler } from './jobs/email-scheduler';
+import { EventsScheduler } from './jobs/events-scheduler';
 import { NotificationScheduler } from './jobs/notification-scheduler';
 import { AttendanceProcessor } from './processors/attendance-processor';
 import { CleanupProcessor } from './processors/cleanup-processor';
 import { DiagnosticsProcessor } from './processors/diagnostics-processor';
 import { EmailProcessor } from './processors/email-processor';
+import { EventsProcessor } from './processors/events-processor';
 import { NotificationProcessor } from './processors/notification-processor';
 import { SystemDiagnosticsChecker } from './scheduler-diagnostics';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from './scheduler-registry';
@@ -45,9 +48,11 @@ import { SchedulerRepository } from './scheduler-repository';
       { name: SCHEDULER_QUEUES.cleanup },
       { name: SCHEDULER_QUEUES.diagnostics },
       { name: SCHEDULER_QUEUES.attendance },
+      { name: SCHEDULER_QUEUES.events },
     ),
     NotificationsModule,
     EventAttendanceValidationModule,
+    EventStatusModule,
   ],
   providers: [
     SchedulerRunRecorder,
@@ -57,12 +62,14 @@ import { SchedulerRepository } from './scheduler-repository';
     CleanupScheduler,
     DiagnosticsScheduler,
     AttendanceScheduler,
+    EventsScheduler,
     SystemDiagnosticsChecker,
     EmailProcessor,
     NotificationProcessor,
     CleanupProcessor,
     DiagnosticsProcessor,
     AttendanceProcessor,
+    EventsProcessor,
   ],
   exports: [
     BullModule,

@@ -17,7 +17,9 @@ class EventParticipation {
   }) : eventId = event.id;
 
   /// The joined event — the geofence tracker reads its venue and schedule.
-  final CaresEvent event;
+  /// Replaced by [EventRegistrationStore.refreshEvent] whenever the feed
+  /// brings a newer copy (status, end time, slot counts).
+  CaresEvent event;
   final String eventId;
   final String participantEmail;
   final String participantName;
@@ -86,6 +88,17 @@ class EventRegistrationStore extends ChangeNotifier {
     );
     notifyListeners();
     return participation;
+  }
+
+  /// Swaps in a fresher copy of an already-joined event without touching the
+  /// registration itself, so a status flip on the server (Ongoing, Completed)
+  /// or a corrected end time reaches the activity page and the tracker.
+  void refreshEvent(CaresEvent event, {required String email}) {
+    final participation = _participations[_key(event.id, email)];
+    if (participation == null) return;
+    participation.event = event;
+    unawaited(_db.upsertJoinedEvent(TrackedEvent.fromEvent(event), email));
+    notifyListeners();
   }
 
   /// Seeds the prototype scenario: the volunteer already joined every

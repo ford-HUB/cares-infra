@@ -24,6 +24,7 @@ import {
   EventRegistrationResponseDto,
   RecommendedEventDto,
   RecommendedEventsResponseDto,
+  RegisteredEventsResponseDto,
 } from '../dto/events-mobile-dto';
 import { EventsRepository } from '../repositories/events-repository';
 
@@ -102,6 +103,17 @@ export class EventsMobileService {
   }
 
   /**
+   * The volunteer's own registrations — every event they hold a slot on, whether
+   * it is still ahead, running, or already over. This is what the activity page
+   * hydrates from, since finished events drop out of the recommended pool.
+   */
+  async listRegistered(userId: string): Promise<RegisteredEventsResponseDto> {
+    const events =
+      await this.eventsRepository.findRegisteredForVolunteer(userId);
+    return { events: events.map((event) => this.mapToDto(event, [])) };
+  }
+
+  /**
    * Takes one slot on the event for the volunteer. Idempotent: a second call for
    * an event they already joined just returns the current counts.
    */
@@ -127,6 +139,16 @@ export class EventsMobileService {
   ): Promise<EventRegistrationResponseDto> {
     const event = await this.eventsRepository.findById(eventId);
     if (!event) throw new NotFoundException('Event not found');
+    // The slot is locked in once the event starts — the app greys out Cancel
+    // at the same moment, so this only catches a stale screen.
+    if (
+      event.status !== EventStatus.Upcoming ||
+      event.event_started.getTime() <= Date.now()
+    ) {
+      throw new BadRequestException(
+        'Registration can no longer be cancelled once the event has started',
+      );
+    }
 
     const counts = await this.withSerializationRetry(() =>
       this.eventsRepository.unregister(eventId, userId),
@@ -325,7 +347,8 @@ export class EventsMobileService {
       marker_lng: event.marker_lng ?? null,
       image_count: event.images.length,
       matched_interests: matched,
-      match_score: Math.max(...matched.map((m) => m.score)),
+      match_score:
+        matched.length === 0 ? 0 : Math.max(...matched.map((m) => m.score)),
     };
   }
 }

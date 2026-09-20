@@ -62,6 +62,11 @@ export const RecommendedEventsResponseSchema = z.object({
   events: z.array(RecommendedEventSchema),
 });
 
+/** The volunteer's own registrations, past and upcoming. No interest matching. */
+export const RegisteredEventsResponseSchema = z.object({
+  events: z.array(RecommendedEventSchema),
+});
+
 export const EventRegistrationResponseSchema = z.object({
   event_id: z.number(),
   is_registered: z.boolean(),

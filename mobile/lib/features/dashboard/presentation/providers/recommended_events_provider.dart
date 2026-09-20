@@ -27,6 +27,30 @@ final recommendedEventsProvider =
       return page;
     });
 
+/// The volunteer's own registrations for the activity page. Unlike the feed
+/// this includes finished events, so it is the source that puts them under
+/// "Completed" after a restart. Each fetch reconciles the store the same way
+/// and additionally drops local server-backed rows the server no longer has.
+final registeredEventsProvider =
+    FutureProvider.autoDispose<List<RecommendedEvent>>((ref) async {
+      final events = await ref
+          .read(recommendedEventsServiceProvider)
+          .fetchRegistered();
+      _syncRegistrations(events);
+
+      final store = EventRegistrationStore.instance;
+      final email =
+          StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
+      final serverIds = events.map((e) => e.caresEventId).toSet();
+      for (final participation in store.participationsForEmail(email)) {
+        final event = participation.event;
+        if (event.serverId != null && !serverIds.contains(event.id)) {
+          store.cancelParticipation(event.id, email);
+        }
+      }
+      return events;
+    });
+
 void _syncRegistrations(List<RecommendedEvent> events) {
   final store = EventRegistrationStore.instance;
   final email =
@@ -35,6 +59,10 @@ void _syncRegistrations(List<RecommendedEvent> events) {
     final local = store.isRegistered(event.caresEventId, email);
     if (event.isRegistered && !local) {
       store.register(event.toCaresEvent(), email: email);
+    } else if (event.isRegistered && local) {
+      // Already joined: keep the stored copy current so the server's status
+      // and counts win over the snapshot taken at join time.
+      store.refreshEvent(event.toCaresEvent(), email: email);
     } else if (!event.isRegistered && local) {
       store.cancelParticipation(event.caresEventId, email);
     }

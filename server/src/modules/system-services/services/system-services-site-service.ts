@@ -52,6 +52,7 @@ export class SystemServicesSiteService {
     @InjectQueue(SCHEDULER_QUEUES.cleanup) cleanupQueue: Queue,
     @InjectQueue(SCHEDULER_QUEUES.diagnostics) diagnosticsQueue: Queue,
     @InjectQueue(SCHEDULER_QUEUES.attendance) attendanceQueue: Queue,
+    @InjectQueue(SCHEDULER_QUEUES.events) eventsQueue: Queue,
   ) {
     this.queues = {
       email: emailQueue,
@@ -59,6 +60,7 @@ export class SystemServicesSiteService {
       cleanup: cleanupQueue,
       diagnostics: diagnosticsQueue,
       attendance: attendanceQueue,
+      events: eventsQueue,
     };
   }
 

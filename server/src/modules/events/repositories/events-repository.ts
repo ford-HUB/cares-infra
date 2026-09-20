@@ -42,6 +42,28 @@ export class EventsRepository {
   }
 
   /**
+   * Every event this volunteer holds an attendance row on, latest first —
+   * finished ones included, since the activity page is where they land once
+   * they leave the open pool. Cancelled events are left out.
+   */
+  async findRegisteredForVolunteer(userId: string) {
+    return this.prisma.event.findMany({
+      where: {
+        status: { not: EventStatus.Cancelled },
+        attendances: { some: { user_id: userId } },
+      },
+      include: {
+        _count: { select: { attendances: true } },
+        attendances: {
+          where: { user_id: userId },
+          select: { event_attendance_id: true },
+        },
+      },
+      orderBy: { event_started: 'desc' },
+    });
+  }
+
+  /**
    * Registers a volunteer: inserts their attendance row and rewrites the event's
    * `participants` from the actual row count. Runs serializable so two volunteers
    * racing for the last slot cannot both get it; the caller retries on a
@@ -140,6 +162,32 @@ export class EventsRepository {
       where: { event_id: id },
       data: donations,
     });
+  }
+
+  /**
+   * Rolls every event's status forward on the clock: started ones become
+   * Ongoing, finished ones Completed. Cancelled rows are never touched. Returns
+   * how many rows moved in each direction so the sweep can log it.
+   */
+  async advanceStatuses(now: Date) {
+    const [completed, ongoing] = await this.prisma.$transaction([
+      this.prisma.event.updateMany({
+        where: {
+          status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
+          event_ended: { lte: now },
+        },
+        data: { status: EventStatus.Completed },
+      }),
+      this.prisma.event.updateMany({
+        where: {
+          status: EventStatus.Upcoming,
+          event_started: { lte: now },
+          event_ended: { gt: now },
+        },
+        data: { status: EventStatus.Ongoing },
+      }),
+    ]);
+    return { ongoing: ongoing.count, completed: completed.count };
   }
 
   async updateStatus(id: number, status: EventStatus) {

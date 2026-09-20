@@ -25,4 +25,14 @@ class RecommendedEventsService {
       response['data'] as Map<String, dynamic>,
     );
   }
+
+  /// Every event the caller holds a slot on — upcoming, ongoing and finished.
+  /// Same row shape as the feed, minus interest matching.
+  Future<List<RecommendedEvent>> fetchRegistered() async {
+    final response = await _api.getJson('/events/registered');
+    final data = response['data'] as Map<String, dynamic>;
+    return (data['events'] as List<dynamic>? ?? [])
+        .map((e) => RecommendedEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }
