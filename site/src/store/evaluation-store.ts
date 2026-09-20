@@ -33,7 +33,8 @@ interface EvaluationState {
   responsesInitialized: boolean
 
   fetchForm: () => Promise<void>
-  saveForm: () => Promise<{ ok: boolean; message?: string }>
+  /** Saves as-is; pass a status to move between draft and published in the same call. */
+  saveForm: (status?: EvaluationForm['status']) => Promise<{ ok: boolean; message?: string }>
   updateForm: (patch: Partial<Pick<EvaluationForm, 'title' | 'description'>>) => void
   updateHeaderTypography: (patch: Partial<EvaluationTypography>) => void
   setActiveQuestion: (id: string | null) => void
@@ -101,22 +102,23 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
     fetchForm: async () => {
       set({ formLoading: true })
       const result = await getEvaluationForm()
+      const form = result.success ? result.data : null
       set({
-        form: result.success ? result.data : null,
+        form,
         formLoading: false,
         formInitialized: true,
         dirty: false,
-        activeQuestionId: result.success ? (result.data.questions[0]?.id ?? null) : null,
+        activeQuestionId: form?.questions[0]?.id ?? null,
       })
     },
 
-    saveForm: async () => {
+    saveForm: async (status) => {
       const { form } = get()
       if (!form) return { ok: false, message: 'Nothing to save' }
       set({ saving: true })
-      const result = await saveEvaluationForm(form)
+      const result = await saveEvaluationForm(form, status)
       set({ saving: false })
-      if (result.success) set({ form: result.data, dirty: false })
+      if (result.success && result.data) set({ form: result.data, dirty: false })
       return { ok: result.success, message: result.message }
     },
 
@@ -208,7 +210,7 @@ export const useEvaluationStore = create<EvaluationState>((set, get) => {
       set({ responsesLoading: true })
       const result = await listEvaluationResponses()
       set({
-        responses: result.success ? result.data : [],
+        responses: result.success && result.data ? result.data : [],
         responsesLoading: false,
         responsesInitialized: true,
       })

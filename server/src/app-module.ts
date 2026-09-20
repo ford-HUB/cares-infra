@@ -21,6 +21,7 @@ import { ProfileModule } from './modules/profile/modules/profile-module';
 import { SettingsModule } from './modules/settings/modules/settings-module';
 import { EventsModule } from './modules/events/modules/events-module';
 import { EventAttendanceModule } from './modules/event-attendance/modules/event-attendance-module';
+import { EvaluationModule } from './modules/evaluation/modules/evaluation-module';
 import { CertificateTemplatesModule } from './modules/certificate-templates/modules/certificate-templates-module';
 import { CertificateDeploymentsModule } from './modules/certificate-deployments/modules/certificate-deployments-module';
 import { UsersModule } from './modules/users/modules/users-module';
@@ -65,6 +66,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     SettingsModule,
     EventsModule,
     EventAttendanceModule,
+    EvaluationModule,
     CertificateTemplatesModule,
     CertificateDeploymentsModule,
     UsersModule,

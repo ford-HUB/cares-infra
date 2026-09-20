@@ -58,6 +58,7 @@ model User {
   monthly_report_folders        MonthlyReportFolder[]          @relation("MonthlyReportFolderCreator")
   authored_announcements        Announcement[]                 @relation("AnnouncementAuthor")
   notifications                 Notification[]                 @relation("UserNotifications")
+  evaluation_responses          EvaluationResponse[]
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -609,6 +610,7 @@ model Event {
   certificate_deployments CertificateDeployment[]
   attendances            EventAttendance[]
   location_pings         EventLocationPing[]
+  evaluation_responses   EvaluationResponse[]
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
 }
@@ -1225,4 +1227,54 @@ model Notification {
 
   @@unique([dedupe_key, user_id])
   @@index([user_id, dismissed_at, createdAt])
+}
+
+enum EvaluationFormStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// The post-event questionnaire the director builds in the portal. One form serves
+/// every completed event; the volunteer app only ever sees it once PUBLISHED. The
+/// questions are stored as the JSON the builder edits (see the evaluation validators
+/// for the shape) so adding a question type never needs a migration.
+model EvaluationForm {
+  evaluation_form_id String               @id @default(uuid())
+  title              String
+  description        String               @default("")
+  header_typography  Json
+  questions          Json
+  status             EvaluationFormStatus @default(DRAFT)
+  responses          EvaluationResponse[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+/// Whether every required question was answered when the volunteer submitted.
+enum EvaluationResponseStatus {
+  COMPLETE
+  PARTIAL
+}
+
+/// One volunteer's answers to the questionnaire for one completed event they took
+/// part in. `answers` is keyed by question id; `rating` copies the star-rating
+/// answer out so the portal can filter and average without opening the JSON.
+model EvaluationResponse {
+  evaluation_response_id String                   @id @default(uuid())
+  form_id                String
+  form                   EvaluationForm           @relation(fields: [form_id], references: [evaluation_form_id], onDelete: Cascade)
+  event_id               Int
+  event                  Event                    @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  user_id                String
+  user                   User                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  answers                Json
+  rating                 Int?
+  status                 EvaluationResponseStatus @default(COMPLETE)
+  submitted_at           DateTime                 @default(now())
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+
+  @@unique([event_id, user_id])
+  @@index([event_id])
+  @@index([user_id])
 }

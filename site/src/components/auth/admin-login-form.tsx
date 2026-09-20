@@ -26,7 +26,7 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/admin-bg.png')" }}
+          style={{ backgroundImage: "url('/admin-login-bg.png')" }}
         />
         {/* <div
           aria-hidden

@@ -91,7 +91,9 @@ export const ModelName = {
   MonthlyReportDocument: 'MonthlyReportDocument',
   MonthlyReportTrailEntry: 'MonthlyReportTrailEntry',
   Announcement: 'Announcement',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  EvaluationForm: 'EvaluationForm',
+  EvaluationResponse: 'EvaluationResponse'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -759,6 +761,36 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EvaluationFormScalarFieldEnum = {
+  evaluation_form_id: 'evaluation_form_id',
+  title: 'title',
+  description: 'description',
+  header_typography: 'header_typography',
+  questions: 'questions',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationFormScalarFieldEnum = (typeof EvaluationFormScalarFieldEnum)[keyof typeof EvaluationFormScalarFieldEnum]
+
+
+export const EvaluationResponseScalarFieldEnum = {
+  evaluation_response_id: 'evaluation_response_id',
+  form_id: 'form_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  answers: 'answers',
+  rating: 'rating',
+  status: 'status',
+  submitted_at: 'submitted_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationResponseScalarFieldEnum = (typeof EvaluationResponseScalarFieldEnum)[keyof typeof EvaluationResponseScalarFieldEnum]
 
 
 export const SortOrder = {

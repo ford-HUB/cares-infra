@@ -234,14 +234,20 @@ class CompletedEventCard extends StatelessWidget {
     required this.event,
     required this.feedbackSubmitted,
     required this.onTap,
+    this.onFeedbackTap,
   });
 
   final CaresEvent event;
   final bool feedbackSubmitted;
   final VoidCallback onTap;
 
+  /// Tapping the feedback strip itself — the "Submit Feedback" / "View
+  /// Certificate" call to action. Falls back to [onTap] when not given.
+  final VoidCallback? onFeedbackTap;
+
   @override
   Widget build(BuildContext context) {
+    final absent = event.isMarkedAbsent && !feedbackSubmitted;
     final accent = feedbackSubmitted
         ? AppColors.primary
         : AppColors.accentOrange;
@@ -349,75 +355,136 @@ class CompletedEventCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.08),
+                if (absent)
+                  const _AbsentNotice()
+                else
+                  InkWell(
+                    onTap: onFeedbackTap ?? onTap,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: accent.withValues(alpha: 0.2)),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            feedbackSubmitted
+                                ? Icons.workspace_premium_rounded
+                                : Icons.lock_rounded,
+                            size: 18,
+                            color: accent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  feedbackSubmitted
+                                      ? 'Feedback: Submitted'
+                                      : 'Feedback: Not Submitted',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: accent,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  feedbackSubmitted
+                                      ? 'Certificate available'
+                                      : 'Certificate locked',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            feedbackSubmitted
+                                ? 'View Certificate'
+                                : 'Submit Feedback',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: accent,
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 18,
+                            color: accent,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        feedbackSubmitted
-                            ? Icons.workspace_premium_rounded
-                            : Icons.lock_rounded,
-                        size: 18,
-                        color: accent,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              feedbackSubmitted
-                                  ? 'Feedback: Submitted'
-                                  : 'Feedback: Not Submitted',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: accent,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              feedbackSubmitted
-                                  ? 'Certificate available'
-                                  : 'Certificate locked',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        feedbackSubmitted
-                            ? 'View Certificate'
-                            : 'Give Feedback',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: accent,
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 18,
-                        color: accent,
-                      ),
-                    ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Replaces the feedback call to action when the geofence validator ruled
+/// the volunteer absent: says why feedback is closed instead of offering a
+/// button that the server would refuse.
+class _AbsentNotice extends StatelessWidget {
+  const _AbsentNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    const color = AppColors.textMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.person_off_rounded, size: 18, color: color),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Feedback unavailable — marked absent',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Your attendance was not verified at the event site, so '
+                  'feedback and the certificate are closed for this event.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }

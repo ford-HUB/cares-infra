@@ -424,7 +424,9 @@ export const ModelName = {
   MonthlyReportDocument: 'MonthlyReportDocument',
   MonthlyReportTrailEntry: 'MonthlyReportTrailEntry',
   Announcement: 'Announcement',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  EvaluationForm: 'EvaluationForm',
+  EvaluationResponse: 'EvaluationResponse'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -440,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification"
+    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification" | "evaluationForm" | "evaluationResponse"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3478,6 +3480,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EvaluationForm: {
+      payload: Prisma.$EvaluationFormPayload<ExtArgs>
+      fields: Prisma.EvaluationFormFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EvaluationFormFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EvaluationFormFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>
+        }
+        findFirst: {
+          args: Prisma.EvaluationFormFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EvaluationFormFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>
+        }
+        findMany: {
+          args: Prisma.EvaluationFormFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>[]
+        }
+        create: {
+          args: Prisma.EvaluationFormCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>
+        }
+        createMany: {
+          args: Prisma.EvaluationFormCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EvaluationFormCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>[]
+        }
+        delete: {
+          args: Prisma.EvaluationFormDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>
+        }
+        update: {
+          args: Prisma.EvaluationFormUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>
+        }
+        deleteMany: {
+          args: Prisma.EvaluationFormDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EvaluationFormUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EvaluationFormUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>[]
+        }
+        upsert: {
+          args: Prisma.EvaluationFormUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationFormPayload>
+        }
+        aggregate: {
+          args: Prisma.EvaluationFormAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEvaluationForm>
+        }
+        groupBy: {
+          args: Prisma.EvaluationFormGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EvaluationFormGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EvaluationFormCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EvaluationFormCountAggregateOutputType> | number
+        }
+      }
+    }
+    EvaluationResponse: {
+      payload: Prisma.$EvaluationResponsePayload<ExtArgs>
+      fields: Prisma.EvaluationResponseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EvaluationResponseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EvaluationResponseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>
+        }
+        findFirst: {
+          args: Prisma.EvaluationResponseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EvaluationResponseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>
+        }
+        findMany: {
+          args: Prisma.EvaluationResponseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>[]
+        }
+        create: {
+          args: Prisma.EvaluationResponseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>
+        }
+        createMany: {
+          args: Prisma.EvaluationResponseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EvaluationResponseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>[]
+        }
+        delete: {
+          args: Prisma.EvaluationResponseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>
+        }
+        update: {
+          args: Prisma.EvaluationResponseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>
+        }
+        deleteMany: {
+          args: Prisma.EvaluationResponseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EvaluationResponseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EvaluationResponseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>[]
+        }
+        upsert: {
+          args: Prisma.EvaluationResponseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EvaluationResponsePayload>
+        }
+        aggregate: {
+          args: Prisma.EvaluationResponseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEvaluationResponse>
+        }
+        groupBy: {
+          args: Prisma.EvaluationResponseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EvaluationResponseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EvaluationResponseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EvaluationResponseCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -4168,6 +4318,36 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const EvaluationFormScalarFieldEnum = {
+  evaluation_form_id: 'evaluation_form_id',
+  title: 'title',
+  description: 'description',
+  header_typography: 'header_typography',
+  questions: 'questions',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationFormScalarFieldEnum = (typeof EvaluationFormScalarFieldEnum)[keyof typeof EvaluationFormScalarFieldEnum]
+
+
+export const EvaluationResponseScalarFieldEnum = {
+  evaluation_response_id: 'evaluation_response_id',
+  form_id: 'form_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  answers: 'answers',
+  rating: 'rating',
+  status: 'status',
+  submitted_at: 'submitted_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationResponseScalarFieldEnum = (typeof EvaluationResponseScalarFieldEnum)[keyof typeof EvaluationResponseScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4802,6 +4982,34 @@ export type EnumNotificationToneFieldRefInput<$PrismaModel> = FieldRefInputType<
 export type ListEnumNotificationToneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationTone[]'>
     
 
+
+/**
+ * Reference to a field of type 'EvaluationFormStatus'
+ */
+export type EnumEvaluationFormStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EvaluationFormStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'EvaluationFormStatus[]'
+ */
+export type ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EvaluationFormStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EvaluationResponseStatus'
+ */
+export type EnumEvaluationResponseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EvaluationResponseStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'EvaluationResponseStatus[]'
+ */
+export type ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EvaluationResponseStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4953,6 +5161,8 @@ export type GlobalOmitConfig = {
   monthlyReportTrailEntry?: Prisma.MonthlyReportTrailEntryOmit
   announcement?: Prisma.AnnouncementOmit
   notification?: Prisma.NotificationOmit
+  evaluationForm?: Prisma.EvaluationFormOmit
+  evaluationResponse?: Prisma.EvaluationResponseOmit
 }
 
 /* Types for Logging */

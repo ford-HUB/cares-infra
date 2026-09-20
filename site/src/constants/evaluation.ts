@@ -106,6 +106,7 @@ export const QUESTION_DESCRIPTION_PLACEHOLDER = 'Description (optional)'
 export const ANSWER_ROW_HEIGHT_PX = 44
 export const ANSWER_HEADER_HEIGHT_PX = 36
 
+export const ANSWER_EVENT_FILTER_ALL = 'all'
 export const ANSWER_DEPARTMENT_FILTER_ALL = 'all'
 export const ANSWER_RATING_FILTER_ALL = 'all'
 

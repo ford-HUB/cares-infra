@@ -310,3 +310,18 @@ export type Announcement = Prisma.AnnouncementModel
  * a later hire does not inherit a backlog.
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model EvaluationForm
+ * The post-event questionnaire the director builds in the portal. One form serves
+ * every completed event; the volunteer app only ever sees it once PUBLISHED. The
+ * questions are stored as the JSON the builder edits (see the evaluation validators
+ * for the shape) so adding a question type never needs a migration.
+ */
+export type EvaluationForm = Prisma.EvaluationFormModel
+/**
+ * Model EvaluationResponse
+ * One volunteer's answers to the questionnaire for one completed event they took
+ * part in. `answers` is keyed by question id; `rating` copies the star-rating
+ * answer out so the portal can filter and average without opening the JSON.
+ */
+export type EvaluationResponse = Prisma.EvaluationResponseModel

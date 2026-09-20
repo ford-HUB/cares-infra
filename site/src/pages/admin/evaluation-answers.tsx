@@ -5,6 +5,7 @@ import { AnswerDetailsModal } from '../../components/evaluation/ui/answer-detail
 import { ContentShell } from '../../components/portal/ui/content-shell'
 import {
   ANSWER_DEPARTMENT_FILTER_ALL,
+  ANSWER_EVENT_FILTER_ALL,
   ANSWER_RATING_FILTER_ALL,
   ANSWER_STATUS_FILTER_ALL,
   DEFAULT_SCALE_MAX,
@@ -24,6 +25,7 @@ export function EvaluationAnswersPage() {
   const fetchResponses = useEvaluationStore((s) => s.fetchResponses)
 
   const [search, setSearch] = useState('')
+  const [event, setEvent] = useState<string>(ANSWER_EVENT_FILTER_ALL)
   const [department, setDepartment] = useState<string>(ANSWER_DEPARTMENT_FILTER_ALL)
   const [rating, setRating] = useState<string>(ANSWER_RATING_FILTER_ALL)
   const [status, setStatus] = useState<AnswerStatusFilter>(ANSWER_STATUS_FILTER_ALL)
@@ -49,14 +51,25 @@ export function EvaluationAnswersPage() {
         participant.email.toLowerCase().includes(term) ||
         `${participant.firstName} ${participant.lastName}`.toLowerCase().includes(term) ||
         response.event.toLowerCase().includes(term)
+      const matchesEvent =
+        event === ANSWER_EVENT_FILTER_ALL || response.eventId === Number(event)
       const matchesDepartment =
         department === ANSWER_DEPARTMENT_FILTER_ALL || participant.department === department
       const matchesRating =
         rating === ANSWER_RATING_FILTER_ALL || response.rating === Number(rating)
       const matchesStatus = status === ANSWER_STATUS_FILTER_ALL || response.status === status
-      return matchesSearch && matchesDepartment && matchesRating && matchesStatus
+      return matchesSearch && matchesEvent && matchesDepartment && matchesRating && matchesStatus
     })
-  }, [search, department, rating, status, responses])
+  }, [search, event, department, rating, status, responses])
+
+  // Responses arrive newest first, so the first sighting of each event keeps that order.
+  const events = useMemo(() => {
+    const seen = new Map<number, string>()
+    for (const response of responses) {
+      if (!seen.has(response.eventId)) seen.set(response.eventId, response.event)
+    }
+    return [...seen].map(([id, title]) => ({ id, title }))
+  }, [responses])
 
   const departments = useMemo(
     () =>
@@ -64,8 +77,10 @@ export function EvaluationAnswersPage() {
     [responses],
   )
 
-  const averageRating = responses.length
-    ? responses.reduce((sum, response) => sum + response.rating, 0) / responses.length
+  // The average follows the event filter so a director reading one event sees its own score.
+  const rated = filtered.filter((response) => response.rating > 0)
+  const averageRating = rated.length
+    ? rated.reduce((sum, response) => sum + response.rating, 0) / rated.length
     : 0
 
   const resetToFirstPage =
@@ -79,6 +94,8 @@ export function EvaluationAnswersPage() {
     <ContentShell variant="full" className="flex h-full flex-col">
       <AnswersToolbar
         search={search}
+        event={event}
+        events={events}
         department={department}
         rating={rating}
         status={status}
@@ -88,6 +105,7 @@ export function EvaluationAnswersPage() {
         averageRating={averageRating}
         initialized={initialized}
         onSearchChange={resetToFirstPage(setSearch)}
+        onEventChange={resetToFirstPage(setEvent)}
         onDepartmentChange={resetToFirstPage(setDepartment)}
         onRatingChange={resetToFirstPage(setRating)}
         onStatusChange={resetToFirstPage(setStatus)}

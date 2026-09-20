@@ -409,3 +409,19 @@ export const NotificationTone = {
 } as const
 
 export type NotificationTone = (typeof NotificationTone)[keyof typeof NotificationTone]
+
+
+export const EvaluationFormStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type EvaluationFormStatus = (typeof EvaluationFormStatus)[keyof typeof EvaluationFormStatus]
+
+
+export const EvaluationResponseStatus = {
+  COMPLETE: 'COMPLETE',
+  PARTIAL: 'PARTIAL'
+} as const
+
+export type EvaluationResponseStatus = (typeof EvaluationResponseStatus)[keyof typeof EvaluationResponseStatus]

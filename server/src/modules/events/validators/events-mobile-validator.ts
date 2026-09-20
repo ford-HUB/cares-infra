@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  AttendanceStatus,
   EventStatus,
   InterestCode,
 } from '../../../infastructures/prisma/common/client';
@@ -42,6 +43,11 @@ export const RecommendedEventSchema = z.object({
   slots_left: z.number().int().min(0),
   /** Whether the caller already holds one of those slots. */
   is_registered: z.boolean(),
+  /**
+   * The geofence ruling on the caller's own attendance — PENDING until the
+   * event is judged, then COMPLETED or ABSENT. Null when not registered.
+   */
+  attendance_status: z.enum(AttendanceStatus).nullable(),
   organizer_name: z.string(),
   category: z.string(),
   status: z.enum(EventStatus),

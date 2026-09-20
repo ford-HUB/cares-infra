@@ -34,7 +34,7 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true },
+          select: { event_attendance_id: true, status: true },
         },
       },
       orderBy: { event_started: 'asc' },
@@ -56,7 +56,7 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true },
+          select: { event_attendance_id: true, status: true },
         },
       },
       orderBy: { event_started: 'desc' },

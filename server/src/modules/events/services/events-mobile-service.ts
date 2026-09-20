@@ -339,6 +339,7 @@ export class EventsMobileService {
         event.max_participants - event._count.attendances,
       ),
       is_registered: event.attendances.length > 0,
+      attendance_status: event.attendances[0]?.status ?? null,
       organizer_name: event.organizer_name,
       category: event.category,
       status: event.status,

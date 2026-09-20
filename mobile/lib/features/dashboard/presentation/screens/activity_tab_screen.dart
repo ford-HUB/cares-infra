@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
@@ -11,7 +12,9 @@ import 'package:mobile/features/dashboard/domain/cares_event.dart';
 import 'package:mobile/features/dashboard/domain/volunteer_activity.dart';
 import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_category_chips.dart';
+import 'package:mobile/features/dashboard/screens/certificate_review_screen.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
+import 'package:mobile/features/dashboard/screens/event_feedback_screen.dart';
 import 'package:mobile/features/dashboard/widgets/completed_event_widgets.dart';
 
 class ActivityTabScreen extends ConsumerStatefulWidget {
@@ -121,6 +124,23 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
   bool _showing(_ActivityGroup g) =>
       _group == _ActivityGroup.all || _group == g;
 
+  /// The completed card's call to action: the questionnaire while feedback
+  /// is outstanding, the certificate once it is in.
+  Future<void> _onFeedbackTap(CaresEvent event) async {
+    if (_feedbackStore.hasSubmitted(event.id, _userEmail)) {
+      CertificateReviewScreen.open(context, certificateForEvent(event));
+      return;
+    }
+    final submitted = await EventFeedbackScreen.open(context, event);
+    if (!mounted || !submitted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Thank you for your feedback!'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watching hydrates the store from the server's registration list —
@@ -220,7 +240,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                     title: 'Completed events',
                     subtitle: completedEvents.isEmpty
                         ? 'Events you attended will show up here.'
-                        : 'Give feedback to unlock your certificate.',
+                        : 'Submit feedback to unlock your certificate.',
                     children: [
                       if (loading)
                         const _LoadingState()
@@ -241,6 +261,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                             ),
                             onTap: () =>
                                 EventDetailsScreen.open(context, event),
+                            onFeedbackTap: () => _onFeedbackTap(event),
                           ),
                         ),
                     ],

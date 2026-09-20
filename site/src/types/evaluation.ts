@@ -64,6 +64,8 @@ export interface EvaluationResponse {
     email: string
     department: string | null
   }
+  eventId: number
+  /** The event's title, for the row and the search box. */
   event: string
   submittedAt: string
   /** The star rating the participant gave, surfaced on the row itself. */

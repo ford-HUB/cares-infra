@@ -26,6 +26,14 @@ export function EvaluationQuestionnairePage() {
     else toast.error(result.message ?? 'The questionnaire could not be saved')
   }
 
+  // Publishing is a save with the status flipped — volunteers only ever see a
+  // published form on a completed event's feedback screen.
+  const handlePublish = async () => {
+    const result = await saveForm('published')
+    if (result.ok) toast.success('Questionnaire published — volunteers can now answer it')
+    else toast.error(result.message ?? 'The questionnaire could not be published')
+  }
+
   return (
     <ContentShell variant="full" className="flex h-full flex-col">
       <QuestionnaireToolbar
@@ -36,6 +44,7 @@ export function EvaluationQuestionnairePage() {
         previewing={previewing}
         onTogglePreview={() => setPreviewing((value) => !value)}
         onSave={() => void handleSave()}
+        onPublish={() => void handlePublish()}
       />
 
       {previewing && form ? <QuestionnairePreview form={form} /> : <QuestionnaireBuilder />}

@@ -2,6 +2,7 @@ import { Download, Search } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   ANSWER_DEPARTMENT_FILTER_ALL,
+  ANSWER_EVENT_FILTER_ALL,
   ANSWER_RATING_FILTER_ALL,
   ANSWER_STATUS_FILTERS,
   type AnswerStatusFilter,
@@ -10,6 +11,10 @@ import { StarRating } from './ui/star-rating'
 
 interface AnswersToolbarProps {
   search: string
+  /** Event id as a string, or `ANSWER_EVENT_FILTER_ALL`. */
+  event: string
+  /** Every event with at least one response, newest submission first. */
+  events: { id: number; title: string }[]
   department: string
   rating: string
   status: AnswerStatusFilter
@@ -21,6 +26,7 @@ interface AnswersToolbarProps {
   /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
   onSearchChange: (value: string) => void
+  onEventChange: (value: string) => void
   onDepartmentChange: (value: string) => void
   onRatingChange: (value: string) => void
   onStatusChange: (value: AnswerStatusFilter) => void
@@ -35,6 +41,8 @@ const RATING_FILTERS = [5, 4, 3, 2, 1]
 /** Page header for the answers grid — the same cut as the users master toolbar. */
 export function AnswersToolbar({
   search,
+  event,
+  events,
   department,
   rating,
   status,
@@ -44,6 +52,7 @@ export function AnswersToolbar({
   averageRating,
   initialized,
   onSearchChange,
+  onEventChange,
   onDepartmentChange,
   onRatingChange,
   onStatusChange,
@@ -82,6 +91,20 @@ export function AnswersToolbar({
             className="h-9 w-full rounded-lg border border-gray-200 bg-white pr-3 pl-9 text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
           />
         </div>
+
+        <select
+          aria-label="Filter by event"
+          value={event}
+          onChange={(e) => onEventChange(e.target.value)}
+          className={`${selectClass} max-w-56`}
+        >
+          <option value={ANSWER_EVENT_FILTER_ALL}>All Events</option>
+          {events.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.title}
+            </option>
+          ))}
+        </select>
 
         <select
           aria-label="Filter by department"

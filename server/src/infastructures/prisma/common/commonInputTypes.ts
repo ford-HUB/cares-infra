@@ -970,6 +970,40 @@ export type EnumNotificationToneWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumNotificationToneFilter<$PrismaModel>
 }
 
+export type EnumEvaluationFormStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationFormStatus | Prisma.EnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationFormStatusFilter<$PrismaModel> | $Enums.EvaluationFormStatus
+}
+
+export type EnumEvaluationFormStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationFormStatus | Prisma.EnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationFormStatusWithAggregatesFilter<$PrismaModel> | $Enums.EvaluationFormStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEvaluationFormStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEvaluationFormStatusFilter<$PrismaModel>
+}
+
+export type EnumEvaluationResponseStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationResponseStatus | Prisma.EnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationResponseStatusFilter<$PrismaModel> | $Enums.EvaluationResponseStatus
+}
+
+export type EnumEvaluationResponseStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationResponseStatus | Prisma.EnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationResponseStatusWithAggregatesFilter<$PrismaModel> | $Enums.EvaluationResponseStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEvaluationResponseStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEvaluationResponseStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1861,6 +1895,40 @@ export type NestedEnumNotificationToneWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumNotificationToneFilter<$PrismaModel>
   _max?: Prisma.NestedEnumNotificationToneFilter<$PrismaModel>
+}
+
+export type NestedEnumEvaluationFormStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationFormStatus | Prisma.EnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationFormStatusFilter<$PrismaModel> | $Enums.EvaluationFormStatus
+}
+
+export type NestedEnumEvaluationFormStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationFormStatus | Prisma.EnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationFormStatus[] | Prisma.ListEnumEvaluationFormStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationFormStatusWithAggregatesFilter<$PrismaModel> | $Enums.EvaluationFormStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEvaluationFormStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEvaluationFormStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumEvaluationResponseStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationResponseStatus | Prisma.EnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationResponseStatusFilter<$PrismaModel> | $Enums.EvaluationResponseStatus
+}
+
+export type NestedEnumEvaluationResponseStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EvaluationResponseStatus | Prisma.EnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EvaluationResponseStatus[] | Prisma.ListEnumEvaluationResponseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEvaluationResponseStatusWithAggregatesFilter<$PrismaModel> | $Enums.EvaluationResponseStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEvaluationResponseStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEvaluationResponseStatusFilter<$PrismaModel>
 }
 
 

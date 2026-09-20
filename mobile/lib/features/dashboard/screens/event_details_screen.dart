@@ -123,14 +123,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   EventParticipation? get _participation =>
       _store.participationFor(_event.id, _participantEmail);
 
-  bool get _isRegistered =>
-      _store.isRegistered(_event.id, _participantEmail);
+  bool get _isRegistered => _store.isRegistered(_event.id, _participantEmail);
 
   Future<void> _confirmJoin() async {
-    final confirmed = await showEventJoinConfirmationDialog(
-      context,
-      _event,
-    );
+    final confirmed = await showEventJoinConfirmationDialog(context, _event);
 
     if (!confirmed || !mounted) return;
 
@@ -201,10 +197,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Future<void> _confirmCancel() async {
-    final confirmed = await showEventCancelConfirmationDialog(
-      context,
-      _event,
-    );
+    final confirmed = await showEventCancelConfirmationDialog(context, _event);
     if (!confirmed || !mounted) return;
 
     final synced = await _syncRegistration(join: false);
@@ -272,8 +265,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   void _openRouteMap() => EventRouteMapScreen.open(context, _event);
 
-  void _openParticipants() =>
-      EventParticipantsScreen.open(context, _event);
+  void _openParticipants() => EventParticipantsScreen.open(context, _event);
 
   void _openReminder() => showEventReminderSheet(context, _event);
 
@@ -545,6 +537,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           onPressed: null,
           icon: const Icon(Icons.event_busy_rounded),
           label: const Text('Event has ended'),
+          style: _pillStyle,
+        );
+      }
+      // Ruled absent by the geofence validator: the server refuses feedback,
+      // so say so here rather than offer a button that will fail.
+      if (event.isMarkedAbsent && !feedbackSubmitted) {
+        return FilledButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.person_off_rounded),
+          label: const Text('Marked absent — feedback closed'),
           style: _pillStyle,
         );
       }

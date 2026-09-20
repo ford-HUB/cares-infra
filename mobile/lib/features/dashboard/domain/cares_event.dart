@@ -26,6 +26,7 @@ class CaresEvent {
     this.imageAsset,
     this.imageUrls = const [],
     this.organizerDescription,
+    this.attendanceStatus,
   });
 
   final String id;
@@ -71,6 +72,15 @@ class CaresEvent {
   /// Null on server rows for now; the details screen falls back to a generic
   /// line built from [organization].
   final String? organizerDescription;
+
+  /// The geofence ruling on this volunteer's own attendance, as the server
+  /// sends it: `PENDING`, `COMPLETED` or `ABSENT`. Null on prototype
+  /// fixtures and on events the volunteer has not joined.
+  final String? attendanceStatus;
+
+  /// The validator ruled the volunteer did not attend — no feedback, no
+  /// certificate for this event.
+  bool get isMarkedAbsent => attendanceStatus == 'ABSENT';
 
   String get monthLabel {
     const months = [
@@ -166,6 +176,7 @@ class CaresEvent {
       imageAsset: imageAsset,
       imageUrls: imageUrls,
       organizerDescription: organizerDescription,
+      attendanceStatus: attendanceStatus,
     );
   }
 

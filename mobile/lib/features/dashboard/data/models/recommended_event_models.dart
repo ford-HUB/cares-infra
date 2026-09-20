@@ -36,6 +36,7 @@ class RecommendedEvent {
     required this.maxParticipants,
     required this.participants,
     required this.isRegistered,
+    this.attendanceStatus,
     required this.organizerName,
     required this.category,
     required this.status,
@@ -58,6 +59,7 @@ class RecommendedEvent {
       maxParticipants: json['max_participants'] as int? ?? 0,
       participants: json['participants'] as int? ?? 0,
       isRegistered: json['is_registered'] as bool? ?? false,
+      attendanceStatus: json['attendance_status'] as String?,
       organizerName: json['organizer_name'] as String? ?? '',
       category: json['category'] as String? ?? '',
       status: json['status'] as String? ?? 'Upcoming',
@@ -85,6 +87,10 @@ class RecommendedEvent {
 
   /// Whether the signed-in volunteer is one of [participants].
   final bool isRegistered;
+
+  /// The geofence ruling on the volunteer's attendance (`PENDING`,
+  /// `COMPLETED`, `ABSENT`); null when not registered.
+  final String? attendanceStatus;
   final String organizerName;
   final String category;
   final String status;
@@ -150,6 +156,7 @@ class RecommendedEvent {
       isCompleted: status == 'Completed',
       endDate: endsAt,
       imageUrls: imageUrls,
+      attendanceStatus: attendanceStatus,
     );
   }
 }
