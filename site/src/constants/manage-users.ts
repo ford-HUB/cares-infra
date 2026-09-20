@@ -1,4 +1,3 @@
-import { DEPARTMENT_LABELS, DEPARTMENT_ORDER } from './monthly-report'
 import type { ManagedUser, ManagedUserVerificationStatus } from '../types/manage-users'
 
 /** Fixed row metrics — the grid measures its container against these to fill the viewport. */
@@ -30,14 +29,23 @@ export const PROVISIONABLE_ROLES = [
 ] as const
 
 /**
- * Departments an account can be provisioned into — the same colleges monthly reports
- * are filed under. The value stored on the profile is the code, which is how the
- * server's department aliases resolve it everywhere else.
+ * Departments an account can be provisioned into. Mirrors `UclmDepartments.names` in the
+ * mobile app (mobile/lib/core/constants/uclm_departments.dart) — the full name is what is
+ * stored on the profile, so it matches a volunteer's department in the app and a row in
+ * the department statistics by name.
  */
-export const PROVISIONABLE_DEPARTMENTS = DEPARTMENT_ORDER.map((code) => ({
-  value: code,
-  label: `${code} — ${DEPARTMENT_LABELS[code]}`,
-}))
+export const PROVISIONABLE_DEPARTMENTS = [
+  'College of Teacher Education',
+  'College of Hospitality & Tourism Management',
+  'College of Computer Studies',
+  'College of Nursing',
+  'College of Maritime',
+  'College of Business Administration',
+  'College of Customs Administration',
+  'College of Bussines & Accountancy',
+  'College of Engeneering',
+  'Senior High Department',
+].map((name) => ({ value: name, label: name }))
 
 /** Mirrors CREDENTIAL_MIN_HOURS/MAX_HOURS on the server — a stricter range is a 400. */
 export const CREDENTIAL_MIN_HOURS = 1

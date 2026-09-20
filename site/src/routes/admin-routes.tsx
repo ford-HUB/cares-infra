@@ -15,6 +15,8 @@ import { CertificateTemplatesPage } from '../pages/admin/certificate-templates'
 import { DeployedCertificatesPage } from '../pages/admin/deployed-certificates'
 import { EventAttendeesPage } from '../pages/admin/event-attendees'
 import { EventCalendarPage } from '../pages/admin/event-calendar'
+import { EvaluationAnswersPage } from '../pages/admin/evaluation-answers'
+import { EvaluationQuestionnairePage } from '../pages/admin/evaluation-questionnaire'
 import { InternalDonationTrackingPage } from '../pages/admin/internal-donation-tracking'
 import { EventMapPage } from '../pages/shared/event-map-page'
 import { ActiveSessionsPage } from '../pages/admin/active-sessions'
@@ -207,6 +209,15 @@ export const adminRoutes: RouteObject[] = [
             children: [
               { path: 'templates-list', element: <CertificateTemplatesPage /> },
               { path: 'deployed-certificate-templates', element: <DeployedCertificatesPage /> },
+            ],
+          },
+          {
+            // Post-event evaluation is the director's programme feedback — the nav
+            // shows it to directors only and the route bounces everyone else.
+            element: <ProtectedPortal roles={['director']} />,
+            children: [
+              { path: 'evaluation-questionnaire', element: <EvaluationQuestionnairePage /> },
+              { path: 'evaluation-answers', element: <EvaluationAnswersPage /> },
             ],
           },
           { path: 'notifications', element: <NotificationsPage /> },

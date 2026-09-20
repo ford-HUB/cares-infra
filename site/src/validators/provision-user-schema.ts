@@ -6,7 +6,7 @@ import {
   PROVISIONABLE_DEPARTMENTS,
 } from '../constants/manage-users'
 
-const departmentCodes = PROVISIONABLE_DEPARTMENTS.map((option) => option.value)
+const departmentNames = PROVISIONABLE_DEPARTMENTS.map((option) => option.value)
 
 /**
  * `generate` has the server mint the sign-in name; `manual` carries the address the
@@ -27,7 +27,7 @@ export const provisionUserSchema = z
       .email('Enter a valid email address'),
     role: z.enum(['ADMIN', 'DIRECTOR', 'COORDINATOR']),
     // '' is the "no department" option — an admin or director usually has none.
-    department: z.enum(['', ...departmentCodes]),
+    department: z.enum(['', ...departmentNames]),
     // The select stores a number (`valueAsNumber` on the field), so no coercion here —
     // `z.coerce` would widen the form's input type to `unknown`.
     expiresInHours: z

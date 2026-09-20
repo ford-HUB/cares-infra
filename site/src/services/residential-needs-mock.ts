@@ -20,14 +20,7 @@ import { seededRandom } from '../utils/seeded-random'
  * the survey endpoint exists. Not wired on purpose.
  */
 
-const BARANGAYS = [
-  'Looc',
-  'Poblacion',
-  'Tabok',
-  'Basak',
-  'Pagsabungan',
-  'Cabancalan',
-] as const
+const BARANGAYS = ['Looc', 'Umapad', 'Opao', 'Paknaan'] as const
 
 const FAMILY_NAMES = [
   'Abellana', 'Bacalso', 'Cabrera', 'Dagoy', 'Enriquez', 'Flores', 'Gonzaga',
@@ -61,7 +54,7 @@ const ARCHETYPES: Archetype[] = [
   {
     weight: 0.35,
     members: [5, 9],
-    homeBarangays: ['Looc', 'Tabok'],
+    homeBarangays: ['Looc'],
     needs: {
       food: [3, 5], water: [3, 5], shelter: [3, 5],
       health: [3, 5], education: [2, 4], livelihood: [3, 5],
@@ -70,7 +63,7 @@ const ARCHETYPES: Archetype[] = [
   {
     weight: 0.4,
     members: [3, 6],
-    homeBarangays: ['Basak', 'Pagsabungan'],
+    homeBarangays: ['Umapad'],
     needs: {
       food: [2, 4], water: [0, 2], shelter: [1, 3],
       health: [1, 3], education: [2, 4], livelihood: [3, 5],
@@ -79,7 +72,7 @@ const ARCHETYPES: Archetype[] = [
   {
     weight: 0.25,
     members: [2, 4],
-    homeBarangays: ['Poblacion', 'Cabancalan'],
+    homeBarangays: ['Opao'],
     needs: {
       food: [0, 1], water: [0, 1], shelter: [0, 2],
       health: [0, 3], education: [0, 2], livelihood: [0, 2],

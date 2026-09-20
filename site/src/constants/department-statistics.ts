@@ -25,6 +25,24 @@ export const STATISTICS_CATEGORY_ALL = 'all'
 export const STATISTICS_DEPARTMENT_ALL = 'all'
 
 /**
+ * The UCLM departments the statistics report over, in display order. Mirrors
+ * `UclmDepartments.names` in the mobile app (mobile/lib/core/constants/uclm_departments.dart)
+ * so a coordinator's profile department matches a row here by name.
+ */
+export const STATISTICS_DEPARTMENTS: readonly string[] = [
+  'College of Teacher Education',
+  'College of Hospitality & Tourism Management',
+  'College of Computer Studies',
+  'College of Nursing',
+  'College of Maritime',
+  'College of Business Administration',
+  'College of Customs Administration',
+  'College of Bussines & Accountancy',
+  'College of Engeneering',
+  'Senior High Department',
+]
+
+/**
  * Chart colour, by the job it does. Two-series charts take the validated categorical
  * pair; a single-series chart takes the brand hue; status charts spend colour on
  * state only, and always ship with a legend so identity is never colour alone.
@@ -78,6 +96,10 @@ export const STATISTICS_CURSOR_STROKE = '#d1d5db'
 
 export const STATISTICS_CHART_HEIGHT = 'h-64'
 export const STATISTICS_SMALL_CHART_HEIGHT = 'h-52'
+/** One row per department, so the horizontal bar chart grows with the department list. */
+export const STATISTICS_DEPARTMENT_CHART_HEIGHT = 'h-96'
+/** Y-axis width that fits the longest department name at the tick font size. */
+export const STATISTICS_DEPARTMENT_AXIS_WIDTH = 240
 
 /** Rows the "top events" table shows — enough to rank, not a full list. */
 export const STATISTICS_TOP_EVENTS = 6

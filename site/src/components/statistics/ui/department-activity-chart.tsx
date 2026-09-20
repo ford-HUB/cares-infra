@@ -8,7 +8,8 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart'
 import {
-  STATISTICS_CHART_HEIGHT,
+  STATISTICS_DEPARTMENT_AXIS_WIDTH,
+  STATISTICS_DEPARTMENT_CHART_HEIGHT,
   STATISTICS_GRID_STROKE,
   STATISTICS_SERIES_COLOR,
 } from '../../../constants/department-statistics'
@@ -44,7 +45,7 @@ export function DepartmentActivityChart({ departments }: DepartmentActivityChart
       description="Registered and attended volunteers per college over the period."
       aside={leader && <ChartFigure value={leader.department} label="most attended" />}
     >
-      <ChartContainer config={config} className={`w-full ${STATISTICS_CHART_HEIGHT}`}>
+      <ChartContainer config={config} className={`w-full ${STATISTICS_DEPARTMENT_CHART_HEIGHT}`}>
         <BarChart
           data={rows}
           layout="vertical"
@@ -64,7 +65,7 @@ export function DepartmentActivityChart({ departments }: DepartmentActivityChart
           <YAxis
             type="category"
             dataKey="department"
-            width={200}
+            width={STATISTICS_DEPARTMENT_AXIS_WIDTH}
             tickLine={false}
             axisLine={false}
             className="text-[11px]"

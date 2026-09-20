@@ -21,24 +21,25 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
 
   return (
     <>
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--cares-bg)] p-4 sm:p-6">
+      <div className="relative flex min-h-screen items-center justify-center ... lg:justify-end">
+        
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('/admin-bg.png')" }}
         />
-        <div
+        {/* <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
             background:
               'linear-gradient(135deg, rgba(6, 78, 59, 0.92) 0%, rgba(5, 150, 105, 0.72) 50%, rgba(16, 185, 129, 0.55) 100%)',
           }}
-        />
+        /> */}
         <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-emerald-300 opacity-20 blur-3xl" />
         <div className="pointer-events-none absolute right-0 bottom-0 h-64 w-64 rounded-full bg-emerald-200 opacity-20 blur-3xl" />
 
-        <div className="relative z-10 w-full max-w-sm">
+        <div className="relative z-10 w-full max-w-sm lg:mr-11 xl:mr-35 ">
           <div className="rounded-2xl border border-[var(--cares-border)] bg-white px-5 py-6 shadow-xl">
             <div className="mb-5 text-center">
               <img

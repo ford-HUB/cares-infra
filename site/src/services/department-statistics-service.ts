@@ -1,11 +1,11 @@
 import dayjs from 'dayjs'
 import {
   STATISTICS_CATEGORY_ALL,
+  STATISTICS_DEPARTMENTS,
   STATISTICS_RANGE_MONTHS,
   STATISTICS_TOP_EVENTS,
 } from '../constants/department-statistics'
 import { MOCK_API_DELAY_MS, delay } from '../constants/durations'
-import { DEPARTMENT_LABELS, DEPARTMENT_ORDER } from '../constants/monthly-report'
 import type {
   CategoryActivity,
   DepartmentActivity,
@@ -52,7 +52,7 @@ function sequence(seed: number) {
  * A college's share of the whole system. The fixture scales one department's
  * activity up by the number of colleges when the scope is every department.
  */
-const SYSTEM_SCALE = DEPARTMENT_ORDER.length
+const SYSTEM_SCALE = STATISTICS_DEPARTMENTS.length
 
 function buildMonthly(department: string | null, category: string): MonthlyActivity[] {
   const seed =
@@ -207,13 +207,13 @@ function buildDepartments(months: MonthlyActivity[]): DepartmentActivity[] {
     }),
     { events: 0, registrations: 0, attended: 0, serviceHours: 0 },
   )
-  const weights = DEPARTMENT_ORDER.map(() => 0.5 + next())
+  const weights = STATISTICS_DEPARTMENTS.map(() => 0.5 + next())
   const weightSum = weights.reduce((sum, weight) => sum + weight, 0)
 
-  return DEPARTMENT_ORDER.map((code, index) => {
+  return STATISTICS_DEPARTMENTS.map((department, index) => {
     const share = weights[index] / weightSum
     return {
-      department: DEPARTMENT_LABELS[code],
+      department,
       events: Math.max(1, Math.round(totals.events * share)),
       registrations: Math.round(totals.registrations * share),
       attended: Math.round(totals.attended * share),
@@ -283,7 +283,5 @@ export async function getDepartmentStatistics(
 /** Category choices for the filter — the fixture's set until the endpoint reports them. */
 export const DEPARTMENT_STATISTICS_CATEGORIES: readonly string[] = CATEGORIES
 
-/** Department choices for the director-level filter — the report colleges. */
-export const DEPARTMENT_STATISTICS_DEPARTMENTS: readonly string[] = DEPARTMENT_ORDER.map(
-  (code) => DEPARTMENT_LABELS[code],
-)
+/** Department choices for the director-level filter — the UCLM departments. */
+export const DEPARTMENT_STATISTICS_DEPARTMENTS: readonly string[] = STATISTICS_DEPARTMENTS

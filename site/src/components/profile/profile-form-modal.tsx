@@ -146,7 +146,7 @@ export function ProfileFormModal({
                   Phone number
                 </label>
                 <input
-                  id="phone_number"
+                  id="phone_number" maxLength={11}
                   className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
                   {...register('phone_number')}
                 />
