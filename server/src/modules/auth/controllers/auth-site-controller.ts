@@ -18,6 +18,8 @@ import {
   AdminLoginResponseSchema,
   LoginSchema,
   MeResponseSchema,
+  PortalForgotPasswordResponseSchema,
+  PortalForgotPasswordSchema,
 } from '../validators/auth-site-validator';
 import type {
   AccessRequestDto,
@@ -25,6 +27,8 @@ import type {
   AdminLoginResponseDto,
   LoginDto,
   MeResponseDto,
+  PortalForgotPasswordDto,
+  PortalForgotPasswordResponseDto,
 } from '../dto/auth-site-dto';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Public } from 'src/shared/decorators/public-decorator';
@@ -63,6 +67,18 @@ export class AuthSiteController {
     @RequestContext() context: RequestContextDto,
   ): Promise<void> {
     await this.authSiteService.logout(user, context);
+  }
+
+  @Post('admin/forgot-password')
+  @Public()
+  @HttpCode(200)
+  @ResponseMessage('Reset link sent')
+  @ZSerialize(PortalForgotPasswordResponseSchema)
+  async forgotPassword(
+    @ZBody(PortalForgotPasswordSchema) body: PortalForgotPasswordDto,
+    @RequestContext() context: RequestContextDto,
+  ): Promise<PortalForgotPasswordResponseDto> {
+    return await this.authSiteService.requestPasswordReset(body.email, context);
   }
 
   @Post('access-request')

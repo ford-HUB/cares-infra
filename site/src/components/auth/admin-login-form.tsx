@@ -22,8 +22,21 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
   return (
     <>
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--cares-bg)] p-4 sm:p-6">
-        <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[var(--cares-primary)] opacity-10" />
-        <div className="pointer-events-none absolute right-0 bottom-0 h-64 w-64 rounded-full bg-[var(--cares-primary-hover)] opacity-15" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/admin-bg.png')" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(6, 78, 59, 0.92) 0%, rgba(5, 150, 105, 0.72) 50%, rgba(16, 185, 129, 0.55) 100%)',
+          }}
+        />
+        <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-emerald-300 opacity-20 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 bottom-0 h-64 w-64 rounded-full bg-emerald-200 opacity-20 blur-3xl" />
 
         <div className="relative z-10 w-full max-w-sm">
           <div className="rounded-2xl border border-[var(--cares-border)] bg-white px-5 py-6 shadow-xl">
@@ -31,7 +44,7 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
               <img
                 src="/transparent-logo.png"
                 alt="CARES"
-                className="mx-auto mb-3 h-12 w-12 rounded-full border border-[var(--cares-border)] bg-white object-contain p-1.5 shadow-sm"
+                className="mx-auto mb-3 h-24 w-24 rounded-full border border-[var(--cares-border)] bg-white object-contain p-1.5 shadow-sm "
               />
               <h1 className="text-lg font-bold text-[var(--cares-heading)]">
                 CARES Administrator Portal
@@ -90,11 +103,11 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
               </button>
             </form>
 
-            <div className="mt-3 text-center">
+            <div className="mt-3 text-right">
               <button
                 type="button"
                 onClick={() => setForgotOpen(true)}
-                className="text-xs font-medium text-[var(--cares-primary)] hover:underline"
+                className="text-xs font-medium text-red-600 hover:underline"
               >
                 Forgot password?
               </button>
@@ -108,7 +121,7 @@ export function AdminLoginForm({ form, onSubmit, loading }: AdminLoginFormProps)
                 </h2>
               </div>
               <p className="mb-3 text-xs text-[var(--cares-muted)]">
-                Director and coordinator access requires administrator approval. Submit a
+                Submit a
                 request with your details and ID verification.
               </p>
               <Link

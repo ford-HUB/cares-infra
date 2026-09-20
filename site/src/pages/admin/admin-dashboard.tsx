@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from 'react'
 import { AdminDashboardSkeleton } from '../../components/portal/ui/admin-dashboard-skeleton'
 import { ContentShell } from '../../components/portal/ui/content-shell'
+import { ResidentialNeedsModuleCard } from '../../components/residential-needs/residential-needs-module-card'
 import {
   GradientMetricTile,
   InlinePageHeader,
@@ -31,6 +32,7 @@ import { isDepartmentOverview, isAdminOverview } from '../../types/overview'
 export function AdminDashboard() {
   const role = useAuthStore((s) => s.user?.role ?? null)
   const isCoordinator = isCoordinatorRole(role)
+  const isDirector = role === 'director'
   const {
     overview,
     loading,
@@ -263,6 +265,12 @@ export function AdminDashboard() {
           subtitle="Beneficiaries served"
         />
       </div>
+
+      {isDirector && (
+        <div className="mb-8">
+          <ResidentialNeedsModuleCard />
+        </div>
+      )}
 
       <div className="mb-8">
         <SectionCard title="System Metrics" icon={TrendingUp}>

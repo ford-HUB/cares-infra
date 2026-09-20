@@ -51,6 +51,37 @@ class RequestTimelineEntry {
   final String? note;
 }
 
+/// A proof / supporting document attached to a request (ID, bill, medical
+/// certificate, photo of damage, ...). Only the local file reference is kept
+/// in the prototype — nothing is uploaded.
+class RequestAttachment {
+  const RequestAttachment({
+    required this.name,
+    required this.path,
+    this.sizeBytes,
+  });
+
+  final String name;
+  final String path;
+  final int? sizeBytes;
+
+  String get extension {
+    final dot = name.lastIndexOf('.');
+    return dot == -1 ? '' : name.substring(dot + 1).toLowerCase();
+  }
+
+  bool get isImage =>
+      const {'jpg', 'jpeg', 'png', 'webp', 'heic'}.contains(extension);
+
+  String get sizeLabel {
+    final bytes = sizeBytes;
+    if (bytes == null) return '';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}
+
 class AssistanceRequest {
   const AssistanceRequest({
     required this.id,
@@ -69,6 +100,7 @@ class AssistanceRequest {
     this.lastUpdatedOn,
     this.assessmentDate,
     this.statusNote,
+    this.attachments = const [],
   });
 
   final String id;
@@ -87,6 +119,9 @@ class AssistanceRequest {
   final List<String> items;
   final List<RequestTimelineEntry> timeline;
   final String? statusNote;
+
+  /// Proof documents the beneficiary attached when filing.
+  final List<RequestAttachment> attachments;
 
   String get submittedOnLabel => formatRequestDate(submittedOn);
 
@@ -127,6 +162,19 @@ const kAssistanceCategories = [
 ];
 
 const kAssistanceUrgencyLevels = ['Low', 'Normal', 'High', 'Urgent'];
+
+/// "What do you need?" choices on the Request Assistance form. Picking
+/// [kOtherOption] reveals a free-text field for the beneficiary's own need.
+const kAssistanceNeedOptions = [
+  'Monthly food pack',
+  'Medicine / medical check-up',
+  'School supplies or tuition support',
+  'House repair materials',
+  'Livelihood starter kit',
+  'Emergency relief goods',
+  'Transportation assistance',
+  kOtherOption,
+];
 
 final _kMockAssistanceRequests = <AssistanceRequest>[
   AssistanceRequest(
@@ -353,40 +401,154 @@ final _kMockAssistanceRequests = <AssistanceRequest>[
   ),
 ];
 
-/// Household-level needs assessment shown at the top of the Request tab.
-class NeedsAssessmentSummary {
-  const NeedsAssessmentSummary({
-    required this.status,
-    required this.assessedOn,
-    required this.nextVisit,
-    required this.assessor,
-    required this.priorityLevel,
-    required this.note,
-  });
+/// Where the beneficiary stands with the Needs Assessment Survey — the
+/// self-reported questionnaire about household needs and community concerns
+/// that later feeds the community needs clustering model.
+enum BeneficiaryAssessmentState { notCompleted, completed, needsUpdate }
 
-  final NeedsAssessmentStatus status;
-  final DateTime? assessedOn;
-  final DateTime? nextVisit;
-  final String assessor;
-  final String priorityLevel;
-  final String note;
+extension BeneficiaryAssessmentStateX on BeneficiaryAssessmentState {
+  String get label => switch (this) {
+    BeneficiaryAssessmentState.notCompleted => 'Not completed yet',
+    BeneficiaryAssessmentState.completed => 'Assessment completed',
+    BeneficiaryAssessmentState.needsUpdate => 'Update your assessment',
+  };
 
-  String get assessedOnLabel =>
-      assessedOn == null ? 'Not yet assessed' : formatRequestDate(assessedOn!);
-
-  String get nextVisitLabel =>
-      nextVisit == null ? 'No visit scheduled' : formatRequestDate(nextVisit!);
+  bool get hasSubmission => this != BeneficiaryAssessmentState.notCompleted;
 }
 
+/// Option lists for the Needs Assessment Survey. "Other" is always last and
+/// prompts for a free-text entry when selected.
+const kOtherOption = 'Other';
+
+const kHouseholdNeedOptions = [
+  'Food',
+  'Healthcare',
+  'Financial assistance',
+  'Employment / livelihood',
+  'Education',
+  'Housing',
+  'Water',
+  'Electricity',
+  'Transportation',
+  kOtherOption,
+];
+
+const kNeedUrgencyOptions = [
+  'Low',
+  'Moderate',
+  'High',
+  'Very high',
+  'Emergency',
+];
+
+const kCommunityConcernOptions = [
+  'Flooding',
+  'Water supply',
+  'Waste management',
+  'Healthcare access',
+  'Lack of jobs',
+  'Education',
+  'Public safety',
+  'Transportation',
+  'Internet access',
+  'Food insecurity',
+  kOtherOption,
+];
+
+/// The structured answers of one Needs Assessment Survey — the shape that
+/// the community needs clustering model will later consume.
+class NeedsAssessmentResponse {
+  const NeedsAssessmentResponse({
+    required this.householdNeeds,
+    this.otherHouseholdNeed = '',
+    required this.mostUrgentNeed,
+    this.otherMostUrgentNeed = '',
+    required this.urgencyLevel,
+    required this.communityConcerns,
+    this.otherCommunityConcern = '',
+    this.additionalNotes = '',
+  });
+
+  /// Step 1 — everything the household needs help with.
+  final List<String> householdNeeds;
+  final String otherHouseholdNeed;
+
+  /// Step 2 — the single most urgent need.
+  final String mostUrgentNeed;
+  final String otherMostUrgentNeed;
+
+  /// Step 3 — how serious that need is right now.
+  final String urgencyLevel;
+
+  /// Step 4 — problems affecting the community.
+  final List<String> communityConcerns;
+  final String otherCommunityConcern;
+
+  /// Step 5 — free-text context.
+  final String additionalNotes;
+
+  /// Display helpers that swap "Other" for what the beneficiary typed.
+  String get householdNeedsLabel =>
+      _joinWithOther(householdNeeds, otherHouseholdNeed);
+
+  String get mostUrgentNeedLabel =>
+      _withOther(mostUrgentNeed, otherMostUrgentNeed);
+
+  String get communityConcernsLabel =>
+      _joinWithOther(communityConcerns, otherCommunityConcern);
+
+  static String _withOther(String value, String other) =>
+      value == kOtherOption && other.trim().isNotEmpty
+      ? 'Other — ${other.trim()}'
+      : value;
+
+  static String _joinWithOther(List<String> values, String other) =>
+      values.map((v) => _withOther(v, other)).join(', ');
+}
+
+/// The beneficiary's own Needs Assessment Survey record.
+class NeedsAssessmentSummary {
+  const NeedsAssessmentSummary({
+    required this.state,
+    this.submittedOn,
+    this.updateAvailable = false,
+    this.response,
+  });
+
+  final BeneficiaryAssessmentState state;
+  final DateTime? submittedOn;
+
+  /// Whether the beneficiary may revise the submitted assessment.
+  final bool updateAvailable;
+
+  /// Submitted answers, null until the survey is completed.
+  final NeedsAssessmentResponse? response;
+
+  bool get canUpdate =>
+      state == BeneficiaryAssessmentState.needsUpdate || updateAvailable;
+
+  String get submittedOnLabel => submittedOn == null
+      ? 'Not yet submitted'
+      : formatRequestDate(submittedOn!);
+}
+
+/// Static survey content for the prototype. Flip [state] to preview the
+/// other card states (`notCompleted`, `completed`, `needsUpdate`).
 final kMockNeedsAssessment = NeedsAssessmentSummary(
-  status: NeedsAssessmentStatus.scheduled,
-  assessedOn: DateTime(2026, 7, 26),
-  nextVisit: DateTime(2026, 9, 8),
-  assessor: 'Field Officer — CARES Community Relief Desk',
-  priorityLevel: 'Priority 2 — Moderate need',
-  note:
-      'Your household profile is validated. The next visit updates your '
-      'assessment for the pending food assistance request.',
+  state: BeneficiaryAssessmentState.completed,
+  submittedOn: DateTime(2026, 7, 26),
+  updateAvailable: true,
+  response: kMockNeedsAssessmentResponse,
+);
+
+const kMockNeedsAssessmentResponse = NeedsAssessmentResponse(
+  householdNeeds: ['Food', 'Healthcare', 'Education'],
+  mostUrgentNeed: 'Food',
+  urgencyLevel: 'High',
+  communityConcerns: ['Flooding', 'Water supply', 'Healthcare access'],
+  additionalNotes:
+      'Our area floods during the rainy season and the nearest health center '
+      'is far. One senior in the household needs maintenance medication.',
 );
 
 /// In-memory assistance request store for the static prototype phase.
@@ -421,6 +583,7 @@ class AssistanceRequestStore extends ChangeNotifier {
     required String description,
     required String urgency,
     required int householdSize,
+    List<RequestAttachment> attachments = const [],
   }) {
     final now = DateTime.now();
     final serial = (148 + _requests.length).toString().padLeft(4, '0');
@@ -438,6 +601,7 @@ class AssistanceRequestStore extends ChangeNotifier {
       householdSize: householdSize,
       assignedOrganization: 'CARES Community Relief Desk',
       items: const [],
+      attachments: attachments,
       timeline: [
         RequestTimelineEntry(label: 'Request submitted', date: now, done: true),
         const RequestTimelineEntry(

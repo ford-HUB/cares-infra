@@ -7,6 +7,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/home_header.dart'
 import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_card.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/stats_row.dart';
 import 'package:mobile/features/dashboard/screens/assistance_request_details_screen.dart';
+import 'package:mobile/features/dashboard/screens/needs_assessment_screen.dart';
 import 'package:mobile/features/dashboard/widgets/assistance_request_widgets.dart';
 
 /// Beneficiary home tab — same structure and styling as the volunteer home
@@ -107,7 +108,24 @@ class _BeneficiaryHomeTabState extends State<BeneficiaryHomeTab> {
             const SizedBox(height: 16),
             _RequestAssistanceCard(onTap: widget.onRequestAssistance),
             const SizedBox(height: 16),
-            NeedsAssessmentCard(summary: kMockNeedsAssessment),
+            NeedsAssessmentCard(
+              summary: kMockNeedsAssessment,
+              onTakeAssessment: () => NeedsAssessmentScreen.open(
+                context,
+                mode: NeedsAssessmentMode.take,
+                summary: kMockNeedsAssessment,
+              ),
+              onViewAssessment: () => NeedsAssessmentScreen.open(
+                context,
+                mode: NeedsAssessmentMode.view,
+                summary: kMockNeedsAssessment,
+              ),
+              onUpdateAssessment: () => NeedsAssessmentScreen.open(
+                context,
+                mode: NeedsAssessmentMode.update,
+                summary: kMockNeedsAssessment,
+              ),
+            ),
             if (latest != null) ...[
               const SizedBox(height: 20),
               Row(

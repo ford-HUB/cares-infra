@@ -14,7 +14,7 @@ enum _Stage {
   review,
   paymentProcessing,
   paymentSuccess,
-  moneyDone,
+  moneyStatus,
   goodsSelectItem,
   goodsPickup,
   goodsReview,
@@ -25,8 +25,13 @@ enum _Stage {
 /// simulated with a delay and a donation record is created ONLY when the flow
 /// reaches its final step.
 ///
-/// Passing [existingDonation] opens the flow straight to the goods status /
-/// details view for a donation that already exists (from My Donations).
+/// Money donations are verification-based: paying only *pledges* the
+/// donation (with its GCash / payment reference). A Director then verifies
+/// the payment (donor sees "Verifying") and confirms it — only a confirmed
+/// donation shows "Donation Successful".
+///
+/// Passing [existingDonation] opens the flow straight to the status / details
+/// view for a donation that already exists (from My Donations).
 class DonationFlowScreen extends StatefulWidget {
   const DonationFlowScreen({
     super.key,
@@ -52,7 +57,7 @@ class DonationFlowScreen extends StatefulWidget {
     );
   }
 
-  /// Opens the goods donation status / details view for an existing donation.
+  /// Opens the status / details view for an existing donation (money or goods).
   static void openStatus(
     BuildContext context, {
     required CaresDonation campaign,
@@ -84,9 +89,16 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
   final _customAmountController = TextEditingController();
   DonationPaymentMethod? _method;
 
+  /// Reference issued by the (simulated) payment channel once payment
+  /// succeeds. Stored on the donation so the Director can verify it.
+  String? _paymentReference;
+
   // Goods flow state.
   NeededGood? _selectedGood;
-  final _qtyController = TextEditingController();
+
+  /// True when the donor picked "Other" and is typing their own item.
+  bool _otherGoodSelected = false;
+  final _otherGoodController = TextEditingController();
   final _pickupAddressController = TextEditingController();
   final _pickupContactController = TextEditingController();
   DateTime? _pickupDate;
@@ -100,26 +112,60 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
   @override
   void initState() {
     super.initState();
+    // Status is advanced by the Director (via the store), so re-render when
+    // it changes while the donor is looking at their donation.
+    DonationStore.instance.addListener(_onStoreChanged);
     final existing = widget.existingDonation;
     if (existing != null) {
       _completed = existing;
-      _type = DonationType.goods;
-      _stage = _Stage.goodsStatus;
+      _type = existing.type;
+      _stage = existing.type == DonationType.money
+          ? _Stage.moneyStatus
+          : _Stage.goodsStatus;
+      return;
     }
+    // The event may accept only one kind of donation — go straight to it.
+    if (_onlyGoods) {
+      _type = DonationType.goods;
+      _stage = _Stage.goodsSelectItem;
+    } else if (_onlyMoney) {
+      _type = DonationType.money;
+      _stage = _Stage.enterAmount;
+    }
+  }
+
+  /// Donation types the director enabled on the event behind this campaign.
+  bool get _acceptsMoney => widget.campaign.acceptsMonetary;
+  bool get _acceptsGoods => widget.campaign.acceptsGoods;
+  bool get _onlyMoney => _acceptsMoney && !_acceptsGoods;
+  bool get _onlyGoods => _acceptsGoods && !_acceptsMoney;
+
+  /// With a single accepted type there is no "how would you like to help?"
+  /// step, so every later step moves up by one.
+  int get _skippedSteps => (_onlyMoney || _onlyGoods) ? 1 : 0;
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    DonationStore.instance.removeListener(_onStoreChanged);
     _customAmountController.dispose();
-    _qtyController.dispose();
+    _otherGoodController.dispose();
     _pickupAddressController.dispose();
     _pickupContactController.dispose();
     super.dispose();
   }
 
-  int? get _qty {
-    final n = int.tryParse(_qtyController.text.trim());
-    return (n != null && n > 0) ? n : null;
+  /// The item the donor is pledging — either a listed need or the custom
+  /// "Other" item they typed. Null until a valid choice is made.
+  String? get _goodsItem {
+    if (_otherGoodSelected) {
+      final custom = _otherGoodController.text.trim();
+      return custom.isEmpty ? null : custom;
+    }
+    return _selectedGood?.name;
   }
 
   int? get _pickupTimeMinutes =>
@@ -146,7 +192,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
 
   // ------------------------------------------------------------- navigation
   bool get _isTerminal =>
-      _stage == _Stage.moneyDone || _stage == _Stage.goodsStatus;
+      _stage == _Stage.moneyStatus || _stage == _Stage.goodsStatus;
 
   void _handleBack() {
     switch (_stage) {
@@ -154,11 +200,15 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         Navigator.of(context).pop();
       case _Stage.paymentProcessing:
         break; // don't interrupt a simulated payment
-      case _Stage.moneyDone:
+      case _Stage.moneyStatus:
       case _Stage.goodsStatus:
         Navigator.of(context).pop();
       case _Stage.enterAmount:
-        setState(() => _stage = _Stage.chooseType);
+        if (_onlyMoney) {
+          Navigator.of(context).pop();
+        } else {
+          setState(() => _stage = _Stage.chooseType);
+        }
       case _Stage.choosePayment:
         setState(() => _stage = _Stage.enterAmount);
       case _Stage.review:
@@ -170,6 +220,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           if (_editing) {
             _editing = false;
             _stage = _Stage.goodsStatus;
+          } else if (_onlyGoods) {
+            Navigator.of(context).pop();
           } else {
             _stage = _Stage.chooseType;
           }
@@ -185,19 +237,25 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     setState(() => _stage = _Stage.paymentProcessing);
     Future<void>.delayed(const Duration(milliseconds: 2400), () {
       if (!mounted || _stage != _Stage.paymentProcessing) return;
-      setState(() => _stage = _Stage.paymentSuccess);
+      setState(() {
+        _paymentReference ??= DonationStore.generatePaymentReference(_method!);
+        _stage = _Stage.paymentSuccess;
+      });
     });
   }
 
-  void _finishMoneyDonation() {
-    _completed ??= DonationStore.instance.recordMoneyDonation(
+  /// Payment went through, so the donation is recorded — but only as
+  /// *pledged*. It is not successful until a Director verifies and confirms.
+  void _pledgeMoney() {
+    _completed ??= DonationStore.instance.recordMoneyPledge(
       campaignId: widget.campaign.id,
       campaignTitle: widget.campaign.title,
       donorEmail: widget.donorEmail,
       amount: _effectiveAmount ?? 0,
       paymentMethod: _method!,
+      paymentReference: _paymentReference!,
     );
-    setState(() => _stage = _Stage.moneyDone);
+    setState(() => _stage = _Stage.moneyStatus);
   }
 
   void _pledgeGoods() {
@@ -205,9 +263,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
       campaignId: widget.campaign.id,
       campaignTitle: widget.campaign.title,
       donorEmail: widget.donorEmail,
-      goodsItem: _selectedGood!.name,
-      goodsQuantity: _qty ?? 0,
-      goodsUnit: _selectedGood!.unit,
+      goodsItem: _goodsItem!,
       pickupAddress: _pickupAddressController.text.trim(),
       pickupContact: _pickupContactController.text.trim(),
       pickupDate: _pickupDate!,
@@ -220,11 +276,16 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     final d = _completed;
     if (d == null || !d.canModify) return;
     final goods = neededGoodsForCampaign(widget.campaign.id);
-    _selectedGood = goods.firstWhere(
-      (g) => g.name == d.goodsItem,
-      orElse: () => goods.first,
-    );
-    _qtyController.text = '${d.goodsQuantity}';
+    final listed = goods.where((g) => g.name == d.goodsItem).toList();
+    if (listed.isEmpty) {
+      _selectedGood = null;
+      _otherGoodSelected = true;
+      _otherGoodController.text = d.goodsItem ?? '';
+    } else {
+      _selectedGood = listed.first;
+      _otherGoodSelected = false;
+      _otherGoodController.clear();
+    }
     _pickupAddressController.text = d.pickupAddress ?? '';
     _pickupContactController.text = d.pickupContact ?? '';
     _pickupDate = d.pickupDate;
@@ -243,9 +304,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     if (d == null) return;
     DonationStore.instance.updateGoodsDonation(
       donationId: d.donationId,
-      goodsItem: _selectedGood!.name,
-      goodsQuantity: _qty ?? 0,
-      goodsUnit: _selectedGood!.unit,
+      goodsItem: _goodsItem!,
       pickupAddress: _pickupAddressController.text.trim(),
       pickupContact: _pickupContactController.text.trim(),
       pickupDate: _pickupDate!,
@@ -296,7 +355,6 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _CancelSummaryLine('Item', d.goodsItem ?? '—'),
-                  _CancelSummaryLine('Quantity', d.quantityLabel),
                   _CancelSummaryLine('Campaign', d.campaignTitle),
                   _CancelSummaryLine('Pickup date', d.pickupDateLabel ?? '—'),
                 ],
@@ -386,7 +444,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     _Stage.review => 'Review Donation',
     _Stage.goodsReview => _editing ? 'Review Changes' : 'Review Donation',
     _Stage.paymentProcessing || _Stage.paymentSuccess => 'Payment',
-    _Stage.moneyDone => 'Donation Complete',
+    _Stage.moneyStatus => 'Donation Details',
     _Stage.goodsSelectItem => _editing ? 'Edit Donation' : 'Select Goods',
     _Stage.goodsPickup => _editing ? 'Edit Pickup Details' : 'Pickup Details',
     _Stage.goodsStatus => 'Donation Details',
@@ -399,7 +457,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     _Stage.review => _reviewStage(),
     _Stage.paymentProcessing => _paymentProcessingStage(),
     _Stage.paymentSuccess => _paymentSuccessStage(),
-    _Stage.moneyDone => _completionStage(isMoney: true),
+    _Stage.moneyStatus => _moneyStatusStage(),
     _Stage.goodsSelectItem => _goodsSelectItemStage(),
     _Stage.goodsPickup => _goodsPickupStage(),
     _Stage.goodsReview => _goodsReviewStage(),
@@ -425,7 +483,10 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (step != null) ...[
-                      DonationStepProgress(current: step, total: stepCount),
+                      DonationStepProgress(
+                        current: step - _skippedSteps,
+                        total: stepCount - _skippedSteps,
+                      ),
                       const SizedBox(height: 20),
                     ],
                     ...content,
@@ -450,21 +511,24 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           subtitle: 'Choose how you want to support this campaign.',
         ),
         const SizedBox(height: 16),
-        DonationOptionTile(
-          title: 'Money',
-          subtitle: 'Give a peso amount through a payment method',
-          icon: Icons.payments_outlined,
-          selected: _type == DonationType.money,
-          onTap: () => setState(() => _type = DonationType.money),
-        ),
-        const SizedBox(height: 12),
-        DonationOptionTile(
-          title: 'Goods',
-          subtitle: 'Pledge physical items like food, clothing, or supplies',
-          icon: Icons.inventory_2_outlined,
-          selected: _type == DonationType.goods,
-          onTap: () => setState(() => _type = DonationType.goods),
-        ),
+        if (_acceptsMoney) ...[
+          DonationOptionTile(
+            title: 'Money',
+            subtitle: 'Give a peso amount through a payment method',
+            icon: Icons.payments_outlined,
+            selected: _type == DonationType.money,
+            onTap: () => setState(() => _type = DonationType.money),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (_acceptsGoods)
+          DonationOptionTile(
+            title: 'Goods',
+            subtitle: 'Pledge physical items like food, clothing, or supplies',
+            icon: Icons.inventory_2_outlined,
+            selected: _type == DonationType.goods,
+            onTap: () => setState(() => _type = DonationType.goods),
+          ),
       ],
       footer: FilledButton(
         onPressed: _type == null
@@ -707,15 +771,25 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
                 color: AppColors.primary,
               ),
             ),
-            title: 'Payment Successful',
+            title: 'Payment Completed',
             message:
                 '${DonationStore.formatPesoFull(_effectiveAmount ?? 0)} was '
-                'paid via ${_method?.label ?? ''}.',
+                'paid via ${_method?.label ?? ''}.\n\nYour donation will be '
+                'pledged and reviewed by a CARES Director before it is '
+                'confirmed.',
+            extra: _paymentReference == null
+                ? null
+                : _PaymentReferenceCard(
+                    label: _method == DonationPaymentMethod.gcash
+                        ? 'GCash Reference No.'
+                        : 'Payment Reference No.',
+                    reference: _paymentReference!,
+                  ),
           ),
         ),
         _FooterBar(
           child: FilledButton(
-            onPressed: _finishMoneyDonation,
+            onPressed: _pledgeMoney,
             child: const Text('Continue'),
           ),
         ),
@@ -723,119 +797,176 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------------------------ Money Step 6: completion
-  Widget _completionStage({required bool isMoney}) {
+  // ------------------------------- Money Steps 6–8: verification tracking
+  Widget _moneyStatusStage() {
     final donation = _completed;
+    if (donation == null) return const SizedBox.shrink();
+    final status = donation.moneyStatus;
+    final isConfirmed = status == MoneyDonationStatus.confirmed;
+
+    final (String heading, String message) = switch (status) {
+      MoneyDonationStatus.pledged => (
+        'Donation Pledged',
+        'Your payment was received and your donation has been pledged.\n\n'
+            'A CARES Director will review the payment details and reference '
+            'number. The donation is not confirmed yet.',
+      ),
+      MoneyDonationStatus.verifying => (
+        'Verifying',
+        'Your donation is being verified.\n\nThe Director has checked your '
+            'payment and is now confirming the donation. The donation is not '
+            'confirmed yet.',
+      ),
+      MoneyDonationStatus.confirmed => (
+        'Donation Successful!',
+        'Your donation has been verified and confirmed by CARES. Thank you '
+            'for your generosity!',
+      ),
+    };
+
     return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 560),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 84,
-                        height: 84,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(
+                          AppColors.cardRadius,
                         ),
-                        child: const Icon(
-                          Icons.celebration_rounded,
-                          size: 42,
-                          color: AppColors.primary,
-                        ),
+                        border: Border.all(color: AppColors.borderCard),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Donation Successful!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'You donated '
-                      '${DonationStore.formatPesoFull(donation?.amount ?? 0)} '
-                      'to ${widget.campaign.title}.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        height: 1.45,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (donation != null)
-                      DonationSummaryCard(
-                        rows: [
-                          DonationSummaryRow(
-                            'Campaign',
-                            donation.campaignTitle,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                isConfirmed
+                                    ? Icons.celebration_rounded
+                                    : status == MoneyDonationStatus.verifying
+                                    ? Icons.fact_check_outlined
+                                    : Icons.hourglass_top_rounded,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  heading,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          DonationSummaryRow(
-                            'Donation type',
-                            donation.type.label,
+                          const SizedBox(height: 14),
+                          DonationStatusPill(
+                            label: status.upperLabel,
+                            done: isConfirmed,
                           ),
-                          DonationSummaryRow(
-                            'Amount',
-                            DonationStore.formatPesoFull(donation.amount),
-                            emphasize: true,
-                          ),
-                          if (donation.paymentMethod != null)
-                            DonationSummaryRow(
-                              'Payment method',
-                              donation.paymentMethod!.label,
+                          const SizedBox(height: 18),
+                          MoneyStatusTracker(status: status),
+                          const SizedBox(height: 6),
+                          Text(
+                            message,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              height: 1.5,
                             ),
-                          DonationSummaryRow(
-                            'Date',
-                            DonationStore.formatDate(donation.donatedAt),
-                          ),
-                          DonationSummaryRow(
-                            'Donation ID',
-                            donation.donationId,
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    DonationSummaryCard(
+                      rows: [
+                        DonationSummaryRow('Campaign', donation.campaignTitle),
+                        const DonationSummaryRow('Donation Type', 'Money'),
+                        DonationSummaryRow(
+                          'Amount',
+                          DonationStore.formatPesoFull(donation.amount),
+                          emphasize: true,
+                        ),
+                        if (donation.paymentMethod != null)
+                          DonationSummaryRow(
+                            'Payment Method',
+                            donation.paymentMethod!.label,
+                          ),
+                        DonationSummaryRow(
+                          donation.paymentReferenceLabel,
+                          donation.paymentReference ?? '—',
+                        ),
+                        DonationSummaryRow(
+                          'Donation Date',
+                          DonationStore.formatDate(donation.donatedAt),
+                        ),
+                        DonationSummaryRow('Donation ID', donation.donationId),
+                        DonationSummaryRow(
+                          'Status',
+                          status.upperLabel,
+                          emphasize: true,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
           ),
         ),
-        _FooterBar(
-          child: Column(
-            children: [
-              FilledButton(
-                onPressed: donation == null
-                    ? null
-                    : () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute<void>(
-                          builder: (_) =>
-                              DonationReceiptScreen(donation: donation),
-                        ),
-                      ),
-                child: const Text('View Donation'),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Back to campaign'),
-              ),
-            ],
-          ),
-        ),
+        _FooterBar(child: _moneyStatusFooter(status)),
       ],
     );
+  }
+
+  Widget _moneyStatusFooter(MoneyDonationStatus status) {
+    final donation = _completed;
+    switch (status) {
+      case MoneyDonationStatus.pledged:
+        return _statusFooter(
+          'A CARES Director will verify your payment. You will see the '
+          'status change to Verifying once it has been reviewed.',
+        );
+      case MoneyDonationStatus.verifying:
+        return _statusFooter(
+          'Your donation is being verified by the CARES Director. You will be '
+          'notified once it is confirmed.',
+        );
+      case MoneyDonationStatus.confirmed:
+        return Column(
+          children: [
+            FilledButton(
+              onPressed: donation == null
+                  ? null
+                  : () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            DonationReceiptScreen(donation: donation),
+                      ),
+                    ),
+              child: const Text('View Donation'),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Back to campaign'),
+            ),
+          ],
+        );
+    }
   }
 
   // ==================================================== Goods flow
@@ -855,21 +986,31 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         for (final item in goods) ...[
           DonationOptionTile(
             title: item.name,
-            subtitle: item.needLabel,
             icon: Icons.inventory_2_outlined,
-            selected: good?.name == item.name,
+            selected: !_otherGoodSelected && good?.name == item.name,
             onTap: () => setState(() {
               _selectedGood = item;
-              _qtyController.clear();
+              _otherGoodSelected = false;
+              _otherGoodController.clear();
             }),
           ),
           const SizedBox(height: 12),
         ],
-        if (good != null) ...[
-          const SizedBox(height: 6),
-          Text(
-            'Quantity',
-            style: const TextStyle(
+        DonationOptionTile(
+          title: 'Other',
+          subtitle: 'Donate something not listed here',
+          icon: Icons.add_circle_outline,
+          selected: _otherGoodSelected,
+          onTap: () => setState(() {
+            _otherGoodSelected = true;
+            _selectedGood = null;
+          }),
+        ),
+        if (_otherGoodSelected) ...[
+          const SizedBox(height: 12),
+          const Text(
+            'Item',
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -877,22 +1018,18 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           ),
           const SizedBox(height: 6),
           TextField(
-            controller: _qtyController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(5),
-            ],
+            controller: _otherGoodController,
+            textCapitalization: TextCapitalization.sentences,
+            inputFormatters: [LengthLimitingTextInputFormatter(60)],
             onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              hintText: 'Number of ${good.unit}',
-              suffixText: good.unit,
+            decoration: const InputDecoration(
+              hintText: 'What would you like to donate?',
             ),
           ),
         ],
       ],
       footer: FilledButton(
-        onPressed: (good != null && _qty != null)
+        onPressed: _goodsItem != null
             ? () => setState(() => _stage = _Stage.goodsPickup)
             : null,
         child: const Text('Continue'),
@@ -982,7 +1119,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
 
   // ------------------------------------------- Goods Step 4: review
   Widget _goodsReviewStage() {
-    final good = _selectedGood;
+    final item = _goodsItem;
     return _stepScaffold(
       step: 4,
       content: [
@@ -998,12 +1135,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           rows: [
             DonationSummaryRow('Campaign', widget.campaign.title),
             const DonationSummaryRow('Donation Type', 'Goods'),
-            DonationSummaryRow('Item', good?.name ?? '—'),
-            DonationSummaryRow(
-              'Quantity',
-              good == null ? '—' : '${_qty ?? 0} ${good.unit}',
-              emphasize: true,
-            ),
+            DonationSummaryRow('Item', item ?? '—', emphasize: true),
             const DonationSummaryRow('Fulfillment', 'Pickup'),
             DonationSummaryRow(
               'Pickup Address',
@@ -1156,7 +1288,6 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
                         DonationSummaryRow('Campaign', donation.campaignTitle),
                         const DonationSummaryRow('Donation Type', 'Goods'),
                         DonationSummaryRow('Item', donation.goodsItem ?? '—'),
-                        DonationSummaryRow('Quantity', donation.quantityLabel),
                         DonationSummaryRow(
                           'Pickup Date',
                           donation.pickupDateLabel ?? '—',
@@ -1470,11 +1601,15 @@ class _CenteredStatus extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.message,
+    this.extra,
   });
 
   final Widget icon;
   final String title;
   final String message;
+
+  /// Optional content shown under the message (e.g. a payment reference).
+  final Widget? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -1505,8 +1640,61 @@ class _CenteredStatus extends StatelessWidget {
                 height: 1.45,
               ),
             ),
+            if (extra != null) ...[const SizedBox(height: 20), extra!],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Shows the reference number issued by the payment channel so the donor can
+/// keep it — the Director uses it to verify the payment.
+class _PaymentReferenceCard extends StatelessWidget {
+  const _PaymentReferenceCard({required this.label, required this.reference});
+
+  final String label;
+  final String reference;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          SelectableText(
+            reference,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Keep this for your records. CARES will match it during '
+            'verification.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+          ),
+        ],
       ),
     );
   }

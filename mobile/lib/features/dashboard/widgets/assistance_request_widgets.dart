@@ -236,15 +236,45 @@ class AssistanceRequestCard extends StatelessWidget {
   }
 }
 
-/// Household needs assessment status card.
+/// Palette for the beneficiary's own survey state.
+Color beneficiaryAssessmentColor(BeneficiaryAssessmentState state) =>
+    switch (state) {
+      BeneficiaryAssessmentState.notCompleted => AppColors.accentOrange,
+      BeneficiaryAssessmentState.completed => AppColors.primary,
+      BeneficiaryAssessmentState.needsUpdate => const Color(0xFF1976D2),
+    };
+
+IconData beneficiaryAssessmentIcon(BeneficiaryAssessmentState state) =>
+    switch (state) {
+      BeneficiaryAssessmentState.notCompleted => Icons.radio_button_unchecked,
+      BeneficiaryAssessmentState.completed => Icons.check_circle_rounded,
+      BeneficiaryAssessmentState.needsUpdate => Icons.update_rounded,
+    };
+
+/// Needs Assessment Survey card — explains the survey's purpose, shows the
+/// beneficiary's current state, and offers the matching action:
+///
+/// * not completed → **Take Assessment**
+/// * completed → **View Assessment** (+ **Update** when a revision is allowed)
+/// * needs update → **View Assessment** + **Update**
 class NeedsAssessmentCard extends StatelessWidget {
-  const NeedsAssessmentCard({super.key, required this.summary});
+  const NeedsAssessmentCard({
+    super.key,
+    required this.summary,
+    this.onTakeAssessment,
+    this.onViewAssessment,
+    this.onUpdateAssessment,
+  });
 
   final NeedsAssessmentSummary summary;
+  final VoidCallback? onTakeAssessment;
+  final VoidCallback? onViewAssessment;
+  final VoidCallback? onUpdateAssessment;
 
   @override
   Widget build(BuildContext context) {
-    final color = needsAssessmentColor(summary.status);
+    final state = summary.state;
+    final statusColor = beneficiaryAssessmentColor(state);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -253,111 +283,193 @@ class NeedsAssessmentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.assignment_ind_outlined,
-                  size: 20,
-                  color: color,
+                child: const Icon(
+                  Icons.assignment_outlined,
+                  size: 22,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
               const Expanded(
-                child: Text(
-                  'Needs Assessment',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Needs Assessment Survey',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Tell us what your household and community need.',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.4,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              RequestStatusPill(label: summary.status.label, color: color),
             ],
           ),
-          const SizedBox(height: 12),
-          _AssessmentRow(
-            icon: Icons.event_available_outlined,
-            label: 'Last assessed',
-            value: summary.assessedOnLabel,
+          const SizedBox(height: 14),
+          _AssessmentStatusStrip(
+            icon: beneficiaryAssessmentIcon(state),
+            label: state.label,
+            detail: state.hasSubmission
+                ? 'Submitted ${summary.submittedOnLabel}'
+                : null,
+            color: statusColor,
           ),
-          _AssessmentRow(
-            icon: Icons.event_rounded,
-            label: 'Next visit',
-            value: summary.nextVisitLabel,
-          ),
-          _AssessmentRow(
-            icon: Icons.flag_outlined,
-            label: 'Priority level',
-            value: summary.priorityLevel,
-          ),
-          _AssessmentRow(
-            icon: Icons.badge_outlined,
-            label: 'Assessed by',
-            value: summary.assessor,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            summary.note,
-            style: const TextStyle(
-              fontSize: 12.5,
-              height: 1.45,
-              color: AppColors.textSecondary,
+          const SizedBox(height: 14),
+          if (!state.hasSubmission)
+            _AssessmentActionButton(
+              label: 'Take Assessment',
+              onPressed: onTakeAssessment,
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: _AssessmentActionButton(
+                    label: 'View Assessment',
+                    onPressed: onViewAssessment,
+                  ),
+                ),
+                if (summary.canUpdate) ...[
+                  const SizedBox(width: 10),
+                  _AssessmentActionButton.outlined(
+                    label: 'Update',
+                    onPressed: onUpdateAssessment,
+                  ),
+                ],
+              ],
             ),
-          ),
         ],
       ),
     );
   }
 }
 
-class _AssessmentRow extends StatelessWidget {
-  const _AssessmentRow({
+/// Tinted status line inside the assessment card.
+class _AssessmentStatusStrip extends StatelessWidget {
+  const _AssessmentStatusStrip({
     required this.icon,
     required this.label,
-    required this.value,
+    required this.color,
+    this.detail,
   });
 
   final IconData icon;
   final String label;
-  final String value;
+  final String? detail;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: AppColors.textMuted),
+          Icon(icon, size: 18, color: color),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
+          ),
+          if (detail != null)
+            Text(
+              detail!,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
                 color: AppColors.textMuted,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Filled "Label →" button, or a compact outlined variant for secondary
+/// actions such as "Update".
+class _AssessmentActionButton extends StatelessWidget {
+  const _AssessmentActionButton({required this.label, this.onPressed})
+    : _outlined = false;
+
+  const _AssessmentActionButton.outlined({required this.label, this.onPressed})
+    : _outlined = true;
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool _outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    );
+    const padding = EdgeInsets.symmetric(horizontal: 16, vertical: 12);
+
+    if (_outlined) {
+      return OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primaryDark,
+          side: const BorderSide(color: AppColors.primaryDark, width: 1.2),
+          shape: shape,
+          padding: padding,
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+        ),
+      );
+    }
+
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        shape: shape,
+        padding: padding,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
           ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
+          const SizedBox(width: 6),
+          const Icon(Icons.arrow_forward_rounded, size: 18),
         ],
       ),
     );

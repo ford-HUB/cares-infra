@@ -252,6 +252,59 @@ class AssistanceRequestDetailsScreen extends StatelessWidget {
               ),
             ),
           ],
+          if (request.attachments.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const _SectionTitle('Proof documents'),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              decoration: AppDecorations.surfaceCard(),
+              child: Column(
+                children: request.attachments
+                    .map(
+                      (file) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              file.isImage
+                                  ? Icons.image_outlined
+                                  : Icons.description_outlined,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                file.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            if (file.sizeLabel.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                file.sizeLabel,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           const _SectionTitle('Request progress'),
           const SizedBox(height: 10),
