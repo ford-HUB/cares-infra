@@ -22,6 +22,7 @@ export function DepartmentStatisticsPage() {
     changeRange,
     changeCategory,
     exportCsv,
+    exportPdf,
   } = useDepartmentStatistics()
 
   if (pending) {
@@ -76,7 +77,8 @@ export function DepartmentStatisticsPage() {
         onRangeChange={changeRange}
         onCategoryChange={changeCategory}
         onRefresh={refresh}
-        onExport={exportCsv}
+        onExportCsv={exportCsv}
+        onExportPdf={exportPdf}
       />
     </ContentShell>
   )

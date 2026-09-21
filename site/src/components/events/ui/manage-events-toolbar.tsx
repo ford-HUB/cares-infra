@@ -1,4 +1,4 @@
-import { Building2, Plus, Search, X } from 'lucide-react'
+import { Building2, FileText, Plus, Search, X } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { SessionSuspension } from '../../../types/access-control'
 import { LockedActionButton } from '../../portal/ui/locked-action'
@@ -28,6 +28,8 @@ interface ManageEventsToolbarProps {
   onStatusChange: (value: EventStatusFilter) => void
   onTypeChange: (value: string) => void
   onClearFilters: () => void
+  /** Generates the current list as a PDF report. */
+  onExport: () => void
   /** Omitted when the account lacks the create right — the button is not drawn. */
   onCreate?: () => void
   /** Set when the create right is suspended — the button is drawn locked instead. */
@@ -54,6 +56,7 @@ export function ManageEventsToolbar({
   onStatusChange,
   onTypeChange,
   onClearFilters,
+  onExport,
   onCreate,
   createSuspension,
 }: ManageEventsToolbarProps) {
@@ -150,6 +153,15 @@ export function ManageEventsToolbar({
             Clear
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={onExport}
+          className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Export PDF
+        </button>
 
         {createSuspension ? (
           <LockedActionButton

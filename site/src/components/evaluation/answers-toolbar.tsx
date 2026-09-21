@@ -1,4 +1,4 @@
-import { Download, Search } from 'lucide-react'
+import { FileText, Search } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   ANSWER_DEPARTMENT_FILTER_ALL,
@@ -30,6 +30,7 @@ interface AnswersToolbarProps {
   onDepartmentChange: (value: string) => void
   onRatingChange: (value: string) => void
   onStatusChange: (value: AnswerStatusFilter) => void
+  /** Generates the answers report as a PDF. */
   onExport: () => void
 }
 
@@ -152,8 +153,8 @@ export function AnswersToolbar({
           onClick={onExport}
           className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 transition-colors hover:bg-gray-50"
         >
-          <Download className="h-3.5 w-3.5" />
-          Export
+          <FileText className="h-3.5 w-3.5" />
+          Export PDF
         </button>
       </div>
     </div>

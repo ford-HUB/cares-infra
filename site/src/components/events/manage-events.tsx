@@ -1,6 +1,8 @@
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  EVENT_STATUS_FILTERS,
+  EVENT_TIME_FILTERS,
   matchesEventStatusFilter,
   matchesEventTimeFilter,
   type EventStatusFilter,
@@ -14,6 +16,7 @@ import { usePermission, usePortalRole, useSuspension } from '../../store/auth-st
 import { useEventStore } from '../../store/event-store'
 import { useProfileStore } from '../../store/profile-store'
 import type { EventTableRow } from '../../types/event'
+import { exportEventsPdf } from '../../utils/export-events-pdf'
 import { CancelEventModal } from './modals/cancel-event-modal'
 import { DeleteEventModal } from './modals/delete-event-modal'
 import { EventDetailModal, formatEventRow } from './modals/event-detail-modal'
@@ -189,6 +192,33 @@ export function ManageEvents() {
     setCancelState({ isOpen: false, eventName: '', eventCode: null })
   }
 
+  /** The list as the reader sees it — same rows, same order, filters spelled out. */
+  const handleExport = () => {
+    exportEventsPdf(filteredEvents, {
+      scopeLabel: isCoordinator ? (profileDepartment ?? undefined) : undefined,
+      total: rows.length,
+      filters: [
+        { label: 'Search', value: searchTerm.trim() },
+        {
+          label: 'Time',
+          value:
+            timeFilter === 'all'
+              ? ''
+              : (EVENT_TIME_FILTERS.find((f) => f.value === timeFilter)?.label ?? timeFilter),
+        },
+        {
+          label: 'Status',
+          value:
+            statusFilter === 'all'
+              ? ''
+              : (EVENT_STATUS_FILTERS.find((f) => f.value === statusFilter)?.label ??
+                statusFilter),
+        },
+        { label: 'Type', value: selectedType },
+      ],
+    })
+  }
+
   const handleDelete = async () => {
     if (!deleteState.eventId) return
     const ok = await removeEvent(deleteState.eventId)
@@ -219,6 +249,7 @@ export function ManageEvents() {
           clearFilters()
           setPage(1)
         }}
+        onExport={handleExport}
         onCreate={canCreate ? () => setShowCreateModal(true) : undefined}
         createSuspension={createSuspension}
       />

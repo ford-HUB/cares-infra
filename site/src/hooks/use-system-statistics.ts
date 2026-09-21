@@ -6,6 +6,7 @@ import {
 import { useDepartmentStatisticsStore } from '../store/department-statistics-store'
 import type { StatisticsRange } from '../types/department-statistics'
 import { exportDepartmentStatisticsCsv } from '../utils/export-department-statistics-csv'
+import { exportDepartmentStatisticsPdf } from '../utils/export-department-statistics-pdf'
 
 /**
  * The admin and director view of the same statistics: every department by default,
@@ -63,6 +64,11 @@ export function useSystemStatistics() {
     )
   }, [statistics])
 
+  const exportPdf = useCallback(() => {
+    if (!statistics) return
+    exportDepartmentStatisticsPdf(statistics, { title: 'System Statistics', category })
+  }, [statistics, category])
+
   return {
     pending: !initialized,
     statistics,
@@ -77,5 +83,6 @@ export function useSystemStatistics() {
     changeCategory,
     changeDepartment,
     exportCsv,
+    exportPdf,
   }
 }

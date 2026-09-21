@@ -21,6 +21,8 @@
     "cn": "^0.2.5",
     "dayjs": "^1.11.21",
     "emoji-picker-react": "^4.19.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.22.0",
     "mapbox-gl": "^3.25.0",
     "radix-ui": "^1.6.7",

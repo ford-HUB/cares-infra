@@ -4,6 +4,7 @@ import { useDepartmentStatisticsStore } from '../store/department-statistics-sto
 import { useProfileStore } from '../store/profile-store'
 import type { StatisticsRange } from '../types/department-statistics'
 import { exportDepartmentStatisticsCsv } from '../utils/export-department-statistics-csv'
+import { exportDepartmentStatisticsPdf } from '../utils/export-department-statistics-pdf'
 
 /**
  * Wires the coordinator's department (from their profile) to the statistics store,
@@ -65,6 +66,11 @@ export function useDepartmentStatistics() {
     )
   }, [statistics])
 
+  const exportPdf = useCallback(() => {
+    if (!statistics) return
+    exportDepartmentStatisticsPdf(statistics, { title: 'Department Statistics', category })
+  }, [statistics, category])
+
   return {
     department,
     /** True until both the profile and the first statistics request have settled. */
@@ -79,5 +85,6 @@ export function useDepartmentStatistics() {
     changeRange,
     changeCategory,
     exportCsv,
+    exportPdf,
   }
 }

@@ -8,12 +8,13 @@ import {
   ANSWER_EVENT_FILTER_ALL,
   ANSWER_RATING_FILTER_ALL,
   ANSWER_STATUS_FILTER_ALL,
+  ANSWER_STATUS_FILTERS,
   DEFAULT_SCALE_MAX,
   type AnswerStatusFilter,
 } from '../../constants/evaluation'
 import { useEvaluationStore } from '../../store/evaluation-store'
 import type { EvaluationResponse } from '../../types/evaluation'
-import { exportAnswersCsv } from '../../utils/export-answers-csv'
+import { exportAnswersPdf } from '../../utils/export-answers-pdf'
 
 export function EvaluationAnswersPage() {
   const form = useEvaluationStore((s) => s.form)
@@ -109,7 +110,37 @@ export function EvaluationAnswersPage() {
         onDepartmentChange={resetToFirstPage(setDepartment)}
         onRatingChange={resetToFirstPage(setRating)}
         onStatusChange={resetToFirstPage(setStatus)}
-        onExport={() => exportAnswersCsv(filtered, questions)}
+        onExport={() =>
+          exportAnswersPdf(filtered, questions, {
+            form,
+            total: responses.length,
+            filters: [
+              { label: 'Search', value: search.trim() },
+              {
+                label: 'Event',
+                value:
+                  event === ANSWER_EVENT_FILTER_ALL
+                    ? ''
+                    : (events.find((e) => e.id === Number(event))?.title ?? event),
+              },
+              {
+                label: 'Department',
+                value: department === ANSWER_DEPARTMENT_FILTER_ALL ? '' : department,
+              },
+              {
+                label: 'Rating',
+                value: rating === ANSWER_RATING_FILTER_ALL ? '' : `${rating} star${rating === '1' ? '' : 's'}`,
+              },
+              {
+                label: 'Status',
+                value:
+                  status === ANSWER_STATUS_FILTER_ALL
+                    ? ''
+                    : (ANSWER_STATUS_FILTERS.find((s) => s.value === status)?.label ?? status),
+              },
+            ],
+          })
+        }
       />
 
       <AnswersTable

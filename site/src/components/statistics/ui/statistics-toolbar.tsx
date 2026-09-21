@@ -1,4 +1,4 @@
-import { Download, RefreshCw } from 'lucide-react'
+import { Download, FileText, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -37,7 +37,10 @@ interface StatisticsToolbarProps {
   onRangeChange: (range: StatisticsRange) => void
   onCategoryChange: (category: string) => void
   onRefresh: () => void
-  onExport: () => void
+  /** Downloads the month-by-month table as CSV. */
+  onExportCsv: () => void
+  /** Generates the full printable report as a PDF. */
+  onExportPdf: () => void
 }
 
 /**
@@ -57,7 +60,8 @@ export function StatisticsToolbar({
   onRangeChange,
   onCategoryChange,
   onRefresh,
-  onExport,
+  onExportCsv,
+  onExportPdf,
 }: StatisticsToolbarProps) {
   return (
     <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
@@ -122,9 +126,13 @@ export function StatisticsToolbar({
           </SelectContent>
         </Select>
 
-        <Button type="button" variant="outline" size="sm" onClick={onExport}>
+        <Button type="button" variant="outline" size="sm" onClick={onExportCsv}>
           <Download />
           Export CSV
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={onExportPdf}>
+          <FileText />
+          Export PDF
         </Button>
         <Button
           type="button"
