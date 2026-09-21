@@ -4,9 +4,19 @@ import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/domain/mock_event.dart';
 
 class FeaturedEventsCarousel extends StatefulWidget {
-  const FeaturedEventsCarousel({super.key, required this.events});
+  const FeaturedEventsCarousel({
+    super.key,
+    required this.events,
+    this.imageHeaders,
+    this.onEventTap,
+  });
 
   final List<MockEvent> events;
+
+  /// Sent with every image request — server-hosted event images sit behind
+  /// the bearer token.
+  final Map<String, String>? imageHeaders;
+  final ValueChanged<MockEvent>? onEventTap;
 
   @override
   State<FeaturedEventsCarousel> createState() => _FeaturedEventsCarouselState();
@@ -78,7 +88,14 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
                   onPageChanged: (index) =>
                       setState(() => _currentPage = index),
                   itemBuilder: (context, index) {
-                    return _EventCard(event: widget.events[index]);
+                    final event = widget.events[index];
+                    return _EventCard(
+                      event: event,
+                      imageHeaders: widget.imageHeaders,
+                      onTap: widget.onEventTap == null
+                          ? null
+                          : () => widget.onEventTap!(event),
+                    );
                   },
                 ),
                 Positioned(
@@ -148,40 +165,44 @@ class _CarouselArrow extends StatelessWidget {
 }
 
 class _EventCard extends StatelessWidget {
-  const _EventCard({required this.event});
+  const _EventCard({required this.event, this.imageHeaders, this.onTap});
 
   final MockEvent event;
+  final Map<String, String>? imageHeaders;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final fallback = Container(
+      color: AppColors.secondary.withValues(alpha: 0.35),
+      child: const Icon(Icons.event, size: 48, color: AppColors.primaryDark),
+    );
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            event.imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: AppColors.secondary.withValues(alpha: 0.35),
-              child: const Icon(
-                Icons.event,
-                size: 48,
-                color: AppColors.primaryDark,
-              ),
+          if (event.imageUrl.isEmpty)
+            fallback
+          else
+            Image.network(
+              event.imageUrl,
+              headers: imageHeaders,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => fallback,
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+                return Container(
+                  color: AppColors.light.withValues(alpha: 0.4),
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                );
+              },
             ),
-            loadingBuilder: (context, child, progress) {
-              if (progress == null) return child;
-              return Container(
-                color: AppColors.light.withValues(alpha: 0.4),
-                alignment: Alignment.center,
-                child: const CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.primary,
-                ),
-              );
-            },
-          ),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -272,6 +293,11 @@ class _EventCard extends StatelessWidget {
               ],
             ),
           ),
+          if (onTap != null)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(onTap: onTap),
+            ),
         ],
       ),
     );

@@ -185,8 +185,8 @@ class _BeneficiaryDashboardScreenState
                           !_profileComplete,
                       onCompleteProfile: _openProfileSetup,
                     ),
-                    const EventsTabScreen(),
-                    BeneficiaryActivityTab(onViewRequests: _openRequestsTab),
+                    const EventsTabScreen(forBeneficiary: true),
+                    const BeneficiaryActivityTab(),
                     const BeneficiaryRequestsTab(),
                     ProfileTabScreen(
                       displayName: _displayName,

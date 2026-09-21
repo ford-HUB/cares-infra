@@ -266,6 +266,15 @@ export type CertificateTemplateAsset = Prisma.CertificateTemplateAssetModel
  */
 export type CertificateDeployment = Prisma.CertificateDeploymentModel
 /**
+ * Model IssuedCertificate
+ * One certificate the issuing sweep generated for one participant of one deployment.
+ * The sheet is frozen here in full — the deployment's design with every placeholder
+ * filled and each signature line pointing at the image it printed — so what the
+ * volunteer holds never changes if the event, the template or a coordinator's
+ * profile is edited afterwards.
+ */
+export type IssuedCertificate = Prisma.IssuedCertificateModel
+/**
  * Model MonthlyReportFolder
  * A named tray the director builds on top of the automatic filing — an accreditation
  * packet, a set pulled for a board meeting. College folders are *not* rows: they are
@@ -310,3 +319,38 @@ export type Announcement = Prisma.AnnouncementModel
  * a later hire does not inherit a backlog.
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model EvaluationForm
+ * The post-event questionnaire the director builds in the portal. One form serves
+ * every completed event; the volunteer app only ever sees it once PUBLISHED. The
+ * questions are stored as the JSON the builder edits (see the evaluation validators
+ * for the shape) so adding a question type never needs a migration.
+ */
+export type EvaluationForm = Prisma.EvaluationFormModel
+/**
+ * Model RankingSettings
+ * How the volunteer leaderboard is scored and how its tier ladder is cut. One row:
+ * the portal's Rankings → Customization edits it, the volunteer app reads the tiers
+ * to draw its avatar frames. `tiers` is the JSON the customization form edits (see
+ * the rankings validators) so a new frame design never needs a migration.
+ */
+export type RankingSettings = Prisma.RankingSettingsModel
+/**
+ * Model EvaluationResponse
+ * One volunteer's answers to the questionnaire for one completed event they took
+ * part in. `answers` is keyed by question id; `rating` copies the star-rating
+ * answer out so the portal can filter and average without opening the JSON.
+ */
+export type EvaluationResponse = Prisma.EvaluationResponseModel
+/**
+ * Model UserRequest
+ * One request filed from the mobile app for a director to rule on. The proof
+ * behind a ROLE_ACCESS request (ID sides, selfie) is copied off the Redis
+ * registration session at filing time so it outlives that session's TTL.
+ */
+export type UserRequest = Prisma.UserRequestModel
+/**
+ * Model UserRequestTrailEntry
+ * One line on a request's history — filed, accepted, removed, restored.
+ */
+export type UserRequestTrailEntry = Prisma.UserRequestTrailEntryModel

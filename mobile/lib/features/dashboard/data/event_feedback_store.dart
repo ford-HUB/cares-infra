@@ -5,26 +5,22 @@ class EventFeedback {
   EventFeedback({
     required this.eventId,
     required this.participantEmail,
-    required this.overallRating,
-    required this.organizationRating,
-    required this.volunteerExperienceRating,
-    required this.comments,
     required this.submittedAt,
+    this.answers = const {},
   });
 
+  /// The `CaresEvent.id` form (`event-42`), which is what the cards key on.
   final String eventId;
   final String participantEmail;
-  final int overallRating;
-  final int organizationRating;
-  final int volunteerExperienceRating;
-  final String comments;
   final DateTime submittedAt;
 
-  double get averageRating =>
-      (overallRating + organizationRating + volunteerExperienceRating) / 3;
+  /// Answers keyed by question id; empty when only the server summary is known.
+  final Map<String, dynamic> answers;
 }
 
-/// In-memory post-event feedback store for the static prototype phase.
+/// Which completed events the signed-in volunteer has already given feedback
+/// on. The truth lives on the server; this mirrors it so the activity tab,
+/// the event details screen and the certificate wallet redraw together.
 ///
 /// Feedback gates the certificate: a volunteer only unlocks the certificate
 /// for an event once feedback for that event has been submitted.
@@ -48,26 +44,50 @@ class EventFeedbackStore extends ChangeNotifier {
   bool isCertificateUnlocked(String eventId, String email) =>
       hasSubmitted(eventId, email);
 
-  EventFeedback submit({
+  /// Records a submission the server just accepted.
+  EventFeedback markSubmitted({
     required String eventId,
     required String participantEmail,
-    required int overallRating,
-    required int organizationRating,
-    required int volunteerExperienceRating,
-    String comments = '',
+    required DateTime submittedAt,
+    Map<String, dynamic> answers = const {},
   }) {
     final feedback = EventFeedback(
       eventId: eventId,
       participantEmail: participantEmail,
-      overallRating: overallRating,
-      organizationRating: organizationRating,
-      volunteerExperienceRating: volunteerExperienceRating,
-      comments: comments.trim(),
-      submittedAt: DateTime.now(),
+      submittedAt: submittedAt,
+      answers: answers,
     );
     _feedback[_key(eventId, participantEmail)] = feedback;
     notifyListeners();
     return feedback;
+  }
+
+  /// Replaces everything known for [email] with the server's list, so a
+  /// submission made on another device shows and a removed one disappears.
+  void hydrate(String email, Map<String, DateTime> submittedAtByEventId) {
+    final suffix = '|${email.trim().toLowerCase()}';
+    var changed = false;
+
+    _feedback.removeWhere((key, feedback) {
+      final stale =
+          key.endsWith(suffix) &&
+          !submittedAtByEventId.containsKey(feedback.eventId);
+      if (stale) changed = true;
+      return stale;
+    });
+
+    for (final entry in submittedAtByEventId.entries) {
+      final key = _key(entry.key, email);
+      if (_feedback.containsKey(key)) continue;
+      _feedback[key] = EventFeedback(
+        eventId: entry.key,
+        participantEmail: email,
+        submittedAt: entry.value,
+      );
+      changed = true;
+    }
+
+    if (changed) notifyListeners();
   }
 
   /// Clears feedback so the locked -> unlocked flow can be demoed again.

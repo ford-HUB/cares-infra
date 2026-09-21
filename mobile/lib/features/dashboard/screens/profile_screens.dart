@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
-import '../data/event_feedback_store.dart';
+import '../presentation/widgets/certificate_sheet.dart';
 import 'certificate_review_screen.dart';
 import 'help_support_screen.dart';
 export 'profile_analytics_screen.dart';
@@ -110,17 +109,20 @@ class ProfileCertificatesScreen extends StatefulWidget {
 }
 
 class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
-  final _feedbackStore = EventFeedbackStore.instance;
+  final _certificateStore = CertificateStore.instance;
 
   @override
   void initState() {
     super.initState();
-    _feedbackStore.addListener(_onStoreChanged);
+    _certificateStore.addListener(_onStoreChanged);
+    // Whatever the wallet already holds shows at once; the server's list
+    // replaces it when it lands.
+    _certificateStore.refresh();
   }
 
   @override
   void dispose() {
-    _feedbackStore.removeListener(_onStoreChanged);
+    _certificateStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -130,7 +132,7 @@ class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final certificates = earnedCertificatesFor(certificateWalletEmail());
+    final certificates = _certificateStore.all;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -141,59 +143,55 @@ class _ProfileCertificatesScreenState extends State<ProfileCertificatesScreen> {
         elevation: 0,
       ),
       body: certificates.isEmpty
-          ? const Center(
+          ? Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  'No certificates earned yet. Complete an event and submit '
-                  'your feedback to receive one.',
+                  _certificateStore.lastError != null
+                      ? 'Could not load your certificates: '
+                            '${_certificateStore.lastError}'
+                      : 'No certificates earned yet. Complete an event and '
+                            'submit your feedback to receive one.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
             )
-          : ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: certificates.length + 1,
-              separatorBuilder: (_, index) => const SizedBox(height: 14),
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      '${certificates.length} certificate'
-                      '${certificates.length == 1 ? '' : 's'} received',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+          : RefreshIndicator(
+              onRefresh: () => _certificateStore.refresh(),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemCount: certificates.length + 1,
+                separatorBuilder: (_, index) => const SizedBox(height: 14),
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '${certificates.length} certificate'
+                        '${certificates.length == 1 ? '' : 's'} received',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
+                    );
+                  }
+                  return _CertificateListTile(
+                    certificate: certificates[index - 1],
                   );
-                }
-                return _CertificateListTile(
-                  certificate: certificates[index - 1],
-                );
-              },
+                },
+              ),
             ),
     );
   }
 }
 
-/// Email the certificate wallet is keyed on for the static prototype.
-String certificateWalletEmail() =>
-    StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
-
 class _CertificateListTile extends StatelessWidget {
   const _CertificateListTile({required this.certificate});
 
   final CaresCertificate certificate;
-
-  String get _recipientName {
-    final user = StaticUserSession.instance.currentUser;
-    if (user == null || user.fullName.trim().isEmpty) return 'Volunteer';
-    return user.fullName;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -213,10 +211,7 @@ class _CertificateListTile extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                child: _CertificateThumbnail(
-                  certificate: certificate,
-                  recipientName: _recipientName,
-                ),
+                child: _CertificateThumbnail(certificate: certificate),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 6, 6),
@@ -252,7 +247,7 @@ class _CertificateListTile extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             'Issued ${certificate.issuedMonthYear} · '
-                            '${certificate.hoursCompleted}h',
+                            '${certificate.hoursLabel}',
                             style: const TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,
@@ -263,10 +258,10 @@ class _CertificateListTile extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () =>
-                          downloadCertificate(context, certificate),
-                      icon: const Icon(Icons.download_rounded),
+                          CertificateReviewScreen.open(context, certificate),
+                      icon: const Icon(Icons.open_in_full_rounded),
                       color: AppColors.primary,
-                      tooltip: 'Download certificate',
+                      tooltip: 'View and download',
                     ),
                   ],
                 ),
@@ -279,124 +274,20 @@ class _CertificateListTile extends StatelessWidget {
   }
 }
 
-/// Compact landscape rendering of the certificate so the wallet shows what
-/// the volunteer will actually receive, mirroring [CertificateReviewScreen].
+/// The wallet shows the sheet itself, small: the same drawing the review
+/// screen and the PDF use, so what the volunteer sees is what they get.
 class _CertificateThumbnail extends StatelessWidget {
-  const _CertificateThumbnail({
-    required this.certificate,
-    required this.recipientName,
-  });
+  const _CertificateThumbnail({required this.certificate});
 
   final CaresCertificate certificate;
-  final String recipientName;
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.background,
-              AppColors.primary.withValues(alpha: 0.08),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
-        ),
-        padding: const EdgeInsets.all(5),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.18),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.workspace_premium_rounded,
-                    size: 14,
-                    color: AppColors.primary,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    'CARES',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.6,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                certificate.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                width: 28,
-                height: 2,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'This certifies that',
-                style: TextStyle(fontSize: 8, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                recipientName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                certificate.eventName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'No. ${certificate.certificateNumber}',
-                style: const TextStyle(fontSize: 7, color: AppColors.textMuted),
-              ),
-            ],
-          ),
+    return IgnorePointer(
+      child: Center(
+        child: FractionallySizedBox(
+          widthFactor: certificate.isLandscape ? 1 : 0.6,
+          child: CertificateSheet(certificate: certificate),
         ),
       ),
     );

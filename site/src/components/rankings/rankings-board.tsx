@@ -30,6 +30,9 @@ interface RankingsBoardProps {
   donors: DonorRankingEntry[]
   volunteerTrend: RankingTrend
   donorTrend: RankingTrend
+  /** The college a coordinator's board is cut to; null for the whole school. */
+  scopeDepartment: string | null
+  error: string | null
   loading: boolean
   onViewChange: (view: RankingView) => void
   onBoardChange: (board: RankingBoard) => void
@@ -56,6 +59,8 @@ export function RankingsBoard({
   donors,
   volunteerTrend,
   donorTrend,
+  scopeDepartment,
+  error,
   loading,
   onViewChange,
   onBoardChange,
@@ -63,8 +68,13 @@ export function RankingsBoard({
 }: RankingsBoardProps) {
   const isVolunteerBoard = board === 'volunteer'
 
-  const volunteerHours = volunteers.reduce((total, entry) => total + entry.hours, 0)
+  const volunteerAttended = volunteers.reduce((total, entry) => total + entry.eventsJoined, 0)
+  const volunteerMissed = volunteers.reduce((total, entry) => total + entry.eventsMissed, 0)
   const volunteerPoints = volunteers.reduce((total, entry) => total + entry.points, 0)
+  const volunteerDeducted = volunteers.reduce(
+    (total, entry) => total + entry.pointsDeducted,
+    0,
+  )
   const donorAmount = donors.reduce((total, entry) => total + entry.amount, 0)
   const donorPoints = donors.reduce((total, entry) => total + entry.points, 0)
 
@@ -74,7 +84,7 @@ export function RankingsBoard({
         id: entry.id,
         rank: entry.rank,
         name: `${entry.firstName} ${entry.lastName}`,
-        subtitle: `${formatNumber(entry.hours)} hrs`,
+        subtitle: `${formatNumber(entry.eventsJoined)} attended`,
         points: entry.points,
       }))
     : donors.slice(0, PODIUM_SIZE).map((entry) => ({
@@ -92,12 +102,14 @@ export function RankingsBoard({
         {
           label: 'Ranked Volunteers',
           value: formatNumber(volunteers.length),
-          hint: `Scored at ${settings.volunteerPointsPerHour} points per service hour`,
+          hint: scopeDepartment
+            ? `${scopeDepartment} + school-wide events · ${settings.pointsPerAttendance} pts per attendance`
+            : `Scored at ${settings.pointsPerAttendance} points per attendance`,
         },
         {
-          label: 'Total Service Hours',
-          value: `${formatNumber(volunteerHours)} hrs`,
-          hint: `${formatPoints(volunteerPoints)} awarded in total`,
+          label: 'Events Attended',
+          value: formatNumber(volunteerAttended),
+          hint: `${formatPoints(volunteerPoints)} on the board · ${formatNumber(volunteerMissed)} missed cost ${formatPoints(volunteerDeducted)}`,
         },
         {
           label: 'Top Volunteer',
@@ -130,6 +142,11 @@ export function RankingsBoard({
           <h1 className="text-xl font-semibold text-gray-900">Rankings</h1>
           <p className="text-[13px] text-gray-500">{boardCriteria(board, settings)}</p>
         </div>
+        {error && (
+          <p role="alert" className="text-[13px] text-red-600">
+            {error}
+          </p>
+        )}
 
         {/* Dashboard vs list — the underline tabs own the whole page below them. */}
         <div
@@ -207,6 +224,7 @@ export function RankingsBoard({
           <VolunteerRankingTable
             entries={volunteers}
             tiers={settings.tiers}
+            settings={settings}
             loading={loading}
           />
         ) : (

@@ -23,18 +23,34 @@ import '../widgets/event_image_carousel.dart';
 import '../widgets/event_registration_dialogs.dart';
 import '../widgets/event_sync_sheet.dart';
 import '../widgets/location_permission_dialogs.dart';
+import '../beneficiary/widgets/beneficiary_event_application_dialog.dart';
 import 'certificate_review_screen.dart';
 import 'event_feedback_screen.dart';
 import 'event_route_map_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
-  const EventDetailsScreen({super.key, required this.event});
+  const EventDetailsScreen({
+    super.key,
+    required this.event,
+    this.readOnly = false,
+  });
 
   final CaresEvent event;
 
-  static void open(BuildContext context, CaresEvent event) {
+  /// Beneficiaries never register — registration is a volunteer endpoint.
+  /// They apply instead: the join/cancel bar becomes "Apply as Beneficiary",
+  /// which files a proof-of-residency application a director rules on.
+  final bool readOnly;
+
+  static void open(
+    BuildContext context,
+    CaresEvent event, {
+    bool readOnly = false,
+  }) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => EventDetailsScreen(event: event)),
+      MaterialPageRoute<void>(
+        builder: (_) => EventDetailsScreen(event: event, readOnly: readOnly),
+      ),
     );
   }
 
@@ -45,6 +61,7 @@ class EventDetailsScreen extends StatefulWidget {
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _store = EventRegistrationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
+  final _certificateStore = CertificateStore.instance;
   final _tracker = EventLocationTracker.instance;
   final _registrationApi = EventRegistrationService();
 
@@ -63,6 +80,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   void initState() {
     super.initState();
     _feedbackStore.addListener(_onFeedbackChanged);
+    _certificateStore.addListener(_onFeedbackChanged);
     _tracker.addListener(_onFeedbackChanged);
     _store.addListener(_onStoreChanged);
     _phaseTimer = Timer.periodic(
@@ -80,6 +98,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     _phaseTimer?.cancel();
     _store.removeListener(_onStoreChanged);
     _feedbackStore.removeListener(_onFeedbackChanged);
+    _certificateStore.removeListener(_onFeedbackChanged);
     _tracker.removeListener(_onFeedbackChanged);
     super.dispose();
   }
@@ -104,33 +123,60 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _feedbackSubmitted =>
       _feedbackStore.hasSubmitted(_event.id, _participantEmail);
 
+  /// The sheet the scheduler generated for this event, once it has.
+  CaresCertificate? get _certificate =>
+      _certificateStore.forEvent(_event.serverId);
+
   Future<void> _giveFeedback() async {
     final submitted = await EventFeedbackScreen.open(context, _event);
     if (!mounted || !submitted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Thank you for your feedback!'),
+        content: Text(
+          'Thank you for your feedback! Your certificate is being generated.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    // The sweep may already have run for an earlier feedback; ask once.
+    _certificateStore.refresh();
+  }
+
+  Future<void> _viewCertificate() async {
+    final certificate = _certificate;
+    if (certificate != null) {
+      CertificateReviewScreen.open(context, certificate);
+      return;
+    }
+    // Not issued yet: pull the wallet in case the sweep just ran, then say so.
+    final fetched = await _certificateStore.refresh();
+    if (!mounted) return;
+    final refreshed = _certificate;
+    if (refreshed != null) {
+      CertificateReviewScreen.open(context, refreshed);
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          fetched
+              ? 'Your certificate is still being generated — check back shortly.'
+              : 'Could not load your certificates: '
+                    '${_certificateStore.lastError ?? 'unknown error'}',
+        ),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  void _viewCertificate() {
-    CertificateReviewScreen.open(context, certificateForEvent(_event));
-  }
-
   EventParticipation? get _participation =>
       _store.participationFor(_event.id, _participantEmail);
 
-  bool get _isRegistered =>
-      _store.isRegistered(_event.id, _participantEmail);
+  bool get _isRegistered => _store.isRegistered(_event.id, _participantEmail);
 
   Future<void> _confirmJoin() async {
-    final confirmed = await showEventJoinConfirmationDialog(
-      context,
-      _event,
-    );
+    final confirmed = await showEventJoinConfirmationDialog(context, _event);
 
     if (!confirmed || !mounted) return;
 
@@ -201,10 +247,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Future<void> _confirmCancel() async {
-    final confirmed = await showEventCancelConfirmationDialog(
-      context,
-      _event,
-    );
+    final confirmed = await showEventCancelConfirmationDialog(context, _event);
     if (!confirmed || !mounted) return;
 
     final synced = await _syncRegistration(join: false);
@@ -272,8 +315,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   void _openRouteMap() => EventRouteMapScreen.open(context, _event);
 
-  void _openParticipants() =>
-      EventParticipantsScreen.open(context, _event);
+  void _openParticipants() => EventParticipantsScreen.open(context, _event);
 
   void _openReminder() => showEventReminderSheet(context, _event);
 
@@ -287,6 +329,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final isCompleted = event.hasEnded();
     final isOngoing = event.isOngoing();
     final feedbackSubmitted = _feedbackSubmitted;
+    final certificateIssued = _certificate != null;
 
     // The hero photo runs under the status bar, so its icons go light.
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -382,10 +425,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               participated:
                                   participation?.attendanceVerified ?? true,
                               feedbackSubmitted: feedbackSubmitted,
+                              certificateIssued: certificateIssued,
                             ),
                             const SizedBox(height: 16),
                             CertificateStatusBanner(
                               unlocked: feedbackSubmitted,
+                              issued: certificateIssued,
                             ),
                           ] else ...[
                             if (participation?.attendanceVerified == true) ...[
@@ -529,6 +574,61 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
+  /// The beneficiary's action, by where their application stands: apply,
+  /// wait for the director, or see that it was approved.
+  Widget _buildBeneficiaryBar(CaresEvent event, bool isCompleted) {
+    if (isCompleted) {
+      return FilledButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.event_busy_rounded),
+        label: const Text('Event has ended'),
+        style: _pillStyle,
+      );
+    }
+    if (event.isApplicationAccepted) {
+      return FilledButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.verified_rounded),
+        label: const Text('Application approved'),
+        style: _pillStyle,
+      );
+    }
+    if (event.isApplicationPending) {
+      return FilledButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.hourglass_top_rounded),
+        label: const Text('Pending approval'),
+        style: _pillStyle,
+      );
+    }
+    return FilledButton.icon(
+      onPressed: _applyAsBeneficiary,
+      icon: const Icon(Icons.volunteer_activism_outlined),
+      label: const Text('Apply as Beneficiary'),
+      style: _pillStyle,
+    );
+  }
+
+  Future<void> _applyAsBeneficiary() async {
+    final applied = await showBeneficiaryEventApplicationDialog(
+      context,
+      _event,
+    );
+    if (!mounted || !applied) return;
+    setState(() => _event = _event.withApplicationStatus('PENDING'));
+    // The lists behind this screen carry the same status flag.
+    final container = ProviderScope.containerOf(context, listen: false);
+    container.invalidate(beneficiaryEventsProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Application submitted — pending the director\'s approval.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Widget _buildBottomBar({
     required CaresEvent event,
     required EventParticipation? participation,
@@ -537,6 +637,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     required bool isOngoing,
     required bool feedbackSubmitted,
   }) {
+    if (widget.readOnly) return _buildBeneficiaryBar(event, isCompleted);
     // A finished event has no Cancel or Sync — only the feedback /
     // certificate follow-up for those who joined.
     if (isCompleted) {
@@ -548,11 +649,38 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           style: _pillStyle,
         );
       }
+      // Ruled absent by the geofence validator: the server refuses feedback,
+      // so say so here rather than offer a button that will fail.
+      if (event.isMarkedAbsent && !feedbackSubmitted) {
+        return FilledButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.person_off_rounded),
+          label: const Text('Marked absent — feedback closed'),
+          style: _pillStyle,
+        );
+      }
+      // The validator has not ruled yet: feedback is pending, not open.
+      if (event.isAttendancePending && !feedbackSubmitted) {
+        return FilledButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.hourglass_top_rounded),
+          label: const Text('Feedback pending — validating attendance'),
+          style: _pillStyle,
+        );
+      }
       return feedbackSubmitted
           ? FilledButton.icon(
               onPressed: _viewCertificate,
-              icon: const Icon(Icons.workspace_premium_rounded),
-              label: const Text('View Certificate'),
+              icon: Icon(
+                _certificate != null
+                    ? Icons.workspace_premium_rounded
+                    : Icons.hourglass_top_rounded,
+              ),
+              label: Text(
+                _certificate != null
+                    ? 'View Certificate'
+                    : 'Certificate generating',
+              ),
               style: _pillStyle,
             )
           : FilledButton.icon(

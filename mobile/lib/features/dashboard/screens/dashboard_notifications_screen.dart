@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
-import '../data/notification_data.dart';
+import '../data/models/notification_models.dart';
+import '../data/notification_sync.dart';
 
+/// The person's feed as the server holds it — attendance rulings, event
+/// start reminders, certificates, announcements — read through
+/// [NotificationSync], which also pops new rows as device notifications.
 class DashboardNotificationsScreen extends StatefulWidget {
   const DashboardNotificationsScreen({super.key});
 
@@ -20,50 +24,32 @@ class DashboardNotificationsScreen extends StatefulWidget {
 
 class _DashboardNotificationsScreenState
     extends State<DashboardNotificationsScreen> {
-  late List<AppNotification> _notifications = List<AppNotification>.from(
-    kMockNotifications,
-  );
+  final NotificationSync _sync = NotificationSync.instance;
 
-  int get _unreadCount => _notifications.where((n) => n.isUnread).length;
-
-  void _markAsRead(String id) {
-    setState(() {
-      _notifications = _notifications
-          .map(
-            (n) => n.id == id
-                ? AppNotification(
-                    id: n.id,
-                    title: n.title,
-                    message: n.message,
-                    timeAgo: n.timeAgo,
-                    type: n.type,
-                    isUnread: false,
-                  )
-                : n,
-          )
-          .toList();
-    });
+  @override
+  void initState() {
+    super.initState();
+    _sync.addListener(_onFeedChanged);
+    _sync.refresh();
   }
 
-  void _markAllRead() {
-    setState(() {
-      _notifications = _notifications
-          .map(
-            (n) => AppNotification(
-              id: n.id,
-              title: n.title,
-              message: n.message,
-              timeAgo: n.timeAgo,
-              type: n.type,
-              isUnread: false,
-            ),
-          )
-          .toList();
-    });
+  @override
+  void dispose() {
+    _sync.removeListener(_onFeedChanged);
+    super.dispose();
   }
+
+  void _onFeedChanged() {
+    if (mounted) setState(() {});
+  }
+
+  List<AppNotification> get _notifications => _sync.feed.items;
+
+  int get _unreadCount => _sync.unread;
 
   Future<void> _openNotification(AppNotification notification) async {
-    _markAsRead(notification.id);
+    if (notification.isUnread) await _sync.markRead(notification.id);
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -92,7 +78,7 @@ class _DashboardNotificationsScreenState
               child: Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
-                  onPressed: _markAllRead,
+                  onPressed: _sync.markAllRead,
                   icon: const Icon(Icons.done_all_rounded, size: 18),
                   label: const Text('Mark all as read'),
                   style: TextButton.styleFrom(
@@ -104,23 +90,35 @@ class _DashboardNotificationsScreenState
             ),
           Expanded(
             child: _notifications.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No notifications yet.',
-                      style: TextStyle(color: AppColors.textSecondary),
+                ? RefreshIndicator(
+                    onRefresh: _sync.refresh,
+                    child: ListView(
+                      children: const [
+                        SizedBox(height: 160),
+                        Center(
+                          child: Text(
+                            'No notifications yet.',
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ),
+                      ],
                     ),
                   )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    itemCount: _notifications.length,
-                    separatorBuilder: (_, index) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final notification = _notifications[index];
-                      return _NotificationTile(
-                        notification: notification,
-                        onTap: () => _openNotification(notification),
-                      );
-                    },
+                : RefreshIndicator(
+                    onRefresh: _sync.refresh,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      itemCount: _notifications.length,
+                      separatorBuilder: (_, index) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final notification = _notifications[index];
+                        return _NotificationTile(
+                          notification: notification,
+                          onTap: () => _openNotification(notification),
+                        );
+                      },
+                    ),
                   ),
           ),
         ],

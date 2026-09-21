@@ -409,3 +409,36 @@ export const NotificationTone = {
 } as const
 
 export type NotificationTone = (typeof NotificationTone)[keyof typeof NotificationTone]
+
+
+export const EvaluationFormStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type EvaluationFormStatus = (typeof EvaluationFormStatus)[keyof typeof EvaluationFormStatus]
+
+
+export const EvaluationResponseStatus = {
+  COMPLETE: 'COMPLETE',
+  PARTIAL: 'PARTIAL'
+} as const
+
+export type EvaluationResponseStatus = (typeof EvaluationResponseStatus)[keyof typeof EvaluationResponseStatus]
+
+
+export const UserRequestKind = {
+  ROLE_ACCESS: 'ROLE_ACCESS',
+  EVENT_JOIN: 'EVENT_JOIN'
+} as const
+
+export type UserRequestKind = (typeof UserRequestKind)[keyof typeof UserRequestKind]
+
+
+export const UserRequestStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DELETED: 'DELETED'
+} as const
+
+export type UserRequestStatus = (typeof UserRequestStatus)[keyof typeof UserRequestStatus]

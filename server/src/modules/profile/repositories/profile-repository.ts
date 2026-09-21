@@ -116,6 +116,18 @@ export class ProfileRepository {
         user_interest: {
           select: { selected: true },
         },
+        // A donor / beneficiary whose Volunteer side was opened by a director
+        // (ID + face verified through a role-access request) — they hold no
+        // school record, and the app hides that section for them.
+        user_requests: {
+          where: {
+            kind: 'ROLE_ACCESS',
+            requested_role: 'VOLUNTEER',
+            status: 'ACCEPTED',
+          },
+          select: { user_request_id: true },
+          take: 1,
+        },
         oauth_identities: {
           select: { provider: true },
         },

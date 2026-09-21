@@ -26,6 +26,8 @@ class CaresEvent {
     this.imageAsset,
     this.imageUrls = const [],
     this.organizerDescription,
+    this.attendanceStatus,
+    this.applicationStatus,
   });
 
   final String id;
@@ -71,6 +73,32 @@ class CaresEvent {
   /// Null on server rows for now; the details screen falls back to a generic
   /// line built from [organization].
   final String? organizerDescription;
+
+  /// The geofence ruling on this volunteer's own attendance, as the server
+  /// sends it: `PENDING`, `COMPLETED` or `ABSENT`. Null on prototype
+  /// fixtures and on events the volunteer has not joined.
+  final String? attendanceStatus;
+
+  /// The validator ruled the volunteer did not attend — no feedback, no
+  /// certificate for this event.
+  bool get isMarkedAbsent => attendanceStatus == 'ABSENT';
+
+  /// The validator has not ruled on this volunteer's attendance yet. Feedback
+  /// stays pending until it does — the server refuses a submission before
+  /// then, so the cards show a waiting state instead of the button.
+  bool get isAttendancePending => attendanceStatus == 'PENDING';
+
+  /// Feedback can be given now: the event was attended as far as the server
+  /// knows (fixtures without a ruling count as attended).
+  bool get canGiveFeedback => !isMarkedAbsent && !isAttendancePending;
+
+  /// A beneficiary's own application for this event, as the server sends it:
+  /// `PENDING` while a director has yet to rule, `ACCEPTED` once they have.
+  /// Null for volunteers and events not applied for.
+  final String? applicationStatus;
+
+  bool get isApplicationPending => applicationStatus == 'PENDING';
+  bool get isApplicationAccepted => applicationStatus == 'ACCEPTED';
 
   String get monthLabel {
     const months = [
@@ -166,6 +194,42 @@ class CaresEvent {
       imageAsset: imageAsset,
       imageUrls: imageUrls,
       organizerDescription: organizerDescription,
+      attendanceStatus: attendanceStatus,
+      applicationStatus: applicationStatus,
+    );
+  }
+
+  /// The same event with the beneficiary's application moved along.
+  CaresEvent withApplicationStatus(String? status) {
+    return CaresEvent(
+      id: id,
+      title: title,
+      organization: organization,
+      date: date,
+      time: time,
+      location: location,
+      description: description,
+      slotsLeft: slotsLeft,
+      daysUntil: daysUntil,
+      capacityFilled: capacityFilled,
+      category: category,
+      tags: tags,
+      registeredCount: registeredCount,
+      totalCapacity: totalCapacity,
+      requirements: requirements,
+      venueLatitude: venueLatitude,
+      venueLongitude: venueLongitude,
+      attendanceRadiusMeters: attendanceRadiusMeters,
+      isFeatured: isFeatured,
+      openToBeneficiaries: openToBeneficiaries,
+      isCompleted: isCompleted,
+      hoursCompleted: hoursCompleted,
+      endDate: endDate,
+      imageAsset: imageAsset,
+      imageUrls: imageUrls,
+      organizerDescription: organizerDescription,
+      attendanceStatus: attendanceStatus,
+      applicationStatus: status,
     );
   }
 

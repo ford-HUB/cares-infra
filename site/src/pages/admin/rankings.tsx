@@ -16,6 +16,8 @@ export function RankingsPage() {
     donors,
     volunteerTrend,
     donorTrend,
+    scopeDepartment,
+    error,
     loading,
   } = useRankings()
 
@@ -31,6 +33,8 @@ export function RankingsPage() {
         donors={donors}
         volunteerTrend={volunteerTrend}
         donorTrend={donorTrend}
+        scopeDepartment={scopeDepartment}
+        error={error}
         loading={loading}
         onViewChange={setView}
         onBoardChange={setBoard}

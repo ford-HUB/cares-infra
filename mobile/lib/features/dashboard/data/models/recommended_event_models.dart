@@ -36,10 +36,12 @@ class RecommendedEvent {
     required this.maxParticipants,
     required this.participants,
     required this.isRegistered,
+    this.attendanceStatus,
     required this.organizerName,
     required this.category,
     required this.status,
     required this.beneficiaryApplicable,
+    this.applicationStatus,
     required this.matchedInterests,
     required this.matchScore,
     this.imageCount = 0,
@@ -58,10 +60,12 @@ class RecommendedEvent {
       maxParticipants: json['max_participants'] as int? ?? 0,
       participants: json['participants'] as int? ?? 0,
       isRegistered: json['is_registered'] as bool? ?? false,
+      attendanceStatus: json['attendance_status'] as String?,
       organizerName: json['organizer_name'] as String? ?? '',
       category: json['category'] as String? ?? '',
       status: json['status'] as String? ?? 'Upcoming',
       beneficiaryApplicable: json['beneficiary_applicable'] as bool? ?? false,
+      applicationStatus: json['application_status'] as String?,
       markerLat: (json['marker_lat'] as num?)?.toDouble(),
       markerLng: (json['marker_lng'] as num?)?.toDouble(),
       imageCount: json['image_count'] as int? ?? 0,
@@ -85,10 +89,18 @@ class RecommendedEvent {
 
   /// Whether the signed-in volunteer is one of [participants].
   final bool isRegistered;
+
+  /// The geofence ruling on the volunteer's attendance (`PENDING`,
+  /// `COMPLETED`, `ABSENT`); null when not registered.
+  final String? attendanceStatus;
   final String organizerName;
   final String category;
   final String status;
   final bool beneficiaryApplicable;
+
+  /// Beneficiary rows only: `PENDING` / `ACCEPTED` for the caller's own
+  /// application, null otherwise.
+  final String? applicationStatus;
   final double? markerLat;
   final double? markerLng;
 
@@ -150,6 +162,8 @@ class RecommendedEvent {
       isCompleted: status == 'Completed',
       endDate: endsAt,
       imageUrls: imageUrls,
+      attendanceStatus: attendanceStatus,
+      applicationStatus: applicationStatus,
     );
   }
 }

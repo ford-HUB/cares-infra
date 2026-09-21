@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import {
   RANKING_TIER_MAX_COUNT,
@@ -10,6 +10,7 @@ import {
 } from '../constants/ranking'
 import { RANK_FRAME_DEFAULT_COLORS, nextUnusedFrame } from '../constants/rank-frames'
 import { useRankingStore } from '../store/ranking-store'
+import { deepEqual } from '../utils/deep-equal'
 import {
   rankingCustomizationDefaultValues,
   rankingCustomizationSchema,
@@ -30,6 +31,15 @@ export function useRankingCustomizationForm() {
 
   const tiers = useFieldArray({ control: form.control, name: 'tiers' })
 
+  /**
+   * Dirtiness is computed from the watched values against the last reset, rather
+   * than read off `formState.isDirty`: the ladder is edited through `replace` and
+   * `setValue` on unregistered paths (badge design, colours), and the flag did not
+   * reliably follow those, which left Save disabled after a change.
+   */
+  const values = useWatch({ control: form.control })
+  const isDirty = !deepEqual(values, form.formState.defaultValues)
+
   useEffect(() => {
     void fetchRankings()
   }, [fetchRankings])
@@ -44,17 +54,22 @@ export function useRankingCustomizationForm() {
     form.reset(settings)
   }, [initialized, settings, form])
 
-  const onSubmit = form.handleSubmit(async (values) => {
-    const ok = await saveSettings(values)
+  const onSubmit = form.handleSubmit(
+    async (values) => {
+      const ok = await saveSettings(values)
 
-    if (!ok) {
-      toast.error('The ranking settings could not be saved.')
-      return
-    }
+      if (!ok) {
+        toast.error('The ranking settings could not be saved.')
+        return
+      }
 
-    toast.success('Ranking settings saved. Both boards were rescored.')
-    form.reset(values)
-  })
+      toast.success('Ranking settings saved. Both boards were rescored.')
+      form.reset(values)
+    },
+    // Not every field renders its own error (a tier's cut-off, the ladder order), so
+    // a rejected submit says so rather than leaving the click with no effect.
+    () => toast.error('Fix the highlighted fields before saving.'),
+  )
 
   /**
    * The ladder's rungs are its cut-offs, and they have to stay ascending with the
@@ -142,6 +157,7 @@ export function useRankingCustomizationForm() {
     onRemoveTier,
     onMoveTier,
     saving,
+    isDirty,
     loading: !initialized,
   }
 }

@@ -1,70 +1,239 @@
 /**
- * Mock standings for both leaderboards. The two boards are scored on separate
- * criteria — hours for volunteers, pesos for donors — so they are ranked apart and
- * never compared against each other.
- *
- * Fixtures only; swap each call for `apiClient` once the ranking endpoints land.
+ * The two boards are scored on separate criteria and never compared against each
+ * other. The volunteer board and the scoring settings come from the server —
+ * `/api/v1/rankings/*` — where a coordinator's call is cut to their own college's
+ * events. The donor board is still a fixture until donations are recorded.
  */
 import dayjs from 'dayjs'
 import {
+  RANKING_DEFAULT_BOARD,
   RANKING_DEFAULT_SETTINGS,
   RANKING_TREND_MONTHS,
 } from '../../constants/ranking'
-import type { EventAttendee } from '../../types/attendee'
+import type { ApiResponse } from '../../types/portal-roles'
 import type {
   DonorRankingEntry,
-  RankingBoard,
+  RankFrameDesignId,
+  RankingPeriod,
   RankingSettings,
+  RankingTier,
   RankingTrend,
   VolunteerRankingEntry,
 } from '../../types/ranking'
-import { listEventAttendees } from '../attendee-service'
+import { apiClient, parseApiError } from '../api-client'
 
-/** Points are always derived from the saved criteria, never stored on the fixture. */
-export function volunteerPoints(hours: number, pointsPerHour: number): number {
-  return Math.round(hours * pointsPerHour)
+/** Backend wraps successful responses in an { ok, data } envelope. */
+type ApiEnvelope<T> = { ok: true; message?: string; data: T }
+
+interface RankingTierResponse {
+  id: string
+  label: string
+  /** Null marks the catch-all last tier. */
+  max_rank: number | null
+  frame: RankFrameDesignId
+  color_from: string
+  color_to: string
 }
 
+interface RankingSettingsResponse {
+  points_per_attendance: number
+  absence_penalty_step: number
+  absence_reset_days: number
+  default_period: RankingPeriod
+  tiers: RankingTierResponse[]
+  updated_at: string
+}
+
+interface VolunteerRankingEntryResponse {
+  user_id: string
+  firstname: string
+  lastname: string
+  email: string
+  department: string | null
+  rank: number
+  previous_rank: number | null
+  points: number
+  points_earned: number
+  points_deducted: number
+  events_attended: number
+  events_missed: number
+  hours: number
+  current_streak: number
+  last_active_at: string | null
+}
+
+interface VolunteerRankingsResponse {
+  period: RankingPeriod
+  department: string | null
+  entries: VolunteerRankingEntryResponse[]
+}
+
+interface RankingTrendResponse {
+  labels: string[]
+  series: { user_id: string; name: string; rank: number; values: number[] }[]
+}
+
+const UNKNOWN_DEPARTMENT = '—'
+
+function toTier(tier: RankingTierResponse): RankingTier {
+  return {
+    id: tier.id,
+    label: tier.label,
+    maxRank: tier.max_rank ?? Number.POSITIVE_INFINITY,
+    frame: tier.frame,
+    colorFrom: tier.color_from,
+    colorTo: tier.color_to,
+  }
+}
+
+function fromTier(tier: RankingTier, isLast: boolean): RankingTierResponse {
+  return {
+    id: tier.id,
+    label: tier.label,
+    max_rank: isLast || !Number.isFinite(tier.maxRank) ? null : tier.maxRank,
+    frame: tier.frame,
+    color_from: tier.colorFrom,
+    color_to: tier.colorTo,
+  }
+}
+
+/**
+ * The donor rate and default board are not on the server (the donor board is
+ * still a fixture), so they ride along in memory next to what the server holds.
+ */
+let localSettings = {
+  donorPesosPerPoint: RANKING_DEFAULT_SETTINGS.donorPesosPerPoint,
+  defaultBoard: RANKING_DEFAULT_BOARD,
+}
+
+function toSettings(row: RankingSettingsResponse): RankingSettings {
+  return {
+    pointsPerAttendance: row.points_per_attendance,
+    absencePenaltyStep: row.absence_penalty_step,
+    absenceResetDays: row.absence_reset_days,
+    donorPesosPerPoint: localSettings.donorPesosPerPoint,
+    defaultBoard: localSettings.defaultBoard,
+    defaultPeriod: row.default_period,
+    tiers: row.tiers.map(toTier),
+  }
+}
+
+function toVolunteerEntry(row: VolunteerRankingEntryResponse): VolunteerRankingEntry {
+  return {
+    id: row.user_id,
+    rank: row.rank,
+    previousRank: row.previous_rank ?? undefined,
+    points: row.points,
+    firstName: row.firstname,
+    lastName: row.lastname,
+    email: row.email,
+    department: row.department ?? UNKNOWN_DEPARTMENT,
+    hours: row.hours,
+    eventsJoined: row.events_attended,
+    eventsMissed: row.events_missed,
+    pointsEarned: row.points_earned,
+    pointsDeducted: row.points_deducted,
+    currentStreak: row.current_streak,
+    lastActiveAt: row.last_active_at,
+  }
+}
+
+export async function getRankingSettings(): Promise<ApiResponse<RankingSettings>> {
+  try {
+    const { data: body } = await apiClient.get<ApiEnvelope<RankingSettingsResponse>>(
+      '/api/v1/rankings/settings',
+    )
+    return { success: true, data: toSettings(body.data) }
+  } catch (error) {
+    return { success: false, data: null, message: parseApiError(error) }
+  }
+}
+
+export async function updateRankingSettings(
+  settings: RankingSettings,
+): Promise<ApiResponse<RankingSettings>> {
+  try {
+    const { data: body } = await apiClient.put<ApiEnvelope<RankingSettingsResponse>>(
+      '/api/v1/rankings/settings',
+      {
+        points_per_attendance: settings.pointsPerAttendance,
+        absence_penalty_step: settings.absencePenaltyStep,
+        absence_reset_days: settings.absenceResetDays,
+        default_period: settings.defaultPeriod,
+        tiers: settings.tiers.map((tier, index) =>
+          fromTier(tier, index === settings.tiers.length - 1),
+        ),
+      },
+    )
+    localSettings = {
+      donorPesosPerPoint: settings.donorPesosPerPoint,
+      defaultBoard: settings.defaultBoard,
+    }
+    return { success: true, data: toSettings(body.data) }
+  } catch (error) {
+    return { success: false, data: null, message: parseApiError(error) }
+  }
+}
+
+/**
+ * The volunteer standings for a period. The server scopes the board to the
+ * caller: the whole school for a director or admin, one college for a coordinator.
+ */
+export async function listVolunteerRankings(
+  period: RankingPeriod,
+): Promise<ApiResponse<{ department: string | null; entries: VolunteerRankingEntry[] }>> {
+  try {
+    const { data: body } = await apiClient.get<ApiEnvelope<VolunteerRankingsResponse>>(
+      '/api/v1/rankings/volunteers',
+      { params: { period } },
+    )
+    return {
+      success: true,
+      data: {
+        department: body.data.department,
+        entries: body.data.entries.map(toVolunteerEntry),
+      },
+    }
+  } catch (error) {
+    return { success: false, data: null, message: parseApiError(error) }
+  }
+}
+
+export async function getVolunteerRankingTrend(
+  period: RankingPeriod,
+): Promise<ApiResponse<RankingTrend>> {
+  try {
+    const { data: body } = await apiClient.get<ApiEnvelope<RankingTrendResponse>>(
+      '/api/v1/rankings/volunteers/trend',
+      { params: { period } },
+    )
+    return {
+      success: true,
+      data: {
+        labels: body.data.labels,
+        series: body.data.series.map((series) => ({
+          id: series.user_id,
+          name: series.name,
+          rank: series.rank,
+          values: series.values,
+        })),
+      },
+    }
+  } catch (error) {
+    return { success: false, data: null, message: parseApiError(error) }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Donor board — fixtures until donations are recorded.
+ * ------------------------------------------------------------------------- */
+
+/** Points are always derived from the saved criteria, never stored on the fixture. */
 export function donorPoints(amount: number, pesosPerPoint: number): number {
   return Math.floor(amount / pesosPerPoint)
 }
 
-/**
- * The saved settings, held in memory for now. Editing them in Customization rescores
- * both boards on the next fetch — swap this for `apiClient` when the endpoint lands.
- */
-let savedSettings: RankingSettings = RANKING_DEFAULT_SETTINGS
-
-export async function getRankingSettings(): Promise<{
-  success: boolean
-  data: RankingSettings
-}> {
-  return { success: true, data: savedSettings }
-}
-
-export async function updateRankingSettings(settings: RankingSettings): Promise<{
-  success: boolean
-  data: RankingSettings
-}> {
-  savedSettings = settings
-  return { success: true, data: savedSettings }
-}
-
-type VolunteerSeed = Omit<VolunteerRankingEntry, 'rank' | 'points'>
 type DonorSeed = Omit<DonorRankingEntry, 'rank' | 'points'>
-
-const VOLUNTEER_SEED: VolunteerSeed[] = [
-  { id: 'v1', firstName: 'Carlo', lastName: 'Mendoza', email: 'carlo.mendoza@uclm.edu.ph', department: 'Engineering', hours: 128.5, eventsJoined: 21, lastActiveAt: '2026-08-18T09:15:00Z', previousRank: 2 },
-  { id: 'v2', firstName: 'Sofia', lastName: 'Lim', email: 'sofia.lim@uclm.edu.ph', department: 'Nursing', hours: 121, eventsJoined: 19, lastActiveAt: '2026-08-19T02:40:00Z', previousRank: 1 },
-  { id: 'v3', firstName: 'Miguel', lastName: 'Tan', email: 'miguel.tan@uclm.edu.ph', department: 'Criminology', hours: 104.25, eventsJoined: 17, lastActiveAt: '2026-08-16T07:05:00Z', previousRank: 4 },
-  { id: 'v4', firstName: 'Andrea', lastName: 'Bautista', email: 'andrea.bautista@uclm.edu.ph', department: 'Education', hours: 96, eventsJoined: 15, lastActiveAt: '2026-08-15T23:30:00Z', previousRank: 3 },
-  { id: 'v5', firstName: 'Joshua', lastName: 'Reyes', email: 'joshua.reyes@uclm.edu.ph', department: 'Business', hours: 88.75, eventsJoined: 14, lastActiveAt: '2026-08-14T05:20:00Z', previousRank: 6 },
-  { id: 'v6', firstName: 'Patricia', lastName: 'Uy', email: 'patricia.uy@uclm.edu.ph', department: 'Nursing', hours: 81, eventsJoined: 13, lastActiveAt: '2026-08-12T01:10:00Z', previousRank: 5 },
-  { id: 'v7', firstName: 'Kenneth', lastName: 'Alcantara', email: 'kenneth.alcantara@uclm.edu.ph', department: 'Engineering', hours: 74.5, eventsJoined: 12, lastActiveAt: '2026-08-11T08:45:00Z' },
-  { id: 'v8', firstName: 'Divine', lastName: 'Rosales', email: 'divine.rosales@uclm.edu.ph', department: 'Education', hours: 66, eventsJoined: 11, lastActiveAt: '2026-08-09T00:25:00Z', previousRank: 9 },
-  { id: 'v9', firstName: 'Rafael', lastName: 'Duterte', email: 'rafael.duterte@uclm.edu.ph', department: 'Criminology', hours: 58.25, eventsJoined: 9, lastActiveAt: '2026-08-07T06:00:00Z', previousRank: 7 },
-  { id: 'v10', firstName: 'Bea', lastName: 'Villanueva', email: 'bea.villanueva@uclm.edu.ph', department: 'Business', hours: 47, eventsJoined: 8, lastActiveAt: '2026-08-04T03:35:00Z', previousRank: 8 },
-]
 
 const DONOR_SEED: DonorSeed[] = [
   { id: 'd1', name: 'Cebu Bright Foundation', email: 'giving@cebubright.org', donorType: 'organization', amount: 250000, donations: 6, lastDonatedAt: '2026-08-17T04:00:00Z', previousRank: 1 },
@@ -87,68 +256,9 @@ function rankBy<T>(seed: T[], points: (entry: T) => number) {
     .map((entry, index) => ({ ...entry, rank: index + 1 }))
 }
 
-export async function listVolunteerRankings(settings: RankingSettings): Promise<{
-  success: boolean
-  data: VolunteerRankingEntry[]
-}> {
-  return {
-    success: true,
-    data: rankBy(VOLUNTEER_SEED, (entry) =>
-      volunteerPoints(entry.hours, settings.volunteerPointsPerHour),
-    ),
-  }
-}
-
-/**
- * A coordinator's board is not a fixture: it is scored from the attendance record of
- * their own college's events. One row per volunteer, credited only for events the
- * validator marked completed — a pending or absent record earns nothing.
- */
-export async function listDepartmentVolunteerRankings(
-  department: string,
+export async function listDonorRankings(
   settings: RankingSettings,
-): Promise<{ success: boolean; data: VolunteerRankingEntry[] }> {
-  const result = await listEventAttendees()
-  if (!result.success || !result.data) return { success: false, data: [] }
-
-  const byVolunteer = new Map<string, Omit<VolunteerRankingEntry, 'points' | 'rank'>>()
-
-  result.data
-    .filter(
-      (attendee: EventAttendee) =>
-        attendee.eventDepartment === department && attendee.status === 'completed',
-    )
-    .forEach((attendee) => {
-      const activeAt = attendee.checkedOutAt ?? attendee.checkedInAt ?? attendee.registeredAt
-      const current = byVolunteer.get(attendee.email)
-
-      byVolunteer.set(attendee.email, {
-        id: attendee.email,
-        firstName: attendee.firstName,
-        lastName: attendee.lastName,
-        email: attendee.email,
-        department: attendee.department ?? department,
-        hours: (current?.hours ?? 0) + (attendee.hoursRendered ?? 0),
-        eventsJoined: (current?.eventsJoined ?? 0) + 1,
-        lastActiveAt:
-          current && dayjs(current.lastActiveAt).isAfter(activeAt)
-            ? current.lastActiveAt
-            : activeAt,
-      })
-    })
-
-  return {
-    success: true,
-    data: rankBy([...byVolunteer.values()], (entry) =>
-      volunteerPoints(entry.hours, settings.volunteerPointsPerHour),
-    ),
-  }
-}
-
-export async function listDonorRankings(settings: RankingSettings): Promise<{
-  success: boolean
-  data: DonorRankingEntry[]
-}> {
+): Promise<ApiResponse<DonorRankingEntry[]>> {
   return {
     success: true,
     data: rankBy(DONOR_SEED, (entry) =>
@@ -158,9 +268,8 @@ export async function listDonorRankings(settings: RankingSettings): Promise<{
 }
 
 /**
- * How each entrant's total spreads across the months on the chart. Profiles are
- * assigned by standing so the mock lines rise at different rates — a fast finisher,
- * a steady worker, an early leader who tapered — instead of three parallel curves.
+ * How each mock donor's total spreads across the months on the chart. Profiles are
+ * assigned by standing so the lines rise at different rates instead of in parallel.
  */
 const TREND_PROFILES = [
   [0.11, 0.14, 0.16, 0.18, 0.2, 0.21],
@@ -189,57 +298,20 @@ function cumulative(total: number, profile: number[]): number[] {
   })
 }
 
-interface TrendLeader {
-  id: string
-  name: string
-  rank: number
-  points: number
-}
-
-/** The race chart for whichever top three is handed in — fixture or department board. */
-function trendOf(top: TrendLeader[]): RankingTrend {
-  return {
-    labels: trendLabels(),
-    series: top.map((entry, index) => ({
-      id: entry.id,
-      name: entry.name,
-      rank: entry.rank,
-      values: cumulative(entry.points, TREND_PROFILES[index] ?? TREND_PROFILES[0]),
-    })),
-  }
-}
-
-export function volunteerTrendOf(entries: VolunteerRankingEntry[]): RankingTrend {
-  return trendOf(
-    entries.slice(0, TREND_SIZE).map((entry) => ({
-      id: entry.id,
-      name: `${entry.firstName} ${entry.lastName}`,
-      rank: entry.rank,
-      points: entry.points,
-    })),
-  )
-}
-
-export async function getRankingTrend(
-  board: RankingBoard,
+export async function getDonorRankingTrend(
   settings: RankingSettings,
-): Promise<{ success: boolean; data: RankingTrend }> {
-  if (board === 'volunteer') {
-    return {
-      success: true,
-      data: volunteerTrendOf((await listVolunteerRankings(settings)).data),
-    }
-  }
-
+): Promise<ApiResponse<RankingTrend>> {
+  const donors = (await listDonorRankings(settings)).data ?? []
   return {
     success: true,
-    data: trendOf(
-      (await listDonorRankings(settings)).data.slice(0, TREND_SIZE).map((entry) => ({
+    data: {
+      labels: trendLabels(),
+      series: donors.slice(0, TREND_SIZE).map((entry, index) => ({
         id: entry.id,
         name: entry.name,
         rank: entry.rank,
-        points: entry.points,
+        values: cumulative(entry.points, TREND_PROFILES[index] ?? TREND_PROFILES[0]),
       })),
-    ),
+    },
   }
 }

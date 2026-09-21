@@ -60,8 +60,10 @@ export function RankingTierFields({
 
         // The last tier has no ceiling — it catches everyone the others didn't.
         const isCatchAll = index === fields.length - 1
-        const labelError = tierError?.[index]?.label
-        const colorError = tierError?.[index]?.colorFrom ?? tierError?.[index]?.colorTo
+        const rowError = tierError?.[index]
+        const labelError = rowError?.label
+        const rankError = rowError?.maxRank
+        const colorError = rowError?.colorFrom ?? rowError?.colorTo
         const design = RANK_FRAME_DESIGNS.find((option) => option.id === tier.frame)
 
         return (
@@ -144,17 +146,19 @@ export function RankingTierFields({
               </button>
             </div>
 
-            {(labelError || colorError) && (
+            {(labelError || rankError || colorError) && (
               <p className="w-full text-[12px] text-red-600">
-                {labelError?.message ?? colorError?.message}
+                {labelError?.message ?? rankError?.message ?? colorError?.message}
               </p>
             )}
           </div>
         )
       })}
 
-      {tierError?.root && (
-        <p className="text-[12px] text-red-600">{tierError.root.message}</p>
+      {(tierError?.message || tierError?.root?.message) && (
+        <p className="text-[12px] text-red-600">
+          {tierError.message ?? tierError.root?.message}
+        </p>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1">

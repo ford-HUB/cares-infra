@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 import {
   AuthProvider,
@@ -8,11 +9,7 @@ import {
 } from '../../../infastructures/prisma/common/client';
 
 /** Roles the Flutter app signs in as — the only callers of the mobile profile. */
-export const MOBILE_PROFILE_ROLE_TYPES = [
-  RoleType.VOLUNTEER,
-  RoleType.DONOR,
-  RoleType.BENEFICIARY,
-] as const;
+export const MOBILE_PROFILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
 /**
  * `?role=` on the mobile profile routes. The app's role switcher is local —
@@ -46,9 +43,17 @@ export const VolunteerProfileSectionSchema = z.object({
     })
     .nullable(),
   interests: z.array(z.enum(InterestCode)),
+  /**
+   * True when this side was opened by a director approving a role-access
+   * request rather than by registering as a volunteer. Such accounts never
+   * uploaded a school record, so the app hides that section.
+   */
+  access_granted_by_director: z.boolean(),
   service_hours: z.number(),
   activities_completed: z.number(),
   activities_registered: z.number(),
+  /** All-time leaderboard points under the portal's scoring rule. */
+  ranking_points: z.number().int(),
 });
 
 /** Donor-only section: how they sign in and where to reach them. */

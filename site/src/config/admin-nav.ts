@@ -1,5 +1,6 @@
 import {
   CircleUser,
+  ClipboardList,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -16,6 +17,8 @@ import {
   ADMIN_BASE_PATH,
   ADMIN_CHAT_PATH,
   ADMIN_DEPARTMENT_FILES_PATH,
+  ADMIN_EVALUATION_ANSWERS_PATH,
+  ADMIN_EVALUATION_QUESTIONNAIRE_PATH,
   ADMIN_EVENT_MAP_PATH,
   ADMIN_MAIL_INBOX_PATH,
   ADMIN_MAINTENANCE_PATH,
@@ -170,6 +173,18 @@ export const adminNav: PortalNavConfig = {
         // filed record per department and nothing to rearrange.
         { label: 'Monthly Report', to: '/admin/monthly-reports', roles: ['director'] },
         { label: 'Monthly Report', to: ADMIN_DEPARTMENT_FILES_PATH, roles: ['coordinator'] },
+      ],
+    },
+    { type: 'section', label: 'Evaluation' },
+    {
+      type: 'group',
+      label: 'Evaluation',
+      icon: ClipboardList,
+      // Post-event evaluation is programme feedback the director designs and reads.
+      roles: ['director'],
+      children: [
+        { label: 'Questionnaire', to: ADMIN_EVALUATION_QUESTIONNAIRE_PATH },
+        { label: 'Answers', to: ADMIN_EVALUATION_ANSWERS_PATH },
       ],
     },
     { type: 'section', label: 'Administration' },

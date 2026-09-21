@@ -28,6 +28,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
   final _store = EventRegistrationStore.instance;
   final _donationStore = DonationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
+  final _certificateStore = CertificateStore.instance;
   bool _notificationsEnabled = true;
 
   @override
@@ -36,6 +37,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
     _store.addListener(_onStoreChanged);
     _donationStore.addListener(_onStoreChanged);
     _feedbackStore.addListener(_onStoreChanged);
+    _certificateStore.addListener(_onStoreChanged);
   }
 
   @override
@@ -43,6 +45,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
     _store.removeListener(_onStoreChanged);
     _donationStore.removeListener(_onStoreChanged);
     _feedbackStore.removeListener(_onStoreChanged);
+    _certificateStore.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -80,7 +83,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
   int get _donationsMade => _donationStore.donationsCountForEmail(_userEmail);
 
   /// Certificates the volunteer has received so far.
-  int get _certsEarned => earnedCertificatesFor(_userEmail).length;
+  int get _certsEarned => _certificateStore.count;
 
   void _logout(BuildContext context) {
     StaticUserSession.instance.signOut();

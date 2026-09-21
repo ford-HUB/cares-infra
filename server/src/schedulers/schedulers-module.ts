@@ -1,16 +1,19 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { CertificatesCoreModule } from '../modules/certificates/modules/certificates-core-module';
 import { EventAttendanceValidationModule } from '../modules/event-attendance/modules/event-attendance-validation-module';
 import { EventStatusModule } from '../modules/events/modules/event-status-module';
 import { NotificationsModule } from '../modules/notifications/modules/notifications-module';
 import { AttendanceScheduler } from './jobs/attendance-scheduler';
+import { CertificatesScheduler } from './jobs/certificates-scheduler';
 import { CleanupScheduler } from './jobs/cleanup-scheduler';
 import { DiagnosticsScheduler } from './jobs/diagnostics-scheduler';
 import { EmailScheduler } from './jobs/email-scheduler';
 import { EventsScheduler } from './jobs/events-scheduler';
 import { NotificationScheduler } from './jobs/notification-scheduler';
 import { AttendanceProcessor } from './processors/attendance-processor';
+import { CertificatesProcessor } from './processors/certificates-processor';
 import { CleanupProcessor } from './processors/cleanup-processor';
 import { DiagnosticsProcessor } from './processors/diagnostics-processor';
 import { EmailProcessor } from './processors/email-processor';
@@ -49,10 +52,12 @@ import { SchedulerRepository } from './scheduler-repository';
       { name: SCHEDULER_QUEUES.diagnostics },
       { name: SCHEDULER_QUEUES.attendance },
       { name: SCHEDULER_QUEUES.events },
+      { name: SCHEDULER_QUEUES.certificates },
     ),
     NotificationsModule,
     EventAttendanceValidationModule,
     EventStatusModule,
+    CertificatesCoreModule,
   ],
   providers: [
     SchedulerRunRecorder,
@@ -63,6 +68,7 @@ import { SchedulerRepository } from './scheduler-repository';
     DiagnosticsScheduler,
     AttendanceScheduler,
     EventsScheduler,
+    CertificatesScheduler,
     SystemDiagnosticsChecker,
     EmailProcessor,
     NotificationProcessor,
@@ -70,6 +76,7 @@ import { SchedulerRepository } from './scheduler-repository';
     DiagnosticsProcessor,
     AttendanceProcessor,
     EventsProcessor,
+    CertificatesProcessor,
   ],
   exports: [
     BullModule,

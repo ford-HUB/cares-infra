@@ -21,6 +21,24 @@ enum UserInterest {
 }
 
 extension UserInterestX on UserInterest {
+  /// Interests reserved for members of the school community. Donors and
+  /// beneficiaries whose Volunteer role was opened by a director come from
+  /// outside the campus, so these are hidden from their picker and dropped
+  /// from anything they saved before the role was approved.
+  static const Set<UserInterest> schoolCommunityOnly = {UserInterest.school};
+
+  /// The interests a volunteer may pick.
+  static List<UserInterest> selectable({required bool outsideSchool}) => [
+    for (final interest in UserInterest.values)
+      if (!outsideSchool || !schoolCommunityOnly.contains(interest)) interest,
+  ];
+
+  /// [interests] with the school-only picks removed for an outside volunteer.
+  static Set<UserInterest> allowed(
+    Set<UserInterest> interests, {
+    required bool outsideSchool,
+  }) => outsideSchool ? interests.difference(schoolCommunityOnly) : interests;
+
   String get apiValue => switch (this) {
     UserInterest.school => 'SCHOOL',
     UserInterest.community => 'COMMUNITY',

@@ -1,4 +1,5 @@
 import '../../features/auth/registration/models/registration_data.dart';
+import '../../features/dashboard/data/certificate_data.dart';
 import '../../features/prototype/models/prototype_user_data.dart';
 
 /// In-memory user record for the static prototype phase.
@@ -201,5 +202,6 @@ class StaticUserSession {
   void signOut() {
     currentUser = null;
     isDonorMode = false;
+    CertificateStore.instance.clear();
   }
 }

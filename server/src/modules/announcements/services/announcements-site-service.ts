@@ -134,14 +134,12 @@ export class AnnouncementsSiteService {
       },
     );
 
-    // The portal-side audience gets it in their inbox too. App-side roles have no
-    // portal feed, so only coordinators — plus every director and admin, who read
-    // the System Notices board regardless of who a notice was addressed to.
+    // Every addressed role gets it in their feed — the app polls its own inbox
+    // and pops a device notification — plus every director and admin, who read the
+    // System Notices board regardless of who a notice was addressed to.
     const portalRoles = new Set<RoleType>([RoleType.ADMIN, RoleType.DIRECTOR]);
     for (const audience of row.audiences) {
-      for (const role of AUDIENCE_ROLES[audience]) {
-        if (role === RoleType.COORDINATOR) portalRoles.add(role);
-      }
+      for (const role of AUDIENCE_ROLES[audience]) portalRoles.add(role);
     }
 
     await this.notificationScheduler.publish({

@@ -12,7 +12,7 @@ import {
   isPortalRole,
   PORTAL_ROLE_TYPES,
 } from 'src/shared/constants/portal-role-types';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import { MOBILE_PROFILE_ROLE_TYPES } from 'src/modules/profile/validators/profile-mobile-validator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   InterestCatalogItemDto,
@@ -43,8 +43,13 @@ export class InterestsMobileController {
     return this.interestsMobileService.listInterests();
   }
 
+  /**
+   * Open to every mobile role: the role switcher is local to the app, so a
+   * beneficiary- or donor-registered account on its volunteer dashboard still
+   * carries the registered role in its token.
+   */
   @Put()
-  @Roles(RoleType.VOLUNTEER)
+  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
   @ResponseMessage('Interests saved')
   @ZSerialize(SaveUserInterestsResponseSchema)
   async saveUserInterests(
@@ -60,7 +65,7 @@ export class InterestsMobileController {
   }
 
   @Get(':userId')
-  @Roles(RoleType.VOLUNTEER, ...PORTAL_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ROLE_TYPES, ...PORTAL_ROLE_TYPES)
   @ResponseMessage('User interests')
   @ZSerialize(UserInterestsResponseSchema)
   async getUserInterests(

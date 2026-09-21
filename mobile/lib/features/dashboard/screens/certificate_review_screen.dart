@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
+import '../data/certificate_service.dart';
+import '../presentation/utils/certificate_pdf.dart';
+import '../presentation/widgets/certificate_sheet.dart';
 
-class CertificateReviewScreen extends StatelessWidget {
+/// The issued certificate, drawn from the frozen sheet the server generated:
+/// the deployed template's headline and award text with the volunteer's
+/// details filled in, and the signature lines as they were issued.
+class CertificateReviewScreen extends StatefulWidget {
   const CertificateReviewScreen({super.key, required this.certificate});
 
   final CaresCertificate certificate;
@@ -17,14 +21,71 @@ class CertificateReviewScreen extends StatelessWidget {
     );
   }
 
-  String get _recipientName {
-    final user = StaticUserSession.instance.currentUser;
-    if (user == null || user.fullName.trim().isEmpty) return 'Volunteer';
-    return user.fullName;
+  @override
+  State<CertificateReviewScreen> createState() =>
+      _CertificateReviewScreenState();
+}
+
+class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
+  late CaresCertificate _certificate = widget.certificate;
+
+  /// Wraps the drawn sheet so the export captures exactly what is on screen.
+  final _sheetKey = GlobalKey();
+  bool _exporting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _claim();
   }
 
-  Future<void> _download(BuildContext context) async {
-    await downloadCertificate(context, certificate);
+  /// Opening the sheet is what the portal counts as "claimed"; the fresh copy
+  /// also carries anything the wallet list left out. Best effort.
+  Future<void> _claim() async {
+    try {
+      final opened = await CertificateService().open(_certificate.id);
+      CertificateStore.instance.upsert(opened);
+      if (mounted) setState(() => _certificate = opened);
+    } catch (_) {
+      // Keep showing what the wallet already holds.
+    }
+  }
+
+  /// Rasterises the sheet as shown, wraps it in a PDF of the sheet's own
+  /// proportions, and offers it through the share sheet.
+  Future<void> _download() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final file = await exportCertificatePdf(
+        boundaryKey: _sheetKey,
+        certificate: _certificate,
+      );
+      if (!mounted) return;
+      final shared = await shareCertificatePdf(file, _certificate);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            shared
+                ? 'PDF saved: ${file.path.split('/').last}'
+                : 'PDF saved to ${file.path}',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('The certificate could not be exported: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   @override
@@ -39,7 +100,7 @@ class CertificateReviewScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () => _download(context),
+            onPressed: _exporting ? null : _download,
             icon: const Icon(Icons.download_rounded),
             tooltip: 'Download certificate',
           ),
@@ -48,166 +109,46 @@ class CertificateReviewScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          _CertificatePreview(
-            certificate: certificate,
-            recipientName: _recipientName,
+          // Pinch to zoom in on the wording; the sheet is drawn at the phone's
+          // width, which is small for a landscape certificate.
+          InteractiveViewer(
+            minScale: 1,
+            maxScale: 4,
+            child: RepaintBoundary(
+              key: _sheetKey,
+              child: CertificateSheet(certificate: _certificate),
+            ),
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.info_outline_rounded,
+              const Icon(
+                Icons.verified_rounded,
                 size: 15,
                 color: AppColors.textMuted,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'Sample certificate design — preview only.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                  'Issued ${_certificate.issuedOnLabel} · '
+                  'No. ${_certificate.certificateNumber}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () => _download(context),
-            icon: const Icon(Icons.download_rounded),
-            label: const Text('Download Certificate'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              minimumSize: const Size.fromHeight(50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CertificatePreview extends StatelessWidget {
-  const _CertificatePreview({
-    required this.certificate,
-    required this.recipientName,
-  });
-
-  final CaresCertificate certificate;
-  final String recipientName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.workspace_premium_rounded,
-              color: AppColors.primary,
-              size: 30,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'CARES',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            certificate.title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            width: 48,
-            height: 3,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'This certifies that',
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            recipientName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'has successfully completed volunteer service for',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            certificate.eventName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            certificate.organization,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
           Row(
             children: [
-              if (certificate.eventDateLabel != null) ...[
+              if (_certificate.eventDateLabel != null) ...[
                 Expanded(
                   child: _DetailChip(
                     label: 'Event date',
-                    value: certificate.eventDateLabel!,
+                    value: _certificate.eventDateLabel!,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -215,22 +156,41 @@ class _CertificatePreview extends StatelessWidget {
               Expanded(
                 child: _DetailChip(
                   label: 'Hours',
-                  value: '${certificate.hoursCompleted}h',
+                  value: _certificate.hoursLabel,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _DetailChip(
                   label: 'Issued',
-                  value: certificate.issuedOnLabel,
+                  value: _certificate.issuedOnLabel,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            'Certificate No. ${certificate.certificateNumber}',
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+          FilledButton.icon(
+            onPressed: _exporting ? null : _download,
+            icon: _exporting
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.download_rounded),
+            label: Text(
+              _exporting ? 'Preparing PDF…' : 'Download Certificate (PDF)',
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
           ),
         ],
       ),
@@ -275,23 +235,4 @@ class _DetailChip extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> downloadCertificate(
-  BuildContext context,
-  CaresCertificate certificate,
-) async {
-  final user = StaticUserSession.instance.currentUser;
-  final recipientName = user == null || user.fullName.trim().isEmpty
-      ? 'Volunteer'
-      : user.fullName;
-  final content = certificate.downloadContent(recipientName);
-  await Clipboard.setData(ClipboardData(text: content));
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('${certificate.title} downloaded.'),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
 }

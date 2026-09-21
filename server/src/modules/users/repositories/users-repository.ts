@@ -34,6 +34,12 @@ const managedUserSelect = {
   },
   role: { select: { type: true } },
   blocked_ips: { select: { ip_address: true } },
+  // App sign-ups carry their college on the school record rather than
+  // `portal_department`, so the list needs both to fill the Department column.
+  user_school_info: {
+    select: { department: { select: { name: true } } },
+    take: 1,
+  },
   user_verifications: {
     select: { status: true },
     orderBy: { createdAt: 'desc' },

@@ -16,11 +16,7 @@ import {
   ADMIN_NEEDS_CLUSTERS_PATH,
   ADMIN_RESIDENTIAL_NEEDS_PATH,
 } from '../../constants/routes'
-import {
-  getMockHouseholds,
-  needPriorityOf,
-  totalNeedScore,
-} from '../../services/residential-needs-mock'
+import { getMockHouseholds, householdPriority } from '../../services/residential-needs-mock'
 import type { NeedPriority } from '../../types/residential-needs'
 import { clusterHouseholds } from '../../utils/needs-kmeans'
 
@@ -36,15 +32,16 @@ export function ResidentialNeedsModuleCard() {
     number
   >
   households.forEach((h) => {
-    counts[needPriorityOf(totalNeedScore(h.needs))] += 1
+    counts[householdPriority(h)] += 1
   })
   const total = households.length
   const urgent = counts.critical + counts.high
   const share = (value: number) => (total > 0 ? value / total : 0)
 
   const topNeed = NEED_CATEGORY_ORDER.reduce((top, category) => {
-    const sum = (key: typeof category) => households.reduce((acc, h) => acc + h.needs[key], 0)
-    return sum(category) > sum(top) ? category : top
+    const tally = (key: typeof category) =>
+      households.filter((h) => h.survey.needs.includes(key)).length
+    return tally(category) > tally(top) ? category : top
   })
   const clusters = clusterHouseholds(households, CLUSTER_K_DEFAULT, CLUSTER_DEFAULT_SEED)
 

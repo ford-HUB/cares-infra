@@ -389,8 +389,11 @@ export type EventWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentListRelationFilter
+  issued_certificates?: Prisma.IssuedCertificateListRelationFilter
   attendances?: Prisma.EventAttendanceListRelationFilter
   location_pings?: Prisma.EventLocationPingListRelationFilter
+  evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
+  user_requests?: Prisma.UserRequestListRelationFilter
 }
 
 export type EventOrderByWithRelationInput = {
@@ -420,8 +423,11 @@ export type EventOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   certificate_deployments?: Prisma.CertificateDeploymentOrderByRelationAggregateInput
+  issued_certificates?: Prisma.IssuedCertificateOrderByRelationAggregateInput
   attendances?: Prisma.EventAttendanceOrderByRelationAggregateInput
   location_pings?: Prisma.EventLocationPingOrderByRelationAggregateInput
+  evaluation_responses?: Prisma.EvaluationResponseOrderByRelationAggregateInput
+  user_requests?: Prisma.UserRequestOrderByRelationAggregateInput
 }
 
 export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -454,8 +460,11 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentListRelationFilter
+  issued_certificates?: Prisma.IssuedCertificateListRelationFilter
   attendances?: Prisma.EventAttendanceListRelationFilter
   location_pings?: Prisma.EventLocationPingListRelationFilter
+  evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
+  user_requests?: Prisma.UserRequestListRelationFilter
 }, "event_id">
 
 export type EventOrderByWithAggregationInput = {
@@ -548,8 +557,11 @@ export type EventCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
   attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateInput = {
@@ -579,8 +591,11 @@ export type EventUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventUpdateInput = {
@@ -609,8 +624,11 @@ export type EventUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
   attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateInput = {
@@ -640,8 +658,11 @@ export type EventUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateManyInput = {
@@ -909,6 +930,50 @@ export type EventUpdateOneRequiredWithoutCertificate_deploymentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutCertificate_deploymentsInput, Prisma.EventUpdateWithoutCertificate_deploymentsInput>, Prisma.EventUncheckedUpdateWithoutCertificate_deploymentsInput>
 }
 
+export type EventCreateNestedOneWithoutIssued_certificatesInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutIssued_certificatesInput, Prisma.EventUncheckedCreateWithoutIssued_certificatesInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutIssued_certificatesInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneRequiredWithoutIssued_certificatesNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutIssued_certificatesInput, Prisma.EventUncheckedCreateWithoutIssued_certificatesInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutIssued_certificatesInput
+  upsert?: Prisma.EventUpsertWithoutIssued_certificatesInput
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutIssued_certificatesInput, Prisma.EventUpdateWithoutIssued_certificatesInput>, Prisma.EventUncheckedUpdateWithoutIssued_certificatesInput>
+}
+
+export type EventCreateNestedOneWithoutEvaluation_responsesInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutEvaluation_responsesInput, Prisma.EventUncheckedCreateWithoutEvaluation_responsesInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutEvaluation_responsesInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneRequiredWithoutEvaluation_responsesNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutEvaluation_responsesInput, Prisma.EventUncheckedCreateWithoutEvaluation_responsesInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutEvaluation_responsesInput
+  upsert?: Prisma.EventUpsertWithoutEvaluation_responsesInput
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutEvaluation_responsesInput, Prisma.EventUpdateWithoutEvaluation_responsesInput>, Prisma.EventUncheckedUpdateWithoutEvaluation_responsesInput>
+}
+
+export type EventCreateNestedOneWithoutUser_requestsInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutUser_requestsInput, Prisma.EventUncheckedCreateWithoutUser_requestsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutUser_requestsInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneWithoutUser_requestsNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutUser_requestsInput, Prisma.EventUncheckedCreateWithoutUser_requestsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutUser_requestsInput
+  upsert?: Prisma.EventUpsertWithoutUser_requestsInput
+  disconnect?: Prisma.EventWhereInput | boolean
+  delete?: Prisma.EventWhereInput | boolean
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutUser_requestsInput, Prisma.EventUpdateWithoutUser_requestsInput>, Prisma.EventUncheckedUpdateWithoutUser_requestsInput>
+}
+
 export type EventCreateWithoutAttendancesInput = {
   title: string
   description: string
@@ -935,7 +1000,10 @@ export type EventCreateWithoutAttendancesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutAttendancesInput = {
@@ -965,7 +1033,10 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutAttendancesInput = {
@@ -1010,7 +1081,10 @@ export type EventUpdateWithoutAttendancesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutAttendancesInput = {
@@ -1040,7 +1114,10 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutLocation_pingsInput = {
@@ -1069,7 +1146,10 @@ export type EventCreateWithoutLocation_pingsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
   attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutLocation_pingsInput = {
@@ -1099,7 +1179,10 @@ export type EventUncheckedCreateWithoutLocation_pingsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutLocation_pingsInput = {
@@ -1144,7 +1227,10 @@ export type EventUpdateWithoutLocation_pingsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
   attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutLocation_pingsInput = {
@@ -1174,7 +1260,10 @@ export type EventUncheckedUpdateWithoutLocation_pingsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutCertificate_deploymentsInput = {
@@ -1202,8 +1291,11 @@ export type EventCreateWithoutCertificate_deploymentsInput = {
   marker_lng?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
   attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutCertificate_deploymentsInput = {
@@ -1232,8 +1324,11 @@ export type EventUncheckedCreateWithoutCertificate_deploymentsInput = {
   marker_lng?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutCertificate_deploymentsInput = {
@@ -1277,8 +1372,11 @@ export type EventUpdateWithoutCertificate_deploymentsInput = {
   marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
   attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutCertificate_deploymentsInput = {
@@ -1307,8 +1405,449 @@ export type EventUncheckedUpdateWithoutCertificate_deploymentsInput = {
   marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventCreateWithoutIssued_certificatesInput = {
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutIssued_certificatesInput = {
+  event_id?: number
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutIssued_certificatesInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutIssued_certificatesInput, Prisma.EventUncheckedCreateWithoutIssued_certificatesInput>
+}
+
+export type EventUpsertWithoutIssued_certificatesInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutIssued_certificatesInput, Prisma.EventUncheckedUpdateWithoutIssued_certificatesInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutIssued_certificatesInput, Prisma.EventUncheckedCreateWithoutIssued_certificatesInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutIssued_certificatesInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutIssued_certificatesInput, Prisma.EventUncheckedUpdateWithoutIssued_certificatesInput>
+}
+
+export type EventUpdateWithoutIssued_certificatesInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutIssued_certificatesInput = {
+  event_id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventCreateWithoutEvaluation_responsesInput = {
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutEvaluation_responsesInput = {
+  event_id?: number
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutEvaluation_responsesInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutEvaluation_responsesInput, Prisma.EventUncheckedCreateWithoutEvaluation_responsesInput>
+}
+
+export type EventUpsertWithoutEvaluation_responsesInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutEvaluation_responsesInput, Prisma.EventUncheckedUpdateWithoutEvaluation_responsesInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutEvaluation_responsesInput, Prisma.EventUncheckedCreateWithoutEvaluation_responsesInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutEvaluation_responsesInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutEvaluation_responsesInput, Prisma.EventUncheckedUpdateWithoutEvaluation_responsesInput>
+}
+
+export type EventUpdateWithoutEvaluation_responsesInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutEvaluation_responsesInput = {
+  event_id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventCreateWithoutUser_requestsInput = {
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutUser_requestsInput = {
+  event_id?: number
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutUser_requestsInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutUser_requestsInput, Prisma.EventUncheckedCreateWithoutUser_requestsInput>
+}
+
+export type EventUpsertWithoutUser_requestsInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutUser_requestsInput, Prisma.EventUncheckedUpdateWithoutUser_requestsInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutUser_requestsInput, Prisma.EventUncheckedCreateWithoutUser_requestsInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutUser_requestsInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutUser_requestsInput, Prisma.EventUncheckedUpdateWithoutUser_requestsInput>
+}
+
+export type EventUpdateWithoutUser_requestsInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutUser_requestsInput = {
+  event_id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
 }
 
 
@@ -1318,14 +1857,20 @@ export type EventUncheckedUpdateWithoutCertificate_deploymentsInput = {
 
 export type EventCountOutputType = {
   certificate_deployments: number
+  issued_certificates: number
   attendances: number
   location_pings: number
+  evaluation_responses: number
+  user_requests: number
 }
 
 export type EventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   certificate_deployments?: boolean | EventCountOutputTypeCountCertificate_deploymentsArgs
+  issued_certificates?: boolean | EventCountOutputTypeCountIssued_certificatesArgs
   attendances?: boolean | EventCountOutputTypeCountAttendancesArgs
   location_pings?: boolean | EventCountOutputTypeCountLocation_pingsArgs
+  evaluation_responses?: boolean | EventCountOutputTypeCountEvaluation_responsesArgs
+  user_requests?: boolean | EventCountOutputTypeCountUser_requestsArgs
 }
 
 /**
@@ -1348,6 +1893,13 @@ export type EventCountOutputTypeCountCertificate_deploymentsArgs<ExtArgs extends
 /**
  * EventCountOutputType without action
  */
+export type EventCountOutputTypeCountIssued_certificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IssuedCertificateWhereInput
+}
+
+/**
+ * EventCountOutputType without action
+ */
 export type EventCountOutputTypeCountAttendancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EventAttendanceWhereInput
 }
@@ -1357,6 +1909,20 @@ export type EventCountOutputTypeCountAttendancesArgs<ExtArgs extends runtime.Typ
  */
 export type EventCountOutputTypeCountLocation_pingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EventLocationPingWhereInput
+}
+
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeCountEvaluation_responsesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EvaluationResponseWhereInput
+}
+
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeCountUser_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserRequestWhereInput
 }
 
 
@@ -1387,8 +1953,11 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdAt?: boolean
   updatedAt?: boolean
   certificate_deployments?: boolean | Prisma.Event$certificate_deploymentsArgs<ExtArgs>
+  issued_certificates?: boolean | Prisma.Event$issued_certificatesArgs<ExtArgs>
   attendances?: boolean | Prisma.Event$attendancesArgs<ExtArgs>
   location_pings?: boolean | Prisma.Event$location_pingsArgs<ExtArgs>
+  evaluation_responses?: boolean | Prisma.Event$evaluation_responsesArgs<ExtArgs>
+  user_requests?: boolean | Prisma.Event$user_requestsArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
@@ -1479,8 +2048,11 @@ export type EventSelectScalar = {
 export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"event_id" | "title" | "description" | "event_started" | "event_ended" | "location" | "max_participants" | "participants" | "organizer_name" | "category" | "department" | "specified_category" | "images" | "status" | "funds_donation" | "goods_donation" | "goods_types" | "beneficiary_applicable" | "max_beneficiaries" | "geojson" | "area_sqm" | "marker_lat" | "marker_lng" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   certificate_deployments?: boolean | Prisma.Event$certificate_deploymentsArgs<ExtArgs>
+  issued_certificates?: boolean | Prisma.Event$issued_certificatesArgs<ExtArgs>
   attendances?: boolean | Prisma.Event$attendancesArgs<ExtArgs>
   location_pings?: boolean | Prisma.Event$location_pingsArgs<ExtArgs>
+  evaluation_responses?: boolean | Prisma.Event$evaluation_responsesArgs<ExtArgs>
+  user_requests?: boolean | Prisma.Event$user_requestsArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1490,8 +2062,11 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Event"
   objects: {
     certificate_deployments: Prisma.$CertificateDeploymentPayload<ExtArgs>[]
+    issued_certificates: Prisma.$IssuedCertificatePayload<ExtArgs>[]
     attendances: Prisma.$EventAttendancePayload<ExtArgs>[]
     location_pings: Prisma.$EventLocationPingPayload<ExtArgs>[]
+    evaluation_responses: Prisma.$EvaluationResponsePayload<ExtArgs>[]
+    user_requests: Prisma.$UserRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     event_id: number
@@ -1917,8 +2492,11 @@ readonly fields: EventFieldRefs;
 export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   certificate_deployments<T extends Prisma.Event$certificate_deploymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$certificate_deploymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CertificateDeploymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  issued_certificates<T extends Prisma.Event$issued_certificatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$issued_certificatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssuedCertificatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attendances<T extends Prisma.Event$attendancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$attendancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventAttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   location_pings<T extends Prisma.Event$location_pingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$location_pingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventLocationPingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  evaluation_responses<T extends Prisma.Event$evaluation_responsesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$evaluation_responsesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EvaluationResponsePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  user_requests<T extends Prisma.Event$user_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$user_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2390,6 +2968,30 @@ export type Event$certificate_deploymentsArgs<ExtArgs extends runtime.Types.Exte
 }
 
 /**
+ * Event.issued_certificates
+ */
+export type Event$issued_certificatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IssuedCertificate
+   */
+  select?: Prisma.IssuedCertificateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IssuedCertificate
+   */
+  omit?: Prisma.IssuedCertificateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IssuedCertificateInclude<ExtArgs> | null
+  where?: Prisma.IssuedCertificateWhereInput
+  orderBy?: Prisma.IssuedCertificateOrderByWithRelationInput | Prisma.IssuedCertificateOrderByWithRelationInput[]
+  cursor?: Prisma.IssuedCertificateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IssuedCertificateScalarFieldEnum | Prisma.IssuedCertificateScalarFieldEnum[]
+}
+
+/**
  * Event.attendances
  */
 export type Event$attendancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2435,6 +3037,54 @@ export type Event$location_pingsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.EventLocationPingScalarFieldEnum | Prisma.EventLocationPingScalarFieldEnum[]
+}
+
+/**
+ * Event.evaluation_responses
+ */
+export type Event$evaluation_responsesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EvaluationResponse
+   */
+  select?: Prisma.EvaluationResponseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EvaluationResponse
+   */
+  omit?: Prisma.EvaluationResponseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EvaluationResponseInclude<ExtArgs> | null
+  where?: Prisma.EvaluationResponseWhereInput
+  orderBy?: Prisma.EvaluationResponseOrderByWithRelationInput | Prisma.EvaluationResponseOrderByWithRelationInput[]
+  cursor?: Prisma.EvaluationResponseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EvaluationResponseScalarFieldEnum | Prisma.EvaluationResponseScalarFieldEnum[]
+}
+
+/**
+ * Event.user_requests
+ */
+export type Event$user_requestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserRequest
+   */
+  select?: Prisma.UserRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserRequest
+   */
+  omit?: Prisma.UserRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserRequestInclude<ExtArgs> | null
+  where?: Prisma.UserRequestWhereInput
+  orderBy?: Prisma.UserRequestOrderByWithRelationInput | Prisma.UserRequestOrderByWithRelationInput[]
+  cursor?: Prisma.UserRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserRequestScalarFieldEnum | Prisma.UserRequestScalarFieldEnum[]
 }
 
 /**

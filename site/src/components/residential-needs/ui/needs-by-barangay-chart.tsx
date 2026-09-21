@@ -16,9 +16,8 @@ import {
   NEEDS_SMALL_CHART_HEIGHT,
 } from '../../../constants/residential-needs'
 import {
-  needPriorityOf,
+  householdPriority,
   RESIDENTIAL_NEEDS_BARANGAYS,
-  totalNeedScore,
 } from '../../../services/residential-needs-mock'
 import type { Household, NeedPriority } from '../../../types/residential-needs'
 
@@ -58,7 +57,7 @@ export function NeedsByBarangayChart({ households }: NeedsByBarangayChartProps) 
     households
       .filter((h) => h.barangay === barangay)
       .forEach((h) => {
-        counts[needPriorityOf(totalNeedScore(h.needs))] += 1
+        counts[householdPriority(h)] += 1
       })
     return { barangay, ...counts, total: households.filter((h) => h.barangay === barangay).length }
   }).sort((a, b) => b.total - a.total)

@@ -59,3 +59,16 @@ export interface DeployedCertificateCounts {
   /** Deployments per status, so the summary bar and the filter cannot drift. */
   byStatus: Record<DeploymentStatus, number>
 }
+
+/** One participant the sweep has issued a certificate to on a deployment. */
+export interface CertificateRecipient {
+  id: string
+  /** Printed on the sheet, e.g. `CERT-2026-000123`. */
+  certificateNumber: string
+  userId: string
+  name: string
+  hoursRendered: number
+  issuedAt: string
+  /** When the volunteer first opened it in the app; null until then. */
+  claimedAt: string | null
+}

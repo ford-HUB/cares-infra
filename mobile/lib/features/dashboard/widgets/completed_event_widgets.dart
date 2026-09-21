@@ -11,14 +11,20 @@ class CompletedEventStatusCard extends StatelessWidget {
     required this.event,
     required this.participated,
     required this.feedbackSubmitted,
+    this.certificateIssued = false,
   });
 
   final CaresEvent event;
   final bool participated;
   final bool feedbackSubmitted;
 
+  /// True once the issuing scheduler has generated the sheet. Feedback alone
+  /// only unlocks it; the certificate itself arrives on the next sweep.
+  final bool certificateIssued;
+
   @override
   Widget build(BuildContext context) {
+    final pending = event.isAttendancePending && !feedbackSubmitted;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
       decoration: BoxDecoration(
@@ -75,33 +81,55 @@ class CompletedEventStatusCard extends StatelessWidget {
             valueColor: AppColors.primary,
           ),
           CompletedEventStatusRow(
-            icon: Icons.how_to_reg_rounded,
+            icon: pending
+                ? Icons.hourglass_top_rounded
+                : Icons.how_to_reg_rounded,
             label: 'Your participation',
-            value: participated
+            value: pending
+                ? 'Pending · Awaiting attendance validation'
+                : participated
                 ? 'Participated · Attendance verified'
                 : 'Not recorded',
-            valueColor: participated ? AppColors.primary : AppColors.textMuted,
+            valueColor: pending
+                ? AppColors.textSecondary
+                : participated
+                ? AppColors.primary
+                : AppColors.textMuted,
           ),
           CompletedEventStatusRow(
             icon: feedbackSubmitted
                 ? Icons.rate_review_rounded
+                : pending
+                ? Icons.hourglass_top_rounded
                 : Icons.rate_review_outlined,
             label: 'Feedback',
-            value: feedbackSubmitted ? 'Submitted' : 'Not Submitted',
+            value: feedbackSubmitted
+                ? 'Submitted'
+                : pending
+                ? 'Pending — Opens after validation'
+                : 'Not Submitted',
             valueColor: feedbackSubmitted
                 ? AppColors.primary
+                : pending
+                ? AppColors.textSecondary
                 : AppColors.accentOrange,
           ),
           CompletedEventStatusRow(
-            icon: feedbackSubmitted
+            icon: certificateIssued
                 ? Icons.workspace_premium_rounded
+                : feedbackSubmitted
+                ? Icons.hourglass_top_rounded
                 : Icons.lock_rounded,
             label: 'Certificate',
-            value: feedbackSubmitted
-                ? 'Available — Get Certificate'
+            value: certificateIssued
+                ? 'Issued — View Certificate'
+                : feedbackSubmitted
+                ? 'Generating — Ready shortly'
                 : 'Locked — Complete Feedback First',
-            valueColor: feedbackSubmitted
+            valueColor: certificateIssued
                 ? AppColors.primary
+                : feedbackSubmitted
+                ? AppColors.textSecondary
                 : AppColors.accentOrange,
           ),
         ],
@@ -164,15 +192,25 @@ class CompletedEventStatusRow extends StatelessWidget {
   }
 }
 
-/// Callout that explains the locked/unlocked certificate state.
+/// Callout that explains the certificate state: locked until feedback is in,
+/// generating while the scheduler has not cut the sheet yet, then issued.
 class CertificateStatusBanner extends StatelessWidget {
-  const CertificateStatusBanner({super.key, required this.unlocked});
+  const CertificateStatusBanner({
+    super.key,
+    required this.unlocked,
+    this.issued = false,
+  });
 
   final bool unlocked;
+  final bool issued;
 
   @override
   Widget build(BuildContext context) {
-    final color = unlocked ? AppColors.primary : AppColors.accentOrange;
+    final color = issued
+        ? AppColors.primary
+        : unlocked
+        ? AppColors.textSecondary
+        : AppColors.accentOrange;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -185,7 +223,11 @@ class CertificateStatusBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            unlocked ? Icons.lock_open_rounded : Icons.lock_rounded,
+            issued
+                ? Icons.workspace_premium_rounded
+                : unlocked
+                ? Icons.hourglass_top_rounded
+                : Icons.lock_rounded,
             size: 20,
             color: color,
           ),
@@ -195,8 +237,10 @@ class CertificateStatusBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  unlocked
-                      ? 'Certificate unlocked'
+                  issued
+                      ? 'Certificate issued'
+                      : unlocked
+                      ? 'Certificate on its way'
                       : 'Certificate locked — Complete Feedback First',
                   style: TextStyle(
                     fontSize: 14,
@@ -206,9 +250,12 @@ class CertificateStatusBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  unlocked
-                      ? 'Thank you for your feedback. Your certificate of '
-                            'participation is ready to view and download.'
+                  issued
+                      ? 'Your certificate for this event is ready to view '
+                            'and download.'
+                      : unlocked
+                      ? 'Thank you for your feedback. Your certificate is '
+                            'being generated and will appear here shortly.'
                       : 'Share your feedback about this event to unlock your '
                             'certificate of participation.',
                   style: const TextStyle(
@@ -234,14 +281,30 @@ class CompletedEventCard extends StatelessWidget {
     required this.event,
     required this.feedbackSubmitted,
     required this.onTap,
+    this.certificateIssued = false,
+    this.onFeedbackTap,
+    this.showFeedback = true,
   });
 
   final CaresEvent event;
   final bool feedbackSubmitted;
+
+  /// Beneficiaries neither give feedback nor earn certificates, so their
+  /// cards end at the header row.
+  final bool showFeedback;
+
+  /// The scheduler has generated the sheet; the strip offers to open it.
+  final bool certificateIssued;
   final VoidCallback onTap;
+
+  /// Tapping the feedback strip itself — the "Submit Feedback" / "View
+  /// Certificate" call to action. Falls back to [onTap] when not given.
+  final VoidCallback? onFeedbackTap;
 
   @override
   Widget build(BuildContext context) {
+    final absent = event.isMarkedAbsent && !feedbackSubmitted;
+    final pending = event.isAttendancePending && !feedbackSubmitted;
     final accent = feedbackSubmitted
         ? AppColors.primary
         : AppColors.accentOrange;
@@ -348,76 +411,195 @@ class CompletedEventCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.08),
+                if (showFeedback) const SizedBox(height: 12),
+                if (!showFeedback)
+                  const SizedBox.shrink()
+                else if (absent)
+                  const _AbsentNotice()
+                else if (pending)
+                  const _PendingNotice()
+                else
+                  InkWell(
+                    onTap: onFeedbackTap ?? onTap,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: accent.withValues(alpha: 0.2)),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            feedbackSubmitted
+                                ? Icons.workspace_premium_rounded
+                                : Icons.lock_rounded,
+                            size: 18,
+                            color: accent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  feedbackSubmitted
+                                      ? 'Feedback: Submitted'
+                                      : 'Feedback: Not Submitted',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: accent,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  certificateIssued
+                                      ? 'Certificate available'
+                                      : feedbackSubmitted
+                                      ? 'Certificate generating'
+                                      : 'Certificate locked',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            feedbackSubmitted
+                                ? 'View Certificate'
+                                : 'Submit Feedback',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: accent,
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 18,
+                            color: accent,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        feedbackSubmitted
-                            ? Icons.workspace_premium_rounded
-                            : Icons.lock_rounded,
-                        size: 18,
-                        color: accent,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              feedbackSubmitted
-                                  ? 'Feedback: Submitted'
-                                  : 'Feedback: Not Submitted',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: accent,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              feedbackSubmitted
-                                  ? 'Certificate available'
-                                  : 'Certificate locked',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        feedbackSubmitted
-                            ? 'View Certificate'
-                            : 'Give Feedback',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: accent,
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 18,
-                        color: accent,
-                      ),
-                    ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Replaces the feedback call to action while the geofence validator has
+/// not ruled on the volunteer's attendance yet: feedback is pending, not
+/// open, so no button is offered until the status comes back.
+class _PendingNotice extends StatelessWidget {
+  const _PendingNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    const color = AppColors.textSecondary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.hourglass_top_rounded, size: 18, color: color),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Feedback: Pending',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Waiting for your attendance to be validated. Feedback '
+                  'opens once your status is confirmed.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Replaces the feedback call to action when the geofence validator ruled
+/// the volunteer absent: says why feedback is closed instead of offering a
+/// button that the server would refuse.
+class _AbsentNotice extends StatelessWidget {
+  const _AbsentNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    const color = AppColors.textMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.person_off_rounded, size: 18, color: color),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Feedback unavailable — marked absent',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Your attendance was not verified at the event site, so '
+                  'feedback and the certificate are closed for this event.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

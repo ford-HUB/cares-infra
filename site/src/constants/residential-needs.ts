@@ -1,25 +1,87 @@
-import type { NeedCategory, NeedPriority, NeedsFeatureKey } from '../types/residential-needs'
+import type {
+  CommunityProblem,
+  NeedBarrier,
+  NeedCategory,
+  NeedPriority,
+  NeedSeriousness,
+  NeedsFeatureKey,
+} from '../types/residential-needs'
 
+/** Q1 choices in survey order. */
 export const NEED_CATEGORY_ORDER: NeedCategory[] = [
   'food',
-  'water',
-  'shelter',
-  'health',
+  'healthcare',
   'education',
   'livelihood',
+  'financial',
+  'other',
 ]
 
 export const NEED_CATEGORY_LABELS: Record<NeedCategory, string> = {
-  food: 'Food security',
-  water: 'Clean water',
-  shelter: 'Shelter',
-  health: 'Health access',
+  food: 'Food',
+  healthcare: 'Healthcare',
   education: 'Education',
   livelihood: 'Livelihood',
+  financial: 'Financial Assistance',
+  other: 'Other',
 }
 
-/** Highest score a single need category can take on the survey. */
-export const NEED_SCORE_MAX = 5
+/** Q2 scale, lowest first. */
+export const NEED_SERIOUSNESS_ORDER: NeedSeriousness[] = [1, 2, 3, 4, 5]
+
+export const NEED_SERIOUSNESS_LABELS: Record<NeedSeriousness, string> = {
+  1: 'Not serious',
+  2: 'Slightly serious',
+  3: 'Moderately serious',
+  4: 'Serious',
+  5: 'Very serious',
+}
+
+export const NEED_SERIOUSNESS_MAX: NeedSeriousness = 5
+
+/** Q3 choices in survey order. */
+export const NEED_BARRIER_ORDER: NeedBarrier[] = [
+  'money',
+  'services',
+  'distance',
+  'information',
+  'documents',
+  'opportunities',
+  'other',
+  'none',
+]
+
+export const NEED_BARRIER_LABELS: Record<NeedBarrier, string> = {
+  money: 'Lack of money',
+  services: 'Lack of available services',
+  distance: 'Distance',
+  information: 'Lack of information',
+  documents: 'Lack of required documents',
+  opportunities: 'Limited opportunities',
+  other: 'Other',
+  none: 'No difficulty',
+}
+
+/** Q4 choices in survey order. */
+export const COMMUNITY_PROBLEM_ORDER: CommunityProblem[] = [
+  'food',
+  'healthcare',
+  'education',
+  'livelihood',
+  'financial',
+  'environmental',
+  'other',
+]
+
+export const COMMUNITY_PROBLEM_LABELS: Record<CommunityProblem, string> = {
+  food: 'Food',
+  healthcare: 'Healthcare',
+  education: 'Education',
+  livelihood: 'Livelihood',
+  financial: 'Financial Assistance',
+  environmental: 'Environmental',
+  other: 'Other',
+}
 
 export const NEED_PRIORITY_ORDER: NeedPriority[] = ['critical', 'high', 'moderate', 'low']
 
@@ -31,14 +93,14 @@ export const NEED_PRIORITY_LABELS: Record<NeedPriority, string> = {
 }
 
 /**
- * Total need score (sum of the six categories, 0–30) at or above which a household
- * falls into each band. Checked top-down, so `low` is whatever is left.
+ * Seriousness (Q2) at or above which a household falls into each band. Checked
+ * top-down, so `low` is whatever is left — "not serious" and "slightly serious".
  */
-export const NEED_PRIORITY_THRESHOLDS: Record<NeedPriority, number> = {
-  critical: 20,
-  high: 14,
-  moderate: 8,
-  low: 0,
+export const NEED_PRIORITY_THRESHOLDS: Record<NeedPriority, NeedSeriousness> = {
+  critical: 5,
+  high: 4,
+  moderate: 3,
+  low: 1,
 }
 
 /** Colour spent on priority only — one record per visual channel so they cannot drift. */
@@ -98,16 +160,37 @@ export const CLUSTER_K_DEFAULT = 3
 export const CLUSTER_MAX_ITERATIONS = 50
 export const CLUSTER_DEFAULT_SEED = 7
 
-export const NEEDS_FEATURE_ORDER: NeedsFeatureKey[] = ['members', ...NEED_CATEGORY_ORDER]
+/** The named Q1 categories the model flags — "Other" is free text, so it is left out. */
+export const CLUSTER_NEED_CATEGORIES: Exclude<NeedCategory, 'other'>[] = [
+  'food',
+  'healthcare',
+  'education',
+  'livelihood',
+  'financial',
+]
+
+export const NEEDS_FEATURE_ORDER: NeedsFeatureKey[] = [
+  'members',
+  'seriousness',
+  ...CLUSTER_NEED_CATEGORIES,
+]
 
 export const NEEDS_FEATURE_LABELS: Record<NeedsFeatureKey, string> = {
   members: 'Household size',
-  ...NEED_CATEGORY_LABELS,
+  seriousness: 'Seriousness',
+  food: NEED_CATEGORY_LABELS.food,
+  healthcare: NEED_CATEGORY_LABELS.healthcare,
+  education: NEED_CATEGORY_LABELS.education,
+  livelihood: NEED_CATEGORY_LABELS.livelihood,
+  financial: NEED_CATEGORY_LABELS.financial,
 }
 
-/** The two need scores the cluster scatter defaults to — what a director reads first. */
-export const CLUSTER_SCATTER_X: NeedCategory = 'food'
-export const CLUSTER_SCATTER_Y: NeedCategory = 'health'
+/**
+ * The two axes of the cluster scatter — how serious the need is against how many
+ * needs the household ticked, the two things a director reads first.
+ */
+export const CLUSTER_SCATTER_X_LABEL = 'Seriousness'
+export const CLUSTER_SCATTER_Y_LABEL = 'Needs selected'
 
 export const NEEDS_CHART_HEIGHT = 'h-64'
 export const NEEDS_SMALL_CHART_HEIGHT = 'h-52'

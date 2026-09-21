@@ -1,18 +1,18 @@
 import { Inbox } from 'lucide-react'
-import { formatRequestDay } from '../../constants/beneficiary-requests'
-import type { BeneficiaryRequest } from '../../types/beneficiary-request'
+import { formatRequestDay } from '../../constants/user-requests'
+import type { UserRequest } from '../../types/user-request'
 import { RequestTimelineItem } from './ui/request-timeline-item'
 
 interface UserRequestTimelineProps {
-  requests: BeneficiaryRequest[]
+  requests: UserRequest[]
   busyId: string | null
-  onAccept: (request: BeneficiaryRequest) => void
-  onDelete: (request: BeneficiaryRequest) => void
+  onAccept: (request: UserRequest) => void
+  onDelete: (request: UserRequest) => void
 }
 
 /** Groups the queue by submission day, newest first, keeping each day's rows in order. */
-function groupByDay(requests: BeneficiaryRequest[]) {
-  const groups = new Map<string, BeneficiaryRequest[]>()
+function groupByDay(requests: UserRequest[]) {
+  const groups = new Map<string, UserRequest[]>()
 
   for (const request of [...requests].sort((a, b) =>
     b.submittedAt.localeCompare(a.submittedAt),
@@ -35,7 +35,7 @@ export function UserRequestTimeline({
       <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
         <Inbox className="mx-auto h-8 w-8 text-gray-400" />
         <p className="mt-3 text-sm text-gray-500">
-          No beneficiary requests are waiting for review.
+          No requests are waiting for review.
         </p>
       </div>
     )

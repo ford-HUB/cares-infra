@@ -330,9 +330,11 @@ class VolunteerServerProfile {
   const VolunteerServerProfile({
     required this.school,
     required this.interests,
+    required this.accessGrantedByDirector,
     required this.serviceHours,
     required this.activitiesCompleted,
     required this.activitiesRegistered,
+    required this.rankingPoints,
   });
 
   factory VolunteerServerProfile.fromJson(Map<String, dynamic> json) {
@@ -346,18 +348,36 @@ class VolunteerServerProfile {
           .map(UserInterestX.fromApiValue)
           .whereType<UserInterest>()
           .toSet(),
+      accessGrantedByDirector:
+          json['access_granted_by_director'] as bool? ?? false,
       serviceHours: (json['service_hours'] as num?)?.toDouble() ?? 0,
       activitiesCompleted: (json['activities_completed'] as num?)?.toInt() ?? 0,
       activitiesRegistered:
           (json['activities_registered'] as num?)?.toInt() ?? 0,
+      rankingPoints: (json['ranking_points'] as num?)?.toInt() ?? 0,
     );
   }
 
   final VolunteerSchoolInfo? school;
   final Set<UserInterest> interests;
+
+  /// This side was opened by a director approving a role-access request, not
+  /// by registering as a volunteer — there is no school record to show.
+  final bool accessGrantedByDirector;
   final double serviceHours;
   final int activitiesCompleted;
   final int activitiesRegistered;
+
+  /// All-time leaderboard points under the portal's scoring rule.
+  final int rankingPoints;
+
+  /// The interests this side may hold: a director-granted volunteer is from
+  /// outside the school community, so the School interest is dropped even if
+  /// it was saved before the role was approved.
+  Set<UserInterest> get allowedInterests => UserInterestX.allowed(
+    interests,
+    outsideSchool: accessGrantedByDirector,
+  );
 }
 
 class DonorServerProfile {

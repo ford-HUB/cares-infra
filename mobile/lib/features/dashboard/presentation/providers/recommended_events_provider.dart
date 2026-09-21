@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/session/static_user_session.dart';
+import 'package:mobile/features/dashboard/data/certificate_data.dart';
+import 'package:mobile/features/dashboard/data/event_evaluation_service.dart';
+import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/data/event_registration_service.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
@@ -11,6 +14,10 @@ final recommendedEventsServiceProvider = Provider<RecommendedEventsService>(
 
 final eventRegistrationServiceProvider = Provider<EventRegistrationService>(
   (ref) => EventRegistrationService(),
+);
+
+final eventEvaluationServiceProvider = Provider<EventEvaluationService>(
+  (ref) => EventEvaluationService(),
 );
 
 /// Interest-matched events for the home tab. Auto-disposed so leaving the
@@ -27,10 +34,33 @@ final recommendedEventsProvider =
       return page;
     });
 
+/// Open events flagged for beneficiaries — the beneficiary home carousel and
+/// Events tab read this. Beneficiaries hold no registrations, so nothing is
+/// reconciled with the registration store.
+final beneficiaryEventsProvider =
+    FutureProvider.autoDispose<List<RecommendedEvent>>(
+      (ref) =>
+          ref.read(recommendedEventsServiceProvider).fetchForBeneficiaries(),
+    );
+
+/// Finished events that were open to beneficiaries — the beneficiary
+/// Activity tab. Nothing volunteer-side (registrations, feedback,
+/// certificates) is touched.
+final beneficiaryCompletedEventsProvider =
+    FutureProvider.autoDispose<List<RecommendedEvent>>(
+      (ref) => ref
+          .read(recommendedEventsServiceProvider)
+          .fetchCompletedForBeneficiaries(),
+    );
+
 /// The volunteer's own registrations for the activity page. Unlike the feed
 /// this includes finished events, so it is the source that puts them under
 /// "Completed" after a restart. Each fetch reconciles the store the same way
 /// and additionally drops local server-backed rows the server no longer has.
+///
+/// The same load pulls which of those events already have feedback, so the
+/// "Submit Feedback" / "Submitted" state on the completed cards is the
+/// server's, not whatever this install remembers.
 final registeredEventsProvider =
     FutureProvider.autoDispose<List<RecommendedEvent>>((ref) async {
       final events = await ref
@@ -48,8 +78,26 @@ final registeredEventsProvider =
           store.cancelParticipation(event.id, email);
         }
       }
+
+      await _syncFeedback(ref, email);
+      await CertificateStore.instance.refresh();
       return events;
     });
+
+/// Best effort: a failed feedback lookup must not take the activity page down
+/// with it, so the cards fall back to whatever the store already holds.
+Future<void> _syncFeedback(Ref ref, String email) async {
+  try {
+    final submissions = await ref
+        .read(eventEvaluationServiceProvider)
+        .fetchSubmissions();
+    EventFeedbackStore.instance.hydrate(email, {
+      for (final s in submissions) 'event-${s.eventId}': s.submittedAt,
+    });
+  } catch (_) {
+    // Leave the store as-is; the next refresh retries.
+  }
+}
 
 void _syncRegistrations(List<RecommendedEvent> events) {
   final store = EventRegistrationStore.instance;

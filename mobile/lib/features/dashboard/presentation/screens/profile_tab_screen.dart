@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
+import 'package:mobile/core/services/local_notifications.dart';
 import 'package:mobile/core/session/role_account_store.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
@@ -11,13 +12,14 @@ import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
 import 'package:mobile/features/dashboard/data/donation_store.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
+import 'package:mobile/features/dashboard/data/user_request_service.dart';
 import 'package:mobile/features/dashboard/donor/data/donor_profile_store.dart';
 import 'package:mobile/features/dashboard/donor/screens/donor_profile_section_edit_screen.dart';
 import 'package:mobile/features/dashboard/data/activity_log_service.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 import 'package:mobile/features/dashboard/data/certificate_data.dart';
-import 'package:mobile/features/dashboard/data/event_feedback_store.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
 import 'package:mobile/features/dashboard/screens/profile_screens.dart';
@@ -240,6 +242,8 @@ class _ProfileTabBody extends StatelessWidget {
   void _signOut(BuildContext context) {
     AuthSession.clear();
     RoleAccountStore.instance.clear();
+    NotificationSync.instance.clear();
+    LocalNotifications.instance.cancelAll();
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
@@ -566,36 +570,45 @@ class _ProfileTabBody extends StatelessWidget {
                     // request stats here; their details live in the edit flow.
                   ] else ...[
                     if (volunteerServer != null) ...[
-                      _SectionTitle(title: 'School Information'),
+                      // A beneficiary/donor whose Volunteer side a director
+                      // approved never uploaded a school record — only a
+                      // registered volunteer has one to show.
+                      if (!volunteerServer.accessGrantedByDirector) ...[
+                        _SectionTitle(title: 'School Information'),
 
-                      const SizedBox(height: 8),
+                        const SizedBox(height: 8),
 
-                      _InfoRow(
-                        icon: Icons.badge_outlined,
-                        label: 'ID number',
-                        value: _orNotSet(volunteerServer.school?.idNumber),
-                      ),
+                        _InfoRow(
+                          icon: Icons.badge_outlined,
+                          label: 'ID number',
+                          value: _orNotSet(volunteerServer.school?.idNumber),
+                        ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      _InfoRow(
-                        icon: Icons.account_balance_outlined,
-                        label: 'Department',
-                        value: _orNotSet(volunteerServer.school?.department),
-                      ),
+                        _InfoRow(
+                          icon: Icons.account_balance_outlined,
+                          label: 'Department',
+                          value: _orNotSet(volunteerServer.school?.department),
+                        ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      _InfoRow(
-                        icon: Icons.menu_book_outlined,
-                        label: 'Program',
-                        value: volunteerServer.school == null
-                            ? 'Not set'
-                            : '${volunteerServer.school!.major} · '
-                                  '${volunteerServer.school!.yearLevel}',
-                      ),
+                        _InfoRow(
+                          icon: Icons.menu_book_outlined,
+                          label: 'Program',
+                          value: volunteerServer.school == null
+                              ? 'Not set'
+                              : '${volunteerServer.school!.major} · '
+                                    '${volunteerServer.school!.yearLevel}',
+                        ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
+                      ] else ...[
+                        _SectionTitle(title: 'Contact'),
+
+                        const SizedBox(height: 8),
+                      ],
 
                       _InfoRow(
                         icon: Icons.call_outlined,
@@ -672,15 +685,14 @@ class _ProfileTabBody extends StatelessWidget {
                       )
                     else
                       ListenableBuilder(
-                        listenable: EventFeedbackStore.instance,
+                        listenable: CertificateStore.instance,
 
                         builder: (context, _) => _MenuTile(
                           icon: Icons.workspace_premium_outlined,
 
                           label: 'Certificates',
 
-                          trailingLabel:
-                              '${earnedCertificatesFor(certificateWalletEmail()).length}',
+                          trailingLabel: '${CertificateStore.instance.count}',
 
                           onTap: () => ProfileCertificatesScreen.open(context),
                         ),
@@ -862,7 +874,8 @@ class _ResolvedProfile {
     final serverVolunteer = server?.volunteer;
     final serverInterests = serverVolunteer == null
         ? const <String>[]
-        : (serverVolunteer.interests.map((i) => i.label).toList()..sort());
+        : (serverVolunteer.allowedInterests.map((i) => i.label).toList()
+            ..sort());
 
     return _ResolvedProfile(
       displayName: (server?.fullName.isNotEmpty ?? false)
@@ -875,7 +888,9 @@ class _ResolvedProfile {
 
       memberSince: server?.memberSinceLabel ?? mockProfile.memberSince,
 
-      points: points,
+      // The leaderboard's all-time tally; the caller's number only stands in
+      // for prototype paths that never signed in.
+      points: serverVolunteer?.rankingPoints ?? points,
 
       serviceHours:
           serverVolunteer?.serviceHours.round() ?? mockProfile.serviceHours,
@@ -888,7 +903,7 @@ class _ResolvedProfile {
           ? volunteerProfile.interestLabels
           : serverInterests,
 
-      selectedInterests: serverVolunteer?.interests ?? const {},
+      selectedInterests: serverVolunteer?.allowedInterests ?? const {},
 
       profileCompletionPercent: profileComplete
           ? 100
@@ -1167,7 +1182,8 @@ class _ProfileHeader extends StatelessWidget {
 /// [RoleAccountStore] — each with its own profile photo and name, the open one
 /// marked as current. Unlocked roles switch straight to that dashboard;
 /// locked roles open [RoleUnlockScreen] (ID upload + face verification) or
-/// activate instantly when the role has no requirement.
+/// activate instantly when the role has no requirement; roles pending
+/// administrator approval only show a reminder.
 class _RoleSwitchButton extends StatelessWidget {
   const _RoleSwitchButton({required this.currentRoleLabel});
 
@@ -1187,6 +1203,15 @@ class _RoleSwitchButton extends StatelessWidget {
 
   Future<void> _open(BuildContext context, RoleAccount role) async {
     final store = RoleAccountStore.instance;
+
+    if (role.isPending) {
+      // Verified, but an administrator has not approved the request yet.
+      await showDialog<void>(
+        context: context,
+        builder: (_) => _RolePendingDialog(role: role),
+      );
+      return;
+    }
 
     if (role.isLocked) {
       if (role.requirement == RoleUnlockRequirement.idAndFaceVerification) {
@@ -1272,6 +1297,7 @@ class _RoleSwitchDialog extends StatefulWidget {
 
 class _RoleSwitchDialogState extends State<_RoleSwitchDialog> {
   final ProfileService _profileService = ProfileService();
+  final UserRequestService _userRequestService = UserRequestService();
 
   @override
   void initState() {
@@ -1285,8 +1311,16 @@ class _RoleSwitchDialogState extends State<_RoleSwitchDialog> {
   Future<void> _syncOtherRoles() async {
     if (!AuthSession.isSignedIn) return;
     final store = RoleAccountStore.instance;
+    // A role-access request decided in the portal since the last open flips
+    // the row from pending to unlocked (or a fresh request to pending).
+    try {
+      store.applyRequestStatuses(await _userRequestService.fetchMine());
+    } catch (_) {
+      // Leave the rows on their local state.
+    }
+    if (!mounted) return;
     for (final role in store.switchable) {
-      if (role.isLocked || role.serverProfile != null) continue;
+      if (!role.isUnlocked || role.serverProfile != null) continue;
       try {
         await _profileService.syncRoleAccount(roleType: role.roleType);
       } catch (_) {
@@ -1402,10 +1436,13 @@ class _RoleSwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Only roles that need a verification step read as locked. Donor and
-    // beneficiary sides just switch on tap.
+    // beneficiary sides just switch on tap. A verified role waiting on an
+    // administrator reads as pending.
+    final pending = role.isPending;
     final locked =
-        role.isLocked &&
-        role.requirement == RoleUnlockRequirement.idAndFaceVerification;
+        pending ||
+        (role.isLocked &&
+            role.requirement == RoleUnlockRequirement.idAndFaceVerification);
 
     return InkWell(
       onTap: onTap,
@@ -1464,6 +1501,11 @@ class _RoleSwitchRow extends StatelessWidget {
                 icon: Icons.check_circle_rounded,
                 label: 'Current',
                 filled: true,
+              )
+            else if (pending)
+              const _RoleSwitchBadge(
+                icon: Icons.hourglass_top_rounded,
+                label: 'Pending',
               )
             else if (locked)
               const _RoleSwitchBadge(
@@ -1591,7 +1633,8 @@ class _RoleUnlockDialog extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Your account was registered as ${RoleAccountStore.instance.primary?.roleLabel ?? 'a donor'}, '
-            'so we still need to confirm you are a student before opening the '
+            'so we still need to confirm you are a UCLM student and have an '
+            'administrator approve the request before opening the '
             '${role.roleLabel.toLowerCase()} side.',
             style: const TextStyle(
               fontSize: 13,
@@ -1604,8 +1647,8 @@ class _RoleUnlockDialog extends StatelessWidget {
           const _UnlockDialogStep(
             number: 1,
             icon: Icons.badge_outlined,
-            title: 'Upload your school ID',
-            subtitle: 'Front and back, clearly readable.',
+            title: 'Upload your Valid ID',
+            subtitle: 'Front and back of your UCLM ID, clearly readable.',
           ),
           const SizedBox(height: 10),
           const _UnlockDialogStep(
@@ -1615,11 +1658,18 @@ class _RoleUnlockDialog extends StatelessWidget {
             subtitle: 'A quick selfie matched against your ID photo.',
           ),
           const SizedBox(height: 10),
-          _UnlockDialogStep(
+          const _UnlockDialogStep(
             number: 3,
+            icon: Icons.admin_panel_settings_outlined,
+            title: 'Administrator approval',
+            subtitle: 'Your request is reviewed before the role opens.',
+          ),
+          const SizedBox(height: 10),
+          _UnlockDialogStep(
+            number: 4,
             icon: Icons.swap_horiz_rounded,
             title: 'Switch to ${role.roleLabel}',
-            subtitle: 'Once verified, the account changes over right away.',
+            subtitle: 'Once approved, the account changes over from here.',
           ),
         ],
       ),
@@ -1641,6 +1691,91 @@ class _RoleUnlockDialog extends StatelessWidget {
             minimumSize: Size.zero,
           ),
           child: const Text('Start verification'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Shown when a role that already passed the ID + face check is tapped
+/// again: the request is with an administrator and nothing else is needed.
+class _RolePendingDialog extends StatelessWidget {
+  const _RolePendingDialog({required this.role});
+
+  final RoleAccount role;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      contentPadding: const EdgeInsets.fromLTRB(22, 22, 22, 8),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: role.avatarColor,
+                child: const Icon(
+                  Icons.hourglass_top_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your request is under review.',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Pending administrator approval',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Your ID and face verification were successfully completed. '
+            'Please wait for administrator approval before accessing the '
+            '${role.roleLabel} role.',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            minimumSize: Size.zero,
+          ),
+          child: const Text('Got it'),
         ),
       ],
     );
@@ -1741,7 +1876,7 @@ class _RoleAvatar extends StatelessWidget {
           : null,
     );
 
-    if (!role.isLocked) return avatar;
+    if (role.isUnlocked) return avatar;
 
     return Opacity(opacity: 0.55, child: avatar);
   }
@@ -1953,7 +2088,9 @@ class _AddChip extends StatelessWidget {
       child: Material(
         color: Colors.white,
 
-        shape: const CircleBorder(side: BorderSide(color: AppColors.fieldBorder)),
+        shape: const CircleBorder(
+          side: BorderSide(color: AppColors.fieldBorder),
+        ),
 
         clipBehavior: Clip.antiAlias,
 

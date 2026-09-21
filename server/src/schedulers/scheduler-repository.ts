@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AttendanceStatus,
   EventStatus,
   NotificationTone,
   ReportDepartment,
@@ -38,6 +39,15 @@ export class SchedulerRepository {
    * Coordinators of one college, matched against every spelling the profile might
    * carry. Null department means the event is for everyone.
    */
+  /** Volunteers still expected at the event — registered and not yet ruled on. */
+  async findRegisteredVolunteerIds(eventId: number): Promise<string[]> {
+    const rows = await this.prisma.eventAttendance.findMany({
+      where: { event_id: eventId, status: AttendanceStatus.PENDING },
+      select: { user_id: true },
+    });
+    return rows.map((row) => row.user_id);
+  }
+
   async findCoordinatorIdsForDepartment(
     department: string | null,
   ): Promise<string[]> {

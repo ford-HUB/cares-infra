@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { RankingsCoreModule } from '../../rankings/modules/rankings-core-module';
 import { EventAttendanceRepository } from '../repositories/event-attendance-repository';
 import { EventAttendanceValidationService } from '../services/event-attendance-validation-service';
 
@@ -7,6 +8,7 @@ import { EventAttendanceValidationService } from '../services/event-attendance-v
  * monitor and the scheduled sweep all share one instance of it.
  */
 @Module({
+  imports: [RankingsCoreModule],
   providers: [EventAttendanceValidationService, EventAttendanceRepository],
   exports: [EventAttendanceValidationService, EventAttendanceRepository],
 })

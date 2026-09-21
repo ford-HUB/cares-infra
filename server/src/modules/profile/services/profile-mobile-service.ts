@@ -44,6 +44,7 @@ import {
   ProfileCacheService,
   type CachedProfileAsset,
 } from './profile-cache-service';
+import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
 
 type MobileRoleType = (typeof MOBILE_PROFILE_ROLE_TYPES)[number];
 
@@ -60,6 +61,7 @@ export class ProfileMobileService {
     private readonly authMobileService: AuthMobileService,
     private readonly ocrServiceClient: OcrServiceClient,
     private readonly auditLogRecorder: AuditLogRecorder,
+    private readonly rankingsBoardService: RankingsBoardService,
   ) {}
 
   /**
@@ -546,7 +548,10 @@ export class ProfileMobileService {
     };
 
     if (roleType === RoleType.VOLUNTEER) {
-      steps.school_record = row.user_school_info.length > 0;
+      // A director-approved volunteer side has no school record to fill in.
+      if (!this.isDirectorGrantedVolunteer(row)) {
+        steps.school_record = row.user_school_info.length > 0;
+      }
       steps.id_verification = biometricSubmitted;
       steps.interests = hasInterests;
     } else if (roleType === RoleType.BENEFICIARY) {
@@ -574,9 +579,10 @@ export class ProfileMobileService {
     row: MobileProfileRow,
   ): Promise<VolunteerProfileSectionDto> {
     const school = row.user_school_info[0];
-    const attendance = await this.profileRepository.summarizeAttendance(
-      row.user_id,
-    );
+    const [attendance, score] = await Promise.all([
+      this.profileRepository.summarizeAttendance(row.user_id),
+      this.rankingsBoardService.scoreVolunteer(row.user_id),
+    ]);
     const selected = row.user_interest?.selected;
 
     return {
@@ -590,10 +596,17 @@ export class ProfileMobileService {
           }
         : null,
       interests: Array.isArray(selected) ? (selected as InterestCode[]) : [],
+      access_granted_by_director: this.isDirectorGrantedVolunteer(row),
       service_hours: attendance.hours,
       activities_completed: attendance.completed,
       activities_registered: attendance.registered,
+      ranking_points: score.points,
     };
+  }
+
+  /** Registered as donor / beneficiary, Volunteer side opened by an accepted role-access request. */
+  private isDirectorGrantedVolunteer(row: MobileProfileRow): boolean {
+    return row.role.type !== RoleType.VOLUNTEER && row.user_requests.length > 0;
   }
 
   private buildDonor(row: MobileProfileRow): DonorProfileSectionDto {

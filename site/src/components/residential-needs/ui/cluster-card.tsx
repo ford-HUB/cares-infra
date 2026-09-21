@@ -3,11 +3,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { formatNumber, formatPercent } from '../../../constants/formatting'
 import {
+  CLUSTER_NEED_CATEGORIES,
   CLUSTER_SWATCH_STYLES,
+  NEED_BARRIER_LABELS,
   NEED_CATEGORY_LABELS,
-  NEED_CATEGORY_ORDER,
-  NEED_SCORE_MAX,
+  NEED_SERIOUSNESS_LABELS,
+  NEED_SERIOUSNESS_MAX,
 } from '../../../constants/residential-needs'
+import type { NeedSeriousness } from '../../../types/residential-needs'
 import type { NeedsCluster } from '../../../types/residential-needs'
 import { ClusterSwatch } from './cluster-swatch'
 import { NeedPriorityBadge } from './need-priority-badge'
@@ -19,10 +22,16 @@ interface ClusterCardProps {
   onToggle: (index: number) => void
 }
 
+/** The centroid's mean seriousness snapped to the nearest survey answer. */
+function seriousnessOf(mean: number): NeedSeriousness {
+  return Math.min(NEED_SERIOUSNESS_MAX, Math.max(1, Math.round(mean))) as NeedSeriousness
+}
+
 /**
  * One group's profile: how many households it holds, what they have in common, and
- * the need that defines them. The card is the table's filter for the cluster — click
- * to narrow, click again to clear.
+ * the need that defines them. Each need bar is the share of the group that ticked it.
+ * The card is the table's filter for the cluster — click to narrow, click again to
+ * clear.
  */
 export function ClusterCard({ cluster, total, active, onToggle }: ClusterCardProps) {
   const size = cluster.householdIds.length
@@ -77,6 +86,16 @@ export function ClusterCard({ cluster, total, active, onToggle }: ClusterCardPro
             <span className="tabular-nums">{cluster.centroid.members.toFixed(1)}</span> members on
             average
           </p>
+          <p className="-mt-1.5 text-[12px] text-gray-500">
+            Rated{' '}
+            <span className="font-medium text-gray-700">
+              {NEED_SERIOUSNESS_LABELS[seriousnessOf(cluster.centroid.seriousness)].toLowerCase()}
+            </span>{' '}
+            on average · held back by{' '}
+            <span className="font-medium text-gray-700">
+              {NEED_BARRIER_LABELS[cluster.topBarrier].toLowerCase()}
+            </span>
+          </p>
 
           {size > 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2">
@@ -95,8 +114,8 @@ export function ClusterCard({ cluster, total, active, onToggle }: ClusterCardPro
           )}
 
           <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-            {NEED_CATEGORY_ORDER.map((category) => {
-              const score = cluster.centroid[category]
+            {CLUSTER_NEED_CATEGORIES.map((category) => {
+              const share = cluster.centroid[category]
               return (
                 <li key={category} className="min-w-0">
                   <div className="mb-0.5 flex items-baseline justify-between gap-2">
@@ -104,13 +123,13 @@ export function ClusterCard({ cluster, total, active, onToggle }: ClusterCardPro
                       {NEED_CATEGORY_LABELS[category]}
                     </span>
                     <span className="text-[11px] text-gray-400 tabular-nums">
-                      {score.toFixed(1)}
+                      {formatPercent(share)}
                     </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
                     <div
                       className={cn('h-full rounded-full transition-[width] duration-500', swatch)}
-                      style={{ width: `${(score / NEED_SCORE_MAX) * 100}%` }}
+                      style={{ width: `${share * 100}%` }}
                     />
                   </div>
                 </li>

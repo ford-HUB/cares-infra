@@ -5,7 +5,13 @@ import {
   type GpsParticipantResult,
   type GpsPingInput,
 } from '../../../infastructures/microservices/gps-validator-service-client';
-import { AttendanceStatus } from '../../../infastructures/prisma/common/client';
+import {
+  AttendanceStatus,
+  NotificationCategory,
+  NotificationTone,
+} from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
+import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
 import {
   EventAttendanceRepository,
   type EventZoneRow,
@@ -42,6 +48,8 @@ export class EventAttendanceValidationService {
   constructor(
     private readonly eventAttendanceRepository: EventAttendanceRepository,
     private readonly gpsValidatorServiceClient: GpsValidatorServiceClient,
+    private readonly notificationScheduler: NotificationScheduler,
+    private readonly rankingsBoardService: RankingsBoardService,
   ) {}
 
   /**
@@ -145,12 +153,67 @@ export class EventAttendanceValidationService {
       if (!applied) continue;
       if (result.isValid) summary.completed++;
       else summary.absent++;
+      await this.notifyRuling(event, row.user_id, result.isValid);
     }
 
     this.logger.log(
       `event ${event.event_id} validated: ${summary.completed} completed, ${summary.absent} absent, ${summary.awaitingSync} awaiting sync`,
     );
     return summary;
+  }
+
+  /**
+   * Tells the volunteer how the event was ruled and what it did to their
+   * standing. Present: the points earned and a nudge to rate the event. Absent:
+   * the penalty just applied and what the next straight miss would cost. Written
+   * through the scheduler so a slow queue never holds up the ruling; a failed
+   * notice is logged, not thrown, because the ruling itself already stuck.
+   */
+  private async notifyRuling(
+    event: EventZoneRow,
+    userId: string,
+    present: boolean,
+  ): Promise<void> {
+    try {
+      const [score, settings] = await Promise.all([
+        this.rankingsBoardService.scoreVolunteer(userId),
+        this.rankingsBoardService.getSettings(),
+      ]);
+      const step = settings.absence_penalty_step;
+      const applied =
+        score.currentStreak > 0 ? step * score.currentStreak : step;
+      const next = step * (score.currentStreak + 1);
+
+      await this.notificationScheduler.publish(
+        present
+          ? {
+              title: `You were marked present at ${event.title}`,
+              description: `+${settings.points_per_attendance} ranking points — you now have ${score.points}. Tap to rate the event and help the next one be better.`,
+              category: NotificationCategory.EVENT,
+              tone: NotificationTone.INFO,
+              href: `/events/${event.event_id}/feedback`,
+              userIds: [userId],
+              dedupeKey: `attendance-ruled:${event.event_id}`,
+            }
+          : {
+              title: `Marked absent at ${event.title}`,
+              description: `You registered but no attendance was recorded inside the venue. −${applied} ranking points${
+                score.currentStreak > 1
+                  ? ` (${score.currentStreak} straight misses)`
+                  : ''
+              }; the next skipped registration within ${settings.absence_reset_days} days costs −${next}.`,
+              category: NotificationCategory.EVENT,
+              tone: NotificationTone.ATTENTION,
+              href: `/events/${event.event_id}`,
+              userIds: [userId],
+              dedupeKey: `attendance-ruled:${event.event_id}`,
+            },
+      );
+    } catch (error) {
+      this.logger.warn(
+        `could not notify ${userId} about event ${event.event_id}: ${String(error)}`,
+      );
+    }
   }
 
   /**

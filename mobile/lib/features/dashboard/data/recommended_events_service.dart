@@ -26,6 +26,25 @@ class RecommendedEventsService {
     );
   }
 
+  /// Open events an operator flagged as applicable to beneficiaries. Same row
+  /// shape as the feed; no interest matching, the flag is the whole criterion.
+  Future<List<RecommendedEvent>> fetchForBeneficiaries() async {
+    final response = await _api.getJson('/events/beneficiary');
+    final data = response['data'] as Map<String, dynamic>;
+    return (data['events'] as List<dynamic>? ?? [])
+        .map((e) => RecommendedEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Finished events that were open to beneficiaries, latest first.
+  Future<List<RecommendedEvent>> fetchCompletedForBeneficiaries() async {
+    final response = await _api.getJson('/events/beneficiary/completed');
+    final data = response['data'] as Map<String, dynamic>;
+    return (data['events'] as List<dynamic>? ?? [])
+        .map((e) => RecommendedEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Every event the caller holds a slot on — upcoming, ongoing and finished.
   /// Same row shape as the feed, minus interest matching.
   Future<List<RecommendedEvent>> fetchRegistered() async {

@@ -10,6 +10,7 @@ export const SCHEDULER_QUEUES = {
   diagnostics: 'diagnostics',
   attendance: 'attendance',
   events: 'events',
+  certificates: 'certificates',
 } as const;
 
 export type SchedulerQueueName =
@@ -138,6 +139,17 @@ export const SCHEDULER_DEFINITIONS: SchedulerDefinition[] = [
     owner: 'server',
     trigger: { every: 1 * MINUTE },
     maxRuntimeMs: 1 * MINUTE,
+    attempts: 2,
+  },
+  {
+    id: 'issue-event-certificates',
+    queue: SCHEDULER_QUEUES.certificates,
+    name: 'Issue event certificates',
+    description:
+      'Every five minutes, finds deployed certificate templates whose event has finished, generates a certificate from that template for every participant who completed the event and its post-event questionnaire, and releases it to their app and the live certificates page.',
+    owner: 'server',
+    trigger: { every: 5 * MINUTE },
+    maxRuntimeMs: 4 * MINUTE,
     attempts: 2,
   },
   {
