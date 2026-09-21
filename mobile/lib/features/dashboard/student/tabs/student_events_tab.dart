@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../data/mock_donations.dart';
 import '../../domain/cares_event.dart';
 import '../../data/mock_events.dart';
-import '../../screens/donation_details_screen.dart';
 import '../../screens/event_details_screen.dart';
 import '../../widgets/donations_page_widgets.dart';
 import '../../widgets/events_page_widgets.dart';
@@ -46,27 +44,14 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
         .toList();
   }
 
-  List<CaresDonation> get _filteredDonations {
-    return kMockAllDonations
-        .where(
-          (donation) =>
-              donation.matchesCategory(_selectedCategory) &&
-              donation.matchesQuery(_query),
-        )
-        .toList();
-  }
-
-  List<String> get _suggestions => widget.isDonorMode
-      ? donationSearchSuggestionsFor(_query)
-      : smartSearchSuggestionsFor(_query);
+  List<String> get _suggestions =>
+      widget.isDonorMode ? const [] : smartSearchSuggestionsFor(_query);
 
   bool get _hasActiveFilters =>
       _query.trim().isNotEmpty || _selectedCategory != 'All';
 
   String get _subtitle {
-    final count = widget.isDonorMode
-        ? _filteredDonations.length
-        : _filteredEvents.length;
+    final count = widget.isDonorMode ? 0 : _filteredEvents.length;
     if (_query.trim().isNotEmpty) {
       return '$count result${count == 1 ? '' : 's'} found';
     }
@@ -170,8 +155,9 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
     );
   }
 
+  /// The prototype has no server behind it, so donor mode lists nothing; the
+  /// real donor dashboard reads `GET /events/donations`.
   Widget _buildDonationsView(BuildContext context) {
-    final donations = _filteredDonations;
     final showSuggestions =
         _searchFocusNode.hasFocus && _suggestions.isNotEmpty;
 
@@ -202,6 +188,7 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                 child: DonationCategoryFilters(
+                  categories: const ['All'],
                   selected: _selectedCategory,
                   onSelected: (category) {
                     setState(() => _selectedCategory = category);
@@ -210,29 +197,14 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
                 ),
               ),
             ),
-            if (donations.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: DonationsEmptyState(
-                  query: _query,
-                  hasActiveFilters: _hasActiveFilters,
-                  onClearFilters: _clearFilters,
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final donation = donations[index];
-                    return DonationCatalogCard(
-                      donation: donation,
-                      onTap: () =>
-                          DonationDetailsScreen.open(context, donation),
-                    );
-                  }, childCount: donations.length),
-                ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: DonationsEmptyState(
+                query: _query,
+                hasActiveFilters: _hasActiveFilters,
+                onClearFilters: _clearFilters,
               ),
+            ),
           ],
         ),
       ),

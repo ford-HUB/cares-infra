@@ -62,6 +62,9 @@ model User {
   evaluation_responses          EvaluationResponse[]
   user_requests                 UserRequest[]                  @relation("UserRequestRequester")
   decided_user_requests         UserRequest[]                  @relation("UserRequestDecider")
+  donation_payments             DonationPayment[]              @relation("DonationPaymentDonor")
+  donations                     Donation[]                     @relation("DonationDonor")
+  donation_trail_entries        DonationTrailEntry[]           @relation("DonationTrailActor")
   role               Role               @relation(fields: [role_id], references: [role_id])
   role_id            String
   createdAt          DateTime           @default(now())
@@ -616,6 +619,8 @@ model Event {
   location_pings         EventLocationPing[]
   evaluation_responses   EvaluationResponse[]
   user_requests          UserRequest[]
+  donation_payments      DonationPayment[]
+  donations              Donation[]
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
 }
@@ -1308,6 +1313,11 @@ model RankingSettings {
   absence_penalty_step  Int      @default(2)
   /// Misses further apart than this restart the penalty at the first step.
   absence_reset_days    Int      @default(7)
+  /// Donor board: one point for every this many pesos of confirmed donations.
+  donor_pesos_per_point Int      @default(100)
+  /// Peso value credited per unit of each goods type (`food`, `clothing`, …) when a
+  /// goods donation is scored; null falls back to the shipped defaults.
+  goods_type_values     Json?
   default_period        String   @default("month")
   tiers                 Json
   createdAt             DateTime @default(now())
@@ -1411,4 +1421,160 @@ model UserRequestTrailEntry {
   createdAt                   DateTime    @default(now())
 
   @@index([user_request_id])
+}
+
+/// The Xendit channel behind each option on the app's payment-method step.
+/// GCASH is an e-wallet charge, QRPH a dynamic QR Ph code, CARD and
+/// BANK_TRANSFER go through Xendit's hosted checkout (card entry with 3DS,
+/// or BPI / UnionBank / RCBC / Chinabank direct debit).
+enum DonationPaymentMethod {
+  GCASH
+  QRPH
+  CARD
+  BANK_TRANSFER
+}
+
+/// Payment lifecycle as Xendit reports it. PENDING is a checkout still open;
+/// the other three are terminal and are only ever set from a gateway callback
+/// or a status reconcile — never from the app.
+enum DonationPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+/// One money-donation checkout a donor started from the app. A row is created
+/// before the gateway is called so the client's idempotency key can dedupe a
+/// retried tap, and the gateway reference on it is what every Xendit callback
+/// carries back.
+model DonationPayment {
+  donation_payment_id String                @id @default(uuid())
+  user_id             String
+  user                User                  @relation("DonationPaymentDonor", fields: [user_id], references: [user_id], onDelete: Cascade)
+  /// The director event behind the campaign, when the campaign is event-backed.
+  event_id            Int?
+  event               Event?                @relation(fields: [event_id], references: [event_id], onDelete: SetNull)
+  campaign_id         String
+  campaign_title      String
+  /// Whole pesos.
+  amount              Int
+  currency            String                @default("PHP")
+  method              DonationPaymentMethod
+  status              DonationPaymentStatus @default(PENDING)
+  /// Client-generated per checkout attempt; the same key returns the same row.
+  idempotency_key     String
+  /// The `reference_id` / `external_id` handed to Xendit; callbacks carry it back.
+  gateway_reference   String                @unique
+  /// Xendit's id for the charge, QR code or invoice we created.
+  gateway_resource_id String?
+  /// Xendit's id for the settled payment — the reference shown on the receipt.
+  payment_reference   String?
+  /// Payment channel Xendit reported on settlement (e.g. DD_BPI for a bank transfer).
+  payment_channel     String?
+  /// GCASH / CARD / BANK_TRANSFER: where the donor completes the payment.
+  checkout_url        String?
+  /// QRPH only: the EMV string the app renders as a QR code.
+  qr_string           String?
+  expires_at          DateTime?
+  paid_at             DateTime?
+  failure_reason      String?
+  /// The ledger row opened when this checkout settled as PAID.
+  donation            Donation?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@unique([user_id, idempotency_key])
+  @@index([user_id])
+  @@index([status])
+}
+
+/// Every Xendit callback already applied, keyed by its `webhook-id` header.
+/// Xendit retries until it sees a 2xx, so the same event can arrive more than
+/// once; inserting here in the same transaction as the status change makes a
+/// replay a no-op.
+model PaymentWebhookEvent {
+  webhook_id        String   @id
+  event             String
+  gateway_reference String?
+  payload           Json
+  receivedAt        DateTime @default(now())
+
+  @@index([gateway_reference])
+}
+
+enum DonationKind {
+  MONEY
+  GOODS
+}
+
+/// One ladder for both kinds, walked at different speeds. Goods: PLEDGED →
+/// AWAITING_PICKUP → VERIFYING → CONFIRMED. Money (already paid through the
+/// gateway): PLEDGED → VERIFYING → CONFIRMED. DECLINED is the director's off-ramp;
+/// CANCELLED is the donor's, and only from PLEDGED.
+enum DonationStatus {
+  PLEDGED
+  AWAITING_PICKUP
+  VERIFYING
+  CONFIRMED
+  DECLINED
+  CANCELLED
+}
+
+/// The donation ledger the portal's Donation Tracking works and the donor app's
+/// Activity tab reads. A money row is opened by the gateway callback once a
+/// checkout is paid; a goods row is opened when the donor pledges. Only CONFIRMED
+/// rows count towards the donor board.
+model Donation {
+  donation_id         String          @id @default(uuid())
+  /// Human tracking number — `DN-0007` is sequence 7.
+  sequence            Int             @unique @default(autoincrement())
+  user_id             String
+  user                User            @relation("DonationDonor", fields: [user_id], references: [user_id], onDelete: Cascade)
+  event_id            Int
+  event               Event           @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  kind                DonationKind
+  status              DonationStatus  @default(PLEDGED)
+  /// Whole pesos: what was paid for money; the credited value of the goods
+  /// (goods-type value × quantity, snapshotted at pledge time) for goods.
+  amount              Int
+  payment_id          String?         @unique
+  payment             DonationPayment? @relation(fields: [payment_id], references: [donation_payment_id], onDelete: SetNull)
+  /// Goods only — the `goods_types` id on the event (`food`, `clothing`, …) or `other`.
+  goods_type          String?
+  /// Goods only — what the donor said they are giving.
+  goods_item          String?
+  goods_quantity      Int?
+  pickup_address      String?
+  pickup_contact      String?
+  pickup_date         DateTime?
+  /// Minutes since midnight for the preferred pickup time.
+  pickup_time_minutes Int?
+  confirmed_at        DateTime?
+  trail               DonationTrailEntry[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([user_id])
+  @@index([event_id])
+  @@index([status])
+}
+
+/// Every status move on a donation, with who made it — the audit trail the portal
+/// shows and the proof that the donor was notified.
+model DonationTrailEntry {
+  donation_trail_entry_id String         @id @default(uuid())
+  donation_id             String
+  donation                Donation       @relation(fields: [donation_id], references: [donation_id], onDelete: Cascade)
+  status                  DonationStatus
+  note                    String?
+  actor_id                String?
+  actor                   User?          @relation("DonationTrailActor", fields: [actor_id], references: [user_id], onDelete: SetNull)
+  /// `System` for the donor-side submission, otherwise the portal account's name.
+  actor_label             String
+  /// Donor address the status notice went to; null when nothing was sent.
+  notified_email          String?
+  createdAt               DateTime       @default(now())
+
+  @@index([donation_id])
 }

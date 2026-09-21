@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import {
+  DonorRankingEntrySchema,
+  DonorRankingsResponseSchema,
+  GoodsTypeValuesSchema,
   RankingPeriodSchema,
   RankingSettingsResponseSchema,
   RankingTierSchema,
@@ -25,4 +28,9 @@ export type VolunteerRankingsResponseDto = z.infer<
 >;
 export type RankingTrendResponseDto = z.infer<
   typeof RankingTrendResponseSchema
+>;
+export type GoodsTypeValuesDto = z.infer<typeof GoodsTypeValuesSchema>;
+export type DonorRankingEntryDto = z.infer<typeof DonorRankingEntrySchema>;
+export type DonorRankingsResponseDto = z.infer<
+  typeof DonorRankingsResponseSchema
 >;

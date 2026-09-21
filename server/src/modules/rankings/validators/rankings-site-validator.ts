@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GOODS_TYPE_IDS } from '../../../shared/constants/goods-types';
 
 /** How far back the standings are counted. */
 export const RANKING_PERIODS = ['month', 'quarter', 'year', 'all'] as const;
@@ -50,11 +51,24 @@ export const RankingTierSchema = z
   })
   .strict();
 
+export const DONOR_PESOS_PER_POINT_MIN = 1;
+export const DONOR_PESOS_PER_POINT_MAX = 100_000;
+export const GOODS_TYPE_VALUE_MAX = 1_000_000;
+
+/** Pesos credited per unit of each goods type — one entry per catalogued type. */
+export const GoodsTypeValuesSchema = z.partialRecord(
+  z.enum(GOODS_TYPE_IDS),
+  z.number().int().min(0).max(GOODS_TYPE_VALUE_MAX),
+);
+
 /** The whole scoring rule and ladder, as stored and as the portal edits it. */
 export const RankingSettingsResponseSchema = z.object({
   points_per_attendance: z.number().int(),
   absence_penalty_step: z.number().int(),
   absence_reset_days: z.number().int(),
+  /** Donor board: one point per this many pesos of confirmed donations. */
+  donor_pesos_per_point: z.number().int(),
+  goods_type_values: GoodsTypeValuesSchema,
   default_period: RankingPeriodSchema,
   /** Highest tier first; the last one is the catch-all and has no cut-off. */
   tiers: z.array(RankingTierSchema),
@@ -66,6 +80,12 @@ export const UpdateRankingSettingsSchema = z
     points_per_attendance: z.number().int().min(1).max(500),
     absence_penalty_step: z.number().int().min(0).max(100),
     absence_reset_days: z.number().int().min(1).max(90),
+    donor_pesos_per_point: z
+      .number()
+      .int()
+      .min(DONOR_PESOS_PER_POINT_MIN)
+      .max(DONOR_PESOS_PER_POINT_MAX),
+    goods_type_values: GoodsTypeValuesSchema,
     default_period: RankingPeriodSchema,
     tiers: z
       .array(RankingTierSchema)
@@ -134,4 +154,27 @@ export const RankingTrendResponseSchema = z.object({
       values: z.array(z.number().int()),
     }),
   ),
+});
+
+/** One donor's standing with the figures that produced it. */
+export const DonorRankingEntrySchema = z.object({
+  user_id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  rank: z.number().int(),
+  /** Standing in the previous period; null for a first-time entrant. */
+  previous_rank: z.number().int().nullable(),
+  points: z.number().int(),
+  /** Confirmed pesos in the period — money paid plus the credited value of goods. */
+  amount: z.number().int(),
+  money_amount: z.number().int(),
+  goods_amount: z.number().int(),
+  donations: z.number().int(),
+  last_donated_at: z.string().nullable(),
+});
+
+export const DonorRankingsResponseSchema = z.object({
+  period: RankingPeriodSchema,
+  donor_pesos_per_point: z.number().int(),
+  entries: z.array(DonorRankingEntrySchema),
 });

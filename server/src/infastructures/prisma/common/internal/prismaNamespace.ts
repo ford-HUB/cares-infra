@@ -430,7 +430,11 @@ export const ModelName = {
   RankingSettings: 'RankingSettings',
   EvaluationResponse: 'EvaluationResponse',
   UserRequest: 'UserRequest',
-  UserRequestTrailEntry: 'UserRequestTrailEntry'
+  UserRequestTrailEntry: 'UserRequestTrailEntry',
+  DonationPayment: 'DonationPayment',
+  PaymentWebhookEvent: 'PaymentWebhookEvent',
+  Donation: 'Donation',
+  DonationTrailEntry: 'DonationTrailEntry'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -446,7 +450,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "issuedCertificate" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification" | "evaluationForm" | "rankingSettings" | "evaluationResponse" | "userRequest" | "userRequestTrailEntry"
+    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "issuedCertificate" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification" | "evaluationForm" | "rankingSettings" | "evaluationResponse" | "userRequest" | "userRequestTrailEntry" | "donationPayment" | "paymentWebhookEvent" | "donation" | "donationTrailEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3928,6 +3932,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DonationPayment: {
+      payload: Prisma.$DonationPaymentPayload<ExtArgs>
+      fields: Prisma.DonationPaymentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DonationPaymentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DonationPaymentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>
+        }
+        findFirst: {
+          args: Prisma.DonationPaymentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DonationPaymentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>
+        }
+        findMany: {
+          args: Prisma.DonationPaymentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>[]
+        }
+        create: {
+          args: Prisma.DonationPaymentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>
+        }
+        createMany: {
+          args: Prisma.DonationPaymentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DonationPaymentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>[]
+        }
+        delete: {
+          args: Prisma.DonationPaymentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>
+        }
+        update: {
+          args: Prisma.DonationPaymentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>
+        }
+        deleteMany: {
+          args: Prisma.DonationPaymentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DonationPaymentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DonationPaymentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>[]
+        }
+        upsert: {
+          args: Prisma.DonationPaymentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPaymentPayload>
+        }
+        aggregate: {
+          args: Prisma.DonationPaymentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDonationPayment>
+        }
+        groupBy: {
+          args: Prisma.DonationPaymentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationPaymentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DonationPaymentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationPaymentCountAggregateOutputType> | number
+        }
+      }
+    }
+    PaymentWebhookEvent: {
+      payload: Prisma.$PaymentWebhookEventPayload<ExtArgs>
+      fields: Prisma.PaymentWebhookEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentWebhookEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentWebhookEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentWebhookEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentWebhookEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentWebhookEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentWebhookEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentWebhookEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentWebhookEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentWebhookEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>
+        }
+        update: {
+          args: Prisma.PaymentWebhookEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentWebhookEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentWebhookEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentWebhookEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentWebhookEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentWebhookEventPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentWebhookEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentWebhookEvent>
+        }
+        groupBy: {
+          args: Prisma.PaymentWebhookEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentWebhookEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentWebhookEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentWebhookEventCountAggregateOutputType> | number
+        }
+      }
+    }
+    Donation: {
+      payload: Prisma.$DonationPayload<ExtArgs>
+      fields: Prisma.DonationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DonationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DonationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        findFirst: {
+          args: Prisma.DonationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DonationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        findMany: {
+          args: Prisma.DonationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>[]
+        }
+        create: {
+          args: Prisma.DonationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        createMany: {
+          args: Prisma.DonationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DonationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>[]
+        }
+        delete: {
+          args: Prisma.DonationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        update: {
+          args: Prisma.DonationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        deleteMany: {
+          args: Prisma.DonationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DonationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DonationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>[]
+        }
+        upsert: {
+          args: Prisma.DonationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        aggregate: {
+          args: Prisma.DonationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDonation>
+        }
+        groupBy: {
+          args: Prisma.DonationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DonationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationCountAggregateOutputType> | number
+        }
+      }
+    }
+    DonationTrailEntry: {
+      payload: Prisma.$DonationTrailEntryPayload<ExtArgs>
+      fields: Prisma.DonationTrailEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DonationTrailEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DonationTrailEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.DonationTrailEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DonationTrailEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>
+        }
+        findMany: {
+          args: Prisma.DonationTrailEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>[]
+        }
+        create: {
+          args: Prisma.DonationTrailEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>
+        }
+        createMany: {
+          args: Prisma.DonationTrailEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DonationTrailEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.DonationTrailEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>
+        }
+        update: {
+          args: Prisma.DonationTrailEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.DonationTrailEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DonationTrailEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DonationTrailEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.DonationTrailEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationTrailEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.DonationTrailEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDonationTrailEntry>
+        }
+        groupBy: {
+          args: Prisma.DonationTrailEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationTrailEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DonationTrailEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationTrailEntryCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -4661,6 +4961,8 @@ export const RankingSettingsScalarFieldEnum = {
   points_per_attendance: 'points_per_attendance',
   absence_penalty_step: 'absence_penalty_step',
   absence_reset_days: 'absence_reset_days',
+  donor_pesos_per_point: 'donor_pesos_per_point',
+  goods_type_values: 'goods_type_values',
   default_period: 'default_period',
   tiers: 'tiers',
   createdAt: 'createdAt',
@@ -4721,6 +5023,82 @@ export const UserRequestTrailEntryScalarFieldEnum = {
 } as const
 
 export type UserRequestTrailEntryScalarFieldEnum = (typeof UserRequestTrailEntryScalarFieldEnum)[keyof typeof UserRequestTrailEntryScalarFieldEnum]
+
+
+export const DonationPaymentScalarFieldEnum = {
+  donation_payment_id: 'donation_payment_id',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  campaign_id: 'campaign_id',
+  campaign_title: 'campaign_title',
+  amount: 'amount',
+  currency: 'currency',
+  method: 'method',
+  status: 'status',
+  idempotency_key: 'idempotency_key',
+  gateway_reference: 'gateway_reference',
+  gateway_resource_id: 'gateway_resource_id',
+  payment_reference: 'payment_reference',
+  payment_channel: 'payment_channel',
+  checkout_url: 'checkout_url',
+  qr_string: 'qr_string',
+  expires_at: 'expires_at',
+  paid_at: 'paid_at',
+  failure_reason: 'failure_reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationPaymentScalarFieldEnum = (typeof DonationPaymentScalarFieldEnum)[keyof typeof DonationPaymentScalarFieldEnum]
+
+
+export const PaymentWebhookEventScalarFieldEnum = {
+  webhook_id: 'webhook_id',
+  event: 'event',
+  gateway_reference: 'gateway_reference',
+  payload: 'payload',
+  receivedAt: 'receivedAt'
+} as const
+
+export type PaymentWebhookEventScalarFieldEnum = (typeof PaymentWebhookEventScalarFieldEnum)[keyof typeof PaymentWebhookEventScalarFieldEnum]
+
+
+export const DonationScalarFieldEnum = {
+  donation_id: 'donation_id',
+  sequence: 'sequence',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  kind: 'kind',
+  status: 'status',
+  amount: 'amount',
+  payment_id: 'payment_id',
+  goods_type: 'goods_type',
+  goods_item: 'goods_item',
+  goods_quantity: 'goods_quantity',
+  pickup_address: 'pickup_address',
+  pickup_contact: 'pickup_contact',
+  pickup_date: 'pickup_date',
+  pickup_time_minutes: 'pickup_time_minutes',
+  confirmed_at: 'confirmed_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
+
+
+export const DonationTrailEntryScalarFieldEnum = {
+  donation_trail_entry_id: 'donation_trail_entry_id',
+  donation_id: 'donation_id',
+  status: 'status',
+  note: 'note',
+  actor_id: 'actor_id',
+  actor_label: 'actor_label',
+  notified_email: 'notified_email',
+  createdAt: 'createdAt'
+} as const
+
+export type DonationTrailEntryScalarFieldEnum = (typeof DonationTrailEntryScalarFieldEnum)[keyof typeof DonationTrailEntryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -5413,6 +5791,62 @@ export type EnumUserRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 export type ListEnumUserRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRequestStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'DonationPaymentMethod'
+ */
+export type EnumDonationPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationPaymentMethod'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationPaymentMethod[]'
+ */
+export type ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationPaymentMethod[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationPaymentStatus'
+ */
+export type EnumDonationPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationPaymentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationPaymentStatus[]'
+ */
+export type ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationPaymentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationKind'
+ */
+export type EnumDonationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationKind'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationKind[]'
+ */
+export type ListEnumDonationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationStatus'
+ */
+export type EnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationStatus[]'
+ */
+export type ListEnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -5570,6 +6004,10 @@ export type GlobalOmitConfig = {
   evaluationResponse?: Prisma.EvaluationResponseOmit
   userRequest?: Prisma.UserRequestOmit
   userRequestTrailEntry?: Prisma.UserRequestTrailEntryOmit
+  donationPayment?: Prisma.DonationPaymentOmit
+  paymentWebhookEvent?: Prisma.PaymentWebhookEventOmit
+  donation?: Prisma.DonationOmit
+  donationTrailEntry?: Prisma.DonationTrailEntryOmit
 }
 
 /* Types for Logging */

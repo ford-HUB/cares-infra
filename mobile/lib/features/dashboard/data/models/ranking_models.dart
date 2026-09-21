@@ -213,3 +213,140 @@ class Leaderboard {
     return (tier: next, placesToClimb: (rank ?? totalRanked + 1) - target);
   }
 }
+
+/// A row of the donor leaderboard.
+class DonorLeaderboardEntry {
+  const DonorLeaderboardEntry({
+    required this.userId,
+    required this.displayName,
+    required this.rank,
+    required this.points,
+    required this.amount,
+    required this.donations,
+    required this.tierId,
+    required this.isMe,
+  });
+
+  factory DonorLeaderboardEntry.fromJson(Map<String, dynamic> json) {
+    return DonorLeaderboardEntry(
+      userId: json['user_id'] as String,
+      displayName: json['display_name'] as String? ?? '',
+      rank: json['rank'] as int,
+      points: json['points'] as int? ?? 0,
+      amount: (json['amount'] as num?)?.toInt() ?? 0,
+      donations: json['donations'] as int? ?? 0,
+      tierId: json['tier_id'] as String? ?? '',
+      isMe: json['is_me'] as bool? ?? false,
+    );
+  }
+
+  final String userId;
+  final String displayName;
+  final int rank;
+  final int points;
+
+  /// Confirmed pesos in the period — money paid plus the credited goods value.
+  final int amount;
+  final int donations;
+  final String tierId;
+  final bool isMe;
+}
+
+/// The donor's own standing, present even when they sit outside the list.
+class DonorLeaderboardMe {
+  const DonorLeaderboardMe({
+    required this.rank,
+    required this.points,
+    required this.amount,
+    required this.moneyAmount,
+    required this.goodsAmount,
+    required this.donations,
+    required this.tierId,
+  });
+
+  factory DonorLeaderboardMe.fromJson(Map<String, dynamic> json) {
+    return DonorLeaderboardMe(
+      rank: json['rank'] as int?,
+      points: json['points'] as int? ?? 0,
+      amount: (json['amount'] as num?)?.toInt() ?? 0,
+      moneyAmount: (json['money_amount'] as num?)?.toInt() ?? 0,
+      goodsAmount: (json['goods_amount'] as num?)?.toInt() ?? 0,
+      donations: json['donations'] as int? ?? 0,
+      tierId: json['tier_id'] as String? ?? '',
+    );
+  }
+
+  /// Null until a donation of theirs was confirmed in the period.
+  final int? rank;
+  final int points;
+  final int amount;
+  final int moneyAmount;
+  final int goodsAmount;
+  final int donations;
+  final String tierId;
+}
+
+/// Everything `GET /rankings/donors/leaderboard` returns: the rate, the same
+/// tier ladder the volunteers wear, the top list and the caller's own row.
+class DonorLeaderboard {
+  const DonorLeaderboard({
+    required this.period,
+    required this.pesosPerPoint,
+    required this.tiers,
+    required this.totalRanked,
+    required this.entries,
+    required this.me,
+  });
+
+  factory DonorLeaderboard.fromJson(Map<String, dynamic> json) {
+    return DonorLeaderboard(
+      period: json['period'] as String? ?? 'month',
+      pesosPerPoint: json['donor_pesos_per_point'] as int? ?? 100,
+      tiers: (json['tiers'] as List<dynamic>? ?? const [])
+          .map((tier) => RankTier.fromJson(tier as Map<String, dynamic>))
+          .toList(),
+      totalRanked: json['total_ranked'] as int? ?? 0,
+      entries: (json['entries'] as List<dynamic>? ?? const [])
+          .map((e) => DonorLeaderboardEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      me: DonorLeaderboardMe.fromJson(json['me'] as Map<String, dynamic>),
+    );
+  }
+
+  final String period;
+
+  /// One point for every this many confirmed pesos — the portal's criterion.
+  final int pesosPerPoint;
+  final List<RankTier> tiers;
+  final int totalRanked;
+  final List<DonorLeaderboardEntry> entries;
+  final DonorLeaderboardMe me;
+
+  RankTier? tierForRank(int? rank) {
+    if (tiers.isEmpty) return null;
+    if (rank == null) return tiers.last;
+    for (final tier in tiers) {
+      final max = tier.maxRank;
+      if (max == null || rank <= max) return tier;
+    }
+    return tiers.last;
+  }
+
+  RankTier? tierById(String id) {
+    for (final tier in tiers) {
+      if (tier.id == id) return tier;
+    }
+    return tiers.isEmpty ? null : tiers.last;
+  }
+
+  /// The rung just above the caller's, and how many places away it is.
+  ({RankTier tier, int placesToClimb})? nextTierFor(int? rank) {
+    final current = tierForRank(rank);
+    if (current == null) return null;
+    final index = tiers.indexOf(current);
+    if (index <= 0) return null;
+    final next = tiers[index - 1];
+    final target = next.maxRank ?? 1;
+    return (tier: next, placesToClimb: (rank ?? totalRanked + 1) - target);
+  }
+}

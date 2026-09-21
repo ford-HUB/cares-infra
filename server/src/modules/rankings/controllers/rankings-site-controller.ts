@@ -7,6 +7,7 @@ import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import type {
+  DonorRankingsResponseDto,
   RankingSettingsDto,
   RankingTrendResponseDto,
   RankingsQueryDto,
@@ -15,6 +16,7 @@ import type {
 } from '../dto/rankings-site-dto';
 import { RankingsSiteService } from '../services/rankings-site-service';
 import {
+  DonorRankingsResponseSchema,
   RankingSettingsResponseSchema,
   RankingTrendResponseSchema,
   RankingsQuerySchema,
@@ -63,5 +65,23 @@ export class RankingsSiteController {
     @ZQuery(RankingsQuerySchema) query: RankingsQueryDto,
   ): Promise<RankingTrendResponseDto> {
     return this.rankingsSiteService.getTrend(user, query.period);
+  }
+
+  @Get('donors')
+  @ResponseMessage('Donor rankings')
+  @ZSerialize(DonorRankingsResponseSchema)
+  async listDonors(
+    @ZQuery(RankingsQuerySchema) query: RankingsQueryDto,
+  ): Promise<DonorRankingsResponseDto> {
+    return this.rankingsSiteService.listDonors(query.period);
+  }
+
+  @Get('donors/trend')
+  @ResponseMessage('Donor ranking trend')
+  @ZSerialize(RankingTrendResponseSchema)
+  async getDonorTrend(
+    @ZQuery(RankingsQuerySchema) query: RankingsQueryDto,
+  ): Promise<RankingTrendResponseDto> {
+    return this.rankingsSiteService.getDonorTrend(query.period);
   }
 }

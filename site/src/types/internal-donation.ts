@@ -11,8 +11,9 @@ export type DonationKind = 'money' | 'goods'
  * Money: `pledged` (donor says it was sent) → `verifying` (payment being matched) →
  * `confirmed` (director confirms the transfer landed). Money never has a pickup leg.
  *
- * `declined` is the terminal off-ramp for either kind — item never arrived, payment
- * never cleared.
+ * `declined` is the director's terminal off-ramp for either kind — item never
+ * arrived, payment never cleared. `cancelled` is the donor's: a pledged goods
+ * donation withdrawn from the app before pickup started.
  */
 export type DonationStatus =
   | 'pledged'
@@ -20,6 +21,7 @@ export type DonationStatus =
   | 'verifying'
   | 'confirmed'
   | 'declined'
+  | 'cancelled'
 
 export interface DonationDonor {
   name: string
@@ -61,7 +63,7 @@ export interface InternalDonation {
   status: DonationStatus
   donor: DonationDonor
   /** Event the donation was raised for. */
-  eventId: string
+  eventId: number
   eventTitle: string
   createdAt: string
   updatedAt: string
@@ -73,7 +75,10 @@ export interface InternalDonation {
   paymentReference?: string
   /** Goods only. */
   items?: DonationGoodsItem[]
-  /** Goods only — CARES site the donor brings the items to. */
-  dropOffLocation?: string
+  /** Goods only — where and when CARES collects the items. */
+  pickupAddress?: string
+  pickupContact?: string
+  pickupDate?: string
+  pickupTimeLabel?: string
   timeline: DonationTimelineEntry[]
 }

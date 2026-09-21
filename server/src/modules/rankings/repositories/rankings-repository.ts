@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AttendanceStatus,
+  DonationStatus,
   EventStatus,
   Prisma,
   RoleType,
@@ -35,6 +36,29 @@ export type RankedAttendanceRow = Prisma.EventAttendanceGetPayload<{
   select: typeof RANKED_ATTENDANCE_SELECT;
 }>;
 
+/** A confirmed donation plus its donor — the donor board's raw material. */
+const CONFIRMED_DONATION_SELECT = {
+  kind: true,
+  amount: true,
+  confirmed_at: true,
+  user: {
+    select: {
+      user_id: true,
+      firstname: true,
+      lastname: true,
+      accounts: {
+        select: { email: true },
+        orderBy: { createdAt: 'asc' },
+        take: 1,
+      },
+    },
+  },
+} as const;
+
+export type ConfirmedDonationRow = Prisma.DonationGetPayload<{
+  select: typeof CONFIRMED_DONATION_SELECT;
+}>;
+
 export interface RankedAttendanceFilter {
   /** Only events that ended at or after this moment. */
   since?: Date;
@@ -63,6 +87,8 @@ export class RankingsRepository {
     points_per_attendance: number;
     absence_penalty_step: number;
     absence_reset_days: number;
+    donor_pesos_per_point: number;
+    goods_type_values: Prisma.InputJsonValue;
     default_period: string;
     tiers: Prisma.InputJsonValue;
   }) {
@@ -113,6 +139,27 @@ export class RankingsRepository {
         },
       },
       select: RANKED_ATTENDANCE_SELECT,
+    });
+  }
+
+  /**
+   * Every confirmed donation, with the donor it belongs to — the donor board's raw
+   * material. Only CONFIRMED rows count: a pledge that never arrived is not a gift.
+   */
+  findConfirmedDonations(
+    now: Date,
+    filter: { since?: Date; userId?: string } = {},
+  ): Promise<ConfirmedDonationRow[]> {
+    return this.prisma.donation.findMany({
+      where: {
+        status: DonationStatus.CONFIRMED,
+        confirmed_at: {
+          lt: now,
+          ...(filter.since ? { gte: filter.since } : {}),
+        },
+        ...(filter.userId ? { user_id: filter.userId } : {}),
+      },
+      select: CONFIRMED_DONATION_SELECT,
     });
   }
 

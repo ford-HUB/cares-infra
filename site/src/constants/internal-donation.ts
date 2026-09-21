@@ -17,6 +17,7 @@ export const DONATION_STATUS_LABELS: Record<DonationStatus, string> = {
   verifying: 'Verifying',
   confirmed: 'Confirmed',
   declined: 'Declined',
+  cancelled: 'Cancelled',
 }
 
 /**
@@ -39,6 +40,7 @@ export const DONATION_ALL_STATUSES: DonationStatus[] = [
   'verifying',
   'confirmed',
   'declined',
+  'cancelled',
 ]
 
 /** Anything the director still owes an action on. */
@@ -54,6 +56,7 @@ export const DONATION_STATUS_HINTS: Record<DonationStatus, string> = {
   verifying: 'Being counted and checked against what was pledged',
   confirmed: 'Director confirmed the donation was received',
   declined: 'Never arrived or could not be verified',
+  cancelled: 'The donor withdrew the pledge from the app before pickup',
 }
 
 /** The next rung for a donation of this kind, or null when it is already terminal. */
@@ -74,6 +77,7 @@ export const DONATION_ADVANCE_LABELS: Record<DonationStatus, string> = {
   verifying: 'Start verifying',
   confirmed: 'Confirm received',
   declined: 'Decline donation',
+  cancelled: 'Cancelled by donor',
 }
 
 /**
@@ -86,6 +90,7 @@ export const DONATION_MAIL_SUBJECTS: Record<DonationStatus, string> = {
   verifying: 'We are verifying your donation',
   confirmed: 'Your donation is confirmed — thank you',
   declined: 'Update on your donation',
+  cancelled: 'Your donation was cancelled',
 }
 
 export function formatDonationReference(sequence: number): string {

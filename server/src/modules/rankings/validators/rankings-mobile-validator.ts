@@ -47,3 +47,35 @@ export const LeaderboardResponseSchema = z.object({
   entries: z.array(LeaderboardEntrySchema),
   me: LeaderboardMeSchema,
 });
+
+/** A row of the donor app's leaderboard. */
+export const DonorLeaderboardEntrySchema = z.object({
+  user_id: z.string(),
+  display_name: z.string(),
+  rank: z.number().int(),
+  points: z.number().int(),
+  /** Confirmed pesos in the period — money paid plus the credited value of goods. */
+  amount: z.number().int(),
+  donations: z.number().int(),
+  tier_id: z.string(),
+  is_me: z.boolean(),
+});
+
+export const DonorLeaderboardMeSchema = z.object({
+  rank: z.number().int().nullable(),
+  points: z.number().int(),
+  amount: z.number().int(),
+  money_amount: z.number().int(),
+  goods_amount: z.number().int(),
+  donations: z.number().int(),
+  tier_id: z.string(),
+});
+
+export const DonorLeaderboardResponseSchema = z.object({
+  period: RankingPeriodSchema,
+  donor_pesos_per_point: z.number().int(),
+  tiers: z.array(RankingTierSchema),
+  total_ranked: z.number().int(),
+  entries: z.array(DonorLeaderboardEntrySchema),
+  me: DonorLeaderboardMeSchema,
+});

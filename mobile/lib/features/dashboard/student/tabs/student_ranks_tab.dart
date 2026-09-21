@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/session/static_user_session.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/activity_data.dart';
-import '../../data/donation_store.dart';
 import '../../data/event_registration_store.dart';
 import '../../data/leaderboard_data.dart';
 
@@ -15,20 +14,17 @@ class StudentRanksTab extends StatefulWidget {
 
 class _StudentRanksTabState extends State<StudentRanksTab> {
   final _eventStore = EventRegistrationStore.instance;
-  final _donationStore = DonationStore.instance;
   LeaderboardCategory _category = LeaderboardCategory.volunteers;
 
   @override
   void initState() {
     super.initState();
     _eventStore.addListener(_onDataChanged);
-    _donationStore.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
     _eventStore.removeListener(_onDataChanged);
-    _donationStore.removeListener(_onDataChanged);
     super.dispose();
   }
 
@@ -62,10 +58,11 @@ class _StudentRanksTabState extends State<StudentRanksTab> {
     return verified;
   }
 
-  int get _userTotalDonated => _donationStore.totalDonatedForEmail(_userEmail);
+  /// The prototype has no ledger behind it; the real donor board is scored on
+  /// the server from confirmed donations.
+  int get _userTotalDonated => 0;
 
-  int get _userDonationsCount =>
-      _donationStore.donationsForEmail(_userEmail).length;
+  int get _userDonationsCount => 0;
 
   List<LeaderboardEntry> get _entries {
     if (_category == LeaderboardCategory.volunteers) {

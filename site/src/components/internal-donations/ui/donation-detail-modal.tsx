@@ -47,7 +47,10 @@ export function DonationDetailModal({
   if (!donation) return null
 
   const next = nextDonationStatus(donation.kind, donation.status)
-  const isTerminal = donation.status === 'confirmed' || donation.status === 'declined'
+  const isTerminal =
+    donation.status === 'confirmed' ||
+    donation.status === 'declined' ||
+    donation.status === 'cancelled'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -102,7 +105,15 @@ export function DonationDetailModal({
               </>
             ) : (
               <>
-                <Field label="Drop-off location">{donation.dropOffLocation ?? '—'}</Field>
+                <Field label="Pickup address">{donation.pickupAddress ?? '—'}</Field>
+                <Field label="Pickup schedule">
+                  {donation.pickupDate
+                    ? `${formatDateShort(donation.pickupDate)}${
+                        donation.pickupTimeLabel ? ` · ${donation.pickupTimeLabel}` : ''
+                      }`
+                    : '—'}
+                  {donation.pickupContact ? ` · ${donation.pickupContact}` : ''}
+                </Field>
                 <Field label="Items">
                   <ul className="space-y-0.5">
                     {(donation.items ?? []).map((item) => (

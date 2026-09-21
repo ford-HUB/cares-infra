@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  DonationEventsResponseSchema,
   EventRegistrationResponseSchema,
   MatchedInterestSchema,
   RecommendedEventSchema,
@@ -21,4 +22,7 @@ export type RegisteredEventsResponseDto = z.infer<
 >;
 export type EventRegistrationResponseDto = z.infer<
   typeof EventRegistrationResponseSchema
+>;
+export type DonationEventsResponseDto = z.infer<
+  typeof DonationEventsResponseSchema
 >;

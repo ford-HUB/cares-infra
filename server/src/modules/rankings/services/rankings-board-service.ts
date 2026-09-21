@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import {
+  DEFAULT_GOODS_TYPE_VALUES,
+  GOODS_TYPE_IDS,
+} from '../../../shared/constants/goods-types';
 import type {
+  GoodsTypeValuesDto,
   RankingPeriod,
   RankingSettingsDto,
   RankingTierDto,
   UpdateRankingSettingsDto,
 } from '../dto/rankings-site-dto';
 import {
+  GoodsTypeValuesSchema,
   RankingTierSchema,
   RANKING_PERIODS,
 } from '../validators/rankings-site-validator';
 import {
   RankingsRepository,
+  type ConfirmedDonationRow,
   type RankedAttendanceFilter,
   type RankedAttendanceRow,
 } from '../repositories/rankings-repository';
@@ -70,6 +77,8 @@ export const DEFAULT_RANKING_SETTINGS: Omit<RankingSettingsDto, 'updated_at'> =
     points_per_attendance: 10,
     absence_penalty_step: 2,
     absence_reset_days: 7,
+    donor_pesos_per_point: 100,
+    goods_type_values: DEFAULT_GOODS_TYPE_VALUES,
     default_period: 'month',
     tiers: DEFAULT_RANKING_TIERS,
   };
@@ -82,6 +91,21 @@ export interface RankedVolunteer extends VolunteerScore {
   email: string;
   department: string | null;
   rank: number;
+}
+
+/** A donor's identity plus their confirmed giving — the donor board before ranks. */
+export interface RankedDonor {
+  userId: string;
+  name: string;
+  email: string;
+  rank: number;
+  points: number;
+  /** Money paid plus the credited value of goods, whole pesos. */
+  amount: number;
+  moneyAmount: number;
+  goodsAmount: number;
+  donations: number;
+  lastDonatedAt: Date | null;
 }
 
 export interface BoardScope {
@@ -106,10 +130,17 @@ export class RankingsBoardService {
       };
     }
     const tiers = RankingTierSchema.array().safeParse(row.tiers);
+    const goodsValues = GoodsTypeValuesSchema.safeParse(row.goods_type_values);
     return {
       points_per_attendance: row.points_per_attendance,
       absence_penalty_step: row.absence_penalty_step,
       absence_reset_days: row.absence_reset_days,
+      donor_pesos_per_point: row.donor_pesos_per_point,
+      // A type added to the catalog after the row was saved takes its default.
+      goods_type_values: {
+        ...DEFAULT_GOODS_TYPE_VALUES,
+        ...(goodsValues.success ? goodsValues.data : {}),
+      },
       default_period: isPeriod(row.default_period)
         ? row.default_period
         : 'month',
@@ -184,6 +215,42 @@ export class RankingsBoardService {
     const previous = previousWindow(period, now);
     if (!previous) return new Map();
     const board = await this.buildBoard(rule, previous, scope);
+    return new Map(board.map((entry) => [entry.userId, entry.rank]));
+  }
+
+  /** Pesos credited for one unit of a goods type under the saved values. */
+  goodsUnitValue(settings: RankingSettingsDto, goodsType: string): number {
+    const values: GoodsTypeValuesDto = settings.goods_type_values;
+    const known = (GOODS_TYPE_IDS as readonly string[]).includes(goodsType)
+      ? values[goodsType as keyof GoodsTypeValuesDto]
+      : undefined;
+    return known ?? values.other ?? DEFAULT_GOODS_TYPE_VALUES.other;
+  }
+
+  /**
+   * The donor standings for one window: confirmed pesos (money paid plus the
+   * credited value of goods) at one point per `donor_pesos_per_point`. Ties are
+   * broken by amount, then by how many donations, then by name.
+   */
+  async buildDonorBoard(
+    pesosPerPoint: number,
+    window: { since?: Date; now: Date },
+  ): Promise<RankedDonor[]> {
+    const rows = await this.repository.findConfirmedDonations(window.now, {
+      since: window.since,
+    });
+    return rankDonors(rows, pesosPerPoint);
+  }
+
+  /** The donor board over the window just before this one, for the rank arrows. */
+  async previousDonorRanks(
+    pesosPerPoint: number,
+    period: RankingPeriod,
+    now: Date,
+  ): Promise<Map<string, number>> {
+    const previous = previousWindow(period, now);
+    if (!previous) return new Map();
+    const board = await this.buildDonorBoard(pesosPerPoint, previous);
     return new Map(board.map((entry) => [entry.userId, entry.rank]));
   }
 
@@ -268,6 +335,57 @@ function rankRows(
       b.eventsAttended - a.eventsAttended ||
       a.lastname.localeCompare(b.lastname) ||
       a.firstname.localeCompare(b.firstname),
+  );
+  return scored.map((entry, index) => ({ ...entry, rank: index + 1 }));
+}
+
+/** Points from pesos under the donor rule — floored, never rounded up. */
+export function donorPoints(amount: number, pesosPerPoint: number): number {
+  if (pesosPerPoint <= 0) return 0;
+  return Math.floor(amount / pesosPerPoint);
+}
+
+function rankDonors(
+  rows: ConfirmedDonationRow[],
+  pesosPerPoint: number,
+): RankedDonor[] {
+  const byUser = new Map<string, RankedDonor>();
+  for (const row of rows) {
+    const entry = byUser.get(row.user.user_id) ?? {
+      userId: row.user.user_id,
+      name: `${row.user.firstname} ${row.user.lastname}`.trim(),
+      email: row.user.accounts[0]?.email ?? '',
+      rank: 0,
+      points: 0,
+      amount: 0,
+      moneyAmount: 0,
+      goodsAmount: 0,
+      donations: 0,
+      lastDonatedAt: null,
+    };
+    entry.amount += row.amount;
+    if (row.kind === 'MONEY') entry.moneyAmount += row.amount;
+    else entry.goodsAmount += row.amount;
+    entry.donations += 1;
+    if (
+      row.confirmed_at &&
+      (!entry.lastDonatedAt || row.confirmed_at > entry.lastDonatedAt)
+    ) {
+      entry.lastDonatedAt = row.confirmed_at;
+    }
+    byUser.set(entry.userId, entry);
+  }
+
+  const scored = [...byUser.values()].map((entry) => ({
+    ...entry,
+    points: donorPoints(entry.amount, pesosPerPoint),
+  }));
+  scored.sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.amount - a.amount ||
+      b.donations - a.donations ||
+      a.name.localeCompare(b.name),
   );
   return scored.map((entry, index) => ({ ...entry, rank: index + 1 }));
 }

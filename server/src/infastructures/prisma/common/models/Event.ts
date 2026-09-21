@@ -394,6 +394,8 @@ export type EventWhereInput = {
   location_pings?: Prisma.EventLocationPingListRelationFilter
   evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
   user_requests?: Prisma.UserRequestListRelationFilter
+  donation_payments?: Prisma.DonationPaymentListRelationFilter
+  donations?: Prisma.DonationListRelationFilter
 }
 
 export type EventOrderByWithRelationInput = {
@@ -428,6 +430,8 @@ export type EventOrderByWithRelationInput = {
   location_pings?: Prisma.EventLocationPingOrderByRelationAggregateInput
   evaluation_responses?: Prisma.EvaluationResponseOrderByRelationAggregateInput
   user_requests?: Prisma.UserRequestOrderByRelationAggregateInput
+  donation_payments?: Prisma.DonationPaymentOrderByRelationAggregateInput
+  donations?: Prisma.DonationOrderByRelationAggregateInput
 }
 
 export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -465,6 +469,8 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   location_pings?: Prisma.EventLocationPingListRelationFilter
   evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
   user_requests?: Prisma.UserRequestListRelationFilter
+  donation_payments?: Prisma.DonationPaymentListRelationFilter
+  donations?: Prisma.DonationListRelationFilter
 }, "event_id">
 
 export type EventOrderByWithAggregationInput = {
@@ -562,6 +568,8 @@ export type EventCreateInput = {
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateInput = {
@@ -596,6 +604,8 @@ export type EventUncheckedCreateInput = {
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventUpdateInput = {
@@ -629,6 +639,8 @@ export type EventUpdateInput = {
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateInput = {
@@ -663,6 +675,8 @@ export type EventUncheckedUpdateInput = {
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateManyInput = {
@@ -974,6 +988,36 @@ export type EventUpdateOneWithoutUser_requestsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutUser_requestsInput, Prisma.EventUpdateWithoutUser_requestsInput>, Prisma.EventUncheckedUpdateWithoutUser_requestsInput>
 }
 
+export type EventCreateNestedOneWithoutDonation_paymentsInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutDonation_paymentsInput, Prisma.EventUncheckedCreateWithoutDonation_paymentsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutDonation_paymentsInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneWithoutDonation_paymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutDonation_paymentsInput, Prisma.EventUncheckedCreateWithoutDonation_paymentsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutDonation_paymentsInput
+  upsert?: Prisma.EventUpsertWithoutDonation_paymentsInput
+  disconnect?: Prisma.EventWhereInput | boolean
+  delete?: Prisma.EventWhereInput | boolean
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutDonation_paymentsInput, Prisma.EventUpdateWithoutDonation_paymentsInput>, Prisma.EventUncheckedUpdateWithoutDonation_paymentsInput>
+}
+
+export type EventCreateNestedOneWithoutDonationsInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutDonationsInput, Prisma.EventUncheckedCreateWithoutDonationsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutDonationsInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneRequiredWithoutDonationsNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutDonationsInput, Prisma.EventUncheckedCreateWithoutDonationsInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutDonationsInput
+  upsert?: Prisma.EventUpsertWithoutDonationsInput
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutDonationsInput, Prisma.EventUpdateWithoutDonationsInput>, Prisma.EventUncheckedUpdateWithoutDonationsInput>
+}
+
 export type EventCreateWithoutAttendancesInput = {
   title: string
   description: string
@@ -1004,6 +1048,8 @@ export type EventCreateWithoutAttendancesInput = {
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutAttendancesInput = {
@@ -1037,6 +1083,8 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutAttendancesInput = {
@@ -1085,6 +1133,8 @@ export type EventUpdateWithoutAttendancesInput = {
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutAttendancesInput = {
@@ -1118,6 +1168,8 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutLocation_pingsInput = {
@@ -1150,6 +1202,8 @@ export type EventCreateWithoutLocation_pingsInput = {
   attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutLocation_pingsInput = {
@@ -1183,6 +1237,8 @@ export type EventUncheckedCreateWithoutLocation_pingsInput = {
   attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutLocation_pingsInput = {
@@ -1231,6 +1287,8 @@ export type EventUpdateWithoutLocation_pingsInput = {
   attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutLocation_pingsInput = {
@@ -1264,6 +1322,8 @@ export type EventUncheckedUpdateWithoutLocation_pingsInput = {
   attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutCertificate_deploymentsInput = {
@@ -1296,6 +1356,8 @@ export type EventCreateWithoutCertificate_deploymentsInput = {
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutCertificate_deploymentsInput = {
@@ -1329,6 +1391,8 @@ export type EventUncheckedCreateWithoutCertificate_deploymentsInput = {
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutCertificate_deploymentsInput = {
@@ -1377,6 +1441,8 @@ export type EventUpdateWithoutCertificate_deploymentsInput = {
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutCertificate_deploymentsInput = {
@@ -1410,6 +1476,8 @@ export type EventUncheckedUpdateWithoutCertificate_deploymentsInput = {
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutIssued_certificatesInput = {
@@ -1442,6 +1510,8 @@ export type EventCreateWithoutIssued_certificatesInput = {
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutIssued_certificatesInput = {
@@ -1475,6 +1545,8 @@ export type EventUncheckedCreateWithoutIssued_certificatesInput = {
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutIssued_certificatesInput = {
@@ -1523,6 +1595,8 @@ export type EventUpdateWithoutIssued_certificatesInput = {
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutIssued_certificatesInput = {
@@ -1556,6 +1630,8 @@ export type EventUncheckedUpdateWithoutIssued_certificatesInput = {
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutEvaluation_responsesInput = {
@@ -1588,6 +1664,8 @@ export type EventCreateWithoutEvaluation_responsesInput = {
   attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutEvaluation_responsesInput = {
@@ -1621,6 +1699,8 @@ export type EventUncheckedCreateWithoutEvaluation_responsesInput = {
   attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutEvaluation_responsesInput = {
@@ -1669,6 +1749,8 @@ export type EventUpdateWithoutEvaluation_responsesInput = {
   attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutEvaluation_responsesInput = {
@@ -1702,6 +1784,8 @@ export type EventUncheckedUpdateWithoutEvaluation_responsesInput = {
   attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventCreateWithoutUser_requestsInput = {
@@ -1734,6 +1818,8 @@ export type EventCreateWithoutUser_requestsInput = {
   attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutUser_requestsInput = {
@@ -1767,6 +1853,8 @@ export type EventUncheckedCreateWithoutUser_requestsInput = {
   attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
   location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutUser_requestsInput = {
@@ -1815,6 +1903,8 @@ export type EventUpdateWithoutUser_requestsInput = {
   attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutUser_requestsInput = {
@@ -1848,6 +1938,316 @@ export type EventUncheckedUpdateWithoutUser_requestsInput = {
   attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
   location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventCreateWithoutDonation_paymentsInput = {
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutDonation_paymentsInput = {
+  event_id?: number
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutDonation_paymentsInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutDonation_paymentsInput, Prisma.EventUncheckedCreateWithoutDonation_paymentsInput>
+}
+
+export type EventUpsertWithoutDonation_paymentsInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutDonation_paymentsInput, Prisma.EventUncheckedUpdateWithoutDonation_paymentsInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutDonation_paymentsInput, Prisma.EventUncheckedCreateWithoutDonation_paymentsInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutDonation_paymentsInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutDonation_paymentsInput, Prisma.EventUncheckedUpdateWithoutDonation_paymentsInput>
+}
+
+export type EventUpdateWithoutDonation_paymentsInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutDonation_paymentsInput = {
+  event_id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventCreateWithoutDonationsInput = {
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutDonationsInput = {
+  event_id?: number
+  title: string
+  description: string
+  event_started: Date | string
+  event_ended: Date | string
+  location: string
+  max_participants: number
+  participants?: number
+  organizer_name: string
+  category: string
+  department?: string | null
+  specified_category?: string | null
+  images?: Prisma.EventCreateimagesInput | string[]
+  status?: $Enums.EventStatus
+  funds_donation?: boolean
+  goods_donation?: boolean
+  goods_types?: Prisma.EventCreategoods_typesInput | string[]
+  beneficiary_applicable?: boolean
+  max_beneficiaries?: number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: number | null
+  marker_lat?: number | null
+  marker_lng?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutEventInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutEventInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutEventInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutEventInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutEventInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutDonationsInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutDonationsInput, Prisma.EventUncheckedCreateWithoutDonationsInput>
+}
+
+export type EventUpsertWithoutDonationsInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutDonationsInput, Prisma.EventUncheckedUpdateWithoutDonationsInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutDonationsInput, Prisma.EventUncheckedCreateWithoutDonationsInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutDonationsInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutDonationsInput, Prisma.EventUncheckedUpdateWithoutDonationsInput>
+}
+
+export type EventUpdateWithoutDonationsInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutDonationsInput = {
+  event_id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  event_started?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event_ended?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  location?: Prisma.StringFieldUpdateOperationsInput | string
+  max_participants?: Prisma.IntFieldUpdateOperationsInput | number
+  participants?: Prisma.IntFieldUpdateOperationsInput | number
+  organizer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specified_category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.EventUpdateimagesInput | string[]
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  funds_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_donation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  goods_types?: Prisma.EventUpdategoods_typesInput | string[]
+  beneficiary_applicable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  max_beneficiaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  geojson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area_sqm?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  marker_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutEventNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutEventNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutEventNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutEventNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutEventNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutEventNestedInput
 }
 
 
@@ -1862,6 +2262,8 @@ export type EventCountOutputType = {
   location_pings: number
   evaluation_responses: number
   user_requests: number
+  donation_payments: number
+  donations: number
 }
 
 export type EventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1871,6 +2273,8 @@ export type EventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   location_pings?: boolean | EventCountOutputTypeCountLocation_pingsArgs
   evaluation_responses?: boolean | EventCountOutputTypeCountEvaluation_responsesArgs
   user_requests?: boolean | EventCountOutputTypeCountUser_requestsArgs
+  donation_payments?: boolean | EventCountOutputTypeCountDonation_paymentsArgs
+  donations?: boolean | EventCountOutputTypeCountDonationsArgs
 }
 
 /**
@@ -1925,6 +2329,20 @@ export type EventCountOutputTypeCountUser_requestsArgs<ExtArgs extends runtime.T
   where?: Prisma.UserRequestWhereInput
 }
 
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeCountDonation_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DonationPaymentWhereInput
+}
+
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeCountDonationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DonationWhereInput
+}
+
 
 export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   event_id?: boolean
@@ -1958,6 +2376,8 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   location_pings?: boolean | Prisma.Event$location_pingsArgs<ExtArgs>
   evaluation_responses?: boolean | Prisma.Event$evaluation_responsesArgs<ExtArgs>
   user_requests?: boolean | Prisma.Event$user_requestsArgs<ExtArgs>
+  donation_payments?: boolean | Prisma.Event$donation_paymentsArgs<ExtArgs>
+  donations?: boolean | Prisma.Event$donationsArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
@@ -2053,6 +2473,8 @@ export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   location_pings?: boolean | Prisma.Event$location_pingsArgs<ExtArgs>
   evaluation_responses?: boolean | Prisma.Event$evaluation_responsesArgs<ExtArgs>
   user_requests?: boolean | Prisma.Event$user_requestsArgs<ExtArgs>
+  donation_payments?: boolean | Prisma.Event$donation_paymentsArgs<ExtArgs>
+  donations?: boolean | Prisma.Event$donationsArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2067,6 +2489,8 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     location_pings: Prisma.$EventLocationPingPayload<ExtArgs>[]
     evaluation_responses: Prisma.$EvaluationResponsePayload<ExtArgs>[]
     user_requests: Prisma.$UserRequestPayload<ExtArgs>[]
+    donation_payments: Prisma.$DonationPaymentPayload<ExtArgs>[]
+    donations: Prisma.$DonationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     event_id: number
@@ -2497,6 +2921,8 @@ export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Ty
   location_pings<T extends Prisma.Event$location_pingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$location_pingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventLocationPingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   evaluation_responses<T extends Prisma.Event$evaluation_responsesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$evaluation_responsesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EvaluationResponsePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_requests<T extends Prisma.Event$user_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$user_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donation_payments<T extends Prisma.Event$donation_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$donation_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donations<T extends Prisma.Event$donationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$donationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3085,6 +3511,54 @@ export type Event$user_requestsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.UserRequestScalarFieldEnum | Prisma.UserRequestScalarFieldEnum[]
+}
+
+/**
+ * Event.donation_payments
+ */
+export type Event$donation_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DonationPayment
+   */
+  select?: Prisma.DonationPaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DonationPayment
+   */
+  omit?: Prisma.DonationPaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DonationPaymentInclude<ExtArgs> | null
+  where?: Prisma.DonationPaymentWhereInput
+  orderBy?: Prisma.DonationPaymentOrderByWithRelationInput | Prisma.DonationPaymentOrderByWithRelationInput[]
+  cursor?: Prisma.DonationPaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DonationPaymentScalarFieldEnum | Prisma.DonationPaymentScalarFieldEnum[]
+}
+
+/**
+ * Event.donations
+ */
+export type Event$donationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Donation
+   */
+  select?: Prisma.DonationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Donation
+   */
+  omit?: Prisma.DonationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DonationInclude<ExtArgs> | null
+  where?: Prisma.DonationWhereInput
+  orderBy?: Prisma.DonationOrderByWithRelationInput | Prisma.DonationOrderByWithRelationInput[]
+  cursor?: Prisma.DonationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DonationScalarFieldEnum | Prisma.DonationScalarFieldEnum[]
 }
 
 /**

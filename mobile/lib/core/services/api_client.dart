@@ -54,17 +54,23 @@ class ApiClient {
     }, path);
   }
 
+  /// [headers] are merged over the defaults — for per-request extras such as
+  /// an `Idempotency-Key`.
   Future<Map<String, dynamic>> postJson(
     String path, {
     required Map<String, dynamic> body,
     Duration timeout = const Duration(seconds: 30),
     bool authenticate = true,
+    Map<String, String>? headers,
   }) async {
     return _guard(() async {
       final response = await _client
           .post(
             uri(path),
-            headers: _jsonHeaders(authenticate: authenticate),
+            headers: {
+              ..._jsonHeaders(authenticate: authenticate),
+              ...?headers,
+            },
             body: jsonEncode(body),
           )
           .timeout(timeout);

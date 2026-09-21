@@ -41,6 +41,11 @@ class RecommendedEvent {
     required this.category,
     required this.status,
     required this.beneficiaryApplicable,
+    this.fundsDonation = false,
+    this.goodsDonation = false,
+    this.goodsTypes = const [],
+    this.fundsRaised = 0,
+    this.donationsCount = 0,
     this.applicationStatus,
     required this.matchedInterests,
     required this.matchScore,
@@ -65,6 +70,13 @@ class RecommendedEvent {
       category: json['category'] as String? ?? '',
       status: json['status'] as String? ?? 'Upcoming',
       beneficiaryApplicable: json['beneficiary_applicable'] as bool? ?? false,
+      fundsDonation: json['funds_donation'] as bool? ?? false,
+      goodsDonation: json['goods_donation'] as bool? ?? false,
+      goodsTypes: (json['goods_types'] as List<dynamic>? ?? const [])
+          .map((e) => e.toString())
+          .toList(),
+      fundsRaised: (json['funds_raised'] as num?)?.toInt() ?? 0,
+      donationsCount: (json['donations_count'] as num?)?.toInt() ?? 0,
       applicationStatus: json['application_status'] as String?,
       markerLat: (json['marker_lat'] as num?)?.toDouble(),
       markerLng: (json['marker_lng'] as num?)?.toDouble(),
@@ -97,6 +109,19 @@ class RecommendedEvent {
   final String category;
   final String status;
   final bool beneficiaryApplicable;
+
+  /// The director's "Accepted Donations" panel — what a donor may give.
+  final bool fundsDonation;
+  final bool goodsDonation;
+
+  /// Goods-type ids the director ticked when [goodsDonation] is on.
+  final List<String> goodsTypes;
+
+  /// Money paid towards this event so far, whole pesos.
+  final int fundsRaised;
+
+  /// Money and goods donations opened on this event.
+  final int donationsCount;
 
   /// Beneficiary rows only: `PENDING` / `ACCEPTED` for the caller's own
   /// application, null otherwise.

@@ -2,6 +2,8 @@ import { z } from 'zod'
 import {
   DONOR_PESOS_PER_POINT_MAX,
   DONOR_PESOS_PER_POINT_MIN,
+  GOODS_TYPE_VALUE_MAX,
+  GOODS_TYPE_VALUE_MIN,
   RANKING_DEFAULT_SETTINGS,
   RANKING_TIER_LABEL_MAX,
   RANKING_TIER_MAX_COUNT,
@@ -79,6 +81,10 @@ export const rankingCustomizationSchema = z
       DONOR_PESOS_PER_POINT_MIN,
       DONOR_PESOS_PER_POINT_MAX,
       'Pesos per point',
+    ),
+    goodsTypeValues: z.record(
+      z.string(),
+      wholeNumber(GOODS_TYPE_VALUE_MIN, GOODS_TYPE_VALUE_MAX, 'Goods value'),
     ),
     defaultBoard: z.enum(['volunteer', 'donor']),
     defaultPeriod: z.enum(['month', 'quarter', 'year', 'all']),

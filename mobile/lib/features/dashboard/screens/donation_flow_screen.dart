@@ -1,9 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/constants/goods_types.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
-import '../data/donation_store.dart';
-import '../data/mock_donations.dart';
+import '../data/donation_format.dart';
+import '../data/donation_payment_service.dart';
+import '../data/donation_service.dart';
+import '../data/models/donation_campaign_models.dart';
+import '../data/models/donation_models.dart';
+import '../data/models/donation_payment_models.dart';
+import '../presentation/providers/donor_providers.dart';
+import '../widgets/donation_checkout_widgets.dart';
 import '../widgets/donation_flow_widgets.dart';
 import 'donation_receipt_screen.dart';
 
@@ -12,7 +24,8 @@ enum _Stage {
   enterAmount,
   choosePayment,
   review,
-  paymentProcessing,
+  paymentCheckout,
+  paymentFailed,
   paymentSuccess,
   moneyStatus,
   goodsSelectItem,
@@ -21,84 +34,93 @@ enum _Stage {
   goodsStatus,
 }
 
-/// Multi-step donation flow. Static / front-end only: the payment step is
-/// simulated with a delay and a donation record is created ONLY when the flow
-/// reaches its final step.
+/// Multi-step donation flow. Money payments go through the server's Xendit
+/// integration: the app opens a checkout (`POST /donations/payments`), hands
+/// the donor to GCash / the hosted page or shows a QR Ph code, then polls
+/// the payment until the gateway's webhook settles it. The server opens the
+/// ledger row ONLY once the payment is reported paid.
 ///
-/// Money donations are verification-based: paying only *pledges* the
-/// donation (with its GCash / payment reference). A Director then verifies
-/// the payment (donor sees "Verifying") and confirms it — only a confirmed
-/// donation shows "Donation Successful".
+/// Every donation is verification-based: paying or pledging only *pledges*
+/// it. A Director then moves it along on the portal's Donation Tracking —
+/// verifying, then confirmed — and only a confirmed donation shows
+/// "Donation Successful" and counts on the donor board. Goods are pledged
+/// through `POST /donations/goods` and can be edited or cancelled until the
+/// pickup process starts.
 ///
-/// Passing [existingDonation] opens the flow straight to the status / details
-/// view for a donation that already exists (from My Donations).
-class DonationFlowScreen extends StatefulWidget {
-  const DonationFlowScreen({
-    super.key,
-    required this.campaign,
-    required this.donorEmail,
-    this.existingDonation,
-  });
+/// Passing [existingDonation] opens the flow straight to the status view for
+/// a donation that already exists (from the Activity tab); [campaign] may
+/// then be left out.
+class DonationFlowScreen extends ConsumerStatefulWidget {
+  const DonationFlowScreen({super.key, this.campaign, this.existingDonation})
+    : assert(
+        campaign != null || existingDonation != null,
+        'A campaign to give to, or a donation to show',
+      );
 
-  final CaresDonation campaign;
-  final String donorEmail;
-  final UserDonation? existingDonation;
+  final DonationCampaign? campaign;
+  final Donation? existingDonation;
 
-  static void open(
-    BuildContext context, {
-    required CaresDonation campaign,
-    required String donorEmail,
-  }) {
+  static void open(BuildContext context, {required DonationCampaign campaign}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            DonationFlowScreen(campaign: campaign, donorEmail: donorEmail),
+        builder: (_) => DonationFlowScreen(campaign: campaign),
       ),
     );
   }
 
   /// Opens the status / details view for an existing donation (money or goods).
-  static void openStatus(
-    BuildContext context, {
-    required CaresDonation campaign,
-    required String donorEmail,
-    required UserDonation donation,
-  }) {
+  static void openStatus(BuildContext context, {required Donation donation}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => DonationFlowScreen(
-          campaign: campaign,
-          donorEmail: donorEmail,
-          existingDonation: donation,
-        ),
+        builder: (_) => DonationFlowScreen(existingDonation: donation),
       ),
     );
   }
 
   @override
-  State<DonationFlowScreen> createState() => _DonationFlowScreenState();
+  ConsumerState<DonationFlowScreen> createState() => _DonationFlowScreenState();
 }
 
-class _DonationFlowScreenState extends State<DonationFlowScreen> {
+class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   static const _presets = [100, 250, 500, 1000];
+
+  /// How long to wait for the webhook to open the ledger row after the
+  /// gateway reports the checkout paid.
+  static const _ledgerPollInterval = Duration(seconds: 2);
+  static const _ledgerPollAttempts = 15;
 
   _Stage _stage = _Stage.chooseType;
 
-  DonationType? _type;
+  DonationKind? _type;
   int? _presetAmount = 500;
   final _customAmountController = TextEditingController();
   DonationPaymentMethod? _method;
 
-  /// Reference issued by the (simulated) payment channel once payment
-  /// succeeds. Stored on the donation so the Director can verify it.
+  /// Payment reference from the gateway once the payment is reported paid.
+  /// Stored on the donation so the Director can verify it.
   String? _paymentReference;
 
+  // Live checkout state.
+  final _paymentService = DonationPaymentService();
+  final _donationService = DonationService();
+
+  /// One key per checkout attempt. Sent on every create call so a retry after
+  /// a timeout returns the checkout the server already opened. Reset whenever
+  /// the amount or method changes, and after a terminal outcome.
+  String? _idempotencyKey;
+  DonationPayment? _payment;
+  bool _creatingPayment = false;
+  bool _checkingPayment = false;
+  String? _paymentError;
+  Timer? _pollTimer;
+
   // Goods flow state.
-  NeededGood? _selectedGood;
+  GoodsType? _selectedGood;
 
   /// True when the donor picked "Other" and is typing their own item.
   bool _otherGoodSelected = false;
   final _otherGoodController = TextEditingController();
+  int _quantity = 1;
   final _pickupAddressController = TextEditingController();
   final _pickupContactController = TextEditingController();
   DateTime? _pickupDate;
@@ -107,50 +129,82 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
   /// True while re-editing an already-pledged donation.
   bool _editing = false;
 
-  UserDonation? _completed;
+  /// True while a pledge, edit, cancel or refresh is on the wire.
+  bool _saving = false;
+
+  Donation? _completed;
 
   @override
   void initState() {
     super.initState();
-    // Status is advanced by the Director (via the store), so re-render when
-    // it changes while the donor is looking at their donation.
-    DonationStore.instance.addListener(_onStoreChanged);
     final existing = widget.existingDonation;
     if (existing != null) {
       _completed = existing;
-      _type = existing.type;
-      _stage = existing.type == DonationType.money
-          ? _Stage.moneyStatus
-          : _Stage.goodsStatus;
+      _type = existing.kind;
+      _stage = existing.isMoney ? _Stage.moneyStatus : _Stage.goodsStatus;
+      // The Director may have moved it since the list was fetched.
+      Future.microtask(_refreshDonation);
       return;
     }
     // The event may accept only one kind of donation — go straight to it.
     if (_onlyGoods) {
-      _type = DonationType.goods;
+      _type = DonationKind.goods;
       _stage = _Stage.goodsSelectItem;
     } else if (_onlyMoney) {
-      _type = DonationType.money;
+      _type = DonationKind.money;
       _stage = _Stage.enterAmount;
     }
   }
 
   /// Donation types the director enabled on the event behind this campaign.
-  bool get _acceptsMoney => widget.campaign.acceptsMonetary;
-  bool get _acceptsGoods => widget.campaign.acceptsGoods;
+  bool get _acceptsMoney => widget.campaign?.acceptsMonetary ?? false;
+  bool get _acceptsGoods => widget.campaign?.acceptsGoods ?? false;
   bool get _onlyMoney => _acceptsMoney && !_acceptsGoods;
   bool get _onlyGoods => _acceptsGoods && !_acceptsMoney;
+
+  /// The campaign title for the summary rows — from the campaign when giving,
+  /// from the ledger row when only looking at an existing donation.
+  String get _campaignTitle =>
+      widget.campaign?.title ?? _completed?.eventTitle ?? '';
 
   /// With a single accepted type there is no "how would you like to help?"
   /// step, so every later step moves up by one.
   int get _skippedSteps => (_onlyMoney || _onlyGoods) ? 1 : 0;
 
-  void _onStoreChanged() {
-    if (mounted) setState(() {});
+  /// Re-reads the donation so the status view shows the Director's latest move.
+  Future<void> _refreshDonation() async {
+    final current = _completed;
+    if (current == null) return;
+    try {
+      final latest = await _donationService.fetchDonation(current.id);
+      if (!mounted) return;
+      setState(() => _completed = latest);
+    } on ApiException {
+      // Keep what we have; the Activity tab refetches on its own.
+    } catch (_) {
+      // Same — a stale status is better than a broken screen.
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
+  }
+
+  /// The Activity tab, the home deck's raised figures and the board all
+  /// change when a donation is made or moved.
+  void _invalidateDonorData() {
+    ref.invalidate(myDonationsProvider);
+    ref.invalidate(donationCampaignsProvider);
   }
 
   @override
   void dispose() {
-    DonationStore.instance.removeListener(_onStoreChanged);
+    _pollTimer?.cancel();
     _customAmountController.dispose();
     _otherGoodController.dispose();
     _pickupAddressController.dispose();
@@ -165,18 +219,45 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
       final custom = _otherGoodController.text.trim();
       return custom.isEmpty ? null : custom;
     }
-    return _selectedGood?.name;
+    return _selectedGood?.label;
+  }
+
+  /// The goods-type id sent to the server; `other` for a custom item.
+  String? get _goodsTypeId =>
+      _otherGoodSelected ? GoodsTypes.other.id : _selectedGood?.id;
+
+  /// Free text for the custom item, or an optional note on a listed one.
+  String? get _goodsDetail {
+    final custom = _otherGoodController.text.trim();
+    return custom.isEmpty ? null : custom;
+  }
+
+  /// `Food — 3 sacks of rice` for the review rows.
+  String? get _goodsSummary {
+    final type = _otherGoodSelected ? null : _selectedGood?.label;
+    final detail = _goodsDetail;
+    if (type == null) return detail;
+    return detail == null ? type : '$type — $detail';
   }
 
   int? get _pickupTimeMinutes =>
       _pickupTime == null ? null : _pickupTime!.hour * 60 + _pickupTime!.minute;
 
   String? get _pickupDateLabel =>
-      _pickupDate == null ? null : DonationStore.formatDateOnly(_pickupDate!);
+      _pickupDate == null ? null : DonationFormat.dateOnly(_pickupDate!);
 
-  String? get _pickupTimeLabel => _pickupTime == null
-      ? null
-      : DonationStore.formatMinutes(_pickupTimeMinutes!);
+  String? get _pickupTimeLabel =>
+      _pickupTime == null ? null : DonationFormat.minutes(_pickupTimeMinutes!);
+
+  GoodsPledgeInput get _goodsInput => GoodsPledgeInput(
+    goodsType: _goodsTypeId!,
+    goodsItem: _goodsDetail,
+    quantity: _quantity,
+    pickupAddress: _pickupAddressController.text.trim(),
+    pickupContact: _pickupContactController.text.trim(),
+    pickupDate: _pickupDate!,
+    pickupTimeMinutes: _pickupTimeMinutes!,
+  );
 
   bool get _pickupComplete =>
       _pickupAddressController.text.trim().isNotEmpty &&
@@ -198,8 +279,12 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     switch (_stage) {
       case _Stage.chooseType:
         Navigator.of(context).pop();
-      case _Stage.paymentProcessing:
-        break; // don't interrupt a simulated payment
+      case _Stage.paymentCheckout:
+        if (_creatingPayment) break; // the server is mid-call
+        _stopPolling();
+        setState(() => _stage = _Stage.review);
+      case _Stage.paymentFailed:
+        setState(() => _stage = _Stage.choosePayment);
       case _Stage.moneyStatus:
       case _Stage.goodsStatus:
         Navigator.of(context).pop();
@@ -216,6 +301,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
       case _Stage.paymentSuccess:
         setState(() => _stage = _Stage.review);
       case _Stage.goodsSelectItem:
+        if (_saving) break;
         setState(() {
           if (_editing) {
             _editing = false;
@@ -233,59 +319,250 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     }
   }
 
-  void _startPaymentSimulation() {
-    setState(() => _stage = _Stage.paymentProcessing);
-    Future<void>.delayed(const Duration(milliseconds: 2400), () {
-      if (!mounted || _stage != _Stage.paymentProcessing) return;
-      setState(() {
-        _paymentReference ??= DonationStore.generatePaymentReference(_method!);
-        _stage = _Stage.paymentSuccess;
-      });
+  // ---------------------------------------------------------- live checkout
+
+  /// Anything that changes what would be charged invalidates the attempt key.
+  void _resetCheckout() {
+    _stopPolling();
+    _idempotencyKey = null;
+    _payment = null;
+    _paymentError = null;
+  }
+
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+  }
+
+  Future<void> _startPayment() async {
+    final amount = _effectiveAmount;
+    final method = _method;
+    if (amount == null || amount <= 0 || method == null) return;
+    _idempotencyKey ??= DonationPaymentService.newIdempotencyKey();
+
+    setState(() {
+      _stage = _Stage.paymentCheckout;
+      _creatingPayment = true;
+      _paymentError = null;
     });
+
+    final campaign = widget.campaign!;
+    try {
+      final payment = await _paymentService.createPayment(
+        idempotencyKey: _idempotencyKey!,
+        campaignId: campaign.id,
+        campaignTitle: campaign.title,
+        amount: amount,
+        method: method,
+        eventId: campaign.eventId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _payment = payment;
+        _creatingPayment = false;
+      });
+      if (payment.status.isTerminal) {
+        _onPaymentSettled(payment);
+        return;
+      }
+      if (method.opensExternally) await _openCheckout(payment);
+      _startPolling();
+    } on ApiException catch (e) {
+      _failCheckout(e.message);
+    } catch (_) {
+      _failCheckout(
+        'We could not reach the payment gateway. Please try again.',
+      );
+    }
   }
 
-  /// Payment went through, so the donation is recorded — but only as
-  /// *pledged*. It is not successful until a Director verifies and confirms.
-  void _pledgeMoney() {
-    _completed ??= DonationStore.instance.recordMoneyPledge(
-      campaignId: widget.campaign.id,
-      campaignTitle: widget.campaign.title,
-      donorEmail: widget.donorEmail,
-      amount: _effectiveAmount ?? 0,
-      paymentMethod: _method!,
-      paymentReference: _paymentReference!,
-    );
-    setState(() => _stage = _Stage.moneyStatus);
+  void _failCheckout(String message) {
+    if (!mounted) return;
+    _stopPolling();
+    setState(() {
+      _creatingPayment = false;
+      _checkingPayment = false;
+      _paymentError = message;
+      _stage = _Stage.paymentFailed;
+    });
+    // A failed attempt is terminal on the server; the next try needs its own key.
+    _idempotencyKey = null;
   }
 
-  void _pledgeGoods() {
-    _completed ??= DonationStore.instance.recordGoodsPledge(
-      campaignId: widget.campaign.id,
-      campaignTitle: widget.campaign.title,
-      donorEmail: widget.donorEmail,
-      goodsItem: _goodsItem!,
-      pickupAddress: _pickupAddressController.text.trim(),
-      pickupContact: _pickupContactController.text.trim(),
-      pickupDate: _pickupDate!,
-      pickupTimeMinutes: _pickupTimeMinutes!,
+  /// GCash and the hosted card / bank pages open outside the app.
+  Future<void> _openCheckout(DonationPayment payment) async {
+    final url = payment.checkoutUrl;
+    if (url == null) return;
+    final opened = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
     );
-    setState(() => _stage = _Stage.goodsStatus);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Could not open the payment page.')),
+        );
+    }
+  }
+
+  /// Polls the server every few seconds while the checkout is open. The
+  /// webhook flips the status on the server; the app only ever reads it.
+  void _startPolling() {
+    _stopPolling();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 4),
+      (_) => _checkPayment(),
+    );
+  }
+
+  Future<void> _checkPayment() async {
+    final current = _payment;
+    if (current == null || _checkingPayment) return;
+    setState(() => _checkingPayment = true);
+    try {
+      final latest = await _paymentService.fetchPayment(current.id);
+      if (!mounted) return;
+      setState(() {
+        _payment = latest;
+        _checkingPayment = false;
+      });
+      if (latest.status.isTerminal) {
+        _onPaymentSettled(latest);
+      } else if (latest.expiresAt case final expires?
+          when expires.isBefore(DateTime.now())) {
+        _onPaymentSettled(latest, expiredLocally: true);
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _checkingPayment = false);
+      // Session-ending errors are surfaced by the client; a transient one
+      // just waits for the next tick.
+      if (e.statusCode == 404) _failCheckout(e.message);
+    } catch (_) {
+      if (mounted) setState(() => _checkingPayment = false);
+    }
+  }
+
+  void _onPaymentSettled(
+    DonationPayment payment, {
+    bool expiredLocally = false,
+  }) {
+    _stopPolling();
+    switch (payment.status) {
+      case DonationPaymentStatus.paid:
+        setState(() {
+          _paymentReference = payment.receiptReference;
+          _stage = _Stage.paymentSuccess;
+        });
+        _idempotencyKey = null;
+      case DonationPaymentStatus.failed:
+        _failCheckout(
+          payment.failureReason ??
+              'The payment was declined or cancelled. No money was taken.',
+        );
+      case DonationPaymentStatus.expired:
+        _failCheckout(
+          payment.failureReason ??
+              'The checkout expired before it was paid. No money was taken.',
+        );
+      case DonationPaymentStatus.pending:
+        if (expiredLocally) {
+          _failCheckout('The checkout expired before it was paid.');
+        }
+    }
+  }
+
+  bool get _paymentExpired =>
+      _payment?.status == DonationPaymentStatus.expired ||
+      (_paymentError?.toLowerCase().contains('expired') ?? false);
+
+  /// Payment went through, so the server has opened the ledger row — but only
+  /// as *pledged*. The row is created by the gateway's callback, which can
+  /// land a moment after the status poll saw PAID, so wait for it briefly.
+  Future<void> _pledgeMoney() async {
+    if (_completed != null) {
+      setState(() => _stage = _Stage.moneyStatus);
+      return;
+    }
+    final payment = _payment;
+    if (payment == null) return;
+    setState(() => _saving = true);
+    try {
+      var donationId = payment.donationId;
+      for (
+        var attempt = 0;
+        donationId == null && attempt < _ledgerPollAttempts;
+        attempt++
+      ) {
+        await Future<void>.delayed(_ledgerPollInterval);
+        if (!mounted) return;
+        donationId = (await _paymentService.fetchPayment(
+          payment.id,
+        )).donationId;
+      }
+      if (donationId == null) {
+        _showMessage(
+          'Your payment went through. The donation will appear in your '
+          'activity shortly.',
+        );
+        _invalidateDonorData();
+        if (mounted) Navigator.of(context).pop();
+        return;
+      }
+      final donation = await _donationService.fetchDonation(donationId);
+      if (!mounted) return;
+      _invalidateDonorData();
+      setState(() {
+        _completed = donation;
+        _stage = _Stage.moneyStatus;
+      });
+    } on ApiException catch (e) {
+      _showMessage(e.message);
+    } catch (_) {
+      _showMessage('Could not load your donation. Check the Activity tab.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _pledgeGoods() async {
+    if (_completed != null || _saving) return;
+    setState(() => _saving = true);
+    try {
+      final donation = await _donationService.pledgeGoods(
+        eventId: widget.campaign!.eventId,
+        input: _goodsInput,
+      );
+      if (!mounted) return;
+      _invalidateDonorData();
+      setState(() {
+        _completed = donation;
+        _stage = _Stage.goodsStatus;
+      });
+    } on ApiException catch (e) {
+      _showMessage(e.message);
+    } catch (_) {
+      _showMessage('Could not pledge the donation. Please try again.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   void _startEdit() {
     final d = _completed;
     if (d == null || !d.canModify) return;
-    final goods = neededGoodsForCampaign(widget.campaign.id);
-    final listed = goods.where((g) => g.name == d.goodsItem).toList();
-    if (listed.isEmpty) {
+    final goods = widget.campaign?.neededGoods ?? const <GoodsType>[];
+    final listed = goods.where((g) => g.id == d.goodsType).toList();
+    if (listed.isEmpty || d.goodsType == GoodsTypes.other.id) {
       _selectedGood = null;
       _otherGoodSelected = true;
-      _otherGoodController.text = d.goodsItem ?? '';
     } else {
       _selectedGood = listed.first;
       _otherGoodSelected = false;
-      _otherGoodController.clear();
     }
+    _otherGoodController.text = d.goodsItem ?? '';
+    _quantity = d.goodsQuantity ?? 1;
     _pickupAddressController.text = d.pickupAddress ?? '';
     _pickupContactController.text = d.pickupContact ?? '';
     _pickupDate = d.pickupDate;
@@ -299,31 +576,30 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     });
   }
 
-  void _saveEdit() {
+  Future<void> _saveEdit() async {
     final d = _completed;
-    if (d == null) return;
-    DonationStore.instance.updateGoodsDonation(
-      donationId: d.donationId,
-      goodsItem: _goodsItem!,
-      pickupAddress: _pickupAddressController.text.trim(),
-      pickupContact: _pickupContactController.text.trim(),
-      pickupDate: _pickupDate!,
-      pickupTimeMinutes: _pickupTimeMinutes!,
-    );
-    setState(() {
-      _editing = false;
-      _stage = _Stage.goodsStatus;
-    });
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Donation Updated — your donation details have been successfully '
-            'updated.',
-          ),
-        ),
+    if (d == null || _saving) return;
+    setState(() => _saving = true);
+    try {
+      final updated = await _donationService.updateGoods(d.id, _goodsInput);
+      if (!mounted) return;
+      _invalidateDonorData();
+      setState(() {
+        _completed = updated;
+        _editing = false;
+        _stage = _Stage.goodsStatus;
+      });
+      _showMessage(
+        'Donation Updated — your donation details have been successfully '
+        'updated.',
       );
+    } on ApiException catch (e) {
+      _showMessage(e.message);
+    } catch (_) {
+      _showMessage('Could not save the changes. Please try again.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _confirmCancel() async {
@@ -354,8 +630,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _CancelSummaryLine('Item', d.goodsItem ?? '—'),
-                  _CancelSummaryLine('Campaign', d.campaignTitle),
+                  _CancelSummaryLine('Item', d.goodsLabel),
+                  _CancelSummaryLine('Campaign', d.eventTitle),
                   _CancelSummaryLine('Pickup date', d.pickupDateLabel ?? '—'),
                 ],
               ),
@@ -377,8 +653,19 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
-    DonationStore.instance.cancelGoodsDonation(d.donationId);
-    setState(() {});
+    setState(() => _saving = true);
+    try {
+      final cancelled = await _donationService.cancel(d.id);
+      if (!mounted) return;
+      _invalidateDonorData();
+      setState(() => _completed = cancelled);
+    } on ApiException catch (e) {
+      _showMessage(e.message);
+    } catch (_) {
+      _showMessage('Could not cancel the donation. Please try again.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _pickDate() async {
@@ -415,7 +702,9 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           foregroundColor: AppColors.textPrimary,
           elevation: 0,
           automaticallyImplyLeading: false,
-          leading: _stage == _Stage.paymentProcessing
+          leading:
+              (_stage == _Stage.paymentCheckout && _creatingPayment) ||
+                  (_saving && !_isTerminal)
               ? null
               : IconButton(
                   icon: Icon(
@@ -443,7 +732,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     _Stage.choosePayment => 'Payment Method',
     _Stage.review => 'Review Donation',
     _Stage.goodsReview => _editing ? 'Review Changes' : 'Review Donation',
-    _Stage.paymentProcessing || _Stage.paymentSuccess => 'Payment',
+    _Stage.paymentCheckout => _method?.label ?? 'Payment',
+    _Stage.paymentFailed || _Stage.paymentSuccess => 'Payment',
     _Stage.moneyStatus => 'Donation Details',
     _Stage.goodsSelectItem => _editing ? 'Edit Donation' : 'Select Goods',
     _Stage.goodsPickup => _editing ? 'Edit Pickup Details' : 'Pickup Details',
@@ -455,7 +745,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     _Stage.enterAmount => _enterAmountStage(),
     _Stage.choosePayment => _choosePaymentStage(),
     _Stage.review => _reviewStage(),
-    _Stage.paymentProcessing => _paymentProcessingStage(),
+    _Stage.paymentCheckout => _paymentCheckoutStage(),
+    _Stage.paymentFailed => _paymentFailedStage(),
     _Stage.paymentSuccess => _paymentSuccessStage(),
     _Stage.moneyStatus => _moneyStatusStage(),
     _Stage.goodsSelectItem => _goodsSelectItemStage(),
@@ -516,8 +807,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             title: 'Money',
             subtitle: 'Give a peso amount through a payment method',
             icon: Icons.payments_outlined,
-            selected: _type == DonationType.money,
-            onTap: () => setState(() => _type = DonationType.money),
+            selected: _type == DonationKind.money,
+            onTap: () => setState(() => _type = DonationKind.money),
           ),
           const SizedBox(height: 12),
         ],
@@ -526,15 +817,15 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             title: 'Goods',
             subtitle: 'Pledge physical items like food, clothing, or supplies',
             icon: Icons.inventory_2_outlined,
-            selected: _type == DonationType.goods,
-            onTap: () => setState(() => _type = DonationType.goods),
+            selected: _type == DonationKind.goods,
+            onTap: () => setState(() => _type = DonationKind.goods),
           ),
       ],
       footer: FilledButton(
         onPressed: _type == null
             ? null
             : () => setState(
-                () => _stage = _type == DonationType.money
+                () => _stage = _type == DonationKind.money
                     ? _Stage.enterAmount
                     : _Stage.goodsSelectItem,
               ),
@@ -567,9 +858,10 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           children: [
             for (final preset in _presets)
               DonationPresetChip(
-                label: DonationStore.formatPesoFull(preset),
+                label: DonationFormat.pesoFull(preset),
                 selected: !usingCustom && _presetAmount == preset,
                 onTap: () => setState(() {
+                  if (_presetAmount != preset || usingCustom) _resetCheckout();
                   _presetAmount = preset;
                   _customAmountController.clear();
                 }),
@@ -593,7 +885,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(7),
           ],
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(_resetCheckout),
           decoration: const InputDecoration(
             prefixText: '₱ ',
             hintText: 'Enter amount',
@@ -617,7 +909,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
               ),
               const Spacer(),
               Text(
-                amount == null ? '—' : DonationStore.formatPesoFull(amount),
+                amount == null ? '—' : DonationFormat.pesoFull(amount),
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -655,16 +947,20 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         const DonationStepHeader(
           title: 'Choose Payment Method',
           subtitle:
-              'Select how you would like to pay. No account is charged '
-              'in this preview.',
+              'Select how you would like to pay. Payments are processed '
+              'securely by Xendit.',
         ),
         const SizedBox(height: 16),
         for (final method in DonationPaymentMethod.values) ...[
           DonationOptionTile(
             title: method.label,
-            icon: paymentMethodIcon(method),
+            subtitle: method.description,
+            leading: PaymentMethodBadge(method),
             selected: _method == method,
-            onTap: () => setState(() => _method = method),
+            onTap: () => setState(() {
+              if (_method != method) _resetCheckout();
+              _method = method;
+            }),
           ),
           const SizedBox(height: 12),
         ],
@@ -691,11 +987,11 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         const SizedBox(height: 16),
         DonationSummaryCard(
           rows: [
-            DonationSummaryRow('Campaign', widget.campaign.title),
+            DonationSummaryRow('Campaign', _campaignTitle),
             const DonationSummaryRow('Donation Type', 'Money'),
             DonationSummaryRow(
               'Amount',
-              DonationStore.formatPesoFull(amount),
+              DonationFormat.pesoFull(amount),
               emphasize: true,
             ),
             DonationSummaryRow('Payment Method', _method?.label ?? '—'),
@@ -703,7 +999,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         ),
         const SizedBox(height: 12),
         const Text(
-          'Your donation is only recorded once the payment succeeds.',
+          'Your donation is only recorded once the payment gateway confirms '
+          'the payment.',
           style: TextStyle(
             fontSize: 12,
             color: AppColors.textMuted,
@@ -728,7 +1025,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           Expanded(
             flex: 3,
             child: FilledButton(
-              onPressed: _startPaymentSimulation,
+              onPressed: _startPayment,
               child: const Text('Proceed to Payment'),
             ),
           ),
@@ -737,19 +1034,59 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     );
   }
 
-  // ----------------------------------------------- Step 5: simulated payment
-  Widget _paymentProcessingStage() {
-    return _CenteredStatus(
-      icon: const SizedBox(
-        width: 56,
-        height: 56,
-        child: CircularProgressIndicator(strokeWidth: 3),
-      ),
-      title: 'Processing Payment...',
-      message:
-          'Securely completing your ${_method?.label ?? ''} payment of '
-          '${DonationStore.formatPesoFull(_effectiveAmount ?? 0)}. '
-          'Please don\'t close this screen.',
+  // ------------------------------------------------- Step 5: live checkout
+  Widget _paymentCheckoutStage() {
+    final method = _method;
+    final payment = _payment;
+    if (_creatingPayment || payment == null || method == null) {
+      return CheckoutPreparingView(
+        method: method ?? DonationPaymentMethod.gcash,
+      );
+    }
+    if (method == DonationPaymentMethod.qrph) {
+      return CheckoutQrView(
+        payment: payment,
+        onCheckNow: _checkPayment,
+        checking: _checkingPayment,
+      );
+    }
+    return CheckoutExternalView(
+      payment: payment,
+      onOpenCheckout: () => _openCheckout(payment),
+      onCheckNow: _checkPayment,
+      checking: _checkingPayment,
+    );
+  }
+
+  Widget _paymentFailedStage() {
+    return Column(
+      children: [
+        Expanded(
+          child: CheckoutFailedView(
+            method: _method,
+            reason: _paymentError ?? 'The payment did not go through.',
+            expired: _paymentExpired,
+          ),
+        ),
+        _FooterBar(
+          child: Column(
+            children: [
+              FilledButton(
+                onPressed: () => setState(() {
+                  _resetCheckout();
+                  _stage = _Stage.choosePayment;
+                }),
+                child: const Text('Try again'),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Back to campaign'),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -773,24 +1110,35 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             ),
             title: 'Payment Completed',
             message:
-                '${DonationStore.formatPesoFull(_effectiveAmount ?? 0)} was '
+                '${DonationFormat.pesoFull(_effectiveAmount ?? 0)} was '
                 'paid via ${_method?.label ?? ''}.\n\nYour donation will be '
                 'pledged and reviewed by a CARES Director before it is '
                 'confirmed.',
             extra: _paymentReference == null
                 ? null
                 : _PaymentReferenceCard(
-                    label: _method == DonationPaymentMethod.gcash
-                        ? 'GCash Reference No.'
-                        : 'Payment Reference No.',
+                    label: switch (_method) {
+                      DonationPaymentMethod.gcash => 'GCash Reference No.',
+                      DonationPaymentMethod.qrph => 'QR Ph Reference No.',
+                      _ => 'Payment Reference No.',
+                    },
                     reference: _paymentReference!,
                   ),
           ),
         ),
         _FooterBar(
           child: FilledButton(
-            onPressed: _pledgeMoney,
-            child: const Text('Continue'),
+            onPressed: _saving ? null : _pledgeMoney,
+            child: _saving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Continue'),
           ),
         ),
       ],
@@ -801,127 +1149,96 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
   Widget _moneyStatusStage() {
     final donation = _completed;
     if (donation == null) return const SizedBox.shrink();
-    final status = donation.moneyStatus;
-    final isConfirmed = status == MoneyDonationStatus.confirmed;
+    final status = donation.status;
+    final isConfirmed = status == DonationStatus.confirmed;
+    final isDeclined = status == DonationStatus.declined;
 
     final (String heading, String message) = switch (status) {
-      MoneyDonationStatus.pledged => (
-        'Donation Pledged',
-        'Your payment was received and your donation has been pledged.\n\n'
-            'A CARES Director will review the payment details and reference '
-            'number. The donation is not confirmed yet.',
-      ),
-      MoneyDonationStatus.verifying => (
+      DonationStatus.verifying => (
         'Verifying',
         'Your donation is being verified.\n\nThe Director has checked your '
             'payment and is now confirming the donation. The donation is not '
             'confirmed yet.',
       ),
-      MoneyDonationStatus.confirmed => (
+      DonationStatus.confirmed => (
         'Donation Successful!',
         'Your donation has been verified and confirmed by CARES. Thank you '
             'for your generosity!',
       ),
+      DonationStatus.declined => (
+        'Donation Declined',
+        'CARES could not verify this payment. Reach out to the CARES office '
+            'with your payment reference if this is unexpected.',
+      ),
+      _ => (
+        'Donation Pledged',
+        'Your payment was received and your donation has been pledged.\n\n'
+            'A CARES Director will review the payment details and reference '
+            'number. The donation is not confirmed yet.',
+      ),
     };
+    final accent = isDeclined ? AppColors.error : AppColors.primary;
 
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(
-                          AppColors.cardRadius,
-                        ),
-                        border: Border.all(color: AppColors.borderCard),
+          child: RefreshIndicator(
+            onRefresh: _refreshDonation,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _StatusCard(
+                        icon: isConfirmed
+                            ? Icons.celebration_rounded
+                            : isDeclined
+                            ? Icons.cancel_outlined
+                            : status == DonationStatus.verifying
+                            ? Icons.fact_check_outlined
+                            : Icons.hourglass_top_rounded,
+                        accent: accent,
+                        heading: heading,
+                        message: message,
+                        donation: donation,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                isConfirmed
-                                    ? Icons.celebration_rounded
-                                    : status == MoneyDonationStatus.verifying
-                                    ? Icons.fact_check_outlined
-                                    : Icons.hourglass_top_rounded,
-                                color: AppColors.primary,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  heading,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      const SizedBox(height: 16),
+                      DonationSummaryCard(
+                        rows: [
+                          DonationSummaryRow('Campaign', donation.eventTitle),
+                          const DonationSummaryRow('Donation Type', 'Money'),
+                          DonationSummaryRow(
+                            'Amount',
+                            DonationFormat.pesoFull(donation.amount),
+                            emphasize: true,
                           ),
-                          const SizedBox(height: 14),
-                          DonationStatusPill(
-                            label: status.upperLabel,
-                            done: isConfirmed,
-                          ),
-                          const SizedBox(height: 18),
-                          MoneyStatusTracker(status: status),
-                          const SizedBox(height: 6),
-                          Text(
-                            message,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                              height: 1.5,
+                          if (donation.paymentMethod != null)
+                            DonationSummaryRow(
+                              'Payment Method',
+                              donation.paymentMethod!.label,
                             ),
+                          DonationSummaryRow(
+                            donation.paymentReferenceLabel,
+                            donation.paymentReference ?? '—',
+                          ),
+                          DonationSummaryRow(
+                            'Donation Date',
+                            DonationFormat.dateTime(donation.createdAt),
+                          ),
+                          DonationSummaryRow('Donation ID', donation.reference),
+                          DonationSummaryRow(
+                            'Status',
+                            status.upperLabel,
+                            emphasize: true,
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    DonationSummaryCard(
-                      rows: [
-                        DonationSummaryRow('Campaign', donation.campaignTitle),
-                        const DonationSummaryRow('Donation Type', 'Money'),
-                        DonationSummaryRow(
-                          'Amount',
-                          DonationStore.formatPesoFull(donation.amount),
-                          emphasize: true,
-                        ),
-                        if (donation.paymentMethod != null)
-                          DonationSummaryRow(
-                            'Payment Method',
-                            donation.paymentMethod!.label,
-                          ),
-                        DonationSummaryRow(
-                          donation.paymentReferenceLabel,
-                          donation.paymentReference ?? '—',
-                        ),
-                        DonationSummaryRow(
-                          'Donation Date',
-                          DonationStore.formatDate(donation.donatedAt),
-                        ),
-                        DonationSummaryRow('Donation ID', donation.donationId),
-                        DonationSummaryRow(
-                          'Status',
-                          status.upperLabel,
-                          emphasize: true,
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -932,20 +1249,10 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     );
   }
 
-  Widget _moneyStatusFooter(MoneyDonationStatus status) {
+  Widget _moneyStatusFooter(DonationStatus status) {
     final donation = _completed;
     switch (status) {
-      case MoneyDonationStatus.pledged:
-        return _statusFooter(
-          'A CARES Director will verify your payment. You will see the '
-          'status change to Verifying once it has been reviewed.',
-        );
-      case MoneyDonationStatus.verifying:
-        return _statusFooter(
-          'Your donation is being verified by the CARES Director. You will be '
-          'notified once it is confirmed.',
-        );
-      case MoneyDonationStatus.confirmed:
+      case DonationStatus.confirmed:
         return Column(
           children: [
             FilledButton(
@@ -962,9 +1269,23 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             const SizedBox(height: 10),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Back to campaign'),
+              child: const Text('Back'),
             ),
           ],
+        );
+      case DonationStatus.verifying:
+        return _statusFooter(
+          'Your donation is being verified by the CARES Director. You will be '
+          'notified once it is confirmed.',
+        );
+      case DonationStatus.declined:
+        return _statusFooter(
+          'This donation is closed. It stays in your activity for your records.',
+        );
+      default:
+        return _statusFooter(
+          'A CARES Director will verify your payment. You will see the '
+          'status change to Verifying once it has been reviewed.',
         );
     }
   }
@@ -973,25 +1294,24 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
 
   // ------------------------------------------- Goods Step 2: select item
   Widget _goodsSelectItemStage() {
-    final goods = neededGoodsForCampaign(widget.campaign.id);
+    final goods = widget.campaign?.neededGoods ?? const <GoodsType>[];
     final good = _selectedGood;
     return _stepScaffold(
       step: 2,
       content: [
         const DonationStepHeader(
           title: 'What would you like to donate?',
-          subtitle: 'These are the items this campaign currently needs.',
+          subtitle: 'These are the goods this event asks for.',
         ),
         const SizedBox(height: 16),
         for (final item in goods) ...[
           DonationOptionTile(
-            title: item.name,
-            icon: Icons.inventory_2_outlined,
-            selected: !_otherGoodSelected && good?.name == item.name,
+            title: item.label,
+            icon: item.icon,
+            selected: !_otherGoodSelected && good?.id == item.id,
             onTap: () => setState(() {
               _selectedGood = item;
               _otherGoodSelected = false;
-              _otherGoodController.clear();
             }),
           ),
           const SizedBox(height: 12),
@@ -1006,25 +1326,27 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             _selectedGood = null;
           }),
         ),
-        if (_otherGoodSelected) ...[
+        if (_otherGoodSelected || good != null) ...[
           const SizedBox(height: 12),
-          const Text(
-            'Item',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
+          _FieldLabel(_otherGoodSelected ? 'Item' : 'Details (optional)'),
           const SizedBox(height: 6),
           TextField(
             controller: _otherGoodController,
             textCapitalization: TextCapitalization.sentences,
-            inputFormatters: [LengthLimitingTextInputFormatter(60)],
+            inputFormatters: [LengthLimitingTextInputFormatter(120)],
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              hintText: 'What would you like to donate?',
+            decoration: InputDecoration(
+              hintText: _otherGoodSelected
+                  ? 'What would you like to donate?'
+                  : 'e.g. 5kg bags of rice',
             ),
+          ),
+          const SizedBox(height: 14),
+          _FieldLabel('Quantity'),
+          const SizedBox(height: 6),
+          _QuantityStepper(
+            value: _quantity,
+            onChanged: (value) => setState(() => _quantity = value),
           ),
         ],
       ],
@@ -1100,7 +1422,8 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         ),
         const SizedBox(height: 12),
         const Text(
-          'Pickup details stay in this prototype only.',
+          'CARES uses these details to schedule the pickup and will update '
+          'your donation once the goods are collected.',
           style: TextStyle(
             fontSize: 12,
             color: AppColors.textMuted,
@@ -1119,7 +1442,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
 
   // ------------------------------------------- Goods Step 4: review
   Widget _goodsReviewStage() {
-    final item = _goodsItem;
+    final item = _goodsSummary;
     return _stepScaffold(
       step: 4,
       content: [
@@ -1133,9 +1456,10 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         const SizedBox(height: 16),
         DonationSummaryCard(
           rows: [
-            DonationSummaryRow('Campaign', widget.campaign.title),
+            DonationSummaryRow('Campaign', _campaignTitle),
             const DonationSummaryRow('Donation Type', 'Goods'),
             DonationSummaryRow('Item', item ?? '—', emphasize: true),
+            DonationSummaryRow('Quantity', '$_quantity'),
             const DonationSummaryRow('Fulfillment', 'Pickup'),
             DonationSummaryRow(
               'Pickup Address',
@@ -1167,8 +1491,17 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           Expanded(
             flex: 3,
             child: FilledButton(
-              onPressed: _editing ? _saveEdit : _pledgeGoods,
-              child: Text(_editing ? 'Save Changes' : 'Pledge Donation'),
+              onPressed: _saving ? null : (_editing ? _saveEdit : _pledgeGoods),
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(_editing ? 'Save Changes' : 'Pledge Donation'),
             ),
           ),
         ],
@@ -1180,139 +1513,111 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
   Widget _goodsStatusStage() {
     final donation = _completed;
     if (donation == null) return const SizedBox.shrink();
-    final status = donation.goodsStatus;
-    final isConfirmed = status == GoodsDonationStatus.confirmed;
-    final isCancelled = status == GoodsDonationStatus.cancelled;
+    final status = donation.status;
+    final isConfirmed = status == DonationStatus.confirmed;
+    final isClosed = donation.isCancelled || donation.isDeclined;
 
     final (String heading, String message) = switch (status) {
-      GoodsDonationStatus.pledged => (
-        'Donation Pledged',
-        'Your donation has been pledged successfully.\n\nCARES will arrange '
-            'the pickup based on your selected schedule. The donation is not '
-            'confirmed yet.',
-      ),
-      GoodsDonationStatus.waitingForPickup => (
+      DonationStatus.awaitingPickup => (
         'Waiting for Pickup',
         'A CARES volunteer will collect your donation on your selected date '
             'and time. This donation is locked because the pickup process has '
             'already started.',
       ),
-      GoodsDonationStatus.verifying => (
+      DonationStatus.verifying => (
         'Verifying',
         'Your donation is being verified.\n\nCARES is checking the received '
             'goods and donation details. The donation is not confirmed yet.',
       ),
-      GoodsDonationStatus.confirmed => (
+      DonationStatus.confirmed => (
         'Donation Confirmed!',
         'Your donation has been received and verified by CARES. Thank you for '
             'your generosity!',
       ),
-      GoodsDonationStatus.cancelled => (
+      DonationStatus.cancelled => (
         'Donation Cancelled',
         'Your donation has been cancelled successfully. It stays in your '
             'donation history for your records.',
       ),
+      DonationStatus.declined => (
+        'Donation Declined',
+        'CARES could not receive or verify these goods. Reach out to the '
+            'CARES office if this is unexpected.',
+      ),
+      DonationStatus.pledged => (
+        'Donation Pledged',
+        'Your donation has been pledged successfully.\n\nCARES will arrange '
+            'the pickup based on your selected schedule. The donation is not '
+            'confirmed yet.',
+      ),
     };
-    final accent = isCancelled ? AppColors.error : AppColors.primary;
+    final accent = isClosed ? AppColors.error : AppColors.primary;
 
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(
-                          AppColors.cardRadius,
-                        ),
-                        border: Border.all(color: AppColors.borderCard),
+          child: RefreshIndicator(
+            onRefresh: _refreshDonation,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _StatusCard(
+                        icon: isClosed
+                            ? Icons.cancel_outlined
+                            : isConfirmed
+                            ? Icons.verified_rounded
+                            : Icons.local_shipping_outlined,
+                        accent: accent,
+                        heading: heading,
+                        message: message,
+                        donation: donation,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                isCancelled
-                                    ? Icons.cancel_outlined
-                                    : isConfirmed
-                                    ? Icons.verified_rounded
-                                    : Icons.local_shipping_outlined,
-                                color: accent,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  heading,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      const SizedBox(height: 16),
+                      DonationSummaryCard(
+                        rows: [
+                          DonationSummaryRow('Campaign', donation.eventTitle),
+                          const DonationSummaryRow('Donation Type', 'Goods'),
+                          DonationSummaryRow('Item', donation.goodsLabel),
+                          DonationSummaryRow(
+                            'Quantity',
+                            '${donation.goodsQuantity ?? 1}',
                           ),
-                          const SizedBox(height: 14),
-                          DonationStatusPill(
-                            label: status.upperLabel,
-                            done: isConfirmed,
-                            cancelled: isCancelled,
+                          DonationSummaryRow(
+                            'Credited Value',
+                            DonationFormat.pesoFull(donation.amount),
                           ),
-                          const SizedBox(height: 18),
-                          GoodsStatusTracker(status: status),
-                          const SizedBox(height: 6),
-                          Text(
-                            message,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                              height: 1.5,
-                            ),
+                          DonationSummaryRow(
+                            'Pickup Date',
+                            donation.pickupDateLabel ?? '—',
+                          ),
+                          DonationSummaryRow(
+                            'Pickup Time',
+                            donation.pickupTimeLabel ?? '—',
+                          ),
+                          DonationSummaryRow(
+                            'Pickup Address',
+                            donation.pickupAddress ?? '—',
+                          ),
+                          DonationSummaryRow(
+                            'Donation Date',
+                            DonationFormat.dateTime(donation.createdAt),
+                          ),
+                          DonationSummaryRow('Donation ID', donation.reference),
+                          DonationSummaryRow(
+                            'Status',
+                            status.upperLabel,
+                            emphasize: true,
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    DonationSummaryCard(
-                      rows: [
-                        DonationSummaryRow('Campaign', donation.campaignTitle),
-                        const DonationSummaryRow('Donation Type', 'Goods'),
-                        DonationSummaryRow('Item', donation.goodsItem ?? '—'),
-                        DonationSummaryRow(
-                          'Pickup Date',
-                          donation.pickupDateLabel ?? '—',
-                        ),
-                        DonationSummaryRow(
-                          'Pickup Time',
-                          donation.pickupTimeLabel ?? '—',
-                        ),
-                        DonationSummaryRow(
-                          'Pickup Address',
-                          donation.pickupAddress ?? '—',
-                        ),
-                        DonationSummaryRow(
-                          'Donation Date',
-                          DonationStore.formatDate(donation.donatedAt),
-                        ),
-                        DonationSummaryRow('Donation ID', donation.donationId),
-                        DonationSummaryRow(
-                          'Status',
-                          status.upperLabel,
-                          emphasize: true,
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1323,21 +1628,21 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
     );
   }
 
-  Widget _goodsStatusFooter(GoodsDonationStatus status) {
+  Widget _goodsStatusFooter(DonationStatus status) {
     final donation = _completed;
 
     switch (status) {
-      case GoodsDonationStatus.pledged:
+      case DonationStatus.pledged:
         return Column(
           children: [
             FilledButton.icon(
-              onPressed: _startEdit,
+              onPressed: _saving ? null : _startEdit,
               icon: const Icon(Icons.edit_outlined, size: 18),
               label: const Text('Edit Donation'),
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: _confirmCancel,
+              onPressed: _saving ? null : _confirmCancel,
               icon: const Icon(Icons.cancel_outlined, size: 18),
               label: const Text('Cancel Donation'),
               style: OutlinedButton.styleFrom(
@@ -1349,7 +1654,7 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           ],
         );
 
-      case GoodsDonationStatus.waitingForPickup:
+      case DonationStatus.awaitingPickup:
         return Column(
           children: [
             Container(
@@ -1389,13 +1694,13 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
           ],
         );
 
-      case GoodsDonationStatus.verifying:
+      case DonationStatus.verifying:
         return _statusFooter(
           'Your donation is being verified by the CARES team. You will be '
           'notified once it is confirmed.',
         );
 
-      case GoodsDonationStatus.confirmed:
+      case DonationStatus.confirmed:
         return Column(
           children: [
             FilledButton(
@@ -1412,29 +1717,16 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
             const SizedBox(height: 10),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Back to campaign'),
+              child: const Text('Back'),
             ),
           ],
         );
 
-      case GoodsDonationStatus.cancelled:
-        return Column(
-          children: [
-            FilledButton(
-              onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-              child: const Text('Back to My Donations'),
-            ),
-            const SizedBox(height: 10),
-            OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.borderCard),
-              ),
-              child: const Text('View Campaign'),
-            ),
-          ],
+      case DonationStatus.cancelled:
+      case DonationStatus.declined:
+        return FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Back to My Donations'),
         );
     }
   }
@@ -1454,9 +1746,123 @@ class _DonationFlowScreenState extends State<DonationFlowScreen> {
         const SizedBox(height: 12),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Back to campaign'),
+          child: const Text('Back'),
         ),
       ],
+    );
+  }
+}
+
+/// The heading, status pill and tracker at the top of a status view.
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({
+    required this.icon,
+    required this.accent,
+    required this.heading,
+    required this.message,
+    required this.donation,
+  });
+
+  final IconData icon;
+  final Color accent;
+  final String heading;
+  final String message;
+  final Donation donation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
+        border: Border.all(color: AppColors.borderCard),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: accent, size: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  heading,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          DonationStatusPill(
+            label: donation.status.upperLabel,
+            done: donation.isComplete,
+            cancelled: donation.isCancelled || donation.isDeclined,
+          ),
+          const SizedBox(height: 18),
+          DonationStatusTracker(kind: donation.kind, status: donation.status),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// − 3 + for how many units are being given.
+class _QuantityStepper extends StatelessWidget {
+  const _QuantityStepper({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  static const _max = 10000;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.fieldBorder),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: value > 1 ? () => onChanged(value - 1) : null,
+            icon: const Icon(Icons.remove_rounded),
+            color: AppColors.primary,
+          ),
+          Expanded(
+            child: Text(
+              '$value',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: value < _max ? () => onChanged(value + 1) : null,
+            icon: const Icon(Icons.add_rounded),
+            color: AppColors.primary,
+          ),
+        ],
+      ),
     );
   }
 }

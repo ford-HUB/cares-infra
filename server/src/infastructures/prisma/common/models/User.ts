@@ -356,6 +356,9 @@ export type UserWhereInput = {
   evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
   user_requests?: Prisma.UserRequestListRelationFilter
   decided_user_requests?: Prisma.UserRequestListRelationFilter
+  donation_payments?: Prisma.DonationPaymentListRelationFilter
+  donations?: Prisma.DonationListRelationFilter
+  donation_trail_entries?: Prisma.DonationTrailEntryListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }
 
@@ -410,6 +413,9 @@ export type UserOrderByWithRelationInput = {
   evaluation_responses?: Prisma.EvaluationResponseOrderByRelationAggregateInput
   user_requests?: Prisma.UserRequestOrderByRelationAggregateInput
   decided_user_requests?: Prisma.UserRequestOrderByRelationAggregateInput
+  donation_payments?: Prisma.DonationPaymentOrderByRelationAggregateInput
+  donations?: Prisma.DonationOrderByRelationAggregateInput
+  donation_trail_entries?: Prisma.DonationTrailEntryOrderByRelationAggregateInput
   role?: Prisma.RoleOrderByWithRelationInput
 }
 
@@ -467,6 +473,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   evaluation_responses?: Prisma.EvaluationResponseListRelationFilter
   user_requests?: Prisma.UserRequestListRelationFilter
   decided_user_requests?: Prisma.UserRequestListRelationFilter
+  donation_payments?: Prisma.DonationPaymentListRelationFilter
+  donations?: Prisma.DonationListRelationFilter
+  donation_trail_entries?: Prisma.DonationTrailEntryListRelationFilter
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
 }, "user_id" | "phone_number">
 
@@ -570,6 +579,9 @@ export type UserCreateInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -624,6 +636,9 @@ export type UserUncheckedCreateInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserUpdateInput = {
@@ -676,6 +691,9 @@ export type UserUpdateInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -730,6 +748,9 @@ export type UserUncheckedUpdateInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -1433,6 +1454,50 @@ export type UserUpdateOneWithoutDecided_user_requestsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDecided_user_requestsInput, Prisma.UserUpdateWithoutDecided_user_requestsInput>, Prisma.UserUncheckedUpdateWithoutDecided_user_requestsInput>
 }
 
+export type UserCreateNestedOneWithoutDonation_paymentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDonation_paymentsInput, Prisma.UserUncheckedCreateWithoutDonation_paymentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDonation_paymentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDonation_paymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDonation_paymentsInput, Prisma.UserUncheckedCreateWithoutDonation_paymentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDonation_paymentsInput
+  upsert?: Prisma.UserUpsertWithoutDonation_paymentsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDonation_paymentsInput, Prisma.UserUpdateWithoutDonation_paymentsInput>, Prisma.UserUncheckedUpdateWithoutDonation_paymentsInput>
+}
+
+export type UserCreateNestedOneWithoutDonationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDonationsInput, Prisma.UserUncheckedCreateWithoutDonationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDonationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDonationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDonationsInput, Prisma.UserUncheckedCreateWithoutDonationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDonationsInput
+  upsert?: Prisma.UserUpsertWithoutDonationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDonationsInput, Prisma.UserUpdateWithoutDonationsInput>, Prisma.UserUncheckedUpdateWithoutDonationsInput>
+}
+
+export type UserCreateNestedOneWithoutDonation_trail_entriesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDonation_trail_entriesInput, Prisma.UserUncheckedCreateWithoutDonation_trail_entriesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDonation_trail_entriesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutDonation_trail_entriesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDonation_trail_entriesInput, Prisma.UserUncheckedCreateWithoutDonation_trail_entriesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDonation_trail_entriesInput
+  upsert?: Prisma.UserUpsertWithoutDonation_trail_entriesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDonation_trail_entriesInput, Prisma.UserUpdateWithoutDonation_trail_entriesInput>, Prisma.UserUncheckedUpdateWithoutDonation_trail_entriesInput>
+}
+
 export type UserCreateWithoutResidency_documentsInput = {
   user_id?: string
   firstname: string
@@ -1482,6 +1547,9 @@ export type UserCreateWithoutResidency_documentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1535,6 +1603,9 @@ export type UserUncheckedCreateWithoutResidency_documentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutResidency_documentsInput = {
@@ -1602,6 +1673,9 @@ export type UserUpdateWithoutResidency_documentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1655,6 +1729,9 @@ export type UserUncheckedUpdateWithoutResidency_documentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutRole_avatarsInput = {
@@ -1706,6 +1783,9 @@ export type UserCreateWithoutRole_avatarsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1759,6 +1839,9 @@ export type UserUncheckedCreateWithoutRole_avatarsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutRole_avatarsInput = {
@@ -1826,6 +1909,9 @@ export type UserUpdateWithoutRole_avatarsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -1879,6 +1965,9 @@ export type UserUncheckedUpdateWithoutRole_avatarsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutUser_school_infoInput = {
@@ -1930,6 +2019,9 @@ export type UserCreateWithoutUser_school_infoInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -1983,6 +2075,9 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutUser_school_infoInput = {
@@ -2050,6 +2145,9 @@ export type UserUpdateWithoutUser_school_infoInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2103,6 +2201,9 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutUser_verificationsInput = {
@@ -2154,6 +2255,9 @@ export type UserCreateWithoutUser_verificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2207,6 +2311,9 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutUser_verificationsInput = {
@@ -2274,6 +2381,9 @@ export type UserUpdateWithoutUser_verificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2327,6 +2437,9 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -2379,6 +2492,9 @@ export type UserCreateWithoutRoleInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -2431,6 +2547,9 @@ export type UserUncheckedCreateWithoutRoleInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -2532,6 +2651,9 @@ export type UserCreateWithoutPermission_overridesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2585,6 +2707,9 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutPermission_overridesInput = {
@@ -2652,6 +2777,9 @@ export type UserUpdateWithoutPermission_overridesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2705,6 +2833,9 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAction_suspensionsInput = {
@@ -2756,6 +2887,9 @@ export type UserCreateWithoutAction_suspensionsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -2809,6 +2943,9 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAction_suspensionsInput = {
@@ -2876,6 +3013,9 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -2929,6 +3069,9 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutBlocked_ipsInput = {
@@ -2980,6 +3123,9 @@ export type UserCreateWithoutBlocked_ipsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3033,6 +3179,9 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutBlocked_ipsInput = {
@@ -3100,6 +3249,9 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3153,6 +3305,9 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutLogin_activitiesInput = {
@@ -3204,6 +3359,9 @@ export type UserCreateWithoutLogin_activitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3257,6 +3415,9 @@ export type UserUncheckedCreateWithoutLogin_activitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutLogin_activitiesInput = {
@@ -3324,6 +3485,9 @@ export type UserUpdateWithoutLogin_activitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3377,6 +3541,9 @@ export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAudit_logsInput = {
@@ -3428,6 +3595,9 @@ export type UserCreateWithoutAudit_logsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3481,6 +3651,9 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAudit_logsInput = {
@@ -3548,6 +3721,9 @@ export type UserUpdateWithoutAudit_logsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3601,6 +3777,9 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -3652,6 +3831,9 @@ export type UserCreateWithoutAccountsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3705,6 +3887,9 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -3772,6 +3957,9 @@ export type UserUpdateWithoutAccountsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -3825,6 +4013,9 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutOauth_identitiesInput = {
@@ -3876,6 +4067,9 @@ export type UserCreateWithoutOauth_identitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -3929,6 +4123,9 @@ export type UserUncheckedCreateWithoutOauth_identitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutOauth_identitiesInput = {
@@ -3996,6 +4193,9 @@ export type UserUpdateWithoutOauth_identitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4049,6 +4249,9 @@ export type UserUncheckedUpdateWithoutOauth_identitiesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutGmail_connectionInput = {
@@ -4100,6 +4303,9 @@ export type UserCreateWithoutGmail_connectionInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4153,6 +4359,9 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutGmail_connectionInput = {
@@ -4220,6 +4429,9 @@ export type UserUpdateWithoutGmail_connectionInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4273,6 +4485,9 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutUser_interestInput = {
@@ -4324,6 +4539,9 @@ export type UserCreateWithoutUser_interestInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4377,6 +4595,9 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutUser_interestInput = {
@@ -4444,6 +4665,9 @@ export type UserUpdateWithoutUser_interestInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4497,6 +4721,9 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutEvent_attendancesInput = {
@@ -4548,6 +4775,9 @@ export type UserCreateWithoutEvent_attendancesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4601,6 +4831,9 @@ export type UserUncheckedCreateWithoutEvent_attendancesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutEvent_attendancesInput = {
@@ -4668,6 +4901,9 @@ export type UserUpdateWithoutEvent_attendancesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4721,6 +4957,9 @@ export type UserUncheckedUpdateWithoutEvent_attendancesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutLocation_pingsInput = {
@@ -4772,6 +5011,9 @@ export type UserCreateWithoutLocation_pingsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -4825,6 +5067,9 @@ export type UserUncheckedCreateWithoutLocation_pingsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutLocation_pingsInput = {
@@ -4892,6 +5137,9 @@ export type UserUpdateWithoutLocation_pingsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -4945,6 +5193,9 @@ export type UserUncheckedUpdateWithoutLocation_pingsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutChat_participantsInput = {
@@ -4996,6 +5247,9 @@ export type UserCreateWithoutChat_participantsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5049,6 +5303,9 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutChat_participantsInput = {
@@ -5116,6 +5373,9 @@ export type UserUpdateWithoutChat_participantsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5169,6 +5429,9 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutChat_messagesInput = {
@@ -5220,6 +5483,9 @@ export type UserCreateWithoutChat_messagesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5273,6 +5539,9 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutChat_messagesInput = {
@@ -5340,6 +5609,9 @@ export type UserUpdateWithoutChat_messagesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5393,6 +5665,9 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSupport_ticketsInput = {
@@ -5444,6 +5719,9 @@ export type UserCreateWithoutSupport_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5497,6 +5775,9 @@ export type UserUncheckedCreateWithoutSupport_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSupport_ticketsInput = {
@@ -5553,6 +5834,9 @@ export type UserCreateWithoutAssigned_support_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5606,6 +5890,9 @@ export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAssigned_support_ticketsInput = {
@@ -5673,6 +5960,9 @@ export type UserUpdateWithoutSupport_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5726,6 +6016,9 @@ export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutAssigned_support_ticketsInput = {
@@ -5788,6 +6081,9 @@ export type UserUpdateWithoutAssigned_support_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -5841,6 +6137,9 @@ export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSupport_ticket_repliesInput = {
@@ -5892,6 +6191,9 @@ export type UserCreateWithoutSupport_ticket_repliesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -5945,6 +6247,9 @@ export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSupport_ticket_repliesInput = {
@@ -6012,6 +6317,9 @@ export type UserUpdateWithoutSupport_ticket_repliesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6065,6 +6373,9 @@ export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutEdited_certificate_templatesInput = {
@@ -6116,6 +6427,9 @@ export type UserCreateWithoutEdited_certificate_templatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6169,6 +6483,9 @@ export type UserUncheckedCreateWithoutEdited_certificate_templatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutEdited_certificate_templatesInput = {
@@ -6236,6 +6553,9 @@ export type UserUpdateWithoutEdited_certificate_templatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6289,6 +6609,9 @@ export type UserUncheckedUpdateWithoutEdited_certificate_templatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutCertificate_signatory_linesInput = {
@@ -6340,6 +6663,9 @@ export type UserCreateWithoutCertificate_signatory_linesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6393,6 +6719,9 @@ export type UserUncheckedCreateWithoutCertificate_signatory_linesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCertificate_signatory_linesInput = {
@@ -6460,6 +6789,9 @@ export type UserUpdateWithoutCertificate_signatory_linesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6513,6 +6845,9 @@ export type UserUncheckedUpdateWithoutCertificate_signatory_linesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutCertificate_deploymentsInput = {
@@ -6564,6 +6899,9 @@ export type UserCreateWithoutCertificate_deploymentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6617,6 +6955,9 @@ export type UserUncheckedCreateWithoutCertificate_deploymentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCertificate_deploymentsInput = {
@@ -6684,6 +7025,9 @@ export type UserUpdateWithoutCertificate_deploymentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6737,6 +7081,9 @@ export type UserUncheckedUpdateWithoutCertificate_deploymentsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutIssued_certificatesInput = {
@@ -6788,6 +7135,9 @@ export type UserCreateWithoutIssued_certificatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -6841,6 +7191,9 @@ export type UserUncheckedCreateWithoutIssued_certificatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutIssued_certificatesInput = {
@@ -6908,6 +7261,9 @@ export type UserUpdateWithoutIssued_certificatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -6961,6 +7317,9 @@ export type UserUncheckedUpdateWithoutIssued_certificatesInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutMonthly_report_foldersInput = {
@@ -7012,6 +7371,9 @@ export type UserCreateWithoutMonthly_report_foldersInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7065,6 +7427,9 @@ export type UserUncheckedCreateWithoutMonthly_report_foldersInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutMonthly_report_foldersInput = {
@@ -7132,6 +7497,9 @@ export type UserUpdateWithoutMonthly_report_foldersInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7185,6 +7553,9 @@ export type UserUncheckedUpdateWithoutMonthly_report_foldersInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSubmitted_monthly_reportsInput = {
@@ -7236,6 +7607,9 @@ export type UserCreateWithoutSubmitted_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7289,6 +7663,9 @@ export type UserUncheckedCreateWithoutSubmitted_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSubmitted_monthly_reportsInput = {
@@ -7345,6 +7722,9 @@ export type UserCreateWithoutReviewed_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7398,6 +7778,9 @@ export type UserUncheckedCreateWithoutReviewed_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReviewed_monthly_reportsInput = {
@@ -7465,6 +7848,9 @@ export type UserUpdateWithoutSubmitted_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7518,6 +7904,9 @@ export type UserUncheckedUpdateWithoutSubmitted_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutReviewed_monthly_reportsInput = {
@@ -7580,6 +7969,9 @@ export type UserUpdateWithoutReviewed_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7633,6 +8025,9 @@ export type UserUncheckedUpdateWithoutReviewed_monthly_reportsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutAuthored_announcementsInput = {
@@ -7684,6 +8079,9 @@ export type UserCreateWithoutAuthored_announcementsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7737,6 +8135,9 @@ export type UserUncheckedCreateWithoutAuthored_announcementsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAuthored_announcementsInput = {
@@ -7804,6 +8205,9 @@ export type UserUpdateWithoutAuthored_announcementsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -7857,6 +8261,9 @@ export type UserUncheckedUpdateWithoutAuthored_announcementsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -7908,6 +8315,9 @@ export type UserCreateWithoutNotificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -7961,6 +8371,9 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -8028,6 +8441,9 @@ export type UserUpdateWithoutNotificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -8081,6 +8497,9 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutEvaluation_responsesInput = {
@@ -8132,6 +8551,9 @@ export type UserCreateWithoutEvaluation_responsesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -8185,6 +8607,9 @@ export type UserUncheckedCreateWithoutEvaluation_responsesInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutEvaluation_responsesInput = {
@@ -8252,6 +8677,9 @@ export type UserUpdateWithoutEvaluation_responsesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -8305,6 +8733,9 @@ export type UserUncheckedUpdateWithoutEvaluation_responsesInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutUser_requestsInput = {
@@ -8356,6 +8787,9 @@ export type UserCreateWithoutUser_requestsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -8409,6 +8843,9 @@ export type UserUncheckedCreateWithoutUser_requestsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutUser_requestsInput = {
@@ -8465,6 +8902,9 @@ export type UserCreateWithoutDecided_user_requestsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
 }
 
@@ -8518,6 +8958,9 @@ export type UserUncheckedCreateWithoutDecided_user_requestsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
   user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutDecided_user_requestsInput = {
@@ -8585,6 +9028,9 @@ export type UserUpdateWithoutUser_requestsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -8638,6 +9084,9 @@ export type UserUncheckedUpdateWithoutUser_requestsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutDecided_user_requestsInput = {
@@ -8700,6 +9149,9 @@ export type UserUpdateWithoutDecided_user_requestsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
 }
 
@@ -8753,6 +9205,717 @@ export type UserUncheckedUpdateWithoutDecided_user_requestsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutDonation_paymentsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutDonation_paymentsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutDonation_paymentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDonation_paymentsInput, Prisma.UserUncheckedCreateWithoutDonation_paymentsInput>
+}
+
+export type UserUpsertWithoutDonation_paymentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDonation_paymentsInput, Prisma.UserUncheckedUpdateWithoutDonation_paymentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDonation_paymentsInput, Prisma.UserUncheckedCreateWithoutDonation_paymentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDonation_paymentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDonation_paymentsInput, Prisma.UserUncheckedUpdateWithoutDonation_paymentsInput>
+}
+
+export type UserUpdateWithoutDonation_paymentsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDonation_paymentsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutDonationsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryCreateNestedManyWithoutActorInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutDonationsInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutDonationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDonationsInput, Prisma.UserUncheckedCreateWithoutDonationsInput>
+}
+
+export type UserUpsertWithoutDonationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDonationsInput, Prisma.UserUncheckedUpdateWithoutDonationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDonationsInput, Prisma.UserUncheckedCreateWithoutDonationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDonationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDonationsInput, Prisma.UserUncheckedUpdateWithoutDonationsInput>
+}
+
+export type UserUpdateWithoutDonationsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDonationsInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutDonation_trail_entriesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationCreateNestedManyWithoutUserInput
+  role: Prisma.RoleCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutDonation_trail_entriesInput = {
+  user_id?: string
+  firstname: string
+  lastname: string
+  middle_name?: string | null
+  gender?: $Enums.GenderType
+  age?: number
+  current_address: string
+  phone_number: string
+  avatar?: string | null
+  portal_department?: string | null
+  address_street?: string | null
+  address_barangay?: string | null
+  address_city?: string | null
+  address_province?: string | null
+  household_size?: number | null
+  role_id: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedCreateNestedManyWithoutUserInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedCreateNestedManyWithoutUserInput
+  blocked_ips?: Prisma.BlockedIpUncheckedCreateNestedManyWithoutUserInput
+  login_activities?: Prisma.LoginActivityUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActor_userInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedCreateNestedManyWithoutUserInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedCreateNestedManyWithoutUserInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  user_verifications?: Prisma.UserVerificationUncheckedCreateNestedManyWithoutUserInput
+  user_interest?: Prisma.UserInterestUncheckedCreateNestedOneWithoutUserInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedCreateNestedOneWithoutUserInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedCreateNestedManyWithoutUserInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  chat_messages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutSenderInput
+  event_attendances?: Prisma.EventAttendanceUncheckedCreateNestedManyWithoutUserInput
+  location_pings?: Prisma.EventLocationPingUncheckedCreateNestedManyWithoutUserInput
+  support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutRequesterInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssigneeInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedCreateNestedManyWithoutAuthorInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedCreateNestedManyWithoutUpdated_byInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedCreateNestedManyWithoutCoordinatorInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedCreateNestedManyWithoutDeployed_byInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedCreateNestedManyWithoutUserInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutSubmitted_byInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedCreateNestedManyWithoutReviewerInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedCreateNestedManyWithoutCreated_byInput
+  authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedCreateNestedManyWithoutUserInput
+  user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutUserInput
+  decided_user_requests?: Prisma.UserRequestUncheckedCreateNestedManyWithoutDecided_byInput
+  donation_payments?: Prisma.DonationPaymentUncheckedCreateNestedManyWithoutUserInput
+  donations?: Prisma.DonationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDonation_trail_entriesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDonation_trail_entriesInput, Prisma.UserUncheckedCreateWithoutDonation_trail_entriesInput>
+}
+
+export type UserUpsertWithoutDonation_trail_entriesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDonation_trail_entriesInput, Prisma.UserUncheckedUpdateWithoutDonation_trail_entriesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDonation_trail_entriesInput, Prisma.UserUncheckedCreateWithoutDonation_trail_entriesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDonation_trail_entriesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDonation_trail_entriesInput, Prisma.UserUncheckedUpdateWithoutDonation_trail_entriesInput>
+}
+
+export type UserUpdateWithoutDonation_trail_entriesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDonation_trail_entriesInput = {
+  user_id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstname?: Prisma.StringFieldUpdateOperationsInput | string
+  lastname?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.EnumGenderTypeFieldUpdateOperationsInput | $Enums.GenderType
+  age?: Prisma.IntFieldUpdateOperationsInput | number
+  current_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone_number?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  portal_department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_street?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  role_id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  residency_documents?: Prisma.ResidencyDocumentUncheckedUpdateManyWithoutUserNestedInput
+  role_avatars?: Prisma.UserRoleAvatarUncheckedUpdateManyWithoutUserNestedInput
+  blocked_ips?: Prisma.BlockedIpUncheckedUpdateManyWithoutUserNestedInput
+  login_activities?: Prisma.LoginActivityUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutActor_userNestedInput
+  permission_overrides?: Prisma.UserPermissionOverrideUncheckedUpdateManyWithoutUserNestedInput
+  action_suspensions?: Prisma.UserActionSuspensionUncheckedUpdateManyWithoutUserNestedInput
+  user_school_info?: Prisma.UserSchoolInfoUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  user_verifications?: Prisma.UserVerificationUncheckedUpdateManyWithoutUserNestedInput
+  user_interest?: Prisma.UserInterestUncheckedUpdateOneWithoutUserNestedInput
+  gmail_connection?: Prisma.GmailConnectionUncheckedUpdateOneWithoutUserNestedInput
+  oauth_identities?: Prisma.OAuthIdentityUncheckedUpdateManyWithoutUserNestedInput
+  chat_participants?: Prisma.ConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  chat_messages?: Prisma.ChatMessageUncheckedUpdateManyWithoutSenderNestedInput
+  event_attendances?: Prisma.EventAttendanceUncheckedUpdateManyWithoutUserNestedInput
+  location_pings?: Prisma.EventLocationPingUncheckedUpdateManyWithoutUserNestedInput
+  support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutRequesterNestedInput
+  assigned_support_tickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssigneeNestedInput
+  support_ticket_replies?: Prisma.SupportTicketReplyUncheckedUpdateManyWithoutAuthorNestedInput
+  edited_certificate_templates?: Prisma.CertificateTemplateUncheckedUpdateManyWithoutUpdated_byNestedInput
+  certificate_signatory_lines?: Prisma.CertificateTemplateSignatoryUncheckedUpdateManyWithoutCoordinatorNestedInput
+  certificate_deployments?: Prisma.CertificateDeploymentUncheckedUpdateManyWithoutDeployed_byNestedInput
+  issued_certificates?: Prisma.IssuedCertificateUncheckedUpdateManyWithoutUserNestedInput
+  submitted_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutSubmitted_byNestedInput
+  reviewed_monthly_reports?: Prisma.MonthlyReportUncheckedUpdateManyWithoutReviewerNestedInput
+  monthly_report_folders?: Prisma.MonthlyReportFolderUncheckedUpdateManyWithoutCreated_byNestedInput
+  authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
+  user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
+  decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyRoleInput = {
@@ -8825,6 +9988,9 @@ export type UserUpdateWithoutRoleInput = {
   evaluation_responses?: Prisma.EvaluationResponseUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -8877,6 +10043,9 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   evaluation_responses?: Prisma.EvaluationResponseUncheckedUpdateManyWithoutUserNestedInput
   user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutUserNestedInput
   decided_user_requests?: Prisma.UserRequestUncheckedUpdateManyWithoutDecided_byNestedInput
+  donation_payments?: Prisma.DonationPaymentUncheckedUpdateManyWithoutUserNestedInput
+  donations?: Prisma.DonationUncheckedUpdateManyWithoutUserNestedInput
+  donation_trail_entries?: Prisma.DonationTrailEntryUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -8935,6 +10104,9 @@ export type UserCountOutputType = {
   evaluation_responses: number
   user_requests: number
   decided_user_requests: number
+  donation_payments: number
+  donations: number
+  donation_trail_entries: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -8968,6 +10140,9 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   evaluation_responses?: boolean | UserCountOutputTypeCountEvaluation_responsesArgs
   user_requests?: boolean | UserCountOutputTypeCountUser_requestsArgs
   decided_user_requests?: boolean | UserCountOutputTypeCountDecided_user_requestsArgs
+  donation_payments?: boolean | UserCountOutputTypeCountDonation_paymentsArgs
+  donations?: boolean | UserCountOutputTypeCountDonationsArgs
+  donation_trail_entries?: boolean | UserCountOutputTypeCountDonation_trail_entriesArgs
 }
 
 /**
@@ -9190,6 +10365,27 @@ export type UserCountOutputTypeCountDecided_user_requestsArgs<ExtArgs extends ru
   where?: Prisma.UserRequestWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDonation_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DonationPaymentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDonationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DonationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDonation_trail_entriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DonationTrailEntryWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   user_id?: boolean
@@ -9242,6 +10438,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   evaluation_responses?: boolean | Prisma.User$evaluation_responsesArgs<ExtArgs>
   user_requests?: boolean | Prisma.User$user_requestsArgs<ExtArgs>
   decided_user_requests?: boolean | Prisma.User$decided_user_requestsArgs<ExtArgs>
+  donation_payments?: boolean | Prisma.User$donation_paymentsArgs<ExtArgs>
+  donations?: boolean | Prisma.User$donationsArgs<ExtArgs>
+  donation_trail_entries?: boolean | Prisma.User$donation_trail_entriesArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -9345,6 +10544,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   evaluation_responses?: boolean | Prisma.User$evaluation_responsesArgs<ExtArgs>
   user_requests?: boolean | Prisma.User$user_requestsArgs<ExtArgs>
   decided_user_requests?: boolean | Prisma.User$decided_user_requestsArgs<ExtArgs>
+  donation_payments?: boolean | Prisma.User$donation_paymentsArgs<ExtArgs>
+  donations?: boolean | Prisma.User$donationsArgs<ExtArgs>
+  donation_trail_entries?: boolean | Prisma.User$donation_trail_entriesArgs<ExtArgs>
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -9390,6 +10592,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     evaluation_responses: Prisma.$EvaluationResponsePayload<ExtArgs>[]
     user_requests: Prisma.$UserRequestPayload<ExtArgs>[]
     decided_user_requests: Prisma.$UserRequestPayload<ExtArgs>[]
+    donation_payments: Prisma.$DonationPaymentPayload<ExtArgs>[]
+    donations: Prisma.$DonationPayload<ExtArgs>[]
+    donation_trail_entries: Prisma.$DonationTrailEntryPayload<ExtArgs>[]
     role: Prisma.$RolePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -9840,6 +11045,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   evaluation_responses<T extends Prisma.User$evaluation_responsesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$evaluation_responsesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EvaluationResponsePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_requests<T extends Prisma.User$user_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   decided_user_requests<T extends Prisma.User$decided_user_requestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$decided_user_requestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donation_payments<T extends Prisma.User$donation_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donation_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donations<T extends Prisma.User$donationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  donation_trail_entries<T extends Prisma.User$donation_trail_entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$donation_trail_entriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DonationTrailEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -11044,6 +12252,78 @@ export type User$decided_user_requestsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.UserRequestScalarFieldEnum | Prisma.UserRequestScalarFieldEnum[]
+}
+
+/**
+ * User.donation_payments
+ */
+export type User$donation_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DonationPayment
+   */
+  select?: Prisma.DonationPaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DonationPayment
+   */
+  omit?: Prisma.DonationPaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DonationPaymentInclude<ExtArgs> | null
+  where?: Prisma.DonationPaymentWhereInput
+  orderBy?: Prisma.DonationPaymentOrderByWithRelationInput | Prisma.DonationPaymentOrderByWithRelationInput[]
+  cursor?: Prisma.DonationPaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DonationPaymentScalarFieldEnum | Prisma.DonationPaymentScalarFieldEnum[]
+}
+
+/**
+ * User.donations
+ */
+export type User$donationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Donation
+   */
+  select?: Prisma.DonationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Donation
+   */
+  omit?: Prisma.DonationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DonationInclude<ExtArgs> | null
+  where?: Prisma.DonationWhereInput
+  orderBy?: Prisma.DonationOrderByWithRelationInput | Prisma.DonationOrderByWithRelationInput[]
+  cursor?: Prisma.DonationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DonationScalarFieldEnum | Prisma.DonationScalarFieldEnum[]
+}
+
+/**
+ * User.donation_trail_entries
+ */
+export type User$donation_trail_entriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DonationTrailEntry
+   */
+  select?: Prisma.DonationTrailEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DonationTrailEntry
+   */
+  omit?: Prisma.DonationTrailEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DonationTrailEntryInclude<ExtArgs> | null
+  where?: Prisma.DonationTrailEntryWhereInput
+  orderBy?: Prisma.DonationTrailEntryOrderByWithRelationInput | Prisma.DonationTrailEntryOrderByWithRelationInput[]
+  cursor?: Prisma.DonationTrailEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DonationTrailEntryScalarFieldEnum | Prisma.DonationTrailEntryScalarFieldEnum[]
 }
 
 /**

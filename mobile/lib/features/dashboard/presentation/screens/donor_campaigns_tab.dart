@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/dashboard/data/mock_donations.dart';
+import 'package:mobile/features/dashboard/data/models/donation_campaign_models.dart';
+import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/donor_campaign_cards.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.dart';
 import 'package:mobile/features/dashboard/screens/donation_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/donations_page_widgets.dart';
 
-/// Browse and search all donation campaigns — mirrors Programs tab layout.
-class DonorCampaignsTab extends StatefulWidget {
-  const DonorCampaignsTab({super.key, required this.email});
-
-  final String email;
+/// Browse and search every open event accepting donations — the same
+/// `GET /events/donations` feed the home tab shows, with search and a
+/// category filter over it.
+class DonorCampaignsTab extends ConsumerStatefulWidget {
+  const DonorCampaignsTab({super.key});
 
   @override
-  State<DonorCampaignsTab> createState() => _DonorCampaignsTabState();
+  ConsumerState<DonorCampaignsTab> createState() => _DonorCampaignsTabState();
 }
 
-class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
+class _DonorCampaignsTabState extends ConsumerState<DonorCampaignsTab> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _query = '';
@@ -33,23 +38,16 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
     super.dispose();
   }
 
-  List<CaresDonation> get _filteredDonations {
-    return kMockAllDonations
-        .where(
-          (donation) =>
-              donation.matchesCategory(_selectedCategory) &&
-              donation.matchesQuery(_query),
-        )
-        .toList();
-  }
-
-  List<String> get _suggestions => donationSearchSuggestionsFor(_query);
+  List<DonationCampaign> _filtered(List<DonationCampaign> all) => all
+      .where(
+        (c) => c.matchesCategory(_selectedCategory) && c.matchesQuery(_query),
+      )
+      .toList();
 
   bool get _hasActiveFilters =>
       _query.trim().isNotEmpty || _selectedCategory != 'All';
 
-  String get _subtitle {
-    final count = _filteredDonations.length;
+  String _subtitle(int count) {
     if (_query.trim().isNotEmpty) {
       return '$count result${count == 1 ? '' : 's'} found';
     }
@@ -77,9 +75,12 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final donations = _filteredDonations;
-    final showSuggestions =
-        _searchFocusNode.hasFocus && _suggestions.isNotEmpty;
+    final page = ref.watch(donationCampaignsProvider);
+    final all = page.asData?.value ?? const <DonationCampaign>[];
+    final campaigns = _filtered(all);
+    final categories = campaignCategories(all);
+    final suggestions = campaignSearchSuggestions(all, _query);
+    final showSuggestions = _searchFocusNode.hasFocus && suggestions.isNotEmpty;
 
     return GestureDetector(
       onTap: () => _searchFocusNode.unfocus(),
@@ -93,7 +94,9 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
               SliverToBoxAdapter(
                 child: DonationsPageHeader(
                   title: 'Campaigns',
-                  subtitle: _subtitle,
+                  subtitle: page.isLoading
+                      ? 'Loading events accepting donations…'
+                      : _subtitle(campaigns.length),
                 ),
               ),
               SliverToBoxAdapter(
@@ -107,7 +110,7 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
                     onSuggestionTap: _applySuggestion,
                     onClear: _clearSearch,
                     showSuggestions: showSuggestions,
-                    suggestions: _suggestions,
+                    suggestions: suggestions,
                   ),
                 ),
               ),
@@ -115,7 +118,10 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                   child: DonationCategoryFilters(
-                    selected: _selectedCategory,
+                    categories: categories,
+                    selected: categories.contains(_selectedCategory)
+                        ? _selectedCategory
+                        : 'All',
                     onSelected: (category) {
                       setState(() => _selectedCategory = category);
                       _searchFocusNode.unfocus();
@@ -123,32 +129,55 @@ class _DonorCampaignsTabState extends State<DonorCampaignsTab> {
                   ),
                 ),
               ),
-              if (donations.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: DonationsEmptyState(
-                    query: _query,
-                    hasActiveFilters: _hasActiveFilters,
-                    onClearFilters: _clearFilters,
+              ...page.when(
+                loading: () => const [
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    sliver: SliverToBoxAdapter(
+                      child: DonorCampaignListSkeleton(),
+                    ),
                   ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final donation = donations[index];
-                      return DonationCatalogCard(
-                        donation: donation,
-                        onTap: () => DonationDetailsScreen.open(
-                          context,
-                          donation,
-                          donorEmail: widget.email,
-                        ),
-                      );
-                    }, childCount: donations.length),
+                ],
+                error: (error, _) => [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    sliver: SliverToBoxAdapter(
+                      child: HomeStateCard.error(
+                        message: error is ApiException
+                            ? error.message
+                            : 'Could not load campaigns right now.',
+                        onRetry: () =>
+                            ref.invalidate(donationCampaignsProvider),
+                      ),
+                    ),
                   ),
-                ),
+                ],
+                data: (_) => [
+                  if (campaigns.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: DonationsEmptyState(
+                        query: _query,
+                        hasActiveFilters: _hasActiveFilters,
+                        onClearFilters: _clearFilters,
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final campaign = campaigns[index];
+                          return DonationCatalogCard(
+                            donation: campaign,
+                            onTap: () =>
+                                DonationDetailsScreen.open(context, campaign),
+                          );
+                        }, childCount: campaigns.length),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),

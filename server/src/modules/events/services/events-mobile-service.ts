@@ -19,8 +19,10 @@ import {
 } from '../../../infastructures/microservices/nlp-service-client';
 import { RedisService } from '../../../infastructures/redis/redis-service';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
+import { DonationsRepository } from '../../donations/repositories/donations-repository';
 import { InterestsRepository } from '../../interests/repositories/interests-repository';
 import {
+  DonationEventsResponseDto,
   EventRegistrationResponseDto,
   RecommendedEventDto,
   RecommendedEventsResponseDto,
@@ -45,6 +47,7 @@ export class EventsMobileService {
     private readonly interestsRepository: InterestsRepository,
     private readonly nlpServiceClient: NlpServiceClient,
     private readonly redisService: RedisService,
+    private readonly donationsRepository: DonationsRepository,
   ) {}
 
   /**
@@ -111,6 +114,22 @@ export class EventsMobileService {
   ): Promise<RegisteredEventsResponseDto> {
     const events = await this.eventsRepository.findOpenForBeneficiaries(userId);
     return { events: await this.withApplications(userId, events) };
+  }
+
+  /**
+   * Open events accepting money or goods — the donor's campaigns. Each row
+   * carries what has been raised so far so the cards can show progress.
+   */
+  async listForDonors(userId: string): Promise<DonationEventsResponseDto> {
+    const events = await this.eventsRepository.findOpenForDonors(userId);
+    const totals = await this.donationsRepository.totalsByEvent(
+      events.map((event) => event.event_id),
+    );
+    return {
+      events: events.map((event) =>
+        this.mapToDto(event, [], totals.get(event.event_id)),
+      ),
+    };
   }
 
   /** Finished events that were open to beneficiaries — the beneficiary activity page. */
@@ -370,6 +389,10 @@ export class EventsMobileService {
   private mapToDto(
     event: OpenEvent,
     matched: RecommendedEventDto['matched_interests'],
+    donations: { fundsRaised: number; donations: number } = {
+      fundsRaised: 0,
+      donations: 0,
+    },
   ): RecommendedEventDto {
     return {
       event_id: event.event_id,
@@ -390,6 +413,11 @@ export class EventsMobileService {
       category: event.category,
       status: event.status,
       beneficiary_applicable: event.beneficiary_applicable,
+      funds_donation: event.funds_donation,
+      goods_donation: event.goods_donation,
+      goods_types: event.goods_types,
+      funds_raised: donations.fundsRaised,
+      donations_count: donations.donations,
       application_status: null,
       marker_lat: event.marker_lat ?? null,
       marker_lng: event.marker_lng ?? null,
