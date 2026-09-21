@@ -23,18 +23,34 @@ import '../widgets/event_image_carousel.dart';
 import '../widgets/event_registration_dialogs.dart';
 import '../widgets/event_sync_sheet.dart';
 import '../widgets/location_permission_dialogs.dart';
+import '../beneficiary/widgets/beneficiary_event_application_dialog.dart';
 import 'certificate_review_screen.dart';
 import 'event_feedback_screen.dart';
 import 'event_route_map_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
-  const EventDetailsScreen({super.key, required this.event});
+  const EventDetailsScreen({
+    super.key,
+    required this.event,
+    this.readOnly = false,
+  });
 
   final CaresEvent event;
 
-  static void open(BuildContext context, CaresEvent event) {
+  /// Beneficiaries never register — registration is a volunteer endpoint.
+  /// They apply instead: the join/cancel bar becomes "Apply as Beneficiary",
+  /// which files a proof-of-residency application a director rules on.
+  final bool readOnly;
+
+  static void open(
+    BuildContext context,
+    CaresEvent event, {
+    bool readOnly = false,
+  }) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => EventDetailsScreen(event: event)),
+      MaterialPageRoute<void>(
+        builder: (_) => EventDetailsScreen(event: event, readOnly: readOnly),
+      ),
     );
   }
 
@@ -134,7 +150,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       return;
     }
     // Not issued yet: pull the wallet in case the sweep just ran, then say so.
-    await _certificateStore.refresh();
+    final fetched = await _certificateStore.refresh();
     if (!mounted) return;
     final refreshed = _certificate;
     if (refreshed != null) {
@@ -142,9 +158,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
-          'Your certificate is still being generated — check back shortly.',
+          fetched
+              ? 'Your certificate is still being generated — check back shortly.'
+              : 'Could not load your certificates: '
+                    '${_certificateStore.lastError ?? 'unknown error'}',
         ),
         behavior: SnackBarBehavior.floating,
       ),
@@ -555,6 +574,61 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
+  /// The beneficiary's action, by where their application stands: apply,
+  /// wait for the director, or see that it was approved.
+  Widget _buildBeneficiaryBar(CaresEvent event, bool isCompleted) {
+    if (isCompleted) {
+      return FilledButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.event_busy_rounded),
+        label: const Text('Event has ended'),
+        style: _pillStyle,
+      );
+    }
+    if (event.isApplicationAccepted) {
+      return FilledButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.verified_rounded),
+        label: const Text('Application approved'),
+        style: _pillStyle,
+      );
+    }
+    if (event.isApplicationPending) {
+      return FilledButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.hourglass_top_rounded),
+        label: const Text('Pending approval'),
+        style: _pillStyle,
+      );
+    }
+    return FilledButton.icon(
+      onPressed: _applyAsBeneficiary,
+      icon: const Icon(Icons.volunteer_activism_outlined),
+      label: const Text('Apply as Beneficiary'),
+      style: _pillStyle,
+    );
+  }
+
+  Future<void> _applyAsBeneficiary() async {
+    final applied = await showBeneficiaryEventApplicationDialog(
+      context,
+      _event,
+    );
+    if (!mounted || !applied) return;
+    setState(() => _event = _event.withApplicationStatus('PENDING'));
+    // The lists behind this screen carry the same status flag.
+    final container = ProviderScope.containerOf(context, listen: false);
+    container.invalidate(beneficiaryEventsProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Application submitted — pending the director\'s approval.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Widget _buildBottomBar({
     required CaresEvent event,
     required EventParticipation? participation,
@@ -563,6 +637,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     required bool isOngoing,
     required bool feedbackSubmitted,
   }) {
+    if (widget.readOnly) return _buildBeneficiaryBar(event, isCompleted);
     // A finished event has no Cancel or Sync — only the feedback /
     // certificate follow-up for those who joined.
     if (isCompleted) {
@@ -581,6 +656,15 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           onPressed: null,
           icon: const Icon(Icons.person_off_rounded),
           label: const Text('Marked absent — feedback closed'),
+          style: _pillStyle,
+        );
+      }
+      // The validator has not ruled yet: feedback is pending, not open.
+      if (event.isAttendancePending && !feedbackSubmitted) {
+        return FilledButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.hourglass_top_rounded),
+          label: const Text('Feedback pending — validating attendance'),
           style: _pillStyle,
         );
       }

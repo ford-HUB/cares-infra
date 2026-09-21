@@ -1378,6 +1378,10 @@ model UserRequest {
   id_front_url       String?
   id_back_url        String?
   selfie_url         String?
+  /// EVENT_JOIN only — the proof of residency the beneficiary attached.
+  residency_proof_url  String?
+  residency_proof_name String?
+  residency_proof_mime String?
   /// The 512-dim face embedding from the session's match, kept so acceptance
   /// can enrol the biometric without re-running the face service.
   selfie_embedding   Json?

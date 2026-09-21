@@ -8,11 +8,23 @@ import {
   NEED_PRIORITY_LABELS,
   NEED_PRIORITY_ORDER,
   NEED_PRIORITY_THRESHOLDS,
+  NEED_SERIOUSNESS_LABELS,
+  NEED_SERIOUSNESS_ORDER,
   NEEDS_FILTER_ALL,
 } from '../../../constants/residential-needs'
 import type { NeedPriority } from '../../../types/residential-needs'
 
 export type PriorityFilter = NeedPriority | typeof NEEDS_FILTER_ALL
+
+/** The Q2 answers that land in a band, quoted the way the survey words them. */
+function bandAnswers(band: NeedPriority): string {
+  const from = NEED_PRIORITY_THRESHOLDS[band]
+  const above = NEED_PRIORITY_ORDER[NEED_PRIORITY_ORDER.indexOf(band) - 1]
+  const to = above ? NEED_PRIORITY_THRESHOLDS[above] - 1 : from
+  return NEED_SERIOUSNESS_ORDER.filter((level) => level >= from && level <= to)
+    .map((level) => `“${NEED_SERIOUSNESS_LABELS[level]}”`)
+    .join(' or ')
+}
 
 interface NeedsPriorityBannerProps {
   total: number
@@ -116,7 +128,7 @@ export function NeedsPriorityBanner({
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
-                      Total need score of {NEED_PRIORITY_THRESHOLDS[band]} or more.
+                      Most important need rated {bandAnswers(band)}.
                       {active ? ' Click to clear the filter.' : ' Click to filter the table.'}
                     </TooltipContent>
                   </Tooltip>

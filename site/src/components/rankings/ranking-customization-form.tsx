@@ -37,9 +37,10 @@ export function RankingCustomizationForm({
   onRemoveTier,
   onMoveTier,
   saving,
+  isDirty,
   loading,
 }: RankingCustomizationFormProps) {
-  const { errors, isDirty } = form.formState
+  const { errors } = form.formState
   const pointsPerAttendance = form.watch('pointsPerAttendance')
   const penaltyStep = form.watch('absencePenaltyStep')
   const resetDays = form.watch('absenceResetDays')

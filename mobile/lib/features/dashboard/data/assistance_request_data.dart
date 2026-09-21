@@ -153,10 +153,10 @@ String formatRequestDate(DateTime date) {
 
 /// Assistance categories offered to beneficiaries in the prototype.
 const kAssistanceCategories = [
-  'Food & Nutrition',
+  'Food',
   'Medical Assistance',
   'Educational Support',
-  'Shelter & Repair',
+  'Financial Assistance',
   'Livelihood',
   'Disaster Relief',
 ];
@@ -166,13 +166,12 @@ const kAssistanceUrgencyLevels = ['Low', 'Normal', 'High', 'Urgent'];
 /// "What do you need?" choices on the Request Assistance form. Picking
 /// [kOtherOption] reveals a free-text field for the beneficiary's own need.
 const kAssistanceNeedOptions = [
-  'Monthly food pack',
+  'Food Pack',
   'Medicine / medical check-up',
-  'School supplies or tuition support',
-  'House repair materials',
-  'Livelihood starter kit',
+  'School supplies',
+  'Financial Allowance',
+  'Training',
   'Emergency relief goods',
-  'Transportation assistance',
   kOtherOption,
 ];
 
@@ -420,38 +419,48 @@ extension BeneficiaryAssessmentStateX on BeneficiaryAssessmentState {
 /// prompts for a free-text entry when selected.
 const kOtherOption = 'Other';
 
+/// Q1 — what the household currently needs help with (select all that apply).
 const kHouseholdNeedOptions = [
   'Food',
   'Healthcare',
-  'Financial assistance',
-  'Employment / livelihood',
   'Education',
-  'Housing',
-  'Water',
-  'Electricity',
-  'Transportation',
+  'Livelihood',
+  'Financial Assistance',
   kOtherOption,
 ];
 
-const kNeedUrgencyOptions = [
-  'Low',
-  'Moderate',
-  'High',
-  'Very high',
-  'Emergency',
+/// Q2 — how serious the most important need is (single choice).
+const kNeedSeriousnessOptions = [
+  'Not serious',
+  'Slightly serious',
+  'Moderately serious',
+  'Serious',
+  'Very serious',
 ];
 
-const kCommunityConcernOptions = [
-  'Flooding',
-  'Water supply',
-  'Waste management',
-  'Healthcare access',
-  'Lack of jobs',
+/// Q3 — what makes it difficult to meet the need (select all that apply).
+/// [kNoDifficultyOption] is exclusive: picking it clears every other choice.
+const kNoDifficultyOption = 'No difficulty';
+
+const kNeedBarrierOptions = [
+  'Lack of money',
+  'Lack of available services',
+  'Distance',
+  'Lack of information',
+  'Lack of required documents',
+  'Limited opportunities',
+  kOtherOption,
+  kNoDifficultyOption,
+];
+
+/// Q4 — the problem most commonly observed in the community (single choice).
+const kCommunityProblemOptions = [
+  'Food',
+  'Healthcare',
   'Education',
-  'Public safety',
-  'Transportation',
-  'Internet access',
-  'Food insecurity',
+  'Livelihood',
+  'Financial Assistance',
+  'Environmental',
   kOtherOption,
 ];
 
@@ -461,41 +470,40 @@ class NeedsAssessmentResponse {
   const NeedsAssessmentResponse({
     required this.householdNeeds,
     this.otherHouseholdNeed = '',
-    required this.mostUrgentNeed,
-    this.otherMostUrgentNeed = '',
-    required this.urgencyLevel,
-    required this.communityConcerns,
-    this.otherCommunityConcern = '',
-    this.additionalNotes = '',
+    required this.seriousness,
+    required this.barriers,
+    this.otherBarrier = '',
+    required this.communityProblem,
+    this.otherCommunityProblem = '',
+    this.additionalConcern = '',
   });
 
-  /// Step 1 — everything the household needs help with.
+  /// Q1 — everything the household needs help with.
   final List<String> householdNeeds;
   final String otherHouseholdNeed;
 
-  /// Step 2 — the single most urgent need.
-  final String mostUrgentNeed;
-  final String otherMostUrgentNeed;
+  /// Q2 — how serious the most important need is.
+  final String seriousness;
 
-  /// Step 3 — how serious that need is right now.
-  final String urgencyLevel;
+  /// Q3 — what makes it difficult to meet that need.
+  final List<String> barriers;
+  final String otherBarrier;
 
-  /// Step 4 — problems affecting the community.
-  final List<String> communityConcerns;
-  final String otherCommunityConcern;
+  /// Q4 — the problem most commonly observed in the community.
+  final String communityProblem;
+  final String otherCommunityProblem;
 
-  /// Step 5 — free-text context.
-  final String additionalNotes;
+  /// Q5 — another need or concern for CARES to know about.
+  final String additionalConcern;
 
   /// Display helpers that swap "Other" for what the beneficiary typed.
   String get householdNeedsLabel =>
       _joinWithOther(householdNeeds, otherHouseholdNeed);
 
-  String get mostUrgentNeedLabel =>
-      _withOther(mostUrgentNeed, otherMostUrgentNeed);
+  String get barriersLabel => _joinWithOther(barriers, otherBarrier);
 
-  String get communityConcernsLabel =>
-      _joinWithOther(communityConcerns, otherCommunityConcern);
+  String get communityProblemLabel =>
+      _withOther(communityProblem, otherCommunityProblem);
 
   static String _withOther(String value, String other) =>
       value == kOtherOption && other.trim().isNotEmpty
@@ -543,10 +551,10 @@ final kMockNeedsAssessment = NeedsAssessmentSummary(
 
 const kMockNeedsAssessmentResponse = NeedsAssessmentResponse(
   householdNeeds: ['Food', 'Healthcare', 'Education'],
-  mostUrgentNeed: 'Food',
-  urgencyLevel: 'High',
-  communityConcerns: ['Flooding', 'Water supply', 'Healthcare access'],
-  additionalNotes:
+  seriousness: 'Serious',
+  barriers: ['Lack of money', 'Distance'],
+  communityProblem: 'Environmental',
+  additionalConcern:
       'Our area floods during the rainy season and the nearest health center '
       'is far. One senior in the household needs maintenance medication.',
 );

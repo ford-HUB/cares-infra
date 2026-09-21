@@ -35,22 +35,17 @@ export type RankedAttendanceRow = Prisma.EventAttendanceGetPayload<{
   select: typeof RANKED_ATTENDANCE_SELECT;
 }>;
 
-/**
- * How the events form marks an event open to every college. Such events, and
- * older ones with no department at all, count for every coordinator's board.
- */
-const SCHOOL_WIDE_DEPARTMENT = 'All Departments';
-
 export interface RankedAttendanceFilter {
   /** Only events that ended at or after this moment. */
   since?: Date;
   /** Only one volunteer's rows — for a profile's own tally. */
   userId?: string;
   /**
-   * Only events filed under one of these spellings of a college — plus the
-   * school-wide ones, which every college's volunteers were invited to.
+   * Only volunteers whose school record files them under one of these spellings
+   * of a college — the department the volunteer is actually assigned to, whatever
+   * events they attended.
    */
-  eventDepartments?: string[];
+  volunteerDepartments?: string[];
 }
 
 @Injectable()
@@ -92,26 +87,29 @@ export class RankingsRepository {
       where: {
         status: { in: [AttendanceStatus.COMPLETED, AttendanceStatus.ABSENT] },
         ...(filter.userId ? { user_id: filter.userId } : {}),
-        user: { role: { type: RoleType.VOLUNTEER } },
+        user: {
+          role: { type: RoleType.VOLUNTEER },
+          ...(filter.volunteerDepartments
+            ? {
+                user_school_info: {
+                  some: {
+                    department: {
+                      name: {
+                        in: filter.volunteerDepartments,
+                        mode: Prisma.QueryMode.insensitive,
+                      },
+                    },
+                  },
+                },
+              }
+            : {}),
+        },
         event: {
           event_ended: {
             lt: now,
             ...(filter.since ? { gte: filter.since } : {}),
           },
           status: { not: EventStatus.Cancelled },
-          ...(filter.eventDepartments
-            ? {
-                OR: [
-                  {
-                    department: {
-                      in: [...filter.eventDepartments, SCHOOL_WIDE_DEPARTMENT],
-                      mode: Prisma.QueryMode.insensitive,
-                    },
-                  },
-                  { department: null },
-                ],
-              }
-            : {}),
         },
       },
       select: RANKED_ATTENDANCE_SELECT,

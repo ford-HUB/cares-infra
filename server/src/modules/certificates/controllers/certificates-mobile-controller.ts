@@ -12,7 +12,7 @@ import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import { CertificateAssetIdParamSchema } from '../../certificate-templates/validators/certificate-templates-site-validator';
 import type {
   IssuedCertificateDto,
@@ -28,7 +28,7 @@ import {
 
 /** The volunteer app's certificate wallet. */
 @Controller('v1/certificates')
-@Roles(RoleType.VOLUNTEER)
+@Roles(...MOBILE_ROLE_TYPES)
 export class CertificatesMobileController {
   constructor(
     private readonly certificatesService: CertificatesMobileService,

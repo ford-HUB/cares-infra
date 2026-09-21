@@ -4,7 +4,7 @@ import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import { EventIdParamSchema } from '../../events/validators/events-site-validator';
 import type {
   EvaluationSubmissionsResponseDto,
@@ -22,7 +22,7 @@ import {
 
 /** The volunteer app's side of the post-event questionnaire. */
 @Controller('v1/evaluation')
-@Roles(RoleType.VOLUNTEER)
+@Roles(...MOBILE_ROLE_TYPES)
 export class EvaluationMobileController {
   constructor(
     private readonly evaluationMobileService: EvaluationMobileService,

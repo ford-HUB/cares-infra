@@ -10,18 +10,22 @@ import {
 import { ChartCard } from '../../statistics/ui/chart-card'
 import {
   CLUSTER_COLORS,
-  CLUSTER_SCATTER_X,
-  CLUSTER_SCATTER_Y,
-  NEED_SCORE_MAX,
+  CLUSTER_SCATTER_X_LABEL,
+  CLUSTER_SCATTER_Y_LABEL,
+  NEED_CATEGORY_ORDER,
+  NEED_SERIOUSNESS_LABELS,
+  NEED_SERIOUSNESS_MAX,
+  NEED_SERIOUSNESS_ORDER,
   NEEDS_CHART_HEIGHT,
-  NEEDS_FEATURE_LABELS,
   NEEDS_GRID_STROKE,
 } from '../../../constants/residential-needs'
 import type {
   Household,
+  NeedSeriousness,
   NeedsClusteringResult,
 } from '../../../types/residential-needs'
-import { featureValue } from '../../../utils/needs-kmeans'
+
+const NEEDS_MAX = NEED_CATEGORY_ORDER.length
 
 interface ClusterScatterChartProps {
   households: Household[]
@@ -31,10 +35,11 @@ interface ClusterScatterChartProps {
 }
 
 /**
- * The clusters on two need scores a director already thinks in — food against
- * health. The model ran on all seven features; this is a projection, so two dots
- * that overlap here may still sit in different groups. Dots are jittered a touch so
- * households with identical scores do not stack into one.
+ * The clusters on the two survey answers a director reads first — how serious the
+ * household rated its need against how many needs it ticked. The model ran on all
+ * seven features; this is a projection, so two dots that overlap here may still sit
+ * in different groups. Dots are jittered a touch so households with identical
+ * answers do not stack into one.
  */
 const JITTER = 0.18
 export function ClusterScatterChart({ households, result, selected }: ClusterScatterChartProps) {
@@ -54,8 +59,8 @@ export function ClusterScatterChart({ households, result, selected }: ClusterSca
     points: households
       .filter((h) => result.assignments[h.id] === cluster.index)
       .map((h, i) => ({
-        x: featureValue(h, CLUSTER_SCATTER_X) + ((i % 5) - 2) * (JITTER / 2),
-        y: featureValue(h, CLUSTER_SCATTER_Y) + ((Math.floor(i / 5) % 5) - 2) * (JITTER / 2),
+        x: h.survey.seriousness + ((i % 5) - 2) * (JITTER / 2),
+        y: h.survey.needs.length + ((Math.floor(i / 5) % 5) - 2) * (JITTER / 2),
         name: `${h.familyName} family · Brgy. ${h.barangay}`,
       })),
   }))
@@ -63,7 +68,7 @@ export function ClusterScatterChart({ households, result, selected }: ClusterSca
   return (
     <ChartCard
       title="Cluster map"
-      description={`${NEEDS_FEATURE_LABELS[CLUSTER_SCATTER_X]} against ${NEEDS_FEATURE_LABELS[CLUSTER_SCATTER_Y].toLowerCase()} — one dot per household.`}
+      description={`${CLUSTER_SCATTER_X_LABEL} against ${CLUSTER_SCATTER_Y_LABEL.toLowerCase()} — one dot per household.`}
     >
       <ChartContainer config={config} className={`w-full ${NEEDS_CHART_HEIGHT}`}>
         <ScatterChart margin={{ top: 8, right: 12, bottom: 4, left: 4 }}>
@@ -71,9 +76,9 @@ export function ClusterScatterChart({ households, result, selected }: ClusterSca
           <XAxis
             type="number"
             dataKey="x"
-            name={NEEDS_FEATURE_LABELS[CLUSTER_SCATTER_X]}
-            domain={[-0.5, NEED_SCORE_MAX + 0.5]}
-            ticks={[0, 1, 2, 3, 4, 5]}
+            name={CLUSTER_SCATTER_X_LABEL}
+            domain={[0.5, NEED_SERIOUSNESS_MAX + 0.5]}
+            ticks={NEED_SERIOUSNESS_ORDER}
             tickLine={false}
             axisLine={false}
             tickMargin={8}
@@ -82,9 +87,10 @@ export function ClusterScatterChart({ households, result, selected }: ClusterSca
           <YAxis
             type="number"
             dataKey="y"
-            name={NEEDS_FEATURE_LABELS[CLUSTER_SCATTER_Y]}
-            domain={[-0.5, NEED_SCORE_MAX + 0.5]}
-            ticks={[0, 1, 2, 3, 4, 5]}
+            name={CLUSTER_SCATTER_Y_LABEL}
+            domain={[0.5, NEEDS_MAX + 0.5]}
+            ticks={Array.from({ length: NEEDS_MAX }, (_, i) => i + 1)}
+            allowDecimals={false}
             width={28}
             tickLine={false}
             axisLine={false}
@@ -97,7 +103,9 @@ export function ClusterScatterChart({ households, result, selected }: ClusterSca
               <ChartTooltipContent
                 labelKey="name"
                 formatter={(value, name) =>
-                  `${NEEDS_FEATURE_LABELS[name === 'x' ? CLUSTER_SCATTER_X : CLUSTER_SCATTER_Y]}: ${Math.round(Number(value))} / ${NEED_SCORE_MAX}`
+                  name === 'x'
+                    ? `${CLUSTER_SCATTER_X_LABEL}: ${NEED_SERIOUSNESS_LABELS[Math.round(Number(value)) as NeedSeriousness]}`
+                    : `${CLUSTER_SCATTER_Y_LABEL}: ${Math.round(Number(value))} of ${NEEDS_MAX}`
                 }
               />
             }

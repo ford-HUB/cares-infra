@@ -41,6 +41,7 @@ class RecommendedEvent {
     required this.category,
     required this.status,
     required this.beneficiaryApplicable,
+    this.applicationStatus,
     required this.matchedInterests,
     required this.matchScore,
     this.imageCount = 0,
@@ -64,6 +65,7 @@ class RecommendedEvent {
       category: json['category'] as String? ?? '',
       status: json['status'] as String? ?? 'Upcoming',
       beneficiaryApplicable: json['beneficiary_applicable'] as bool? ?? false,
+      applicationStatus: json['application_status'] as String?,
       markerLat: (json['marker_lat'] as num?)?.toDouble(),
       markerLng: (json['marker_lng'] as num?)?.toDouble(),
       imageCount: json['image_count'] as int? ?? 0,
@@ -95,6 +97,10 @@ class RecommendedEvent {
   final String category;
   final String status;
   final bool beneficiaryApplicable;
+
+  /// Beneficiary rows only: `PENDING` / `ACCEPTED` for the caller's own
+  /// application, null otherwise.
+  final String? applicationStatus;
   final double? markerLat;
   final double? markerLng;
 
@@ -157,6 +163,7 @@ class RecommendedEvent {
       endDate: endsAt,
       imageUrls: imageUrls,
       attendanceStatus: attendanceStatus,
+      applicationStatus: applicationStatus,
     );
   }
 }

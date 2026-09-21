@@ -46,7 +46,7 @@ void _handleSessionEnded(String? message) {
   NotificationSync.instance.clear();
   LocalNotifications.instance.cancelAll();
 
-  final navigator = rootNavigatorKey.currentState;
+  final navigator =  rootNavigatorKey.currentState;
   if (navigator == null) return;
 
   navigator.pushAndRemoveUntil(

@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
+import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 import 'package:mobile/features/dashboard/domain/mock_event.dart';
+import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/featured_events_carousel.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_header.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_card.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/stats_row.dart';
 import 'package:mobile/features/dashboard/screens/assistance_request_details_screen.dart';
+import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/screens/needs_assessment_screen.dart';
 import 'package:mobile/features/dashboard/widgets/assistance_request_widgets.dart';
 
 /// Beneficiary home tab — same structure and styling as the volunteer home
 /// tab (header, featured events, stats row, action card), with assistance
-/// requests in place of volunteer service stats.
-class BeneficiaryHomeTab extends StatefulWidget {
+/// requests in place of volunteer service stats. The featured carousel is the
+/// open events flagged for beneficiaries ([beneficiaryEventsProvider]); it
+/// hides itself while loading or when nothing is flagged.
+class BeneficiaryHomeTab extends ConsumerStatefulWidget {
   const BeneficiaryHomeTab({
     super.key,
     required this.firstName,
@@ -30,11 +37,59 @@ class BeneficiaryHomeTab extends StatefulWidget {
   final VoidCallback? onCompleteProfile;
 
   @override
-  State<BeneficiaryHomeTab> createState() => _BeneficiaryHomeTabState();
+  ConsumerState<BeneficiaryHomeTab> createState() => _BeneficiaryHomeTabState();
 }
 
-class _BeneficiaryHomeTabState extends State<BeneficiaryHomeTab> {
+class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
   final _store = AssistanceRequestStore.instance;
+
+  /// The carousel still draws the prototype card model; project the server
+  /// rows onto it. The first image is the poster, with the bearer token sent
+  /// along since the bucket is private.
+  static const _carouselLimit = 5;
+
+  List<RecommendedEvent> _featured = const [];
+
+  MockEvent _toCard(RecommendedEvent event) {
+    final urls = event.imageUrls;
+    return MockEvent(
+      id: event.caresEventId,
+      title: event.title,
+      category: event.category,
+      date: _dateLabel(event.startsAt),
+      location: event.location,
+      imageUrl: urls.isEmpty ? '' : urls.first,
+      description: event.description,
+      spotsLeft: event.slotsLeft,
+    );
+  }
+
+  static String _dateLabel(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  void _openEvent(MockEvent card) {
+    for (final event in _featured) {
+      if (event.caresEventId == card.id) {
+        EventDetailsScreen.open(context, event.toCaresEvent(), readOnly: true);
+        return;
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -71,8 +126,23 @@ class _BeneficiaryHomeTabState extends State<BeneficiaryHomeTab> {
               points: 0,
               badgeLabel: '${current.length} active',
             ),
-            const SizedBox(height: 22),
-            FeaturedEventsCarousel(events: MockEvents.featured),
+            ...ref
+                .watch(beneficiaryEventsProvider)
+                .maybeWhen(
+                  data: (events) {
+                    _featured = events.take(_carouselLimit).toList();
+                    if (_featured.isEmpty) return const <Widget>[];
+                    return [
+                      const SizedBox(height: 22),
+                      FeaturedEventsCarousel(
+                        events: _featured.map(_toCard).toList(),
+                        imageHeaders: ApiClient().authHeaders(),
+                        onEventTap: _openEvent,
+                      ),
+                    ];
+                  },
+                  orElse: () => const <Widget>[],
+                ),
             const SizedBox(height: 22),
             StatsRow.custom(
               items: [

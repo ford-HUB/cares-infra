@@ -52,6 +52,12 @@ export const RecommendedEventSchema = z.object({
   category: z.string(),
   status: z.enum(EventStatus),
   beneficiary_applicable: z.boolean(),
+  /**
+   * A beneficiary's own application for this event: PENDING while a director
+   * has yet to rule, ACCEPTED once they have (which is also when
+   * `is_registered` flips). Null for volunteers and unapplied events.
+   */
+  application_status: z.enum(['PENDING', 'ACCEPTED']).nullable(),
   marker_lat: z.number().nullable(),
   marker_lng: z.number().nullable(),
   /** How many images the event carries; each streams from `GET /events/:id/images/:index`. */

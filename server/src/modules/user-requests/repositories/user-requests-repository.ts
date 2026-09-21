@@ -28,6 +28,7 @@ export interface CreateUserRequestInput {
   selfieUrl?: string | null;
   selfieEmbedding?: number[] | null;
   faceSimilarity?: number | null;
+  residencyProof?: { url: string; name: string; mime: string } | null;
 }
 
 export interface DecideUserRequestInput {
@@ -113,6 +114,30 @@ export class UserRequestsRepository {
     });
   }
 
+  /**
+   * The event's beneficiary cap and how many applications a director has
+   * already accepted against it. Beneficiaries are counted here, never on the
+   * attendance table — that list is the volunteers'.
+   */
+  async findBeneficiaryCapacity(eventId: number) {
+    const [event, accepted] = await Promise.all([
+      this.prisma.event.findUnique({
+        where: { event_id: eventId },
+        select: {
+          title: true,
+          status: true,
+          event_ended: true,
+          beneficiary_applicable: true,
+          max_beneficiaries: true,
+        },
+      }),
+      this.prisma.userRequest.count({
+        where: { kind: 'EVENT_JOIN', event_id: eventId, status: 'ACCEPTED' },
+      }),
+    ]);
+    return event ? { ...event, accepted } : null;
+  }
+
   async create(input: CreateUserRequestInput): Promise<UserRequestRow> {
     return this.prisma.userRequest.create({
       data: {
@@ -126,6 +151,9 @@ export class UserRequestsRepository {
         selfie_url: input.selfieUrl ?? null,
         selfie_embedding: input.selfieEmbedding ?? undefined,
         face_similarity: input.faceSimilarity ?? null,
+        residency_proof_url: input.residencyProof?.url ?? null,
+        residency_proof_name: input.residencyProof?.name ?? null,
+        residency_proof_mime: input.residencyProof?.mime ?? null,
         trail: {
           create: {
             label: 'Request submitted from the mobile app',

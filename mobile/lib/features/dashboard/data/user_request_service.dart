@@ -1,3 +1,5 @@
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/user_request_models.dart';
 
@@ -34,15 +36,43 @@ class UserRequestService {
     );
   }
 
-  /// Beneficiaries do not take a slot on the spot — the director accepts the
-  /// request first, and that acceptance is what books the place.
-  Future<UserRequestResponse> requestEventJoin({required int eventId}) async {
-    final response = await _api.postJson(
+  /// Beneficiaries do not take a slot on the spot — the application carries a
+  /// proof of residency (photo or PDF), the director reviews it, and that
+  /// acceptance is what books the place.
+  Future<UserRequestResponse> applyForEvent({
+    required int eventId,
+    required String proofPath,
+    required String proofName,
+    String? proofMimeType,
+  }) async {
+    final proof = await http.MultipartFile.fromPath(
+      'proof',
+      proofPath,
+      filename: proofName,
+      contentType: _mediaTypeForName(proofName, proofMimeType),
+    );
+    final response = await _api.postMultipart(
       '$_base/event-join',
-      body: {'eventId': eventId},
+      fields: {'eventId': '$eventId'},
+      files: [proof],
     );
     return UserRequestResponse.fromJson(
       response['data'] as Map<String, dynamic>,
     );
+  }
+
+  MediaType? _mediaTypeForName(String name, String? mime) {
+    if (mime != null && mime.contains('/')) {
+      final parts = mime.split('/');
+      return MediaType(parts[0], parts[1]);
+    }
+    final ext = name.split('.').last.toLowerCase();
+    return switch (ext) {
+      'png' => MediaType('image', 'png'),
+      'webp' => MediaType('image', 'webp'),
+      'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+      'pdf' => MediaType('application', 'pdf'),
+      _ => null,
+    };
   }
 }

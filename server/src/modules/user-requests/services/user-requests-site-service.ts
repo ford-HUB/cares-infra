@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { S3Service } from '../../../infastructures/s3/s3-service';
-import { EventsMobileService } from '../../events/services/events-mobile-service';
+import { EventStatus } from '../../../infastructures/prisma/common/client';
 import type {
   ListUserRequestsQueryDto,
   UserRequestAttachmentKind,
@@ -21,7 +21,6 @@ import { toSiteDto } from './user-requests-mapper';
 export class UserRequestsSiteService {
   constructor(
     private readonly userRequestsRepository: UserRequestsRepository,
-    private readonly eventsMobileService: EventsMobileService,
     private readonly s3Service: S3Service,
   ) {}
 
@@ -31,11 +30,14 @@ export class UserRequestsSiteService {
   }
 
   /**
-   * Accepting an event-join request is what actually books the beneficiary's
-   * place — the same slot logic volunteers go through, so a full event is
-   * refused here rather than silently over-booked. Accepting a role-access
-   * request enrols the verified ID + face on the account, so the Volunteer
-   * side's profile completion counts the ID check as done.
+   * Accepting an event-join request is what confirms the beneficiary's place.
+   * It does not take a volunteer slot or create an attendance row — the
+   * attendance list is the volunteers'; beneficiaries receive from the event
+   * rather than serve at it, so the accepted request is their record. The
+   * event's beneficiary cap, when set, is enforced against accepted requests.
+   * Accepting a role-access request enrols the verified ID + face on the
+   * account, so the Volunteer side's profile completion counts the ID check
+   * as done.
    */
   async accept(id: string, callerId: string): Promise<UserRequestDto> {
     const row = await this.requirePending(id);
@@ -44,7 +46,7 @@ export class UserRequestsSiteService {
       if (row.event_id === null) {
         throw new BadRequestException('This request has no event attached');
       }
-      await this.eventsMobileService.register(row.user_id, row.event_id);
+      await this.assertBeneficiaryPlace(row.event_id);
     }
 
     const actorName = await this.callerName(callerId);
@@ -61,7 +63,7 @@ export class UserRequestsSiteService {
             status: 'ACCEPTED',
             decidedByUserId: callerId,
             trail: {
-              label: 'Request accepted — beneficiary added to the event',
+              label: 'Request accepted — beneficiary approved for the event',
               actorName,
             },
           });
@@ -105,9 +107,38 @@ export class UserRequestsSiteService {
       'id-front': row.id_front_url,
       'id-back': row.id_back_url,
       selfie: row.selfie_url,
+      'residency-proof': row.residency_proof_url,
     }[kind];
     if (!stored) throw new NotFoundException('Attachment not found');
-    return this.s3Service.getObject(stored);
+    const object = await this.s3Service.getObject(stored);
+    return kind === 'residency-proof' && row.residency_proof_mime
+      ? { ...object, contentType: row.residency_proof_mime }
+      : object;
+  }
+
+  /** The event must still be open and, if capped, have a beneficiary place left. */
+  private async assertBeneficiaryPlace(eventId: number): Promise<void> {
+    const capacity =
+      await this.userRequestsRepository.findBeneficiaryCapacity(eventId);
+    if (!capacity) throw new NotFoundException('Event not found');
+    if (!capacity.beneficiary_applicable) {
+      throw new BadRequestException('This event is not open to beneficiaries');
+    }
+    const open =
+      (capacity.status === EventStatus.Upcoming ||
+        capacity.status === EventStatus.Ongoing) &&
+      capacity.event_ended.getTime() >= Date.now();
+    if (!open) {
+      throw new BadRequestException('This event is no longer open');
+    }
+    if (
+      capacity.max_beneficiaries !== null &&
+      capacity.accepted >= capacity.max_beneficiaries
+    ) {
+      throw new BadRequestException(
+        `This event already has its ${capacity.max_beneficiaries} beneficiaries`,
+      );
+    }
   }
 
   private async requireRow(id: string): Promise<UserRequestRow> {

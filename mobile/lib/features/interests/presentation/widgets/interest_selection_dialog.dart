@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/interests/data/interests_service.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
@@ -13,6 +14,10 @@ import 'package:mobile/features/interests/domain/user_interest.dart';
 /// Pass [initialSelection] when editing an existing set — the save is a full
 /// replace, so anything not pre-checked here would be dropped. [dismissible]
 /// adds a close button and lets the user back out without saving.
+///
+/// Donors and beneficiaries whose Volunteer role a director approved are from
+/// outside the school community: the School interest is not offered to them
+/// and is dropped from [initialSelection] if it was saved earlier.
 Future<Set<UserInterest>?> showInterestSelectionDialog(
   BuildContext context, {
   InterestsService? interestsService,
@@ -48,7 +53,17 @@ class InterestSelectionDialog extends StatefulWidget {
 }
 
 class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
-  late final Set<UserInterest> _selected = {...widget.initialSelection};
+  final bool _outsideSchool =
+      RoleAccountStore.instance.volunteerFromOutsideSchool;
+  late final List<UserInterest> _options = UserInterestX.selectable(
+    outsideSchool: _outsideSchool,
+  );
+  late final Set<UserInterest> _selected = {
+    ...UserInterestX.allowed(
+      widget.initialSelection,
+      outsideSchool: _outsideSchool,
+    ),
+  };
   bool _isSaving = false;
   String? _errorMessage;
 
@@ -126,9 +141,9 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
                         crossAxisSpacing: 12,
                         childAspectRatio: 0.86,
                       ),
-                  itemCount: UserInterest.values.length,
+                  itemCount: _options.length,
                   itemBuilder: (_, index) {
-                    final interest = UserInterest.values[index];
+                    final interest = _options[index];
                     return _InterestCard(
                       interest: interest,
                       isSelected: _selected.contains(interest),

@@ -34,6 +34,25 @@ final recommendedEventsProvider =
       return page;
     });
 
+/// Open events flagged for beneficiaries — the beneficiary home carousel and
+/// Events tab read this. Beneficiaries hold no registrations, so nothing is
+/// reconciled with the registration store.
+final beneficiaryEventsProvider =
+    FutureProvider.autoDispose<List<RecommendedEvent>>(
+      (ref) =>
+          ref.read(recommendedEventsServiceProvider).fetchForBeneficiaries(),
+    );
+
+/// Finished events that were open to beneficiaries — the beneficiary
+/// Activity tab. Nothing volunteer-side (registrations, feedback,
+/// certificates) is touched.
+final beneficiaryCompletedEventsProvider =
+    FutureProvider.autoDispose<List<RecommendedEvent>>(
+      (ref) => ref
+          .read(recommendedEventsServiceProvider)
+          .fetchCompletedForBeneficiaries(),
+    );
+
 /// The volunteer's own registrations for the activity page. Unlike the feed
 /// this includes finished events, so it is the source that puts them under
 /// "Completed" after a restart. Each fetch reconciles the store the same way

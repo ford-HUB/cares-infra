@@ -6,7 +6,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/skeleton.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
-import 'package:mobile/features/dashboard/data/mock_events.dart';
+import 'package:mobile/features/dashboard/data/mock_events.dart'
+    show smartSearchSuggestionsFor;
 import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
 import 'package:mobile/features/dashboard/domain/event_time_range.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/discover_header.dart';
@@ -27,8 +28,9 @@ import 'package:mobile/features/interests/presentation/widgets/interest_selectio
 /// description read by nlp-service), so the list is empty until something
 /// fits what they picked. Events the volunteer has already registered for
 /// drop out of this list — they live on the Activity tab instead. With
-/// [forBeneficiary] the list is the prototype fixture of events beneficiaries
-/// may attend — that role has no live endpoint yet.
+/// [forBeneficiary] the list is every open event an operator flagged as
+/// applicable to beneficiaries, read from `GET /events/beneficiary`; cards
+/// open read-only since beneficiaries do not register.
 class EventsTabScreen extends ConsumerStatefulWidget {
   const EventsTabScreen({super.key, this.forBeneficiary = false});
 
@@ -92,7 +94,11 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
       _query.trim().isNotEmpty || _range != EventTimeRange.all;
 
   String _subtitle(int count, {bool loading = false}) {
-    if (loading) return 'Finding events that match your interests…';
+    if (loading) {
+      return widget.forBeneficiary
+          ? 'Finding events open to beneficiaries…'
+          : 'Finding events that match your interests…';
+    }
     if (_query.trim().isNotEmpty) {
       return '$count result${count == 1 ? '' : 's'} found';
     }
@@ -121,6 +127,14 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
     setState(() => _range = EventTimeRange.all);
   }
 
+  void _reload() {
+    ref.invalidate(
+      widget.forBeneficiary
+          ? beneficiaryEventsProvider
+          : recommendedEventsProvider,
+    );
+  }
+
   Future<void> _chooseInterests() async {
     final selected = await showInterestSelectionDialog(context);
     if (!mounted || selected == null) return;
@@ -132,9 +146,16 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
     final showSuggestions =
         _searchFocusNode.hasFocus && _suggestions.isNotEmpty;
 
-    // Beneficiaries still run on the prototype fixture; volunteers are live.
+    // Beneficiaries get the flagged pool, volunteers the interest matches.
     final AsyncValue<_Catalog> catalog = widget.forBeneficiary
-        ? AsyncData(_Catalog(kMockBeneficiaryEvents, hasInterests: true))
+        ? ref
+              .watch(beneficiaryEventsProvider)
+              .whenData(
+                (events) => _Catalog(
+                  events.map((e) => e.toCaresEvent()).toList(),
+                  hasInterests: true,
+                ),
+              )
         : ref
               .watch(recommendedEventsProvider)
               .whenData(
@@ -212,7 +233,7 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
                       message: error is ApiException
                           ? error.message
                           : 'Could not load events right now.',
-                      onRetry: () => ref.invalidate(recommendedEventsProvider),
+                      onRetry: _reload,
                     ),
                   ),
                 ],
@@ -229,9 +250,12 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
                         query: _query,
                         hasActiveFilters: _hasActiveFilters,
                         onClearFilters: _clearFilters,
-                        title: 'No matching events yet',
-                        message:
-                            'Nothing open right now fits the interests you picked. New events are matched as they are posted.',
+                        title: widget.forBeneficiary
+                            ? 'No events for beneficiaries yet'
+                            : 'No matching events yet',
+                        message: widget.forBeneficiary
+                            ? 'Nothing open right now is marked for beneficiaries. New events show here as they are posted.'
+                            : 'Nothing open right now fits the interests you picked. New events are matched as they are posted.',
                       ),
                     )
                   else
@@ -260,8 +284,11 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
                             padding: const EdgeInsets.only(bottom: 16),
                             child: EventDiscoverCard(
                               event: event,
-                              onTap: () =>
-                                  EventDetailsScreen.open(context, event),
+                              onTap: () => EventDetailsScreen.open(
+                                context,
+                                event,
+                                readOnly: widget.forBeneficiary,
+                              ),
                             ),
                           );
                         }, childCount: events.length + 1),

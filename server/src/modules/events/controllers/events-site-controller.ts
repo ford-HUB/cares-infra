@@ -63,10 +63,11 @@ export class EventsSiteController {
   /**
    * Event images sit in a private bucket, so the portal cannot point an `<img>` at the
    * stored S3 URL — it fetches the bytes through this authenticated route instead.
-   * Volunteers read the same stream for the cards on their events tab.
+   * Volunteers and beneficiaries read the same stream for the cards on their
+   * events tabs.
    */
   @Get(':id/images/:index')
-  @Roles(...PORTAL_ROLE_TYPES, RoleType.VOLUNTEER)
+  @Roles(...PORTAL_ROLE_TYPES, RoleType.VOLUNTEER, RoleType.BENEFICIARY)
   async getEventImage(
     @ZParam('id', EventIdParamSchema) id: number,
     @ZParam('index', EventImageIndexParamSchema) index: number,

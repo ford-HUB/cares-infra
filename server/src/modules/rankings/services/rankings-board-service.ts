@@ -85,8 +85,8 @@ export interface RankedVolunteer extends VolunteerScore {
 }
 
 export interface BoardScope {
-  /** Restrict to events filed under these college spellings, plus school-wide ones. */
-  eventDepartments?: string[];
+  /** Restrict to volunteers whose school record files them under these college spellings. */
+  volunteerDepartments?: string[];
 }
 
 /**
@@ -147,7 +147,7 @@ export class RankingsBoardService {
   ): Promise<RankedVolunteer[]> {
     const filter: RankedAttendanceFilter = {
       since: window.since,
-      eventDepartments: scope.eventDepartments,
+      volunteerDepartments: scope.volunteerDepartments,
     };
     const rows = await this.repository.findRankedAttendance(window.now, filter);
     return rankRows(rows, rule, window.now);

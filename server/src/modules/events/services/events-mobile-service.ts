@@ -103,6 +103,52 @@ export class EventsMobileService {
   }
 
   /**
+   * Open events an operator marked as applicable to beneficiaries. No interest
+   * matching: the flag is the whole criterion, so every flagged event is listed.
+   */
+  async listForBeneficiaries(
+    userId: string,
+  ): Promise<RegisteredEventsResponseDto> {
+    const events = await this.eventsRepository.findOpenForBeneficiaries(userId);
+    return { events: await this.withApplications(userId, events) };
+  }
+
+  /** Finished events that were open to beneficiaries — the beneficiary activity page. */
+  async listCompletedForBeneficiaries(
+    userId: string,
+  ): Promise<RegisteredEventsResponseDto> {
+    const events =
+      await this.eventsRepository.findCompletedForBeneficiaries(userId);
+    return { events: await this.withApplications(userId, events) };
+  }
+
+  /** Rows for a beneficiary carry where their own application stands. */
+  private async withApplications(
+    userId: string,
+    events: OpenEvent[],
+  ): Promise<RecommendedEventDto[]> {
+    const applications =
+      await this.eventsRepository.findBeneficiaryApplications(
+        userId,
+        events.map((event) => event.event_id),
+      );
+    const status = new Map<number, 'PENDING' | 'ACCEPTED'>();
+    for (const application of applications) {
+      if (application.event_id === null || status.has(application.event_id)) {
+        continue;
+      }
+      status.set(
+        application.event_id,
+        application.status === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING',
+      );
+    }
+    return events.map((event) => ({
+      ...this.mapToDto(event, []),
+      application_status: status.get(event.event_id) ?? null,
+    }));
+  }
+
+  /**
    * The volunteer's own registrations — every event they hold a slot on, whether
    * it is still ahead, running, or already over. This is what the activity page
    * hydrates from, since finished events drop out of the recommended pool.
@@ -344,6 +390,7 @@ export class EventsMobileService {
       category: event.category,
       status: event.status,
       beneficiary_applicable: event.beneficiary_applicable,
+      application_status: null,
       marker_lat: event.marker_lat ?? null,
       marker_lng: event.marker_lng ?? null,
       image_count: event.images.length,

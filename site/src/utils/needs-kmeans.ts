@@ -1,12 +1,13 @@
 import {
   CLUSTER_MAX_ITERATIONS,
-  NEED_CATEGORY_ORDER,
+  CLUSTER_NEED_CATEGORIES,
+  NEED_BARRIER_ORDER,
   NEEDS_FEATURE_ORDER,
 } from '../constants/residential-needs'
 import { needPriorityOf } from '../services/residential-needs-mock'
 import type {
   Household,
-  NeedCategory,
+  NeedBarrier,
   NeedsCluster,
   NeedsClusteringResult,
   NeedsFeatureKey,
@@ -20,20 +21,21 @@ import { seededRandom } from './seeded-random'
  * this file's only job then is to shape its response into `NeedsClusteringResult`.
  */
 
-function isNeedCategory(key: NeedsFeatureKey): key is NeedCategory {
-  return (NEED_CATEGORY_ORDER as string[]).includes(key)
-}
-
-/** One survey measure by feature key — need scores live under `needs`, the rest at the top level. */
+/**
+ * One survey measure by feature key: household size, the Q2 seriousness, or a 0/1
+ * flag for whether a Q1 category was ticked.
+ */
 export function featureValue(household: Household, key: NeedsFeatureKey): number {
-  return isNeedCategory(key) ? household.needs[key] : household[key]
+  if (key === 'members') return household.members
+  if (key === 'seriousness') return household.survey.seriousness
+  return household.survey.needs.includes(key) ? 1 : 0
 }
 
 function featureVector(household: Household): number[] {
   return NEEDS_FEATURE_ORDER.map((key) => featureValue(household, key))
 }
 
-/** Z-score each column so household size cannot swamp a need score (0–5). */
+/** Z-score each column so household size cannot swamp a 0/1 need flag. */
 function standardise(rows: number[][]): number[][] {
   const dims = rows[0]?.length ?? 0
   const mean = Array.from({ length: dims }, (_, d) =>
@@ -147,10 +149,20 @@ export function clusterHouseholds(
       ]),
     ) as Record<NeedsFeatureKey, number>
 
-    const dominantNeed = NEED_CATEGORY_ORDER.reduce((top, category) =>
+    const dominantNeed = CLUSTER_NEED_CATEGORIES.reduce((top, category) =>
       centroid[category] > centroid[top] ? category : top,
     )
-    const total = NEED_CATEGORY_ORDER.reduce((sum, category) => sum + centroid[category], 0)
+
+    const barrierCounts = new Map<NeedBarrier, number>()
+    memberIndexes.forEach((i) => {
+      households[i].survey.barriers.forEach((barrier) => {
+        barrierCounts.set(barrier, (barrierCounts.get(barrier) ?? 0) + 1)
+      })
+    })
+    const topBarrier =
+      [...barrierCounts.entries()].sort(
+        (a, b) => b[1] - a[1] || NEED_BARRIER_ORDER.indexOf(a[0]) - NEED_BARRIER_ORDER.indexOf(b[0]),
+      )[0]?.[0] ?? 'none'
 
     const countByBarangay = new Map<string, number>()
     memberIndexes.forEach((i) => {
@@ -172,7 +184,8 @@ export function clusterHouseholds(
       householdIds: memberIndexes.map((i) => households[i].id),
       centroid,
       dominantNeed,
-      priority: needPriorityOf(total),
+      topBarrier,
+      priority: needPriorityOf(Math.round(centroid.seriousness)),
       barangay,
     }
   })

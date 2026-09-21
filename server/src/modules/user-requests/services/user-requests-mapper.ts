@@ -5,15 +5,33 @@ import type {
   UserRequestDto,
 } from '../dto/user-requests-site-dto';
 
-/** Only the proof images actually on the row are listed — an event-join request has none. */
+/** Only the proof files actually on the row are listed. */
 export function attachmentsOf(row: UserRequestRow): UserRequestAttachmentDto[] {
   const attachments: UserRequestAttachmentDto[] = [];
   if (row.id_front_url)
-    attachments.push({ kind: 'id-front', label: 'Valid ID (front)' });
+    attachments.push({
+      kind: 'id-front',
+      label: 'Valid ID (front)',
+      content_type: null,
+    });
   if (row.id_back_url)
-    attachments.push({ kind: 'id-back', label: 'Valid ID (back)' });
+    attachments.push({
+      kind: 'id-back',
+      label: 'Valid ID (back)',
+      content_type: null,
+    });
   if (row.selfie_url)
-    attachments.push({ kind: 'selfie', label: 'Face verification selfie' });
+    attachments.push({
+      kind: 'selfie',
+      label: 'Face verification selfie',
+      content_type: null,
+    });
+  if (row.residency_proof_url)
+    attachments.push({
+      kind: 'residency-proof',
+      label: 'Proof of residency',
+      content_type: row.residency_proof_mime,
+    });
   return attachments;
 }
 

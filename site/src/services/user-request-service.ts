@@ -36,7 +36,11 @@ interface UserRequestApiResponse {
   event_started: string | null
   summary: string
   face_similarity: number | null
-  attachments: { kind: UserRequestAttachmentKind; label: string }[]
+  attachments: {
+    kind: UserRequestAttachmentKind
+    label: string
+    content_type: string | null
+  }[]
   decided_by_name: string | null
   decided_at: string | null
   trail: UserRequestTrailApiResponse[]
@@ -85,6 +89,7 @@ function mapRequest(data: UserRequestApiResponse): UserRequest {
       kind: attachment.kind,
       label: attachment.label,
       path: `${USER_REQUESTS_URL}/${data.user_request_id}/attachments/${attachment.kind}`,
+      contentType: attachment.content_type ?? undefined,
     })),
     trail: data.trail.map((entry) => ({
       id: entry.user_request_trail_entry_id,

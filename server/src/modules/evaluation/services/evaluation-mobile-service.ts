@@ -87,6 +87,11 @@ export class EvaluationMobileService {
         'Feedback opens once the event has been completed',
       );
     }
+    if (this.attendancePending(event)) {
+      throw new BadRequestException(
+        'Feedback opens once your attendance has been validated',
+      );
+    }
     if (!this.participated(event)) {
       throw new ForbiddenException(
         'Only volunteers who took part in this event can give feedback',
@@ -149,10 +154,24 @@ export class EvaluationMobileService {
     );
   }
 
-  /** Holds a registration that was not ruled absent. */
+  /**
+   * The geofence validator has not ruled on the registration yet. Feedback
+   * waits for that ruling rather than opening the moment the event ends, so
+   * a volunteer later marked absent never gets a submission in first.
+   */
+  private attendancePending(event: SubmissionEvent): boolean {
+    return (
+      event.attendances.length > 0 &&
+      event.attendances.every(
+        (row) => row.status === AttendanceStatus.PENDING,
+      )
+    );
+  }
+
+  /** Holds a registration the validator confirmed. */
   private participated(event: SubmissionEvent): boolean {
     return event.attendances.some(
-      (row) => row.status !== AttendanceStatus.ABSENT,
+      (row) => row.status === AttendanceStatus.COMPLETED,
     );
   }
 

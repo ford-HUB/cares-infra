@@ -26,11 +26,16 @@ export const CreateRoleAccessRequestSchema = z
   })
   .strict();
 
+/** Multipart body: `eventId` as a text field beside the `proof` file. */
 export const CreateEventJoinRequestSchema = z
   .object({
     eventId: z.coerce.number().int().positive(),
   })
   .strict();
+
+/** The proof of residency attached to an event application — a PDF only. */
+export const EVENT_JOIN_PROOF_MAX_BYTES = 10 * 1024 * 1024;
+export const EVENT_JOIN_PROOF_ALLOWED_MIMES = ['application/pdf'] as const;
 
 export const MobileUserRequestSchema = z.object({
   user_request_id: z.string(),

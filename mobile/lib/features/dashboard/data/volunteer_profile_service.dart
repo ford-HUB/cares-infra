@@ -29,7 +29,23 @@ class VolunteerProfileService {
       roleType: RoleAccountStore.volunteer,
     );
     if (profile == null) return VolunteerProfile.empty();
+    await _dropSchoolCommunityInterests(profile);
     return _fromMobileProfile(profile);
+  }
+
+  /// A donor / beneficiary whose Volunteer role a director approved is from
+  /// outside the school community. If they saved the School interest before
+  /// the approval, write the set back without it so the server matches what
+  /// the app shows. An empty remainder is left alone — the picker prompts
+  /// again instead of saving nothing.
+  Future<void> _dropSchoolCommunityInterests(MobileProfile profile) async {
+    final volunteer = profile.volunteer;
+    if (volunteer == null) return;
+    final allowed = volunteer.allowedInterests;
+    if (allowed.length == volunteer.interests.length || allowed.isEmpty) {
+      return;
+    }
+    await _interestsService.saveInterests(interests: allowed);
   }
 
   /// Saves the interests, then re-reads so `profileComplete` is the server's
@@ -41,7 +57,7 @@ class VolunteerProfileService {
 
   VolunteerProfile _fromMobileProfile(MobileProfile profile) {
     return VolunteerProfile(
-      interests: profile.volunteer?.interests ?? const {},
+      interests: profile.volunteer?.allowedInterests ?? const {},
       profileComplete: profile.completion.complete,
     );
   }

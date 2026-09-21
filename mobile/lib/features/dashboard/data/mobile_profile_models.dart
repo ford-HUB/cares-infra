@@ -370,6 +370,14 @@ class VolunteerServerProfile {
 
   /// All-time leaderboard points under the portal's scoring rule.
   final int rankingPoints;
+
+  /// The interests this side may hold: a director-granted volunteer is from
+  /// outside the school community, so the School interest is dropped even if
+  /// it was saved before the role was approved.
+  Set<UserInterest> get allowedInterests => UserInterestX.allowed(
+    interests,
+    outsideSchool: accessGrantedByDirector,
+  );
 }
 
 class DonorServerProfile {

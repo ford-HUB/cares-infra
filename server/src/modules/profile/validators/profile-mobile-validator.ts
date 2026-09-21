@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 import {
   AuthProvider,
@@ -8,11 +9,7 @@ import {
 } from '../../../infastructures/prisma/common/client';
 
 /** Roles the Flutter app signs in as — the only callers of the mobile profile. */
-export const MOBILE_PROFILE_ROLE_TYPES = [
-  RoleType.VOLUNTEER,
-  RoleType.DONOR,
-  RoleType.BENEFICIARY,
-] as const;
+export const MOBILE_PROFILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
 /**
  * `?role=` on the mobile profile routes. The app's role switcher is local —

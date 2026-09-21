@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
 import '../data/certificate_service.dart';
+import '../presentation/utils/certificate_pdf.dart';
+import '../presentation/widgets/certificate_sheet.dart';
 
 /// The issued certificate, drawn from the frozen sheet the server generated:
 /// the deployed template's headline and award text with the volunteer's
@@ -29,6 +29,10 @@ class CertificateReviewScreen extends StatefulWidget {
 class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
   late CaresCertificate _certificate = widget.certificate;
 
+  /// Wraps the drawn sheet so the export captures exactly what is on screen.
+  final _sheetKey = GlobalKey();
+  bool _exporting = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,8 +51,41 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
     }
   }
 
-  Future<void> _download(BuildContext context) async {
-    await downloadCertificate(context, _certificate);
+  /// Rasterises the sheet as shown, wraps it in a PDF of the sheet's own
+  /// proportions, and offers it through the share sheet.
+  Future<void> _download() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final file = await exportCertificatePdf(
+        boundaryKey: _sheetKey,
+        certificate: _certificate,
+      );
+      if (!mounted) return;
+      final shared = await shareCertificatePdf(file, _certificate);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            shared
+                ? 'PDF saved: ${file.path.split('/').last}'
+                : 'PDF saved to ${file.path}',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('The certificate could not be exported: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   @override
@@ -63,7 +100,7 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () => _download(context),
+            onPressed: _exporting ? null : _download,
             icon: const Icon(Icons.download_rounded),
             tooltip: 'Download certificate',
           ),
@@ -72,7 +109,16 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          _CertificateSheet(certificate: _certificate),
+          // Pinch to zoom in on the wording; the sheet is drawn at the phone's
+          // width, which is small for a landscape certificate.
+          InteractiveViewer(
+            minScale: 1,
+            maxScale: 4,
+            child: RepaintBoundary(
+              key: _sheetKey,
+              child: CertificateSheet(certificate: _certificate),
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -96,10 +142,48 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          Row(
+            children: [
+              if (_certificate.eventDateLabel != null) ...[
+                Expanded(
+                  child: _DetailChip(
+                    label: 'Event date',
+                    value: _certificate.eventDateLabel!,
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: _DetailChip(
+                  label: 'Hours',
+                  value: _certificate.hoursLabel,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _DetailChip(
+                  label: 'Issued',
+                  value: _certificate.issuedOnLabel,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: () => _download(context),
-            icon: const Icon(Icons.download_rounded),
-            label: const Text('Download Certificate'),
+            onPressed: _exporting ? null : _download,
+            icon: _exporting
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.download_rounded),
+            label: Text(
+              _exporting ? 'Preparing PDF…' : 'Download Certificate (PDF)',
+            ),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               minimumSize: const Size.fromHeight(50),
@@ -109,276 +193,6 @@ class _CertificateReviewScreenState extends State<CertificateReviewScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// The template's accent, as the portal's customizer names them.
-Color certificateAccentColor(String accent) {
-  return switch (accent) {
-    'sky' => const Color(0xFF0284C7),
-    'violet' => const Color(0xFF7C3AED),
-    'rose' => const Color(0xFFE11D48),
-    'amber' => const Color(0xFFD97706),
-    'slate' => const Color(0xFF475569),
-    _ => AppColors.primary,
-  };
-}
-
-class _CertificateSheet extends StatelessWidget {
-  const _CertificateSheet({required this.certificate});
-
-  final CaresCertificate certificate;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = certificateAccentColor(certificate.accent);
-    final recipient = certificate.recipientName.trim().isEmpty
-        ? (StaticUserSession.instance.currentUser?.fullName ?? 'Volunteer')
-        : certificate.recipientName;
-    final headline = certificate.headline.trim().isEmpty
-        ? 'Certificate of Participation'
-        : certificate.headline;
-    final body = certificate.body.trim().isEmpty
-        ? 'This certifies that $recipient has successfully completed '
-              'volunteer service for ${certificate.eventName}.'
-        : certificate.body;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withValues(alpha: 0.10),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.workspace_premium_rounded,
-              color: accent,
-              size: 30,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            headline.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
-              color: accent,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            certificate.title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            width: 48,
-            height: 3,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            recipient,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            body,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.5,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            certificate.organization,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          if (certificate.signatories.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _SignatoryRow(signatories: certificate.signatories, accent: accent),
-          ],
-          if (certificate.showSeal && certificate.sealLabel.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _Seal(label: certificate.sealLabel, accent: accent),
-          ],
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              if (certificate.eventDateLabel != null) ...[
-                Expanded(
-                  child: _DetailChip(
-                    label: 'Event date',
-                    value: certificate.eventDateLabel!,
-                  ),
-                ),
-                const SizedBox(width: 10),
-              ],
-              Expanded(
-                child: _DetailChip(
-                  label: 'Hours',
-                  value: certificate.hoursLabel,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _DetailChip(
-                  label: 'Issued',
-                  value: certificate.issuedOnLabel,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Certificate No. ${certificate.certificateNumber}',
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The signature lines, left to right as laid out on the sheet. A line whose
-/// coordinator had a signature on file shows it above the rule.
-class _SignatoryRow extends StatelessWidget {
-  const _SignatoryRow({required this.signatories, required this.accent});
-
-  final List<CertificateSignatory> signatories;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    final service = CertificateService();
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        for (var i = 0; i < signatories.length; i++) ...[
-          if (i > 0) const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 40,
-                  child: signatories[i].signatureUrl == null
-                      ? const SizedBox.shrink()
-                      : Image.network(
-                          service.imageUrl(signatories[i].signatureUrl!),
-                          headers: service.imageHeaders,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                        ),
-                ),
-                const SizedBox(height: 6),
-                Container(height: 1, color: AppColors.borderLight),
-                const SizedBox(height: 6),
-                Text(
-                  signatories[i].name,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  signatories[i].title,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  signatories[i].department,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _Seal extends StatelessWidget {
-  const _Seal({required this.label, required this.accent});
-
-  final String label;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        shape: BoxShape.rectangle,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withValues(alpha: 0.6), width: 1.5),
-        color: accent.withValues(alpha: 0.06),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.5,
-          color: accent,
-        ),
       ),
     );
   }
@@ -421,22 +235,4 @@ class _DetailChip extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> downloadCertificate(
-  BuildContext context,
-  CaresCertificate certificate,
-) async {
-  final recipientName = certificate.recipientName.trim().isNotEmpty
-      ? certificate.recipientName
-      : (StaticUserSession.instance.currentUser?.fullName ?? 'Volunteer');
-  final content = certificate.downloadContent(recipientName);
-  await Clipboard.setData(ClipboardData(text: content));
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('${certificate.title} downloaded.'),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
 }

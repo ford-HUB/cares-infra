@@ -4,11 +4,11 @@ import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_personal_profile_store.dart';
+import 'package:mobile/features/dashboard/beneficiary/tabs/beneficiary_activity_tab.dart';
 import 'package:mobile/features/dashboard/beneficiary/tabs/beneficiary_home_tab.dart';
 import 'package:mobile/features/dashboard/beneficiary/tabs/beneficiary_requests_tab.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
-import 'package:mobile/features/dashboard/presentation/screens/activity_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/events_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/mobile_profile_edit_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
@@ -185,8 +185,8 @@ class _BeneficiaryDashboardScreenState
                           !_profileComplete,
                       onCompleteProfile: _openProfileSetup,
                     ),
-                    const EventsTabScreen(),
-                    const ActivityTabScreen(),
+                    const EventsTabScreen(forBeneficiary: true),
+                    const BeneficiaryActivityTab(),
                     const BeneficiaryRequestsTab(),
                     ProfileTabScreen(
                       displayName: _displayName,

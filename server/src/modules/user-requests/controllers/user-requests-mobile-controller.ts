@@ -1,4 +1,12 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ZBody, ZSerialize } from 'nest-zod';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
@@ -53,17 +61,29 @@ export class UserRequestsMobileController {
     );
   }
 
+  /**
+   * A beneficiary applying for an event. Multipart: `eventId` beside a `proof`
+   * file (photo or PDF of a barangay certificate or similar) — the director
+   * reviews the proof before the application is accepted.
+   */
   @Post('me/event-join')
-  @ResponseMessage('Your request to join the event is under review')
+  @ResponseMessage('Your application is pending approval')
   @ZSerialize(MobileUserRequestResponseSchema)
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'proof', maxCount: 1 }]))
   async requestEventJoin(
     @ZBody(CreateEventJoinRequestSchema) body: CreateEventJoinRequestDto,
     @CurrentUser() user: JwtPayload,
+    @UploadedFiles() files?: { proof?: Express.Multer.File[] },
   ): Promise<MobileUserRequestDto> {
+    const proof = files?.proof?.[0];
+    if (!proof || !proof.buffer?.length) {
+      throw new BadRequestException('Attach your proof of residency');
+    }
     return this.userRequestsMobileService.createEventJoin(
       user.sub,
       user.role_type,
       body,
+      proof,
     );
   }
 }

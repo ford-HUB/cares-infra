@@ -1,36 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:mobile/core/services/api_client.dart' show ApiException;
 
 import 'certificate_service.dart';
+import 'models/certificate_design.dart';
 
-/// One signature line as printed on an issued certificate.
-class CertificateSignatory {
-  const CertificateSignatory({
-    required this.id,
-    required this.name,
-    required this.title,
-    required this.department,
-    this.signatureUrl,
-  });
-
-  factory CertificateSignatory.fromJson(Map<String, dynamic> json) {
-    return CertificateSignatory(
-      id: json['id'] as String,
-      name: json['name'] as String? ?? '',
-      title: json['title'] as String? ?? '',
-      department: json['department'] as String? ?? '',
-      signatureUrl: json['signature_url'] as String?,
-    );
-  }
-
-  final String id;
-  final String name;
-  final String title;
-  final String department;
-
-  /// API path of the signature image the line was issued with; null when the
-  /// coordinator had none uploaded on the day.
-  final String? signatureUrl;
-}
+export 'models/certificate_design.dart';
 
 /// A certificate the issuing scheduler generated for this volunteer from the
 /// template a director deployed to the event. Every field is as it read on
@@ -52,19 +26,12 @@ class CaresCertificate {
     this.body = '',
     this.category = 'participation',
     this.orientation = 'landscape',
-    this.accent = 'emerald',
-    this.frame = 'plain',
-    this.sealLabel = '',
-    this.showSeal = false,
-    this.signatories = const [],
+    this.design,
     this.claimedAt,
   });
 
   factory CaresCertificate.fromJson(Map<String, dynamic> json) {
-    final design = json['design'] as Map<String, dynamic>? ?? const {};
-    final signatories = (design['signatories'] as List<dynamic>? ?? const [])
-        .map((e) => CertificateSignatory.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final design = json['design'] as Map<String, dynamic>?;
 
     return CaresCertificate(
       id: json['id'] as String,
@@ -83,11 +50,7 @@ class CaresCertificate {
       body: json['body'] as String? ?? '',
       category: json['category'] as String? ?? 'participation',
       orientation: json['orientation'] as String? ?? 'landscape',
-      accent: design['accent'] as String? ?? 'emerald',
-      frame: design['frame'] as String? ?? 'plain',
-      sealLabel: design['seal_label'] as String? ?? '',
-      showSeal: design['show_seal'] as bool? ?? false,
-      signatories: signatories,
+      design: design == null ? null : CertificateDesign.fromJson(design),
       claimedAt: json['claimed_at'] == null
           ? null
           : DateTime.parse(json['claimed_at'] as String).toLocal(),
@@ -117,11 +80,12 @@ class CaresCertificate {
   final String body;
   final String category;
   final String orientation;
-  final String accent;
-  final String frame;
-  final String sealLabel;
-  final bool showSeal;
-  final List<CertificateSignatory> signatories;
+
+  /// The frozen sheet — frame, layout, artwork, wording and signature lines.
+  final CertificateDesign? design;
+
+  List<CertificateSignatory> get signatories => design?.signatories ?? const [];
+  String get accent => design?.accent ?? 'emerald';
 
   /// When this device (or another) first opened the certificate.
   final DateTime? claimedAt;
@@ -228,9 +192,14 @@ class CertificateStore extends ChangeNotifier {
   final Map<String, CaresCertificate> _byId = {};
   bool _hydrated = false;
   bool _refreshing = false;
+  String? _lastError;
 
   /// True once the server has answered at least once this session.
   bool get hydrated => _hydrated;
+
+  /// Why the last [refresh] failed, or null when it succeeded. Screens use it
+  /// to tell "not issued yet" apart from "could not ask the server".
+  String? get lastError => _lastError;
 
   List<CaresCertificate> get all {
     final list = _byId.values.toList()
@@ -266,15 +235,24 @@ class CertificateStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Best effort: a failed wallet fetch leaves what is already held.
-  Future<void> refresh({CertificateService? service}) async {
-    if (_refreshing) return;
+  /// Pulls the wallet from the server. A failed fetch leaves what is already
+  /// held and records why in [lastError]; returns whether it succeeded.
+  Future<bool> refresh({CertificateService? service}) async {
+    if (_refreshing) return _lastError == null;
     _refreshing = true;
     try {
       final certificates = await (service ?? CertificateService()).fetchMine();
+      _lastError = null;
       hydrate(certificates);
-    } catch (_) {
-      // Leave the store as-is; the next refresh retries.
+      return true;
+    } on ApiException catch (error) {
+      _lastError = error.message;
+      notifyListeners();
+      return false;
+    } catch (error) {
+      _lastError = 'Could not load your certificates ($error)';
+      notifyListeners();
+      return false;
     } finally {
       _refreshing = false;
     }
@@ -284,6 +262,7 @@ class CertificateStore extends ChangeNotifier {
   void clear() {
     _byId.clear();
     _hydrated = false;
+    _lastError = null;
     notifyListeners();
   }
 }

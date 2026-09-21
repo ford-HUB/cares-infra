@@ -189,13 +189,6 @@ final kMockAllEvents = [...kMockFeaturedEvents, ...kMockUpcomingEvents];
 /// Every event the app can resolve by id — browsable plus completed ones.
 final kMockEventDirectory = [...kMockAllEvents, ...kMockCompletedEvents];
 
-/// Events a beneficiary can attend — feeding, distribution, and health
-/// outreach activities. Static prototype selection.
-final kMockBeneficiaryEvents = [
-  for (final event in kMockAllEvents)
-    if (event.openToBeneficiaries) event,
-];
-
 CaresEvent? findEventById(String id) {
   for (final event in kMockEventDirectory) {
     if (event.id == id) return event;

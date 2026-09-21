@@ -36,8 +36,9 @@ const MONTH_LABELS = [
 
 /**
  * The portal's Rankings area. A director or admin sees the whole school; a
- * coordinator's board is cut to the events filed under their own college, and one
- * with no college on their profile gets an empty board rather than everyone's.
+ * coordinator's board is cut to the volunteers whose school record assigns them
+ * to the coordinator's own college, and one with no college on their profile gets
+ * an empty board rather than everyone's.
  */
 @Injectable()
 export class RankingsSiteService {
@@ -164,7 +165,9 @@ export class RankingsSiteService {
     if (!department) return null;
     return {
       department,
-      filter: { eventDepartments: resolveDepartmentScope(department).aliases },
+      filter: {
+        volunteerDepartments: resolveDepartmentScope(department).aliases,
+      },
     };
   }
 }

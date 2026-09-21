@@ -42,6 +42,72 @@ export class EventsRepository {
   }
 
   /**
+   * Open events flagged as applicable to beneficiaries, soonest first. Same row
+   * shape as the volunteer pool so one DTO serves both feeds; beneficiaries do
+   * not hold attendance rows, so the per-user slice comes back empty.
+   */
+  async findOpenForBeneficiaries(userId: string) {
+    return this.prisma.event.findMany({
+      where: {
+        status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
+        event_ended: { gte: new Date() },
+        beneficiary_applicable: true,
+      },
+      include: {
+        _count: { select: { attendances: true } },
+        attendances: {
+          where: { user_id: userId },
+          select: { event_attendance_id: true, status: true },
+        },
+      },
+      orderBy: { event_started: 'asc' },
+    });
+  }
+
+  /**
+   * Events flagged for beneficiaries that have run their course — marked
+   * completed, or past their end time — latest first. Cancelled ones stay out.
+   */
+  async findCompletedForBeneficiaries(userId: string) {
+    return this.prisma.event.findMany({
+      where: {
+        beneficiary_applicable: true,
+        status: { not: EventStatus.Cancelled },
+        OR: [
+          { status: EventStatus.Completed },
+          { event_ended: { lt: new Date() } },
+        ],
+      },
+      include: {
+        _count: { select: { attendances: true } },
+        attendances: {
+          where: { user_id: userId },
+          select: { event_attendance_id: true, status: true },
+        },
+      },
+      orderBy: { event_started: 'desc' },
+    });
+  }
+
+  /**
+   * The beneficiary's live applications (EVENT_JOIN requests) for the given
+   * events — pending or accepted; a removed request no longer counts.
+   */
+  async findBeneficiaryApplications(userId: string, eventIds: number[]) {
+    if (eventIds.length === 0) return [];
+    return this.prisma.userRequest.findMany({
+      where: {
+        user_id: userId,
+        kind: 'EVENT_JOIN',
+        event_id: { in: eventIds },
+        status: { in: ['PENDING', 'ACCEPTED'] },
+      },
+      select: { event_id: true, status: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
    * Every event this volunteer holds an attendance row on, latest first —
    * finished ones included, since the activity page is where they land once
    * they leave the open pool. Cancelled events are left out.
@@ -72,42 +138,44 @@ export class EventsRepository {
    * still returns the counts.
    */
   async register(eventId: number, userId: string) {
-    return this.prisma.$transaction(
-      async (tx) => {
-        const existing = await tx.eventAttendance.findUnique({
-          where: { event_id_user_id: { event_id: eventId, user_id: userId } },
-          select: { event_attendance_id: true },
-        });
-        if (!existing) {
-          await tx.eventAttendance.create({
-            data: { event_id: eventId, user_id: userId },
+    return this.prisma
+      .$transaction(
+        async (tx) => {
+          const existing = await tx.eventAttendance.findUnique({
+            where: { event_id_user_id: { event_id: eventId, user_id: userId } },
+            select: { event_attendance_id: true },
           });
-        }
+          if (!existing) {
+            await tx.eventAttendance.create({
+              data: { event_id: eventId, user_id: userId },
+            });
+          }
 
-        const participants = await tx.eventAttendance.count({
-          where: { event_id: eventId },
-        });
-        const event = await tx.event.findUniqueOrThrow({
-          where: { event_id: eventId },
-          select: { max_participants: true },
-        });
-        if (!existing && participants > event.max_participants) {
-          // Roll the insert back: the transaction is discarded on a throw, so
-          // the sentinel is turned into a null return below.
-          throw new EventFullError();
-        }
+          const participants = await tx.eventAttendance.count({
+            where: { event_id: eventId },
+          });
+          const event = await tx.event.findUniqueOrThrow({
+            where: { event_id: eventId },
+            select: { max_participants: true },
+          });
+          if (!existing && participants > event.max_participants) {
+            // Roll the insert back: the transaction is discarded on a throw, so
+            // the sentinel is turned into a null return below.
+            throw new EventFullError();
+          }
 
-        await tx.event.update({
-          where: { event_id: eventId },
-          data: { participants },
-        });
-        return { participants, max_participants: event.max_participants };
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    ).catch((error: unknown) => {
-      if (error instanceof EventFullError) return null;
-      throw error;
-    });
+          await tx.event.update({
+            where: { event_id: eventId },
+            data: { participants },
+          });
+          return { participants, max_participants: event.max_participants };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      )
+      .catch((error: unknown) => {
+        if (error instanceof EventFullError) return null;
+        throw error;
+      });
   }
 
   /** Drops the volunteer's attendance row and recounts `participants`. */

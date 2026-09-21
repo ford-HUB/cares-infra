@@ -51,6 +51,9 @@ export type UserRequestMinAggregateOutputType = {
   id_front_url: string | null
   id_back_url: string | null
   selfie_url: string | null
+  residency_proof_url: string | null
+  residency_proof_name: string | null
+  residency_proof_mime: string | null
   face_similarity: number | null
   summary: string | null
   decided_by_user_id: string | null
@@ -70,6 +73,9 @@ export type UserRequestMaxAggregateOutputType = {
   id_front_url: string | null
   id_back_url: string | null
   selfie_url: string | null
+  residency_proof_url: string | null
+  residency_proof_name: string | null
+  residency_proof_mime: string | null
   face_similarity: number | null
   summary: string | null
   decided_by_user_id: string | null
@@ -89,6 +95,9 @@ export type UserRequestCountAggregateOutputType = {
   id_front_url: number
   id_back_url: number
   selfie_url: number
+  residency_proof_url: number
+  residency_proof_name: number
+  residency_proof_mime: number
   selfie_embedding: number
   face_similarity: number
   summary: number
@@ -123,6 +132,9 @@ export type UserRequestMinAggregateInputType = {
   id_front_url?: true
   id_back_url?: true
   selfie_url?: true
+  residency_proof_url?: true
+  residency_proof_name?: true
+  residency_proof_mime?: true
   face_similarity?: true
   summary?: true
   decided_by_user_id?: true
@@ -142,6 +154,9 @@ export type UserRequestMaxAggregateInputType = {
   id_front_url?: true
   id_back_url?: true
   selfie_url?: true
+  residency_proof_url?: true
+  residency_proof_name?: true
+  residency_proof_mime?: true
   face_similarity?: true
   summary?: true
   decided_by_user_id?: true
@@ -161,6 +176,9 @@ export type UserRequestCountAggregateInputType = {
   id_front_url?: true
   id_back_url?: true
   selfie_url?: true
+  residency_proof_url?: true
+  residency_proof_name?: true
+  residency_proof_mime?: true
   selfie_embedding?: true
   face_similarity?: true
   summary?: true
@@ -268,6 +286,9 @@ export type UserRequestGroupByOutputType = {
   id_front_url: string | null
   id_back_url: string | null
   selfie_url: string | null
+  residency_proof_url: string | null
+  residency_proof_name: string | null
+  residency_proof_mime: string | null
   selfie_embedding: runtime.JsonValue | null
   face_similarity: number | null
   summary: string
@@ -311,6 +332,9 @@ export type UserRequestWhereInput = {
   id_front_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   id_back_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   selfie_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_name?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_mime?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   selfie_embedding?: Prisma.JsonNullableFilter<"UserRequest">
   face_similarity?: Prisma.FloatNullableFilter<"UserRequest"> | number | null
   summary?: Prisma.StringFilter<"UserRequest"> | string
@@ -335,6 +359,9 @@ export type UserRequestOrderByWithRelationInput = {
   id_front_url?: Prisma.SortOrderInput | Prisma.SortOrder
   id_back_url?: Prisma.SortOrderInput | Prisma.SortOrder
   selfie_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  residency_proof_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  residency_proof_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  residency_proof_mime?: Prisma.SortOrderInput | Prisma.SortOrder
   selfie_embedding?: Prisma.SortOrderInput | Prisma.SortOrder
   face_similarity?: Prisma.SortOrderInput | Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -362,6 +389,9 @@ export type UserRequestWhereUniqueInput = Prisma.AtLeast<{
   id_front_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   id_back_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   selfie_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_name?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_mime?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   selfie_embedding?: Prisma.JsonNullableFilter<"UserRequest">
   face_similarity?: Prisma.FloatNullableFilter<"UserRequest"> | number | null
   summary?: Prisma.StringFilter<"UserRequest"> | string
@@ -386,6 +416,9 @@ export type UserRequestOrderByWithAggregationInput = {
   id_front_url?: Prisma.SortOrderInput | Prisma.SortOrder
   id_back_url?: Prisma.SortOrderInput | Prisma.SortOrder
   selfie_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  residency_proof_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  residency_proof_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  residency_proof_mime?: Prisma.SortOrderInput | Prisma.SortOrder
   selfie_embedding?: Prisma.SortOrderInput | Prisma.SortOrder
   face_similarity?: Prisma.SortOrderInput | Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -414,6 +447,9 @@ export type UserRequestScalarWhereWithAggregatesInput = {
   id_front_url?: Prisma.StringNullableWithAggregatesFilter<"UserRequest"> | string | null
   id_back_url?: Prisma.StringNullableWithAggregatesFilter<"UserRequest"> | string | null
   selfie_url?: Prisma.StringNullableWithAggregatesFilter<"UserRequest"> | string | null
+  residency_proof_url?: Prisma.StringNullableWithAggregatesFilter<"UserRequest"> | string | null
+  residency_proof_name?: Prisma.StringNullableWithAggregatesFilter<"UserRequest"> | string | null
+  residency_proof_mime?: Prisma.StringNullableWithAggregatesFilter<"UserRequest"> | string | null
   selfie_embedding?: Prisma.JsonNullableWithAggregatesFilter<"UserRequest">
   face_similarity?: Prisma.FloatNullableWithAggregatesFilter<"UserRequest"> | number | null
   summary?: Prisma.StringWithAggregatesFilter<"UserRequest"> | string
@@ -432,6 +468,9 @@ export type UserRequestCreateInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -455,6 +494,9 @@ export type UserRequestUncheckedCreateInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -473,6 +515,9 @@ export type UserRequestUpdateInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -496,6 +541,9 @@ export type UserRequestUncheckedUpdateInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -517,6 +565,9 @@ export type UserRequestCreateManyInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -534,6 +585,9 @@ export type UserRequestUpdateManyMutationInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -553,6 +607,9 @@ export type UserRequestUncheckedUpdateManyInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -583,6 +640,9 @@ export type UserRequestCountOrderByAggregateInput = {
   id_front_url?: Prisma.SortOrder
   id_back_url?: Prisma.SortOrder
   selfie_url?: Prisma.SortOrder
+  residency_proof_url?: Prisma.SortOrder
+  residency_proof_name?: Prisma.SortOrder
+  residency_proof_mime?: Prisma.SortOrder
   selfie_embedding?: Prisma.SortOrder
   face_similarity?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -609,6 +669,9 @@ export type UserRequestMaxOrderByAggregateInput = {
   id_front_url?: Prisma.SortOrder
   id_back_url?: Prisma.SortOrder
   selfie_url?: Prisma.SortOrder
+  residency_proof_url?: Prisma.SortOrder
+  residency_proof_name?: Prisma.SortOrder
+  residency_proof_mime?: Prisma.SortOrder
   face_similarity?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   decided_by_user_id?: Prisma.SortOrder
@@ -628,6 +691,9 @@ export type UserRequestMinOrderByAggregateInput = {
   id_front_url?: Prisma.SortOrder
   id_back_url?: Prisma.SortOrder
   selfie_url?: Prisma.SortOrder
+  residency_proof_url?: Prisma.SortOrder
+  residency_proof_name?: Prisma.SortOrder
+  residency_proof_mime?: Prisma.SortOrder
   face_similarity?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   decided_by_user_id?: Prisma.SortOrder
@@ -804,6 +870,9 @@ export type UserRequestCreateWithoutUserInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -825,6 +894,9 @@ export type UserRequestUncheckedCreateWithoutUserInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -854,6 +926,9 @@ export type UserRequestCreateWithoutDecided_byInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -876,6 +951,9 @@ export type UserRequestUncheckedCreateWithoutDecided_byInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -925,6 +1003,9 @@ export type UserRequestScalarWhereInput = {
   id_front_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   id_back_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   selfie_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_url?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_name?: Prisma.StringNullableFilter<"UserRequest"> | string | null
+  residency_proof_mime?: Prisma.StringNullableFilter<"UserRequest"> | string | null
   selfie_embedding?: Prisma.JsonNullableFilter<"UserRequest">
   face_similarity?: Prisma.FloatNullableFilter<"UserRequest"> | number | null
   summary?: Prisma.StringFilter<"UserRequest"> | string
@@ -959,6 +1040,9 @@ export type UserRequestCreateWithoutEventInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -980,6 +1064,9 @@ export type UserRequestUncheckedCreateWithoutEventInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -1025,6 +1112,9 @@ export type UserRequestCreateWithoutTrailInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -1047,6 +1137,9 @@ export type UserRequestUncheckedCreateWithoutTrailInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -1080,6 +1173,9 @@ export type UserRequestUpdateWithoutTrailInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1102,6 +1198,9 @@ export type UserRequestUncheckedUpdateWithoutTrailInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1121,6 +1220,9 @@ export type UserRequestCreateManyUserInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -1141,6 +1243,9 @@ export type UserRequestCreateManyDecided_byInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -1157,6 +1262,9 @@ export type UserRequestUpdateWithoutUserInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1178,6 +1286,9 @@ export type UserRequestUncheckedUpdateWithoutUserInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1198,6 +1309,9 @@ export type UserRequestUncheckedUpdateManyWithoutUserInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1215,6 +1329,9 @@ export type UserRequestUpdateWithoutDecided_byInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1237,6 +1354,9 @@ export type UserRequestUncheckedUpdateWithoutDecided_byInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1257,6 +1377,9 @@ export type UserRequestUncheckedUpdateManyWithoutDecided_byInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1275,6 +1398,9 @@ export type UserRequestCreateManyEventInput = {
   id_front_url?: string | null
   id_back_url?: string | null
   selfie_url?: string | null
+  residency_proof_url?: string | null
+  residency_proof_name?: string | null
+  residency_proof_mime?: string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: number | null
   summary: string
@@ -1292,6 +1418,9 @@ export type UserRequestUpdateWithoutEventInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1313,6 +1442,9 @@ export type UserRequestUncheckedUpdateWithoutEventInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1333,6 +1465,9 @@ export type UserRequestUncheckedUpdateManyWithoutEventInput = {
   id_front_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id_back_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  residency_proof_mime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfie_embedding?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   face_similarity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1384,6 +1519,9 @@ export type UserRequestSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   id_front_url?: boolean
   id_back_url?: boolean
   selfie_url?: boolean
+  residency_proof_url?: boolean
+  residency_proof_name?: boolean
+  residency_proof_mime?: boolean
   selfie_embedding?: boolean
   face_similarity?: boolean
   summary?: boolean
@@ -1409,6 +1547,9 @@ export type UserRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   id_front_url?: boolean
   id_back_url?: boolean
   selfie_url?: boolean
+  residency_proof_url?: boolean
+  residency_proof_name?: boolean
+  residency_proof_mime?: boolean
   selfie_embedding?: boolean
   face_similarity?: boolean
   summary?: boolean
@@ -1432,6 +1573,9 @@ export type UserRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   id_front_url?: boolean
   id_back_url?: boolean
   selfie_url?: boolean
+  residency_proof_url?: boolean
+  residency_proof_name?: boolean
+  residency_proof_mime?: boolean
   selfie_embedding?: boolean
   face_similarity?: boolean
   summary?: boolean
@@ -1455,6 +1599,9 @@ export type UserRequestSelectScalar = {
   id_front_url?: boolean
   id_back_url?: boolean
   selfie_url?: boolean
+  residency_proof_url?: boolean
+  residency_proof_name?: boolean
+  residency_proof_mime?: boolean
   selfie_embedding?: boolean
   face_similarity?: boolean
   summary?: boolean
@@ -1464,7 +1611,7 @@ export type UserRequestSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_request_id" | "reference_number" | "kind" | "status" | "user_id" | "requested_role" | "event_id" | "id_front_url" | "id_back_url" | "selfie_url" | "selfie_embedding" | "face_similarity" | "summary" | "decided_by_user_id" | "decided_at" | "createdAt" | "updatedAt", ExtArgs["result"]["userRequest"]>
+export type UserRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_request_id" | "reference_number" | "kind" | "status" | "user_id" | "requested_role" | "event_id" | "id_front_url" | "id_back_url" | "selfie_url" | "residency_proof_url" | "residency_proof_name" | "residency_proof_mime" | "selfie_embedding" | "face_similarity" | "summary" | "decided_by_user_id" | "decided_at" | "createdAt" | "updatedAt", ExtArgs["result"]["userRequest"]>
 export type UserRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   event?: boolean | Prisma.UserRequest$eventArgs<ExtArgs>
@@ -1511,6 +1658,12 @@ export type $UserRequestPayload<ExtArgs extends runtime.Types.Extensions.Interna
     id_front_url: string | null
     id_back_url: string | null
     selfie_url: string | null
+    /**
+     * EVENT_JOIN only — the proof of residency the beneficiary attached.
+     */
+    residency_proof_url: string | null
+    residency_proof_name: string | null
+    residency_proof_mime: string | null
     /**
      * The 512-dim face embedding from the session's match, kept so acceptance
      * can enrol the biometric without re-running the face service.
@@ -1962,6 +2115,9 @@ export interface UserRequestFieldRefs {
   readonly id_front_url: Prisma.FieldRef<"UserRequest", 'String'>
   readonly id_back_url: Prisma.FieldRef<"UserRequest", 'String'>
   readonly selfie_url: Prisma.FieldRef<"UserRequest", 'String'>
+  readonly residency_proof_url: Prisma.FieldRef<"UserRequest", 'String'>
+  readonly residency_proof_name: Prisma.FieldRef<"UserRequest", 'String'>
+  readonly residency_proof_mime: Prisma.FieldRef<"UserRequest", 'String'>
   readonly selfie_embedding: Prisma.FieldRef<"UserRequest", 'Json'>
   readonly face_similarity: Prisma.FieldRef<"UserRequest", 'Float'>
   readonly summary: Prisma.FieldRef<"UserRequest", 'String'>

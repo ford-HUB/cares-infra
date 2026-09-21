@@ -65,9 +65,9 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   static const _stepCount = 5;
   static const _stepTitles = [
     'Your needs',
-    'Most important need',
-    'How urgent is it?',
-    'Community concerns',
+    'How serious is it?',
+    'What makes it difficult?',
+    'Community problems',
     'Tell us more',
   ];
 
@@ -75,12 +75,12 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
 
   late final Set<String> _householdNeeds;
   late final TextEditingController _otherHouseholdNeed;
-  String? _mostUrgentNeed;
-  late final TextEditingController _otherMostUrgentNeed;
-  String? _urgencyLevel;
-  late final Set<String> _communityConcerns;
-  late final TextEditingController _otherCommunityConcern;
-  late final TextEditingController _additionalNotes;
+  String? _seriousness;
+  late final Set<String> _barriers;
+  late final TextEditingController _otherBarrier;
+  String? _communityProblem;
+  late final TextEditingController _otherCommunityProblem;
+  late final TextEditingController _additionalConcern;
 
   @override
   void initState() {
@@ -90,24 +90,24 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
     _otherHouseholdNeed = TextEditingController(
       text: r?.otherHouseholdNeed ?? '',
     );
-    _mostUrgentNeed = r?.mostUrgentNeed;
-    _otherMostUrgentNeed = TextEditingController(
-      text: r?.otherMostUrgentNeed ?? '',
+    _seriousness = r?.seriousness;
+    _barriers = {...?r?.barriers};
+    _otherBarrier = TextEditingController(text: r?.otherBarrier ?? '');
+    _communityProblem = r?.communityProblem;
+    _otherCommunityProblem = TextEditingController(
+      text: r?.otherCommunityProblem ?? '',
     );
-    _urgencyLevel = r?.urgencyLevel;
-    _communityConcerns = {...?r?.communityConcerns};
-    _otherCommunityConcern = TextEditingController(
-      text: r?.otherCommunityConcern ?? '',
+    _additionalConcern = TextEditingController(
+      text: r?.additionalConcern ?? '',
     );
-    _additionalNotes = TextEditingController(text: r?.additionalNotes ?? '');
   }
 
   @override
   void dispose() {
     _otherHouseholdNeed.dispose();
-    _otherMostUrgentNeed.dispose();
-    _otherCommunityConcern.dispose();
-    _additionalNotes.dispose();
+    _otherBarrier.dispose();
+    _otherCommunityProblem.dispose();
+    _additionalConcern.dispose();
     super.dispose();
   }
 
@@ -120,15 +120,15 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
       _householdNeeds.isNotEmpty &&
           (!_householdNeeds.contains(kOtherOption) ||
               _otherHouseholdNeed.text.trim().isNotEmpty),
-    1 =>
-      _mostUrgentNeed != null &&
-          (_mostUrgentNeed != kOtherOption ||
-              _otherMostUrgentNeed.text.trim().isNotEmpty),
-    2 => _urgencyLevel != null,
+    1 => _seriousness != null,
+    2 =>
+      _barriers.isNotEmpty &&
+          (!_barriers.contains(kOtherOption) ||
+              _otherBarrier.text.trim().isNotEmpty),
     3 =>
-      _communityConcerns.isNotEmpty &&
-          (!_communityConcerns.contains(kOtherOption) ||
-              _otherCommunityConcern.text.trim().isNotEmpty),
+      _communityProblem != null &&
+          (_communityProblem != kOtherOption ||
+              _otherCommunityProblem.text.trim().isNotEmpty),
     _ => true,
   };
 
@@ -154,12 +154,12 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
     final response = NeedsAssessmentResponse(
       householdNeeds: _householdNeeds.toList(),
       otherHouseholdNeed: _otherHouseholdNeed.text,
-      mostUrgentNeed: _mostUrgentNeed ?? '',
-      otherMostUrgentNeed: _otherMostUrgentNeed.text,
-      urgencyLevel: _urgencyLevel ?? '',
-      communityConcerns: _communityConcerns.toList(),
-      otherCommunityConcern: _otherCommunityConcern.text,
-      additionalNotes: _additionalNotes.text,
+      seriousness: _seriousness ?? '',
+      barriers: _barriers.toList(),
+      otherBarrier: _otherBarrier.text,
+      communityProblem: _communityProblem ?? '',
+      otherCommunityProblem: _otherCommunityProblem.text,
+      additionalConcern: _additionalConcern.text,
     );
 
     await showAssessmentSubmittedDialog(
@@ -261,42 +261,43 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
         ),
       ),
       1 => _QuestionCard(
-        question: 'Which one is your most urgent need?',
-        child: _DropdownWithOther(
-          options: kHouseholdNeedOptions,
-          value: _mostUrgentNeed,
-          placeholder: 'Select your most urgent need',
-          otherController: _otherMostUrgentNeed,
-          otherHint: 'Describe your most urgent need',
-          onChanged: (v) => setState(() => _mostUrgentNeed = v),
-          onOtherChanged: () => setState(() {}),
+        question: 'How serious is your most important need?',
+        child: _RadioGroup(
+          options: kNeedSeriousnessOptions,
+          value: _seriousness,
+          onChanged: (v) => setState(() => _seriousness = v),
         ),
       ),
       2 => _QuestionCard(
-        question: 'How serious is this need right now?',
-        child: _DropdownWithOther(
-          options: kNeedUrgencyOptions,
-          value: _urgencyLevel,
-          placeholder: 'Select urgency level',
-          onChanged: (v) => setState(() => _urgencyLevel = v),
+        question:
+            'What makes it difficult for your household to meet this need?',
+        hint: 'Select all that apply.',
+        child: _CheckboxGroup(
+          options: kNeedBarrierOptions,
+          selected: _barriers,
+          otherController: _otherBarrier,
+          exclusiveOption: kNoDifficultyOption,
+          onChanged: () => setState(() {}),
         ),
       ),
       3 => _QuestionCard(
-        question: 'What problems affect your community?',
-        hint: 'Select all that apply.',
-        child: _CheckboxGroup(
-          options: kCommunityConcernOptions,
-          selected: _communityConcerns,
-          otherController: _otherCommunityConcern,
-          onChanged: () => setState(() {}),
+        question: 'What problems do you commonly observe in your community?',
+        child: _RadioGroup(
+          options: kCommunityProblemOptions,
+          value: _communityProblem,
+          otherController: _otherCommunityProblem,
+          otherHint: 'Describe the problem',
+          onChanged: (v) => setState(() => _communityProblem = v),
+          onOtherChanged: () => setState(() {}),
         ),
       ),
       _ => _QuestionCard(
         question:
-            'Is there anything else you want us to know about your needs?',
+            'Is there another need or concern you would like CARES to know '
+            'about?',
         hint: 'Optional.',
         child: TextField(
-          controller: _additionalNotes,
+          controller: _additionalConcern,
           minLines: 5,
           maxLines: 8,
           textCapitalization: TextCapitalization.sentences,
@@ -404,18 +405,23 @@ class _QuestionCard extends StatelessWidget {
 }
 
 /// Multi-select list; selecting "Other" reveals a text field beneath it.
+/// [exclusiveOption] (e.g. "No difficulty") cannot be combined with any
+/// other choice — picking it clears the rest, and picking anything else
+/// clears it.
 class _CheckboxGroup extends StatelessWidget {
   const _CheckboxGroup({
     required this.options,
     required this.selected,
     required this.otherController,
     required this.onChanged,
+    this.exclusiveOption,
   });
 
   final List<String> options;
   final Set<String> selected;
   final TextEditingController otherController;
   final VoidCallback onChanged;
+  final String? exclusiveOption;
 
   @override
   Widget build(BuildContext context) {
@@ -454,17 +460,25 @@ class _CheckboxGroup extends StatelessWidget {
   }
 
   void _toggle(String option) {
-    if (!selected.remove(option)) selected.add(option);
+    if (selected.remove(option)) {
+      onChanged();
+      return;
+    }
+    if (option == exclusiveOption) {
+      selected.clear();
+    } else if (exclusiveOption != null) {
+      selected.remove(exclusiveOption);
+    }
+    selected.add(option);
     onChanged();
   }
 }
 
-/// Single-select dropdown; picking "Other" reveals a text field beneath it.
-class _DropdownWithOther extends StatelessWidget {
-  const _DropdownWithOther({
+/// Single-select list; picking "Other" reveals a text field beneath it.
+class _RadioGroup extends StatelessWidget {
+  const _RadioGroup({
     required this.options,
     required this.value,
-    required this.placeholder,
     required this.onChanged,
     this.otherController,
     this.otherHint,
@@ -473,7 +487,6 @@ class _DropdownWithOther extends StatelessWidget {
 
   final List<String> options;
   final String? value;
-  final String placeholder;
   final ValueChanged<String?> onChanged;
   final TextEditingController? otherController;
   final String? otherHint;
@@ -481,43 +494,42 @@ class _DropdownWithOther extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showOther = value == kOtherOption && otherController != null;
-
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          isExpanded: true,
-          hint: Text(
-            placeholder,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13.5),
-          ),
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textSecondary,
-          ),
-          style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
-          decoration: _inputDecoration(''),
-          items: options
-              .map((o) => DropdownMenuItem(value: o, child: Text(o)))
-              .toList(),
-          onChanged: onChanged,
-        ),
-        if (showOther) ...[
-          const SizedBox(height: 10),
-          TextField(
-            controller: otherController,
-            autofocus: true,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (_) => onOtherChanged?.call(),
-            style: const TextStyle(
-              fontSize: 13.5,
-              color: AppColors.textPrimary,
+    return RadioGroup<String>(
+      groupValue: value,
+      onChanged: onChanged,
+      child: Column(
+        children: [
+          for (final option in options) ...[
+            _OptionTile(
+              label: option,
+              selected: value == option,
+              control: Radio<String>(
+                value: option,
+                activeColor: AppColors.primary,
+                visualDensity: VisualDensity.compact,
+              ),
+              onTap: () => onChanged(option),
             ),
-            decoration: _inputDecoration(otherHint ?? 'Please specify'),
-          ),
+            if (option == kOtherOption &&
+                value == kOtherOption &&
+                otherController != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 6),
+                child: TextField(
+                  controller: otherController,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.sentences,
+                  onChanged: (_) => onOtherChanged?.call(),
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: AppColors.textPrimary,
+                  ),
+                  decoration: _inputDecoration(otherHint ?? 'Please specify'),
+                ),
+              ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -669,21 +681,21 @@ Future<void> showAssessmentSubmittedDialog(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SummaryLine(
-                    icon: Icons.priority_high_rounded,
-                    label: 'Most urgent need',
-                    value: response.mostUrgentNeedLabel,
+                    icon: Icons.checklist_rounded,
+                    label: 'Household needs',
+                    value: '${response.householdNeeds.length} selected',
                   ),
                   const SizedBox(height: 10),
                   _SummaryLine(
                     icon: Icons.speed_rounded,
-                    label: 'Urgency',
-                    value: response.urgencyLevel,
+                    label: 'Seriousness',
+                    value: response.seriousness,
                   ),
                   const SizedBox(height: 10),
                   _SummaryLine(
                     icon: Icons.groups_outlined,
-                    label: 'Community concerns',
-                    value: '${response.communityConcerns.length} selected',
+                    label: 'Community problem',
+                    value: response.communityProblemLabel,
                   ),
                 ],
               ),
@@ -839,19 +851,27 @@ class _AssessmentViewScreen extends StatelessWidget {
               value: 'This assessment has not been submitted yet.',
             )
           else ...[
-            _ReadOnlyItem(label: 'Your needs', value: r.householdNeedsLabel),
             _ReadOnlyItem(
-              label: 'Most important need',
-              value: r.mostUrgentNeedLabel,
-            ),
-            _ReadOnlyItem(label: 'How urgent is it?', value: r.urgencyLevel),
-            _ReadOnlyItem(
-              label: 'Community concerns',
-              value: r.communityConcernsLabel,
+              label: 'What your household needs help with',
+              value: r.householdNeedsLabel,
             ),
             _ReadOnlyItem(
-              label: 'Tell us more',
-              value: r.additionalNotes.trim().isEmpty ? '—' : r.additionalNotes,
+              label: 'How serious your most important need is',
+              value: r.seriousness,
+            ),
+            _ReadOnlyItem(
+              label: 'What makes it difficult to meet this need',
+              value: r.barriersLabel,
+            ),
+            _ReadOnlyItem(
+              label: 'Problem commonly observed in your community',
+              value: r.communityProblemLabel,
+            ),
+            _ReadOnlyItem(
+              label: 'Other needs or concerns',
+              value: r.additionalConcern.trim().isEmpty
+                  ? '—'
+                  : r.additionalConcern,
             ),
           ],
         ],

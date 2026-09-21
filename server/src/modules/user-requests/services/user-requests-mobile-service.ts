@@ -9,6 +9,7 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
+import { S3Service } from '../../../infastructures/s3/s3-service';
 import { AuthMobileService } from '../../auth/services/auth-mobile-service';
 import type {
   CreateEventJoinRequestDto,
@@ -17,6 +18,10 @@ import type {
   MobileUserRequestListDto,
 } from '../dto/user-requests-mobile-dto';
 import { UserRequestsRepository } from '../repositories/user-requests-repository';
+import {
+  EVENT_JOIN_PROOF_ALLOWED_MIMES,
+  EVENT_JOIN_PROOF_MAX_BYTES,
+} from '../validators/user-requests-mobile-validator';
 import { toMobileDto } from './user-requests-mapper';
 
 @Injectable()
@@ -25,6 +30,7 @@ export class UserRequestsMobileService {
     private readonly userRequestsRepository: UserRequestsRepository,
     private readonly authMobileService: AuthMobileService,
     private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
   ) {}
 
   async listMine(userId: string): Promise<MobileUserRequestListDto> {
@@ -94,14 +100,16 @@ export class UserRequestsMobileService {
   }
 
   /**
-   * A beneficiary asking for a place on an event. Unlike a volunteer join this
-   * does not take a slot straight away — the row waits for a director, and the
-   * attendance record is only created when they accept.
+   * A beneficiary applying for a place on an event. Unlike a volunteer join
+   * this does not take a slot straight away — the row waits for a director,
+   * who reviews the attached proof of residency, and the attendance record is
+   * only created when they accept.
    */
   async createEventJoin(
     userId: string,
     callerRole: RoleType,
     body: CreateEventJoinRequestDto,
+    proof: Express.Multer.File,
   ): Promise<MobileUserRequestDto> {
     if (callerRole !== RoleType.BENEFICIARY) {
       throw new BadRequestException(
@@ -143,17 +151,42 @@ export class UserRequestsMobileService {
       );
     }
 
+    const mime = this.resolveProofMime(proof);
+    if (proof.size > EVENT_JOIN_PROOF_MAX_BYTES) {
+      const limitMb = EVENT_JOIN_PROOF_MAX_BYTES / (1024 * 1024);
+      throw new BadRequestException(
+        `Proof of residency must be ${limitMb} MB or smaller`,
+      );
+    }
+    if (!(EVENT_JOIN_PROOF_ALLOWED_MIMES as readonly string[]).includes(mime)) {
+      throw new BadRequestException('Proof of residency must be a PDF file');
+    }
+
+    const safeName = proof.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `user-requests/${userId}/residency-${Date.now()}-${safeName}`;
+    const url = await this.s3Service.uploadToS3(key, proof.buffer, mime);
+
     const name = await this.userRequestsRepository.findUserName(userId);
     const row = await this.userRequestsRepository.create({
       kind: 'EVENT_JOIN',
       userId,
       eventId: body.eventId,
-      summary: `Asked to join "${event.title}" as a beneficiary.`,
+      summary: `Applied for "${event.title}" as a beneficiary.`,
       actorName: name
         ? `${name.firstname} ${name.lastname}`.trim()
         : 'Requester',
+      residencyProof: { url, name: proof.originalname, mime },
     });
     return toMobileDto(row);
+  }
+
+  /** Trusts the bytes over the declared type: a real PDF starts with `%PDF-`. */
+  private resolveProofMime(file: Express.Multer.File): string {
+    const isPdf =
+      file.buffer.subarray(0, 5).toString('latin1') === '%PDF-' &&
+      (file.mimetype === 'application/pdf' ||
+        file.originalname.toLowerCase().endsWith('.pdf'));
+    return isPdf ? 'application/pdf' : file.mimetype;
   }
 }
 

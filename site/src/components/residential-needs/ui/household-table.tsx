@@ -2,13 +2,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { formatDateShort, formatNumber } from '../../../constants/formatting'
 import {
+  COMMUNITY_PROBLEM_LABELS,
+  NEED_BARRIER_LABELS,
   NEED_CATEGORY_LABELS,
-  NEED_CATEGORY_ORDER,
-  NEED_SCORE_MAX,
+  NEED_SERIOUSNESS_LABELS,
+  NEED_SERIOUSNESS_MAX,
   NEEDS_SURVEY_SOURCE_LABEL,
 } from '../../../constants/residential-needs'
-import { needPriorityOf, totalNeedScore } from '../../../services/residential-needs-mock'
-import type { Household } from '../../../types/residential-needs'
+import { householdPriority } from '../../../services/residential-needs-mock'
+import type { Household, HouseholdSurvey } from '../../../types/residential-needs'
 import { ClusterSwatch } from './cluster-swatch'
 import { NeedPriorityBadge } from './need-priority-badge'
 
@@ -23,13 +25,38 @@ interface HouseholdTableProps {
 
 const headerClass =
   'px-3 py-2 text-[11px] font-medium tracking-wider text-gray-500 uppercase'
-const cellClass = 'px-3 py-2 text-[13px] text-gray-700'
-const maxTotal = NEED_CATEGORY_ORDER.length * NEED_SCORE_MAX
+const cellClass = 'px-3 py-2.5 align-top text-[13px] text-gray-700'
+const chipClass =
+  'inline-block max-w-full truncate rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-700'
+
+/** Q1 chips — "Other" carries what the beneficiary typed. */
+function needLabels(survey: HouseholdSurvey): string[] {
+  return survey.needs.map((need) =>
+    need === 'other' && survey.otherNeed ? `Other — ${survey.otherNeed}` : NEED_CATEGORY_LABELS[need],
+  )
+}
+
+/** Q3 chips — "Other" carries what the beneficiary typed. */
+function barrierLabels(survey: HouseholdSurvey): string[] {
+  return survey.barriers.map((barrier) =>
+    barrier === 'other' && survey.otherBarrier
+      ? `Other — ${survey.otherBarrier}`
+      : NEED_BARRIER_LABELS[barrier],
+  )
+}
+
+/** Q4 — "Other" carries what the beneficiary typed. */
+function communityProblemLabel(survey: HouseholdSurvey): string {
+  return survey.communityProblem === 'other' && survey.otherCommunityProblem
+    ? `Other — ${survey.otherCommunityProblem}`
+    : COMMUNITY_PROBLEM_LABELS[survey.communityProblem]
+}
 
 /**
- * The survey rows themselves — the content the summary blocks above describe. Each
- * need column is a tiny meter so a row's profile reads at a glance without six
- * digits to compare.
+ * The survey rows themselves — the content the summary blocks above describe. One
+ * column per question so a row reads the way the beneficiary answered it: what they
+ * need, how serious it is, what stands in the way, what they see around them, and
+ * anything else they wrote.
  */
 export function HouseholdTable({
   households,
@@ -38,7 +65,8 @@ export function HouseholdTable({
   emptyMessage = 'No households match this filter.',
 }: HouseholdTableProps) {
   const rows = [...households].sort(
-    (a, b) => totalNeedScore(b.needs) - totalNeedScore(a.needs),
+    (a, b) =>
+      b.survey.seriousness - a.survey.seriousness || b.survey.needs.length - a.survey.needs.length,
   )
 
   return (
@@ -54,24 +82,26 @@ export function HouseholdTable({
           <p className="text-[12px] text-gray-500 tabular-nums">{caption}</p>
         </div>
         <div className="-mx-1 overflow-x-auto">
-          <table className="w-full min-w-[760px] table-fixed border-collapse">
+          <table className="w-full min-w-[1040px] table-fixed border-collapse">
             <thead>
               <tr className="border-b border-gray-100 text-left">
                 {clusterOf && <th className={`${headerClass} w-[72px]`}>Cluster</th>}
-                <th className={`${headerClass} w-[18%]`}>Household</th>
-                <th className={`${headerClass} w-[9%] text-right`}>Members</th>
-                {NEED_CATEGORY_ORDER.map((category) => (
-                  <th key={category} className={`${headerClass} w-[8%]`} title={NEED_CATEGORY_LABELS[category]}>
-                    {NEED_CATEGORY_LABELS[category].split(' ')[0]}
-                  </th>
-                ))}
-                <th className={`${headerClass} w-[9%] text-right`}>Score</th>
-                <th className={`${headerClass} w-[10%]`}>Priority</th>
+                <th className={`${headerClass} w-[15%]`}>Household</th>
+                <th className={`${headerClass} w-[7%] text-right`}>Members</th>
+                <th className={`${headerClass} w-[17%]`}>Needs help with</th>
+                <th className={`${headerClass} w-[13%]`}>Seriousness</th>
+                <th className={`${headerClass} w-[18%]`}>Difficulties</th>
+                <th className={`${headerClass} w-[11%]`}>Community problem</th>
+                <th className={`${headerClass} w-[12%]`}>Other concern</th>
+                <th className={`${headerClass} w-[8%]`}>Priority</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {rows.map((household) => {
-                const total = totalNeedScore(household.needs)
+                const { survey } = household
+                const needs = needLabels(survey)
+                const barriers = barrierLabels(survey)
+                const problem = communityProblemLabel(survey)
                 return (
                   <tr key={household.id} className="transition-colors hover:bg-gray-50">
                     {clusterOf && (
@@ -93,35 +123,64 @@ export function HouseholdTable({
                     <td className={`${cellClass} text-right tabular-nums`}>
                       {formatNumber(household.members)}
                     </td>
-                    {NEED_CATEGORY_ORDER.map((category) => {
-                      const score = household.needs[category]
-                      return (
-                        <td key={category} className={cellClass}>
-                          <span className="flex items-center gap-1.5">
-                            <span className="h-1.5 w-full max-w-10 overflow-hidden rounded-full bg-gray-100">
-                              <span
-                                className={cn(
-                                  'block h-full rounded-full',
-                                  score >= 4
-                                    ? 'bg-red-400'
-                                    : score >= 2
-                                      ? 'bg-amber-400'
-                                      : 'bg-gray-300',
-                                )}
-                                style={{ width: `${(score / NEED_SCORE_MAX) * 100}%` }}
-                              />
-                            </span>
-                            <span className="text-[11px] text-gray-400 tabular-nums">{score}</span>
+                    <td className={cellClass}>
+                      <span className="flex flex-wrap gap-1">
+                        {needs.map((label) => (
+                          <span key={label} className={chipClass} title={label}>
+                            {label}
                           </span>
-                        </td>
-                      )
-                    })}
-                    <td className={`${cellClass} text-right tabular-nums`}>
-                      <span className="font-semibold text-gray-900">{total}</span>
-                      <span className="ml-1 text-[11px] text-gray-400">/ {maxTotal}</span>
+                        ))}
+                      </span>
                     </td>
                     <td className={cellClass}>
-                      <NeedPriorityBadge priority={needPriorityOf(total)} />
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-full max-w-10 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                          <span
+                            className={cn(
+                              'block h-full rounded-full',
+                              survey.seriousness >= 4
+                                ? 'bg-red-400'
+                                : survey.seriousness >= 3
+                                  ? 'bg-amber-400'
+                                  : 'bg-gray-300',
+                            )}
+                            style={{ width: `${(survey.seriousness / NEED_SERIOUSNESS_MAX) * 100}%` }}
+                          />
+                        </span>
+                        <span className="truncate text-[12px] text-gray-600">
+                          {NEED_SERIOUSNESS_LABELS[survey.seriousness]}
+                        </span>
+                      </span>
+                    </td>
+                    <td className={cellClass}>
+                      <span className="flex flex-wrap gap-1">
+                        {barriers.map((label) => (
+                          <span
+                            key={label}
+                            className={cn(chipClass, label === NEED_BARRIER_LABELS.none && 'text-gray-400')}
+                            title={label}
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </span>
+                    </td>
+                    <td className={cellClass}>
+                      <span className="block truncate" title={problem}>
+                        {problem}
+                      </span>
+                    </td>
+                    <td className={cellClass}>
+                      {survey.concern ? (
+                        <span className="line-clamp-2 text-[12px] text-gray-600" title={survey.concern}>
+                          {survey.concern}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                    <td className={cellClass}>
+                      <NeedPriorityBadge priority={householdPriority(household)} />
                     </td>
                   </tr>
                 )
@@ -129,7 +188,7 @@ export function HouseholdTable({
               {rows.length === 0 && (
                 <tr>
                   <td
-                    colSpan={clusterOf ? 12 : 11}
+                    colSpan={clusterOf ? 9 : 8}
                     className="py-8 text-center text-[13px] text-gray-400"
                   >
                     {emptyMessage}

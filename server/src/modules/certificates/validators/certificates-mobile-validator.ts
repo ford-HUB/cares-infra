@@ -19,14 +19,20 @@ export const IssuedSignatorySchema = z.object({
 
 /**
  * The sheet with every placeholder already filled. The asset routes on it are the
- * template's, which the app cannot fetch (portal roles only), so the sheet is also
- * described by its filled text — enough for the app to draw and to print.
+ * template's, rewritten onto the certificate's own asset route. `headline` and
+ * `body` are re-declared as plain strings: the template rule insists the award text
+ * still carries `{{recipient}}`, `{{event}}` and `{{date}}`, and on an issued sheet
+ * those have been filled in.
  */
 export const IssuedDesignResponseSchema = CertificateDesignSchema.omit({
+  headline: true,
+  body: true,
   frame_svg_url: true,
   seal_svg_url: true,
   images: true,
 }).extend({
+  headline: z.string(),
+  body: z.string(),
   frame_svg_url: z.string().optional(),
   seal_svg_url: z.string().optional(),
   images: z.array(

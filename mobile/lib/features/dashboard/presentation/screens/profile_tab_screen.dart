@@ -874,7 +874,8 @@ class _ResolvedProfile {
     final serverVolunteer = server?.volunteer;
     final serverInterests = serverVolunteer == null
         ? const <String>[]
-        : (serverVolunteer.interests.map((i) => i.label).toList()..sort());
+        : (serverVolunteer.allowedInterests.map((i) => i.label).toList()
+            ..sort());
 
     return _ResolvedProfile(
       displayName: (server?.fullName.isNotEmpty ?? false)
@@ -902,7 +903,7 @@ class _ResolvedProfile {
           ? volunteerProfile.interestLabels
           : serverInterests,
 
-      selectedInterests: serverVolunteer?.interests ?? const {},
+      selectedInterests: serverVolunteer?.allowedInterests ?? const {},
 
       profileCompletionPercent: profileComplete
           ? 100

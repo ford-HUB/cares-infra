@@ -24,6 +24,7 @@ class CompletedEventStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pending = event.isAttendancePending && !feedbackSubmitted;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
       decoration: BoxDecoration(
@@ -80,21 +81,37 @@ class CompletedEventStatusCard extends StatelessWidget {
             valueColor: AppColors.primary,
           ),
           CompletedEventStatusRow(
-            icon: Icons.how_to_reg_rounded,
+            icon: pending
+                ? Icons.hourglass_top_rounded
+                : Icons.how_to_reg_rounded,
             label: 'Your participation',
-            value: participated
+            value: pending
+                ? 'Pending · Awaiting attendance validation'
+                : participated
                 ? 'Participated · Attendance verified'
                 : 'Not recorded',
-            valueColor: participated ? AppColors.primary : AppColors.textMuted,
+            valueColor: pending
+                ? AppColors.textSecondary
+                : participated
+                ? AppColors.primary
+                : AppColors.textMuted,
           ),
           CompletedEventStatusRow(
             icon: feedbackSubmitted
                 ? Icons.rate_review_rounded
+                : pending
+                ? Icons.hourglass_top_rounded
                 : Icons.rate_review_outlined,
             label: 'Feedback',
-            value: feedbackSubmitted ? 'Submitted' : 'Not Submitted',
+            value: feedbackSubmitted
+                ? 'Submitted'
+                : pending
+                ? 'Pending — Opens after validation'
+                : 'Not Submitted',
             valueColor: feedbackSubmitted
                 ? AppColors.primary
+                : pending
+                ? AppColors.textSecondary
                 : AppColors.accentOrange,
           ),
           CompletedEventStatusRow(
@@ -266,10 +283,15 @@ class CompletedEventCard extends StatelessWidget {
     required this.onTap,
     this.certificateIssued = false,
     this.onFeedbackTap,
+    this.showFeedback = true,
   });
 
   final CaresEvent event;
   final bool feedbackSubmitted;
+
+  /// Beneficiaries neither give feedback nor earn certificates, so their
+  /// cards end at the header row.
+  final bool showFeedback;
 
   /// The scheduler has generated the sheet; the strip offers to open it.
   final bool certificateIssued;
@@ -282,6 +304,7 @@ class CompletedEventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final absent = event.isMarkedAbsent && !feedbackSubmitted;
+    final pending = event.isAttendancePending && !feedbackSubmitted;
     final accent = feedbackSubmitted
         ? AppColors.primary
         : AppColors.accentOrange;
@@ -388,9 +411,13 @@ class CompletedEventCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                if (absent)
+                if (showFeedback) const SizedBox(height: 12),
+                if (!showFeedback)
+                  const SizedBox.shrink()
+                else if (absent)
                   const _AbsentNotice()
+                else if (pending)
+                  const _PendingNotice()
                 else
                   InkWell(
                     onTap: onFeedbackTap ?? onTap,
@@ -469,6 +496,58 @@ class CompletedEventCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Replaces the feedback call to action while the geofence validator has
+/// not ruled on the volunteer's attendance yet: feedback is pending, not
+/// open, so no button is offered until the status comes back.
+class _PendingNotice extends StatelessWidget {
+  const _PendingNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    const color = AppColors.textSecondary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.hourglass_top_rounded, size: 18, color: color),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Feedback: Pending',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Waiting for your attendance to be validated. Feedback '
+                  'opens once your status is confirmed.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

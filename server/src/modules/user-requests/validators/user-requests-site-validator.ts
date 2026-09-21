@@ -32,12 +32,15 @@ export const UserRequestAttachmentKindSchema = z.enum([
   'id-front',
   'id-back',
   'selfie',
+  'residency-proof',
 ]);
 
 export const UserRequestAttachmentSchema = z.object({
-  /** Stable per request: `id-front`, `id-back`, `selfie`. */
+  /** Stable per request: `id-front`, `id-back`, `selfie`, `residency-proof`. */
   kind: UserRequestAttachmentKindSchema,
   label: z.string(),
+  /** Set when the file is not necessarily an image (a PDF proof of residency). */
+  content_type: z.string().nullable(),
 });
 
 export const UserRequestTrailEntrySchema = z.object({

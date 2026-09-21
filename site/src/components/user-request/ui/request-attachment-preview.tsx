@@ -8,14 +8,16 @@ interface RequestAttachmentPreviewProps {
 }
 
 /**
- * The proof images sit behind the bearer token, so a plain `<img src>` can't show
- * them — the hook fetches the bytes and hands back an object URL.
+ * The proof files sit behind the bearer token, so a plain `<img src>` can't show
+ * them — the hook fetches the bytes and hands back an object URL. A PDF proof of
+ * residency opens in an embedded viewer instead of an image tag.
  */
 export function RequestAttachmentPreview({
   attachment,
   onClose,
 }: RequestAttachmentPreviewProps) {
   const { objectUrl, loading, failed } = useAuthenticatedImage(attachment.path)
+  const isPdf = attachment.contentType === 'application/pdf'
 
   return (
     <div
@@ -43,10 +45,17 @@ export function RequestAttachmentPreview({
           {failed && (
             <div className="text-center">
               <ImageOff className="mx-auto h-8 w-8 text-gray-300" />
-              <p className="mt-2 text-sm text-gray-500">The image could not be loaded.</p>
+              <p className="mt-2 text-sm text-gray-500">The file could not be loaded.</p>
             </div>
           )}
-          {objectUrl && (
+          {objectUrl && isPdf && (
+            <iframe
+              src={objectUrl}
+              title={attachment.label}
+              className="h-[75vh] w-full rounded-lg bg-white"
+            />
+          )}
+          {objectUrl && !isPdf && (
             <img
               src={objectUrl}
               alt={attachment.label}

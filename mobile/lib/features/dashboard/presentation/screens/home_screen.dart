@@ -150,7 +150,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       setState(() {
         _volunteerProfile = profile;
         _profileComplete = profile.profileComplete;
-        if (profile.interests.isNotEmpty) _hasInterests = true;
+        // The server's record decides in both directions: an outside
+        // volunteer whose only pick was School has nothing left and is
+        // asked again.
+        _hasInterests = profile.interests.isNotEmpty;
       });
     } on ApiException {
       // Profile stays as it was; the shell still renders.

@@ -38,6 +38,7 @@ import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
 import { ChatModule } from './modules/chat/modules/chat-module';
 import { AnnouncementsModule } from './modules/announcements/modules/announcements-module';
 import { OverviewModule } from './modules/overview/modules/overview-module';
+import { StatisticsModule } from './modules/statistics/modules/statistics-module';
 import { RankingsModule } from './modules/rankings/modules/rankings-module';
 import { NotificationsModule } from './modules/notifications/modules/notifications-module';
 import { SystemServicesModule } from './modules/system-services/modules/system-services-module';
@@ -86,6 +87,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     ChatModule,
     AnnouncementsModule,
     OverviewModule,
+    StatisticsModule,
     RankingsModule,
     GatewaysModule,
     NotificationsModule,

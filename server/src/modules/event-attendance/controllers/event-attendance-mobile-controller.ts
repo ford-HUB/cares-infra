@@ -11,7 +11,7 @@ import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import type {
   LiveCoordinateDto,
   LiveCoordinateResponseDto,
@@ -31,7 +31,7 @@ import {
  * per second while online, or one CSV per event for what it buffered offline.
  */
 @Controller('v1/attendance/geofence/mobile')
-@Roles(RoleType.VOLUNTEER)
+@Roles(...MOBILE_ROLE_TYPES)
 export class EventAttendanceMobileController {
   constructor(
     private readonly eventAttendanceMobileService: EventAttendanceMobileService,

@@ -32,6 +32,18 @@ const hexColor = (label: string) =>
     .trim()
     .regex(HEX_COLOR_PATTERN, `${label} must be a six-digit hex colour, e.g. #F97316`)
 
+/**
+ * A cut-off is a whole rank, except on the catch-all, which is stored as
+ * `Number.POSITIVE_INFINITY` — Zod 4's `z.number()` rejects non-finite values, so
+ * that case is allowed for explicitly.
+ */
+const maxRank = z.custom<number>(
+  (value) =>
+    value === Number.POSITIVE_INFINITY ||
+    (typeof value === 'number' && Number.isInteger(value) && value >= 1),
+  { message: 'Cut-off must be a whole rank of at least 1' },
+)
+
 const tierSchema = z.object({
   id: z.string(),
   label: z
@@ -39,7 +51,7 @@ const tierSchema = z.object({
     .trim()
     .min(1, 'Tier name is required')
     .max(RANKING_TIER_LABEL_MAX, `Tier name must not exceed ${RANKING_TIER_LABEL_MAX} characters`),
-  maxRank: z.number(),
+  maxRank,
   /** The badge design preset — the ornament, with no colour of its own. */
   frame: z.enum(RANK_FRAME_IDS),
   colorFrom: hexColor('Gradient start'),

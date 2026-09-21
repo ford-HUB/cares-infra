@@ -13,14 +13,20 @@ export type UserRequestKind = 'role_access' | 'event_join'
  */
 export type UserRequestStatus = 'pending' | 'accepted' | 'deleted'
 
-export type UserRequestAttachmentKind = 'id-front' | 'id-back' | 'selfie'
+export type UserRequestAttachmentKind =
+  | 'id-front'
+  | 'id-back'
+  | 'selfie'
+  | 'residency-proof'
 
 export interface UserRequestAttachment {
   kind: UserRequestAttachmentKind
-  /** What the image is meant to prove, e.g. `Valid ID (front)`. */
+  /** What the file is meant to prove, e.g. `Valid ID (front)`. */
   label: string
-  /** API path the portal streams the image from behind the bearer token. */
+  /** API path the portal streams the file from behind the bearer token. */
   path: string
+  /** Set when the file may not be an image — a PDF proof of residency. */
+  contentType?: string
 }
 
 /** One entry on the request's timeline — submitted, accepted, removed, restored. */

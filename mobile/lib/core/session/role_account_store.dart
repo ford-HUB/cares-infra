@@ -193,6 +193,19 @@ class RoleAccountStore extends ChangeNotifier {
 
   bool isUnlocked(String roleType) => byType(roleType)?.isUnlocked ?? false;
 
+  /// The Volunteer side was opened by a director approving a role-access
+  /// request from a donor or beneficiary — someone from outside the school
+  /// community. Read off the server profile once synced; before that, a
+  /// non-volunteer primary role with an unlocked (approved) Volunteer side
+  /// says the same thing.
+  bool get volunteerFromOutsideSchool {
+    final account = _accounts[volunteer];
+    if (account == null || !account.isUnlocked) return false;
+    final server = account.serverProfile?.volunteer;
+    if (server != null) return server.accessGrantedByDirector;
+    return _primaryRoleType != null && _primaryRoleType != volunteer;
+  }
+
   /// Called whenever a dashboard is opened for [roleType].
   ///
   /// First sign-in for this email: the role becomes the unlocked primary and
