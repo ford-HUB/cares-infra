@@ -442,3 +442,43 @@ export const UserRequestStatus = {
 } as const
 
 export type UserRequestStatus = (typeof UserRequestStatus)[keyof typeof UserRequestStatus]
+
+
+export const DonationPaymentMethod = {
+  GCASH: 'GCASH',
+  QRPH: 'QRPH',
+  CARD: 'CARD',
+  BANK_TRANSFER: 'BANK_TRANSFER'
+} as const
+
+export type DonationPaymentMethod = (typeof DonationPaymentMethod)[keyof typeof DonationPaymentMethod]
+
+
+export const DonationPaymentStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type DonationPaymentStatus = (typeof DonationPaymentStatus)[keyof typeof DonationPaymentStatus]
+
+
+export const DonationKind = {
+  MONEY: 'MONEY',
+  GOODS: 'GOODS'
+} as const
+
+export type DonationKind = (typeof DonationKind)[keyof typeof DonationKind]
+
+
+export const DonationStatus = {
+  PLEDGED: 'PLEDGED',
+  AWAITING_PICKUP: 'AWAITING_PICKUP',
+  VERIFYING: 'VERIFYING',
+  CONFIRMED: 'CONFIRMED',
+  DECLINED: 'DECLINED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type DonationStatus = (typeof DonationStatus)[keyof typeof DonationStatus]

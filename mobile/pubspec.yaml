@@ -74,6 +74,10 @@ dependencies:
   pdf: ^3.12.0
   share_plus: ^12.0.2
   google_fonts: ^8.2.1
+  # Donation checkout: GCash and Xendit's hosted card / bank pages open in the
+  # external browser; QR Ph codes render in-app from the EMV string.
+  url_launcher: ^6.3.1
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -107,6 +111,7 @@ flutter:
     - assets/images/intro-img-3.jpg
     - assets/images/entry-login-banner.png
     - assets/images/mascot/
+    - assets/images/payment/
     - assets/lottie/interests/
 
   # An image asset can refer to one or more resolution-specific "variants", see

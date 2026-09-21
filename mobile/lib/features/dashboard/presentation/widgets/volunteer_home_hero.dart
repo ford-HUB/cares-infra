@@ -9,14 +9,19 @@ import 'package:mobile/features/dashboard/presentation/providers/leaderboard_pro
 import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
-/// Dark band across the top of the volunteer home tab: avatar + welcome on
-/// the left, the volunteer's rank on the right, and the search pill underneath.
+/// A standing to draw in the hero when it does not come from the volunteer
+/// leaderboard — the donor home passes its own board's rank and tier.
+typedef HeroStanding = ({int? rank, RankTier? tier});
+
+/// Dark band across the top of the home tab: avatar + welcome on the left,
+/// the person's rank on the right, and the search pill underneath.
 ///
-/// The avatar comes from the volunteer's [RoleAccount] — the photo stream
+/// The avatar comes from the role's [RoleAccount] — the photo stream
 /// `GET /profile/me/mobile` returned — and rebuilds when the store changes.
 /// The rank and the frame around the avatar come from the leaderboard: the
-/// border is the tier the volunteer's standing falls into, in the design and
-/// colours the portal set for it. Paints behind the status bar, so it reads
+/// border is the tier the standing falls into, in the design and colours the
+/// portal set for it. Volunteers read the volunteer board here; another role
+/// hands in its own [standing]. Paints behind the status bar, so it reads
 /// the top inset itself instead of sitting inside a [SafeArea]; [height] is
 /// fixed from the same numbers so the tab can extend the dark ground down
 /// behind the popular deck.
@@ -27,6 +32,8 @@ class VolunteerHomeHero extends ConsumerWidget {
     required this.onSearchTap,
     required this.onFilterTap,
     this.filterActive = false,
+    this.roleType = RoleAccountStore.volunteer,
+    this.standing,
   });
 
   final String displayName;
@@ -35,6 +42,12 @@ class VolunteerHomeHero extends ConsumerWidget {
 
   /// Marks the filter button when a category other than "All" is applied.
   final bool filterActive;
+
+  /// Whose avatar to show — a [RoleAccountStore] role type.
+  final String roleType;
+
+  /// Overrides the volunteer leaderboard as the source of rank and tier.
+  final HeroStanding? standing;
 
   /// Deep forest ground the whole header sits on.
   static const Color ink = Color(0xFF12291A);
@@ -58,9 +71,16 @@ class VolunteerHomeHero extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final topInset = MediaQuery.paddingOf(context).top;
-    final board = ref.watch(leaderboardProvider).asData?.value;
-    final me = board?.me;
-    final tier = board?.tierForRank(me?.rank);
+    final int? rank;
+    final RankTier? tier;
+    if (standing case final own?) {
+      rank = own.rank;
+      tier = own.tier;
+    } else {
+      final board = ref.watch(leaderboardProvider).asData?.value;
+      rank = board?.me.rank;
+      tier = board?.tierForRank(rank);
+    }
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -77,9 +97,7 @@ class VolunteerHomeHero extends ConsumerWidget {
             child: ListenableBuilder(
               listenable: RoleAccountStore.instance,
               builder: (context, _) {
-                final account = RoleAccountStore.instance.byType(
-                  RoleAccountStore.volunteer,
-                );
+                final account = RoleAccountStore.instance.byType(roleType);
                 return Row(
                   children: [
                     RankTierFrame(
@@ -93,7 +111,7 @@ class VolunteerHomeHero extends ConsumerWidget {
                     const SizedBox(width: 14),
                     Expanded(child: _Welcome(name: displayName)),
                     const SizedBox(width: 8),
-                    _RankBlock(rank: me?.rank, tier: tier),
+                    _RankBlock(rank: rank, tier: tier),
                     const _NotificationBell(),
                   ],
                 );

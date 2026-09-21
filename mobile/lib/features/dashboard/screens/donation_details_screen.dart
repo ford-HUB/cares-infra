@@ -1,29 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_assets.dart';
-import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
-import '../data/mock_donations.dart';
+import '../data/models/donation_campaign_models.dart';
+import '../presentation/widgets/home_event_image.dart';
 import 'donation_flow_screen.dart';
 
+/// A director event with donations enabled, as the donor sees it before
+/// giving: what it accepts, what has been raised, and the goods it asks for.
 class DonationDetailsScreen extends StatefulWidget {
-  const DonationDetailsScreen({
-    super.key,
-    required this.donation,
-    this.donorEmail,
-  });
+  const DonationDetailsScreen({super.key, required this.donation});
 
-  final CaresDonation donation;
-  final String? donorEmail;
+  final DonationCampaign donation;
 
-  static void open(
-    BuildContext context,
-    CaresDonation donation, {
-    String? donorEmail,
-  }) {
+  static void open(BuildContext context, DonationCampaign donation) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            DonationDetailsScreen(donation: donation, donorEmail: donorEmail),
+        builder: (_) => DonationDetailsScreen(donation: donation),
       ),
     );
   }
@@ -33,17 +24,8 @@ class DonationDetailsScreen extends StatefulWidget {
 }
 
 class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
-  String get _donorEmail =>
-      widget.donorEmail ??
-      StaticUserSession.instance.currentUser?.email ??
-      'guest@cares.local';
-
   void _startDonation() {
-    DonationFlowScreen.open(
-      context,
-      campaign: widget.donation,
-      donorEmail: _donorEmail,
-    );
+    DonationFlowScreen.open(context, campaign: widget.donation);
   }
 
   @override
@@ -84,10 +66,7 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: Image.asset(
-                    AppAssets.campaignPhoto,
-                    fit: BoxFit.cover,
-                  ),
+                  child: HomeEventImage(event: donation.event, iconSize: 48),
                 ),
                 Positioned.fill(
                   child: DecoratedBox(
@@ -139,19 +118,17 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          if (donation.eventDateLabel != null) ...[
-            _EventInfoRow(
-              icon: Icons.event_outlined,
-              label: 'Event date',
-              value: donation.eventDateLabel!,
-            ),
-            const SizedBox(height: 10),
-          ],
-          if (donation.location != null) ...[
+          _EventInfoRow(
+            icon: Icons.event_outlined,
+            label: 'Event date',
+            value: donation.eventDateLabel,
+          ),
+          const SizedBox(height: 10),
+          if (donation.location.isNotEmpty) ...[
             _EventInfoRow(
               icon: Icons.place_outlined,
               label: 'Location',
-              value: donation.location!,
+              value: donation.location,
             ),
             const SizedBox(height: 10),
           ],
@@ -165,7 +142,7 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             _StatBox(label: 'Money Raised', value: donation.raisedLabel),
             const SizedBox(height: 8),
             Text(
-              donation.countdownLeftLabel,
+              '${donation.countdownLeftLabel} · ${donation.donorsLabel}',
               style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textSecondary,
@@ -198,7 +175,7 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      good.name,
+                      good.label,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -273,7 +250,7 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
   }
 }
 
-String _acceptedDonationsSentence(CaresDonation donation) {
+String _acceptedDonationsSentence(DonationCampaign donation) {
   if (donation.acceptsMonetary && donation.acceptsGoods) {
     return 'Money and goods';
   }

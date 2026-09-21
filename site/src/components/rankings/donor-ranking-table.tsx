@@ -74,7 +74,7 @@ export function DonorRankingTable({ entries, tiers, loading }: DonorRankingTable
             </td>
 
             <td className={`${RANKING_CELL_BORDER} ${RANKING_CELL_BASE} text-gray-600`}>
-              {formatDateShort(entry.lastDonatedAt)}
+              {entry.lastDonatedAt ? formatDateShort(entry.lastDonatedAt) : '—'}
             </td>
 
             <td

@@ -97,7 +97,11 @@ export const ModelName = {
   RankingSettings: 'RankingSettings',
   EvaluationResponse: 'EvaluationResponse',
   UserRequest: 'UserRequest',
-  UserRequestTrailEntry: 'UserRequestTrailEntry'
+  UserRequestTrailEntry: 'UserRequestTrailEntry',
+  DonationPayment: 'DonationPayment',
+  PaymentWebhookEvent: 'PaymentWebhookEvent',
+  Donation: 'Donation',
+  DonationTrailEntry: 'DonationTrailEntry'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -810,6 +814,8 @@ export const RankingSettingsScalarFieldEnum = {
   points_per_attendance: 'points_per_attendance',
   absence_penalty_step: 'absence_penalty_step',
   absence_reset_days: 'absence_reset_days',
+  donor_pesos_per_point: 'donor_pesos_per_point',
+  goods_type_values: 'goods_type_values',
   default_period: 'default_period',
   tiers: 'tiers',
   createdAt: 'createdAt',
@@ -870,6 +876,82 @@ export const UserRequestTrailEntryScalarFieldEnum = {
 } as const
 
 export type UserRequestTrailEntryScalarFieldEnum = (typeof UserRequestTrailEntryScalarFieldEnum)[keyof typeof UserRequestTrailEntryScalarFieldEnum]
+
+
+export const DonationPaymentScalarFieldEnum = {
+  donation_payment_id: 'donation_payment_id',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  campaign_id: 'campaign_id',
+  campaign_title: 'campaign_title',
+  amount: 'amount',
+  currency: 'currency',
+  method: 'method',
+  status: 'status',
+  idempotency_key: 'idempotency_key',
+  gateway_reference: 'gateway_reference',
+  gateway_resource_id: 'gateway_resource_id',
+  payment_reference: 'payment_reference',
+  payment_channel: 'payment_channel',
+  checkout_url: 'checkout_url',
+  qr_string: 'qr_string',
+  expires_at: 'expires_at',
+  paid_at: 'paid_at',
+  failure_reason: 'failure_reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationPaymentScalarFieldEnum = (typeof DonationPaymentScalarFieldEnum)[keyof typeof DonationPaymentScalarFieldEnum]
+
+
+export const PaymentWebhookEventScalarFieldEnum = {
+  webhook_id: 'webhook_id',
+  event: 'event',
+  gateway_reference: 'gateway_reference',
+  payload: 'payload',
+  receivedAt: 'receivedAt'
+} as const
+
+export type PaymentWebhookEventScalarFieldEnum = (typeof PaymentWebhookEventScalarFieldEnum)[keyof typeof PaymentWebhookEventScalarFieldEnum]
+
+
+export const DonationScalarFieldEnum = {
+  donation_id: 'donation_id',
+  sequence: 'sequence',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  kind: 'kind',
+  status: 'status',
+  amount: 'amount',
+  payment_id: 'payment_id',
+  goods_type: 'goods_type',
+  goods_item: 'goods_item',
+  goods_quantity: 'goods_quantity',
+  pickup_address: 'pickup_address',
+  pickup_contact: 'pickup_contact',
+  pickup_date: 'pickup_date',
+  pickup_time_minutes: 'pickup_time_minutes',
+  confirmed_at: 'confirmed_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
+
+
+export const DonationTrailEntryScalarFieldEnum = {
+  donation_trail_entry_id: 'donation_trail_entry_id',
+  donation_id: 'donation_id',
+  status: 'status',
+  note: 'note',
+  actor_id: 'actor_id',
+  actor_label: 'actor_label',
+  notified_email: 'notified_email',
+  createdAt: 'createdAt'
+} as const
+
+export type DonationTrailEntryScalarFieldEnum = (typeof DonationTrailEntryScalarFieldEnum)[keyof typeof DonationTrailEntryScalarFieldEnum]
 
 
 export const SortOrder = {

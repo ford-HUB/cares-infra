@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type { RankingPeriod } from '../dto/rankings-site-dto';
-import type { LeaderboardResponseDto } from '../dto/rankings-mobile-dto';
+import type {
+  DonorLeaderboardResponseDto,
+  LeaderboardResponseDto,
+} from '../dto/rankings-mobile-dto';
 import { nextAbsencePenalty } from './ranking-scoring';
 import { RankingsBoardService, periodStart } from './rankings-board-service';
 
@@ -58,6 +61,54 @@ export class RankingsMobileService {
           mine?.currentStreak ?? 0,
           rule,
         ),
+        tier_id: this.board.tierForRank(mine?.rank ?? null, settings.tiers).id,
+      },
+    };
+  }
+
+  /**
+   * The donor app's leaderboard: confirmed pesos at one point per
+   * `donor_pesos_per_point`, cut into the same tier ladder as the volunteers.
+   */
+  async getDonorLeaderboard(
+    userId: string,
+    period?: RankingPeriod,
+  ): Promise<DonorLeaderboardResponseDto> {
+    const now = new Date();
+    const settings = await this.board.getSettings();
+    const resolvedPeriod = period ?? settings.default_period;
+    const rate = settings.donor_pesos_per_point;
+    const entries = await this.board.buildDonorBoard(rate, {
+      since: periodStart(resolvedPeriod, now),
+      now,
+    });
+
+    const mine = entries.find((entry) => entry.userId === userId) ?? null;
+    const listed = entries.slice(0, LEADERBOARD_SIZE);
+    if (mine && !listed.includes(mine)) listed.push(mine);
+
+    return {
+      period: resolvedPeriod,
+      donor_pesos_per_point: rate,
+      tiers: settings.tiers,
+      total_ranked: entries.length,
+      entries: listed.map((entry) => ({
+        user_id: entry.userId,
+        display_name: entry.name,
+        rank: entry.rank,
+        points: entry.points,
+        amount: entry.amount,
+        donations: entry.donations,
+        tier_id: this.board.tierForRank(entry.rank, settings.tiers).id,
+        is_me: entry.userId === userId,
+      })),
+      me: {
+        rank: mine?.rank ?? null,
+        points: mine?.points ?? 0,
+        amount: mine?.amount ?? 0,
+        money_amount: mine?.moneyAmount ?? 0,
+        goods_amount: mine?.goodsAmount ?? 0,
+        donations: mine?.donations ?? 0,
         tier_id: this.board.tierForRank(mine?.rank ?? null, settings.tiers).id,
       },
     };

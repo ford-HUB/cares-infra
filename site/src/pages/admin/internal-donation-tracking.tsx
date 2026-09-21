@@ -71,8 +71,10 @@ export function InternalDonationTrackingPage() {
         `${selected.reference} marked ${DONATION_STATUS_LABELS[status]} — ${notified} notified`,
       )
       setSelectedId(null)
-    } catch {
-      toast.error('The donation could not be updated')
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'The donation could not be updated',
+      )
     } finally {
       setSaving(false)
     }

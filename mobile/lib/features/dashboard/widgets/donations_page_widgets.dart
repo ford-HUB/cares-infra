@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/event_category_colors.dart';
-import '../data/mock_donations.dart';
+import '../data/models/donation_campaign_models.dart';
+import '../presentation/widgets/home_event_image.dart';
 import 'events_page_widgets.dart';
 
 class DonationsPageHeader extends StatelessWidget {
@@ -48,10 +48,13 @@ class DonationsPageHeader extends StatelessWidget {
 class DonationCategoryFilters extends StatelessWidget {
   const DonationCategoryFilters({
     super.key,
+    required this.categories,
     required this.selected,
     required this.onSelected,
   });
 
+  /// "All" plus every category the loaded campaigns carry.
+  final List<String> categories;
   final String selected;
   final ValueChanged<String> onSelected;
 
@@ -61,10 +64,10 @@ class DonationCategoryFilters extends StatelessWidget {
       height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: kDonationFilterCategories.length,
+        itemCount: categories.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final category = kDonationFilterCategories[index];
+          final category = categories[index];
           final isSelected = selected == category;
           final categoryColor = eventCategoryColor(category);
 
@@ -110,7 +113,7 @@ class DonationCatalogCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final CaresDonation donation;
+  final DonationCampaign donation;
   final VoidCallback onTap;
 
   @override
@@ -140,10 +143,7 @@ class DonationCatalogCard extends StatelessWidget {
                       SizedBox(
                         height: 120,
                         width: double.infinity,
-                        child: Image.asset(
-                          AppAssets.campaignPhoto,
-                          fit: BoxFit.cover,
-                        ),
+                        child: HomeEventImage(event: donation.event),
                       ),
                       Positioned.fill(
                         child: DecoratedBox(
@@ -191,26 +191,33 @@ class DonationCatalogCard extends StatelessWidget {
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: donation.tags.map((tag) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              tag,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                        children:
+                            [
+                              donation.acceptedDonationsLabel,
+                              for (final good in donation.neededGoods)
+                                good.label,
+                            ].map((tag) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -242,7 +249,7 @@ class DonationCatalogCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (donation.eventDateLabel != null) ...[
+                      ...[
                         const SizedBox(height: 6),
                         Row(
                           children: [
@@ -254,8 +261,8 @@ class DonationCatalogCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                donation.location == null
-                                    ? donation.eventDateLabel!
+                                donation.location.isEmpty
+                                    ? donation.eventDateLabel
                                     : '${donation.eventDateLabel} · '
                                           '${donation.location}',
                                 maxLines: 1,

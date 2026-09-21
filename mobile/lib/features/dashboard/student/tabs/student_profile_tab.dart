@@ -5,7 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../auth/login_screen.dart';
 import '../../data/activity_data.dart';
 import '../../data/certificate_data.dart';
-import '../../data/donation_store.dart';
+import '../../data/donation_format.dart';
 import '../../data/event_feedback_store.dart';
 import '../../data/event_registration_store.dart';
 import '../../screens/profile_screens.dart';
@@ -26,7 +26,6 @@ class StudentProfileTab extends StatefulWidget {
 
 class _StudentProfileTabState extends State<StudentProfileTab> {
   final _store = EventRegistrationStore.instance;
-  final _donationStore = DonationStore.instance;
   final _feedbackStore = EventFeedbackStore.instance;
   final _certificateStore = CertificateStore.instance;
   bool _notificationsEnabled = true;
@@ -35,7 +34,6 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
   void initState() {
     super.initState();
     _store.addListener(_onStoreChanged);
-    _donationStore.addListener(_onStoreChanged);
     _feedbackStore.addListener(_onStoreChanged);
     _certificateStore.addListener(_onStoreChanged);
   }
@@ -43,7 +41,6 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
   @override
   void dispose() {
     _store.removeListener(_onStoreChanged);
-    _donationStore.removeListener(_onStoreChanged);
     _feedbackStore.removeListener(_onStoreChanged);
     _certificateStore.removeListener(_onStoreChanged);
     super.dispose();
@@ -77,10 +74,11 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
     return verified * 25;
   }
 
-  int get _totalDonated =>
-      _donationStore.totalDonatedDisplayForEmail(_userEmail);
+  /// The prototype has no ledger behind it; the real donor dashboard reads
+  /// `GET /donations/me`.
+  int get _totalDonated => 0;
 
-  int get _donationsMade => _donationStore.donationsCountForEmail(_userEmail);
+  int get _donationsMade => 0;
 
   /// Certificates the volunteer has received so far.
   int get _certsEarned => _certificateStore.count;
@@ -130,7 +128,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
             user: widget.user,
             points: _points,
             modeLabel: modeLabel,
-            totalDonatedLabel: DonationStore.formatPeso(_totalDonated),
+            totalDonatedLabel: DonationFormat.peso(_totalDonated),
             onTap: _openEditProfile,
             onEdit: _openEditProfile,
             onPointsTap: _openRanks,
@@ -138,7 +136,7 @@ class _StudentProfileTabState extends State<StudentProfileTab> {
           ),
           const SizedBox(height: 16),
           _TotalDonatedCard(
-            amount: DonationStore.formatPesoFull(_totalDonated),
+            amount: DonationFormat.pesoFull(_totalDonated),
             donationsCount: _donationsMade,
             onTap: () => ProfileHistoryScreen.open(context),
           ),

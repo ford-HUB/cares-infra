@@ -16,6 +16,7 @@ import { AuthModule } from './modules/auth/modules/auth-module';
 import { HealthController } from './health-controller';
 import { S3Module } from './infastructures/s3/s3-module';
 import { MicroservicesModule } from './infastructures/microservices/microservices-module';
+import { XenditModule } from './infastructures/xendit/xendit-module';
 import { InterestsModule } from './modules/interests/modules/interests-module';
 import { ProfileModule } from './modules/profile/modules/profile-module';
 import { SettingsModule } from './modules/settings/modules/settings-module';
@@ -41,6 +42,7 @@ import { OverviewModule } from './modules/overview/modules/overview-module';
 import { StatisticsModule } from './modules/statistics/modules/statistics-module';
 import { RankingsModule } from './modules/rankings/modules/rankings-module';
 import { NotificationsModule } from './modules/notifications/modules/notifications-module';
+import { DonationsModule } from './modules/donations/modules/donations-module';
 import { SystemServicesModule } from './modules/system-services/modules/system-services-module';
 import { SystemPerformanceModule } from './modules/system-performance/modules/system-performance-module';
 import { SystemDiagnosticsModule } from './modules/system-diagnostics/modules/system-diagnostics-module';
@@ -64,6 +66,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     MetricsModule,
     S3Module,
     MicroservicesModule,
+    XenditModule,
     AuthModule,
     InterestsModule,
     ProfileModule,
@@ -91,6 +94,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     RankingsModule,
     GatewaysModule,
     NotificationsModule,
+    DonationsModule,
     SchedulersModule,
     SystemServicesModule,
     SystemPerformanceModule,

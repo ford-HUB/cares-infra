@@ -40,10 +40,13 @@ export interface DonorRankingEntry extends RankedEntry {
   name: string
   email: string
   donorType: 'individual' | 'organization'
-  /** Total donated in pesos — points are `amount ÷ DONOR_PESOS_PER_POINT`. */
+  /** Confirmed pesos in the period — money paid plus the credited value of goods. */
   amount: number
+  moneyAmount: number
+  goodsAmount: number
   donations: number
-  lastDonatedAt: string
+  /** Null when nothing of theirs was confirmed in the period. */
+  lastDonatedAt: string | null
 }
 
 /**
@@ -132,6 +135,8 @@ export interface RankingSettings {
   /** Misses further apart than this many days restart the penalty at the first step. */
   absenceResetDays: number
   donorPesosPerPoint: number
+  /** Pesos credited per unit of each goods type, keyed by goods-type id. */
+  goodsTypeValues: Record<string, number>
   defaultBoard: RankingBoard
   defaultPeriod: RankingPeriod
   /** Highest tier first; the last one has no cut-off and catches everyone below. */

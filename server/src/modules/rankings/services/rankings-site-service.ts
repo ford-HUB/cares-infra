@@ -3,6 +3,7 @@ import { resolveDepartmentScope } from 'src/shared/constants/departments';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import type {
+  DonorRankingsResponseDto,
   RankingPeriod,
   RankingSettingsDto,
   RankingTrendResponseDto,
@@ -143,6 +144,87 @@ export class RankingsSiteService {
       series: leaders.map((leader) => ({
         user_id: leader.userId,
         name: `${leader.firstname} ${leader.lastname}`,
+        rank: leader.rank,
+        values: snapshots.map(
+          (snapshot) =>
+            snapshot.find((entry) => entry.userId === leader.userId)?.points ??
+            0,
+        ),
+      })),
+    };
+  }
+
+  /**
+   * The donor standings — the whole school for every portal role, since a
+   * donation is not filed under a college the way a volunteer is.
+   */
+  async listDonors(period?: RankingPeriod): Promise<DonorRankingsResponseDto> {
+    const now = new Date();
+    const settings = await this.board.getSettings();
+    const resolvedPeriod = period ?? settings.default_period;
+    const rate = settings.donor_pesos_per_point;
+    const [entries, previous] = await Promise.all([
+      this.board.buildDonorBoard(rate, {
+        since: periodStart(resolvedPeriod, now),
+        now,
+      }),
+      this.board.previousDonorRanks(rate, resolvedPeriod, now),
+    ]);
+
+    return {
+      period: resolvedPeriod,
+      donor_pesos_per_point: rate,
+      entries: entries.map((entry) => ({
+        user_id: entry.userId,
+        name: entry.name,
+        email: entry.email,
+        rank: entry.rank,
+        previous_rank: previous.get(entry.userId) ?? null,
+        points: entry.points,
+        amount: entry.amount,
+        money_amount: entry.moneyAmount,
+        goods_amount: entry.goodsAmount,
+        donations: entry.donations,
+        last_donated_at: entry.lastDonatedAt?.toISOString() ?? null,
+      })),
+    };
+  }
+
+  /** The top three donors' race over the last six months, like the volunteer chart. */
+  async getDonorTrend(
+    period?: RankingPeriod,
+  ): Promise<RankingTrendResponseDto> {
+    const now = new Date();
+    const settings = await this.board.getSettings();
+    const resolvedPeriod = period ?? settings.default_period;
+    const rate = settings.donor_pesos_per_point;
+    const monthEnds = trendMonthEnds(now);
+    const labels = monthEnds.map((end) => MONTH_LABELS[end.getMonth()]);
+
+    const leaders = (
+      await this.board.buildDonorBoard(rate, {
+        since: periodStart(resolvedPeriod, now),
+        now,
+      })
+    ).slice(0, TREND_SIZE);
+    if (leaders.length === 0) return { labels, series: [] };
+
+    const since = new Date(
+      now.getFullYear(),
+      now.getMonth() - (TREND_MONTHS - 1),
+      1,
+    );
+    const snapshots = await Promise.all(
+      monthEnds.map((end) =>
+        this.board.buildDonorBoard(rate, { since, now: end }),
+      ),
+    );
+
+    return {
+      labels,
+      series: leaders.map((leader) => ({
+        user_id: leader.userId,
+        name: leader.name,
         rank: leader.rank,
         values: snapshots.map(
           (snapshot) =>

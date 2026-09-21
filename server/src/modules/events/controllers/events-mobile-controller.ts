@@ -6,6 +6,7 @@ import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import type {
+  DonationEventsResponseDto,
   EventRegistrationResponseDto,
   RecommendedEventsQueryDto,
   RecommendedEventsResponseDto,
@@ -13,6 +14,7 @@ import type {
 } from '../dto/events-mobile-dto';
 import { EventsMobileService } from '../services/events-mobile-service';
 import {
+  DonationEventsResponseSchema,
   EventRegistrationResponseSchema,
   RecommendedEventsQuerySchema,
   RecommendedEventsResponseSchema,
@@ -53,6 +55,17 @@ export class EventsMobileController {
     @CurrentUser() user: JwtPayload,
   ): Promise<RegisteredEventsResponseDto> {
     return this.eventsMobileService.listCompletedForBeneficiaries(user.sub);
+  }
+
+  /** Open events with money or goods donations enabled — the donor's campaigns. */
+  @Get('donations')
+  @Roles(...MOBILE_ROLE_TYPES)
+  @ResponseMessage('Events accepting donations')
+  @ZSerialize(DonationEventsResponseSchema)
+  async listForDonors(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<DonationEventsResponseDto> {
+    return this.eventsMobileService.listForDonors(user.sub);
   }
 
   @Get('registered')

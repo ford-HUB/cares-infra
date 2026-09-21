@@ -52,6 +52,14 @@ export const RecommendedEventSchema = z.object({
   category: z.string(),
   status: z.enum(EventStatus),
   beneficiary_applicable: z.boolean(),
+  /** The director's "Accepted Donations" panel — what a donor may give. */
+  funds_donation: z.boolean(),
+  goods_donation: z.boolean(),
+  goods_types: z.array(z.string()),
+  /** Money paid towards this event so far (pledged or better), whole pesos. */
+  funds_raised: z.number().int().min(0),
+  /** Money and goods donations opened on this event, cancelled and declined excluded. */
+  donations_count: z.number().int().min(0),
   /**
    * A beneficiary's own application for this event: PENDING while a director
    * has yet to rule, ACCEPTED once they have (which is also when
@@ -71,6 +79,11 @@ export const RecommendedEventSchema = z.object({
 export const RecommendedEventsResponseSchema = z.object({
   /** False when the volunteer has not picked interests yet, so the app can prompt. */
   has_interests: z.boolean(),
+  events: z.array(RecommendedEventSchema),
+});
+
+/** Open events accepting donations — the donor app's campaign feed. */
+export const DonationEventsResponseSchema = z.object({
   events: z.array(RecommendedEventSchema),
 });
 

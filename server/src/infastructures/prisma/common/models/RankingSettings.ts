@@ -33,12 +33,14 @@ export type RankingSettingsAvgAggregateOutputType = {
   points_per_attendance: number | null
   absence_penalty_step: number | null
   absence_reset_days: number | null
+  donor_pesos_per_point: number | null
 }
 
 export type RankingSettingsSumAggregateOutputType = {
   points_per_attendance: number | null
   absence_penalty_step: number | null
   absence_reset_days: number | null
+  donor_pesos_per_point: number | null
 }
 
 export type RankingSettingsMinAggregateOutputType = {
@@ -46,6 +48,7 @@ export type RankingSettingsMinAggregateOutputType = {
   points_per_attendance: number | null
   absence_penalty_step: number | null
   absence_reset_days: number | null
+  donor_pesos_per_point: number | null
   default_period: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -56,6 +59,7 @@ export type RankingSettingsMaxAggregateOutputType = {
   points_per_attendance: number | null
   absence_penalty_step: number | null
   absence_reset_days: number | null
+  donor_pesos_per_point: number | null
   default_period: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -66,6 +70,8 @@ export type RankingSettingsCountAggregateOutputType = {
   points_per_attendance: number
   absence_penalty_step: number
   absence_reset_days: number
+  donor_pesos_per_point: number
+  goods_type_values: number
   default_period: number
   tiers: number
   createdAt: number
@@ -78,12 +84,14 @@ export type RankingSettingsAvgAggregateInputType = {
   points_per_attendance?: true
   absence_penalty_step?: true
   absence_reset_days?: true
+  donor_pesos_per_point?: true
 }
 
 export type RankingSettingsSumAggregateInputType = {
   points_per_attendance?: true
   absence_penalty_step?: true
   absence_reset_days?: true
+  donor_pesos_per_point?: true
 }
 
 export type RankingSettingsMinAggregateInputType = {
@@ -91,6 +99,7 @@ export type RankingSettingsMinAggregateInputType = {
   points_per_attendance?: true
   absence_penalty_step?: true
   absence_reset_days?: true
+  donor_pesos_per_point?: true
   default_period?: true
   createdAt?: true
   updatedAt?: true
@@ -101,6 +110,7 @@ export type RankingSettingsMaxAggregateInputType = {
   points_per_attendance?: true
   absence_penalty_step?: true
   absence_reset_days?: true
+  donor_pesos_per_point?: true
   default_period?: true
   createdAt?: true
   updatedAt?: true
@@ -111,6 +121,8 @@ export type RankingSettingsCountAggregateInputType = {
   points_per_attendance?: true
   absence_penalty_step?: true
   absence_reset_days?: true
+  donor_pesos_per_point?: true
+  goods_type_values?: true
   default_period?: true
   tiers?: true
   createdAt?: true
@@ -209,6 +221,8 @@ export type RankingSettingsGroupByOutputType = {
   points_per_attendance: number
   absence_penalty_step: number
   absence_reset_days: number
+  donor_pesos_per_point: number
+  goods_type_values: runtime.JsonValue | null
   default_period: string
   tiers: runtime.JsonValue
   createdAt: Date
@@ -243,6 +257,8 @@ export type RankingSettingsWhereInput = {
   points_per_attendance?: Prisma.IntFilter<"RankingSettings"> | number
   absence_penalty_step?: Prisma.IntFilter<"RankingSettings"> | number
   absence_reset_days?: Prisma.IntFilter<"RankingSettings"> | number
+  donor_pesos_per_point?: Prisma.IntFilter<"RankingSettings"> | number
+  goods_type_values?: Prisma.JsonNullableFilter<"RankingSettings">
   default_period?: Prisma.StringFilter<"RankingSettings"> | string
   tiers?: Prisma.JsonFilter<"RankingSettings">
   createdAt?: Prisma.DateTimeFilter<"RankingSettings"> | Date | string
@@ -254,6 +270,8 @@ export type RankingSettingsOrderByWithRelationInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
+  goods_type_values?: Prisma.SortOrderInput | Prisma.SortOrder
   default_period?: Prisma.SortOrder
   tiers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -268,6 +286,8 @@ export type RankingSettingsWhereUniqueInput = Prisma.AtLeast<{
   points_per_attendance?: Prisma.IntFilter<"RankingSettings"> | number
   absence_penalty_step?: Prisma.IntFilter<"RankingSettings"> | number
   absence_reset_days?: Prisma.IntFilter<"RankingSettings"> | number
+  donor_pesos_per_point?: Prisma.IntFilter<"RankingSettings"> | number
+  goods_type_values?: Prisma.JsonNullableFilter<"RankingSettings">
   default_period?: Prisma.StringFilter<"RankingSettings"> | string
   tiers?: Prisma.JsonFilter<"RankingSettings">
   createdAt?: Prisma.DateTimeFilter<"RankingSettings"> | Date | string
@@ -279,6 +299,8 @@ export type RankingSettingsOrderByWithAggregationInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
+  goods_type_values?: Prisma.SortOrderInput | Prisma.SortOrder
   default_period?: Prisma.SortOrder
   tiers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -298,6 +320,8 @@ export type RankingSettingsScalarWhereWithAggregatesInput = {
   points_per_attendance?: Prisma.IntWithAggregatesFilter<"RankingSettings"> | number
   absence_penalty_step?: Prisma.IntWithAggregatesFilter<"RankingSettings"> | number
   absence_reset_days?: Prisma.IntWithAggregatesFilter<"RankingSettings"> | number
+  donor_pesos_per_point?: Prisma.IntWithAggregatesFilter<"RankingSettings"> | number
+  goods_type_values?: Prisma.JsonNullableWithAggregatesFilter<"RankingSettings">
   default_period?: Prisma.StringWithAggregatesFilter<"RankingSettings"> | string
   tiers?: Prisma.JsonWithAggregatesFilter<"RankingSettings">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RankingSettings"> | Date | string
@@ -309,6 +333,8 @@ export type RankingSettingsCreateInput = {
   points_per_attendance?: number
   absence_penalty_step?: number
   absence_reset_days?: number
+  donor_pesos_per_point?: number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: string
   tiers: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -320,6 +346,8 @@ export type RankingSettingsUncheckedCreateInput = {
   points_per_attendance?: number
   absence_penalty_step?: number
   absence_reset_days?: number
+  donor_pesos_per_point?: number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: string
   tiers: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -331,6 +359,8 @@ export type RankingSettingsUpdateInput = {
   points_per_attendance?: Prisma.IntFieldUpdateOperationsInput | number
   absence_penalty_step?: Prisma.IntFieldUpdateOperationsInput | number
   absence_reset_days?: Prisma.IntFieldUpdateOperationsInput | number
+  donor_pesos_per_point?: Prisma.IntFieldUpdateOperationsInput | number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: Prisma.StringFieldUpdateOperationsInput | string
   tiers?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -342,6 +372,8 @@ export type RankingSettingsUncheckedUpdateInput = {
   points_per_attendance?: Prisma.IntFieldUpdateOperationsInput | number
   absence_penalty_step?: Prisma.IntFieldUpdateOperationsInput | number
   absence_reset_days?: Prisma.IntFieldUpdateOperationsInput | number
+  donor_pesos_per_point?: Prisma.IntFieldUpdateOperationsInput | number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: Prisma.StringFieldUpdateOperationsInput | string
   tiers?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -353,6 +385,8 @@ export type RankingSettingsCreateManyInput = {
   points_per_attendance?: number
   absence_penalty_step?: number
   absence_reset_days?: number
+  donor_pesos_per_point?: number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: string
   tiers: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -364,6 +398,8 @@ export type RankingSettingsUpdateManyMutationInput = {
   points_per_attendance?: Prisma.IntFieldUpdateOperationsInput | number
   absence_penalty_step?: Prisma.IntFieldUpdateOperationsInput | number
   absence_reset_days?: Prisma.IntFieldUpdateOperationsInput | number
+  donor_pesos_per_point?: Prisma.IntFieldUpdateOperationsInput | number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: Prisma.StringFieldUpdateOperationsInput | string
   tiers?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -375,6 +411,8 @@ export type RankingSettingsUncheckedUpdateManyInput = {
   points_per_attendance?: Prisma.IntFieldUpdateOperationsInput | number
   absence_penalty_step?: Prisma.IntFieldUpdateOperationsInput | number
   absence_reset_days?: Prisma.IntFieldUpdateOperationsInput | number
+  donor_pesos_per_point?: Prisma.IntFieldUpdateOperationsInput | number
+  goods_type_values?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   default_period?: Prisma.StringFieldUpdateOperationsInput | string
   tiers?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -386,6 +424,8 @@ export type RankingSettingsCountOrderByAggregateInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
+  goods_type_values?: Prisma.SortOrder
   default_period?: Prisma.SortOrder
   tiers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -396,6 +436,7 @@ export type RankingSettingsAvgOrderByAggregateInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
 }
 
 export type RankingSettingsMaxOrderByAggregateInput = {
@@ -403,6 +444,7 @@ export type RankingSettingsMaxOrderByAggregateInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
   default_period?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -413,6 +455,7 @@ export type RankingSettingsMinOrderByAggregateInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
   default_period?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -422,6 +465,7 @@ export type RankingSettingsSumOrderByAggregateInput = {
   points_per_attendance?: Prisma.SortOrder
   absence_penalty_step?: Prisma.SortOrder
   absence_reset_days?: Prisma.SortOrder
+  donor_pesos_per_point?: Prisma.SortOrder
 }
 
 
@@ -431,6 +475,8 @@ export type RankingSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   points_per_attendance?: boolean
   absence_penalty_step?: boolean
   absence_reset_days?: boolean
+  donor_pesos_per_point?: boolean
+  goods_type_values?: boolean
   default_period?: boolean
   tiers?: boolean
   createdAt?: boolean
@@ -442,6 +488,8 @@ export type RankingSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   points_per_attendance?: boolean
   absence_penalty_step?: boolean
   absence_reset_days?: boolean
+  donor_pesos_per_point?: boolean
+  goods_type_values?: boolean
   default_period?: boolean
   tiers?: boolean
   createdAt?: boolean
@@ -453,6 +501,8 @@ export type RankingSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   points_per_attendance?: boolean
   absence_penalty_step?: boolean
   absence_reset_days?: boolean
+  donor_pesos_per_point?: boolean
+  goods_type_values?: boolean
   default_period?: boolean
   tiers?: boolean
   createdAt?: boolean
@@ -464,13 +514,15 @@ export type RankingSettingsSelectScalar = {
   points_per_attendance?: boolean
   absence_penalty_step?: boolean
   absence_reset_days?: boolean
+  donor_pesos_per_point?: boolean
+  goods_type_values?: boolean
   default_period?: boolean
   tiers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RankingSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"ranking_settings_id" | "points_per_attendance" | "absence_penalty_step" | "absence_reset_days" | "default_period" | "tiers" | "createdAt" | "updatedAt", ExtArgs["result"]["rankingSettings"]>
+export type RankingSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"ranking_settings_id" | "points_per_attendance" | "absence_penalty_step" | "absence_reset_days" | "donor_pesos_per_point" | "goods_type_values" | "default_period" | "tiers" | "createdAt" | "updatedAt", ExtArgs["result"]["rankingSettings"]>
 
 export type $RankingSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RankingSettings"
@@ -489,6 +541,15 @@ export type $RankingSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
      * Misses further apart than this restart the penalty at the first step.
      */
     absence_reset_days: number
+    /**
+     * Donor board: one point for every this many pesos of confirmed donations.
+     */
+    donor_pesos_per_point: number
+    /**
+     * Peso value credited per unit of each goods type (`food`, `clothing`, …) when a
+     * goods donation is scored; null falls back to the shipped defaults.
+     */
+    goods_type_values: runtime.JsonValue | null
     default_period: string
     tiers: runtime.JsonValue
     createdAt: Date
@@ -920,6 +981,8 @@ export interface RankingSettingsFieldRefs {
   readonly points_per_attendance: Prisma.FieldRef<"RankingSettings", 'Int'>
   readonly absence_penalty_step: Prisma.FieldRef<"RankingSettings", 'Int'>
   readonly absence_reset_days: Prisma.FieldRef<"RankingSettings", 'Int'>
+  readonly donor_pesos_per_point: Prisma.FieldRef<"RankingSettings", 'Int'>
+  readonly goods_type_values: Prisma.FieldRef<"RankingSettings", 'Json'>
   readonly default_period: Prisma.FieldRef<"RankingSettings", 'String'>
   readonly tiers: Prisma.FieldRef<"RankingSettings", 'Json'>
   readonly createdAt: Prisma.FieldRef<"RankingSettings", 'DateTime'>

@@ -3,6 +3,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   DONOR_PESOS_PER_POINT_MAX,
   DONOR_PESOS_PER_POINT_MIN,
+  GOODS_TYPE_VALUE_MAX,
+  GOODS_TYPE_VALUE_MIN,
   RANKING_BOARDS,
   RANKING_PERIODS,
   VOLUNTEER_ABSENCE_PENALTY_STEP_MAX,
@@ -12,6 +14,7 @@ import {
   VOLUNTEER_POINTS_PER_ATTENDANCE_MAX,
   VOLUNTEER_POINTS_PER_ATTENDANCE_MIN,
 } from '../../constants/ranking'
+import { GOODS_TYPE_OPTIONS } from '../../constants/event'
 import { formatCurrency, formatNumber } from '../../constants/formatting'
 import type { useRankingCustomizationForm } from '../../hooks/use-ranking-customization-form'
 import { RankingTierFields } from './ui/ranking-tier-fields'
@@ -159,6 +162,45 @@ export function RankingCustomizationForm({
               </span>
             )}
           </label>
+        </div>
+
+        <h3 className="mt-5 text-[13px] font-semibold text-gray-900">Goods values</h3>
+        <p className="mt-1 text-[12px] text-gray-500">
+          Pesos credited per unit of each goods type when a goods donation is
+          confirmed — that value, not a cash figure, is what earns the donor points.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {GOODS_TYPE_OPTIONS.map((type) => {
+            const Icon = type.icon
+            const fieldError = errors.goodsTypeValues?.[type.id]
+            return (
+              <label key={type.id} className="block">
+                <span className="flex items-center gap-1.5 text-[13px] font-medium text-gray-700">
+                  <Icon className={`h-3.5 w-3.5 ${type.color}`} aria-hidden />
+                  {type.name}
+                </span>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[13px] text-gray-400">
+                    ₱
+                  </span>
+                  <input
+                    type="number"
+                    min={GOODS_TYPE_VALUE_MIN}
+                    max={GOODS_TYPE_VALUE_MAX}
+                    {...form.register(`goodsTypeValues.${type.id}`, {
+                      valueAsNumber: true,
+                    })}
+                    className={`${inputClass} w-full pl-7`}
+                  />
+                </div>
+                {fieldError && (
+                  <span className="mt-1 block text-[12px] text-red-600">
+                    {fieldError.message}
+                  </span>
+                )}
+              </label>
+            )
+          })}
         </div>
       </section>
 

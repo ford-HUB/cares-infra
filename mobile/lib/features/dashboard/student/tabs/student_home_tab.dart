@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/session/static_user_session.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../data/mock_donations.dart';
 import '../../data/mock_events.dart';
-import '../../screens/donation_details_screen.dart';
 import '../../screens/event_details_screen.dart';
 import '../../widgets/dashboard_shell_widgets.dart';
-import '../../widgets/donation_cards.dart';
 import '../../widgets/event_cards.dart';
 
 class StudentHomeTab extends StatelessWidget {
@@ -79,14 +76,10 @@ class StudentHomeTab extends StatelessWidget {
     ];
   }
 
+  /// The prototype has no server behind it, so donor mode shows nothing here;
+  /// the real donor dashboard reads `GET /events/donations`.
   List<Widget> _donorSlivers(BuildContext context) {
     return [
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-          child: FeaturedDonationsCarousel(donations: kMockFeaturedDonations),
-        ),
-      ),
       SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
@@ -100,16 +93,13 @@ class StudentHomeTab extends StatelessWidget {
           ),
         ),
       ),
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        sliver: SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final donation = kMockDonationCampaigns[index];
-            return UpcomingDonationCard(
-              donation: donation,
-              onTap: () => DonationDetailsScreen.open(context, donation),
-            );
-          }, childCount: kMockDonationCampaigns.length),
+      const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Text(
+            'Sign in as a donor to see events accepting donations.',
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
         ),
       ),
     ];

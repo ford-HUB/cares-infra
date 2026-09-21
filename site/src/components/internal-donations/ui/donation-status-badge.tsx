@@ -7,6 +7,7 @@ const statusStyles: Record<DonationStatus, { badge: string; dot: string }> = {
   verifying: { badge: 'bg-indigo-50 text-indigo-700', dot: 'bg-indigo-500' },
   confirmed: { badge: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
   declined: { badge: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
+  cancelled: { badge: 'bg-gray-100 text-gray-500', dot: 'bg-gray-300' },
 }
 
 /** Dense badge sized for the donations table; reused in the detail dialog header. */

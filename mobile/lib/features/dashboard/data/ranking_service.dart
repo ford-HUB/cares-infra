@@ -16,4 +16,12 @@ class RankingService {
     final response = await _api.getJson('/rankings/leaderboard$query');
     return Leaderboard.fromJson(response['data'] as Map<String, dynamic>);
   }
+
+  /// `/rankings/donors/leaderboard` — confirmed giving scored at the portal's
+  /// pesos-per-point rate, cut into the same tier ladder.
+  Future<DonorLeaderboard> fetchDonorLeaderboard({String? period}) async {
+    final query = period == null ? '' : '?period=$period';
+    final response = await _api.getJson('/rankings/donors/leaderboard$query');
+    return DonorLeaderboard.fromJson(response['data'] as Map<String, dynamic>);
+  }
 }

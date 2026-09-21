@@ -354,3 +354,33 @@ export type UserRequest = Prisma.UserRequestModel
  * One line on a request's history — filed, accepted, removed, restored.
  */
 export type UserRequestTrailEntry = Prisma.UserRequestTrailEntryModel
+/**
+ * Model DonationPayment
+ * One money-donation checkout a donor started from the app. A row is created
+ * before the gateway is called so the client's idempotency key can dedupe a
+ * retried tap, and the gateway reference on it is what every Xendit callback
+ * carries back.
+ */
+export type DonationPayment = Prisma.DonationPaymentModel
+/**
+ * Model PaymentWebhookEvent
+ * Every Xendit callback already applied, keyed by its `webhook-id` header.
+ * Xendit retries until it sees a 2xx, so the same event can arrive more than
+ * once; inserting here in the same transaction as the status change makes a
+ * replay a no-op.
+ */
+export type PaymentWebhookEvent = Prisma.PaymentWebhookEventModel
+/**
+ * Model Donation
+ * The donation ledger the portal's Donation Tracking works and the donor app's
+ * Activity tab reads. A money row is opened by the gateway callback once a
+ * checkout is paid; a goods row is opened when the donor pledges. Only CONFIRMED
+ * rows count towards the donor board.
+ */
+export type Donation = Prisma.DonationModel
+/**
+ * Model DonationTrailEntry
+ * Every status move on a donation, with who made it — the audit trail the portal
+ * shows and the proof that the donor was notified.
+ */
+export type DonationTrailEntry = Prisma.DonationTrailEntryModel

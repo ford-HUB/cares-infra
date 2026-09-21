@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
@@ -10,13 +11,12 @@ import 'package:mobile/core/theme/app_theme.dart';
 
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
-import 'package:mobile/features/dashboard/data/donation_store.dart';
+import 'package:mobile/features/dashboard/data/donation_format.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/data/user_request_service.dart';
-import 'package:mobile/features/dashboard/donor/data/donor_profile_store.dart';
-import 'package:mobile/features/dashboard/donor/screens/donor_profile_section_edit_screen.dart';
+import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 import 'package:mobile/features/dashboard/data/activity_log_service.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 import 'package:mobile/features/dashboard/data/certificate_data.dart';
@@ -231,14 +231,6 @@ class _ProfileTabBody extends StatelessWidget {
     onRetrySync();
   }
 
-  Future<void> _editDonorSection(
-    BuildContext context,
-
-    DonorProfileSection section,
-  ) async {
-    await DonorProfileSectionEditScreen.open(context, section);
-  }
-
   void _signOut(BuildContext context) {
     AuthSession.clear();
     RoleAccountStore.instance.clear();
@@ -263,25 +255,6 @@ class _ProfileTabBody extends StatelessWidget {
     );
 
     final requestStore = AssistanceRequestStore.instance;
-
-    final donorProfile = DonorProfileStore.instance.profile;
-
-    final donorPersonal = DonorPersonalProfileStore.instance.profile;
-
-    final donorTotalDonated = DonationStore.instance
-        .totalDonatedDisplayForEmail(donorPersonal.email);
-
-    final donorDonationsCount = DonationStore.instance.donationsCountForEmail(
-      donorPersonal.email,
-    );
-
-    final donorDonations = DonationStore.instance.donationsForEmail(
-      donorPersonal.email,
-    );
-
-    final donorCampaignsSupported = donorDonations.isEmpty
-        ? donorDonationsCount
-        : donorDonations.map((d) => d.campaignTitle).toSet().length;
 
     final profile = _ResolvedProfile.from(
       displayName: displayName,
@@ -364,36 +337,36 @@ class _ProfileTabBody extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   if (isDonor)
-                    StatsRow.custom(
-                      items: [
-                        StatsRowItem(
-                          icon: Icons.favorite_outline_rounded,
-
-                          value: DonationStore.formatPeso(donorTotalDonated),
-
-                          label: 'Donated',
-
-                          iconBackground: const Color(0xFFFFE0B2),
-
-                          iconColor: const Color(0xFFE65100),
-                        ),
-
-                        StatsRowItem(
-                          icon: Icons.card_giftcard_rounded,
-
-                          value: '$donorDonationsCount',
-
-                          label: 'Donations',
-                        ),
-
-                        StatsRowItem(
-                          icon: Icons.campaign_outlined,
-
-                          value: '$donorCampaignsSupported',
-
-                          label: 'Campaigns',
-                        ),
-                      ],
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final summary = DonorSummary.of(
+                          ref.watch(myDonationsProvider).asData?.value ??
+                              const [],
+                        );
+                        return StatsRow.custom(
+                          items: [
+                            StatsRowItem(
+                              icon: Icons.favorite_outline_rounded,
+                              value: DonationFormat.peso(
+                                summary.confirmedAmount,
+                              ),
+                              label: 'Confirmed',
+                              iconBackground: const Color(0xFFFFE0B2),
+                              iconColor: const Color(0xFFE65100),
+                            ),
+                            StatsRowItem(
+                              icon: Icons.card_giftcard_rounded,
+                              value: '${summary.donations}',
+                              label: 'Donations',
+                            ),
+                            StatsRowItem(
+                              icon: Icons.campaign_outlined,
+                              value: '${summary.campaigns}',
+                              label: 'Campaigns',
+                            ),
+                          ],
+                        );
+                      },
                     )
                   else if (isBeneficiary)
                     StatsRow.custom(
@@ -450,11 +423,9 @@ class _ProfileTabBody extends StatelessWidget {
 
                       label: 'Full name',
 
-                      value: donorPersonal.fullName.isEmpty
-                          ? (server?.fullName.isNotEmpty ?? false)
-                                ? server!.fullName
-                                : displayName
-                          : donorPersonal.fullName,
+                      value: (server?.fullName.isNotEmpty ?? false)
+                          ? server!.fullName
+                          : displayName,
                     ),
 
                     const SizedBox(height: 12),
@@ -464,9 +435,7 @@ class _ProfileTabBody extends StatelessWidget {
 
                       label: 'Contact number',
 
-                      value: donorPersonal.contactNumber.isEmpty
-                          ? _orNotSet(server?.phoneNumber)
-                          : donorPersonal.contactNumber,
+                      value: _orNotSet(server?.phoneNumber),
                     ),
 
                     const SizedBox(height: 12),
@@ -476,9 +445,7 @@ class _ProfileTabBody extends StatelessWidget {
 
                       label: 'Address',
 
-                      value: donorPersonal.address.isEmpty
-                          ? _orNotSet(server?.address.display)
-                          : donorPersonal.address,
+                      value: _orNotSet(server?.address.display),
                     ),
 
                     if (donorServer != null) ...[
@@ -490,81 +457,6 @@ class _ProfileTabBody extends StatelessWidget {
                         value: donorServer.signInLabel,
                       ),
                     ],
-
-                    const SizedBox(height: 12),
-
-                    _InfoRow(
-                      icon: Icons.apartment_rounded,
-
-                      label: 'Organization',
-
-                      value: donorPersonal.organization.isEmpty
-                          ? 'Individual donor'
-                          : donorPersonal.organization,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(
-                      title: 'Interests',
-
-                      onEdit: () => _editDonorSection(
-                        context,
-
-                        DonorProfileSection.interests,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    if (donorProfile.interests.isEmpty)
-                      _EmptySectionHint(
-                        message:
-                            'Tap the edit icon to pick the causes you care about.',
-                      )
-                    else
-                      Wrap(
-                        spacing: 8,
-
-                        runSpacing: 8,
-
-                        children: [
-                          for (final interest in donorProfile.interestLabels)
-                            _ChipTag(label: interest),
-                        ],
-                      ),
-
-                    const SizedBox(height: 20),
-
-                    _SectionTitle(
-                      title: 'Donation Preferences',
-
-                      onEdit: () => _editDonorSection(
-                        context,
-
-                        DonorProfileSection.donationTypes,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    if (donorProfile.donationTypes.isEmpty)
-                      _EmptySectionHint(
-                        message:
-                            'Tap the edit icon to tell CARES what you want to '
-                            'give.',
-                      )
-                    else
-                      Wrap(
-                        spacing: 8,
-
-                        runSpacing: 8,
-
-                        children: [
-                          for (final type in donorProfile.donationTypeLabels)
-                            _ChipTag(label: type),
-                        ],
-                      ),
                   ] else if (isBeneficiary) ...[
                     // Beneficiaries see only the header, completion and
                     // request stats here; their details live in the edit flow.
@@ -673,7 +565,7 @@ class _ProfileTabBody extends StatelessWidget {
 
                         label: 'My Donations',
 
-                        trailingLabel: '$donorDonationsCount',
+                        trailingLabel: null,
 
                         onTap:
                             onOpenDonations ??
@@ -720,13 +612,14 @@ class _ProfileTabBody extends StatelessWidget {
                     ),
                   ),
 
-                  _MenuTile(
-                    icon: Icons.verified_user_outlined,
-
-                    label: 'Permissions',
-
-                    onTap: () => PermissionsScreen.open(context),
-                  ),
+                  // Donors never use the camera, location or notification
+                  // permissions the screen manages, so it is hidden for them.
+                  if (!isDonor)
+                    _MenuTile(
+                      icon: Icons.verified_user_outlined,
+                      label: 'Permissions',
+                      onTap: () => PermissionsScreen.open(context),
+                    ),
 
                   // Geolocation records are a volunteer-only feature.
                   if (!isDonor && !isBeneficiary)

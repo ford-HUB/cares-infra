@@ -1,93 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/session/donor_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_activity_tab.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_campaigns_tab.dart';
-import 'package:mobile/features/dashboard/donor/data/donor_profile_store.dart';
-import 'package:mobile/features/dashboard/donor/screens/donor_profile_setup_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_home_tab.dart';
-import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_ranks_tab.dart';
+import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
-/// Donor dashboard — mirrors volunteer [HomeScreen] layout with campaign focus.
-class DonorDashboardScreen extends StatefulWidget {
+/// Donor dashboard — mirrors the volunteer [HomeScreen] layout with campaigns
+/// in place of events. Every tab reads the server: the campaign feed, the
+/// donor's ledger and the donor board.
+class DonorDashboardScreen extends ConsumerStatefulWidget {
   const DonorDashboardScreen({super.key, required this.donor});
 
   final DonorSessionUser donor;
 
   @override
-  State<DonorDashboardScreen> createState() => _DonorDashboardScreenState();
+  ConsumerState<DonorDashboardScreen> createState() =>
+      _DonorDashboardScreenState();
 }
 
-class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
+class _DonorDashboardScreenState extends ConsumerState<DonorDashboardScreen> {
   static const _activityTabIndex = 2;
-
-  final _profileStore = DonorProfileStore.instance;
-  final _personalStore = DonorPersonalProfileStore.instance;
 
   int _currentTab = 0;
   // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
   int _refreshVersion = 0;
 
-  bool get _profileComplete => _profileStore.profile.profileComplete;
-
-  /// Pull-to-refresh. Donor data lives in in-memory stores today, so the
-  /// reload is a remount of every tab; swap in real fetches here when the
-  /// donor endpoints land.
+  /// Pull-to-refresh: drop every cached fetch, then remount all tabs so each
+  /// one reloads from scratch, not just the page that was pulled.
   Future<void> _refreshAll() async {
+    ref.invalidate(donationCampaignsProvider);
+    ref.invalidate(myDonationsProvider);
+    ref.invalidate(donorLeaderboardProvider);
     if (!mounted) return;
     setState(() => _refreshVersion++);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _profileStore.addListener(_onProfileChanged);
-    _personalStore.addListener(_onProfileChanged);
-  }
-
-  @override
-  void dispose() {
-    _profileStore.removeListener(_onProfileChanged);
-    _personalStore.removeListener(_onProfileChanged);
-    super.dispose();
-  }
-
-  void _onProfileChanged() {
-    if (mounted) setState(() {});
-  }
-
   void _openDonationsTab() => setState(() => _currentTab = _activityTabIndex);
 
-  /// Donor interest profiling — same flow as the volunteer setup.
-  Future<void> _openProfileSetup() async {
-    final wasIncomplete = !_profileComplete;
-
-    final saved = await DonorProfileSetupScreen.open(
-      context,
-      initialProfile: _profileStore.profile,
-    );
-
-    if (!mounted || saved == null) return;
-    setState(() {});
-
-    if (wasIncomplete && saved.profileComplete) {
-      await showProfileCompletionSuccessDialog(
-        context,
-        message:
-            'Your donor profile has been completed successfully. CARES can '
-            'now match you with campaigns that fit your interests.',
-      );
-    }
-  }
-
-  /// Personal information is edited separately from giving preferences.
   String get _firstName {
     final name = widget.donor.firstName.trim();
     return name.isEmpty ? 'Donor' : name;
+  }
+
+  String get _displayName {
+    final full = widget.donor.fullName.trim();
+    return full.isEmpty ? _firstName : full;
   }
 
   @override
@@ -110,27 +73,16 @@ class _DonorDashboardScreenState extends State<DonorDashboardScreen> {
                   index: _currentTab,
                   children: [
                     DonorHomeTab(
-                      firstName: _firstName,
-                      email: widget.donor.email,
-                      showProfileCompletionCard: !_profileComplete,
-                      onCompleteProfile: _openProfileSetup,
+                      displayName: _firstName,
+                      onSeeAllCampaigns: () => setState(() => _currentTab = 1),
                     ),
-                    DonorCampaignsTab(email: widget.donor.email),
-                    DonorActivityTab(email: widget.donor.email),
-                    DonorRanksTab(
-                      displayName: widget.donor.fullName,
-                      email: widget.donor.email,
-                    ),
+                    const DonorCampaignsTab(),
+                    const DonorActivityTab(),
+                    DonorRanksTab(displayName: _displayName),
                     ProfileTabScreen(
-                      displayName:
-                          _personalStore.profile.fullName.trim().isEmpty
-                          ? widget.donor.fullName
-                          : _personalStore.profile.fullName,
+                      displayName: _displayName,
                       email: widget.donor.email,
                       points: 0,
-                      profileComplete: _profileComplete,
-                      completionPercent:
-                          _profileStore.profile.completionPercent,
                       isDonor: true,
                       onOpenDonations: _openDonationsTab,
                     ),

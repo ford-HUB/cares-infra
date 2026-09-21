@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/widgets/skeleton.dart';
+import 'package:mobile/features/dashboard/data/donation_format.dart';
+import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/donor/data/donor_accent_colors.dart';
-import 'package:mobile/features/dashboard/data/donation_store.dart';
-import 'package:mobile/features/dashboard/data/mock_donations.dart';
+import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.dart';
 import 'package:mobile/features/dashboard/screens/donation_flow_screen.dart';
-import 'package:mobile/features/dashboard/screens/donation_receipt_screen.dart';
 
-/// Donor's donation history — mirrors [ActivityTabScreen] layout.
-class DonorActivityTab extends StatelessWidget {
-  const DonorActivityTab({super.key, required this.email});
-
-  final String email;
+/// The donor's donation tracking — every money and goods donation they made,
+/// from `GET /donations/me`, with where each one stands on its ladder. A
+/// tap opens the status view; the Director's moves on the portal show up
+/// here on the next fetch.
+class DonorActivityTab extends ConsumerWidget {
+  const DonorActivityTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final donations = DonationStore.instance.donationsForEmail(email);
-    final totalDonated = DonationStore.instance.totalDonatedDisplayForEmail(
-      email,
-    );
-    final donationsCount = DonationStore.instance.donationsCountForEmail(email);
-    final campaignsSupported = donations.isEmpty
-        ? donationsCount
-        : donations.map((d) => d.campaignTitle).toSet().length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final donations = ref.watch(myDonationsProvider);
+    final summary = DonorSummary.of(donations.asData?.value ?? const []);
 
     return SafeArea(
       bottom: false,
@@ -43,7 +42,7 @@ class DonorActivityTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Your donation history and supported campaigns',
+                    'Your donations and where each one stands',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -51,64 +50,94 @@ class DonorActivityTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryChip(
-                          icon: Icons.volunteer_activism_outlined,
-                          color: DonorAccents.donated,
-                          value: DonationStore.formatPeso(totalDonated),
-
-                          label: 'Donated',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SummaryChip(
-                          icon: Icons.favorite_outline,
-                          color: DonorAccents.donations,
-                          value: '$donationsCount',
-                          label: 'Donations',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SummaryChip(
-                          icon: Icons.campaign_outlined,
-                          color: DonorAccents.campaigns,
-                          value: '$campaignsSupported',
-                          label: 'Campaigns',
-                        ),
-                      ),
-                    ],
-                  ),
+                  DonorSummaryRow(summary: summary),
                 ],
               ),
             ),
           ),
-          if (donations.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _EmptyActivityState(),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-              sliver: SliverList.separated(
-                itemCount: donations.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final donation = donations[donations.length - 1 - index];
-                  return _DonationActivityCard(
-                    donation: donation,
-                    email: email,
-                  );
-                },
+          ...donations.when(
+            loading: () => const [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
+                sliver: SliverToBoxAdapter(child: _ActivitySkeleton()),
               ),
-            ),
+            ],
+            error: (error, _) => [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                sliver: SliverToBoxAdapter(
+                  child: HomeStateCard.error(
+                    message: error is ApiException
+                        ? error.message
+                        : 'Could not load your donations right now.',
+                    onRetry: () => ref.invalidate(myDonationsProvider),
+                  ),
+                ),
+              ),
+            ],
+            data: (items) => [
+              if (items.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _EmptyActivityState(),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                  sliver: SliverList.separated(
+                    itemCount: items.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) =>
+                        _DonationActivityCard(donation: items[index]),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Confirmed total, donations on the ladder, and events supported — shared
+/// with the profile tab so both tell the same story.
+class DonorSummaryRow extends StatelessWidget {
+  const DonorSummaryRow({super.key, required this.summary});
+
+  final DonorSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _SummaryChip(
+            icon: Icons.volunteer_activism_outlined,
+            color: DonorAccents.donated,
+            value: DonationFormat.peso(summary.confirmedAmount),
+            label: 'Confirmed',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _SummaryChip(
+            icon: Icons.favorite_outline,
+            color: DonorAccents.donations,
+            value: '${summary.donations}',
+            label: 'Donations',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _SummaryChip(
+            icon: Icons.campaign_outlined,
+            color: DonorAccents.campaigns,
+            value: '${summary.campaigns}',
+            label: 'Campaigns',
+          ),
+        ),
+      ],
     );
   }
 }
@@ -171,54 +200,25 @@ class _SummaryChip extends StatelessWidget {
 }
 
 class _DonationActivityCard extends StatelessWidget {
-  const _DonationActivityCard({required this.donation, required this.email});
+  const _DonationActivityCard({required this.donation});
 
-  final UserDonation donation;
-  final String email;
+  final Donation donation;
 
-  void _open(BuildContext context) {
-    // Both money and goods donations have a status to track, so open the
-    // status view whenever the campaign is still known.
-    final campaign = findDonationById(donation.campaignId);
-    if (campaign != null) {
-      DonationFlowScreen.openStatus(
-        context,
-        campaign: campaign,
-        donorEmail: email,
-        donation: donation,
-      );
-    } else {
-      DonationReceiptScreen.open(context, donation);
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
+  Color get _statusColor => switch (donation.status) {
+    DonationStatus.confirmed => AppColors.primary,
+    DonationStatus.cancelled || DonationStatus.declined => AppColors.error,
+    _ => AppColors.accentOrange,
+  };
 
   @override
   Widget build(BuildContext context) {
-    final isMoney = donation.type == DonationType.money;
+    final isMoney = donation.isMoney;
     final typeColor = isMoney ? DonorAccents.money : DonorAccents.goods;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () => _open(context),
+        onTap: () => DonationFlowScreen.openStatus(context, donation: donation),
         borderRadius: BorderRadius.circular(14),
         child: Ink(
           padding: const EdgeInsets.all(14),
@@ -251,7 +251,9 @@ class _DonationActivityCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            donation.campaignTitle,
+                            donation.eventTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
@@ -270,7 +272,7 @@ class _DonationActivityCard extends StatelessWidget {
                           ),
                           child: Text(
                             isMoney
-                                ? DonationStore.formatPesoFull(donation.amount)
+                                ? DonationFormat.pesoFull(donation.amount)
                                 : 'Goods',
                             style: TextStyle(
                               fontSize: 12,
@@ -281,14 +283,49 @@ class _DonationActivityCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${donation.donationId} · ${donation.statusLabel}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
+                    if (!isMoney) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${donation.goodsLabel} × ${donation.goodsQuantity ?? 1}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
+                    ],
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text(
+                          donation.reference,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: _statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          donation.statusLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: _statusColor,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -300,7 +337,7 @@ class _DonationActivityCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _formatDate(donation.donatedAt),
+                          DonationFormat.dateOnly(donation.createdAt),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
@@ -320,7 +357,28 @@ class _DonationActivityCard extends StatelessWidget {
   }
 }
 
+class _ActivitySkeleton extends StatelessWidget {
+  const _ActivitySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SkeletonLoader(
+      child: Column(
+        children: [
+          for (var i = 0; i < 3; i++)
+            Padding(
+              padding: EdgeInsets.only(bottom: i < 2 ? 12 : 0),
+              child: const SkeletonBox(height: 96, radius: 14),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyActivityState extends StatelessWidget {
+  const _EmptyActivityState();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -344,7 +402,7 @@ class _EmptyActivityState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Donate to a campaign to see your activity here.',
+            'Donate to a campaign to track it here.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,

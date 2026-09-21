@@ -28,18 +28,22 @@ export const useInternalDonationStore = create<InternalDonationState>((set) => (
     try {
       const donations = await fetchInternalDonations()
       set({ donations, loading: false, initialized: true })
-    } catch {
+    } catch (error) {
       set({
         loading: false,
         initialized: true,
-        error: 'Donations could not be loaded',
+        error: error instanceof Error ? error.message : 'Donations could not be loaded',
       })
     }
   },
 
   advance: async (id, change) => {
     const result = await advanceDonationStatus(id, change)
-    set({ donations: result.donations })
+    set((state) => ({
+      donations: state.donations.map((donation) =>
+        donation.id === id ? result.donation : donation,
+      ),
+    }))
     return result.notifiedEmail
   },
 }))

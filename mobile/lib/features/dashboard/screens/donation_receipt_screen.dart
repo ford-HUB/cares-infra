@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../data/donation_store.dart';
+import '../data/donation_format.dart';
+import '../data/models/donation_models.dart';
 import '../widgets/donation_flow_widgets.dart';
 
 /// Read-only view of a completed donation. Reached from the "View Donation"
@@ -9,9 +10,9 @@ import '../widgets/donation_flow_widgets.dart';
 class DonationReceiptScreen extends StatelessWidget {
   const DonationReceiptScreen({super.key, required this.donation});
 
-  final UserDonation donation;
+  final Donation donation;
 
-  static void open(BuildContext context, UserDonation donation) {
+  static void open(BuildContext context, Donation donation) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => DonationReceiptScreen(donation: donation),
@@ -21,7 +22,7 @@ class DonationReceiptScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMoney = donation.type == DonationType.money;
+    final isMoney = donation.isMoney;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,8 +67,8 @@ class DonationReceiptScreen extends StatelessWidget {
                         const SizedBox(height: 14),
                         Text(
                           isMoney
-                              ? DonationStore.formatPesoFull(donation.amount)
-                              : 'Goods pledge',
+                              ? DonationFormat.pesoFull(donation.amount)
+                              : donation.goodsLabel,
                           style: const TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
@@ -76,7 +77,7 @@ class DonationReceiptScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'to ${donation.campaignTitle}',
+                          'to ${donation.eventTitle}',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 13.5,
@@ -85,10 +86,10 @@ class DonationReceiptScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         DonationStatusPill(
-                          label: isMoney
-                              ? donation.moneyStatus.upperLabel
-                              : donation.goodsStatus.upperLabel,
+                          label: donation.status.upperLabel,
                           done: donation.isComplete,
+                          cancelled:
+                              donation.isCancelled || donation.isDeclined,
                         ),
                       ],
                     ),
@@ -96,12 +97,12 @@ class DonationReceiptScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   DonationSummaryCard(
                     rows: [
-                      DonationSummaryRow('Campaign', donation.campaignTitle),
-                      DonationSummaryRow('Donation type', donation.type.label),
+                      DonationSummaryRow('Campaign', donation.eventTitle),
+                      DonationSummaryRow('Donation type', donation.kind.label),
                       if (isMoney) ...[
                         DonationSummaryRow(
                           'Amount',
-                          DonationStore.formatPesoFull(donation.amount),
+                          DonationFormat.pesoFull(donation.amount),
                         ),
                         if (donation.paymentMethod != null)
                           DonationSummaryRow(
@@ -114,7 +115,15 @@ class DonationReceiptScreen extends StatelessWidget {
                             donation.paymentReference!,
                           ),
                       ] else ...[
-                        DonationSummaryRow('Item', donation.goodsItem ?? '—'),
+                        DonationSummaryRow('Item', donation.goodsLabel),
+                        DonationSummaryRow(
+                          'Quantity',
+                          '${donation.goodsQuantity ?? 1}',
+                        ),
+                        DonationSummaryRow(
+                          'Credited value',
+                          DonationFormat.pesoFull(donation.amount),
+                        ),
                         const DonationSummaryRow('Fulfillment', 'Pickup'),
                         if (donation.pickupDateLabel != null)
                           DonationSummaryRow(
@@ -134,14 +143,12 @@ class DonationReceiptScreen extends StatelessWidget {
                       ],
                       DonationSummaryRow(
                         'Date',
-                        DonationStore.formatDate(donation.donatedAt),
+                        DonationFormat.dateTime(donation.createdAt),
                       ),
-                      DonationSummaryRow('Donation ID', donation.donationId),
+                      DonationSummaryRow('Donation ID', donation.reference),
                       DonationSummaryRow(
                         'Status',
-                        isMoney
-                            ? donation.moneyStatus.upperLabel
-                            : donation.goodsStatus.upperLabel,
+                        donation.status.upperLabel,
                         emphasize: true,
                       ),
                     ],

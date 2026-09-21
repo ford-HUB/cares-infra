@@ -65,6 +65,29 @@ export class EventsRepository {
   }
 
   /**
+   * Open events whose director enabled at least one accepted donation type,
+   * soonest first — the donor app's campaign feed. Same row shape as the
+   * volunteer pool; donors hold no attendance rows, so that slice is empty.
+   */
+  async findOpenForDonors(userId: string) {
+    return this.prisma.event.findMany({
+      where: {
+        status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
+        event_ended: { gte: new Date() },
+        OR: [{ funds_donation: true }, { goods_donation: true }],
+      },
+      include: {
+        _count: { select: { attendances: true } },
+        attendances: {
+          where: { user_id: userId },
+          select: { event_attendance_id: true, status: true },
+        },
+      },
+      orderBy: { event_started: 'asc' },
+    });
+  }
+
+  /**
    * Events flagged for beneficiaries that have run their course — marked
    * completed, or past their end time — latest first. Cancelled ones stay out.
    */

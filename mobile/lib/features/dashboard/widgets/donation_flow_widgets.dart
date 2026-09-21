@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../data/donation_store.dart';
+import '../data/models/donation_models.dart';
 
 /// Shared presentational widgets for the multi-step donation flow.
 
-IconData paymentMethodIcon(DonationPaymentMethod method) => switch (method) {
-  DonationPaymentMethod.gcash => Icons.account_balance_wallet_outlined,
-  DonationPaymentMethod.maya => Icons.account_balance_wallet_outlined,
-  DonationPaymentMethod.card => Icons.credit_card_outlined,
-  DonationPaymentMethod.bank => Icons.account_balance_outlined,
-};
+/// The channel's brand mark, sized to sit where an option tile's icon goes.
+class PaymentMethodBadge extends StatelessWidget {
+  const PaymentMethodBadge(this.method, {super.key, this.size = 42});
+
+  final DonationPaymentMethod method;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.28),
+      child: SvgPicture.asset(
+        method.assetPath,
+        width: size,
+        height: size,
+        semanticsLabel: method.label,
+      ),
+    );
+  }
+}
 
 /// Title + supporting copy shown at the top of each step.
 class DonationStepHeader extends StatelessWidget {
@@ -313,29 +328,33 @@ class DonationStatusPill extends StatelessWidget {
   }
 }
 
-/// Vertical tracker for a goods donation's lifecycle. Shows the four forward
-/// steps normally, or a Pledged → Cancelled path when the donation is cancelled.
-class GoodsStatusTracker extends StatelessWidget {
-  const GoodsStatusTracker({super.key, required this.status});
+/// Vertical tracker for a donation's lifecycle: the forward rungs for its
+/// kind (goods pass through a pickup leg, money does not), or a
+/// Pledged → Cancelled / Declined path when it left the ladder.
+class DonationStatusTracker extends StatelessWidget {
+  const DonationStatusTracker({
+    super.key,
+    required this.kind,
+    required this.status,
+  });
 
-  final GoodsDonationStatus status;
-
-  static const _forward = [
-    GoodsDonationStatus.pledged,
-    GoodsDonationStatus.waitingForPickup,
-    GoodsDonationStatus.verifying,
-    GoodsDonationStatus.confirmed,
-  ];
+  final DonationKind kind;
+  final DonationStatus status;
 
   @override
   Widget build(BuildContext context) {
-    if (status == GoodsDonationStatus.cancelled) {
-      return const Column(
+    if (status == DonationStatus.cancelled ||
+        status == DonationStatus.declined) {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _StatusStep(label: 'Pledged', state: _StepState.done, isLast: false),
+          const _StatusStep(
+            label: 'Pledged',
+            state: _StepState.done,
+            isLast: false,
+          ),
           _StatusStep(
-            label: 'Cancelled',
+            label: status.label,
             state: _StepState.cancelled,
             isLast: true,
           ),
@@ -343,54 +362,23 @@ class GoodsStatusTracker extends StatelessWidget {
       );
     }
 
+    final forward = DonationStatus.flowFor(kind);
+    final current = forward.indexOf(status);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (var i = 0; i < _forward.length; i++)
+        for (var i = 0; i < forward.length; i++)
           _StatusStep(
-            label: _forward[i].label,
-            state: _stateFor(i),
-            isLast: i == _forward.length - 1,
+            label: forward[i].label,
+            state: status == DonationStatus.confirmed || i < current
+                ? _StepState.done
+                : i == current
+                ? _StepState.current
+                : _StepState.pending,
+            isLast: i == forward.length - 1,
           ),
       ],
     );
-  }
-
-  _StepState _stateFor(int index) {
-    if (status == GoodsDonationStatus.confirmed) return _StepState.done;
-    if (index < status.index) return _StepState.done;
-    if (index == status.index) return _StepState.current;
-    return _StepState.pending;
-  }
-}
-
-/// Vertical stepper for a money donation: Pledged → Verifying → Confirmed.
-class MoneyStatusTracker extends StatelessWidget {
-  const MoneyStatusTracker({super.key, required this.status});
-
-  final MoneyDonationStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final steps = MoneyDonationStatus.values;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < steps.length; i++)
-          _StatusStep(
-            label: steps[i].label,
-            state: _stateFor(i),
-            isLast: i == steps.length - 1,
-          ),
-      ],
-    );
-  }
-
-  _StepState _stateFor(int index) {
-    if (status == MoneyDonationStatus.confirmed) return _StepState.done;
-    if (index < status.index) return _StepState.done;
-    if (index == status.index) return _StepState.current;
-    return _StepState.pending;
   }
 }
 

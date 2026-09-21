@@ -19,10 +19,12 @@ interface DonationProgressStepsProps {
  * instead of a half-filled track that implies it is still moving.
  */
 export function DonationProgressSteps({ kind, status }: DonationProgressStepsProps) {
-  if (status === 'declined') {
+  if (status === 'declined' || status === 'cancelled') {
     return (
       <p className="rounded-lg bg-gray-100 px-3 py-2 text-[12px] text-gray-600">
-        This donation was declined and is no longer in the tracking flow.
+        {status === 'declined'
+          ? 'This donation was declined and is no longer in the tracking flow.'
+          : 'The donor cancelled this pledge from the app; nothing is expected.'}
       </p>
     )
   }

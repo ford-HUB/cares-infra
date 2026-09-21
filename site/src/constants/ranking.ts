@@ -17,6 +17,23 @@ export const VOLUNTEER_ABSENCE_PENALTY_STEP = 2
 export const VOLUNTEER_ABSENCE_RESET_DAYS = 7
 export const DONOR_PESOS_PER_POINT = 100
 
+/**
+ * Pesos credited per unit of each goods type when a goods donation is scored —
+ * the shipped defaults, keyed by `GOODS_TYPE_OPTIONS` id. Mirrors the server's
+ * `DEFAULT_GOODS_TYPE_VALUES`.
+ */
+export const DONOR_GOODS_TYPE_VALUES: Record<string, number> = {
+  food: 150,
+  clothing: 100,
+  medicine: 300,
+  books: 120,
+  hygiene: 100,
+  supplies: 100,
+  other: 50,
+}
+export const GOODS_TYPE_VALUE_MIN = 0
+export const GOODS_TYPE_VALUE_MAX = 1000000
+
 export const RANKING_DEFAULT_VIEW: RankingView = 'dashboard'
 
 export const RANKING_VIEWS: { value: RankingView; label: string }[] = [
@@ -36,7 +53,7 @@ export const RANKING_BOARDS: { value: RankingBoard; label: string }[] = [
 export function boardCriteria(board: RankingBoard, settings: RankingSettings): string {
   return board === 'volunteer'
     ? `+${settings.pointsPerAttendance} per event attended · a missed registration costs −${settings.absencePenaltyStep}, then −${settings.absencePenaltyStep * 2}, −${settings.absencePenaltyStep * 3}… for straight misses within ${settings.absenceResetDays} days`
-    : `1 point per ₱${settings.donorPesosPerPoint} donated`
+    : `1 point per ₱${settings.donorPesosPerPoint} of confirmed donations · goods count at their set value per unit`
 }
 
 export const RANKING_PERIODS: { value: RankingPeriod; label: string }[] = [
@@ -163,6 +180,7 @@ export const RANKING_DEFAULT_SETTINGS: RankingSettings = {
   absencePenaltyStep: VOLUNTEER_ABSENCE_PENALTY_STEP,
   absenceResetDays: VOLUNTEER_ABSENCE_RESET_DAYS,
   donorPesosPerPoint: DONOR_PESOS_PER_POINT,
+  goodsTypeValues: DONOR_GOODS_TYPE_VALUES,
   defaultBoard: RANKING_DEFAULT_BOARD,
   defaultPeriod: RANKING_DEFAULT_PERIOD,
   tiers: RANKING_DEFAULT_TIERS,

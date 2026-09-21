@@ -1038,6 +1038,74 @@ export type EnumUserRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumUserRequestStatusFilter<$PrismaModel>
 }
 
+export type EnumDonationPaymentMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentMethod | Prisma.EnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentMethodFilter<$PrismaModel> | $Enums.DonationPaymentMethod
+}
+
+export type EnumDonationPaymentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentStatus | Prisma.EnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentStatusFilter<$PrismaModel> | $Enums.DonationPaymentStatus
+}
+
+export type EnumDonationPaymentMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentMethod | Prisma.EnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentMethodWithAggregatesFilter<$PrismaModel> | $Enums.DonationPaymentMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationPaymentMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationPaymentMethodFilter<$PrismaModel>
+}
+
+export type EnumDonationPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentStatus | Prisma.EnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.DonationPaymentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationPaymentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationPaymentStatusFilter<$PrismaModel>
+}
+
+export type EnumDonationKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationKind | Prisma.EnumDonationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationKindFilter<$PrismaModel> | $Enums.DonationKind
+}
+
+export type EnumDonationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationStatus | Prisma.EnumDonationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel> | $Enums.DonationStatus
+}
+
+export type EnumDonationKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationKind | Prisma.EnumDonationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationKindWithAggregatesFilter<$PrismaModel> | $Enums.DonationKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationKindFilter<$PrismaModel>
+}
+
+export type EnumDonationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationStatus | Prisma.EnumDonationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationStatusWithAggregatesFilter<$PrismaModel> | $Enums.DonationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1997,6 +2065,74 @@ export type NestedEnumUserRequestStatusWithAggregatesFilter<$PrismaModel = never
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUserRequestStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUserRequestStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumDonationPaymentMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentMethod | Prisma.EnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentMethodFilter<$PrismaModel> | $Enums.DonationPaymentMethod
+}
+
+export type NestedEnumDonationPaymentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentStatus | Prisma.EnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentStatusFilter<$PrismaModel> | $Enums.DonationPaymentStatus
+}
+
+export type NestedEnumDonationPaymentMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentMethod | Prisma.EnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentMethod[] | Prisma.ListEnumDonationPaymentMethodFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentMethodWithAggregatesFilter<$PrismaModel> | $Enums.DonationPaymentMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationPaymentMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationPaymentMethodFilter<$PrismaModel>
+}
+
+export type NestedEnumDonationPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationPaymentStatus | Prisma.EnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationPaymentStatus[] | Prisma.ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.DonationPaymentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationPaymentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationPaymentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumDonationKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationKind | Prisma.EnumDonationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationKindFilter<$PrismaModel> | $Enums.DonationKind
+}
+
+export type NestedEnumDonationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationStatus | Prisma.EnumDonationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel> | $Enums.DonationStatus
+}
+
+export type NestedEnumDonationKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationKind | Prisma.EnumDonationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationKind[] | Prisma.ListEnumDonationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationKindWithAggregatesFilter<$PrismaModel> | $Enums.DonationKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationKindFilter<$PrismaModel>
+}
+
+export type NestedEnumDonationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DonationStatus | Prisma.EnumDonationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DonationStatus[] | Prisma.ListEnumDonationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDonationStatusWithAggregatesFilter<$PrismaModel> | $Enums.DonationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDonationStatusFilter<$PrismaModel>
 }
 
 

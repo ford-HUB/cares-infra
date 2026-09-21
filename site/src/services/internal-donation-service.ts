@@ -1,310 +1,196 @@
-import dayjs from 'dayjs'
-import { MOCK_API_DELAY_MS, delay } from '../constants/durations'
-import {
-  DONATION_MAIL_SUBJECTS,
-  DONATION_STATUS_LABELS,
-  formatDonationReference,
-} from '../constants/internal-donation'
+import { GOODS_TYPE_OPTIONS } from '../constants/event'
 import type {
+  DonationKind,
   DonationStatus,
   DonationTimelineEntry,
   InternalDonation,
 } from '../types/internal-donation'
+import { apiClient, parseApiError } from './api-client'
 
 /**
- * The internal-donation endpoints are not built yet, so this module serves fixtures
- * and keeps mutations in memory. Swap each function for an `apiClient` call — the
- * signatures already match what the endpoint will return. The donor notice is a
- * console line here; on the server it becomes the mail send.
+ * The donation ledger — `/api/v1/donations/site`. A money row is opened by the
+ * gateway once a checkout is paid, a goods row when the donor pledges in the app;
+ * the director walks either one to confirmed here. Every move writes a trail entry
+ * and puts a notice on the donor's feed.
  */
 
-const now = dayjs()
+/** Backend wraps successful responses in an { ok, data } envelope. */
+type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
-function stamp(daysAgo: number, hour: number): string {
-  return now.subtract(daysAgo, 'day').hour(hour).minute(0).second(0).toISOString()
+type WireKind = 'MONEY' | 'GOODS'
+type WireStatus =
+  | 'PLEDGED'
+  | 'AWAITING_PICKUP'
+  | 'VERIFYING'
+  | 'CONFIRMED'
+  | 'DECLINED'
+  | 'CANCELLED'
+
+interface DonationTrailEntryResponse {
+  donation_trail_entry_id: string
+  status: WireStatus
+  note: string | null
+  actor_label: string
+  notified_email: string | null
+  created_at: string
 }
 
-function entry(
-  id: string,
-  status: DonationStatus,
-  actor: string,
-  at: string,
-  note?: string,
-  notifiedEmail?: string,
-): DonationTimelineEntry {
-  return { id, status, actor, at, note, notifiedEmail }
+interface SiteDonationResponse {
+  donation_id: string
+  reference: string
+  kind: WireKind
+  status: WireStatus
+  event_id: number
+  event_title: string
+  amount: number
+  method: 'GCASH' | 'QRPH' | 'CARD' | 'BANK_TRANSFER' | null
+  payment_reference: string | null
+  goods_type: string | null
+  goods_item: string | null
+  goods_quantity: number | null
+  pickup_address: string | null
+  pickup_contact: string | null
+  pickup_date: string | null
+  pickup_time_minutes: number | null
+  trail: DonationTrailEntryResponse[]
+  created_at: string
+  updated_at: string
+  donor: { user_id: string; name: string; email: string; phone: string | null }
 }
 
-const seed: InternalDonation[] = [
-  {
-    id: 'don-1',
-    reference: formatDonationReference(1),
-    kind: 'money',
-    status: 'verifying',
-    donor: {
-      name: 'Maria Fe Alcantara',
-      email: 'mfalcantara@gmail.com',
-      phone: '+63 917 220 1145',
-      type: 'Alumni',
-    },
-    eventId: 'evt-relief-01',
-    eventTitle: 'Typhoon Relief Drive — Brgy. Mabolo',
-    createdAt: stamp(2, 9),
-    updatedAt: stamp(1, 14),
-    amount: 15000,
-    method: 'GCash',
-    paymentReference: 'GC-88213094',
-    timeline: [
-      entry('t-1a', 'pledged', 'System', stamp(2, 9), 'Donor submitted the transfer', 'mfalcantara@gmail.com'),
-      entry('t-1b', 'verifying', 'Dir. Villanueva', stamp(1, 14), 'Matching against the GCash statement', 'mfalcantara@gmail.com'),
-    ],
-  },
-  {
-    id: 'don-2',
-    reference: formatDonationReference(2),
-    kind: 'money',
-    status: 'confirmed',
-    donor: {
-      name: 'Cebu Pacific Foundation',
-      email: 'giving@cebupacfoundation.org',
-      type: 'Company',
-    },
-    eventId: 'evt-feed-02',
-    eventTitle: 'Feeding Program — Pasil Elementary',
-    createdAt: stamp(9, 10),
-    updatedAt: stamp(6, 11),
-    amount: 50000,
-    method: 'Bank Transfer',
-    paymentReference: 'BPI-4471209',
-    timeline: [
-      entry('t-2a', 'pledged', 'System', stamp(9, 10), undefined, 'giving@cebupacfoundation.org'),
-      entry('t-2b', 'verifying', 'Ms. Reyes', stamp(7, 9), 'Deposit slip received', 'giving@cebupacfoundation.org'),
-      entry('t-2c', 'confirmed', 'Dir. Villanueva', stamp(6, 11), 'Credited to the feeding-program fund', 'giving@cebupacfoundation.org'),
-    ],
-  },
-  {
-    id: 'don-3',
-    reference: formatDonationReference(3),
-    kind: 'money',
-    status: 'pledged',
-    donor: {
-      name: 'Rogelio Tan',
-      email: 'rogelio.tan@yahoo.com',
-      phone: '+63 932 887 0031',
-      type: 'Individual',
-    },
-    eventId: 'evt-school-03',
-    eventTitle: 'Back-to-School Supplies Drive',
-    createdAt: stamp(0, 8),
-    updatedAt: stamp(0, 8),
-    amount: 3500,
-    method: 'Cash',
-    timeline: [
-      entry('t-3a', 'pledged', 'System', stamp(0, 8), 'Will hand over at the CARES office', 'rogelio.tan@yahoo.com'),
-    ],
-  },
-  {
-    id: 'don-4',
-    reference: formatDonationReference(4),
-    kind: 'goods',
-    status: 'awaiting_pickup',
-    donor: {
-      name: 'UCLM Nursing Society',
-      email: 'nursingsociety@uclm.edu.ph',
-      type: 'Student Org',
-    },
-    eventId: 'evt-relief-01',
-    eventTitle: 'Typhoon Relief Drive — Brgy. Mabolo',
-    createdAt: stamp(1, 13),
-    updatedAt: stamp(0, 10),
-    amount: 12000,
-    dropOffLocation: 'CARES Office, UCLM Main Campus',
-    items: [
-      { name: 'Rice', quantity: 10, unit: 'sacks' },
-      { name: 'Canned goods', quantity: 8, unit: 'boxes' },
-      { name: 'Bottled water', quantity: 20, unit: 'cases' },
-    ],
-    timeline: [
-      entry('t-4a', 'pledged', 'System', stamp(1, 13), undefined, 'nursingsociety@uclm.edu.ph'),
-      entry('t-4b', 'awaiting_pickup', 'Ms. Reyes', stamp(0, 10), 'Dropped at the CARES office lobby', 'nursingsociety@uclm.edu.ph'),
-    ],
-  },
-  {
-    id: 'don-5',
-    reference: formatDonationReference(5),
-    kind: 'goods',
-    status: 'verifying',
-    donor: {
-      name: 'Barangay Apas Council',
-      email: 'apascouncil@gmail.com',
-      phone: '+63 906 445 2210',
-      type: 'Barangay',
-    },
-    eventId: 'evt-feed-02',
-    eventTitle: 'Feeding Program — Pasil Elementary',
-    createdAt: stamp(4, 9),
-    updatedAt: stamp(2, 15),
-    amount: 7800,
-    dropOffLocation: 'CARES Warehouse, Brgy. Apas',
-    items: [
-      { name: 'School supplies packs', quantity: 60, unit: 'pcs' },
-      { name: 'Powdered milk', quantity: 4, unit: 'boxes' },
-    ],
-    timeline: [
-      entry('t-5a', 'pledged', 'System', stamp(4, 9), undefined, 'apascouncil@gmail.com'),
-      entry('t-5b', 'awaiting_pickup', 'Mr. Lozada', stamp(3, 8), undefined, 'apascouncil@gmail.com'),
-      entry('t-5c', 'verifying', 'Mr. Lozada', stamp(2, 15), 'Counting packs against the pledge list', 'apascouncil@gmail.com'),
-    ],
-  },
-  {
-    id: 'don-6',
-    reference: formatDonationReference(6),
-    kind: 'goods',
-    status: 'confirmed',
-    donor: {
-      name: 'Sto. Niño Parish',
-      email: 'office@stoninoparish.ph',
-      type: 'Partner',
-    },
-    eventId: 'evt-senior-04',
-    eventTitle: 'Senior Citizens Outreach',
-    createdAt: stamp(12, 8),
-    updatedAt: stamp(8, 16),
-    amount: 22000,
-    dropOffLocation: 'CARES Office, UCLM Main Campus',
-    items: [
-      { name: 'Blankets', quantity: 120, unit: 'pcs' },
-      { name: 'Hygiene kits', quantity: 90, unit: 'pcs' },
-    ],
-    timeline: [
-      entry('t-6a', 'pledged', 'System', stamp(12, 8), undefined, 'office@stoninoparish.ph'),
-      entry('t-6b', 'awaiting_pickup', 'Ms. Reyes', stamp(11, 9), undefined, 'office@stoninoparish.ph'),
-      entry('t-6c', 'verifying', 'Ms. Reyes', stamp(10, 14), undefined, 'office@stoninoparish.ph'),
-      entry('t-6d', 'confirmed', 'Dir. Villanueva', stamp(8, 16), 'All 210 items received in good condition', 'office@stoninoparish.ph'),
-    ],
-  },
-  {
-    id: 'don-7',
-    reference: formatDonationReference(7),
-    kind: 'goods',
-    status: 'pledged',
-    donor: {
-      name: 'Anne Marquez',
-      email: 'anne.marquez@outlook.com',
-      type: 'Individual',
-    },
-    eventId: 'evt-school-03',
-    eventTitle: 'Back-to-School Supplies Drive',
-    createdAt: stamp(0, 11),
-    updatedAt: stamp(0, 11),
-    amount: 4500,
-    dropOffLocation: 'CARES Office, UCLM Main Campus',
-    items: [{ name: 'Notebooks', quantity: 200, unit: 'pcs' }],
-    timeline: [
-      entry('t-7a', 'pledged', 'System', stamp(0, 11), 'Bringing them over this Friday', 'anne.marquez@outlook.com'),
-    ],
-  },
-  {
-    id: 'don-8',
-    reference: formatDonationReference(8),
-    kind: 'money',
-    status: 'declined',
-    donor: {
-      name: 'Jose Enriquez',
-      email: 'jose.enriquez@gmail.com',
-      type: 'Individual',
-    },
-    eventId: 'evt-senior-04',
-    eventTitle: 'Senior Citizens Outreach',
-    createdAt: stamp(15, 10),
-    updatedAt: stamp(13, 9),
-    amount: 2000,
-    method: 'GCash',
-    paymentReference: 'GC-77120043',
-    timeline: [
-      entry('t-8a', 'pledged', 'System', stamp(15, 10), undefined, 'jose.enriquez@gmail.com'),
-      entry('t-8b', 'verifying', 'Ms. Reyes', stamp(14, 11), undefined, 'jose.enriquez@gmail.com'),
-      entry('t-8c', 'declined', 'Dir. Villanueva', stamp(13, 9), 'No matching transfer found after two weeks', 'jose.enriquez@gmail.com'),
-    ],
-  },
-]
+const KIND_FROM_WIRE: Record<WireKind, DonationKind> = {
+  MONEY: 'money',
+  GOODS: 'goods',
+}
 
-let donations: InternalDonation[] = structuredClone(seed)
+const STATUS_FROM_WIRE: Record<WireStatus, DonationStatus> = {
+  PLEDGED: 'pledged',
+  AWAITING_PICKUP: 'awaiting_pickup',
+  VERIFYING: 'verifying',
+  CONFIRMED: 'confirmed',
+  DECLINED: 'declined',
+  CANCELLED: 'cancelled',
+}
+
+const STATUS_TO_WIRE: Record<DonationStatus, WireStatus> = {
+  pledged: 'PLEDGED',
+  awaiting_pickup: 'AWAITING_PICKUP',
+  verifying: 'VERIFYING',
+  confirmed: 'CONFIRMED',
+  declined: 'DECLINED',
+  cancelled: 'CANCELLED',
+}
+
+const METHOD_LABELS: Record<NonNullable<SiteDonationResponse['method']>, string> = {
+  GCASH: 'GCash',
+  QRPH: 'QR Ph',
+  CARD: 'Card',
+  BANK_TRANSFER: 'Bank Transfer',
+}
+
+function goodsTypeLabel(id: string | null): string {
+  if (!id) return 'Goods'
+  return GOODS_TYPE_OPTIONS.find((type) => type.id === id)?.name ?? id
+}
+
+/** Minutes since midnight → `9:30 AM`. */
+function formatMinutes(minutes: number): string {
+  const hour = Math.floor(minutes / 60)
+  const minute = minutes % 60
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12
+  return `${hour12}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`
+}
+
+function toTimelineEntry(row: DonationTrailEntryResponse): DonationTimelineEntry {
+  return {
+    id: row.donation_trail_entry_id,
+    status: STATUS_FROM_WIRE[row.status],
+    note: row.note ?? undefined,
+    actor: row.actor_label,
+    at: row.created_at,
+    notifiedEmail: row.notified_email ?? undefined,
+  }
+}
+
+function toDonation(row: SiteDonationResponse): InternalDonation {
+  const kind = KIND_FROM_WIRE[row.kind]
+  return {
+    id: row.donation_id,
+    reference: row.reference,
+    kind,
+    status: STATUS_FROM_WIRE[row.status],
+    donor: {
+      name: row.donor.name,
+      email: row.donor.email,
+      phone: row.donor.phone ?? undefined,
+      type: 'Individual',
+    },
+    eventId: row.event_id,
+    eventTitle: row.event_title,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    amount: row.amount,
+    method: row.method ? METHOD_LABELS[row.method] : undefined,
+    paymentReference: row.payment_reference ?? undefined,
+    items:
+      kind === 'goods'
+        ? [
+            {
+              name: row.goods_item
+                ? `${goodsTypeLabel(row.goods_type)} — ${row.goods_item}`
+                : goodsTypeLabel(row.goods_type),
+              quantity: row.goods_quantity ?? 1,
+              unit: 'pcs',
+            },
+          ]
+        : undefined,
+    pickupAddress: row.pickup_address ?? undefined,
+    pickupContact: row.pickup_contact ?? undefined,
+    pickupDate: row.pickup_date ?? undefined,
+    pickupTimeLabel:
+      row.pickup_time_minutes === null ? undefined : formatMinutes(row.pickup_time_minutes),
+    timeline: row.trail.map(toTimelineEntry),
+  }
+}
 
 export async function fetchInternalDonations(): Promise<InternalDonation[]> {
-  await delay(MOCK_API_DELAY_MS.default)
-  return structuredClone(donations)
+  try {
+    const { data: body } = await apiClient.get<
+      ApiEnvelope<{ items: SiteDonationResponse[] }>
+    >('/api/v1/donations/site')
+    return body.data.items.map(toDonation)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
 }
 
 export interface DonationStatusChange {
   status: DonationStatus
-  /** Added to the timeline and to the donor's notice. */
+  /** Optional, shown on the timeline and in the donor's notice. */
   note?: string
-  /** Portal account making the move. */
+  /** Kept for the caller's toast; the server records its own actor from the token. */
   actor: string
 }
 
 export interface DonationStatusChangeResult {
-  donations: InternalDonation[]
-  /** Address the notice went to, so the caller can say so in the toast. */
+  donation: InternalDonation
+  /** The address the donor's notice went to. */
   notifiedEmail: string
 }
 
-/**
- * Moves a donation and notifies the donor in the same step — the two are one action,
- * never two: a status the donor was not told about is the failure this page exists to
- * prevent.
- */
 export async function advanceDonationStatus(
   id: string,
   change: DonationStatusChange,
 ): Promise<DonationStatusChangeResult> {
-  await delay(MOCK_API_DELAY_MS.default)
-
-  const target = donations.find((donation) => donation.id === id)
-  if (!target) throw new Error('Donation not found')
-
-  const at = new Date().toISOString()
-  const note = change.note?.trim() || undefined
-
-  donations = donations.map((donation) =>
-    donation.id === id
-      ? {
-          ...donation,
-          status: change.status,
-          updatedAt: at,
-          timeline: [
-            ...donation.timeline,
-            {
-              id: `t-${donation.id}-${donation.timeline.length + 1}`,
-              status: change.status,
-              note,
-              actor: change.actor,
-              at,
-              notifiedEmail: donation.donor.email,
-            },
-          ],
-        }
-      : donation,
-  )
-
-  sendDonorStatusMail(target.donor.email, target.reference, change.status, note)
-
-  return {
-    donations: structuredClone(donations),
-    notifiedEmail: target.donor.email,
+  try {
+    const note = change.note?.trim()
+    const { data: body } = await apiClient.patch<ApiEnvelope<SiteDonationResponse>>(
+      `/api/v1/donations/site/${id}/status`,
+      { status: STATUS_TO_WIRE[change.status], ...(note ? { note } : {}) },
+    )
+    const donation = toDonation(body.data)
+    return { donation, notifiedEmail: donation.donor.email }
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
   }
-}
-
-/** Stand-in for the server's mail send; replaced when the endpoint lands. */
-function sendDonorStatusMail(
-  to: string,
-  reference: string,
-  status: DonationStatus,
-  note?: string,
-): void {
-  const body = `Donation ${reference} is now "${DONATION_STATUS_LABELS[status]}".${
-    note ? ` ${note}` : ''
-  }`
-  console.info('[donation-mail]', to, DONATION_MAIL_SUBJECTS[status], body)
 }

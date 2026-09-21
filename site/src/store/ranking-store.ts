@@ -68,9 +68,9 @@ export const useRankingStore = create<RankingState>((set, get) => ({
 
     const [volunteerResult, donorResult, volunteerTrend, donorTrend] = await Promise.all([
       listVolunteerRankings(resolvedPeriod),
-      listDonorRankings(settings),
+      listDonorRankings(resolvedPeriod),
       getVolunteerRankingTrend(resolvedPeriod),
-      getDonorRankingTrend(settings),
+      getDonorRankingTrend(resolvedPeriod),
     ])
 
     set({
