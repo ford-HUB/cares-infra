@@ -5,34 +5,30 @@ import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 
 /// What a goods pledge carries — the same fields for a new pledge and an edit.
+/// Goods are handed in at the CARES Office, so there is no address or time to
+/// collect: just the day the donor plans to deliver and a number to reach them.
 class GoodsPledgeInput {
   const GoodsPledgeInput({
     required this.goodsType,
     required this.goodsItem,
     required this.quantity,
-    required this.pickupAddress,
-    required this.pickupContact,
-    required this.pickupDate,
-    required this.pickupTimeMinutes,
+    required this.contactNumber,
+    required this.deliveryDate,
   });
 
   final String goodsType;
   final String? goodsItem;
   final int quantity;
-  final String pickupAddress;
-  final String pickupContact;
-  final DateTime pickupDate;
-  final int pickupTimeMinutes;
+  final String contactNumber;
+  final DateTime deliveryDate;
 
   Map<String, dynamic> toJson() => {
     'goodsType': goodsType,
     if (goodsItem != null && goodsItem!.trim().isNotEmpty)
       'goodsItem': goodsItem!.trim(),
     'quantity': quantity,
-    'pickupAddress': pickupAddress,
-    'pickupContact': pickupContact,
-    'pickupDate': DonationFormat.isoDate(pickupDate),
-    'pickupTimeMinutes': pickupTimeMinutes,
+    'contactNumber': contactNumber,
+    'deliveryDate': DonationFormat.isoDate(deliveryDate),
   };
 }
 

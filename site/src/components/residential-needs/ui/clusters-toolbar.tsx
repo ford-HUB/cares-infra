@@ -11,7 +11,9 @@ import type { NeedsClusteringResult } from '../../../types/residential-needs'
 
 interface ClustersToolbarProps {
   k: number
-  result: NeedsClusteringResult
+  /** Null until the first grouping comes back. */
+  result: NeedsClusteringResult | null
+  loading: boolean
   onKChange: (k: number) => void
   onReseed: () => void
 }
@@ -26,7 +28,13 @@ const K_OPTIONS = Array.from(
  * random start — with the run's fit beside them so a director can tell whether the
  * grouping is tight or an artefact of where it started.
  */
-export function ClustersToolbar({ k, result, onKChange, onReseed }: ClustersToolbarProps) {
+export function ClustersToolbar({
+  k,
+  result,
+  loading,
+  onKChange,
+  onReseed,
+}: ClustersToolbarProps) {
   return (
     <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
@@ -37,9 +45,15 @@ export function ClustersToolbar({ k, result, onKChange, onReseed }: ClustersTool
           group where it lives.
         </p>
         <p className="mt-0.5 text-[11px] text-gray-400 tabular-nums">
-          Mock k-means · {result.converged ? 'converged' : 'cut off'} after{' '}
-          {formatNumber(result.iterations)} iteration{result.iterations === 1 ? '' : 's'} · inertia{' '}
-          {result.inertia.toFixed(1)} · seed {result.seed}
+          {result ? (
+            <>
+              K-Means (scikit-learn) · {result.converged ? 'converged' : 'cut off'} after{' '}
+              {formatNumber(result.iterations)} iteration{result.iterations === 1 ? '' : 's'} ·
+              inertia {result.inertia.toFixed(1)} · seed {result.seed}
+            </>
+          ) : (
+            'K-Means (scikit-learn) · grouping households…'
+          )}
         </p>
       </div>
 
@@ -59,7 +73,7 @@ export function ClustersToolbar({ k, result, onKChange, onReseed }: ClustersTool
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <Button type="button" variant="outline" size="sm" onClick={onReseed}>
+        <Button type="button" variant="outline" size="sm" onClick={onReseed} disabled={loading}>
           <Shuffle />
           Re-run
         </Button>

@@ -48,10 +48,8 @@ interface SiteDonationResponse {
   goods_type: string | null
   goods_item: string | null
   goods_quantity: number | null
-  pickup_address: string | null
-  pickup_contact: string | null
-  pickup_date: string | null
-  pickup_time_minutes: number | null
+  donor_contact: string | null
+  delivery_date: string | null
   trail: DonationTrailEntryResponse[]
   created_at: string
   updated_at: string
@@ -91,14 +89,6 @@ const METHOD_LABELS: Record<NonNullable<SiteDonationResponse['method']>, string>
 function goodsTypeLabel(id: string | null): string {
   if (!id) return 'Goods'
   return GOODS_TYPE_OPTIONS.find((type) => type.id === id)?.name ?? id
-}
-
-/** Minutes since midnight → `9:30 AM`. */
-function formatMinutes(minutes: number): string {
-  const hour = Math.floor(minutes / 60)
-  const minute = minutes % 60
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12
-  return `${hour12}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`
 }
 
 function toTimelineEntry(row: DonationTrailEntryResponse): DonationTimelineEntry {
@@ -144,11 +134,8 @@ function toDonation(row: SiteDonationResponse): InternalDonation {
             },
           ]
         : undefined,
-    pickupAddress: row.pickup_address ?? undefined,
-    pickupContact: row.pickup_contact ?? undefined,
-    pickupDate: row.pickup_date ?? undefined,
-    pickupTimeLabel:
-      row.pickup_time_minutes === null ? undefined : formatMinutes(row.pickup_time_minutes),
+    deliveryDate: row.delivery_date ?? undefined,
+    contactNumber: row.donor_contact ?? undefined,
     timeline: row.trail.map(toTimelineEntry),
   }
 }

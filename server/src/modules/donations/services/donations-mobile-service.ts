@@ -196,7 +196,7 @@ export class DonationsMobileService {
     return toDonationDto(row);
   }
 
-  /** Edits a goods pledge. Only while still pledged — pickup locks it. */
+  /** Edits a goods pledge. Only while still pledged — the drop-off leg locks it. */
   async updateGoods(
     userId: string,
     donationId: string,
@@ -241,10 +241,8 @@ export class DonationsMobileService {
       goods_item: body.goodsItem?.trim() || null,
       goods_quantity: body.quantity,
       amount: unitValue * body.quantity,
-      pickup_address: body.pickupAddress,
-      pickup_contact: body.pickupContact,
-      pickup_date: new Date(`${body.pickupDate}T00:00:00.000Z`),
-      pickup_time_minutes: body.pickupTimeMinutes,
+      donor_contact: body.contactNumber,
+      delivery_date: new Date(`${body.deliveryDate}T00:00:00.000Z`),
     };
   }
 
@@ -254,7 +252,7 @@ export class DonationsMobileService {
     }
     if (row.status !== DonationStatus.PLEDGED) {
       throw new BadRequestException(
-        'This donation is locked — the pickup process has already started',
+        'This donation is locked — CARES has already started receiving it',
       );
     }
   }

@@ -34,7 +34,6 @@ export type DonationAvgAggregateOutputType = {
   event_id: number | null
   amount: number | null
   goods_quantity: number | null
-  pickup_time_minutes: number | null
 }
 
 export type DonationSumAggregateOutputType = {
@@ -42,7 +41,6 @@ export type DonationSumAggregateOutputType = {
   event_id: number | null
   amount: number | null
   goods_quantity: number | null
-  pickup_time_minutes: number | null
 }
 
 export type DonationMinAggregateOutputType = {
@@ -57,10 +55,8 @@ export type DonationMinAggregateOutputType = {
   goods_type: string | null
   goods_item: string | null
   goods_quantity: number | null
-  pickup_address: string | null
-  pickup_contact: string | null
-  pickup_date: Date | null
-  pickup_time_minutes: number | null
+  donor_contact: string | null
+  delivery_date: Date | null
   confirmed_at: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -78,10 +74,8 @@ export type DonationMaxAggregateOutputType = {
   goods_type: string | null
   goods_item: string | null
   goods_quantity: number | null
-  pickup_address: string | null
-  pickup_contact: string | null
-  pickup_date: Date | null
-  pickup_time_minutes: number | null
+  donor_contact: string | null
+  delivery_date: Date | null
   confirmed_at: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -99,10 +93,8 @@ export type DonationCountAggregateOutputType = {
   goods_type: number
   goods_item: number
   goods_quantity: number
-  pickup_address: number
-  pickup_contact: number
-  pickup_date: number
-  pickup_time_minutes: number
+  donor_contact: number
+  delivery_date: number
   confirmed_at: number
   createdAt: number
   updatedAt: number
@@ -115,7 +107,6 @@ export type DonationAvgAggregateInputType = {
   event_id?: true
   amount?: true
   goods_quantity?: true
-  pickup_time_minutes?: true
 }
 
 export type DonationSumAggregateInputType = {
@@ -123,7 +114,6 @@ export type DonationSumAggregateInputType = {
   event_id?: true
   amount?: true
   goods_quantity?: true
-  pickup_time_minutes?: true
 }
 
 export type DonationMinAggregateInputType = {
@@ -138,10 +128,8 @@ export type DonationMinAggregateInputType = {
   goods_type?: true
   goods_item?: true
   goods_quantity?: true
-  pickup_address?: true
-  pickup_contact?: true
-  pickup_date?: true
-  pickup_time_minutes?: true
+  donor_contact?: true
+  delivery_date?: true
   confirmed_at?: true
   createdAt?: true
   updatedAt?: true
@@ -159,10 +147,8 @@ export type DonationMaxAggregateInputType = {
   goods_type?: true
   goods_item?: true
   goods_quantity?: true
-  pickup_address?: true
-  pickup_contact?: true
-  pickup_date?: true
-  pickup_time_minutes?: true
+  donor_contact?: true
+  delivery_date?: true
   confirmed_at?: true
   createdAt?: true
   updatedAt?: true
@@ -180,10 +166,8 @@ export type DonationCountAggregateInputType = {
   goods_type?: true
   goods_item?: true
   goods_quantity?: true
-  pickup_address?: true
-  pickup_contact?: true
-  pickup_date?: true
-  pickup_time_minutes?: true
+  donor_contact?: true
+  delivery_date?: true
   confirmed_at?: true
   createdAt?: true
   updatedAt?: true
@@ -288,10 +272,8 @@ export type DonationGroupByOutputType = {
   goods_type: string | null
   goods_item: string | null
   goods_quantity: number | null
-  pickup_address: string | null
-  pickup_contact: string | null
-  pickup_date: Date | null
-  pickup_time_minutes: number | null
+  donor_contact: string | null
+  delivery_date: Date | null
   confirmed_at: Date | null
   createdAt: Date
   updatedAt: Date
@@ -332,10 +314,8 @@ export type DonationWhereInput = {
   goods_type?: Prisma.StringNullableFilter<"Donation"> | string | null
   goods_item?: Prisma.StringNullableFilter<"Donation"> | string | null
   goods_quantity?: Prisma.IntNullableFilter<"Donation"> | number | null
-  pickup_address?: Prisma.StringNullableFilter<"Donation"> | string | null
-  pickup_contact?: Prisma.StringNullableFilter<"Donation"> | string | null
-  pickup_date?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
-  pickup_time_minutes?: Prisma.IntNullableFilter<"Donation"> | number | null
+  donor_contact?: Prisma.StringNullableFilter<"Donation"> | string | null
+  delivery_date?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
   confirmed_at?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Donation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Donation"> | Date | string
@@ -357,10 +337,8 @@ export type DonationOrderByWithRelationInput = {
   goods_type?: Prisma.SortOrderInput | Prisma.SortOrder
   goods_item?: Prisma.SortOrderInput | Prisma.SortOrder
   goods_quantity?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_address?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_contact?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_date?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrderInput | Prisma.SortOrder
+  donor_contact?: Prisma.SortOrderInput | Prisma.SortOrder
+  delivery_date?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -385,10 +363,8 @@ export type DonationWhereUniqueInput = Prisma.AtLeast<{
   goods_type?: Prisma.StringNullableFilter<"Donation"> | string | null
   goods_item?: Prisma.StringNullableFilter<"Donation"> | string | null
   goods_quantity?: Prisma.IntNullableFilter<"Donation"> | number | null
-  pickup_address?: Prisma.StringNullableFilter<"Donation"> | string | null
-  pickup_contact?: Prisma.StringNullableFilter<"Donation"> | string | null
-  pickup_date?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
-  pickup_time_minutes?: Prisma.IntNullableFilter<"Donation"> | number | null
+  donor_contact?: Prisma.StringNullableFilter<"Donation"> | string | null
+  delivery_date?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
   confirmed_at?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Donation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Donation"> | Date | string
@@ -410,10 +386,8 @@ export type DonationOrderByWithAggregationInput = {
   goods_type?: Prisma.SortOrderInput | Prisma.SortOrder
   goods_item?: Prisma.SortOrderInput | Prisma.SortOrder
   goods_quantity?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_address?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_contact?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_date?: Prisma.SortOrderInput | Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrderInput | Prisma.SortOrder
+  donor_contact?: Prisma.SortOrderInput | Prisma.SortOrder
+  delivery_date?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -439,10 +413,8 @@ export type DonationScalarWhereWithAggregatesInput = {
   goods_type?: Prisma.StringNullableWithAggregatesFilter<"Donation"> | string | null
   goods_item?: Prisma.StringNullableWithAggregatesFilter<"Donation"> | string | null
   goods_quantity?: Prisma.IntNullableWithAggregatesFilter<"Donation"> | number | null
-  pickup_address?: Prisma.StringNullableWithAggregatesFilter<"Donation"> | string | null
-  pickup_contact?: Prisma.StringNullableWithAggregatesFilter<"Donation"> | string | null
-  pickup_date?: Prisma.DateTimeNullableWithAggregatesFilter<"Donation"> | Date | string | null
-  pickup_time_minutes?: Prisma.IntNullableWithAggregatesFilter<"Donation"> | number | null
+  donor_contact?: Prisma.StringNullableWithAggregatesFilter<"Donation"> | string | null
+  delivery_date?: Prisma.DateTimeNullableWithAggregatesFilter<"Donation"> | Date | string | null
   confirmed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Donation"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Donation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Donation"> | Date | string
@@ -457,10 +429,8 @@ export type DonationCreateInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -482,10 +452,8 @@ export type DonationUncheckedCreateInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -500,10 +468,8 @@ export type DonationUpdateInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -525,10 +491,8 @@ export type DonationUncheckedUpdateInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -547,10 +511,8 @@ export type DonationCreateManyInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -564,10 +526,8 @@ export type DonationUpdateManyMutationInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -585,10 +545,8 @@ export type DonationUncheckedUpdateManyInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -621,10 +579,8 @@ export type DonationCountOrderByAggregateInput = {
   goods_type?: Prisma.SortOrder
   goods_item?: Prisma.SortOrder
   goods_quantity?: Prisma.SortOrder
-  pickup_address?: Prisma.SortOrder
-  pickup_contact?: Prisma.SortOrder
-  pickup_date?: Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrder
+  donor_contact?: Prisma.SortOrder
+  delivery_date?: Prisma.SortOrder
   confirmed_at?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -635,7 +591,6 @@ export type DonationAvgOrderByAggregateInput = {
   event_id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   goods_quantity?: Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrder
 }
 
 export type DonationMaxOrderByAggregateInput = {
@@ -650,10 +605,8 @@ export type DonationMaxOrderByAggregateInput = {
   goods_type?: Prisma.SortOrder
   goods_item?: Prisma.SortOrder
   goods_quantity?: Prisma.SortOrder
-  pickup_address?: Prisma.SortOrder
-  pickup_contact?: Prisma.SortOrder
-  pickup_date?: Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrder
+  donor_contact?: Prisma.SortOrder
+  delivery_date?: Prisma.SortOrder
   confirmed_at?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -671,10 +624,8 @@ export type DonationMinOrderByAggregateInput = {
   goods_type?: Prisma.SortOrder
   goods_item?: Prisma.SortOrder
   goods_quantity?: Prisma.SortOrder
-  pickup_address?: Prisma.SortOrder
-  pickup_contact?: Prisma.SortOrder
-  pickup_date?: Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrder
+  donor_contact?: Prisma.SortOrder
+  delivery_date?: Prisma.SortOrder
   confirmed_at?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -685,7 +636,6 @@ export type DonationSumOrderByAggregateInput = {
   event_id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   goods_quantity?: Prisma.SortOrder
-  pickup_time_minutes?: Prisma.SortOrder
 }
 
 export type DonationScalarRelationFilter = {
@@ -840,10 +790,8 @@ export type DonationCreateWithoutUserInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -863,10 +811,8 @@ export type DonationUncheckedCreateWithoutUserInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -914,10 +860,8 @@ export type DonationScalarWhereInput = {
   goods_type?: Prisma.StringNullableFilter<"Donation"> | string | null
   goods_item?: Prisma.StringNullableFilter<"Donation"> | string | null
   goods_quantity?: Prisma.IntNullableFilter<"Donation"> | number | null
-  pickup_address?: Prisma.StringNullableFilter<"Donation"> | string | null
-  pickup_contact?: Prisma.StringNullableFilter<"Donation"> | string | null
-  pickup_date?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
-  pickup_time_minutes?: Prisma.IntNullableFilter<"Donation"> | number | null
+  donor_contact?: Prisma.StringNullableFilter<"Donation"> | string | null
+  delivery_date?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
   confirmed_at?: Prisma.DateTimeNullableFilter<"Donation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Donation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Donation"> | Date | string
@@ -932,10 +876,8 @@ export type DonationCreateWithoutEventInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -955,10 +897,8 @@ export type DonationUncheckedCreateWithoutEventInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1000,10 +940,8 @@ export type DonationCreateWithoutPaymentInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1023,10 +961,8 @@ export type DonationUncheckedCreateWithoutPaymentInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1057,10 +993,8 @@ export type DonationUpdateWithoutPaymentInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1080,10 +1014,8 @@ export type DonationUncheckedUpdateWithoutPaymentInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1099,10 +1031,8 @@ export type DonationCreateWithoutTrailInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1123,10 +1053,8 @@ export type DonationUncheckedCreateWithoutTrailInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1156,10 +1084,8 @@ export type DonationUpdateWithoutTrailInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1180,10 +1106,8 @@ export type DonationUncheckedUpdateWithoutTrailInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1200,10 +1124,8 @@ export type DonationCreateManyUserInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1217,10 +1139,8 @@ export type DonationUpdateWithoutUserInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1240,10 +1160,8 @@ export type DonationUncheckedUpdateWithoutUserInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1261,10 +1179,8 @@ export type DonationUncheckedUpdateManyWithoutUserInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1281,10 +1197,8 @@ export type DonationCreateManyEventInput = {
   goods_type?: string | null
   goods_item?: string | null
   goods_quantity?: number | null
-  pickup_address?: string | null
-  pickup_contact?: string | null
-  pickup_date?: Date | string | null
-  pickup_time_minutes?: number | null
+  donor_contact?: string | null
+  delivery_date?: Date | string | null
   confirmed_at?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1298,10 +1212,8 @@ export type DonationUpdateWithoutEventInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1321,10 +1233,8 @@ export type DonationUncheckedUpdateWithoutEventInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1342,10 +1252,8 @@ export type DonationUncheckedUpdateManyWithoutEventInput = {
   goods_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_item?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   goods_quantity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  pickup_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pickup_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  pickup_time_minutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  donor_contact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delivery_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   confirmed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1394,10 +1302,8 @@ export type DonationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   goods_type?: boolean
   goods_item?: boolean
   goods_quantity?: boolean
-  pickup_address?: boolean
-  pickup_contact?: boolean
-  pickup_date?: boolean
-  pickup_time_minutes?: boolean
+  donor_contact?: boolean
+  delivery_date?: boolean
   confirmed_at?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1420,10 +1326,8 @@ export type DonationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   goods_type?: boolean
   goods_item?: boolean
   goods_quantity?: boolean
-  pickup_address?: boolean
-  pickup_contact?: boolean
-  pickup_date?: boolean
-  pickup_time_minutes?: boolean
+  donor_contact?: boolean
+  delivery_date?: boolean
   confirmed_at?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1444,10 +1348,8 @@ export type DonationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   goods_type?: boolean
   goods_item?: boolean
   goods_quantity?: boolean
-  pickup_address?: boolean
-  pickup_contact?: boolean
-  pickup_date?: boolean
-  pickup_time_minutes?: boolean
+  donor_contact?: boolean
+  delivery_date?: boolean
   confirmed_at?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1468,16 +1370,14 @@ export type DonationSelectScalar = {
   goods_type?: boolean
   goods_item?: boolean
   goods_quantity?: boolean
-  pickup_address?: boolean
-  pickup_contact?: boolean
-  pickup_date?: boolean
-  pickup_time_minutes?: boolean
+  donor_contact?: boolean
+  delivery_date?: boolean
   confirmed_at?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type DonationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"donation_id" | "sequence" | "user_id" | "event_id" | "kind" | "status" | "amount" | "payment_id" | "goods_type" | "goods_item" | "goods_quantity" | "pickup_address" | "pickup_contact" | "pickup_date" | "pickup_time_minutes" | "confirmed_at" | "createdAt" | "updatedAt", ExtArgs["result"]["donation"]>
+export type DonationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"donation_id" | "sequence" | "user_id" | "event_id" | "kind" | "status" | "amount" | "payment_id" | "goods_type" | "goods_item" | "goods_quantity" | "donor_contact" | "delivery_date" | "confirmed_at" | "createdAt" | "updatedAt", ExtArgs["result"]["donation"]>
 export type DonationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
@@ -1529,13 +1429,14 @@ export type $DonationPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
      */
     goods_item: string | null
     goods_quantity: number | null
-    pickup_address: string | null
-    pickup_contact: string | null
-    pickup_date: Date | null
     /**
-     * Minutes since midnight for the preferred pickup time.
+     * Goods only — the number CARES can reach the donor on about the drop-off.
      */
-    pickup_time_minutes: number | null
+    donor_contact: string | null
+    /**
+     * Goods only — the day the donor plans to hand the goods in at the CARES office.
+     */
+    delivery_date: Date | null
     confirmed_at: Date | null
     createdAt: Date
     updatedAt: Date
@@ -1977,10 +1878,8 @@ export interface DonationFieldRefs {
   readonly goods_type: Prisma.FieldRef<"Donation", 'String'>
   readonly goods_item: Prisma.FieldRef<"Donation", 'String'>
   readonly goods_quantity: Prisma.FieldRef<"Donation", 'Int'>
-  readonly pickup_address: Prisma.FieldRef<"Donation", 'String'>
-  readonly pickup_contact: Prisma.FieldRef<"Donation", 'String'>
-  readonly pickup_date: Prisma.FieldRef<"Donation", 'DateTime'>
-  readonly pickup_time_minutes: Prisma.FieldRef<"Donation", 'Int'>
+  readonly donor_contact: Prisma.FieldRef<"Donation", 'String'>
+  readonly delivery_date: Prisma.FieldRef<"Donation", 'DateTime'>
   readonly confirmed_at: Prisma.FieldRef<"Donation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Donation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Donation", 'DateTime'>

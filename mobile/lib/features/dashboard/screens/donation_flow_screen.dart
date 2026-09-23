@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/config/geoapify_config.dart';
+import '../../../core/config/mapbox_config.dart';
+import '../../../core/constants/cares_office.dart';
 import '../../../core/constants/goods_types.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
@@ -29,7 +33,7 @@ enum _Stage {
   paymentSuccess,
   moneyStatus,
   goodsSelectItem,
-  goodsPickup,
+  goodsDelivery,
   goodsReview,
   goodsStatus,
 }
@@ -44,8 +48,8 @@ enum _Stage {
 /// it. A Director then moves it along on the portal's Donation Tracking —
 /// verifying, then confirmed — and only a confirmed donation shows
 /// "Donation Successful" and counts on the donor board. Goods are pledged
-/// through `POST /donations/goods` and can be edited or cancelled until the
-/// pickup process starts.
+/// through `POST /donations/goods`, are delivered by the donor to the CARES
+/// Office, and can be edited or cancelled until CARES starts receiving them.
 ///
 /// Passing [existingDonation] opens the flow straight to the status view for
 /// a donation that already exists (from the Activity tab); [campaign] may
@@ -121,10 +125,10 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   bool _otherGoodSelected = false;
   final _otherGoodController = TextEditingController();
   int _quantity = 1;
-  final _pickupAddressController = TextEditingController();
-  final _pickupContactController = TextEditingController();
-  DateTime? _pickupDate;
-  TimeOfDay? _pickupTime;
+  final _contactNumberController = TextEditingController();
+
+  /// The day the donor plans to hand the goods in at the CARES Office.
+  DateTime? _deliveryDate;
 
   /// True while re-editing an already-pledged donation.
   bool _editing = false;
@@ -207,8 +211,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     _pollTimer?.cancel();
     _customAmountController.dispose();
     _otherGoodController.dispose();
-    _pickupAddressController.dispose();
-    _pickupContactController.dispose();
+    _contactNumberController.dispose();
     super.dispose();
   }
 
@@ -240,30 +243,19 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     return detail == null ? type : '$type — $detail';
   }
 
-  int? get _pickupTimeMinutes =>
-      _pickupTime == null ? null : _pickupTime!.hour * 60 + _pickupTime!.minute;
-
-  String? get _pickupDateLabel =>
-      _pickupDate == null ? null : DonationFormat.dateOnly(_pickupDate!);
-
-  String? get _pickupTimeLabel =>
-      _pickupTime == null ? null : DonationFormat.minutes(_pickupTimeMinutes!);
+  String? get _deliveryDateLabel =>
+      _deliveryDate == null ? null : DonationFormat.dateOnly(_deliveryDate!);
 
   GoodsPledgeInput get _goodsInput => GoodsPledgeInput(
     goodsType: _goodsTypeId!,
     goodsItem: _goodsDetail,
     quantity: _quantity,
-    pickupAddress: _pickupAddressController.text.trim(),
-    pickupContact: _pickupContactController.text.trim(),
-    pickupDate: _pickupDate!,
-    pickupTimeMinutes: _pickupTimeMinutes!,
+    contactNumber: _contactNumberController.text.trim(),
+    deliveryDate: _deliveryDate!,
   );
 
-  bool get _pickupComplete =>
-      _pickupAddressController.text.trim().isNotEmpty &&
-      _pickupContactController.text.trim().isNotEmpty &&
-      _pickupDate != null &&
-      _pickupTime != null;
+  bool get _deliveryComplete =>
+      _contactNumberController.text.trim().isNotEmpty && _deliveryDate != null;
 
   int? get _effectiveAmount {
     final custom = int.tryParse(_customAmountController.text.trim());
@@ -312,10 +304,10 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
             _stage = _Stage.chooseType;
           }
         });
-      case _Stage.goodsPickup:
+      case _Stage.goodsDelivery:
         setState(() => _stage = _Stage.goodsSelectItem);
       case _Stage.goodsReview:
-        setState(() => _stage = _Stage.goodsPickup);
+        setState(() => _stage = _Stage.goodsDelivery);
     }
   }
 
@@ -563,13 +555,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     }
     _otherGoodController.text = d.goodsItem ?? '';
     _quantity = d.goodsQuantity ?? 1;
-    _pickupAddressController.text = d.pickupAddress ?? '';
-    _pickupContactController.text = d.pickupContact ?? '';
-    _pickupDate = d.pickupDate;
-    final mins = d.pickupTimeMinutes;
-    _pickupTime = mins == null
-        ? null
-        : TimeOfDay(hour: mins ~/ 60, minute: mins % 60);
+    _contactNumberController.text = d.contactNumber ?? '';
+    _deliveryDate = d.deliveryDate;
     setState(() {
       _editing = true;
       _stage = _Stage.goodsSelectItem;
@@ -632,7 +619,10 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
                 children: [
                   _CancelSummaryLine('Item', d.goodsLabel),
                   _CancelSummaryLine('Campaign', d.eventTitle),
-                  _CancelSummaryLine('Pickup date', d.pickupDateLabel ?? '—'),
+                  _CancelSummaryLine(
+                    'Delivery date',
+                    d.deliveryDateLabel ?? '—',
+                  ),
                 ],
               ),
             ),
@@ -672,19 +662,12 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _pickupDate ?? now.add(const Duration(days: 1)),
+      initialDate: _deliveryDate ?? now.add(const Duration(days: 1)),
       firstDate: now,
       lastDate: now.add(const Duration(days: 60)),
+      helpText: 'When will you deliver the goods?',
     );
-    if (picked != null) setState(() => _pickupDate = picked);
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _pickupTime ?? const TimeOfDay(hour: 9, minute: 0),
-    );
-    if (picked != null) setState(() => _pickupTime = picked);
+    if (picked != null) setState(() => _deliveryDate = picked);
   }
 
   // ------------------------------------------------------------------- build
@@ -736,7 +719,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     _Stage.paymentFailed || _Stage.paymentSuccess => 'Payment',
     _Stage.moneyStatus => 'Donation Details',
     _Stage.goodsSelectItem => _editing ? 'Edit Donation' : 'Select Goods',
-    _Stage.goodsPickup => _editing ? 'Edit Pickup Details' : 'Pickup Details',
+    _Stage.goodsDelivery =>
+      _editing ? 'Edit Delivery Details' : 'Delivery Details',
     _Stage.goodsStatus => 'Donation Details',
   };
 
@@ -750,7 +734,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     _Stage.paymentSuccess => _paymentSuccessStage(),
     _Stage.moneyStatus => _moneyStatusStage(),
     _Stage.goodsSelectItem => _goodsSelectItemStage(),
-    _Stage.goodsPickup => _goodsPickupStage(),
+    _Stage.goodsDelivery => _goodsDeliveryStage(),
     _Stage.goodsReview => _goodsReviewStage(),
     _Stage.goodsStatus => _goodsStatusStage(),
   };
@@ -1352,48 +1336,33 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       ],
       footer: FilledButton(
         onPressed: _goodsItem != null
-            ? () => setState(() => _stage = _Stage.goodsPickup)
+            ? () => setState(() => _stage = _Stage.goodsDelivery)
             : null,
         child: const Text('Continue'),
       ),
     );
   }
 
-  // ------------------------------------------- Goods Step 3: pickup details
-  Widget _goodsPickupStage() {
+  // ------------------------------------------- Goods Step 3: delivery details
+  Widget _goodsDeliveryStage() {
     return _stepScaffold(
       step: 3,
       content: [
         const DonationStepHeader(
-          title: 'How will you provide your donation?',
-          subtitle: 'CARES will collect the items from you.',
+          title: 'Deliver your donation to CARES',
+          subtitle: 'Bring the items to the CARES Office on your chosen date.',
         ),
         const SizedBox(height: 16),
-        DonationOptionTile(
-          title: 'Request Pickup',
-          subtitle: 'A CARES volunteer will collect the items at your address',
-          icon: Icons.local_shipping_outlined,
-          selected: true,
-          onTap: () {},
-        ),
+        const _SelfDeliveryNotice(),
         const SizedBox(height: 18),
-        _FieldLabel('Pickup address'),
+        _FieldLabel('CARES Drop-Off Location'),
         const SizedBox(height: 6),
-        TextField(
-          controller: _pickupAddressController,
-          minLines: 2,
-          maxLines: 3,
-          textCapitalization: TextCapitalization.words,
-          onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(
-            hintText: 'House/unit no., street, barangay, city',
-          ),
-        ),
+        const _CaresDropOffMap(),
         const SizedBox(height: 14),
         _FieldLabel('Contact number'),
         const SizedBox(height: 6),
         TextField(
-          controller: _pickupContactController,
+          controller: _contactNumberController,
           keyboardType: TextInputType.phone,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
@@ -1403,27 +1372,20 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
           decoration: const InputDecoration(hintText: '09XX XXX XXXX'),
         ),
         const SizedBox(height: 14),
-        _FieldLabel('Preferred pickup date'),
+        _FieldLabel('Delivery date'),
         const SizedBox(height: 6),
         _PickerField(
           icon: Icons.calendar_today_outlined,
-          value: _pickupDateLabel,
-          placeholder: 'Select a date',
+          value: _deliveryDateLabel,
+          placeholder: 'Select the date you will deliver',
           onTap: _pickDate,
-        ),
-        const SizedBox(height: 14),
-        _FieldLabel('Preferred pickup time'),
-        const SizedBox(height: 6),
-        _PickerField(
-          icon: Icons.schedule_rounded,
-          value: _pickupTimeLabel,
-          placeholder: 'Select a time',
-          onTap: _pickTime,
         ),
         const SizedBox(height: 12),
         const Text(
-          'CARES uses these details to schedule the pickup and will update '
-          'your donation once the goods are collected.',
+          'The delivery date is the day you plan to personally bring the goods '
+          'to the CARES Office. CARES will use your contact number if anything '
+          'about the drop-off needs to be arranged, and will update your '
+          'donation once the goods are received.',
           style: TextStyle(
             fontSize: 12,
             color: AppColors.textMuted,
@@ -1432,7 +1394,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
         ),
       ],
       footer: FilledButton(
-        onPressed: _pickupComplete
+        onPressed: _deliveryComplete
             ? () => setState(() => _stage = _Stage.goodsReview)
             : null,
         child: const Text('Continue'),
@@ -1460,17 +1422,16 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
             const DonationSummaryRow('Donation Type', 'Goods'),
             DonationSummaryRow('Item', item ?? '—', emphasize: true),
             DonationSummaryRow('Quantity', '$_quantity'),
-            const DonationSummaryRow('Fulfillment', 'Pickup'),
-            DonationSummaryRow(
-              'Pickup Address',
-              _pickupAddressController.text.trim(),
+            const DonationSummaryRow('Fulfillment', 'Drop-off at CARES Office'),
+            const DonationSummaryRow(
+              'Drop-Off Location',
+              CaresOffice.fullAddress,
             ),
             DonationSummaryRow(
-              'Pickup Contact',
-              _pickupContactController.text.trim(),
+              'Contact Number',
+              _contactNumberController.text.trim(),
             ),
-            DonationSummaryRow('Pickup Date', _pickupDateLabel ?? '—'),
-            DonationSummaryRow('Pickup Time', _pickupTimeLabel ?? '—'),
+            DonationSummaryRow('Delivery Date', _deliveryDateLabel ?? '—'),
           ],
         ),
       ],
@@ -1478,7 +1439,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () => setState(() => _stage = _Stage.goodsPickup),
+              onPressed: () => setState(() => _stage = _Stage.goodsDelivery),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
                 foregroundColor: AppColors.textPrimary,
@@ -1519,10 +1480,10 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
 
     final (String heading, String message) = switch (status) {
       DonationStatus.awaitingPickup => (
-        'Waiting for Pickup',
-        'A CARES volunteer will collect your donation on your selected date '
-            'and time. This donation is locked because the pickup process has '
-            'already started.',
+        'Awaiting Drop-off',
+        'CARES is expecting your goods at the CARES Office on your delivery '
+            'date. This donation is locked because CARES has already started '
+            'receiving it.',
       ),
       DonationStatus.verifying => (
         'Verifying',
@@ -1546,9 +1507,9 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       ),
       DonationStatus.pledged => (
         'Donation Pledged',
-        'Your donation has been pledged successfully.\n\nCARES will arrange '
-            'the pickup based on your selected schedule. The donation is not '
-            'confirmed yet.',
+        'Your donation has been pledged successfully.\n\nPlease personally '
+            'deliver the goods to the CARES Office on your delivery date. The '
+            'donation is not confirmed yet.',
       ),
     };
     final accent = isClosed ? AppColors.error : AppColors.primary;
@@ -1593,16 +1554,16 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
                             DonationFormat.pesoFull(donation.amount),
                           ),
                           DonationSummaryRow(
-                            'Pickup Date',
-                            donation.pickupDateLabel ?? '—',
+                            'Delivery Date',
+                            donation.deliveryDateLabel ?? '—',
+                          ),
+                          const DonationSummaryRow(
+                            'Drop-Off Location',
+                            CaresOffice.fullAddress,
                           ),
                           DonationSummaryRow(
-                            'Pickup Time',
-                            donation.pickupTimeLabel ?? '—',
-                          ),
-                          DonationSummaryRow(
-                            'Pickup Address',
-                            donation.pickupAddress ?? '—',
+                            'Contact Number',
+                            donation.contactNumber ?? '—',
                           ),
                           DonationSummaryRow(
                             'Donation Date',
@@ -1675,8 +1636,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Locked — the pickup process has started, so this '
-                      'donation can no longer be edited or cancelled.',
+                      'Locked — CARES has started receiving this donation, '
+                      'so it can no longer be edited or cancelled.',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1971,6 +1932,191 @@ class _PickerField extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The must-read line of the delivery step: CARES no longer collects goods,
+/// so the donor brings them to the office themselves.
+class _SelfDeliveryNotice extends StatelessWidget {
+  const _SelfDeliveryNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.45)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_rounded, size: 20, color: AppColors.warning),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personal delivery required',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'CARES does not pick up donated goods. Donated goods must be '
+                  'personally delivered to the designated CARES Office at the '
+                  '${CaresOffice.campus}.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A fixed map pinning the CARES Office on the UCLM campus, with the address
+/// underneath so the donor knows exactly where to bring the goods. Uses the
+/// same tile providers as the event route map, demoting on failure so it never
+/// stays blank.
+class _CaresDropOffMap extends StatefulWidget {
+  const _CaresDropOffMap();
+
+  @override
+  State<_CaresDropOffMap> createState() => _CaresDropOffMapState();
+}
+
+enum _DropOffTiles { mapbox, geoapify, osm }
+
+class _CaresDropOffMapState extends State<_CaresDropOffMap> {
+  _DropOffTiles _tiles = MapboxConfig.isConfigured
+      ? _DropOffTiles.mapbox
+      : GeoapifyConfig.isConfigured
+      ? _DropOffTiles.geoapify
+      : _DropOffTiles.osm;
+
+  void _demoteTiles() {
+    if (!mounted || _tiles == _DropOffTiles.osm) return;
+    setState(() {
+      _tiles = _tiles == _DropOffTiles.mapbox && GeoapifyConfig.isConfigured
+          ? _DropOffTiles.geoapify
+          : _DropOffTiles.osm;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.fieldBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 190,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: CaresOffice.location,
+                initialZoom: 16,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  key: ValueKey(_tiles),
+                  urlTemplate: switch (_tiles) {
+                    _DropOffTiles.mapbox => MapboxConfig.tileUrlTemplate,
+                    _DropOffTiles.geoapify => GeoapifyConfig.tileUrlTemplate,
+                    _DropOffTiles.osm => GeoapifyConfig.osmTileUrlTemplate,
+                  },
+                  userAgentPackageName: 'com.caresinfra.mobile',
+                  errorTileCallback: (_, _, _) => _demoteTiles(),
+                ),
+                const MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: CaresOffice.location,
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.topCenter,
+                      child: Icon(
+                        Icons.location_on_rounded,
+                        size: 44,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+                RichAttributionWidget(
+                  attributions: [
+                    if (_tiles == _DropOffTiles.mapbox)
+                      const TextSourceAttribution('Mapbox'),
+                    if (_tiles == _DropOffTiles.geoapify)
+                      const TextSourceAttribution('Geoapify'),
+                    const TextSourceAttribution('OpenStreetMap contributors'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.place_rounded,
+                  size: 18,
+                  color: AppColors.secondary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${CaresOffice.name} · ${CaresOffice.campus}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        CaresOffice.address,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.textSecondary,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

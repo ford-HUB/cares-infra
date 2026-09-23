@@ -4,16 +4,16 @@ export type DonationKind = 'money' | 'goods'
 /**
  * One ladder for both kinds, walked at different speeds.
  *
- * Goods: `pledged` → `awaiting_pickup` (item is at the CARES drop-off point) →
- * `verifying` (staff counts and inspects it) → `confirmed` (director signs off that
- * it was received).
+ * Goods: `pledged` → `awaiting_pickup` (CARES is expecting the donor to drop the
+ * item off at the CARES Office on their delivery date) → `verifying` (staff counts
+ * and inspects it) → `confirmed` (director signs off that it was received).
  *
  * Money: `pledged` (donor says it was sent) → `verifying` (payment being matched) →
- * `confirmed` (director confirms the transfer landed). Money never has a pickup leg.
+ * `confirmed` (director confirms the transfer landed). Money never has a drop-off leg.
  *
  * `declined` is the director's terminal off-ramp for either kind — item never
  * arrived, payment never cleared. `cancelled` is the donor's: a pledged goods
- * donation withdrawn from the app before pickup started.
+ * donation withdrawn from the app before the drop-off started.
  */
 export type DonationStatus =
   | 'pledged'
@@ -75,10 +75,9 @@ export interface InternalDonation {
   paymentReference?: string
   /** Goods only. */
   items?: DonationGoodsItem[]
-  /** Goods only — where and when CARES collects the items. */
-  pickupAddress?: string
-  pickupContact?: string
-  pickupDate?: string
-  pickupTimeLabel?: string
+  /** Goods only — the day the donor plans to hand the items in at the CARES Office. */
+  deliveryDate?: string
+  /** Goods only — the number CARES can reach the donor on about the drop-off. */
+  contactNumber?: string
   timeline: DonationTimelineEntry[]
 }

@@ -64,10 +64,8 @@ export interface GoodsDonationData {
   goods_item: string | null;
   goods_quantity: number;
   amount: number;
-  pickup_address: string;
-  pickup_contact: string;
-  pickup_date: Date;
-  pickup_time_minutes: number;
+  donor_contact: string;
+  delivery_date: Date;
 }
 
 export interface TrailEntryData {

@@ -1509,7 +1509,8 @@ enum DonationKind {
 }
 
 /// One ladder for both kinds, walked at different speeds. Goods: PLEDGED →
-/// AWAITING_PICKUP → VERIFYING → CONFIRMED. Money (already paid through the
+/// AWAITING_PICKUP (CARES expects the donor to drop the goods off at the office
+/// on their delivery date) → VERIFYING → CONFIRMED. Money (already paid through the
 /// gateway): PLEDGED → VERIFYING → CONFIRMED. DECLINED is the director's off-ramp;
 /// CANCELLED is the donor's, and only from PLEDGED.
 enum DonationStatus {
@@ -1545,11 +1546,10 @@ model Donation {
   /// Goods only — what the donor said they are giving.
   goods_item          String?
   goods_quantity      Int?
-  pickup_address      String?
-  pickup_contact      String?
-  pickup_date         DateTime?
-  /// Minutes since midnight for the preferred pickup time.
-  pickup_time_minutes Int?
+  /// Goods only — the number CARES can reach the donor on about the drop-off.
+  donor_contact       String?
+  /// Goods only — the day the donor plans to hand the goods in at the CARES office.
+  delivery_date       DateTime?
   confirmed_at        DateTime?
   trail               DonationTrailEntry[]
   createdAt           DateTime        @default(now())

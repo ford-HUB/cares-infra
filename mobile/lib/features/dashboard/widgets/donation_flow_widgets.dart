@@ -274,7 +274,7 @@ class DonationSummaryCard extends StatelessWidget {
   }
 }
 
-/// Small status pill (e.g. "Completed", "Waiting for Pickup").
+/// Small status pill (e.g. "Completed", "Awaiting Drop-off").
 class DonationStatusPill extends StatelessWidget {
   const DonationStatusPill({
     super.key,
@@ -329,7 +329,7 @@ class DonationStatusPill extends StatelessWidget {
 }
 
 /// Vertical tracker for a donation's lifecycle: the forward rungs for its
-/// kind (goods pass through a pickup leg, money does not), or a
+/// kind (goods pass through a drop-off leg, money does not), or a
 /// Pledged → Cancelled / Declined path when it left the ladder.
 class DonationStatusTracker extends StatelessWidget {
   const DonationStatusTracker({

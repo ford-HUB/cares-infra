@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/cares_office.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/donation_format.dart';
 import '../data/models/donation_models.dart';
@@ -124,22 +125,19 @@ class DonationReceiptScreen extends StatelessWidget {
                           'Credited value',
                           DonationFormat.pesoFull(donation.amount),
                         ),
-                        const DonationSummaryRow('Fulfillment', 'Pickup'),
-                        if (donation.pickupDateLabel != null)
+                        const DonationSummaryRow(
+                          'Fulfillment',
+                          'Drop-off at CARES Office',
+                        ),
+                        if (donation.deliveryDateLabel != null)
                           DonationSummaryRow(
-                            'Pickup date',
-                            donation.pickupDateLabel!,
+                            'Delivery date',
+                            donation.deliveryDateLabel!,
                           ),
-                        if (donation.pickupTimeLabel != null)
-                          DonationSummaryRow(
-                            'Pickup time',
-                            donation.pickupTimeLabel!,
-                          ),
-                        if (donation.pickupAddress != null)
-                          DonationSummaryRow(
-                            'Pickup address',
-                            donation.pickupAddress!,
-                          ),
+                        const DonationSummaryRow(
+                          'Drop-off location',
+                          CaresOffice.fullAddress,
+                        ),
                       ],
                       DonationSummaryRow(
                         'Date',

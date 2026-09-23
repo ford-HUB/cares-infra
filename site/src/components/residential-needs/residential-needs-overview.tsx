@@ -1,5 +1,5 @@
-import { Layers } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { FileText, Layers } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,6 +27,7 @@ import {
   RESIDENTIAL_NEEDS_BARANGAYS,
 } from '../../services/residential-needs-mock'
 import type { Household, NeedPriority } from '../../types/residential-needs'
+import { exportResidentialNeedsPdf } from '../../utils/export-residential-needs-pdf'
 import { HouseholdTable } from './ui/household-table'
 import { NeedsByBarangayChart } from './ui/needs-by-barangay-chart'
 import { NeedsModuleTabs } from './ui/needs-module-tabs'
@@ -99,6 +100,11 @@ export function ResidentialNeedsOverview({ households }: ResidentialNeedsOvervie
     [scoped],
   )
 
+  const exportPdf = useCallback(
+    () => exportResidentialNeedsPdf(scoped, visible, { barangay, priority }),
+    [scoped, visible, barangay, priority],
+  )
+
   const caption = [
     `${formatNumber(visible.length)} of ${formatNumber(scoped.length)}`,
     priority !== NEEDS_FILTER_ALL && NEED_PRIORITY_LABELS[priority].toLowerCase(),
@@ -133,6 +139,10 @@ export function ResidentialNeedsOverview({ households }: ResidentialNeedsOvervie
               ))}
             </SelectContent>
           </Select>
+          <Button type="button" variant="outline" size="sm" onClick={exportPdf}>
+            <FileText />
+            Export PDF
+          </Button>
           <Button asChild size="sm">
             <Link to={ADMIN_NEEDS_CLUSTERS_PATH}>
               <Layers />

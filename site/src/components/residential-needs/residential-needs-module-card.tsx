@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { formatNumber, formatPercent } from '../../constants/formatting'
 import {
-  CLUSTER_DEFAULT_SEED,
   CLUSTER_K_DEFAULT,
   NEED_CATEGORY_LABELS,
   NEED_CATEGORY_ORDER,
@@ -18,7 +17,6 @@ import {
 } from '../../constants/routes'
 import { getMockHouseholds, householdPriority } from '../../services/residential-needs-mock'
 import type { NeedPriority } from '../../types/residential-needs'
-import { clusterHouseholds } from '../../utils/needs-kmeans'
 
 /**
  * The Residential Needs module as it appears on the director's Overview: the one
@@ -43,7 +41,6 @@ export function ResidentialNeedsModuleCard() {
       households.filter((h) => h.survey.needs.includes(key)).length
     return tally(category) > tally(top) ? category : top
   })
-  const clusters = clusterHouseholds(households, CLUSTER_K_DEFAULT, CLUSTER_DEFAULT_SEED)
 
   const linkClass =
     'flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none'
@@ -112,7 +109,7 @@ export function ResidentialNeedsModuleCard() {
               <Layers className="h-4 w-4 text-gray-400" />
               Clusters
               <span className="text-[11px] font-normal text-gray-400 tabular-nums">
-                {formatNumber(clusters.k)} groups
+                {formatNumber(Math.min(CLUSTER_K_DEFAULT, households.length))} groups
               </span>
             </span>
             <ArrowRight className="h-4 w-4 text-gray-400" />

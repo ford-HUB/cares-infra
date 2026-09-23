@@ -12,7 +12,7 @@ interface DonationProgressStepsProps {
 
 /**
  * The ladder for this donation's kind, with everything up to the current rung filled
- * in. Goods show four steps (the pickup leg included), money three — the flow itself
+ * in. Goods show four steps (the drop-off leg included), money three — the flow itself
  * comes from `DONATION_FLOW` so the two never drift apart.
  *
  * A declined donation left the ladder, so it renders as a single terminal note

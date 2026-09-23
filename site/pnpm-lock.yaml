@@ -22,7 +22,7 @@ importers:
         version: 7.3.5
       axios:
         specifier: ^1.18.1
-        version: 1.18.1(debug@4.4.3)
+        version: 1.18.1
       chart.js:
         specifier: ^4.5.1
         version: 4.5.1
@@ -6472,9 +6472,9 @@ snapshots:
 
   atomically@1.7.0: {}
 
-  axios@1.18.1(debug@4.4.3):
+  axios@1.18.1:
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3)
+      follow-redirects: 1.16.0
       form-data: 4.0.6
       https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
@@ -7055,9 +7055,7 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  follow-redirects@1.16.0(debug@4.4.3):
-    optionalDependencies:
-      debug: 4.4.3
+  follow-redirects@1.16.0: {}
 
   form-data@4.0.6:
     dependencies:

@@ -105,15 +105,11 @@ export function DonationDetailModal({
               </>
             ) : (
               <>
-                <Field label="Pickup address">{donation.pickupAddress ?? '—'}</Field>
-                <Field label="Pickup schedule">
-                  {donation.pickupDate
-                    ? `${formatDateShort(donation.pickupDate)}${
-                        donation.pickupTimeLabel ? ` · ${donation.pickupTimeLabel}` : ''
-                      }`
-                    : '—'}
-                  {donation.pickupContact ? ` · ${donation.pickupContact}` : ''}
+                <Field label="Drop-off at">CARES Office, UC Lapu-Lapu and Mandaue</Field>
+                <Field label="Delivery date">
+                  {donation.deliveryDate ? formatDateShort(donation.deliveryDate) : '—'}
                 </Field>
+                <Field label="Contact number">{donation.contactNumber ?? '—'}</Field>
                 <Field label="Items">
                   <ul className="space-y-0.5">
                     {(donation.items ?? []).map((item) => (

@@ -15,11 +15,11 @@ import type {
 import { seededRandom } from '../utils/seeded-random'
 
 /**
- * MOCK DATA — the Residential Needs module is a design pass and does not call the
- * server. Each row stands in for one Beneficiary Needs Assessment survey answered on
- * the mobile app. Households below are generated once from a fixed seed so the
- * screens are stable between reloads; swap `getMockHouseholds` for a real fetch when
- * the survey endpoint exists. Not wired on purpose.
+ * MOCK DATA — the survey is not in the database yet. Each row stands in for one
+ * Beneficiary Needs Assessment answered on the mobile app. Households below are
+ * generated once from a fixed seed so the screens are stable between reloads; swap
+ * `getMockHouseholds` for a real fetch when the survey endpoint exists. The Clusters
+ * screen already sends these rows to the server for the K-Means grouping.
  */
 
 const BARANGAYS = ['Looc', 'Umapad', 'Opao', 'Paknaan'] as const

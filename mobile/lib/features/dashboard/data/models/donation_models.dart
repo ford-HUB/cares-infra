@@ -87,7 +87,8 @@ extension DonationPaymentMethodMeta on DonationPaymentMethod {
 }
 
 /// One ladder for both kinds, walked at different speeds — the server's
-/// `DonationStatus`. Goods: pledged → awaitingPickup → verifying → confirmed.
+/// `DonationStatus`. Goods: pledged → awaitingPickup (CARES is expecting the
+/// donor to drop the goods off at the office) → verifying → confirmed.
 /// Money (already paid): pledged → verifying → confirmed. [declined] is the
 /// director's off-ramp; [cancelled] is the donor's, only while still pledged.
 enum DonationStatus {
@@ -100,7 +101,7 @@ enum DonationStatus {
 
   String get label => switch (this) {
     DonationStatus.pledged => 'Pledged',
-    DonationStatus.awaitingPickup => 'Waiting for Pickup',
+    DonationStatus.awaitingPickup => 'Awaiting Drop-off',
     DonationStatus.verifying => 'Verifying',
     DonationStatus.confirmed => 'Confirmed',
     DonationStatus.declined => 'Declined',
@@ -189,10 +190,8 @@ class Donation {
     this.goodsType,
     this.goodsItem,
     this.goodsQuantity,
-    this.pickupAddress,
-    this.pickupContact,
-    this.pickupDate,
-    this.pickupTimeMinutes,
+    this.contactNumber,
+    this.deliveryDate,
     this.confirmedAt,
   });
 
@@ -202,7 +201,7 @@ class Donation {
       return raw == null ? null : DateTime.tryParse(raw)?.toLocal();
     }
 
-    final pickupRaw = json['pickup_date'] as String?;
+    final deliveryRaw = json['delivery_date'] as String?;
     return Donation(
       id: json['donation_id'] as String,
       reference: json['reference'] as String? ?? '',
@@ -219,11 +218,9 @@ class Donation {
       goodsType: json['goods_type'] as String?,
       goodsItem: json['goods_item'] as String?,
       goodsQuantity: (json['goods_quantity'] as num?)?.toInt(),
-      pickupAddress: json['pickup_address'] as String?,
-      pickupContact: json['pickup_contact'] as String?,
+      contactNumber: json['donor_contact'] as String?,
       // A calendar day, not an instant — parse it as local so it never shifts.
-      pickupDate: pickupRaw == null ? null : DateTime.tryParse(pickupRaw),
-      pickupTimeMinutes: (json['pickup_time_minutes'] as num?)?.toInt(),
+      deliveryDate: deliveryRaw == null ? null : DateTime.tryParse(deliveryRaw),
       confirmedAt: date('confirmed_at'),
       trail: (json['trail'] as List<dynamic>? ?? const [])
           .map((e) => DonationTrailEntry.fromJson(e as Map<String, dynamic>))
@@ -250,10 +247,12 @@ class Donation {
   final String? goodsType;
   final String? goodsItem;
   final int? goodsQuantity;
-  final String? pickupAddress;
-  final String? pickupContact;
-  final DateTime? pickupDate;
-  final int? pickupTimeMinutes;
+
+  /// Goods only — the number CARES can reach the donor on about the drop-off.
+  final String? contactNumber;
+
+  /// Goods only — the day the donor plans to hand the goods in at the CARES Office.
+  final DateTime? deliveryDate;
   final DateTime? confirmedAt;
   final List<DonationTrailEntry> trail;
   final DateTime createdAt;
@@ -280,10 +279,6 @@ class Donation {
   String get paymentReferenceLabel =>
       paymentMethod?.referenceLabel ?? 'Payment Reference No.';
 
-  String? get pickupDateLabel =>
-      pickupDate == null ? null : DonationFormat.dateOnly(pickupDate!);
-
-  String? get pickupTimeLabel => pickupTimeMinutes == null
-      ? null
-      : DonationFormat.minutes(pickupTimeMinutes!);
+  String? get deliveryDateLabel =>
+      deliveryDate == null ? null : DonationFormat.dateOnly(deliveryDate!);
 }

@@ -126,6 +126,10 @@ export class DonationsMobileController {
     return this.donationsMobileService.pledgeGoods(user.sub, body);
   }
 
+  /**
+   * `:id` also matches the portal's `site` segment — `DonationsModule`
+   * registers the site controller first so its literal routes win.
+   */
   @Get(':id')
   @Roles(...DONATIONS_MOBILE_ROLE_TYPES)
   @ResponseMessage('Donation')

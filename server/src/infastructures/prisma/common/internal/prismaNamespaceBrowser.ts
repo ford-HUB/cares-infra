@@ -928,10 +928,8 @@ export const DonationScalarFieldEnum = {
   goods_type: 'goods_type',
   goods_item: 'goods_item',
   goods_quantity: 'goods_quantity',
-  pickup_address: 'pickup_address',
-  pickup_contact: 'pickup_contact',
-  pickup_date: 'pickup_date',
-  pickup_time_minutes: 'pickup_time_minutes',
+  donor_contact: 'donor_contact',
+  delivery_date: 'delivery_date',
   confirmed_at: 'confirmed_at',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

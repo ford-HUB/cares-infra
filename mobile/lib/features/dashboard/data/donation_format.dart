@@ -53,7 +53,7 @@ abstract final class DonationFormat {
     return '$hour12:${minute.toString().padLeft(2, '0')} $period';
   }
 
-  /// `2026-10-12` — the wire form of a pickup date.
+  /// `2026-10-12` — the wire form of a delivery date.
   static String isoDate(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'

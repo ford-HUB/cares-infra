@@ -73,12 +73,13 @@ export const DonationIdSchema = z.uuid('A valid donation id is required');
 
 export const GOODS_ITEM_MAX = 120;
 export const GOODS_QUANTITY_MAX = 10_000;
-export const PICKUP_ADDRESS_MAX = 300;
-export const PICKUP_CONTACT_MAX = 20;
-/** Minutes since midnight, so 23:59 is the last slot. */
-const PICKUP_TIME_MAX = 23 * 60 + 59;
+export const DONOR_CONTACT_MAX = 20;
 
-/** What a goods pledge carries, and what an edit may change. */
+/**
+ * What a goods pledge carries, and what an edit may change. Goods are handed in
+ * by the donor at the CARES office, so there is no address or time to collect —
+ * only the day they plan to drop by and a number to reach them on.
+ */
 const GoodsDonationFieldsSchema = z.object({
   goodsType: z.enum(
     GOODS_TYPE_IDS,
@@ -91,19 +92,13 @@ const GoodsDonationFieldsSchema = z.object({
     .int('Quantity must be a whole number')
     .min(1, 'Quantity must be at least 1')
     .max(GOODS_QUANTITY_MAX),
-  pickupAddress: z
-    .string()
-    .trim()
-    .min(1, 'Pickup address is required')
-    .max(PICKUP_ADDRESS_MAX),
-  pickupContact: z
+  contactNumber: z
     .string()
     .trim()
     .min(1, 'Contact number is required')
-    .max(PICKUP_CONTACT_MAX),
-  /** Calendar day, `YYYY-MM-DD`. */
-  pickupDate: z.iso.date('Pickup date is required'),
-  pickupTimeMinutes: z.number().int().min(0).max(PICKUP_TIME_MAX),
+    .max(DONOR_CONTACT_MAX),
+  /** Calendar day, `YYYY-MM-DD`, when the donor plans to deliver the goods. */
+  deliveryDate: z.iso.date('Delivery date is required'),
 });
 
 export const CreateGoodsDonationSchema = GoodsDonationFieldsSchema.extend({
@@ -149,10 +144,8 @@ export const DonationSchema = z.object({
   goods_type: z.string().nullable(),
   goods_item: z.string().nullable(),
   goods_quantity: z.number().nullable(),
-  pickup_address: z.string().nullable(),
-  pickup_contact: z.string().nullable(),
-  pickup_date: z.iso.date().nullable(),
-  pickup_time_minutes: z.number().nullable(),
+  donor_contact: z.string().nullable(),
+  delivery_date: z.iso.date().nullable(),
   confirmed_at: z.iso.datetime().nullable(),
   trail: z.array(DonationTrailEntrySchema),
   created_at: z.iso.datetime(),

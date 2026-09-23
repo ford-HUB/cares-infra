@@ -13,7 +13,7 @@ export const DONATION_KIND_LABELS: Record<DonationKind, string> = {
 
 export const DONATION_STATUS_LABELS: Record<DonationStatus, string> = {
   pledged: 'Pledged',
-  awaiting_pickup: 'Waiting to Pickup',
+  awaiting_pickup: 'Awaiting Drop-off',
   verifying: 'Verifying',
   confirmed: 'Confirmed',
   declined: 'Declined',
@@ -21,8 +21,8 @@ export const DONATION_STATUS_LABELS: Record<DonationStatus, string> = {
 }
 
 /**
- * The two ladders. Goods pass through a pickup leg because the item physically has
- * to reach a CARES site before anyone can verify it; money skips straight to
+ * The two ladders. Goods pass through a drop-off leg because the donor has to hand
+ * the item in at the CARES Office before anyone can verify it; money skips straight to
  * verification once the donor says it was sent.
  */
 export const DONATION_FLOW: Record<DonationKind, DonationStatus[]> = {
@@ -52,11 +52,11 @@ export const DONATION_OPEN_STATUSES: DonationStatus[] = [
 
 export const DONATION_STATUS_HINTS: Record<DonationStatus, string> = {
   pledged: 'Donor committed the donation — nothing has arrived yet',
-  awaiting_pickup: 'Item is at the CARES drop-off point, waiting to be collected',
+  awaiting_pickup: 'Donor is expected to hand the item in at the CARES Office on their delivery date',
   verifying: 'Being counted and checked against what was pledged',
   confirmed: 'Director confirmed the donation was received',
   declined: 'Never arrived or could not be verified',
-  cancelled: 'The donor withdrew the pledge from the app before pickup',
+  cancelled: 'The donor withdrew the pledge from the app before dropping it off',
 }
 
 /** The next rung for a donation of this kind, or null when it is already terminal. */
@@ -73,7 +73,7 @@ export function nextDonationStatus(
 /** Label for the one-click advance button, phrased as the action being taken. */
 export const DONATION_ADVANCE_LABELS: Record<DonationStatus, string> = {
   pledged: 'Reopen as pledged',
-  awaiting_pickup: 'Mark waiting to pickup',
+  awaiting_pickup: 'Mark awaiting drop-off',
   verifying: 'Start verifying',
   confirmed: 'Confirm received',
   declined: 'Decline donation',
@@ -86,7 +86,7 @@ export const DONATION_ADVANCE_LABELS: Record<DonationStatus, string> = {
  */
 export const DONATION_MAIL_SUBJECTS: Record<DonationStatus, string> = {
   pledged: 'We received your donation pledge',
-  awaiting_pickup: 'Your donation is logged for pickup',
+  awaiting_pickup: 'Your donation is logged for drop-off',
   verifying: 'We are verifying your donation',
   confirmed: 'Your donation is confirmed — thank you',
   declined: 'Update on your donation',

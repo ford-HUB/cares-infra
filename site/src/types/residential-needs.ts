@@ -2,8 +2,8 @@
  * Residential needs — what a household in a partner barangay lacks, as answered on
  * the Beneficiary Needs Assessment survey (the five-question form a beneficiary
  * fills in on the mobile app). Every screen in the module is built on a list of
- * these rows. The module is a design pass: the rows are mock and nothing here calls
- * the server.
+ * these rows. The rows are still mock; the Clusters screen sends them to the server,
+ * which groups them with decision-service (scikit-learn K-Means).
  */
 
 /** Q1 — what the household currently needs help with (select all that apply). */
@@ -74,7 +74,7 @@ export interface Household {
 export type NeedsFeatureKey = 'members' | 'seriousness' | Exclude<NeedCategory, 'other'>
 
 export interface NeedsCluster {
-  /** 0-based cluster index — the colour and label are keyed on it. */
+  /** 0-based cluster index, highest need first — the colour and label are keyed on it. */
   index: number
   householdIds: string[]
   /**
@@ -90,6 +90,11 @@ export interface NeedsCluster {
   priority: NeedPriority
   /** The barangay most of the members live in — where a programme for this group should concentrate. */
   barangay: ClusterBarangay
+  /**
+   * Seriousness (1–5) plus the mean number of named needs ticked (0–5) — the
+   * measure clusters are ranked on, so `index` 0 is always the group in deepest need.
+   */
+  needLevel: number
 }
 
 export interface ClusterBarangay {
@@ -111,4 +116,7 @@ export interface NeedsClusteringResult {
   iterations: number
   converged: boolean
   seed: number
+  /** What produced the grouping, e.g. `sklearn.cluster.KMeans`. */
+  algorithm: string
+  generatedAt: string
 }

@@ -20,6 +20,7 @@ services:
       - UCID_SERVICE_URL=http://ucid-service:8003
       - NLP_SERVICE_URL=http://nlp-service:8004
       - GPS_VALIDATOR_SERVICE_URL=http://gps-validator-service:8005
+      - DECISION_SERVICE_URL=http://decision-service:8006
     depends_on:
       - db
       - redis
@@ -28,6 +29,7 @@ services:
       - ucid-service
       - nlp-service
       - gps-validator-service
+      - decision-service
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
@@ -148,6 +150,22 @@ services:
       - MAX_ACCURACY_M=60
     volumes:
       - ./microservices/gps-validator-service/app:/app/app
+
+  decision-service:
+    build:
+      context: ./microservices/decision-service
+      dockerfile: Dockerfile
+    container_name: decision_service
+    ports:
+      - "8006:8006"
+    environment:
+      - PORT=8006
+      - CORS_ORIGINS=*
+      - DEFAULT_K=3
+      - MAX_ITERATIONS=50
+      - N_INIT=1
+    volumes:
+      - ./microservices/decision-service/app:/app/app
 
 volumes:
   postgres_data:

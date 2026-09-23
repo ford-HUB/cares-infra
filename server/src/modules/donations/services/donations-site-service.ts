@@ -25,8 +25,9 @@ import {
 import { toSiteDonationDto } from './donations-mapper';
 
 /**
- * The two ladders. Goods pass through a pickup leg because the item has to reach
- * CARES before anyone can verify it; money is already paid, so it skips straight
+ * The two ladders. Goods pass through a drop-off leg because the donor has to
+ * hand the item in at the CARES office before anyone can verify it; money is
+ * already paid, so it skips straight
  * to verification. Mirrors `DONATION_FLOW` in the portal.
  */
 const DONATION_FLOW: Record<DonationKind, DonationStatus[]> = {
@@ -45,7 +46,7 @@ const DONATION_FLOW: Record<DonationKind, DonationStatus[]> = {
 
 const STATUS_LABELS: Record<DonationStatus, string> = {
   PLEDGED: 'Pledged',
-  AWAITING_PICKUP: 'Waiting for pickup',
+  AWAITING_PICKUP: 'Awaiting drop-off',
   VERIFYING: 'Verifying',
   CONFIRMED: 'Confirmed',
   DECLINED: 'Declined',
@@ -57,7 +58,7 @@ const STATUS_NOTICES: Record<DonationStatus, string> = {
   PLEDGED:
     'Your donation is back to pledged and waiting for CARES to act on it.',
   AWAITING_PICKUP:
-    'A CARES volunteer will collect your donation on your chosen schedule.',
+    'CARES is expecting your goods at the CARES Office on your delivery date.',
   VERIFYING: 'CARES is checking your donation against what was pledged.',
   CONFIRMED: 'CARES confirmed your donation was received. Thank you!',
   DECLINED:

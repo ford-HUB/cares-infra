@@ -38,7 +38,7 @@ export function formatDonationReference(sequence: number): string {
   return `DN-${String(sequence).padStart(4, '0')}`;
 }
 
-/** Calendar day as `YYYY-MM-DD`; pickup dates carry no time of their own. */
+/** Calendar day as `YYYY-MM-DD`; delivery dates carry no time of their own. */
 function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -59,10 +59,8 @@ export function toDonationDto(row: DonationRow): DonationDto {
     goods_type: row.goods_type,
     goods_item: row.goods_item,
     goods_quantity: row.goods_quantity,
-    pickup_address: row.pickup_address,
-    pickup_contact: row.pickup_contact,
-    pickup_date: row.pickup_date ? toDateOnly(row.pickup_date) : null,
-    pickup_time_minutes: row.pickup_time_minutes,
+    donor_contact: row.donor_contact,
+    delivery_date: row.delivery_date ? toDateOnly(row.delivery_date) : null,
     confirmed_at: row.confirmed_at?.toISOString() ?? null,
     trail: row.trail.map((entry) => ({
       donation_trail_entry_id: entry.donation_trail_entry_id,
