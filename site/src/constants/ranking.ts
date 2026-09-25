@@ -1,5 +1,7 @@
 import { formatNumber } from './formatting'
 import type {
+  DepartmentRankingBasis,
+  DonorKindFilter,
   RankingBoard,
   RankingPeriod,
   RankingSettings,
@@ -47,10 +49,14 @@ export const RANKING_DEFAULT_PERIOD: RankingPeriod = 'month'
 export const RANKING_BOARDS: { value: RankingBoard; label: string }[] = [
   { value: 'volunteer', label: 'Volunteers' },
   { value: 'donor', label: 'Donors' },
+  { value: 'department', label: 'Departments' },
 ]
 
 /** The scoring rule spelled out for the header — it moves with the saved settings. */
 export function boardCriteria(board: RankingBoard, settings: RankingSettings): string {
+  if (board === 'department') {
+    return "Colleges ranked on their volunteers' service hours and the confirmed donations to their events"
+  }
   return board === 'volunteer'
     ? `+${settings.pointsPerAttendance} per event attended · a missed registration costs −${settings.absencePenaltyStep}, then −${settings.absencePenaltyStep * 2}, −${settings.absencePenaltyStep * 3}… for straight misses within ${settings.absenceResetDays} days`
     : `1 point per ₱${settings.donorPesosPerPoint} of confirmed donations · goods count at their set value per unit`
@@ -121,6 +127,39 @@ export const DONOR_RANKING_COLUMNS = [
   { key: 'points', label: 'Points', width: 'w-[9rem]' },
 ] as const
 
+export const DEPARTMENT_RANKING_COLUMNS = [
+  { key: 'department', label: 'Department', width: 'w-[22rem]' },
+  { key: 'volunteers', label: 'Volunteers', width: 'w-[8rem]' },
+  { key: 'hours', label: 'Service Hours', width: 'w-[10rem]' },
+  { key: 'donated', label: 'Donations', width: 'w-[12rem]' },
+  { key: 'score', label: 'Score', width: 'w-[12rem]' },
+] as const
+
+/** The department board's filter: what the colleges are ordered on. */
+export const DEPARTMENT_RANKING_BASES: { value: DepartmentRankingBasis; label: string }[] = [
+  { value: 'overall', label: 'Overall (hours + donations)' },
+  { value: 'hours', label: 'Service hours' },
+  { value: 'donations', label: 'Donation amount' },
+]
+
+export const DEPARTMENT_RANKING_DEFAULT_BASIS: DepartmentRankingBasis = 'overall'
+
+/** The donor board's filter: donors who gave money, goods, or either. */
+export const DONOR_KIND_FILTERS: { value: DonorKindFilter; label: string }[] = [
+  { value: 'all', label: 'All donations' },
+  { value: 'money', label: 'Gave money' },
+  { value: 'goods', label: 'Gave goods' },
+]
+
+/** The volunteer board's department filter value that shows every college. */
+export const ALL_DEPARTMENTS = 'all'
+
+export const RANKING_SEARCH_PLACEHOLDERS: Record<RankingBoard, string> = {
+  volunteer: 'Search name, email, or department',
+  donor: 'Search name or email',
+  department: 'Search department',
+}
+
 export const DONOR_TYPE_LABELS: Record<'individual' | 'organization', string> = {
   individual: 'Individual',
   organization: 'Organization',
@@ -129,6 +168,15 @@ export const DONOR_TYPE_LABELS: Record<'individual' | 'organization', string> = 
 /** Shared by both boards: a points total is a points total. */
 export function formatPoints(points: number): string {
   return `${formatNumber(points)} pts`
+}
+
+export function formatHours(hours: number): string {
+  return `${formatNumber(hours)} hrs`
+}
+
+/** A college's 0–100 combined score, one decimal like the server rounds it. */
+export function formatScore(score: number): string {
+  return `${score.toFixed(1)} score`
 }
 
 /** The ladder as shipped — Customization edits a copy of this. */

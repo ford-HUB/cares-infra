@@ -7,7 +7,8 @@ interface RankingsDashboardProps {
   tiles: { label: string; value: string; hint: string }[]
   leaders: RankingLeader[]
   tiers: RankingTier[]
-  trend: RankingTrend
+  /** Absent for a board with no race over time — the department board. */
+  trend?: RankingTrend
   loading: boolean
 }
 
@@ -23,7 +24,7 @@ export function RankingsDashboard({
     <div className="space-y-5 p-5">
       <RankingSummary tiles={tiles} loading={loading} />
       <RankingPodium leaders={leaders} tiers={tiers} loading={loading} />
-      <RankingTrendChart trend={trend} loading={loading} />
+      {trend && <RankingTrendChart trend={trend} loading={loading} />}
     </div>
   )
 }

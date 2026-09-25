@@ -19,6 +19,8 @@ interface VolunteerRankingTableProps {
   tiers: RankingTier[]
   settings: RankingSettings
   loading: boolean
+  /** Overrides the empty state — e.g. when a search matched nobody. */
+  emptyMessage?: string
 }
 
 /**
@@ -31,13 +33,14 @@ export function VolunteerRankingTable({
   tiers,
   settings,
   loading,
+  emptyMessage = 'No volunteer has a ruled attendance for this period yet.',
 }: VolunteerRankingTableProps) {
   return (
     <RankingTableShell
       columns={VOLUNTEER_RANKING_COLUMNS}
       loading={loading}
       isEmpty={entries.length === 0}
-      emptyMessage="No volunteer has a ruled attendance for this period yet."
+      emptyMessage={emptyMessage}
     >
       {entries.map((entry) => (
         <tr key={entry.id} className="odd:bg-gray-50/40 hover:bg-green-50/60">

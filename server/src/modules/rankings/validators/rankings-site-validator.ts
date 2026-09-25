@@ -178,3 +178,44 @@ export const DonorRankingsResponseSchema = z.object({
   donor_pesos_per_point: z.number().int(),
   entries: z.array(DonorRankingEntrySchema),
 });
+
+/** A college's standing on each of the department board's three orders. */
+const DepartmentRanksSchema = z.object({
+  /** Ranked on `score` — hours and pesos weighted as equal shares. */
+  overall: z.number().int(),
+  hours: z.number().int(),
+  donations: z.number().int(),
+});
+
+/** One college's volunteer hours and confirmed giving over the period. */
+export const DepartmentRankingEntrySchema = z.object({
+  /** Stable grouping key — the college code when known, else its lowercased name. */
+  key: z.string(),
+  name: z.string(),
+  /** Short code (`CCS`, …) when the name maps to a known college. */
+  code: z.string().nullable(),
+  volunteers: z.number().int(),
+  events_attended: z.number().int(),
+  hours: z.number(),
+  /** Confirmed pesos to events run by this college — money plus goods value. */
+  donation_amount: z.number().int(),
+  donations: z.number().int(),
+  /** 0–100: half the college's share of all hours, half its share of all pesos. */
+  score: z.number(),
+  ranks: DepartmentRanksSchema,
+  /** Standings over the previous window; null for all time. */
+  previous_ranks: DepartmentRanksSchema.nullable(),
+});
+
+export const DepartmentRankingsResponseSchema = z.object({
+  period: RankingPeriodSchema,
+  entries: z.array(DepartmentRankingEntrySchema),
+  /**
+   * What no college could be credited with: hours from volunteers with no school
+   * record, and pesos given to school-wide events.
+   */
+  unattributed: z.object({
+    hours: z.number(),
+    donation_amount: z.number().int(),
+  }),
+});

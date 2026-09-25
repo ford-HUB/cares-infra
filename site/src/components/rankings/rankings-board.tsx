@@ -1,37 +1,36 @@
 import {
+  DEPARTMENT_RANKING_BASES,
   RANKING_PERIODS,
   RANKING_VIEWS,
   boardCriteria,
-  formatPoints,
 } from '../../constants/ranking'
-import { formatCurrency, formatNumber } from '../../constants/formatting'
 import type {
-  DonorRankingEntry,
+  DepartmentRankingBasis,
   RankingBoard,
-  RankingLeader,
   RankingPeriod,
   RankingSettings,
   RankingTrend,
   RankingView,
-  VolunteerRankingEntry,
 } from '../../types/ranking'
-import { DonorRankingTable } from './donor-ranking-table'
+import { rankingDashboard } from '../../utils/ranking-dashboard'
+import { RankingList, type RankingListProps } from './ranking-list'
 import { RankingsDashboard } from './rankings-dashboard'
-import { VolunteerRankingTable } from './volunteer-ranking-table'
+
+type ListProps = Omit<RankingListProps, 'board' | 'settings' | 'loading'>
 
 interface RankingsBoardProps {
   view: RankingView
   board: RankingBoard
-  /** The tabs on offer; a coordinator's board has no donor side. */
+  /** The tabs on offer; a coordinator's board has only the volunteer side. */
   boards: { value: RankingBoard; label: string }[]
   period: RankingPeriod
   settings: RankingSettings
-  volunteers: VolunteerRankingEntry[]
-  donors: DonorRankingEntry[]
+  /** Whole, unfiltered boards — the dashboard never follows the list's search. */
+  dashboard: Omit<Parameters<typeof rankingDashboard>[0], 'board' | 'settings'>
   volunteerTrend: RankingTrend
   donorTrend: RankingTrend
-  /** The college a coordinator's board is cut to; null for the whole school. */
-  scopeDepartment: string | null
+  /** Search, filters, and the narrowed rows for the Ranking List tab. */
+  list: ListProps
   error: string | null
   loading: boolean
   onViewChange: (view: RankingView) => void
@@ -42,12 +41,11 @@ interface RankingsBoardProps {
 const selectClass =
   'h-9 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
 
-const PODIUM_SIZE = 3
-
 /**
- * Two standings, never one: volunteers are ranked on service hours and donors on
- * amount given, so the boards are switched between rather than combined. Each board
- * is shown either as its dashboard or as its full list — the `view` tabs pick which.
+ * Three standings, never one: volunteers are ranked on attendance, donors on amount
+ * given, and colleges on their volunteers' hours and the donations to their events,
+ * so the boards are switched between rather than combined. Each board is shown
+ * either as its dashboard or as its full list — the `view` tabs pick which.
  */
 export function RankingsBoard({
   view,
@@ -55,85 +53,23 @@ export function RankingsBoard({
   boards,
   period,
   settings,
-  volunteers,
-  donors,
+  dashboard,
   volunteerTrend,
   donorTrend,
-  scopeDepartment,
+  list,
   error,
   loading,
   onViewChange,
   onBoardChange,
   onPeriodChange,
 }: RankingsBoardProps) {
-  const isVolunteerBoard = board === 'volunteer'
+  const { tiles, leaders } = rankingDashboard({ ...dashboard, board, settings })
+  const trend =
+    board === 'volunteer' ? volunteerTrend : board === 'donor' ? donorTrend : undefined
 
-  const volunteerAttended = volunteers.reduce((total, entry) => total + entry.eventsJoined, 0)
-  const volunteerMissed = volunteers.reduce((total, entry) => total + entry.eventsMissed, 0)
-  const volunteerPoints = volunteers.reduce((total, entry) => total + entry.points, 0)
-  const volunteerDeducted = volunteers.reduce(
-    (total, entry) => total + entry.pointsDeducted,
-    0,
-  )
-  const donorAmount = donors.reduce((total, entry) => total + entry.amount, 0)
-  const donorPoints = donors.reduce((total, entry) => total + entry.points, 0)
-
-  // Both boards map into the same podium shape so the podium stays criteria-agnostic.
-  const leaders: RankingLeader[] = isVolunteerBoard
-    ? volunteers.slice(0, PODIUM_SIZE).map((entry) => ({
-        id: entry.id,
-        rank: entry.rank,
-        name: `${entry.firstName} ${entry.lastName}`,
-        subtitle: `${formatNumber(entry.eventsJoined)} attended`,
-        points: entry.points,
-      }))
-    : donors.slice(0, PODIUM_SIZE).map((entry) => ({
-        id: entry.id,
-        rank: entry.rank,
-        name: entry.name,
-        subtitle: formatCurrency(entry.amount),
-        points: entry.points,
-      }))
-
-  const leader = leaders.find((entry) => entry.rank === 1)
-
-  const tiles = isVolunteerBoard
-    ? [
-        {
-          label: 'Ranked Volunteers',
-          value: formatNumber(volunteers.length),
-          hint: scopeDepartment
-            ? `${scopeDepartment} + school-wide events · ${settings.pointsPerAttendance} pts per attendance`
-            : `Scored at ${settings.pointsPerAttendance} points per attendance`,
-        },
-        {
-          label: 'Events Attended',
-          value: formatNumber(volunteerAttended),
-          hint: `${formatPoints(volunteerPoints)} on the board · ${formatNumber(volunteerMissed)} missed cost ${formatPoints(volunteerDeducted)}`,
-        },
-        {
-          label: 'Top Volunteer',
-          value: leader?.name ?? '—',
-          hint: leader ? formatPoints(leader.points) : 'No standings yet',
-        },
-      ]
-    : [
-        {
-          label: 'Ranked Donors',
-          value: formatNumber(donors.length),
-          hint: `Scored at 1 point per ₱${settings.donorPesosPerPoint} donated`,
-        },
-        {
-          label: 'Total Donated',
-          value: formatCurrency(donorAmount),
-          hint: `${formatPoints(donorPoints)} awarded in total`,
-        },
-        {
-          label: 'Top Donor',
-          value: leader?.name ?? '—',
-          hint: leader ? formatPoints(leader.points) : 'No standings yet',
-        },
-      ]
+  // The list carries the basis in its own toolbar; the dashboard needs it up here
+  // so the podium can be re-ordered without leaving the tab.
+  const showBasis = board === 'department' && view === 'dashboard'
 
   return (
     <>
@@ -197,18 +133,36 @@ export function RankingsBoard({
           ))}
         </div>
 
-        <select
-          aria-label="Ranking period"
-          value={period}
-          onChange={(event) => onPeriodChange(event.target.value as RankingPeriod)}
-          className={`${selectClass} mb-2`}
-        >
-          {RANKING_PERIODS.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+        <div className="mb-2 flex flex-wrap gap-2">
+          {showBasis && (
+            <select
+              aria-label="Rank departments by"
+              value={list.departmentBasis}
+              onChange={(event) =>
+                list.onDepartmentBasisChange(event.target.value as DepartmentRankingBasis)
+              }
+              className={selectClass}
+            >
+              {DEPARTMENT_RANKING_BASES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  Rank by: {item.label}
+                </option>
+              ))}
+            </select>
+          )}
+          <select
+            aria-label="Ranking period"
+            value={period}
+            onChange={(event) => onPeriodChange(event.target.value as RankingPeriod)}
+            className={selectClass}
+          >
+            {RANKING_PERIODS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-tr-xl rounded-b-xl border border-gray-200 bg-white shadow-sm">
@@ -217,18 +171,11 @@ export function RankingsBoard({
             tiles={tiles}
             leaders={leaders}
             tiers={settings.tiers}
-            trend={isVolunteerBoard ? volunteerTrend : donorTrend}
-            loading={loading}
-          />
-        ) : isVolunteerBoard ? (
-          <VolunteerRankingTable
-            entries={volunteers}
-            tiers={settings.tiers}
-            settings={settings}
+            trend={trend}
             loading={loading}
           />
         ) : (
-          <DonorRankingTable entries={donors} tiers={settings.tiers} loading={loading} />
+          <RankingList {...list} board={board} settings={settings} loading={loading} />
         )}
       </div>
     </>

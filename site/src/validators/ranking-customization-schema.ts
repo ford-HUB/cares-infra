@@ -86,7 +86,7 @@ export const rankingCustomizationSchema = z
       z.string(),
       wholeNumber(GOODS_TYPE_VALUE_MIN, GOODS_TYPE_VALUE_MAX, 'Goods value'),
     ),
-    defaultBoard: z.enum(['volunteer', 'donor']),
+    defaultBoard: z.enum(['volunteer', 'donor', 'department']),
     defaultPeriod: z.enum(['month', 'quarter', 'year', 'all']),
     tiers: z
       .array(tierSchema)

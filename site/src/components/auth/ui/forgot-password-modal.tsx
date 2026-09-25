@@ -58,7 +58,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
               Forgot password
             </h2>
             <p className="mt-1 text-xs text-[var(--cares-muted)]">
-              Enter your registered email. We will send reset instructions if an account exists.
+              Enter your registered email. We will email you a new temporary password if an account exists.
             </p>
           </div>
           <button
@@ -74,16 +74,15 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
         {sentTo ? (
           <div className="flex flex-col gap-3">
             <div className="rounded-lg bg-[var(--cares-tag-volunteer-bg)] p-3 text-xs text-[var(--cares-tag-volunteer-text)]">
-              A reset link was sent to <strong>{sentTo}</strong>. Open the email and click{' '}
-              <strong>Reset Password</strong> to choose a new one. The link expires in 15
-              minutes.
+              A new temporary password was sent to <strong>{sentTo}</strong>. Sign in with it,
+              then change it right away under <strong>Settings &rarr; Change password</strong>.
             </div>
             <button
               type="button"
               onClick={() => setSentTo(null)}
               className="text-xs font-medium text-[var(--cares-primary)] hover:underline"
             >
-              Didn't get it? Send another link
+              Didn't get it? Send another temporary password
             </button>
           </div>
         ) : (
@@ -108,7 +107,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
               disabled={isSubmitting}
               className="w-full rounded-lg bg-[var(--cares-primary)] py-2 text-xs font-semibold text-white hover:bg-[var(--cares-primary-hover)] disabled:opacity-60"
             >
-              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+              {isSubmitting ? 'Sending...' : 'Send Temporary Password'}
             </button>
           </form>
         )}

@@ -5,7 +5,7 @@ import type { BackendError } from '../types/auth'
 interface ForgotPasswordEnvelope {
   ok: boolean
   message?: string
-  data?: { email: string; expires_in_seconds: number; retry_after_seconds: number }
+  data?: { email: string; retry_after_seconds: number }
 }
 
 export interface ForgotPasswordResult {
@@ -13,11 +13,11 @@ export interface ForgotPasswordResult {
   message: string
   /** Seconds before the server will accept another request for this email. */
   retryAfterSeconds?: number
-  /** True when the server refused because a link was sent too recently. */
+  /** True when the server refused because a temporary password was sent too recently. */
   rateLimited?: boolean
 }
 
-/** Asks the server to mail a single-use reset link to a portal account. */
+/** Asks the server to generate a temporary password for a portal account and mail it. */
 export async function requestPortalPasswordReset(
   email: string,
 ): Promise<ForgotPasswordResult> {
@@ -27,12 +27,11 @@ export async function requestPortalPasswordReset(
       { email },
     )
     if (!data.ok) {
-      return { success: false, message: data.message ?? 'Unable to send reset link' }
+      return { success: false, message: data.message ?? 'Unable to send temporary password' }
     }
-    const minutes = data.data ? Math.round(data.data.expires_in_seconds / 60) : 15
     return {
       success: true,
-      message: `A reset link has been sent to ${data.data?.email ?? email}. It expires in ${minutes} minutes.`,
+      message: `A temporary password has been sent to ${data.data?.email ?? email}.`,
       retryAfterSeconds: data.data?.retry_after_seconds,
     }
   } catch (error) {

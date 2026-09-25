@@ -1,12 +1,16 @@
 /**
- * The two boards are scored on separate criteria and never compared against each
- * other. Both boards and the scoring settings come from the server —
- * `/api/v1/rankings/*` — where a coordinator's volunteer call is cut to their own
- * college's events; the donor board is scored from confirmed donations.
+ * The volunteer and donor boards are scored on separate criteria and never compared
+ * against each other; the department board ranks colleges on both. All three boards
+ * and the scoring settings come from the server — `/api/v1/rankings/*` — where a
+ * coordinator's volunteer call is cut to their own college's events; the donor
+ * board is scored from confirmed donations.
  */
 import { RANKING_DEFAULT_BOARD } from '../../constants/ranking'
 import type { ApiResponse } from '../../types/portal-roles'
 import type {
+  DepartmentRankingEntry,
+  DepartmentRankings,
+  DepartmentRanks,
   DonorRankingEntry,
   RankFrameDesignId,
   RankingPeriod,
@@ -88,6 +92,26 @@ interface DonorRankingsResponse {
 interface RankingTrendResponse {
   labels: string[]
   series: { user_id: string; name: string; rank: number; values: number[] }[]
+}
+
+interface DepartmentRankingEntryResponse {
+  key: string
+  name: string
+  code: string | null
+  volunteers: number
+  events_attended: number
+  hours: number
+  donation_amount: number
+  donations: number
+  score: number
+  ranks: DepartmentRanks
+  previous_ranks: DepartmentRanks | null
+}
+
+interface DepartmentRankingsResponse {
+  period: RankingPeriod
+  entries: DepartmentRankingEntryResponse[]
+  unattributed: { hours: number; donation_amount: number }
 }
 
 const UNKNOWN_DEPARTMENT = '—'
@@ -295,6 +319,50 @@ export async function getDonorRankingTrend(
           rank: series.rank,
           values: series.values,
         })),
+      },
+    }
+  } catch (error) {
+    return { success: false, data: null, message: parseApiError(error) }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Department board — colleges on volunteer hours and confirmed donations.
+ * ------------------------------------------------------------------------- */
+
+function toDepartmentEntry(row: DepartmentRankingEntryResponse): DepartmentRankingEntry {
+  return {
+    id: row.key,
+    name: row.name,
+    code: row.code,
+    volunteers: row.volunteers,
+    eventsAttended: row.events_attended,
+    hours: row.hours,
+    donationAmount: row.donation_amount,
+    donations: row.donations,
+    score: row.score,
+    ranks: row.ranks,
+    previousRanks: row.previous_ranks ?? undefined,
+  }
+}
+
+/** Every college's standing — always school-wide, since the board compares them. */
+export async function listDepartmentRankings(
+  period: RankingPeriod,
+): Promise<ApiResponse<DepartmentRankings>> {
+  try {
+    const { data: body } = await apiClient.get<ApiEnvelope<DepartmentRankingsResponse>>(
+      '/api/v1/rankings/departments',
+      { params: { period } },
+    )
+    return {
+      success: true,
+      data: {
+        entries: body.data.entries.map(toDepartmentEntry),
+        unattributed: {
+          hours: body.data.unattributed.hours,
+          donationAmount: body.data.unattributed.donation_amount,
+        },
       },
     }
   } catch (error) {

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { RANKING_DEFAULT_SETTINGS } from '../constants/ranking'
 import {
   getDonorRankingTrend,
+  listDepartmentRankings,
   getRankingSettings,
   getVolunteerRankingTrend,
   listDonorRankings,
@@ -9,6 +10,7 @@ import {
   updateRankingSettings,
 } from '../services/shared/ranking-service'
 import type {
+  DepartmentRankings,
   DonorRankingEntry,
   RankingPeriod,
   RankingSettings,
@@ -17,11 +19,17 @@ import type {
 } from '../types/ranking'
 
 const EMPTY_TREND: RankingTrend = { labels: [], series: [] }
+const EMPTY_DEPARTMENTS: DepartmentRankings = {
+  entries: [],
+  unattributed: { hours: 0, donationAmount: 0 },
+}
 
 interface RankingState {
   settings: RankingSettings
   volunteers: VolunteerRankingEntry[]
   donors: DonorRankingEntry[]
+  /** Colleges on volunteer hours and confirmed donations — school-wide. */
+  departments: DepartmentRankings
   /** Top-three participation race, one trend per board. */
   volunteerTrend: RankingTrend
   donorTrend: RankingTrend
@@ -35,7 +43,7 @@ interface RankingState {
   initialized: boolean
   error: string | null
   /**
-   * Loads the settings and both boards. The server scopes the volunteer board to the
+   * Loads the settings and every board. The server scopes the volunteer board to the
    * caller, so a coordinator's college needs no passing in. Without a period the
    * saved default is used.
    */
@@ -51,6 +59,7 @@ export const useRankingStore = create<RankingState>((set, get) => ({
   settings: RANKING_DEFAULT_SETTINGS,
   volunteers: [],
   donors: [],
+  departments: EMPTY_DEPARTMENTS,
   volunteerTrend: EMPTY_TREND,
   donorTrend: EMPTY_TREND,
   scopeDepartment: null,
@@ -66,18 +75,21 @@ export const useRankingStore = create<RankingState>((set, get) => ({
     const settings = settingsResult.data ?? get().settings
     const resolvedPeriod = period ?? settings.defaultPeriod
 
-    const [volunteerResult, donorResult, volunteerTrend, donorTrend] = await Promise.all([
-      listVolunteerRankings(resolvedPeriod),
-      listDonorRankings(resolvedPeriod),
-      getVolunteerRankingTrend(resolvedPeriod),
-      getDonorRankingTrend(resolvedPeriod),
-    ])
+    const [volunteerResult, donorResult, volunteerTrend, donorTrend, departmentResult] =
+      await Promise.all([
+        listVolunteerRankings(resolvedPeriod),
+        listDonorRankings(resolvedPeriod),
+        getVolunteerRankingTrend(resolvedPeriod),
+        getDonorRankingTrend(resolvedPeriod),
+        listDepartmentRankings(resolvedPeriod),
+      ])
 
     set({
       settings,
       volunteers: volunteerResult.data?.entries ?? [],
       scopeDepartment: volunteerResult.data?.department ?? null,
       donors: donorResult.data ?? [],
+      departments: departmentResult.data ?? EMPTY_DEPARTMENTS,
       volunteerTrend: volunteerTrend.data ?? EMPTY_TREND,
       donorTrend: donorTrend.data ?? EMPTY_TREND,
       period: resolvedPeriod,

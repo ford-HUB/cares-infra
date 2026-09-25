@@ -20,16 +20,23 @@ interface DonorRankingTableProps {
   entries: DonorRankingEntry[]
   tiers: RankingTier[]
   loading: boolean
+  /** Overrides the empty state — e.g. when a search matched nobody. */
+  emptyMessage?: string
 }
 
 /** Donors are scored on amount given — hours never enter this board. */
-export function DonorRankingTable({ entries, tiers, loading }: DonorRankingTableProps) {
+export function DonorRankingTable({
+  entries,
+  tiers,
+  loading,
+  emptyMessage = 'No donation has been recorded for this period yet.',
+}: DonorRankingTableProps) {
   return (
     <RankingTableShell
       columns={DONOR_RANKING_COLUMNS}
       loading={loading}
       isEmpty={entries.length === 0}
-      emptyMessage="No donation has been recorded for this period yet."
+      emptyMessage={emptyMessage}
     >
       {entries.map((entry) => {
         const Icon = entry.donorType === 'organization' ? Building2 : User

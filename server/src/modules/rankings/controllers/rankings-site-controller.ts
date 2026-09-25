@@ -7,6 +7,7 @@ import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import type {
+  DepartmentRankingsResponseDto,
   DonorRankingsResponseDto,
   RankingSettingsDto,
   RankingTrendResponseDto,
@@ -16,6 +17,7 @@ import type {
 } from '../dto/rankings-site-dto';
 import { RankingsSiteService } from '../services/rankings-site-service';
 import {
+  DepartmentRankingsResponseSchema,
   DonorRankingsResponseSchema,
   RankingSettingsResponseSchema,
   RankingTrendResponseSchema,
@@ -83,5 +85,14 @@ export class RankingsSiteController {
     @ZQuery(RankingsQuerySchema) query: RankingsQueryDto,
   ): Promise<RankingTrendResponseDto> {
     return this.rankingsSiteService.getDonorTrend(query.period);
+  }
+
+  @Get('departments')
+  @ResponseMessage('Department rankings')
+  @ZSerialize(DepartmentRankingsResponseSchema)
+  async listDepartments(
+    @ZQuery(RankingsQuerySchema) query: RankingsQueryDto,
+  ): Promise<DepartmentRankingsResponseDto> {
+    return this.rankingsSiteService.listDepartments(query.period);
   }
 }

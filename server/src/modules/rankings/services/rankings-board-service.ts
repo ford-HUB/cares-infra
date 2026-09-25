@@ -22,6 +22,11 @@ import {
   type RankedAttendanceRow,
 } from '../repositories/rankings-repository';
 import {
+  rankDepartments,
+  type DepartmentBoard,
+  type DepartmentRanks,
+} from './department-ranking';
+import {
   scoreAttendance,
   type ScoredAttendance,
   type ScoringRule,
@@ -252,6 +257,43 @@ export class RankingsBoardService {
     if (!previous) return new Map();
     const board = await this.buildDonorBoard(pesosPerPoint, previous);
     return new Map(board.map((entry) => [entry.userId, entry.rank]));
+  }
+
+  /**
+   * Every college ranked on its volunteers' hours and the confirmed pesos given to
+   * its events — always the whole school, since the board compares colleges.
+   */
+  async buildDepartmentBoard(
+    rule: ScoringRule,
+    window: { since?: Date; now: Date },
+  ): Promise<DepartmentBoard> {
+    const [volunteers, donations, departments] = await Promise.all([
+      this.buildBoard(rule, window),
+      this.repository.findConfirmedDonations(window.now, {
+        since: window.since,
+      }),
+      this.repository.findDepartments(),
+    ]);
+    return rankDepartments(
+      departments.map((department) => department.name),
+      volunteers,
+      donations.map((row) => ({
+        department: row.event.department,
+        amount: row.amount,
+      })),
+    );
+  }
+
+  /** The department board over the window just before this one, for the arrows. */
+  async previousDepartmentRanks(
+    rule: ScoringRule,
+    period: RankingPeriod,
+    now: Date,
+  ): Promise<Map<string, DepartmentRanks> | null> {
+    const previous = previousWindow(period, now);
+    if (!previous) return null;
+    const board = await this.buildDepartmentBoard(rule, previous);
+    return new Map(board.entries.map((entry) => [entry.key, entry.ranks]));
   }
 
   /** The tier a standing falls into: first rung whose cut-off it clears. */

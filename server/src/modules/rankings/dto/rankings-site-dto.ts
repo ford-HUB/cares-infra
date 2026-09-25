@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import {
+  DepartmentRankingEntrySchema,
+  DepartmentRankingsResponseSchema,
   DonorRankingEntrySchema,
   DonorRankingsResponseSchema,
   GoodsTypeValuesSchema,
@@ -33,4 +35,10 @@ export type GoodsTypeValuesDto = z.infer<typeof GoodsTypeValuesSchema>;
 export type DonorRankingEntryDto = z.infer<typeof DonorRankingEntrySchema>;
 export type DonorRankingsResponseDto = z.infer<
   typeof DonorRankingsResponseSchema
+>;
+export type DepartmentRankingEntryDto = z.infer<
+  typeof DepartmentRankingEntrySchema
+>;
+export type DepartmentRankingsResponseDto = z.infer<
+  typeof DepartmentRankingsResponseSchema
 >;

@@ -3,6 +3,7 @@ import { resolveDepartmentScope } from 'src/shared/constants/departments';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import type {
+  DepartmentRankingsResponseDto,
   DonorRankingsResponseDto,
   RankingPeriod,
   RankingSettingsDto,
@@ -232,6 +233,49 @@ export class RankingsSiteService {
             0,
         ),
       })),
+    };
+  }
+
+  /**
+   * The college standings — volunteer hours by the volunteer's college, confirmed
+   * pesos by the college whose event received them. School-wide for every role:
+   * the point of the board is to compare colleges against each other.
+   */
+  async listDepartments(
+    period?: RankingPeriod,
+  ): Promise<DepartmentRankingsResponseDto> {
+    const now = new Date();
+    const settings = await this.board.getSettings();
+    const resolvedPeriod = period ?? settings.default_period;
+    const rule = this.board.ruleOf(settings);
+    const [board, previous] = await Promise.all([
+      this.board.buildDepartmentBoard(rule, {
+        since: periodStart(resolvedPeriod, now),
+        now,
+      }),
+      this.board.previousDepartmentRanks(rule, resolvedPeriod, now),
+    ]);
+
+    return {
+      period: resolvedPeriod,
+      entries: board.entries.map((entry) => ({
+        key: entry.key,
+        name: entry.name,
+        code: entry.code,
+        volunteers: entry.volunteers,
+        events_attended: entry.eventsAttended,
+        hours: entry.hours,
+        donation_amount: entry.donationAmount,
+        donations: entry.donations,
+        score: entry.score,
+        ranks: entry.ranks,
+        // A college new since last window has no standing to move from.
+        previous_ranks: previous?.get(entry.key) ?? null,
+      })),
+      unattributed: {
+        hours: board.unattributed.hours,
+        donation_amount: board.unattributed.donationAmount,
+      },
     };
   }
 

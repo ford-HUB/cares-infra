@@ -4,7 +4,6 @@ import {
   RANKING_MEDAL_STYLES,
   RANKING_PODIUM_HEIGHTS,
   RANKING_PODIUM_ORDER,
-  formatPoints,
   tierForRank,
 } from '../../../constants/ranking'
 import type { RankingLeader, RankingTier } from '../../../types/ranking'
@@ -57,7 +56,16 @@ export function RankingPodium({ leaders, tiers, loading }: RankingPodiumProps) {
                     <>
                       <span className="mt-3">
                         <RankTierFrame rank={rank} tiers={tiers}>
-                          <UserAvatar {...avatarNames(leader.name)} size="lg" />
+                          {leader.badge ? (
+                            <span
+                              aria-hidden
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--cares-primary)] text-[10px] font-semibold text-white"
+                            >
+                              {leader.badge}
+                            </span>
+                          ) : (
+                            <UserAvatar {...avatarNames(leader.name)} size="lg" />
+                          )}
                         </RankTierFrame>
                       </span>
                       {/* The label is tinted with the tier's own colour, so a
@@ -81,7 +89,7 @@ export function RankingPodium({ leaders, tiers, loading }: RankingPodiumProps) {
                 <span className="text-lg font-semibold">{rank}</span>
                 {!loading && leader && (
                   <span className="text-[11px] font-medium">
-                    {formatPoints(leader.points)}
+                    {leader.figure}
                   </span>
                 )}
               </div>

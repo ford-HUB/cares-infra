@@ -41,6 +41,8 @@ const CONFIRMED_DONATION_SELECT = {
   kind: true,
   amount: true,
   confirmed_at: true,
+  /** The college the gift is credited to on the department board. */
+  event: { select: { department: true } },
   user: {
     select: {
       user_id: true,
@@ -160,6 +162,14 @@ export class RankingsRepository {
         ...(filter.userId ? { user_id: filter.userId } : {}),
       },
       select: CONFIRMED_DONATION_SELECT,
+    });
+  }
+
+  /** The school's college list — every one is on the department board, even at zero. */
+  findDepartments() {
+    return this.prisma.department.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
     });
   }
 

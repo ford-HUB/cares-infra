@@ -72,7 +72,7 @@ export class AuthSiteController {
   @Post('admin/forgot-password')
   @Public()
   @HttpCode(200)
-  @ResponseMessage('Reset link sent')
+  @ResponseMessage('Temporary password sent')
   @ZSerialize(PortalForgotPasswordResponseSchema)
   async forgotPassword(
     @ZBody(PortalForgotPasswordSchema) body: PortalForgotPasswordDto,

@@ -1,5 +1,8 @@
-/** Which leaderboard is being shown — the two are scored on different criteria. */
-export type RankingBoard = 'volunteer' | 'donor'
+/**
+ * Which leaderboard is being shown. Volunteers and donors are scored on different
+ * criteria; the department board compares colleges on both at once.
+ */
+export type RankingBoard = 'volunteer' | 'donor' | 'department'
 
 /** The two tabs: headline figures, or the full standings table. */
 export type RankingView = 'dashboard' | 'list'
@@ -50,16 +53,19 @@ export interface DonorRankingEntry extends RankedEntry {
 }
 
 /**
- * A board-agnostic row for the dashboard's podium — either board maps into this so
- * the podium doesn't have to know which criteria produced the points.
+ * A board-agnostic row for the dashboard's podium — every board maps into this so
+ * the podium doesn't have to know which criteria produced the standing.
  */
 export interface RankingLeader {
   id: string
   rank: number
   name: string
-  /** The criteria figure behind the points: hours given, or amount donated. */
+  /** The criteria figure behind the standing: hours given, or amount donated. */
   subtitle: string
-  points: number
+  /** What the standing is measured in, formatted — `120 pts`, or a college's score. */
+  figure: string
+  /** Short text drawn in place of initials — a college's code. */
+  badge?: string
 }
 
 /**
@@ -155,4 +161,48 @@ export interface RankingTrendSeries {
 export interface RankingTrend {
   labels: string[]
   series: RankingTrendSeries[]
+}
+
+/** What the department board is ordered on — the filter on that board. */
+export type DepartmentRankingBasis = 'overall' | 'hours' | 'donations'
+
+/** Only donors who gave this way — the filter on the donor board. */
+export type DonorKindFilter = 'all' | 'money' | 'goods'
+
+/** A college's standing on each of the department board's three orders. */
+export type DepartmentRanks = Record<DepartmentRankingBasis, number>
+
+/**
+ * One college's volunteer hours and confirmed giving. Hours count toward the
+ * volunteer's own college; a donation counts toward the college whose event it
+ * went to.
+ */
+export interface DepartmentRankingEntry {
+  /** Stable key — the college code when known, else its lowercased name. */
+  id: string
+  name: string
+  /** Short code (`CCS`, …) when the name maps to a known college. */
+  code: string | null
+  volunteers: number
+  eventsAttended: number
+  hours: number
+  donationAmount: number
+  donations: number
+  /** 0–100: half the college's share of all hours, half its share of all pesos. */
+  score: number
+  ranks: DepartmentRanks
+  /** Undefined for all time, or a college new since the previous window. */
+  previousRanks?: DepartmentRanks
+}
+
+export interface DepartmentRankings {
+  entries: DepartmentRankingEntry[]
+  /** Hours and pesos no college could be credited with (e.g. school-wide events). */
+  unattributed: { hours: number; donationAmount: number }
+}
+
+/** A college row as shown: its standing on the order the filter picked. */
+export interface DisplayedDepartment extends DepartmentRankingEntry {
+  rank: number
+  previousRank?: number
 }

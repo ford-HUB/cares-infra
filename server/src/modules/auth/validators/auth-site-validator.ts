@@ -95,8 +95,6 @@ export const PortalForgotPasswordSchema = z
 
 export const PortalForgotPasswordResponseSchema = z.object({
   email: z.string(),
-  /** How long the emailed link stays valid. */
-  expires_in_seconds: z.number(),
-  /** How long before another link may be requested for this email. */
+  /** How long before another temporary password may be requested for this email. */
   retry_after_seconds: z.number(),
 });
