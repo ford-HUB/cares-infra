@@ -4,10 +4,13 @@ import type { EvaluationForm } from '../../types/evaluation'
 
 interface QuestionnaireToolbarProps {
   form: EvaluationForm | null
+  /** Every questionnaire, for the switcher — the builder edits one at a time. */
+  forms: EvaluationForm[]
   initialized: boolean
   dirty: boolean
   saving: boolean
   previewing: boolean
+  onSelectForm: (id: string) => void
   onTogglePreview: () => void
   onSave: () => void
   /** Saves and makes the questionnaire the one volunteers answer after an event. */
@@ -25,10 +28,12 @@ function statusChip(form: EvaluationForm, dirty: boolean) {
 /** Page header for the builder — the counts, the publish state, and the save actions. */
 export function QuestionnaireToolbar({
   form,
+  forms,
   initialized,
   dirty,
   saving,
   previewing,
+  onSelectForm,
   onTogglePreview,
   onSave,
   onPublish,
@@ -39,10 +44,24 @@ export function QuestionnaireToolbar({
 
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-baseline gap-3">
+      <div className="flex flex-wrap items-baseline gap-3">
         <h1 className="text-xl font-semibold text-gray-900">Questionnaire</h1>
         {initialized && form ? (
           <>
+            {/* Which of the library's questionnaires is being edited. */}
+            <select
+              aria-label="Questionnaire being edited"
+              value={form.id}
+              onChange={(input) => onSelectForm(input.target.value)}
+              className="h-8 max-w-64 rounded-lg border border-gray-200 bg-white px-2.5 text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+            >
+              {forms.map((one) => (
+                <option key={one.id} value={one.id}>
+                  {one.title || 'Untitled questionnaire'}
+                  {one.isDefault ? ' · default' : ''}
+                </option>
+              ))}
+            </select>
             <p className="text-[13px] text-gray-500 tabular-nums">
               {form.questions.length} questions · {required} required
             </p>

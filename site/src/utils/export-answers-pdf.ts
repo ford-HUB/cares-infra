@@ -16,8 +16,13 @@ import type {
 import { PdfReport } from './pdf/pdf-report'
 
 interface AnswersPdfOptions {
-  /** The form the responses answer; its title and description head the report. */
+  /** The form the responses answer, when they all answer one; it heads the report. */
   form: EvaluationForm | null
+  /**
+   * The questions one response was actually asked. Events can ask different
+   * questionnaires, so a response is only ever read against its own.
+   */
+  questionsFor: (response: EvaluationResponse) => EvaluationQuestion[]
   /** The filters in force, in words, so the reader knows what subset they hold. */
   filters: { label: string; value: string }[]
   /** Every response before filtering — for the "N of M" line. */
@@ -143,7 +148,7 @@ function summariseQuestion(
 export function exportAnswersPdf(
   responses: EvaluationResponse[],
   questions: EvaluationQuestion[],
-  { form, filters, total }: AnswersPdfOptions,
+  { form, questionsFor, filters, total }: AnswersPdfOptions,
 ) {
   const report = new PdfReport()
   const activeFilters = filters.filter((f) => f.value)
@@ -197,7 +202,18 @@ export function exportAnswersPdf(
   if (!questions.length) {
     report.paragraph('The evaluation form has no questions.', { muted: true, italic: true })
   }
-  questions.forEach((question, index) => summariseQuestion(report, question, index, responses))
+  questions.forEach((question, index) =>
+    summariseQuestion(
+      report,
+      question,
+      index,
+      // A questionnaire that never asked this question would otherwise read as
+      // a room full of people declining to answer it.
+      responses.filter((response) =>
+        questionsFor(response).some((one) => one.id === question.id),
+      ),
+    ),
+  )
 
   // ── Who answered ───────────────────────────────────────────────────────────
   report.heading('Respondents', `${responses.length} listed`)
@@ -224,16 +240,18 @@ export function exportAnswersPdf(
   if (responses.length && questions.length) {
     report.heading('Individual responses')
     responses.forEach((response, index) => {
-      const answered = questions.filter((q) => !isEmpty(response.answers[q.id])).length
+      const asked = questionsFor(response)
+      const answered = asked.filter((q) => !isEmpty(response.answers[q.id])).length
       // Keep the respondent's header on the same page as the start of their answers.
       report.ensureSpace(36)
       report.subheading(
         `${index + 1}. ${participantName(response)} — ${response.participant.email}`,
-        `${ANSWER_STATUS_STYLES[response.status].label} · ${answered}/${questions.length} answered`,
+        `${ANSWER_STATUS_STYLES[response.status].label} · ${answered}/${asked.length} answered`,
       )
       report.paragraph(
         [
           `Event: ${response.event}`,
+          `Questionnaire: ${response.formTitle}`,
           `Department: ${response.participant.department ?? '—'}`,
           `Submitted: ${dayjs(response.submittedAt).format(PDF_GENERATED_AT_FORMAT)}`,
           `Response ID: ${response.id}`,
@@ -242,7 +260,7 @@ export function exportAnswersPdf(
       )
       report.table(
         ['#', 'Question', 'Answer'],
-        questions.map((question, qIndex) => [
+        asked.map((question, qIndex) => [
           String(qIndex + 1),
           question.title || 'Untitled question',
           formatAnswer(question, response.answers[question.id]),

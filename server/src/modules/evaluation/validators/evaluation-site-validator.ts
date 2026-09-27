@@ -84,8 +84,72 @@ export const EvaluationFormResponseSchema = z.object({
   header_typography: EvaluationTypographySchema,
   questions: z.array(EvaluationQuestionSchema),
   status: z.enum(EvaluationFormStatus),
+  /** True on the questionnaire served for events with no assignment of their own. */
+  is_default: z.boolean(),
+  /** Events this questionnaire is assigned to; 0 means it only runs as the default. */
+  assigned_events: z.number().int(),
+  /** Responses recorded against it, across every event it has served. */
+  response_count: z.number().int(),
+  created_at: z.string(),
   updated_at: z.string(),
 });
+
+export const EvaluationFormListSchema = z.array(EvaluationFormResponseSchema);
+
+/** A new questionnaire starts empty; the builder fills it and saves through PUT. */
+export const CreateEvaluationFormSchema = z
+  .object({
+    title: z.string().trim().min(1, 'Title is required').max(200),
+    description: z.string().max(2000).default(''),
+  })
+  .strict();
+
+export const EvaluationFormIdParamSchema = z
+  .string()
+  .min(1, 'Questionnaire id is required')
+  .max(64);
+
+/** One event-to-questionnaire assignment as the portal's Forms page reads it. */
+export const EvaluationAssignmentSchema = z.object({
+  evaluation_assignment_id: z.string(),
+  form_id: z.string(),
+  form_title: z.string(),
+  form_status: z.enum(EvaluationFormStatus),
+  event_id: z.number(),
+  event_title: z.string(),
+  event_location: z.string(),
+  event_status: z.string(),
+  event_started: z.string(),
+  event_ended: z.string(),
+  participants: z.number().int(),
+  assigned_by: z.string().nullable(),
+  assigned_at: z.string(),
+});
+
+export const EvaluationAssignmentListSchema = z.array(
+  EvaluationAssignmentSchema,
+);
+
+export const AssignEvaluationFormSchema = z
+  .object({
+    form_id: z.string().min(1, 'Questionnaire is required').max(64),
+    event_id: z.number().int().positive('Event is required'),
+  })
+  .strict();
+
+/** An event the picker offers, plus the questionnaire it already carries. */
+export const AssignableEventSchema = z.object({
+  event_id: z.number(),
+  title: z.string(),
+  location: z.string(),
+  status: z.string(),
+  participants: z.number().int(),
+  event_started: z.string(),
+  event_ended: z.string(),
+  assigned_form_id: z.string().nullable(),
+});
+
+export const AssignableEventListSchema = z.array(AssignableEventSchema);
 
 export const EvaluationResponsesQuerySchema = z
   .object({
@@ -117,6 +181,9 @@ export const EvaluationAnswersSchema = z.record(
 /** One row of the portal's answers table, flat so it can be filtered client-side. */
 export const EvaluationResponseRowSchema = z.object({
   evaluation_response_id: z.string(),
+  /** Which questionnaire collected it — events can ask different ones. */
+  form_id: z.string(),
+  form_title: z.string(),
   event_id: z.number(),
   event_title: z.string(),
   user_id: z.string(),

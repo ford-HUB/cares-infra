@@ -16,6 +16,7 @@ import { DeployedCertificatesPage } from '../pages/admin/deployed-certificates'
 import { EventAttendeesPage } from '../pages/admin/event-attendees'
 import { EventCalendarPage } from '../pages/admin/event-calendar'
 import { EvaluationAnswersPage } from '../pages/admin/evaluation-answers'
+import { EvaluationFormsPage } from '../pages/admin/evaluation-forms'
 import { EvaluationQuestionnairePage } from '../pages/admin/evaluation-questionnaire'
 import { InternalDonationTrackingPage } from '../pages/admin/internal-donation-tracking'
 import { EventMapPage } from '../pages/shared/event-map-page'
@@ -217,6 +218,7 @@ export const adminRoutes: RouteObject[] = [
             element: <ProtectedPortal roles={['director']} />,
             children: [
               { path: 'evaluation-questionnaire', element: <EvaluationQuestionnairePage /> },
+              { path: 'evaluation-forms', element: <EvaluationFormsPage /> },
               { path: 'evaluation-answers', element: <EvaluationAnswersPage /> },
             ],
           },

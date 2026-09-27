@@ -17,9 +17,9 @@ import type { EvaluationResponse } from '../../types/evaluation'
 import { exportAnswersPdf } from '../../utils/export-answers-pdf'
 
 export function EvaluationAnswersPage() {
-  const form = useEvaluationStore((s) => s.form)
-  const formInitialized = useEvaluationStore((s) => s.formInitialized)
-  const fetchForm = useEvaluationStore((s) => s.fetchForm)
+  const forms = useEvaluationStore((s) => s.forms)
+  const formsInitialized = useEvaluationStore((s) => s.formsInitialized)
+  const fetchForms = useEvaluationStore((s) => s.fetchForms)
   const responses = useEvaluationStore((s) => s.responses)
   const loading = useEvaluationStore((s) => s.responsesLoading)
   const initialized = useEvaluationStore((s) => s.responsesInitialized)
@@ -33,13 +33,36 @@ export function EvaluationAnswersPage() {
   const [page, setPage] = useState(1)
   const [viewing, setViewing] = useState<EvaluationResponse | null>(null)
 
-  // The answers need the questions for their labels — load the form alongside.
+  // The answers need the questions for their labels. Events can ask different
+  // questionnaires, so every one is loaded and each response is read against its own.
   useEffect(() => {
-    if (!formInitialized) void fetchForm()
+    if (!formsInitialized) void fetchForms()
     void fetchResponses()
-  }, [formInitialized, fetchForm, fetchResponses])
+  }, [formsInitialized, fetchForms, fetchResponses])
 
-  const questions = useMemo(() => form?.questions ?? [], [form])
+  const questionsByForm = useMemo(
+    () => new Map(forms.map((one) => [one.id, one.questions])),
+    [forms],
+  )
+
+  const questionsFor = useMemo(
+    () => (response: EvaluationResponse) => questionsByForm.get(response.formId) ?? [],
+    [questionsByForm],
+  )
+
+  /**
+   * Every question any of these answers was asked, in form order and de-duplicated —
+   * the question summary spans whatever questionnaires the filtered responses used.
+   */
+  const questions = useMemo(() => {
+    const seen = new Map<string, (typeof forms)[number]['questions'][number]>()
+    for (const one of forms) {
+      for (const question of one.questions) {
+        if (!seen.has(question.id)) seen.set(question.id, question)
+      }
+    }
+    return [...seen.values()]
+  }, [forms])
   const ratingMax =
     questions.find((question) => question.type === 'star_rating')?.scaleMax ?? DEFAULT_SCALE_MAX
 
@@ -78,6 +101,17 @@ export function EvaluationAnswersPage() {
     [responses],
   )
 
+  /**
+   * The questionnaire behind the filtered set, when they all came from one — it
+   * titles the export. A mixed set has no single form, so the export falls back to
+   * its generic heading.
+   */
+  const formInScope = useMemo(() => {
+    const ids = new Set(filtered.map((response) => response.formId))
+    if (ids.size !== 1) return null
+    return forms.find((one) => one.id === [...ids][0]) ?? null
+  }, [filtered, forms])
+
   // The average follows the event filter so a director reading one event sees its own score.
   const rated = filtered.filter((response) => response.rating > 0)
   const averageRating = rated.length
@@ -112,7 +146,8 @@ export function EvaluationAnswersPage() {
         onStatusChange={resetToFirstPage(setStatus)}
         onExport={() =>
           exportAnswersPdf(filtered, questions, {
-            form,
+            form: formInScope,
+            questionsFor,
             total: responses.length,
             filters: [
               { label: 'Search', value: search.trim() },
@@ -155,7 +190,7 @@ export function EvaluationAnswersPage() {
 
       <AnswerDetailsModal
         response={viewing}
-        questions={questions}
+        questions={viewing ? questionsFor(viewing) : []}
         onClose={() => setViewing(null)}
       />
     </ContentShell>

@@ -38,9 +38,11 @@ export class EvaluationMobileService {
   ) {}
 
   /**
-   * The feedback screen's one load: the published questionnaire for this event
-   * plus whether the caller can still answer it. `can_submit` folds the same
-   * checks `submit` enforces, so the app can show the right state up front.
+   * The feedback screen's one load: the questionnaire this event asks plus whether
+   * the caller can still answer it. The form is the one the director assigned to
+   * the event, or the default questionnaire when the event has none of its own.
+   * `can_submit` folds the same checks `submit` enforces, so the app can show the
+   * right state up front.
    */
   async getForEvent(
     userId: string,
@@ -53,7 +55,7 @@ export class EvaluationMobileService {
     if (!event) throw new NotFoundException('Event not found');
 
     const [form, existing] = await Promise.all([
-      this.evaluationRepository.findPublishedForm(),
+      this.evaluationRepository.findFormForEvent(eventId),
       this.evaluationRepository.findResponseForUser(eventId, userId),
     ]);
 
@@ -98,7 +100,7 @@ export class EvaluationMobileService {
       );
     }
 
-    const form = await this.evaluationRepository.findPublishedForm();
+    const form = await this.evaluationRepository.findFormForEvent(eventId);
     if (!form) {
       throw new BadRequestException(
         'No questionnaire has been published for this event yet',
@@ -162,9 +164,7 @@ export class EvaluationMobileService {
   private attendancePending(event: SubmissionEvent): boolean {
     return (
       event.attendances.length > 0 &&
-      event.attendances.every(
-        (row) => row.status === AttendanceStatus.PENDING,
-      )
+      event.attendances.every((row) => row.status === AttendanceStatus.PENDING)
     );
   }
 

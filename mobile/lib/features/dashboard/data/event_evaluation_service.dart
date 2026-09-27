@@ -19,8 +19,9 @@ class EvaluationSubmissionSummary {
   final DateTime submittedAt;
 }
 
-/// `/evaluation/*` — the post-event questionnaire the director publishes in
-/// the portal and the answers a volunteer sends back for a completed event.
+/// `/evaluation/*` — the post-event questionnaire the director assigned to this
+/// event in the portal (or the default one) and the answers a volunteer sends
+/// back for a completed event.
 class EventEvaluationService {
   EventEvaluationService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();

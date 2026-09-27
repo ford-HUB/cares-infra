@@ -78,7 +78,12 @@ export const HouseholdSchema = z
 export const ClusterNeedsSchema = z
   .object({
     households: z.array(HouseholdSchema).max(CLUSTER_MAX_HOUSEHOLDS),
-    k: z.number().int().min(CLUSTER_K_MIN).max(CLUSTER_K_MAX).default(CLUSTER_K_DEFAULT),
+    k: z
+      .number()
+      .int()
+      .min(CLUSTER_K_MIN)
+      .max(CLUSTER_K_MAX)
+      .default(CLUSTER_K_DEFAULT),
     /** Random start for k-means++; the same seed over the same rows is reproducible. */
     seed: z.number().int().min(0).default(0),
   })

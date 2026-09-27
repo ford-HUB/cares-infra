@@ -66,13 +66,16 @@ class EvaluationQuestion {
   final String scaleMaxLabel;
 }
 
-/// The published questionnaire volunteers answer after an event.
+/// The questionnaire volunteers answer after one event. The director assigns a
+/// questionnaire per event in the portal's Evaluation → Forms, so two events can
+/// ask different questions; an event with none assigned gets the default one.
 class EvaluationForm {
   const EvaluationForm({
     required this.id,
     required this.title,
     required this.description,
     required this.questions,
+    required this.isDefault,
   });
 
   factory EvaluationForm.fromJson(Map<String, dynamic> json) {
@@ -83,6 +86,7 @@ class EvaluationForm {
       questions: (json['questions'] as List<dynamic>? ?? const [])
           .map((q) => EvaluationQuestion.fromJson(q as Map<String, dynamic>))
           .toList(),
+      isDefault: json['is_default'] as bool? ?? false,
     );
   }
 
@@ -90,6 +94,10 @@ class EvaluationForm {
   final String title;
   final String description;
   final List<EvaluationQuestion> questions;
+
+  /// True when this is the fallback questionnaire rather than one chosen for
+  /// this event — the screen labels the two differently.
+  final bool isDefault;
 }
 
 /// What the volunteer already sent for an event: answers keyed by question id.
@@ -115,8 +123,9 @@ class EvaluationSubmission {
   final Map<String, dynamic> answers;
 }
 
-/// `GET /evaluation/events/:id` — the questionnaire for one event plus
-/// whether this volunteer may still answer it.
+/// `GET /evaluation/events/:id` — the questionnaire this event asks (the one
+/// assigned to it, or the default) plus whether this volunteer may still
+/// answer it.
 class EventEvaluation {
   const EventEvaluation({
     required this.eventId,

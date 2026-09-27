@@ -60,6 +60,7 @@ model User {
   authored_announcements        Announcement[]                 @relation("AnnouncementAuthor")
   notifications                 Notification[]                 @relation("UserNotifications")
   evaluation_responses          EvaluationResponse[]
+  evaluation_assignments        EvaluationAssignment[]        @relation("EvaluationAssignmentAssigner")
   user_requests                 UserRequest[]                  @relation("UserRequestRequester")
   decided_user_requests         UserRequest[]                  @relation("UserRequestDecider")
   donation_payments             DonationPayment[]              @relation("DonationPaymentDonor")
@@ -618,6 +619,7 @@ model Event {
   attendances            EventAttendance[]
   location_pings         EventLocationPing[]
   evaluation_responses   EvaluationResponse[]
+  evaluation_assignment  EvaluationAssignment?
   user_requests          UserRequest[]
   donation_payments      DonationPayment[]
   donations              Donation[]
@@ -1290,15 +1292,38 @@ enum EvaluationFormStatus {
 /// questions are stored as the JSON the builder edits (see the evaluation validators
 /// for the shape) so adding a question type never needs a migration.
 model EvaluationForm {
-  evaluation_form_id String               @id @default(uuid())
+  evaluation_form_id String                 @id @default(uuid())
   title              String
-  description        String               @default("")
+  description        String                 @default("")
   header_typography  Json
   questions          Json
-  status             EvaluationFormStatus @default(DRAFT)
+  status             EvaluationFormStatus   @default(DRAFT)
+  /// The one questionnaire served for an event that has none assigned. At most one
+  /// row holds it; assigning it elsewhere moves it rather than adding a second.
+  is_default         Boolean                @default(false)
   responses          EvaluationResponse[]
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  assignments        EvaluationAssignment[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+}
+
+/// Which questionnaire one event asks its participants. An event has at most one,
+/// a questionnaire can serve many, and an event without a row falls back to the
+/// questionnaire flagged `is_default` — so feedback never goes dark on an event
+/// the director has not got to yet.
+model EvaluationAssignment {
+  evaluation_assignment_id String         @id @default(uuid())
+  form_id                  String
+  form                     EvaluationForm @relation(fields: [form_id], references: [evaluation_form_id], onDelete: Cascade)
+  event_id                 Int            @unique
+  event                    Event          @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  /// The director who assigned it; kept null when the account is later removed.
+  assigned_by_id           String?
+  assigned_by              User?          @relation("EvaluationAssignmentAssigner", fields: [assigned_by_id], references: [user_id], onDelete: SetNull)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  @@index([form_id])
 }
 
 /// How the volunteer leaderboard is scored and how its tier ladder is cut. One row:

@@ -18,6 +18,7 @@ import {
   ADMIN_CHAT_PATH,
   ADMIN_DEPARTMENT_FILES_PATH,
   ADMIN_EVALUATION_ANSWERS_PATH,
+  ADMIN_EVALUATION_FORMS_PATH,
   ADMIN_EVALUATION_QUESTIONNAIRE_PATH,
   ADMIN_EVENT_MAP_PATH,
   ADMIN_MAIL_INBOX_PATH,
@@ -184,6 +185,8 @@ export const adminNav: PortalNavConfig = {
       roles: ['director'],
       children: [
         { label: 'Questionnaire', to: ADMIN_EVALUATION_QUESTIONNAIRE_PATH },
+        // Forms is the library: which questionnaire each event asks.
+        { label: 'Forms', to: ADMIN_EVALUATION_FORMS_PATH },
         { label: 'Answers', to: ADMIN_EVALUATION_ANSWERS_PATH },
       ],
     },

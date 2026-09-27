@@ -8,9 +8,11 @@ import '../data/event_feedback_store.dart';
 import '../data/models/event_evaluation_models.dart';
 import '../domain/cares_event.dart';
 
-/// Post-event feedback form. The questions are whatever the director
-/// published in the portal's Evaluation questionnaire; submitting here
-/// records the answers server-side and unlocks the event certificate.
+/// Post-event feedback form. The questions are the questionnaire the director
+/// assigned to this event in the portal's Evaluation → Forms — so two events
+/// can ask different things — falling back to the default questionnaire when
+/// the event has none of its own. Submitting here records the answers
+/// server-side and unlocks the event certificate.
 class EventFeedbackScreen extends StatefulWidget {
   const EventFeedbackScreen({super.key, required this.event});
 
@@ -198,8 +200,8 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
         icon: Icons.hourglass_top_rounded,
         title: 'Questionnaire not ready yet',
         message:
-            'The CARES office has not published the feedback form for this '
-            'event. Check back a little later.',
+            'The CARES office has not set the questions for this event yet. '
+            'Check back a little later.',
         actionLabel: 'Refresh',
         onAction: _load,
       );
@@ -253,6 +255,10 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
                   color: AppColors.primary,
                 ),
               ),
+              const SizedBox(height: 8),
+              // Two events can ask different questions, so the form says whose
+              // questions these are rather than leaving it to be guessed.
+              _FormOriginChip(isDefault: form.isDefault),
               const SizedBox(height: 18),
               for (var i = 0; i < form.questions.length; i++) ...[
                 if (i > 0) const SizedBox(height: 14),
@@ -883,4 +889,51 @@ Future<void> showFeedbackThankYouDialog(
       ),
     ),
   );
+}
+
+/// Whether these questions were chosen for this event or are the general set.
+class _FormOriginChip extends StatelessWidget {
+  const _FormOriginChip({required this.isDefault});
+
+  final bool isDefault;
+
+  @override
+  Widget build(BuildContext context) {
+    // The list stretches its children, so the chip is pinned to its own width.
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isDefault
+              ? AppColors.textSecondary.withValues(alpha: 0.08)
+              : AppColors.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isDefault
+                  ? Icons.all_inclusive_rounded
+                  : Icons.event_available_rounded,
+              size: 13,
+              color: isDefault ? AppColors.textSecondary : AppColors.primary,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              isDefault
+                  ? 'General feedback questions'
+                  : 'Questions set for this event',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: isDefault ? AppColors.textSecondary : AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
