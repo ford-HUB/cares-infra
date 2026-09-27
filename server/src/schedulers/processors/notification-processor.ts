@@ -1,7 +1,7 @@
 import { Processor } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import type { Job } from 'bullmq';
-import { NotificationGateway } from '../../gateways/notification.gateway';
+import { NotificationGateway } from '../../gateways/notification-gateway';
 import {
   NotificationCategory,
   NotificationTone,

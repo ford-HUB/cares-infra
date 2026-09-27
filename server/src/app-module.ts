@@ -47,7 +47,7 @@ import { DonationsModule } from './modules/donations/modules/donations-module';
 import { SystemServicesModule } from './modules/system-services/modules/system-services-module';
 import { SystemPerformanceModule } from './modules/system-performance/modules/system-performance-module';
 import { SystemDiagnosticsModule } from './modules/system-diagnostics/modules/system-diagnostics-module';
-import { GatewaysModule } from './gateways/gateways.module';
+import { GatewaysModule } from './gateways/gateways-module';
 import { SchedulersModule } from './schedulers/schedulers-module';
 import { JwtModule } from './infastructures/jwt/jwt-module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth-guard';

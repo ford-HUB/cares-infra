@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationGateway } from '../../../gateways/notification.gateway';
+import { NotificationGateway } from '../../../gateways/notification-gateway';
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
 import type {
   ListNotificationsQueryDto,

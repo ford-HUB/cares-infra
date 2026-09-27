@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { ChatGateway } from './chat.gateway';
-import { NotificationGateway } from './notification.gateway';
+import { ChatGateway } from './chat-gateway';
+import { NotificationGateway } from './notification-gateway';
 
 /**
  * Every socket.io namespace the server exposes. Global so a feature service or a
