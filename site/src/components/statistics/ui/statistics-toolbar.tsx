@@ -1,4 +1,4 @@
-import { Download, FileText, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -37,16 +37,12 @@ interface StatisticsToolbarProps {
   onRangeChange: (range: StatisticsRange) => void
   onCategoryChange: (category: string) => void
   onRefresh: () => void
-  /** Downloads the month-by-month table as CSV. */
-  onExportCsv: () => void
-  /** Generates the full printable report as a PDF. */
-  onExportPdf: () => void
 }
 
 /**
  * Title plus the two filters every chart below obeys: how far back, and which event
- * category. One row, above the charts — a filter that lives beside one chart reads as
- * if it only applied to that chart.
+ * category. The heading stacks above its own row of controls, all on one left margin,
+ * so the filters read as applying to the whole screen rather than to one chart.
  */
 export function StatisticsToolbar({
   title,
@@ -60,24 +56,24 @@ export function StatisticsToolbar({
   onRangeChange,
   onCategoryChange,
   onRefresh,
-  onExportCsv,
-  onExportPdf,
 }: StatisticsToolbarProps) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-4">
       <div className="min-w-0">
-        <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-xl leading-7 font-bold tracking-tight text-gray-900">
+          {title}
+        </h1>
+        <p className="mt-1 text-sm leading-5 text-gray-600">
           {scopeLabel} — activity, attendance and reporting over the selected period.
         </p>
         {generatedAt && (
-          <p className="mt-0.5 text-[11px] text-gray-400">
+          <p className="mt-1 text-xs leading-4 text-gray-400">
             Updated {formatRelativeTime(generatedAt)}
           </p>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <ToggleGroup
           type="single"
           value={range}
@@ -126,14 +122,6 @@ export function StatisticsToolbar({
           </SelectContent>
         </Select>
 
-        <Button type="button" variant="outline" size="sm" onClick={onExportCsv}>
-          <Download />
-          Export CSV
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={onExportPdf}>
-          <FileText />
-          Export PDF
-        </Button>
         <Button
           type="button"
           variant="outline"

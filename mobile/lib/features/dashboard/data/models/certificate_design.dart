@@ -1,3 +1,5 @@
+import 'package:flutter/painting.dart' show FontWeight;
+
 /// The sheet as the director designed it in the portal's customizer, exactly as
 /// the server froze it on the issued certificate. Positions and sizes are the
 /// portal's own units — percent of the sheet for placement, points on an
@@ -16,6 +18,9 @@ class CertificateDesign {
     this.elementWidths = const {},
     this.elementHeights = const {},
     this.elementAligns = const {},
+    this.elementWeights = const {},
+    this.elementUnderlines = const {},
+    this.title = '',
     this.showSeal = false,
     this.sealLabel = '',
     this.sealStyle,
@@ -48,6 +53,9 @@ class CertificateDesign {
       elementWidths: mapOf('element_widths', (v) => (v as num).toDouble()),
       elementHeights: mapOf('element_heights', (v) => (v as num).toDouble()),
       elementAligns: mapOf('element_aligns', (v) => v as String),
+      elementWeights: mapOf('element_weights', (v) => v as String),
+      elementUnderlines: mapOf('element_underlines', (v) => v as bool),
+      title: json['title'] as String? ?? '',
       headline: json['headline'] as String? ?? '',
       body: json['body'] as String? ?? '',
       showSeal: json['show_seal'] as bool? ?? false,
@@ -85,6 +93,15 @@ class CertificateDesign {
   /// Percent of the sheet height, when the director fixed a block's height.
   final Map<String, double> elementHeights;
   final Map<String, String> elementAligns;
+
+  /// `regular`, `semibold`, `bold` or `extrabold`; absent keeps the frame's
+  /// own weight for that block.
+  final Map<String, String> elementWeights;
+  final Map<String, bool> elementUnderlines;
+
+  /// The award name, filled in. Empty on a certificate issued before the award
+  /// name had its own wording — the sheet prints the template name then.
+  final String title;
 
   /// Already filled in — no `{{placeholders}}` remain on an issued sheet.
   final String headline;
@@ -132,6 +149,17 @@ class CertificateDesign {
   double? heightOf(String id) => elementHeights[id];
 
   String alignOf(String id) => elementAligns[id] ?? 'center';
+
+  /// The block's picked weight, or null to keep the frame's.
+  FontWeight? weightOf(String id) => switch (elementWeights[id]) {
+    'regular' => FontWeight.w400,
+    'semibold' => FontWeight.w600,
+    'bold' => FontWeight.w700,
+    'extrabold' => FontWeight.w800,
+    _ => null,
+  };
+
+  bool underlineOf(String id) => elementUnderlines[id] ?? false;
 
   /// Its own override first, then the sheet font; `default` leaves the
   /// frame's own typography.

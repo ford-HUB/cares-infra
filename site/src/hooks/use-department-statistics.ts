@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { STATISTICS_EXPORT_FILENAME } from '../constants/department-statistics'
 import { useDepartmentStatisticsStore } from '../store/department-statistics-store'
 import { useProfileStore } from '../store/profile-store'
 import type { StatisticsRange } from '../types/department-statistics'
-import { exportDepartmentStatisticsCsv } from '../utils/export-department-statistics-csv'
-import { exportDepartmentStatisticsPdf } from '../utils/export-department-statistics-pdf'
 
 /**
  * Wires the coordinator's department (from their profile) to the statistics store,
@@ -58,18 +55,7 @@ export function useDepartmentStatistics() {
     [department, setCategory],
   )
 
-  const exportCsv = useCallback(() => {
-    if (!statistics) return
-    exportDepartmentStatisticsCsv(
-      statistics,
-      `${STATISTICS_EXPORT_FILENAME}-${statistics.range}.csv`,
-    )
-  }, [statistics])
 
-  const exportPdf = useCallback(() => {
-    if (!statistics) return
-    exportDepartmentStatisticsPdf(statistics, { title: 'Department Statistics', category })
-  }, [statistics, category])
 
   return {
     department,
@@ -84,7 +70,5 @@ export function useDepartmentStatistics() {
     refresh,
     changeRange,
     changeCategory,
-    exportCsv,
-    exportPdf,
   }
 }

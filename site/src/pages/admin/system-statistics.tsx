@@ -23,8 +23,6 @@ export function SystemStatisticsPage() {
     changeRange,
     changeCategory,
     changeDepartment,
-    exportCsv,
-    exportPdf,
   } = useSystemStatistics()
 
   if (pending) {
@@ -66,8 +64,6 @@ export function SystemStatisticsPage() {
         onRangeChange={changeRange}
         onCategoryChange={changeCategory}
         onRefresh={refresh}
-        onExportCsv={exportCsv}
-        onExportPdf={exportPdf}
       />
     </ContentShell>
   )

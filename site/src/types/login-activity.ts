@@ -9,6 +9,7 @@ export type LoginOutcome =
   | 'outside-login-hours'
   | 'ip-not-allowed'
   | 'credential-expired'
+  | 'email-not-verified'
 
 /** Which client the attempt came from. */
 export type LoginSource = 'portal' | 'mobile'

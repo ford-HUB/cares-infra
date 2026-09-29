@@ -26,6 +26,7 @@ import { MailInboxPage } from '../pages/admin/mail-inbox'
 import { MaintenancePage } from '../pages/admin/maintenance'
 import { ManageUsersPage } from '../pages/admin/manage-users'
 import { MonthlyReportsPage } from '../pages/admin/monthly-reports'
+import { PaymentSettingsPage } from '../pages/admin/payment-settings'
 import { NeedsClustersPage } from '../pages/admin/needs-clusters'
 import { QueueReviewerPage } from '../pages/admin/queue-reviewer'
 import { RankingCustomizationPage } from '../pages/admin/ranking-customization'
@@ -112,6 +113,12 @@ export const adminRoutes: RouteObject[] = [
               { path: 'manage-users', element: <ManageUsersPage /> },
               { path: 'user-request', element: <UserRequestPage /> },
             ],
+          },
+          {
+            // The account donations are collected into: the director's screen, so the
+            // route is narrowed to that role as well as to the right.
+            element: gated(P.PAYMENT_SETTINGS_MANAGE, ['director']),
+            children: [{ path: 'payments', element: <PaymentSettingsPage /> }],
           },
           {
             element: gated(P.ACCESS_CONTROL_VIEW),

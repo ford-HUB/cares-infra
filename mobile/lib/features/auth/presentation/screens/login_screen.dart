@@ -8,8 +8,11 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/auth_login_service.dart';
+import 'package:mobile/features/auth/data/auth_registration_service.dart';
 import 'package:mobile/features/auth/data/donor_auth_service.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/data/social_auth_client.dart';
+import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_donor_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/reset_password_screen.dart';
@@ -36,6 +39,8 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isSigningIn = false;
 
   final AuthLoginService _authLoginService = AuthLoginService();
+  final AuthRegistrationService _registrationService =
+      AuthRegistrationService();
   final SocialAuthClient _socialAuthClient = SocialAuthClient();
   final DonorAuthService _donorAuthService = DonorAuthService();
 
@@ -91,26 +96,13 @@ class _LoginScreenState extends State<LoginScreen>
     AuthSession.clear();
 
     try {
-      final loginResult = await _authLoginService.login(
-        email: email,
-        password: password,
-      );
-      if (!mounted) return;
-
-      AuthSession.setAccessToken(loginResult.accessToken);
-
-      if (!mounted) return;
-
-      DashboardRouter.navigateToRoleDashboard(
-        context,
-        roleType: loginResult.roleType,
-        email: loginResult.email,
-        firstName: loginResult.firstName,
-        profileComplete: loginResult.hasInterests,
-        hasInterests: loginResult.hasInterests,
-      );
+      await _completeSignIn(context, email: email, password: password);
     } on ApiException catch (error) {
       if (!mounted) return;
+      if (_isEmailNotVerified(error)) {
+        await _verifyEmailThenSignIn(email: email, password: password);
+        return;
+      }
       _showMessage(error.message);
     } catch (error) {
       if (!mounted) return;
@@ -120,6 +112,81 @@ class _LoginScreenState extends State<LoginScreen>
         setState(() => _isSigningIn = false);
       }
     }
+  }
+
+  Future<void> _completeSignIn(
+    BuildContext navContext, {
+    required String email,
+    required String password,
+  }) async {
+    final loginResult = await _authLoginService.login(
+      email: email,
+      password: password,
+    );
+    if (!navContext.mounted) return;
+
+    AuthSession.setAccessToken(loginResult.accessToken);
+
+    DashboardRouter.navigateToRoleDashboard(
+      navContext,
+      roleType: loginResult.roleType,
+      email: loginResult.email,
+      firstName: loginResult.firstName,
+      profileComplete: loginResult.hasInterests,
+      hasInterests: loginResult.hasInterests,
+    );
+  }
+
+  /// The server's 403 for an account whose sign-up OTP was never completed.
+  bool _isEmailNotVerified(ApiException error) {
+    if (error.statusCode != 403) return false;
+    final errors = error.errors;
+    if (errors is! List) return false;
+    return errors.any(
+      (issue) => issue is Map && issue['code'] == 'EMAIL_NOT_VERIFIED',
+    );
+  }
+
+  /// Right password, unproven email: mail a code and run the same OTP screen as
+  /// sign-up. Once the code is accepted the sign-in is retried from that screen —
+  /// the server stamps the account verified on that retry, since it has both the
+  /// password and the code.
+  Future<void> _verifyEmailThenSignIn({
+    required String email,
+    required String password,
+  }) async {
+    final SendVerificationResponse sendResult;
+    try {
+      sendResult = await _registrationService.sendVerificationCode(
+        email: email,
+        purpose: VerificationPurpose.login,
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      _showMessage(error.message);
+      return;
+    }
+    if (!mounted) return;
+
+    _showMessage(
+      sendResult.sent
+          ? 'Your email is not verified yet. We sent a code to $email.'
+          : 'Your email is not verified yet. Enter the code we already sent to $email.',
+    );
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => EmailVerificationScreen(
+          email: email,
+          purpose: VerificationPurpose.login,
+          initialExpiresInSeconds: sendResult.expiresInSeconds,
+          emailAlreadyVerified: sendResult.verified,
+          codeReused: sendResult.reused,
+          onVerified: (otpContext) =>
+              _completeSignIn(otpContext, email: email, password: password),
+        ),
+      ),
+    );
   }
 
   /// Google / Facebook sign-in for donors who registered through a provider.

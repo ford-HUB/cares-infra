@@ -32,12 +32,15 @@ import {
   elementAlign,
   elementFontSize,
   elementHeight,
+  elementUnderline,
+  elementWeight,
   elementWidth,
 } from '../../constants/certificate-typography'
 import type {
   CertificateDesign,
   CertificateElementId,
   CertificateFontId,
+  CertificateFontWeight,
   CertificateTextAlign,
   CertificateImage,
   CertificateImageShape,
@@ -51,6 +54,7 @@ import { CertificateFontSizeField } from './ui/certificate-font-size-field'
 import { CertificateImageBox, type ResizeHandle } from './ui/certificate-image-box'
 import { CertificateFrameOrnament } from './ui/certificate-frame-ornament'
 import { CertificateRuler } from './ui/certificate-ruler'
+import { CertificateTextStyleField } from './ui/certificate-text-style-field'
 
 /**
  * Where a block can be grabbed. Corners carry both axes, so one drag resizes the box
@@ -125,6 +129,12 @@ interface CertificateLayoutEditorProps {
   onAlignChange: (target: CertificateElementId, align: CertificateTextAlign) => void
   /** Height of one block, as a percentage of the sheet. */
   onHeightChange: (target: CertificateElementId, height: number) => void
+  /** Text weight of one block; `undefined` hands it back to the frame. */
+  onWeightChange: (
+    target: CertificateElementId,
+    weight: CertificateFontWeight | undefined,
+  ) => void
+  onUnderlineChange: (target: CertificateElementId, underline: boolean) => void
 }
 
 /**
@@ -144,6 +154,8 @@ export function CertificateLayoutEditor({
   onWidthChange,
   onAlignChange,
   onHeightChange,
+  onWeightChange,
+  onUnderlineChange,
 }: CertificateLayoutEditorProps) {
   const sheetRef = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState<CertificateElementId | null>(null)
@@ -386,6 +398,15 @@ export function CertificateLayoutEditor({
             disabled={!selected}
             onChange={(size) => selected && onSizeChange(selected, size)}
           />
+          <CertificateTextStyleField
+            weight={selected ? elementWeight(design, selected) : undefined}
+            underline={selected ? elementUnderline(design, selected) : false}
+            disabled={!selected}
+            onWeightChange={(weight) => selected && onWeightChange(selected, weight)}
+            onUnderlineChange={(underline) =>
+              selected && onUnderlineChange(selected, underline)
+            }
+          />
           <CertificateAlignField
             value={elementAlign(design, selected ?? 'body')}
             disabled={!selected}
@@ -435,7 +456,8 @@ export function CertificateLayoutEditor({
           <div
             ref={sheetRef}
             className={cn(
-              'relative @container h-full w-auto max-w-full overflow-hidden bg-white bg-contain bg-center bg-no-repeat text-center shadow-sm',
+              // A ratio, not the page's fixed 24px — see `CertificateCanvas`.
+              'relative @container h-full w-auto max-w-full overflow-hidden bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
               !uploaded && preset.sheet,
               !uploaded && accent.frame,
               portrait ? 'aspect-[3/4]' : 'aspect-[4/3]',
@@ -497,7 +519,9 @@ export function CertificateLayoutEditor({
                   onPointerEnter={() => setHovered(id)}
                   onPointerLeave={() => setHovered((one) => (one === id ? null : one))}
                   className={cn(
-                    'absolute -translate-x-1/2 -translate-y-1/2 cursor-move rounded-md p-1 outline-none',
+                    // No padding: the box must wrap its text exactly as the printed
+                    // sheet does, so the selection ring is offset rather than inset.
+                    'absolute -translate-x-1/2 -translate-y-1/2 cursor-move rounded-md ring-offset-2 outline-none',
                     (dragging === id || resizing === id) && 'opacity-90',
                     isSelected
                       ? 'ring-2 ring-[var(--cares-primary)]'

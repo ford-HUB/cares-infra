@@ -2,7 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { MAX_SIGNATORIES, createSignatory } from '../constants/certificate-design'
+import {
+  MAX_SIGNATORIES,
+  certificateTitle,
+  createSignatory,
+} from '../constants/certificate-design'
 import { DEFAULT_CERTIFICATE_FONT } from '../constants/certificate-fonts'
 import { DEFAULT_CERTIFICATE_SEAL } from '../constants/certificate-seals'
 import { useCertificateTemplateStore } from '../store/certificate-template-store'
@@ -33,6 +37,10 @@ function toFormValues(template: CertificateTemplate): CertificateTemplateFormVal
     elementWidths: template.design.elementWidths ?? {},
     elementHeights: template.design.elementHeights ?? {},
     elementAligns: template.design.elementAligns ?? {},
+    elementWeights: template.design.elementWeights ?? {},
+    elementUnderlines: template.design.elementUnderlines ?? {},
+    // A template saved before the award name had its own field printed its name.
+    title: certificateTitle(template.design, template.name),
     headline: template.design.headline,
     body: template.design.body,
     showSeal: template.design.showSeal,
@@ -100,6 +108,9 @@ export function useCertificateTemplateForm(
           elementWidths: values.elementWidths,
           elementHeights: values.elementHeights,
           elementAligns: values.elementAligns,
+          elementWeights: values.elementWeights,
+          elementUnderlines: values.elementUnderlines,
+          title: values.title,
           headline: values.headline,
           body: values.body,
           showSeal: values.showSeal,

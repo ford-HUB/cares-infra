@@ -52,6 +52,9 @@ import type { RequestContextDto } from 'src/shared/decorators/request-context-de
 /** Wrong codes tolerated before the reset code is thrown away. */
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
 
+/** `errors[].code` on the 403 the app turns into the OTP screen instead of a toast. */
+const EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED';
+
 @Injectable()
 export class AuthMobileService {
   constructor(
@@ -69,7 +72,21 @@ export class AuthMobileService {
     private readonly auditLogRecorder: AuditLogRecorder,
   ) {}
 
+  /**
+   * The bare `POST /v1/auth/register`. It creates an account that can sign in, so it
+   * needs the same email OTP as `registerFromSession` — without it the endpoint would
+   * mint accounts for addresses nobody proved.
+   */
   async registerUser(data: CreateUserDto) {
+    const normalizedEmail = data.account.email.trim().toLowerCase();
+    await this.requireVerifiedEmail(normalizedEmail);
+
+    const user = await this.createAccount(data);
+    await this.clearOtpState(normalizedEmail);
+    return user;
+  }
+
+  private async createAccount(data: CreateUserDto) {
     await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(
       data.account.password,
     );
@@ -165,6 +182,33 @@ export class AuthMobileService {
         description: 'Sign-in refused: temporary credentials expired',
       });
       throw new ForbiddenException(message);
+    }
+
+    // An account that never finished the sign-up OTP cannot sign in. The one way
+    // through is a code sent with `purpose: 'login'` and accepted by `verify-otp` —
+    // that code plus the password just checked are what stamp the account verified.
+    if (!account.email_verified_at) {
+      if (!(await this.isEmailVerified(email))) {
+        const message =
+          'Verify your email address to finish setting up this account';
+        await this.loginActivityRecorder.record({
+          ...attempt,
+          userId: account.user.user_id,
+          outcome: 'EMAIL_NOT_VERIFIED',
+          failureReason: message,
+        });
+        await this.recordSignIn(account, attempt, {
+          outcome: 'DENIED',
+          description: 'Sign-in refused: email not verified',
+        });
+        throw new ForbiddenException({
+          message,
+          errors: [{ path: 'email', code: EMAIL_NOT_VERIFIED, message }],
+        });
+      }
+
+      await this.authRepository.markEmailVerified(email);
+      await this.clearOtpState(email);
     }
 
     if (ipAddress) {
@@ -557,7 +601,7 @@ export class AuthMobileService {
       idNumber: data.school_info.id_number,
     });
 
-    const user = await this.registerUser({
+    const user = await this.createAccount({
       firstname: data.firstname,
       lastname: data.lastname,
       middle_name: data.middle_name,
@@ -666,13 +710,20 @@ export class AuthMobileService {
   async sendOtpEmail(data: SendVerificationDto) {
     const normalizedEmail = data.email.trim().toLowerCase();
 
-    // Every unique field is checked here, before any code goes out, so the form
-    // can send the user back to the clashing input instead of the OTP screen.
-    await this.assertRegistrationDetailsAvailable({
-      email: normalizedEmail,
-      phoneNumber: data.phone_number,
-      idNumber: data.id_number,
-    });
+    if (data.purpose === 'login') {
+      // Only an account still waiting on its OTP gets a code this way; a registration
+      // can never reach an existing address, so the verified flag it leaves behind is
+      // only ever spent by `login` together with the account's password.
+      await this.assertAwaitingEmailVerification(normalizedEmail);
+    } else {
+      // Every unique field is checked here, before any code goes out, so the form
+      // can send the user back to the clashing input instead of the OTP screen.
+      await this.assertRegistrationDetailsAvailable({
+        email: normalizedEmail,
+        phoneNumber: data.phone_number,
+        idNumber: data.id_number,
+      });
+    }
 
     const existingOtp = await this.redisService.get<string>(
       this.otpKey(normalizedEmail),
@@ -1061,6 +1112,15 @@ export class AuthMobileService {
     const idNumber = details.idNumber?.trim();
     if (idNumber && (await this.authRepository.findSchoolIdOwner(idNumber))) {
       throw registrationConflict('id_number');
+    }
+  }
+
+  private async assertAwaitingEmailVerification(email: string): Promise<void> {
+    const account = await this.authRepository.findAccountForLogin(email);
+    if (!account || account.email_verified_at) {
+      throw new BadRequestException(
+        'This account does not need email verification',
+      );
     }
   }
 

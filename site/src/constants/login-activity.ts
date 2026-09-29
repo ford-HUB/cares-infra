@@ -27,6 +27,7 @@ export const LOGIN_OUTCOME_LABELS: Record<LoginOutcome, string> = {
   'outside-login-hours': 'Outside allowed hours',
   'ip-not-allowed': 'IP not allowed',
   'credential-expired': 'Credentials expired',
+  'email-not-verified': 'Email not verified',
 }
 
 export const LOGIN_SOURCE_LABELS: Record<LoginSource, string> = {
@@ -66,6 +67,7 @@ export const LOGIN_OUTCOME_ACCENT: Record<LoginOutcome, string> = {
   'outside-login-hours': 'bg-amber-400',
   'ip-not-allowed': 'bg-red-500',
   'credential-expired': 'bg-amber-400',
+  'email-not-verified': 'bg-amber-400',
 }
 
 export const LOGIN_ACTIVITY_COLUMNS = [

@@ -249,6 +249,8 @@ export class UsersRepository {
             password: input.passwordHash,
             credential_expires_at: input.credentialExpiresAt,
             provisioned_by_user_id: input.provisionedByUserId,
+            // The credential is mailed to this address, so using it proves the inbox.
+            email_verified_at: new Date(),
           },
         },
       },

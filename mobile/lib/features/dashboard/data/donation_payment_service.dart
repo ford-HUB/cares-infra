@@ -40,6 +40,16 @@ class DonationPaymentService {
     return DonationPayment.fromJson(response['data'] as Map<String, dynamic>);
   }
 
+  /// Which channels CARES accepts right now, as the director set them in the
+  /// portal. Asked before the payment step so the app never offers a method the
+  /// server would refuse.
+  Future<PaymentMethodAvailability> fetchAvailableMethods() async {
+    final response = await _api.getJson('/payments/methods');
+    return PaymentMethodAvailability.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+  }
+
   Future<DonationPayment> fetchPayment(String id) async {
     final response = await _api.getJson('/donations/payments/$id');
     return DonationPayment.fromJson(response['data'] as Map<String, dynamic>);

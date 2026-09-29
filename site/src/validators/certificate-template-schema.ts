@@ -5,6 +5,8 @@ import {
   CERTIFICATE_ACCENT_ORDER,
   HEADLINE_MAX_LENGTH,
   MAX_SIGNATORIES,
+  placeholderIssue,
+  TITLE_MAX_LENGTH,
 } from '../constants/certificate-design'
 import { CERTIFICATE_FONT_ORDER } from '../constants/certificate-fonts'
 import {
@@ -14,6 +16,7 @@ import {
   ELEMENT_WIDTH_MIN,
   FONT_SIZE_MAX,
   FONT_SIZE_MIN,
+  FONT_WEIGHT_ORDER,
   TEXT_ALIGN_ORDER,
 } from '../constants/certificate-typography'
 import { CERTIFICATE_FRAME_ORDER } from '../constants/certificate-frames'
@@ -106,6 +109,23 @@ export const certificateTemplateSchema = z.object({
     z.enum(CERTIFICATE_ELEMENT_ORDER),
     z.enum(TEXT_ALIGN_ORDER),
   ),
+  elementWeights: z.partialRecord(
+    z.enum(CERTIFICATE_ELEMENT_ORDER),
+    z.enum(FONT_WEIGHT_ORDER),
+  ),
+  elementUnderlines: z.partialRecord(z.enum(CERTIFICATE_ELEMENT_ORDER), z.boolean()),
+  /** The printed award name — its own wording, not the template's name. */
+  title: z
+    .string()
+    .trim()
+    .min(1, 'The award name is required')
+    .max(TITLE_MAX_LENGTH, `Award name must not exceed ${TITLE_MAX_LENGTH} characters`)
+    .superRefine((title, ctx) => {
+      const issue = placeholderIssue(title)
+      if (issue) {
+        ctx.addIssue({ code: 'custom', message: issue })
+      }
+    }),
   headline: z
     .string()
     .trim()

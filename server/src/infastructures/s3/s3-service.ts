@@ -1,9 +1,13 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  NoSuchKey,
+  NotFound,
   PutObjectCommand,
   S3Client,
+  type GetObjectCommandOutput,
 } from '@aws-sdk/client-s3';
+import { NotFoundException } from '@nestjs/common';
 
 export class S3Service {
   private readonly s3: S3Client;
@@ -35,26 +39,56 @@ export class S3Service {
     return this.buildObjectUrl(filename);
   }
 
+  /**
+   * A stored key that is no longer in the bucket is a missing file, not a server
+   * fault: rows outlive objects (a record restored from a dump, an upload that went to
+   * another bucket, a file deleted by hand). Left as the raw SDK error it reaches the
+   * exception filter as an unknown failure and prints a stack for every broken avatar,
+   * so it is translated here — once, for all the callers — into the 404 the clients
+   * already know how to fall back from.
+   */
   async getObject(
     keyOrUrl: string,
   ): Promise<{ buffer: Buffer; contentType: string }> {
     const key = this.resolveObjectKey(keyOrUrl);
-    const response = await this.s3.send(
-      new GetObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key,
-      }),
-    );
+
+    let response: GetObjectCommandOutput;
+    try {
+      response = await this.s3.send(
+        new GetObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key,
+        }),
+      );
+    } catch (error) {
+      if (this.isMissingObject(error)) {
+        throw new NotFoundException('File not found');
+      }
+      throw error;
+    }
 
     const body = response.Body;
     if (!body) {
-      throw new Error(`S3 object is empty: ${key}`);
+      throw new NotFoundException('File not found');
     }
 
     return {
       buffer: Buffer.from(await body.transformToByteArray()),
       contentType: response.ContentType ?? 'application/octet-stream',
     };
+  }
+
+  /**
+   * The SDK reports a missing object as `NoSuchKey` on a plain GET and as `NotFound`
+   * when the caller lacks `s3:ListBucket` — the same situation, two shapes. The status
+   * check is the backstop for a version that reports neither.
+   */
+  private isMissingObject(error: unknown): boolean {
+    if (error instanceof NoSuchKey || error instanceof NotFound) return true;
+
+    const status = (error as { $metadata?: { httpStatusCode?: number } })
+      ?.$metadata?.httpStatusCode;
+    return status === 404;
   }
 
   async getObjectBuffer(keyOrUrl: string): Promise<Buffer> {

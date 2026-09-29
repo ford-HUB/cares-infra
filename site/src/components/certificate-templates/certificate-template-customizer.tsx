@@ -28,6 +28,7 @@ import {
   HEADLINE_MAX_LENGTH,
   MAX_SIGNATORIES,
   REQUIRED_CERTIFICATE_TOKENS,
+  TITLE_MAX_LENGTH,
 } from '../../constants/certificate-design'
 import { CERTIFICATE_FRAME_PRESETS } from '../../constants/certificate-frames'
 import {
@@ -98,6 +99,9 @@ export function CertificateTemplateCustomizer({
     elementWidths: preview.elementWidths,
     elementHeights: preview.elementHeights,
     elementAligns: preview.elementAligns,
+    elementWeights: preview.elementWeights,
+    elementUnderlines: preview.elementUnderlines,
+    title: preview.title,
     images: preview.images ?? [],
     headline: preview.headline,
     body: preview.body,
@@ -138,10 +142,10 @@ export function CertificateTemplateCustomizer({
         { shouldDirty: true, shouldValidate: true },
       )
 
-  const insertToken = (token: string) => {
-    const body = getValues('body')
-    const spacer = body.length === 0 || body.endsWith(' ') ? '' : ' '
-    setValue('body', `${body}${spacer}${token}`, {
+  const insertToken = (field: 'title' | 'body') => (token: string) => {
+    const text = getValues(field)
+    const spacer = text.length === 0 || text.endsWith(' ') ? '' : ' '
+    setValue(field, `${text}${spacer}${token}`, {
       shouldDirty: true,
       shouldValidate: true,
     })
@@ -359,6 +363,28 @@ export function CertificateTemplateCustomizer({
 
                   <div className="space-y-1.5">
                     <div className="flex items-baseline justify-between gap-2">
+                      <Label htmlFor="template-title" className={fieldLabel}>
+                        Award name
+                      </Label>
+                      <span className="text-[11px] text-gray-400 tabular-nums">
+                        {preview.title?.length ?? 0}/{TITLE_MAX_LENGTH}
+                      </span>
+                    </div>
+                    <Input
+                      id="template-title"
+                      maxLength={TITLE_MAX_LENGTH}
+                      {...register('title')}
+                    />
+                    {errors.title && <p className={errorText}>{errors.title.message}</p>}
+                    <CertificateTokenChips onInsert={insertToken('title')} />
+                    <p className="text-[11px] text-gray-500">
+                      The large line on the certificate — separate from the template
+                      name. Placeholders are optional here.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-2">
                       <Label htmlFor="template-body" className={fieldLabel}>
                         Award text
                       </Label>
@@ -373,7 +399,7 @@ export function CertificateTemplateCustomizer({
                       {...register('body')}
                     />
                     {errors.body && <p className={errorText}>{errors.body.message}</p>}
-                    <CertificateTokenChips onInsert={insertToken} />
+                    <CertificateTokenChips onInsert={insertToken('body')} />
                     <p className="text-[11px] text-gray-500">
                       Must include{' '}
                       {REQUIRED_CERTIFICATE_TOKENS.map((entry) => entry.token).join(
@@ -552,6 +578,24 @@ export function CertificateTemplateCustomizer({
                   setValue(
                     'elementAligns',
                     { ...(getValues('elementAligns') ?? {}), [target]: align },
+                    { shouldDirty: true, shouldValidate: true },
+                  )
+                }
+                onWeightChange={(target, weight) => {
+                  // Clearing the weight drops the entry, so the block follows its
+                  // frame again rather than pinning today's frame weight.
+                  const next = { ...(getValues('elementWeights') ?? {}) }
+                  if (weight) next[target] = weight
+                  else delete next[target]
+                  setValue('elementWeights', next, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }}
+                onUnderlineChange={(target, underline) =>
+                  setValue(
+                    'elementUnderlines',
+                    { ...(getValues('elementUnderlines') ?? {}), [target]: underline },
                     { shouldDirty: true, shouldValidate: true },
                   )
                 }

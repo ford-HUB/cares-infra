@@ -116,10 +116,14 @@ class AuthRegistrationService {
   /// [phoneNumber] and [idNumber] are checked for clashes with existing
   /// accounts before a code is sent, so a taken value is reported as a
   /// [RegistrationConflict] on the form rather than after the OTP.
+  ///
+  /// [purpose] is [VerificationPurpose.login] when an existing account that never
+  /// finished its OTP is being verified from the sign-in screen.
   Future<SendVerificationResponse> sendVerificationCode({
     required String email,
     String? phoneNumber,
     String? idNumber,
+    VerificationPurpose purpose = VerificationPurpose.registration,
   }) async {
     final phone = phoneNumber == null
         ? null
@@ -131,6 +135,7 @@ class AuthRegistrationService {
         'email': email.trim(),
         if (phone != null && phone.isNotEmpty) 'phone_number': phone,
         if (id != null && id.isNotEmpty) 'id_number': id,
+        'purpose': purpose.name,
       },
     );
 
@@ -176,3 +181,6 @@ class AuthRegistrationService {
     return MediaType('image', 'jpeg');
   }
 }
+
+/// Why a verification code is being mailed — see `sendVerificationCode`.
+enum VerificationPurpose { registration, login }

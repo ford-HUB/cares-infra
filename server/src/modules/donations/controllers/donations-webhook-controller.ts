@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Public } from 'src/shared/decorators/public-decorator';
 import { XenditService } from '../../../infastructures/xendit/xendit-service';
+import { PaymentSettingsService } from '../../payments/services/payment-settings-service';
 import { DonationsWebhookService } from '../services/donations-webhook-service';
 
 /**
@@ -16,7 +17,8 @@ import { DonationsWebhookService } from '../services/donations-webhook-service';
  *
  *   {API_PUBLIC_URL}/api/v1/donations/webhooks/xendit
  *
- * The dashboard's callback verification token goes in XENDIT_WEBHOOK_TOKEN.
+ * The dashboard's callback verification token is entered in the portal's Payments
+ * module (and falls back to XENDIT_WEBHOOK_TOKEN while none is saved).
  * Xendit retries on anything but a 2xx, so a rejected token answers 401 and a
  * handled or duplicate event always answers 200.
  */
@@ -24,6 +26,7 @@ import { DonationsWebhookService } from '../services/donations-webhook-service';
 export class DonationsWebhookController {
   constructor(
     private readonly xendit: XenditService,
+    private readonly paymentSettings: PaymentSettingsService,
     private readonly donationsWebhookService: DonationsWebhookService,
   ) {}
 
@@ -35,7 +38,8 @@ export class DonationsWebhookController {
     @Headers('x-callback-token') callbackToken?: string,
     @Headers('webhook-id') webhookId?: string,
   ): Promise<{ result: string }> {
-    if (!this.xendit.isCallbackTokenValid(callbackToken)) {
+    const expected = await this.paymentSettings.callbackToken();
+    if (!this.xendit.isCallbackTokenValid(callbackToken, expected)) {
       throw new UnauthorizedException('Invalid callback token');
     }
     // Every Xendit callback carries `webhook-id`; without it there is nothing

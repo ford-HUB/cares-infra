@@ -56,6 +56,9 @@ export type CertificateSealStyle =
 /** Where a block's text sits inside its own box. */
 export type CertificateTextAlign = 'left' | 'center' | 'right'
 
+/** How heavy a block's text is set; absent leaves the frame's own weight. */
+export type CertificateFontWeight = 'regular' | 'semibold' | 'bold' | 'extrabold'
+
 /** A staff account that can be printed as a signatory. */
 export interface SignatoryCoordinator {
   id: string
@@ -150,8 +153,18 @@ export interface CertificateDesign {
   elementHeights?: Partial<Record<CertificateElementId, number>>
   /** Per-block text alignment; absent means centred. */
   elementAligns?: Partial<Record<CertificateElementId, CertificateTextAlign>>
+  /** Per-block text weight; absent means the frame's own weight for that block. */
+  elementWeights?: Partial<Record<CertificateElementId, CertificateFontWeight>>
+  /** Per-block underline; absent means not underlined. */
+  elementUnderlines?: Partial<Record<CertificateElementId, boolean>>
   /** Eyebrow above the award line, e.g. `Certificate of Appreciation`. */
   headline: string
+  /**
+   * The award name printed on the sheet — separate from the template's own name, and
+   * may carry `{{token}}` placeholders. Absent on templates saved before it existed,
+   * which print the template name instead.
+   */
+  title?: string
   /** Body copy; may carry `{{token}}` placeholders — see `constants/certificate-design`. */
   body: string
   showSeal: boolean

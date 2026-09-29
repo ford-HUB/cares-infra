@@ -232,6 +232,7 @@ enum PermissionKey {
   SECURITY_AUDIT_VIEW
   SECURITY_SESSION_REVOKE
   SECURITY_POLICY_MANAGE
+  PAYMENT_SETTINGS_MANAGE
   SYSTEM_PERFORMANCE_VIEW
   SYSTEM_NOTICE_MANAGE
   SYSTEM_SERVICE_MANAGE
@@ -360,6 +361,8 @@ enum LoginOutcome {
   IP_NOT_ALLOWED
   /// The temporary credential an administrator issued has passed its expiry.
   CREDENTIAL_EXPIRED
+  /// The password matched but the email was never proven with the sign-up OTP.
+  EMAIL_NOT_VERIFIED
 }
 
 /// Which client the attempt came from — the React portal or the Flutter app.
@@ -483,6 +486,10 @@ model Account {
   credential_expires_at DateTime?
   /// The administrator who issued the credential in force — null for self-registration.
   provisioned_by_user_id String?
+  /// When the owner proved the address — the sign-up OTP, a provider that vouches for
+  /// it, or an administrator mailing the credential to it. Mobile password sign-in is
+  /// refused while this is null.
+  email_verified_at DateTime?
   /// Portal signatory image (directors/coordinators); printed onto certificates.
   signature_url      String?
   is_restricted      Boolean   @default(false)
@@ -1526,6 +1533,135 @@ model PaymentWebhookEvent {
   receivedAt        DateTime @default(now())
 
   @@index([gateway_reference])
+}
+
+/// Which Xendit account answers: the key prefix decides it, so the mode is stored
+/// alongside the key only so the portal can say out loud which one is live.
+enum PaymentGatewayMode {
+  TEST
+  LIVE
+}
+
+/// Where a channel stands with the gateway. A channel is only chargeable once Xendit
+/// reports it activated on the account *and* the callbacks for it are registered;
+/// until the account exists, switching one on parks it at PENDING.
+enum PaymentMethodVerification {
+  /// Never checked — the director has not switched it on yet.
+  NOT_VERIFIED
+  /// Asked for, but the gateway could not answer yet (no account connected).
+  PENDING
+  /// Xendit reports the channel activated and the callbacks registered.
+  VERIFIED
+  /// The gateway answered and refused it; `verification_message` says why.
+  FAILED
+}
+
+/// How far the receiving account has got through ownership proof. CARES sends a small
+/// payout of a random amount to the account the director recorded, and the director
+/// proves they hold it by reporting the amount that arrived — the standard
+/// micro-deposit check, because no API will confirm who owns a GCash number.
+enum PaymentAccountProof {
+  /// No payout sent yet.
+  NOT_STARTED
+  /// The payout is with the gateway, not yet reported as received.
+  SENDING
+  /// Money is on its way; waiting for the director to report the amount.
+  AWAITING_CONFIRMATION
+  /// The director reported the right amount — the account is theirs to reach.
+  VERIFIED
+  /// The payout was refused, or the amount was reported wrong too many times.
+  FAILED
+}
+
+/// The Xendit account CARES collects donations into, as the director enters it in
+/// the portal's Payments module. One row — every donor pays into the same account.
+///
+/// The secrets are held as AES-256-GCM ciphertext (see `secret-cipher-utils.ts`) and
+/// are never sent back to a client: the portal only ever sees `secret_key_last4` and
+/// the `*_set` flags, which is enough to say "a key is saved, and it ends in 1a2b".
+model PaymentGatewaySettings {
+  payment_gateway_settings_id String             @id @default(uuid())
+  singleton                   Boolean            @unique @default(true)
+  mode                        PaymentGatewayMode @default(TEST)
+  /// Off until the director is ready to take money; every checkout is refused while false.
+  enabled                     Boolean            @default(false)
+  /// Ciphertext of the Xendit secret API key. Null means "still on the env key".
+  secret_key_cipher           String?
+  /// Last four characters of the saved key, for telling two keys apart in the portal.
+  secret_key_last4            String?
+  /// Ciphertext of the callback verification token from Xendit's dashboard.
+  webhook_token_cipher        String?
+  /// Blank for https://api.xendit.co — only set when pointing at a mock or proxy.
+  api_url                     String?
+  /// The name the donor sees on the GCash / card statement.
+  statement_name              String?
+  /// Where donors reach CARES about a payment that went wrong.
+  support_email               String?
+  support_contact             String?
+  /// When the saved key last answered a live call, and why it last did not.
+  verified_at                 DateTime?
+  verification_error          String?
+  methods                     PaymentMethodSetting[]
+  /// No relation, like `SecurityPolicy`: the row outlives the account that saved it.
+  updated_by_user_id          String?
+  createdAt                   DateTime           @default(now())
+  updatedAt                   DateTime           @updatedAt
+}
+
+/// One donor-facing payment channel. A channel the director has not enabled is not
+/// offered in the app and is refused by the checkout endpoint, so hiding it in the
+/// portal and blocking it on the server are one decision.
+model PaymentMethodSetting {
+  payment_method_setting_id String                 @id @default(uuid())
+  settings_id               String
+  settings                  PaymentGatewaySettings @relation(fields: [settings_id], references: [payment_gateway_settings_id], onDelete: Cascade)
+  method                    DonationPaymentMethod
+  enabled                   Boolean                @default(false)
+  /// Overrides the channel's built-in name in the app; blank keeps the default.
+  display_name              String?
+  /// One line under the name on the donor's method step.
+  instructions              String?
+  /// The account the settlement lands in, as the director reads it off Xendit — the
+  /// GCash number or bank account. Reference only: Xendit routes to the account
+  /// behind the secret key, not to whatever is typed here.
+  account_name              String?
+  account_number            String?
+  /// Xendit channel codes this method opens (CARD / BANK_TRANSFER); empty uses the
+  /// module's defaults.
+  channel_codes             String[]               @default([])
+  /// Whole pesos. 0 falls back to the module-wide donation limits.
+  min_amount                Int                    @default(0)
+  max_amount                Int                    @default(0)
+  sort_order                Int                    @default(0)
+  /// Set by the activation check that runs when the director switches this on.
+  verification              PaymentMethodVerification @default(NOT_VERIFIED)
+  verified_at               DateTime?
+  /// What the gateway said — the sentence the portal shows under the badge.
+  verification_message      String?
+  /// Channel codes Xendit reported activated at the last check, for the record.
+  verified_channel_codes    String[]               @default([])
+  /// When the callback URLs for this channel were last registered with Xendit.
+  callbacks_registered_at   DateTime?
+  /// --- ownership proof: is the recorded account really reachable by CARES ---
+  account_proof             PaymentAccountProof @default(NOT_STARTED)
+  /// Whole pesos sent, and the number the director has to report back. Cleared once
+  /// the account is verified so a later reader cannot simply look up the answer.
+  account_proof_amount      Int?
+  /// Our reference on the payout, and Xendit's id for it.
+  account_proof_reference   String?
+  account_proof_id          String?
+  account_proof_sent_at     DateTime?
+  /// Wrong answers so far; the proof locks after `ACCOUNT_PROOF_MAX_ATTEMPTS`.
+  account_proof_attempts    Int                 @default(0)
+  /// What the gateway or the check last said, for the portal to show.
+  account_proof_message     String?
+  /// The account this proof covered, so editing the number invalidates the proof.
+  account_proof_target      String?
+  account_verified_at       DateTime?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+
+  @@unique([settings_id, method])
 }
 
 enum DonationKind {

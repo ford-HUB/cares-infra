@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Trophy,
   Users,
+  Wallet,
 } from 'lucide-react'
 import {
   ADMIN_BASE_PATH,
@@ -23,6 +24,7 @@ import {
   ADMIN_EVENT_MAP_PATH,
   ADMIN_MAIL_INBOX_PATH,
   ADMIN_MAINTENANCE_PATH,
+  ADMIN_PAYMENT_SETTINGS_PATH,
   ADMIN_RESIDENTIAL_NEEDS_PATH,
   ADMIN_SUPPORT_TICKETS_PATH,
   ADMIN_SYSTEM_DIAGNOSTICS_PATH,
@@ -72,6 +74,18 @@ export const adminNav: PortalNavConfig = {
       ],
     },
     { type: 'link', label: 'User Profile', to: '/admin/profile', icon: CircleUser },
+    // A module of its own rather than a Tracker child: the tracker reads what came in,
+    // this decides whether anything can come in at all. Where donor money lands is a
+    // finance decision, so it stays the director's, gated on the right as well as the
+    // role so an admin can hand it over without editing code.
+    {
+      type: 'link',
+      label: 'Payments',
+      to: ADMIN_PAYMENT_SETTINGS_PATH,
+      icon: Wallet,
+      roles: ['director'],
+      permission: P.PAYMENT_SETTINGS_MANAGE,
+    },
 
     { type: 'section', label: 'Support' },
     {

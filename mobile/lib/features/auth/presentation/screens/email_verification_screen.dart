@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/data/auth_registration_service.dart';
 import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
 import 'package:mobile/features/auth/presentation/widgets/verification_code_input.dart';
@@ -26,6 +27,7 @@ class EmailVerificationScreen extends ConsumerStatefulWidget {
     this.emailAlreadyVerified = false,
     this.codeReused = false,
     this.onConflict,
+    this.purpose = VerificationPurpose.registration,
   });
 
   final String email;
@@ -38,6 +40,10 @@ class EmailVerificationScreen extends ConsumerStatefulWidget {
   final int initialExpiresInSeconds;
   final bool emailAlreadyVerified;
   final bool codeReused;
+
+  /// Sent again with every resend, so a sign-in verification is not treated as a
+  /// new registration (which would refuse the already-registered email).
+  final VerificationPurpose purpose;
 
   @override
   ConsumerState<EmailVerificationScreen> createState() =>
@@ -151,7 +157,10 @@ class _EmailVerificationScreenState
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
-      final response = await service.sendVerificationCode(email: widget.email);
+      final response = await service.sendVerificationCode(
+        email: widget.email,
+        purpose: widget.purpose,
+      );
       if (!mounted) return;
 
       setState(() {
@@ -215,6 +224,8 @@ class _EmailVerificationScreenState
       _showError(
         e is ApiException
             ? e.message
+            : widget.purpose == VerificationPurpose.login
+            ? 'Sign in failed. Please try again.'
             : 'Registration failed. Please try again.',
       );
     }

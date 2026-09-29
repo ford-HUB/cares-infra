@@ -87,6 +87,9 @@ export const SendVerificationSchema = z
     // a taken phone number or ID number is caught on the form, not after OTP.
     phone_number: PhoneNumberSchema.optional(),
     id_number: z.string().trim().min(1).optional(),
+    // `login` mails a code to an existing account that signed up without finishing
+    // the OTP, so its next sign-in can prove the address instead of being refused.
+    purpose: z.enum(['registration', 'login']).default('registration'),
   })
   .strict();
 

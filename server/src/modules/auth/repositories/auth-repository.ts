@@ -192,6 +192,8 @@ export class AuthRepository {
         data: {
           email: data.account.email,
           password: data.account.password,
+          // Only reached after the sign-up OTP — see `requireVerifiedEmail`.
+          email_verified_at: new Date(),
           user: {
             connect: {
               user_id: user.user_id,
@@ -248,6 +250,8 @@ export class AuthRepository {
       const account = await tx.account.create({
         data: {
           email: data.email,
+          // The provider vouched for the address when the token was checked.
+          email_verified_at: new Date(),
           user: { connect: { user_id: user.user_id } },
         },
         select: { account_id: true },
@@ -304,6 +308,8 @@ export class AuthRepository {
         data: {
           email: data.email,
           password: data.hashedPassword,
+          // Only reached after the sign-up OTP.
+          email_verified_at: new Date(),
           user: { connect: { user_id: user.user_id } },
         },
         select: { account_id: true },
@@ -419,6 +425,7 @@ export class AuthRepository {
         email: true,
         password: true,
         credential_expires_at: true,
+        email_verified_at: true,
         is_restricted: true,
         restriction_reason: true,
         user: {
@@ -451,6 +458,14 @@ export class AuthRepository {
         credential_expires_at: null,
       },
       select: { account_id: true, email: true, user_id: true },
+    });
+  }
+
+  async markEmailVerified(email: string) {
+    return this.prisma.account.update({
+      where: { email },
+      data: { email_verified_at: new Date() },
+      select: { account_id: true },
     });
   }
 

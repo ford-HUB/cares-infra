@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import {
   CERTIFICATE_ACCENT_STYLES,
+  certificateTitle,
   renderCertificateTokens,
 } from '../../../constants/certificate-design'
 import { elementFontStyle } from '../../../constants/certificate-fonts'
@@ -12,6 +13,7 @@ import {
   SIGNATORY_DEPARTMENT_SCALE,
   SIGNATORY_TITLE_SCALE,
   elementAlign,
+  elementEmphasisStyle,
   elementSizeStyle,
   elementWidth,
 } from '../../../constants/certificate-typography'
@@ -24,6 +26,7 @@ import { CertificateSealMark } from './certificate-seal-mark'
 interface CertificateElementProps {
   id: CertificateElementId
   design: CertificateDesign
+  /** Printed as the award name when the design has no wording of its own. */
   title: string
 }
 
@@ -39,12 +42,13 @@ interface CertificateElementProps {
 export function CertificateElement({ id, design, title }: CertificateElementProps) {
   const accent = CERTIFICATE_ACCENT_STYLES[design.accent]
   const preset = CERTIFICATE_FRAME_PRESETS[design.frame]
-  // A picked face and size win over the frame's own classes — inline style beats
-  // the utility.
+  // A picked face, size and weight win over the frame's own classes — inline style
+  // beats the utility.
   const align = elementAlign(design, id)
   const font = {
     ...elementFontStyle(design, id),
     ...elementSizeStyle(design, id),
+    ...elementEmphasisStyle(design, id),
     textAlign: align,
   }
 
@@ -71,7 +75,7 @@ export function CertificateElement({ id, design, title }: CertificateElementProp
         )}
         style={font}
       >
-        {title}
+        {renderCertificateTokens(certificateTitle(design, title))}
       </p>
     )
   }

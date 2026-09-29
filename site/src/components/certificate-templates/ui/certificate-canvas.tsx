@@ -77,7 +77,10 @@ export function CertificateCanvas({
       <div className="flex h-full w-full items-center justify-center bg-gray-50 p-4">
         <div
           className={cn(
-            'relative @container max-h-full w-full overflow-hidden rounded-xl bg-white bg-contain bg-center bg-no-repeat text-center shadow-sm',
+            // `leading-normal` is a ratio: the page's own line-height is a fixed 24px,
+            // which would make every block's height depend on how large the sheet is
+            // drawn. The app sets the same 1.5.
+            'relative @container max-h-full w-full overflow-hidden rounded-xl bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
             !uploaded && preset.sheet,
             !uploaded && accent.frame,
             portrait ? 'aspect-[3/4] max-w-2xl' : 'aspect-[4/3] max-w-4xl',

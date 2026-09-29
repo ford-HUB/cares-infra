@@ -84,9 +84,18 @@ export const CERTIFICATE_IMAGE_SHAPES = [
 
 export const CERTIFICATE_TEXT_ALIGNS = ['left', 'center', 'right'] as const;
 
+/** Kept in step with `FONT_WEIGHT_ORDER` in `site/src/constants/certificate-typography.ts`. */
+export const CERTIFICATE_FONT_WEIGHTS = [
+  'regular',
+  'semibold',
+  'bold',
+  'extrabold',
+] as const;
+
 /** Kept in step with `site/src/constants/certificate-design.ts`. */
 export const MAX_SIGNATORIES = 3;
 export const HEADLINE_MAX_LENGTH = 60;
+export const TITLE_MAX_LENGTH = 80;
 export const BODY_MAX_LENGTH = 240;
 
 /** Placeholders the print job fills per recipient; the first three are mandatory. */
@@ -108,11 +117,11 @@ export const REQUIRED_CERTIFICATE_TOKENS = [
 const TOKEN_LIKE_PATTERN = /\{+[^{}]*\}+/g;
 
 /**
- * The same wording rule the customizer enforces, re-checked here: the portal is not
- * the only thing that can `PUT` a template, and a malformed placeholder only surfaces
- * once certificates are printed. Returns the message, or `null` when the text is fine.
+ * Every brace group must be a real placeholder written exactly. The award name is held
+ * to this alone — it may carry placeholders, but none is required there. Returns the
+ * message, or `null` when the text is fine.
  */
-export function awardTextIssue(text: string): string | null {
+export function placeholderIssue(text: string): string | null {
   const names = new Set<string>(
     CERTIFICATE_TOKENS.map((token) => token.slice(2, -2)),
   );
@@ -126,6 +135,18 @@ export function awardTextIssue(text: string): string | null {
       return `"${match}" is written wrong — it must read {{${name}}}.`;
     }
   }
+
+  return null;
+}
+
+/**
+ * The same wording rule the customizer enforces, re-checked here: the portal is not
+ * the only thing that can `PUT` a template, and a malformed placeholder only surfaces
+ * once certificates are printed. Returns the message, or `null` when the text is fine.
+ */
+export function awardTextIssue(text: string): string | null {
+  const malformed = placeholderIssue(text);
+  if (malformed) return malformed;
 
   const missing = REQUIRED_CERTIFICATE_TOKENS.filter(
     (token) => !text.includes(token),
@@ -206,6 +227,22 @@ export const CertificateDesignSchema = z.object({
   element_widths: ElementRecord(z.number().min(5).max(100)).default({}),
   element_heights: ElementRecord(z.number().min(3).max(100)).default({}),
   element_aligns: ElementRecord(z.enum(CERTIFICATE_TEXT_ALIGNS)).default({}),
+  element_weights: ElementRecord(z.enum(CERTIFICATE_FONT_WEIGHTS)).default({}),
+  element_underlines: ElementRecord(z.boolean()).default({}),
+  /**
+   * The printed award name, separate from the template's own name. Optional: a design
+   * saved before it existed prints the template name instead.
+   */
+  title: z
+    .string()
+    .trim()
+    .min(1)
+    .max(TITLE_MAX_LENGTH)
+    .superRefine((title, ctx) => {
+      const issue = placeholderIssue(title);
+      if (issue) ctx.addIssue({ code: 'custom', message: issue });
+    })
+    .optional(),
   headline: z.string().trim().min(4).max(HEADLINE_MAX_LENGTH),
   body: z
     .string()
