@@ -1,9 +1,14 @@
 /**
- * Base URL of the CARES API. `vite build` (production) reads VITE_PRODUCTION_ORIGIN;
- * `vite` dev reads VITE_DEVELOPMENT_ORIGIN — the same split the server uses.
+ * Base URL of the CARES API, switched by VITE_NODE_ENV the same way the server
+ * switches on NODE_ENV: "production" reads VITE_PRODUCTION_ORIGIN, anything else
+ * reads VITE_DEVELOPMENT_ORIGIN.
  */
+const isProduction = import.meta.env.VITE_NODE_ENV === 'production'
+
 export const API_BASE_URL: string = (
-  import.meta.env.PROD
+  (isProduction
     ? import.meta.env.VITE_PRODUCTION_ORIGIN
-    : import.meta.env.VITE_DEVELOPMENT_ORIGIN
-)?.trim() ?? ''
+    : import.meta.env.VITE_DEVELOPMENT_ORIGIN) ?? ''
+)
+  .trim()
+  .replace(/\/+$/, '')
