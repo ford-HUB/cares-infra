@@ -7,6 +7,7 @@ import type {
   ChatPresenceListEventApi,
   ChatReadEventApi,
 } from '../types/chat-api'
+import { API_BASE_URL } from '../config/api-config'
 
 export interface ChatSocketHandlers {
   onMessage: (event: ChatMessageEventApi) => void
@@ -15,7 +16,7 @@ export interface ChatSocketHandlers {
   onPresenceList: (event: ChatPresenceListEventApi) => void
 }
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const baseUrl = API_BASE_URL
 
 let socket: Socket | null = null
 

@@ -1,6 +1,6 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Global, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { redisConnectionOptions } from '../infastructures/redis/redis-connection';
 import { CertificatesCoreModule } from '../modules/certificates/modules/certificates-core-module';
 import { EventAttendanceValidationModule } from '../modules/event-attendance/modules/event-attendance-validation-module';
 import { EventStatusModule } from '../modules/events/modules/event-status-module';
@@ -36,12 +36,8 @@ import { SchedulerRepository } from './scheduler-repository';
     // Async so the connection reads the env after ConfigModule has loaded `.env` —
     // a static `forRoot` would see it empty at decoration time.
     BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get<string>('REDIS_HOST'),
-          port: Number(config.get<string>('REDIS_PORT')),
-        },
+      useFactory: () => ({
+        connection: redisConnectionOptions(),
         prefix: 'cares',
       }),
     }),

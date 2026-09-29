@@ -38,6 +38,7 @@ import {
 } from '../repositories/donations-repository';
 import { toDonationDto, toDonationPaymentDto } from './donations-mapper';
 import { DonationsWebhookService } from './donations-webhook-service';
+import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
 /** How long a checkout stays open before Xendit expires it on its side. */
 const CHECKOUT_TTL_SECONDS = 30 * 60;
@@ -424,9 +425,6 @@ export class DonationsMobileService {
   }
 
   private apiBaseUrl(): string {
-    return (
-      process.env.API_PUBLIC_URL ??
-      `http://localhost:${process.env.PORT ?? 3000}`
-    ).replace(/\/+$/, '');
+    return apiPublicUrl();
   }
 }

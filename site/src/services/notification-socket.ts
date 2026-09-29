@@ -5,13 +5,14 @@ import {
 } from '../constants/notifications-socket'
 import { TOKEN_KEY } from '../constants/session'
 import type { NotificationApiResponse } from './notification-service'
+import { API_BASE_URL } from '../config/api-config'
 
 export interface NotificationSocketHandlers {
   onNew: (event: NotificationApiResponse) => void
   onUnread: (event: { unread: number }) => void
 }
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const baseUrl = API_BASE_URL
 
 let socket: Socket | null = null
 

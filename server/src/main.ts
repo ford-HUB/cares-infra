@@ -4,10 +4,16 @@ import { AppModule } from './app-module';
 import { Reflector } from '@nestjs/core';
 import { ResponseTransformInterceptor } from './shared/interceptors/response-transform-interceptor';
 import { HttpExceptionFilter } from './shared/filters/http-exception-filter';
+import { allowedOrigins, isProduction } from './shared/utils/environment-utils';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api');
+
+  // Railway terminates TLS at one proxy hop, so request.ip must come from X-Forwarded-For
+  // there (the portal IP allowlist and audit trail depend on it). Direct connections in
+  // development trust nothing, so a client cannot spoof its address.
+  app.set('trust proxy', isProduction() ? 1 : false);
 
   // Certificate designs are saved whole, with newly imported artwork inlined as data
   // URLs, so one save can carry several megabytes of base64. Express's 100 KB default
@@ -16,12 +22,8 @@ async function bootstrap() {
   app.useBodyParser('json', { limit: '12mb' });
   app.useBodyParser('urlencoded', { limit: '12mb', extended: true });
 
-  const corsOrigins = process.env.CORS_ORIGINS?.split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean) ?? ['http://localhost:5173', 'http://127.0.0.1:5173'];
-
   app.enableCors({
-    origin: corsOrigins,
+    origin: allowedOrigins(),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });

@@ -37,6 +37,7 @@ import {
   SendMailResponseDto,
 } from '../dto/mailbox-site-dto';
 import { MailboxRepository } from '../repositories/mailbox-repository';
+import { apiPublicUrl, portalUrl } from '../../../shared/utils/environment-utils';
 
 /** Gmail system labels behind each folder the portal shows. */
 const FOLDER_LABELS: Record<MailboxFolder, string> = {
@@ -105,9 +106,7 @@ export class MailboxSiteService {
       OAUTH_STATE_TTL,
     );
 
-    const apiBaseUrl =
-      process.env.API_PUBLIC_URL ??
-      `http://localhost:${process.env.PORT ?? 3000}`;
+    const apiBaseUrl = apiPublicUrl();
 
     return {
       authorize_url: `${apiBaseUrl}/api/v1/mailbox/google?state=${encodeURIComponent(nonce)}`,
@@ -433,7 +432,7 @@ export class MailboxSiteService {
   private portalRedirect(status: string): string {
     const target =
       process.env.MAILBOX_REDIRECT_URL ??
-      `${process.env.SITE_URL ?? 'http://localhost:5173'}/admin/mail-inbox`;
+      `${portalUrl()}/admin/mail-inbox`;
     return `${target}?gmail=${status}`;
   }
 }

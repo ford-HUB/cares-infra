@@ -56,6 +56,7 @@ import {
   type ManagedUserRow,
   type UserDetailRow,
 } from '../repositories/users-repository';
+import { portalUrl as resolvePortalUrl } from '../../../shared/utils/environment-utils';
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
@@ -71,9 +72,6 @@ const EMAIL_GENERATION_ATTEMPTS = 5;
 
 /** Where a restricted user is told to appeal; the same inbox that reads access requests. */
 const DEFAULT_SUPPORT_EMAIL = 'careeesadmin@gmail.com';
-
-/** Where the credential mail's sign-in button points when SITE_URL is unset. */
-const DEFAULT_PORTAL_URL = 'http://localhost:5173';
 
 /**
  * Provisioned accounts are minted under a domain nothing is delivered to (see
@@ -577,8 +575,7 @@ export class UsersSiteService {
     const supportEmail =
       this.configService.get<string>('ACCESS_REQUEST_EMAIL')?.trim() ||
       DEFAULT_SUPPORT_EMAIL;
-    const portalUrl =
-      this.configService.get<string>('SITE_URL')?.trim() || DEFAULT_PORTAL_URL;
+    const portalUrl = resolvePortalUrl();
 
     try {
       const html = await TemplateUtils.compileTemplate(

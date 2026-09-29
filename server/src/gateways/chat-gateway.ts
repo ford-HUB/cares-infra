@@ -12,20 +12,13 @@ import type {
   ChatMessageDto,
   ChatReadReceiptDto,
 } from '../modules/chat/dto/chat-site-dto';
+import { allowedOrigins } from '../shared/utils/environment-utils';
 
 /** Server → client event names; the portal listens for exactly these. */
 export const CHAT_MESSAGE_EVENT = 'chat:message';
 export const CHAT_READ_EVENT = 'chat:read';
 export const CHAT_PRESENCE_EVENT = 'chat:presence';
 export const CHAT_PRESENCE_LIST_EVENT = 'chat:presence-list';
-
-function corsOrigins(): string[] {
-  return (
-    process.env.CORS_ORIGINS?.split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean) ?? ['http://localhost:5173', 'http://127.0.0.1:5173']
-  );
-}
 
 /** One room per user, so a person's open tabs all receive their messages. */
 function roomFor(userId: string): string {
@@ -34,7 +27,7 @@ function roomFor(userId: string): string {
 
 @WebSocketGateway({
   namespace: '/chat',
-  cors: { origin: corsOrigins(), credentials: true },
+  cors: { origin: allowedOrigins(), credentials: true },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name);

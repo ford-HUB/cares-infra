@@ -9,18 +9,11 @@ import type { Server, Socket } from 'socket.io';
 import { JwtService } from '../infastructures/jwt/jwt-service';
 import type { NotificationDto } from '../modules/notifications/dto/notifications-site-dto';
 import { isPortalRole } from '../shared/constants/portal-role-types';
+import { allowedOrigins } from '../shared/utils/environment-utils';
 
 /** Server → client event names; the portal listens for exactly these. */
 export const NOTIFICATION_NEW_EVENT = 'notification:new';
 export const NOTIFICATION_UNREAD_EVENT = 'notification:unread';
-
-function corsOrigins(): string[] {
-  return (
-    process.env.CORS_ORIGINS?.split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean) ?? ['http://localhost:5173', 'http://127.0.0.1:5173']
-  );
-}
 
 /** One room per user, so a person's open tabs all get the same notice. */
 function roomFor(userId: string): string {
@@ -35,7 +28,7 @@ function roomFor(userId: string): string {
  */
 @WebSocketGateway({
   namespace: '/notifications',
-  cors: { origin: corsOrigins(), credentials: true },
+  cors: { origin: allowedOrigins(), credentials: true },
 })
 export class NotificationGateway
   implements OnGatewayConnection, OnGatewayDisconnect

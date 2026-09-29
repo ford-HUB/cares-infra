@@ -35,6 +35,7 @@ import {
 import { PaymentAccountProofService } from './payment-account-proof-service';
 import { PaymentActivationService } from './payment-activation-service';
 import { PaymentSettingsService } from './payment-settings-service';
+import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
 /** Where Xendit is told to post its callbacks; read-only in the portal. */
 const WEBHOOK_PATH = '/api/v1/donations/webhooks/xendit';
@@ -560,8 +561,3 @@ function format(
   return String(value);
 }
 
-function apiPublicUrl(): string {
-  return (
-    process.env.API_PUBLIC_URL ?? `http://localhost:${process.env.PORT ?? 3000}`
-  ).replace(/\/+$/, '');
-}
