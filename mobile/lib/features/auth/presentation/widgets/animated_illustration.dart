@@ -103,7 +103,11 @@ class _EmblemPainter extends CustomPainter {
     canvas.drawCircle(center, radius - 8, accent);
   }
 
-  void _drawOrbitingCommunity(Canvas canvas, Offset center, double orbitRadius) {
+  void _drawOrbitingCommunity(
+    Canvas canvas,
+    Offset center,
+    double orbitRadius,
+  ) {
     const count = 6;
     final rotation = progress * math.pi * 2 * 0.35;
     final figureReveal = Curves.easeOutBack.transform(
@@ -112,7 +116,8 @@ class _EmblemPainter extends CustomPainter {
 
     for (var i = 0; i < count; i++) {
       final angle = rotation + (i * 2 * math.pi / count) - math.pi / 2;
-      final pos = center +
+      final pos =
+          center +
           Offset(
             math.cos(angle) * orbitRadius * figureReveal,
             math.sin(angle) * orbitRadius * figureReveal,
@@ -129,13 +134,22 @@ class _EmblemPainter extends CustomPainter {
     for (var i = 0; i < count; i++) {
       final a1 = rotation + (i * 2 * math.pi / count) - math.pi / 2;
       final a2 = rotation + ((i + 1) * 2 * math.pi / count) - math.pi / 2;
-      final p1 = center + Offset(math.cos(a1), math.sin(a1)) * orbitRadius * figureReveal;
-      final p2 = center + Offset(math.cos(a2), math.sin(a2)) * orbitRadius * figureReveal;
+      final p1 =
+          center +
+          Offset(math.cos(a1), math.sin(a1)) * orbitRadius * figureReveal;
+      final p2 =
+          center +
+          Offset(math.cos(a2), math.sin(a2)) * orbitRadius * figureReveal;
       canvas.drawLine(p1, p2, linkPaint);
     }
   }
 
-  void _drawStickFigure(Canvas canvas, Offset origin, Color color, double scale) {
+  void _drawStickFigure(
+    Canvas canvas,
+    Offset origin,
+    Color color,
+    double scale,
+  ) {
     if (scale <= 0) return;
     final headR = 3.5 * scale / 10;
     final paint = Paint()
@@ -251,7 +265,8 @@ class _EmblemPainter extends CustomPainter {
       for (var i = 0; i < leafCount; i++) {
         final t = i / (leafCount - 1);
         final angle = side * (math.pi * 0.25 + arcSpan * t);
-        final leafCenter = center + Offset(math.cos(angle), math.sin(angle)) * radius;
+        final leafCenter =
+            center + Offset(math.cos(angle), math.sin(angle)) * radius;
         canvas.drawCircle(leafCenter, 2.5, laurel);
       }
     }
@@ -259,5 +274,6 @@ class _EmblemPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_EmblemPainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.ringOpacity != ringOpacity;
+      oldDelegate.progress != progress ||
+      oldDelegate.ringOpacity != ringOpacity;
 }

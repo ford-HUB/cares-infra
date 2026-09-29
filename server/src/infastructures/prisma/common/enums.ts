@@ -19,9 +19,9 @@ export type GenderType = (typeof GenderType)[keyof typeof GenderType]
 
 
 export const VerificationStatus = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  N: 'N',
+  F: 'F',
+  V: 'V'
 } as const
 
 export type VerificationStatus = (typeof VerificationStatus)[keyof typeof VerificationStatus]
@@ -38,9 +38,478 @@ export type EmbeddingType = (typeof EmbeddingType)[keyof typeof EmbeddingType]
 
 export const RoleType = {
   ADMIN: 'ADMIN',
+  DIRECTOR: 'DIRECTOR',
+  COORDINATOR: 'COORDINATOR',
   VOLUNTEER: 'VOLUNTEER',
   DONOR: 'DONOR',
   BENEFICIARY: 'BENEFICIARY'
 } as const
 
 export type RoleType = (typeof RoleType)[keyof typeof RoleType]
+
+
+export const PermissionKey = {
+  USERS_VIEW: 'USERS_VIEW',
+  USERS_RESTRICT: 'USERS_RESTRICT',
+  USERS_BLOCK_IP: 'USERS_BLOCK_IP',
+  USERS_EXPORT: 'USERS_EXPORT',
+  ACCESS_CONTROL_VIEW: 'ACCESS_CONTROL_VIEW',
+  ACCESS_CONTROL_MANAGE: 'ACCESS_CONTROL_MANAGE',
+  EVENTS_VIEW: 'EVENTS_VIEW',
+  EVENTS_CREATE: 'EVENTS_CREATE',
+  EVENTS_UPDATE: 'EVENTS_UPDATE',
+  EVENTS_DELETE: 'EVENTS_DELETE',
+  EVENTS_PUBLISH: 'EVENTS_PUBLISH',
+  ATTENDANCE_VIEW: 'ATTENDANCE_VIEW',
+  ATTENDANCE_RECORD: 'ATTENDANCE_RECORD',
+  ATTENDANCE_EXPORT: 'ATTENDANCE_EXPORT',
+  CERTIFICATES_VIEW: 'CERTIFICATES_VIEW',
+  CERTIFICATES_TEMPLATE_MANAGE: 'CERTIFICATES_TEMPLATE_MANAGE',
+  CERTIFICATES_ISSUE: 'CERTIFICATES_ISSUE',
+  DONATIONS_VIEW: 'DONATIONS_VIEW',
+  DONATIONS_RECORD: 'DONATIONS_RECORD',
+  REPORTS_VIEW: 'REPORTS_VIEW',
+  REPORTS_PUBLISH: 'REPORTS_PUBLISH',
+  SECURITY_AUDIT_VIEW: 'SECURITY_AUDIT_VIEW',
+  SECURITY_SESSION_REVOKE: 'SECURITY_SESSION_REVOKE',
+  SECURITY_POLICY_MANAGE: 'SECURITY_POLICY_MANAGE',
+  PAYMENT_SETTINGS_MANAGE: 'PAYMENT_SETTINGS_MANAGE',
+  SYSTEM_PERFORMANCE_VIEW: 'SYSTEM_PERFORMANCE_VIEW',
+  SYSTEM_NOTICE_MANAGE: 'SYSTEM_NOTICE_MANAGE',
+  SYSTEM_SERVICE_MANAGE: 'SYSTEM_SERVICE_MANAGE',
+  SYSTEM_MAINTENANCE_MANAGE: 'SYSTEM_MAINTENANCE_MANAGE',
+  CHAT_ACCESS: 'CHAT_ACCESS',
+  MAIL_ACCESS: 'MAIL_ACCESS',
+  SUPPORT_TICKET_MANAGE: 'SUPPORT_TICKET_MANAGE'
+} as const
+
+export type PermissionKey = (typeof PermissionKey)[keyof typeof PermissionKey]
+
+
+export const PermissionOverrideEffect = {
+  GRANT: 'GRANT',
+  REVOKE: 'REVOKE'
+} as const
+
+export type PermissionOverrideEffect = (typeof PermissionOverrideEffect)[keyof typeof PermissionOverrideEffect]
+
+
+export const LoginOutcome = {
+  SUCCESS: 'SUCCESS',
+  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+  BLOCKED_IP: 'BLOCKED_IP',
+  RESTRICTED_ACCOUNT: 'RESTRICTED_ACCOUNT',
+  ROLE_NOT_ALLOWED: 'ROLE_NOT_ALLOWED',
+  LOCKED_OUT: 'LOCKED_OUT',
+  OUTSIDE_LOGIN_HOURS: 'OUTSIDE_LOGIN_HOURS',
+  IP_NOT_ALLOWED: 'IP_NOT_ALLOWED',
+  CREDENTIAL_EXPIRED: 'CREDENTIAL_EXPIRED',
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED'
+} as const
+
+export type LoginOutcome = (typeof LoginOutcome)[keyof typeof LoginOutcome]
+
+
+export const LoginSource = {
+  PORTAL: 'PORTAL',
+  MOBILE: 'MOBILE'
+} as const
+
+export type LoginSource = (typeof LoginSource)[keyof typeof LoginSource]
+
+
+export const AuditCategory = {
+  AUTHENTICATION: 'AUTHENTICATION',
+  ACCESS_CONTROL: 'ACCESS_CONTROL',
+  USER_MANAGEMENT: 'USER_MANAGEMENT',
+  VERIFICATION: 'VERIFICATION',
+  EVENT: 'EVENT',
+  CERTIFICATE: 'CERTIFICATE',
+  COMMUNICATION: 'COMMUNICATION',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type AuditCategory = (typeof AuditCategory)[keyof typeof AuditCategory]
+
+
+export const AuditSeverity = {
+  INFO: 'INFO',
+  NOTICE: 'NOTICE',
+  WARNING: 'WARNING',
+  CRITICAL: 'CRITICAL'
+} as const
+
+export type AuditSeverity = (typeof AuditSeverity)[keyof typeof AuditSeverity]
+
+
+export const AuditOutcome = {
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE',
+  DENIED: 'DENIED'
+} as const
+
+export type AuditOutcome = (typeof AuditOutcome)[keyof typeof AuditOutcome]
+
+
+export const AuditSource = {
+  PORTAL: 'PORTAL',
+  MOBILE: 'MOBILE',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type AuditSource = (typeof AuditSource)[keyof typeof AuditSource]
+
+
+export const AuthProvider = {
+  GOOGLE: 'GOOGLE',
+  FACEBOOK: 'FACEBOOK'
+} as const
+
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
+
+
+export const InterestCode = {
+  ACADEMIC_ACTIVITIES: 'ACADEMIC_ACTIVITIES',
+  DONATION_DRIVES: 'DONATION_DRIVES',
+  ENVIRONMENT: 'ENVIRONMENT',
+  SCHOOL: 'SCHOOL',
+  COMMUNITY: 'COMMUNITY',
+  EMERGENCY: 'EMERGENCY',
+  DONATION_DRIVE: 'DONATION_DRIVE',
+  CHARITY: 'CHARITY',
+  RELIEF_PROGRAM: 'RELIEF_PROGRAM',
+  HEALTH: 'HEALTH',
+  OUTREACH: 'OUTREACH',
+  TRAINING: 'TRAINING',
+  SEMINAR: 'SEMINAR',
+  OTHERS: 'OTHERS'
+} as const
+
+export type InterestCode = (typeof InterestCode)[keyof typeof InterestCode]
+
+
+export const EventStatus = {
+  Upcoming: 'Upcoming',
+  Ongoing: 'Ongoing',
+  Completed: 'Completed',
+  Cancelled: 'Cancelled'
+} as const
+
+export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]
+
+
+export const AttendanceStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  ABSENT: 'ABSENT'
+} as const
+
+export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus]
+
+
+export const GeoValidationMethod = {
+  GEOFENCE: 'GEOFENCE',
+  OFFLINE_SYNC: 'OFFLINE_SYNC',
+  AWAITING_SYNC: 'AWAITING_SYNC',
+  MANUAL: 'MANUAL'
+} as const
+
+export type GeoValidationMethod = (typeof GeoValidationMethod)[keyof typeof GeoValidationMethod]
+
+
+export const SupportTicketPriority = {
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW'
+} as const
+
+export type SupportTicketPriority = (typeof SupportTicketPriority)[keyof typeof SupportTicketPriority]
+
+
+export const SupportTicketStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  UNDER_VERIFICATION: 'UNDER_VERIFICATION',
+  CLIENT_FEEDBACK: 'CLIENT_FEEDBACK',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type SupportTicketStatus = (typeof SupportTicketStatus)[keyof typeof SupportTicketStatus]
+
+
+export const SupportTicketType = {
+  BUG: 'BUG',
+  LOGIN: 'LOGIN',
+  ACCOUNT: 'ACCOUNT',
+  VERIFICATION: 'VERIFICATION',
+  EVENT: 'EVENT',
+  MOBILE_APP: 'MOBILE_APP',
+  FEATURE_REQUEST: 'FEATURE_REQUEST',
+  REPORT: 'REPORT',
+  OTHER: 'OTHER'
+} as const
+
+export type SupportTicketType = (typeof SupportTicketType)[keyof typeof SupportTicketType]
+
+
+export const SupportTicketAuthorType = {
+  STAFF: 'STAFF',
+  REQUESTER: 'REQUESTER'
+} as const
+
+export type SupportTicketAuthorType = (typeof SupportTicketAuthorType)[keyof typeof SupportTicketAuthorType]
+
+
+export const CertificateTemplateStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CertificateTemplateStatus = (typeof CertificateTemplateStatus)[keyof typeof CertificateTemplateStatus]
+
+
+export const CertificateTemplateCategory = {
+  PARTICIPATION: 'PARTICIPATION',
+  APPRECIATION: 'APPRECIATION',
+  VOLUNTEER_HOURS: 'VOLUNTEER_HOURS',
+  COMPLETION: 'COMPLETION',
+  SPONSORSHIP: 'SPONSORSHIP'
+} as const
+
+export type CertificateTemplateCategory = (typeof CertificateTemplateCategory)[keyof typeof CertificateTemplateCategory]
+
+
+export const CertificateOrientation = {
+  LANDSCAPE: 'LANDSCAPE',
+  PORTRAIT: 'PORTRAIT'
+} as const
+
+export type CertificateOrientation = (typeof CertificateOrientation)[keyof typeof CertificateOrientation]
+
+
+export const CertificateAssetKind = {
+  IMAGE: 'IMAGE',
+  FRAME: 'FRAME',
+  SEAL: 'SEAL'
+} as const
+
+export type CertificateAssetKind = (typeof CertificateAssetKind)[keyof typeof CertificateAssetKind]
+
+
+export const CertificateDeploymentStatus = {
+  SCHEDULED: 'SCHEDULED',
+  DISTRIBUTING: 'DISTRIBUTING',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type CertificateDeploymentStatus = (typeof CertificateDeploymentStatus)[keyof typeof CertificateDeploymentStatus]
+
+
+export const MonthlyReportStatus = {
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  APPROVED: 'APPROVED',
+  RETURNED: 'RETURNED'
+} as const
+
+export type MonthlyReportStatus = (typeof MonthlyReportStatus)[keyof typeof MonthlyReportStatus]
+
+
+export const ReportDepartment = {
+  CCS: 'CCS',
+  CBA: 'CBA',
+  CEA: 'CEA',
+  CNAHS: 'CNAHS',
+  CAS: 'CAS',
+  CCJE: 'CCJE'
+} as const
+
+export type ReportDepartment = (typeof ReportDepartment)[keyof typeof ReportDepartment]
+
+
+export const MonthlyReportDocumentKind = {
+  DOCX: 'DOCX',
+  PDF: 'PDF',
+  XLSX: 'XLSX',
+  IMAGE: 'IMAGE'
+} as const
+
+export type MonthlyReportDocumentKind = (typeof MonthlyReportDocumentKind)[keyof typeof MonthlyReportDocumentKind]
+
+
+export const MonthlyReportTrailAction = {
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  RETURNED: 'RETURNED',
+  RESUBMITTED: 'RESUBMITTED'
+} as const
+
+export type MonthlyReportTrailAction = (typeof MonthlyReportTrailAction)[keyof typeof MonthlyReportTrailAction]
+
+
+export const AnnouncementTone = {
+  INFO: 'INFO',
+  WARNING: 'WARNING',
+  CRITICAL: 'CRITICAL'
+} as const
+
+export type AnnouncementTone = (typeof AnnouncementTone)[keyof typeof AnnouncementTone]
+
+
+export const AnnouncementAudience = {
+  VOLUNTEERS: 'VOLUNTEERS',
+  BENEFICIARIES: 'BENEFICIARIES',
+  DONORS: 'DONORS',
+  COORDINATORS: 'COORDINATORS'
+} as const
+
+export type AnnouncementAudience = (typeof AnnouncementAudience)[keyof typeof AnnouncementAudience]
+
+
+export const AnnouncementChannel = {
+  PORTAL: 'PORTAL',
+  MOBILE: 'MOBILE',
+  EMAIL: 'EMAIL'
+} as const
+
+export type AnnouncementChannel = (typeof AnnouncementChannel)[keyof typeof AnnouncementChannel]
+
+
+export const AnnouncementState = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  PUBLISHED: 'PUBLISHED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type AnnouncementState = (typeof AnnouncementState)[keyof typeof AnnouncementState]
+
+
+export const NotificationCategory = {
+  EVENT: 'EVENT',
+  REPORT: 'REPORT',
+  ACCESS: 'ACCESS',
+  SYSTEM: 'SYSTEM',
+  VOLUNTEER: 'VOLUNTEER',
+  CERTIFICATE: 'CERTIFICATE',
+  DONATION: 'DONATION',
+  USER_REQUEST: 'USER_REQUEST',
+  SECURITY: 'SECURITY',
+  SUPPORT: 'SUPPORT',
+  MAIL: 'MAIL'
+} as const
+
+export type NotificationCategory = (typeof NotificationCategory)[keyof typeof NotificationCategory]
+
+
+export const NotificationTone = {
+  INFO: 'INFO',
+  ATTENTION: 'ATTENTION',
+  CRITICAL: 'CRITICAL'
+} as const
+
+export type NotificationTone = (typeof NotificationTone)[keyof typeof NotificationTone]
+
+
+export const EvaluationFormStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type EvaluationFormStatus = (typeof EvaluationFormStatus)[keyof typeof EvaluationFormStatus]
+
+
+export const EvaluationResponseStatus = {
+  COMPLETE: 'COMPLETE',
+  PARTIAL: 'PARTIAL'
+} as const
+
+export type EvaluationResponseStatus = (typeof EvaluationResponseStatus)[keyof typeof EvaluationResponseStatus]
+
+
+export const UserRequestKind = {
+  ROLE_ACCESS: 'ROLE_ACCESS',
+  EVENT_JOIN: 'EVENT_JOIN'
+} as const
+
+export type UserRequestKind = (typeof UserRequestKind)[keyof typeof UserRequestKind]
+
+
+export const UserRequestStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DELETED: 'DELETED'
+} as const
+
+export type UserRequestStatus = (typeof UserRequestStatus)[keyof typeof UserRequestStatus]
+
+
+export const DonationPaymentMethod = {
+  GCASH: 'GCASH',
+  QRPH: 'QRPH',
+  CARD: 'CARD',
+  BANK_TRANSFER: 'BANK_TRANSFER'
+} as const
+
+export type DonationPaymentMethod = (typeof DonationPaymentMethod)[keyof typeof DonationPaymentMethod]
+
+
+export const DonationPaymentStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type DonationPaymentStatus = (typeof DonationPaymentStatus)[keyof typeof DonationPaymentStatus]
+
+
+export const PaymentGatewayMode = {
+  TEST: 'TEST',
+  LIVE: 'LIVE'
+} as const
+
+export type PaymentGatewayMode = (typeof PaymentGatewayMode)[keyof typeof PaymentGatewayMode]
+
+
+export const PaymentMethodVerification = {
+  NOT_VERIFIED: 'NOT_VERIFIED',
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED'
+} as const
+
+export type PaymentMethodVerification = (typeof PaymentMethodVerification)[keyof typeof PaymentMethodVerification]
+
+
+export const PaymentAccountProof = {
+  NOT_STARTED: 'NOT_STARTED',
+  SENDING: 'SENDING',
+  AWAITING_CONFIRMATION: 'AWAITING_CONFIRMATION',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED'
+} as const
+
+export type PaymentAccountProof = (typeof PaymentAccountProof)[keyof typeof PaymentAccountProof]
+
+
+export const DonationKind = {
+  MONEY: 'MONEY',
+  GOODS: 'GOODS'
+} as const
+
+export type DonationKind = (typeof DonationKind)[keyof typeof DonationKind]
+
+
+export const DonationStatus = {
+  PLEDGED: 'PLEDGED',
+  AWAITING_PICKUP: 'AWAITING_PICKUP',
+  VERIFYING: 'VERIFYING',
+  CONFIRMED: 'CONFIRMED',
+  DECLINED: 'DECLINED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type DonationStatus = (typeof DonationStatus)[keyof typeof DonationStatus]

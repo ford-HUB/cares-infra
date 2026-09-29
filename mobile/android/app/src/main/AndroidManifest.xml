@@ -1,16 +1,36 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Flutter only declares this in the debug/profile manifests, so a release
+         build would ship with no network access at all. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Attendance recorder runs in a foreground service (flutter_foreground_task)
+         so it keeps capturing with the app swiped away or the screen off.
+         Background location lets the service (re)start from the background,
+         e.g. after a reboot; POST_NOTIFICATIONS makes the ongoing "Recording
+         your location" notification visible on Android 13+; the battery
+         permission opens the "unrestricted" prompt so OEMs don't kill it. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
 
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.front" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
 
     <application
-        android:label="mobile"
+        android:label="Cares"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,6 +52,63 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Geofence recorder. Do not rename: flutter_foreground_task looks
+             this service up by name. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
+
+        <!-- Scheduled event reminders (flutter_local_notifications): the alarm
+             receiver fires them, the boot receiver re-arms them after a restart. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
+        <!--
+          Facebook Login. Auto-init is off so an unconfigured build (the placeholder ids
+          in res/values/strings.xml) still starts: flutter_facebook_auth initialises the
+          SDK when a sign-in is actually attempted, and DonorSocialAuthConfig stops it
+          from getting that far while FACEBOOK_APP_ID is unset in .env.
+        -->
+        <meta-data
+            android:name="com.facebook.sdk.AutoInitEnabled"
+            android:value="false" />
+        <meta-data
+            android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
+            android:value="false" />
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.facebook.sdk.ClientToken"
+            android:value="@string/facebook_client_token" />
+
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:exported="false"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation" />
+        <activity
+            android:name="com.facebook.CustomTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/fb_login_protocol_scheme" />
+            </intent-filter>
+        </activity>
     </application>
 
     <!-- Android 11+ package visibility: required for image_picker camera & gallery -->
@@ -49,6 +126,13 @@
         <intent>
             <action android:name="android.intent.action.PICK"/>
             <data android:mimeType="image/*"/>
+        </intent>
+        <!-- Facebook Login: the Facebook app, then the Custom Tab browser fallback -->
+        <package android:name="com.facebook.katana"/>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https"/>
         </intent>
     </queries>
 </manifest>

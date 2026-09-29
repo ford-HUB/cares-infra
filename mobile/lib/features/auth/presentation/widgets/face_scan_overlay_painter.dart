@@ -43,8 +43,8 @@ class FaceScanOverlayPainter extends CustomPainter {
     final borderColor = isCapturing
         ? _green
         : _showGreen
-            ? _green
-            : Colors.white.withValues(alpha: 0.95);
+        ? _green
+        : Colors.white.withValues(alpha: 0.95);
 
     if (_showGreen && !isCapturing) {
       canvas.drawPath(
@@ -69,7 +69,9 @@ class FaceScanOverlayPainter extends CustomPainter {
 
     final jawY = FaceGuideGeometry.jawGuideLineY(size);
     final jawPaint = Paint()
-      ..color = _showGreen ? _green : AppColors.secondary.withValues(alpha: 0.45)
+      ..color = _showGreen
+          ? _green
+          : AppColors.secondary.withValues(alpha: 0.45)
       ..strokeWidth = _showGreen ? 3.5 : 2.5
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(
@@ -89,12 +91,13 @@ class FaceScanOverlayPainter extends CustomPainter {
       );
     }
 
-    final label = instruction ??
+    final label =
+        instruction ??
         (isCapturing
             ? 'Capturing photo…'
             : aligned
-                ? 'Face aligned'
-                : 'Center your face in the oval');
+            ? 'Face aligned'
+            : 'Center your face in the oval');
     _drawLabel(
       canvas,
       size,
@@ -172,13 +175,15 @@ class FaceScanOverlayPainter extends CustomPainter {
 
     final offset = Offset((size.width - tp.width) / 2, top);
     final bg = RRect.fromRectAndRadius(
-      Rect.fromLTWH(offset.dx - 10, offset.dy - 4, tp.width + 20, tp.height + 8),
+      Rect.fromLTWH(
+        offset.dx - 10,
+        offset.dy - 4,
+        tp.width + 20,
+        tp.height + 8,
+      ),
       const Radius.circular(20),
     );
-    canvas.drawRRect(
-      bg,
-      Paint()..color = Colors.black.withValues(alpha: 0.35),
-    );
+    canvas.drawRRect(bg, Paint()..color = Colors.black.withValues(alpha: 0.35));
     tp.paint(canvas, offset);
   }
 

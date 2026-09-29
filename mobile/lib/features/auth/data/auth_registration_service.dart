@@ -2,24 +2,44 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
 class AuthRegistrationService {
-  AuthRegistrationService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+  AuthRegistrationService({ApiClient? apiClient})
+    : _api = apiClient ?? ApiClient();
 
   final ApiClient _api;
+
+  /// Starts an ID-less registration session (beneficiaries skip the ID upload).
+  Future<StartSessionResponse> startSession({required String roleType}) async {
+    final response = await _api.postJson(
+      '/auth/start-session',
+      body: {'roleType': roleType},
+    );
+
+    return StartSessionResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+  }
 
   Future<UploadIdResponse> uploadId({
     required XFile front,
     required XFile back,
+    String? roleType,
   }) async {
     final frontBytes = await front.readAsBytes();
     final backBytes = await back.readAsBytes();
 
+    final fields = <String, String>{};
+    if (roleType != null && roleType.isNotEmpty) {
+      fields['roleType'] = roleType;
+    }
+
     final response = await _api.postMultipart(
       '/auth/upload-id',
-      fields: const {},
+      fields: fields,
       files: [
         http.MultipartFile.fromBytes(
           'front',
@@ -58,7 +78,9 @@ class AuthRegistrationService {
       ],
     );
 
-    return VerifyFaceResponse.fromJson(response['data'] as Map<String, dynamic>);
+    return VerifyFaceResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
   }
 
   Future<ExtractIdResponse> extractId({required String registrationId}) async {
@@ -91,34 +113,54 @@ class AuthRegistrationService {
     return response['data'] as Map<String, dynamic>? ?? {};
   }
 
-  Future<SendVerificationResponse> sendVerificationCode({required String email}) async {
+  /// [phoneNumber] and [idNumber] are checked for clashes with existing
+  /// accounts before a code is sent, so a taken value is reported as a
+  /// [RegistrationConflict] on the form rather than after the OTP.
+  ///
+  /// [purpose] is [VerificationPurpose.login] when an existing account that never
+  /// finished its OTP is being verified from the sign-in screen.
+  Future<SendVerificationResponse> sendVerificationCode({
+    required String email,
+    String? phoneNumber,
+    String? idNumber,
+    VerificationPurpose purpose = VerificationPurpose.registration,
+  }) async {
+    final phone = phoneNumber == null
+        ? null
+        : normalizePhilippinePhone(phoneNumber);
+    final id = idNumber?.trim();
     final response = await _api.postJson(
       '/auth/send-verification',
-      body: {'email': email.trim()},
+      body: {
+        'email': email.trim(),
+        if (phone != null && phone.isNotEmpty) 'phone_number': phone,
+        if (id != null && id.isNotEmpty) 'id_number': id,
+        'purpose': purpose.name,
+      },
     );
 
-    return SendVerificationResponse.fromJson(response['data'] as Map<String, dynamic>);
+    return SendVerificationResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
   }
 
-  Future<VerificationStatusResponse> getVerificationStatus({required String email}) async {
+  Future<VerificationStatusResponse> getVerificationStatus({
+    required String email,
+  }) async {
     final response = await _api.postJson(
       '/auth/verification-status',
       body: {'email': email.trim()},
     );
 
-    return VerificationStatusResponse.fromJson(response['data'] as Map<String, dynamic>);
+    return VerificationStatusResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
   }
 
-  Future<void> verifyOtp({
-    required String email,
-    required String otp,
-  }) async {
+  Future<void> verifyOtp({required String email, required String otp}) async {
     await _api.postJson(
       '/auth/verify-otp',
-      body: {
-        'email': email.trim(),
-        'otp': otp.trim(),
-      },
+      body: {'email': email.trim(), 'otp': otp.trim()},
     );
   }
 
@@ -139,3 +181,6 @@ class AuthRegistrationService {
     return MediaType('image', 'jpeg');
   }
 }
+
+/// Why a verification code is being mailed — see `sendVerificationCode`.
+enum VerificationPurpose { registration, login }

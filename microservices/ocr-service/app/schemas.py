@@ -28,3 +28,11 @@ class IdExtractResult(BaseModel):
     rawTextBack: str = Field(default="", alias="rawTextBack")
 
     model_config = {"populate_by_name": True}
+
+
+class ResidencyExtractResult(BaseModel):
+    """`/api/v1/extract-residency` — the address a barangay certificate vouches for."""
+
+    address: str = ""
+    rawText: str = ""
+    pages: int = 0

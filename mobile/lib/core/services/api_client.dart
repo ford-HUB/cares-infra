@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/core/services/auth_session.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode, this.errors});
@@ -26,7 +28,9 @@ class ApiClient {
     if (configured == null || configured.isEmpty) {
       throw ApiException('API_BASE_URL is not configured in .env');
     }
-    return configured.endsWith('/') ? configured.substring(0, configured.length - 1) : configured;
+    return configured.endsWith('/')
+        ? configured.substring(0, configured.length - 1)
+        : configured;
   }
 
   Uri uri(String path) {
@@ -38,27 +42,87 @@ class ApiClient {
     return Uri.parse('$baseUrl$normalizedPath');
   }
 
-  Future<Map<String, dynamic>> getJson(String path) async {
+  Future<Map<String, dynamic>> getJson(
+    String path, {
+    bool authenticate = true,
+  }) async {
     return _guard(() async {
-      final response = await _client.get(uri(path)).timeout(const Duration(seconds: 30));
-      return _parseResponse(response);
+      final response = await _client
+          .get(uri(path), headers: _jsonHeaders(authenticate: authenticate))
+          .timeout(const Duration(seconds: 30));
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
   }
 
+  /// [headers] are merged over the defaults — for per-request extras such as
+  /// an `Idempotency-Key`.
   Future<Map<String, dynamic>> postJson(
     String path, {
     required Map<String, dynamic> body,
     Duration timeout = const Duration(seconds: 30),
+    bool authenticate = true,
+    Map<String, String>? headers,
   }) async {
     return _guard(() async {
       final response = await _client
           .post(
             uri(path),
-            headers: const {'Content-Type': 'application/json'},
+            headers: {
+              ..._jsonHeaders(authenticate: authenticate),
+              ...?headers,
+            },
             body: jsonEncode(body),
           )
           .timeout(timeout);
-      return _parseResponse(response);
+      return _parseResponse(response, authenticated: authenticate);
+    }, path);
+  }
+
+  Future<Map<String, dynamic>> putJson(
+    String path, {
+    required Map<String, dynamic> body,
+    Duration timeout = const Duration(seconds: 30),
+    bool authenticate = true,
+  }) async {
+    return _guard(() async {
+      final response = await _client
+          .put(
+            uri(path),
+            headers: _jsonHeaders(authenticate: authenticate),
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+      return _parseResponse(response, authenticated: authenticate);
+    }, path);
+  }
+
+  Future<Map<String, dynamic>> patchJson(
+    String path, {
+    required Map<String, dynamic> body,
+    Duration timeout = const Duration(seconds: 30),
+    bool authenticate = true,
+  }) async {
+    return _guard(() async {
+      final response = await _client
+          .patch(
+            uri(path),
+            headers: _jsonHeaders(authenticate: authenticate),
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+      return _parseResponse(response, authenticated: authenticate);
+    }, path);
+  }
+
+  Future<Map<String, dynamic>> deleteJson(
+    String path, {
+    bool authenticate = true,
+  }) async {
+    return _guard(() async {
+      final response = await _client
+          .delete(uri(path), headers: _jsonHeaders(authenticate: authenticate))
+          .timeout(const Duration(seconds: 30));
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
   }
 
@@ -66,16 +130,60 @@ class ApiClient {
     String path, {
     required Map<String, String> fields,
     required List<http.MultipartFile> files,
+    bool authenticate = true,
+  }) {
+    return _sendMultipart(
+      'POST',
+      path,
+      fields: fields,
+      files: files,
+      authenticate: authenticate,
+    );
+  }
+
+  Future<Map<String, dynamic>> putMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required List<http.MultipartFile> files,
+    bool authenticate = true,
+  }) {
+    return _sendMultipart(
+      'PUT',
+      path,
+      fields: fields,
+      files: files,
+      authenticate: authenticate,
+    );
+  }
+
+  Future<Map<String, dynamic>> _sendMultipart(
+    String method,
+    String path, {
+    required Map<String, String> fields,
+    required List<http.MultipartFile> files,
+    required bool authenticate,
   }) async {
     return _guard(() async {
-      final request = http.MultipartRequest('POST', uri(path))
+      final request = http.MultipartRequest(method, uri(path))
+        ..headers.addAll(authHeaders(authenticate: authenticate))
         ..fields.addAll(fields)
         ..files.addAll(files);
 
-      final streamed = await _client.send(request).timeout(const Duration(seconds: 60));
+      final streamed = await _client
+          .send(request)
+          .timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
-      return _parseResponse(response);
+      return _parseResponse(response, authenticated: authenticate);
     }, path);
+  }
+
+  /// Bearer header only — for requests the client does not build itself
+  /// (multipart uploads, `Image.network` against a private stream).
+  Map<String, String> authHeaders({bool authenticate = true}) {
+    if (!authenticate) return const {};
+    final token = AuthSession.accessToken;
+    if (token == null || token.isEmpty) return const {};
+    return {'Authorization': 'Bearer $token'};
   }
 
   Future<Map<String, dynamic>> _guard(
@@ -95,7 +203,10 @@ class ApiClient {
     }
   }
 
-  Map<String, dynamic> _parseResponse(http.Response response) {
+  Map<String, dynamic> _parseResponse(
+    http.Response response, {
+    bool authenticated = false,
+  }) {
     Map<String, dynamic>? body;
     if (response.body.isNotEmpty) {
       final decoded = jsonDecode(response.body);
@@ -105,8 +216,22 @@ class ApiClient {
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = body?['message'] as String? ?? 'Request failed (${response.statusCode})';
-      throw ApiException(message, statusCode: response.statusCode, errors: body?['errors']);
+      final message =
+          body?['message'] as String? ??
+          'Request failed (${response.statusCode})';
+      // A 401 on a request that carried our token means the server dropped the
+      // session (restricted account, revoked device, expiry). A 401 from login
+      // itself is a wrong password and stays with the form.
+      if (response.statusCode == 401 &&
+          authenticated &&
+          AuthSession.isSignedIn) {
+        AuthSession.notifySessionEnded(message);
+      }
+      throw ApiException(
+        message,
+        statusCode: response.statusCode,
+        errors: body?['errors'],
+      );
     }
 
     if (body == null) {
@@ -122,5 +247,19 @@ class ApiClient {
     }
 
     return body;
+  }
+
+  /// Names the app and OS so a session shows up as "CARES app · Android" in
+  /// the connected-devices list instead of the Dart runtime's default.
+  static final String userAgent =
+      'CARES-Mobile (${Platform.operatingSystem}; '
+      '${Platform.operatingSystemVersion})';
+
+  Map<String, String> _jsonHeaders({bool authenticate = true}) {
+    return {
+      'Content-Type': 'application/json',
+      'User-Agent': userAgent,
+      ...authHeaders(authenticate: authenticate),
+    };
   }
 }

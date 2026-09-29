@@ -1,48 +1,126 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
+import { redisConnectionOptions } from './redis-connection';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
-    private readonly redis: Redis;
+  private readonly redis: Redis;
 
-    constructor() {
-        this.redis = new Redis({
-            host: process.env.REDIS_HOST as string,
-            port: Number(process.env.REDIS_PORT),
-        });
+  constructor() {
+    this.redis = new Redis(redisConnectionOptions());
+  }
+
+  async set(key: string, value: unknown, ttl?: number): Promise<void> {
+    const data = JSON.stringify(value);
+    if (ttl) {
+      await this.redis.set(key, data, 'EX', ttl);
+      return;
     }
 
-    async set(key: string, value: unknown, ttl?: number): Promise<void> {
-        const data = JSON.stringify(value);
-        if (ttl) {
-            await this.redis.set(key, data, 'EX', ttl);
-            return;
-        }
+    this.redis.set(key, data);
+  }
 
-        this.redis.set(key, data);
+  async get<T>(key: string): Promise<T | null> {
+    const data = await this.redis.get(key);
+    if (!data) {
+      return null;
+    }
+    return JSON.parse(data) as T;
+  }
+
+  async expire(key: string, ttl: number): Promise<void> {
+    await this.redis.expire(key, ttl);
+  }
+
+  async ttl(key: string): Promise<number> {
+    return this.redis.ttl(key);
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.redis.del(key);
+  }
+
+  async deleteMany(keys: string[]): Promise<number> {
+    if (keys.length === 0) {
+      return 0;
+    }
+    return this.redis.del(...keys);
+  }
+
+  /**
+   * Collects every key matching `pattern` with SCAN rather than KEYS, so a large
+   * keyspace is walked in batches instead of blocking the server on one call.
+   */
+  async scanKeys(pattern: string, batch = 200): Promise<string[]> {
+    const found = new Set<string>();
+    let cursor = '0';
+
+    do {
+      const [next, keys] = await this.redis.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        batch,
+      );
+      keys.forEach((key) => found.add(key));
+      cursor = next;
+    } while (cursor !== '0');
+
+    return [...found];
+  }
+
+  /** Reads many keys in one round-trip. Missing or unparsable entries are dropped. */
+  async getMany<T>(keys: string[]): Promise<T[]> {
+    if (keys.length === 0) {
+      return [];
     }
 
-    async get<T>(key: string): Promise<T | null> {
-        const data = await this.redis.get(key);
-        if (!data) {
-            return null;
-        }
-        return JSON.parse(data) as T;
-    }
-    
-    async expire(key: string, ttl: number): Promise<void> {
-        await this.redis.expire(key, ttl);
-    }
+    const values = await this.redis.mget(...keys);
+    return values.reduce<T[]>((parsed, value) => {
+      if (!value) {
+        return parsed;
+      }
+      try {
+        parsed.push(JSON.parse(value) as T);
+      } catch {
+        // A malformed entry is treated as absent rather than failing the whole read.
+      }
+      return parsed;
+    }, []);
+  }
 
-    async ttl(key: string): Promise<number> {
-        return this.redis.ttl(key);
-    }
+  /**
+   * Prepends to a capped list — newest first, trimmed to `max` entries. Used for
+   * short histories (a scheduler's recent runs) where only the tail matters.
+   */
+  async pushCapped(key: string, value: unknown, max: number): Promise<void> {
+    await this.redis
+      .multi()
+      .lpush(key, JSON.stringify(value))
+      .ltrim(key, 0, max - 1)
+      .exec();
+  }
 
-    async delete(key: string): Promise<void> {
-        await this.redis.del(key);
-    }
+  /** Reads a list written by `pushCapped`, newest first. Unparsable entries are dropped. */
+  async listAll<T>(key: string): Promise<T[]> {
+    const values = await this.redis.lrange(key, 0, -1);
+    return values.reduce<T[]>((parsed, value) => {
+      try {
+        parsed.push(JSON.parse(value) as T);
+      } catch {
+        // A malformed entry is treated as absent rather than failing the whole read.
+      }
+      return parsed;
+    }, []);
+  }
 
-    async onModuleDestroy(): Promise<void> {
-        await this.redis.quit();
-    }
+  /** Round-trip to the server — the diagnostics check's liveness probe. */
+  async ping(): Promise<void> {
+    await this.redis.ping();
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.redis.quit();
+  }
 }

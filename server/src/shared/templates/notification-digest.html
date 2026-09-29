@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Notifications waiting for you on CARES</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #24292e; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f6f8fa;">
+    <tr>
+      <td align="center" style="padding: 32px 16px 48px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 544px;">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+                <img src="https://res.cloudinary.com/dhkp7er6i/image/upload/v1781425864/transparent-logo_ahvqrr.png" alt="CARES Logo" style="width: 50px; height: 50px;">
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.25; color: #24292e;">
+                {{total}} notification{{#if plural}}s{{/if}} waiting for you
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color: #ffffff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 32px 40px;">
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5; color: #24292e;">
+                Hi {{username}}, since yesterday the portal raised {{total}} notice{{#if plural}}s{{/if}} that need your attention{{#if urgent}} — <strong style="color: #cf222e;">{{urgent}} urgent</strong>{{/if}}. You have not opened them yet.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px; border: 1px solid #e1e4e8; border-radius: 6px;">
+                {{#each preview}}
+                <tr>
+                  <td style="padding: 12px 16px; border-bottom: 1px solid #e1e4e8; font-size: 14px; line-height: 1.4; color: #24292e;">
+                    {{#if urgent}}<span style="display: inline-block; margin-right: 8px; padding: 1px 6px; border-radius: 4px; background-color: #ffebe9; color: #cf222e; font-size: 11px; font-weight: 600; text-transform: uppercase;">Urgent</span>{{/if}}{{title}}
+                  </td>
+                </tr>
+                {{/each}}
+                {{#if more}}
+                <tr>
+                  <td style="padding: 12px 16px; font-size: 13px; line-height: 1.4; color: #586069;">
+                    and {{more}} more…
+                  </td>
+                </tr>
+                {{/if}}
+              </table>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto 28px;">
+                <tr>
+                  <td align="center" style="background-color: #2da44e; border-radius: 6px;">
+                    <a href="{{portalUrl}}" style="display: inline-block; padding: 12px 24px; font-size: 14px; font-weight: 600; line-height: 1; color: #ffffff; text-decoration: none;">
+                      Open notifications
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #24292e;">
+                Thanks,<br>
+                The CARES Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 24px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #586069; max-width: 480px;">
+                You're receiving this because you hold a CARES portal account with unread notices. This digest goes out once a morning, only when there is something to chase. Questions: <a href="mailto:{{supportEmail}}" style="color: #586069;">{{supportEmail}}</a>.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

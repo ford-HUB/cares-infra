@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
@@ -168,9 +167,9 @@ class FaceCameraInputHelper {
 
 extension on InputImageRotation {
   int get rotationDegrees => switch (this) {
-        InputImageRotation.rotation0deg => 0,
-        InputImageRotation.rotation90deg => 90,
-        InputImageRotation.rotation180deg => 180,
-        InputImageRotation.rotation270deg => 270,
-      };
+    InputImageRotation.rotation0deg => 0,
+    InputImageRotation.rotation90deg => 90,
+    InputImageRotation.rotation180deg => 180,
+    InputImageRotation.rotation270deg => 270,
+  };
 }

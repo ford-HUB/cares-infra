@@ -1,0 +1,128 @@
+services:
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: production
+    container_name: prod_server
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    env_file:
+      # No source mount in prod, so the server's own env (Neon DATABASE_URL included) is passed in directly.
+      - ./server/.env
+    environment:
+      - PORT=9000
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FR_SERVICE_URL=http://fr-service:8001
+      - OCR_SERVICE_URL=http://ocr-service:8002
+      - UCID_SERVICE_URL=http://ucid-service:8003
+      - NLP_SERVICE_URL=http://nlp-service:8004
+      - GPS_VALIDATOR_SERVICE_URL=http://gps-validator-service:8005
+      - DECISION_SERVICE_URL=http://decision-service:8006
+    depends_on:
+      - redis
+      - fr-service
+      - ocr-service
+      - ucid-service
+      - nlp-service
+      - gps-validator-service
+      - decision-service
+
+  redis:
+    image: redis:7-alpine
+    container_name: prod_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  fr-service:
+    build:
+      context: ./microservices/fr-service
+      dockerfile: Dockerfile
+    container_name: prod_fr_service
+    restart: unless-stopped
+    environment:
+      - PORT=8001
+      - MODEL_NAME=buffalo_l
+      - CTX_ID=-1
+      - DET_SIZE=640
+      - VERIFY_THRESHOLD=0.4
+      - EMBEDDING_DIM=512
+      - CORS_ORIGINS=*
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+  ocr-service:
+    build:
+      context: ./microservices/ocr-service
+      dockerfile: Dockerfile
+    container_name: prod_ocr_service
+    restart: unless-stopped
+    environment:
+      - PORT=8002
+      - CORS_ORIGINS=*
+
+  ucid-service:
+    build:
+      context: ./microservices/ucid-service
+      dockerfile: Dockerfile
+    container_name: prod_ucid_service
+    restart: unless-stopped
+    environment:
+      - PORT=8003
+      - CORS_ORIGINS=*
+      - VALID_THRESHOLD=0.50
+    volumes:
+      # The image does not bake the model weights in, so they are still mounted.
+      - ./microservices/ucid-service/models:/app/models
+
+  nlp-service:
+    build:
+      context: ./microservices/nlp-service
+      dockerfile: Dockerfile
+    container_name: prod_nlp_service
+    restart: unless-stopped
+    environment:
+      - PORT=8004
+      - CORS_ORIGINS=*
+      - MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
+      - MATCH_THRESHOLD=0.45
+      - TOP_K=3
+      - SEMANTIC_WEIGHT=0.65
+
+  gps-validator-service:
+    build:
+      context: ./microservices/gps-validator-service
+      dockerfile: Dockerfile
+    container_name: prod_gps_validator_service
+    restart: unless-stopped
+    environment:
+      - PORT=8005
+      - CORS_ORIGINS=*
+      - REQUIRED_COVERAGE_RATIO=0.90
+      - LATE_ENTRY_RATIO=0.50
+      - MAX_PING_GAP_SECONDS=120
+      - BOUNDARY_TOLERANCE_M=10
+      - MAX_SPEED_MPS=12
+      - MAX_ACCURACY_M=60
+
+  decision-service:
+    build:
+      context: ./microservices/decision-service
+      dockerfile: Dockerfile
+    container_name: prod_decision_service
+    restart: unless-stopped
+    environment:
+      - PORT=8006
+      - CORS_ORIGINS=*
+      - DEFAULT_K=3
+      - MAX_ITERATIONS=50
+      - N_INIT=1
+
+volumes:
+  redis_data:

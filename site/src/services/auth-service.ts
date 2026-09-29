@@ -1,0 +1,112 @@
+import { mapRoleTypeToPortalRole } from '../config/role-type-map'
+import { SESSION_KEY, TOKEN_KEY } from '../constants/session'
+import type {
+  AdminLoginApiResponse,
+  LoginPayload,
+  MeApiResponse,
+  SessionSuspensionApi,
+} from '../types/auth'
+import type { SessionSuspension } from '../types/access-control'
+import type { ApiResponse, AuthUser } from '../types/portal-roles'
+import { apiClient, isAuthFailure, parseApiError, toApiResponse } from './api-client'
+function mapSuspensions(
+  suspensions: SessionSuspensionApi[] | undefined,
+): SessionSuspension[] {
+  return (suspensions ?? []).map((entry) => ({
+    permission: entry.permission,
+    reason: entry.reason,
+    issuedAt: entry.issued_at,
+    expiresAt: entry.expires_at ?? undefined,
+  }))
+}
+
+function mapLoginResponse(data: AdminLoginApiResponse): AuthUser {
+  return {
+    id: data.user_id,
+    email: data.email,
+    role: mapRoleTypeToPortalRole(data.role_type),
+    firstName: data.firstname,
+    lastName: data.lastname,
+    permissions: data.permissions ?? [],
+    suspensions: mapSuspensions(data.suspensions),
+  }
+}
+
+function mapMeResponse(data: MeApiResponse): AuthUser {
+  return {
+    id: data.user_id,
+    email: data.email,
+    role: mapRoleTypeToPortalRole(data.role_type),
+    firstName: data.firstname,
+    lastName: data.lastname,
+    isProtected: data.is_protected,
+    permissions: data.permissions ?? [],
+    suspensions: mapSuspensions(data.suspensions),
+  }
+}
+
+export async function login(payload: LoginPayload): Promise<ApiResponse<AuthUser>> {
+  try {
+    const { data: body } = await apiClient.post<{
+      ok: true
+      data: AdminLoginApiResponse
+    }>('/api/v1/auth/admin/login', payload)
+
+    const user = mapLoginResponse(body.data)
+    persistSession(user, body.data.access_token)
+    return toApiResponse(user)
+  } catch (error) {
+    return { success: false, message: parseApiError(error), data: null }
+  }
+}
+
+export async function getSession(): Promise<ApiResponse<AuthUser>> {
+  const token = sessionStorage.getItem(TOKEN_KEY)
+  if (!token) {
+    return { success: false, message: 'Not authenticated', data: null }
+  }
+
+  try {
+    const { data: body } = await apiClient.get<{
+      ok: true
+      data: MeApiResponse
+    }>('/api/v1/auth/me')
+
+    const user = mapMeResponse(body.data)
+    persistSession(user, token)
+    return toApiResponse(user)
+  } catch (error) {
+    // Only a refusal from the server means the session is gone. A network blip, a
+    // server restart or a 5xx must leave the token in place — wiping it here would
+    // sign the tab out silently while the store still shows the person as signed in,
+    // and every later request would go out without a bearer.
+    if (isAuthFailure(error)) {
+      clearSession()
+    }
+    return { success: false, message: parseApiError(error), data: null }
+  }
+}
+
+export async function logoutSession(): Promise<void> {
+  try {
+    // Ends the server-side session too, so the token cannot be replayed and the device
+    // stops appearing under Active Sessions. A failure here still clears this tab.
+    await apiClient.post('/api/v1/auth/admin/logout')
+  } catch {
+    // Already signed out, or the API is unreachable — either way, sign out locally.
+  }
+
+  clearSession()
+}
+
+export function persistSession(user: AuthUser, token?: string): void {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(user))
+  if (token) {
+    sessionStorage.setItem(TOKEN_KEY, token)
+  }
+}
+
+function clearSession(): void {
+  sessionStorage.removeItem(SESSION_KEY)
+  sessionStorage.removeItem(TOKEN_KEY)
+}

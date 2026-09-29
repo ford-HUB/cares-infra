@@ -1,31 +1,46 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
+import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
+import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
 class RegisterOcrReviewStep extends StatefulWidget {
   const RegisterOcrReviewStep({
     super.key,
     required this.data,
-    required this.volunteerType,
+    required this.roleType,
+    this.volunteerType,
     required this.isExtracting,
     required this.extractFailed,
     required this.onChanged,
+    this.phoneError,
+    this.idNumberError,
     this.extractErrorMessage,
     this.onRetry,
-  });
+  }) : assert(
+         roleType != RegistrationRoleType.volunteer || volunteerType != null,
+         'volunteerType is required for volunteer registration',
+       );
 
   final RegisterOcrSample data;
-  final VolunteerType volunteerType;
+  final RegistrationRoleType roleType;
+  final VolunteerType? volunteerType;
   final bool isExtracting;
   final bool extractFailed;
   final String? extractErrorMessage;
   final VoidCallback? onRetry;
   final ValueChanged<RegisterOcrSample> onChanged;
+
+  /// Server-side conflicts on these inputs — shown inline and focused.
+  final String? phoneError;
+  final String? idNumberError;
 
   @override
   State<RegisterOcrReviewStep> createState() => _RegisterOcrReviewStepState();
@@ -60,12 +75,16 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   late final FocusNode _gradMonthFocus;
   late final FocusNode _gradDayFocus;
   late final FocusNode _gradYearFocus;
+  late final FocusNode _phoneFocus;
+  late final FocusNode _idNumberFocus;
 
   late String _gender;
   String? _selectedDepartment;
   String? _selectedCourse;
   String? _selectedYearLevel;
 
+  bool get _isBeneficiary =>
+      widget.roleType == RegistrationRoleType.beneficiary;
   bool get _isStudent => widget.volunteerType == VolunteerType.student;
   bool get _isAlumni => widget.volunteerType == VolunteerType.alumni;
   bool get _usesCourseField => _isStudent || _isAlumni;
@@ -92,20 +111,39 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradYear = TextEditingController();
     _gradMonth = TextEditingController();
     _gradDay = TextEditingController();
-    _volunteerTypeLabel = TextEditingController(text: widget.volunteerType.label);
+    _volunteerTypeLabel = TextEditingController(
+      text: widget.volunteerType?.label ?? '',
+    );
     _gradMonthFocus = FocusNode();
     _gradDayFocus = FocusNode();
     _gradYearFocus = FocusNode();
+    _phoneFocus = FocusNode();
+    _idNumberFocus = FocusNode();
     _gender = '';
 
     if (!widget.isExtracting && !widget.extractFailed) {
       _applyData(widget.data);
+    }
+    _focusConflict();
+  }
+
+  /// Lands the cursor on whichever input the server rejected.
+  void _focusConflict() {
+    if (widget.phoneError != null) {
+      focusConflictField(this, _phoneFocus);
+    } else if (widget.idNumberError != null) {
+      focusConflictField(this, _idNumberFocus);
     }
   }
 
   @override
   void didUpdateWidget(RegisterOcrReviewStep oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if ((widget.phoneError != null && oldWidget.phoneError == null) ||
+        (widget.idNumberError != null && oldWidget.idNumberError == null)) {
+      _focusConflict();
+    }
 
     final extractionCompleted =
         oldWidget.isExtracting && !widget.isExtracting && !widget.extractFailed;
@@ -137,7 +175,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _setControllerText(_middleName, enriched.middleName);
     _setControllerText(_age, enriched.age > 0 ? '${enriched.age}' : '');
     _setControllerText(_address, enriched.currentAddress);
-    _setControllerText(_phone, enriched.phoneNumber);
+    _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
     _setControllerText(_idNumber, enriched.idNumber);
     _setControllerText(_yearLevel, enriched.yearLevelName);
     _setControllerText(
@@ -152,17 +190,20 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       _gradDay,
       enriched.graduationDay > 0 ? '${enriched.graduationDay}' : '',
     );
-    _volunteerTypeLabel.text = widget.volunteerType.label;
+    _volunteerTypeLabel.text = widget.volunteerType?.label ?? '';
 
     if (enriched.gender.isNotEmpty && _genders.contains(enriched.gender)) {
       _gender = enriched.gender;
     }
 
-    _selectedDepartment =
-        UclmDepartments.matchDepartment(enriched.departmentName);
+    _selectedDepartment = UclmDepartments.matchDepartment(
+      enriched.departmentName,
+    );
     if (_selectedDepartment != null) {
-      _selectedCourse =
-          UclmDepartments.matchCourse(_selectedDepartment!, enriched.majorName);
+      _selectedCourse = UclmDepartments.matchCourse(
+        _selectedDepartment!,
+        enriched.majorName,
+      );
     } else {
       _selectedCourse = null;
     }
@@ -194,6 +235,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _gradMonthFocus.dispose();
     _gradDayFocus.dispose();
     _gradYearFocus.dispose();
+    _phoneFocus.dispose();
+    _idNumberFocus.dispose();
     super.dispose();
   }
 
@@ -271,18 +314,28 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         currentAddress: fieldOrParsed(_address.text, base.currentAddress),
         phoneNumber: fieldOrParsed(_phone.text, base.phoneNumber),
         idNumber: fieldOrParsed(_idNumber.text, base.idNumber),
-        departmentName: _selectedDepartment ?? base.departmentName,
-        majorName: _selectedCourse ?? base.majorName,
-        yearLevelName: _isStudent
-            ? fieldOrParsed(
-                _selectedYearLevel ?? _yearLevel.text,
-                base.yearLevelName,
-              )
-            : '',
-        graduationYear: gradYear > 0 ? gradYear : base.graduationYear,
-        graduationMonth: gradMonth > 0 ? gradMonth : base.graduationMonth,
-        graduationDay: gradDay > 0 ? gradDay : base.graduationDay,
-        volunteerType: widget.volunteerType.apiValue,
+        departmentName: _isBeneficiary
+            ? ''
+            : (_selectedDepartment ?? base.departmentName),
+        majorName: _isBeneficiary ? '' : (_selectedCourse ?? base.majorName),
+        yearLevelName: _isBeneficiary
+            ? ''
+            : (_isStudent
+                  ? fieldOrParsed(
+                      _selectedYearLevel ?? _yearLevel.text,
+                      base.yearLevelName,
+                    )
+                  : ''),
+        graduationYear: _isBeneficiary
+            ? 0
+            : (gradYear > 0 ? gradYear : base.graduationYear),
+        graduationMonth: _isBeneficiary
+            ? 0
+            : (gradMonth > 0 ? gradMonth : base.graduationMonth),
+        graduationDay: _isBeneficiary
+            ? 0
+            : (gradDay > 0 ? gradDay : base.graduationDay),
+        volunteerType: widget.volunteerType?.apiValue ?? base.volunteerType,
       ),
     );
   }
@@ -301,9 +354,9 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             Text(
               'Extracting ID data…',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -331,9 +384,9 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             Text(
               'Could not read ID card',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Padding(
@@ -363,39 +416,28 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Review extracted data',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.primaryDark,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Correct any mistakes from the ID scan before continuing.',
-          style: TextStyle(
-            fontSize: 14,
-            height: 1.45,
-            color: AppColors.secondary.withValues(alpha: 0.9),
-          ),
-        ),
-        const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.accent.withValues(alpha: 0.5)),
+            color: AppColors.accentLight.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.borderLight),
           ),
           child: const Row(
             children: [
-              Icon(Icons.verified_outlined, size: 20, color: AppColors.primaryDark),
-              SizedBox(width: 8),
+              Icon(
+                Icons.verified_outlined,
+                size: 20,
+                color: AppColors.primaryDark,
+              ),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Volunteer type is locked. Select department and course from the lists if needed.',
+                  'Correct anything the ID scan misread. Volunteer type is '
+                  'locked; pick your department and course from the lists.',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.5,
+                    height: 1.35,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryDark,
                   ),
@@ -404,257 +446,194 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        _sectionTitle('Personal information', Icons.person_outline),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'First name',
-          controller: _firstname,
-          textInputAction: TextInputAction.next,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Middle name',
-          controller: _middleName,
-          textInputAction: TextInputAction.next,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Last name',
-          controller: _lastname,
-          textInputAction: TextInputAction.next,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        _dropdown(
-          label: 'Gender',
-          value: _gender.isNotEmpty && _genders.contains(_gender) ? _gender : null,
-          items: _genders,
-          hint: 'Select gender',
-          onChanged: (v) {
-            setState(() => _gender = v!);
-            _notifyParent();
-          },
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Age',
-          controller: _age,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Address',
-          controller: _address,
-          maxLines: 2,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Phone number',
-          controller: _phone,
-          keyboardType: TextInputType.phone,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 20),
-        _sectionTitle('School information', Icons.school_outlined),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'ID number',
-          controller: _idNumber,
-          onChanged: (_) => _notifyParent(),
-        ),
-        const SizedBox(height: 12),
-        RegisterFormField(
-          label: 'Type of volunteer',
-          controller: _volunteerTypeLabel,
-          readOnly: true,
-        ),
-        const SizedBox(height: 12),
-        _dropdown(
-          label: 'Department',
-          value: _selectedDepartment,
-          items: UclmDepartments.names,
-          hint: 'Select your department',
-          isExpanded: true,
-          onChanged: _onDepartmentChanged,
-        ),
-        if (_usesCourseField) ...[
-          const SizedBox(height: 12),
-          _dropdown(
-            label: _isSeniorHigh ? 'Strand' : 'Course',
-            value: _selectedCourse,
-            items: _courseOptions,
-            hint: _selectedDepartment == null
-                ? 'Select a department first'
-                : 'Select your ${_isSeniorHigh ? 'strand' : 'course'}',
-            isExpanded: true,
-            enabled: _selectedDepartment != null && _courseOptions.isNotEmpty,
-            onChanged: _onCourseChanged,
-          ),
-        ],
-        if (_isStudent) ...[
-          const SizedBox(height: 12),
-          _dropdown(
-            label: _isSeniorHigh ? 'Grade level' : 'Year level',
-            value: _selectedYearLevel,
-            hint: 'Select your ${_isSeniorHigh ? 'grade level' : 'year level'}',
-            items: _yearLevelOptions,
-            onChanged: _onYearLevelChanged,
-          ),
-        ],
-        if (_isAlumni) ...[
-          const SizedBox(height: 12),
-          RegisterFormField(
-            label: 'Graduated year',
-            controller: _gradYear,
-            focusNode: _gradYearFocus,
-            keyboardType: TextInputType.number,
-            inputFormatters: _fourDigitInputFormatters,
-            onChanged: _onGradYearChanged,
-          ),
-        ],
-        if (_isStudent) ...[
-          const SizedBox(height: 12),
-          const Text(
-            'Graduation date',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryDark,
+        const SizedBox(height: 16),
+        RegistrationFormCard(
+          icon: Icons.person_outline_rounded,
+          title: 'Personal information',
+          subtitle: 'Read off the front of your ID.',
+          children: [
+            RegisterFormField(
+              label: 'First name',
+              controller: _firstname,
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => _notifyParent(),
             ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: RegisterFormField(
-                  label: 'Month',
-                  controller: _gradMonth,
-                  focusNode: _gradMonthFocus,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  inputFormatters: _twoDigitInputFormatters,
-                  onChanged: _onGradMonthChanged,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: RegisterFormField(
-                  label: 'Day',
-                  controller: _gradDay,
-                  focusNode: _gradDayFocus,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  inputFormatters: _twoDigitInputFormatters,
-                  onChanged: _onGradDayChanged,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: RegisterFormField(
-                  label: 'Year',
-                  controller: _gradYear,
-                  focusNode: _gradYearFocus,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  inputFormatters: _fourDigitInputFormatters,
-                  onChanged: _onGradYearChanged,
-                ),
+            const SizedBox(height: 14),
+            RegisterFormField(
+              label: 'Middle name',
+              hint: 'Optional',
+              controller: _middleName,
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => _notifyParent(),
+            ),
+            const SizedBox(height: 14),
+            RegisterFormField(
+              label: 'Last name',
+              controller: _lastname,
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => _notifyParent(),
+            ),
+            const SizedBox(height: 14),
+            _dropdown(
+              label: 'Gender',
+              value: _gender.isNotEmpty && _genders.contains(_gender)
+                  ? _gender
+                  : null,
+              items: _genders,
+              hint: 'Select gender',
+              onChanged: (v) {
+                setState(() => _gender = v!);
+                _notifyParent();
+              },
+            ),
+            const SizedBox(height: 14),
+            RegisterFormField(
+              label: 'Age',
+              controller: _age,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (_) => _notifyParent(),
+            ),
+            const SizedBox(height: 14),
+            RegisterFormField(
+              label: 'Address',
+              controller: _address,
+              maxLines: 2,
+              onChanged: (_) => _notifyParent(),
+            ),
+            const SizedBox(height: 14),
+            RegisterFormField(
+              label: 'Phone number',
+              hint: '+639XXXXXXXXX',
+              controller: _phone,
+              focusNode: _phoneFocus,
+              errorText: widget.phoneError ?? philippinePhoneError(_phone.text),
+              keyboardType: TextInputType.phone,
+              inputFormatters: const [PhilippinePhoneFormatter()],
+              onChanged: (_) => _notifyParent(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        RegistrationFormCard(
+          icon: Icons.school_outlined,
+          title: 'School information',
+          subtitle: 'Ties your account to your UC record.',
+          children: [
+            RegisterFormField(
+              label: 'ID number',
+              controller: _idNumber,
+              focusNode: _idNumberFocus,
+              errorText: widget.idNumberError,
+              onChanged: (_) => _notifyParent(),
+            ),
+            const SizedBox(height: 14),
+            RegisterFormField(
+              label: 'Type of volunteer',
+              controller: _volunteerTypeLabel,
+              readOnly: true,
+            ),
+            const SizedBox(height: 14),
+            _dropdown(
+              label: 'Department',
+              value: _selectedDepartment,
+              items: UclmDepartments.names,
+              hint: 'Select your department',
+              isExpanded: true,
+              onChanged: _onDepartmentChanged,
+            ),
+            if (_usesCourseField) ...[
+              const SizedBox(height: 14),
+              _dropdown(
+                label: _isSeniorHigh ? 'Strand' : 'Course',
+                value: _selectedCourse,
+                items: _courseOptions,
+                hint: _selectedDepartment == null
+                    ? 'Select a department first'
+                    : 'Select your ${_isSeniorHigh ? 'strand' : 'course'}',
+                isExpanded: true,
+                enabled:
+                    _selectedDepartment != null && _courseOptions.isNotEmpty,
+                onChanged: _onCourseChanged,
               ),
             ],
-          ),
-        ],
-        if (kDebugMode &&
-            (widget.data.rawTextFront.isNotEmpty ||
-                widget.data.rawTextBack.isNotEmpty)) ...[
-          const SizedBox(height: 16),
-          _ocrDebugPanel(),
-        ],
+            if (_isStudent) ...[
+              const SizedBox(height: 14),
+              _dropdown(
+                label: _isSeniorHigh ? 'Grade level' : 'Year level',
+                value: _selectedYearLevel,
+                hint:
+                    'Select your ${_isSeniorHigh ? 'grade level' : 'year level'}',
+                items: _yearLevelOptions,
+                onChanged: _onYearLevelChanged,
+              ),
+            ],
+            if (_isAlumni) ...[
+              const SizedBox(height: 14),
+              RegisterFormField(
+                label: 'Graduated year',
+                controller: _gradYear,
+                focusNode: _gradYearFocus,
+                keyboardType: TextInputType.number,
+                inputFormatters: _fourDigitInputFormatters,
+                onChanged: _onGradYearChanged,
+              ),
+            ],
+            if (_isStudent) ...[
+              const SizedBox(height: 14),
+              Text(
+                'Graduation date',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary.withValues(alpha: 0.95),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: RegisterFormField(
+                      label: 'Month',
+                      controller: _gradMonth,
+                      focusNode: _gradMonthFocus,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: _twoDigitInputFormatters,
+                      onChanged: _onGradMonthChanged,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RegisterFormField(
+                      label: 'Day',
+                      controller: _gradDay,
+                      focusNode: _gradDayFocus,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: _twoDigitInputFormatters,
+                      onChanged: _onGradDayChanged,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: RegisterFormField(
+                      label: 'Year',
+                      controller: _gradYear,
+                      focusNode: _gradYearFocus,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      inputFormatters: _fourDigitInputFormatters,
+                      onChanged: _onGradYearChanged,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
         const SizedBox(height: 8),
-      ],
-    );
-  }
-
-  Widget _ocrDebugPanel() {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      title: const Text(
-        'OCR debug (dev only)',
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primaryDark,
-        ),
-      ),
-      children: [
-        if (widget.data.rawTextFront.isNotEmpty) ...[
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Raw front text',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.fieldFill,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              widget.data.rawTextFront,
-              style: const TextStyle(fontSize: 11, height: 1.4),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-        if (widget.data.rawTextBack.isNotEmpty) ...[
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Raw back text',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.fieldFill,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              widget.data.rawTextBack,
-              style: const TextStyle(fontSize: 11, height: 1.4),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _sectionTitle(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-            color: AppColors.primaryDark,
-          ),
-        ),
       ],
     );
   }
@@ -670,8 +649,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     String Function(String value)? itemLabel,
   }) {
     final display = itemLabel ?? (String v) => v;
-    final selectedValue =
-        value != null && items.contains(value) ? value : null;
+    final selectedValue = value != null && items.contains(value) ? value : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -693,10 +671,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
               .map(
                 (e) => DropdownMenuItem(
                   value: e,
-                  child: Text(
-                    display(e),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(display(e), overflow: TextOverflow.ellipsis),
                 ),
               )
               .toList(),

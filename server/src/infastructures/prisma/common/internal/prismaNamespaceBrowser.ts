@@ -17,8 +17,8 @@
 
 import * as runtime from "@prisma/client/runtime/index-browser"
 
-export type * from '../models'
-export type * from './prismaNamespace'
+export type * from '../models.js'
+export type * from './prismaNamespace.js'
 
 export const Decimal = runtime.Decimal
 
@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  ResidencyDocument: 'ResidencyDocument',
+  UserRoleAvatar: 'UserRoleAvatar',
   UserSchoolInfo: 'UserSchoolInfo',
   Department: 'Department',
   Major: 'Major',
@@ -59,7 +61,50 @@ export const ModelName = {
   UserVerification: 'UserVerification',
   UserBiometric: 'UserBiometric',
   Role: 'Role',
-  Account: 'Account'
+  RolePermissionDefault: 'RolePermissionDefault',
+  UserPermissionOverride: 'UserPermissionOverride',
+  UserActionSuspension: 'UserActionSuspension',
+  BlockedIp: 'BlockedIp',
+  SecurityPolicy: 'SecurityPolicy',
+  LoginActivity: 'LoginActivity',
+  AuditLog: 'AuditLog',
+  Account: 'Account',
+  OAuthIdentity: 'OAuthIdentity',
+  GmailConnection: 'GmailConnection',
+  Interest: 'Interest',
+  UserInterest: 'UserInterest',
+  Event: 'Event',
+  EventAttendance: 'EventAttendance',
+  EventLocationPing: 'EventLocationPing',
+  Conversation: 'Conversation',
+  ConversationParticipant: 'ConversationParticipant',
+  ChatMessage: 'ChatMessage',
+  ChatAttachment: 'ChatAttachment',
+  SupportTicket: 'SupportTicket',
+  SupportTicketReply: 'SupportTicketReply',
+  CertificateTemplate: 'CertificateTemplate',
+  CertificateTemplateSignatory: 'CertificateTemplateSignatory',
+  CertificateTemplateAsset: 'CertificateTemplateAsset',
+  CertificateDeployment: 'CertificateDeployment',
+  IssuedCertificate: 'IssuedCertificate',
+  MonthlyReportFolder: 'MonthlyReportFolder',
+  MonthlyReport: 'MonthlyReport',
+  MonthlyReportDocument: 'MonthlyReportDocument',
+  MonthlyReportTrailEntry: 'MonthlyReportTrailEntry',
+  Announcement: 'Announcement',
+  Notification: 'Notification',
+  EvaluationForm: 'EvaluationForm',
+  EvaluationAssignment: 'EvaluationAssignment',
+  RankingSettings: 'RankingSettings',
+  EvaluationResponse: 'EvaluationResponse',
+  UserRequest: 'UserRequest',
+  UserRequestTrailEntry: 'UserRequestTrailEntry',
+  DonationPayment: 'DonationPayment',
+  PaymentWebhookEvent: 'PaymentWebhookEvent',
+  PaymentGatewaySettings: 'PaymentGatewaySettings',
+  PaymentMethodSetting: 'PaymentMethodSetting',
+  Donation: 'Donation',
+  DonationTrailEntry: 'DonationTrailEntry'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -88,6 +133,12 @@ export const UserScalarFieldEnum = {
   current_address: 'current_address',
   phone_number: 'phone_number',
   avatar: 'avatar',
+  portal_department: 'portal_department',
+  address_street: 'address_street',
+  address_barangay: 'address_barangay',
+  address_city: 'address_city',
+  address_province: 'address_province',
+  household_size: 'household_size',
   role_id: 'role_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -96,9 +147,36 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ResidencyDocumentScalarFieldEnum = {
+  residency_document_id: 'residency_document_id',
+  user_id: 'user_id',
+  file_url: 'file_url',
+  file_name: 'file_name',
+  mime_type: 'mime_type',
+  size_bytes: 'size_bytes',
+  extracted_address: 'extracted_address',
+  createdAt: 'createdAt'
+} as const
+
+export type ResidencyDocumentScalarFieldEnum = (typeof ResidencyDocumentScalarFieldEnum)[keyof typeof ResidencyDocumentScalarFieldEnum]
+
+
+export const UserRoleAvatarScalarFieldEnum = {
+  user_role_avatar_id: 'user_role_avatar_id',
+  user_id: 'user_id',
+  role_type: 'role_type',
+  avatar_url: 'avatar_url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserRoleAvatarScalarFieldEnum = (typeof UserRoleAvatarScalarFieldEnum)[keyof typeof UserRoleAvatarScalarFieldEnum]
+
+
 export const UserSchoolInfoScalarFieldEnum = {
   user_school_info_id: 'user_school_info_id',
   id_number: 'id_number',
+  school_id_url: 'school_id_url',
   graduation_year: 'graduation_year',
   graduation_month: 'graduation_month',
   graduation_day: 'graduation_day',
@@ -146,7 +224,7 @@ export type YearLevelScalarFieldEnum = (typeof YearLevelScalarFieldEnum)[keyof t
 export const UserVerificationScalarFieldEnum = {
   user_verification_id: 'user_verification_id',
   user_id: 'user_id',
-  school_id_url: 'school_id_url',
+  user_biometric_id: 'user_biometric_id',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -161,7 +239,6 @@ export const UserBiometricScalarFieldEnum = {
   embedding: 'embedding',
   embedding_type: 'embedding_type',
   isActive: 'isActive',
-  user_id: 'user_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -179,16 +256,773 @@ export const RoleScalarFieldEnum = {
 export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
 
 
+export const RolePermissionDefaultScalarFieldEnum = {
+  role_permission_default_id: 'role_permission_default_id',
+  role_type: 'role_type',
+  permission: 'permission',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RolePermissionDefaultScalarFieldEnum = (typeof RolePermissionDefaultScalarFieldEnum)[keyof typeof RolePermissionDefaultScalarFieldEnum]
+
+
+export const UserPermissionOverrideScalarFieldEnum = {
+  user_permission_override_id: 'user_permission_override_id',
+  user_id: 'user_id',
+  permission: 'permission',
+  effect: 'effect',
+  reason: 'reason',
+  granted_by_user_id: 'granted_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPermissionOverrideScalarFieldEnum = (typeof UserPermissionOverrideScalarFieldEnum)[keyof typeof UserPermissionOverrideScalarFieldEnum]
+
+
+export const UserActionSuspensionScalarFieldEnum = {
+  user_action_suspension_id: 'user_action_suspension_id',
+  user_id: 'user_id',
+  permission: 'permission',
+  reason: 'reason',
+  issued_by_user_id: 'issued_by_user_id',
+  expires_at: 'expires_at',
+  lifted_at: 'lifted_at',
+  lifted_by_user_id: 'lifted_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserActionSuspensionScalarFieldEnum = (typeof UserActionSuspensionScalarFieldEnum)[keyof typeof UserActionSuspensionScalarFieldEnum]
+
+
+export const BlockedIpScalarFieldEnum = {
+  blocked_ip_id: 'blocked_ip_id',
+  ip_address: 'ip_address',
+  reason: 'reason',
+  user_id: 'user_id',
+  blocked_by_user_id: 'blocked_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BlockedIpScalarFieldEnum = (typeof BlockedIpScalarFieldEnum)[keyof typeof BlockedIpScalarFieldEnum]
+
+
+export const SecurityPolicyScalarFieldEnum = {
+  security_policy_id: 'security_policy_id',
+  singleton: 'singleton',
+  password_min_length: 'password_min_length',
+  password_require_uppercase: 'password_require_uppercase',
+  password_require_lowercase: 'password_require_lowercase',
+  password_require_number: 'password_require_number',
+  password_require_symbol: 'password_require_symbol',
+  lockout_enabled: 'lockout_enabled',
+  lockout_max_attempts: 'lockout_max_attempts',
+  lockout_window_minutes: 'lockout_window_minutes',
+  lockout_duration_minutes: 'lockout_duration_minutes',
+  session_idle_timeout_minutes: 'session_idle_timeout_minutes',
+  session_max_duration_hours: 'session_max_duration_hours',
+  max_concurrent_sessions: 'max_concurrent_sessions',
+  login_hours_enabled: 'login_hours_enabled',
+  login_hours_start_minute: 'login_hours_start_minute',
+  login_hours_end_minute: 'login_hours_end_minute',
+  ip_allowlist: 'ip_allowlist',
+  updated_by_user_id: 'updated_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SecurityPolicyScalarFieldEnum = (typeof SecurityPolicyScalarFieldEnum)[keyof typeof SecurityPolicyScalarFieldEnum]
+
+
+export const LoginActivityScalarFieldEnum = {
+  login_activity_id: 'login_activity_id',
+  user_id: 'user_id',
+  email: 'email',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  source: 'source',
+  outcome: 'outcome',
+  failure_reason: 'failure_reason',
+  createdAt: 'createdAt'
+} as const
+
+export type LoginActivityScalarFieldEnum = (typeof LoginActivityScalarFieldEnum)[keyof typeof LoginActivityScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  audit_log_id: 'audit_log_id',
+  action: 'action',
+  description: 'description',
+  category: 'category',
+  severity: 'severity',
+  outcome: 'outcome',
+  actor_user_id: 'actor_user_id',
+  actor_name: 'actor_name',
+  actor_email: 'actor_email',
+  actor_role: 'actor_role',
+  target_type: 'target_type',
+  target_label: 'target_label',
+  target_id: 'target_id',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  source: 'source',
+  request_id: 'request_id',
+  reason: 'reason',
+  changes: 'changes',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
 export const AccountScalarFieldEnum = {
   account_id: 'account_id',
   email: 'email',
   password: 'password',
+  credential_expires_at: 'credential_expires_at',
+  provisioned_by_user_id: 'provisioned_by_user_id',
+  email_verified_at: 'email_verified_at',
+  signature_url: 'signature_url',
+  is_restricted: 'is_restricted',
+  restricted_at: 'restricted_at',
+  restriction_reason: 'restriction_reason',
+  last_login_ip: 'last_login_ip',
   user_id: 'user_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+export const OAuthIdentityScalarFieldEnum = {
+  oauth_identity_id: 'oauth_identity_id',
+  provider: 'provider',
+  provider_user_id: 'provider_user_id',
+  email: 'email',
+  user_id: 'user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OAuthIdentityScalarFieldEnum = (typeof OAuthIdentityScalarFieldEnum)[keyof typeof OAuthIdentityScalarFieldEnum]
+
+
+export const GmailConnectionScalarFieldEnum = {
+  gmail_connection_id: 'gmail_connection_id',
+  user_id: 'user_id',
+  google_sub: 'google_sub',
+  email: 'email',
+  scope: 'scope',
+  access_token: 'access_token',
+  refresh_token: 'refresh_token',
+  access_expires_at: 'access_expires_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GmailConnectionScalarFieldEnum = (typeof GmailConnectionScalarFieldEnum)[keyof typeof GmailConnectionScalarFieldEnum]
+
+
+export const InterestScalarFieldEnum = {
+  interest_id: 'interest_id',
+  code: 'code',
+  label: 'label',
+  description: 'description',
+  is_active: 'is_active',
+  sort_order: 'sort_order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InterestScalarFieldEnum = (typeof InterestScalarFieldEnum)[keyof typeof InterestScalarFieldEnum]
+
+
+export const UserInterestScalarFieldEnum = {
+  user_interest_id: 'user_interest_id',
+  user_id: 'user_id',
+  selected: 'selected',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserInterestScalarFieldEnum = (typeof UserInterestScalarFieldEnum)[keyof typeof UserInterestScalarFieldEnum]
+
+
+export const EventScalarFieldEnum = {
+  event_id: 'event_id',
+  title: 'title',
+  description: 'description',
+  event_started: 'event_started',
+  event_ended: 'event_ended',
+  location: 'location',
+  max_participants: 'max_participants',
+  participants: 'participants',
+  organizer_name: 'organizer_name',
+  category: 'category',
+  department: 'department',
+  specified_category: 'specified_category',
+  images: 'images',
+  status: 'status',
+  funds_donation: 'funds_donation',
+  goods_donation: 'goods_donation',
+  goods_types: 'goods_types',
+  beneficiary_applicable: 'beneficiary_applicable',
+  max_beneficiaries: 'max_beneficiaries',
+  geojson: 'geojson',
+  area_sqm: 'area_sqm',
+  marker_lat: 'marker_lat',
+  marker_lng: 'marker_lng',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const EventAttendanceScalarFieldEnum = {
+  event_attendance_id: 'event_attendance_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  status: 'status',
+  validation_method: 'validation_method',
+  first_ping_at: 'first_ping_at',
+  last_ping_at: 'last_ping_at',
+  hours_rendered: 'hours_rendered',
+  remarks: 'remarks',
+  registered_at: 'registered_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventAttendanceScalarFieldEnum = (typeof EventAttendanceScalarFieldEnum)[keyof typeof EventAttendanceScalarFieldEnum]
+
+
+export const EventLocationPingScalarFieldEnum = {
+  event_location_ping_id: 'event_location_ping_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  captured_at: 'captured_at',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  accuracy_m: 'accuracy_m',
+  in_area: 'in_area',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type EventLocationPingScalarFieldEnum = (typeof EventLocationPingScalarFieldEnum)[keyof typeof EventLocationPingScalarFieldEnum]
+
+
+export const ConversationScalarFieldEnum = {
+  conversation_id: 'conversation_id',
+  last_message_at: 'last_message_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum]
+
+
+export const ConversationParticipantScalarFieldEnum = {
+  conversation_participant_id: 'conversation_participant_id',
+  conversation_id: 'conversation_id',
+  user_id: 'user_id',
+  last_read_at: 'last_read_at',
+  createdAt: 'createdAt'
+} as const
+
+export type ConversationParticipantScalarFieldEnum = (typeof ConversationParticipantScalarFieldEnum)[keyof typeof ConversationParticipantScalarFieldEnum]
+
+
+export const ChatMessageScalarFieldEnum = {
+  message_id: 'message_id',
+  conversation_id: 'conversation_id',
+  sender_id: 'sender_id',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
+
+
+export const ChatAttachmentScalarFieldEnum = {
+  attachment_id: 'attachment_id',
+  message_id: 'message_id',
+  name: 'name',
+  size: 'size',
+  mime_type: 'mime_type',
+  url: 'url',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatAttachmentScalarFieldEnum = (typeof ChatAttachmentScalarFieldEnum)[keyof typeof ChatAttachmentScalarFieldEnum]
+
+
+export const SupportTicketScalarFieldEnum = {
+  support_ticket_id: 'support_ticket_id',
+  reference_number: 'reference_number',
+  subject: 'subject',
+  description: 'description',
+  type: 'type',
+  status: 'status',
+  priority: 'priority',
+  requester_id: 'requester_id',
+  assignee_id: 'assignee_id',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SupportTicketScalarFieldEnum = (typeof SupportTicketScalarFieldEnum)[keyof typeof SupportTicketScalarFieldEnum]
+
+
+export const SupportTicketReplyScalarFieldEnum = {
+  support_ticket_reply_id: 'support_ticket_reply_id',
+  support_ticket_id: 'support_ticket_id',
+  author_id: 'author_id',
+  author_name: 'author_name',
+  author_type: 'author_type',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type SupportTicketReplyScalarFieldEnum = (typeof SupportTicketReplyScalarFieldEnum)[keyof typeof SupportTicketReplyScalarFieldEnum]
+
+
+export const CertificateTemplateScalarFieldEnum = {
+  certificate_template_id: 'certificate_template_id',
+  reference: 'reference',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  status: 'status',
+  orientation: 'orientation',
+  issued: 'issued',
+  deployed_events: 'deployed_events',
+  design: 'design',
+  updated_by_user_id: 'updated_by_user_id',
+  updated_by_name: 'updated_by_name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CertificateTemplateScalarFieldEnum = (typeof CertificateTemplateScalarFieldEnum)[keyof typeof CertificateTemplateScalarFieldEnum]
+
+
+export const CertificateTemplateSignatoryScalarFieldEnum = {
+  certificate_template_signatory_id: 'certificate_template_signatory_id',
+  certificate_template_id: 'certificate_template_id',
+  coordinator_user_id: 'coordinator_user_id',
+  name: 'name',
+  title: 'title',
+  department: 'department',
+  signature_token: 'signature_token',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CertificateTemplateSignatoryScalarFieldEnum = (typeof CertificateTemplateSignatoryScalarFieldEnum)[keyof typeof CertificateTemplateSignatoryScalarFieldEnum]
+
+
+export const CertificateTemplateAssetScalarFieldEnum = {
+  certificate_template_asset_id: 'certificate_template_asset_id',
+  certificate_template_id: 'certificate_template_id',
+  kind: 'kind',
+  storage_key: 'storage_key',
+  file_name: 'file_name',
+  content_type: 'content_type',
+  byte_size: 'byte_size',
+  createdAt: 'createdAt'
+} as const
+
+export type CertificateTemplateAssetScalarFieldEnum = (typeof CertificateTemplateAssetScalarFieldEnum)[keyof typeof CertificateTemplateAssetScalarFieldEnum]
+
+
+export const CertificateDeploymentScalarFieldEnum = {
+  certificate_deployment_id: 'certificate_deployment_id',
+  reference: 'reference',
+  certificate_template_id: 'certificate_template_id',
+  template_name: 'template_name',
+  category: 'category',
+  orientation: 'orientation',
+  design: 'design',
+  event_id: 'event_id',
+  event_name: 'event_name',
+  event_venue: 'event_venue',
+  event_date: 'event_date',
+  status: 'status',
+  participants: 'participants',
+  distributed: 'distributed',
+  claimed: 'claimed',
+  deployed_by_user_id: 'deployed_by_user_id',
+  deployed_by_name: 'deployed_by_name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CertificateDeploymentScalarFieldEnum = (typeof CertificateDeploymentScalarFieldEnum)[keyof typeof CertificateDeploymentScalarFieldEnum]
+
+
+export const IssuedCertificateScalarFieldEnum = {
+  issued_certificate_id: 'issued_certificate_id',
+  certificate_number: 'certificate_number',
+  certificate_deployment_id: 'certificate_deployment_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  recipient_name: 'recipient_name',
+  event_name: 'event_name',
+  event_date: 'event_date',
+  hours_rendered: 'hours_rendered',
+  organization: 'organization',
+  template_name: 'template_name',
+  category: 'category',
+  orientation: 'orientation',
+  design: 'design',
+  issued_at: 'issued_at',
+  claimed_at: 'claimed_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuedCertificateScalarFieldEnum = (typeof IssuedCertificateScalarFieldEnum)[keyof typeof IssuedCertificateScalarFieldEnum]
+
+
+export const MonthlyReportFolderScalarFieldEnum = {
+  monthly_report_folder_id: 'monthly_report_folder_id',
+  name: 'name',
+  created_by_user_id: 'created_by_user_id',
+  created_by_name: 'created_by_name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonthlyReportFolderScalarFieldEnum = (typeof MonthlyReportFolderScalarFieldEnum)[keyof typeof MonthlyReportFolderScalarFieldEnum]
+
+
+export const MonthlyReportScalarFieldEnum = {
+  monthly_report_id: 'monthly_report_id',
+  reference: 'reference',
+  title: 'title',
+  period: 'period',
+  department: 'department',
+  status: 'status',
+  summary: 'summary',
+  metric_events: 'metric_events',
+  metric_volunteers: 'metric_volunteers',
+  metric_service_hours: 'metric_service_hours',
+  metric_beneficiaries: 'metric_beneficiaries',
+  submitted_by_user_id: 'submitted_by_user_id',
+  submitted_by_name: 'submitted_by_name',
+  submitted_by_email: 'submitted_by_email',
+  submitted_by_title: 'submitted_by_title',
+  submitted_at: 'submitted_at',
+  reviewer_user_id: 'reviewer_user_id',
+  reviewer_name: 'reviewer_name',
+  decided_at: 'decided_at',
+  decision_note: 'decision_note',
+  folder_id: 'folder_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonthlyReportScalarFieldEnum = (typeof MonthlyReportScalarFieldEnum)[keyof typeof MonthlyReportScalarFieldEnum]
+
+
+export const MonthlyReportDocumentScalarFieldEnum = {
+  monthly_report_document_id: 'monthly_report_document_id',
+  monthly_report_id: 'monthly_report_id',
+  file_name: 'file_name',
+  kind: 'kind',
+  storage_key: 'storage_key',
+  content_type: 'content_type',
+  byte_size: 'byte_size',
+  createdAt: 'createdAt'
+} as const
+
+export type MonthlyReportDocumentScalarFieldEnum = (typeof MonthlyReportDocumentScalarFieldEnum)[keyof typeof MonthlyReportDocumentScalarFieldEnum]
+
+
+export const MonthlyReportTrailEntryScalarFieldEnum = {
+  monthly_report_trail_entry_id: 'monthly_report_trail_entry_id',
+  monthly_report_id: 'monthly_report_id',
+  action: 'action',
+  actor_name: 'actor_name',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type MonthlyReportTrailEntryScalarFieldEnum = (typeof MonthlyReportTrailEntryScalarFieldEnum)[keyof typeof MonthlyReportTrailEntryScalarFieldEnum]
+
+
+export const AnnouncementScalarFieldEnum = {
+  announcement_id: 'announcement_id',
+  title: 'title',
+  body: 'body',
+  tone: 'tone',
+  audiences: 'audiences',
+  channels: 'channels',
+  state: 'state',
+  publish_at: 'publish_at',
+  expires_at: 'expires_at',
+  pinned: 'pinned',
+  window_id: 'window_id',
+  author_id: 'author_id',
+  author_name: 'author_name',
+  reach: 'reach',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AnnouncementScalarFieldEnum = (typeof AnnouncementScalarFieldEnum)[keyof typeof AnnouncementScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  notification_id: 'notification_id',
+  user_id: 'user_id',
+  title: 'title',
+  description: 'description',
+  category: 'category',
+  tone: 'tone',
+  href: 'href',
+  dedupe_key: 'dedupe_key',
+  read_at: 'read_at',
+  dismissed_at: 'dismissed_at',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EvaluationFormScalarFieldEnum = {
+  evaluation_form_id: 'evaluation_form_id',
+  title: 'title',
+  description: 'description',
+  header_typography: 'header_typography',
+  questions: 'questions',
+  status: 'status',
+  is_default: 'is_default',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationFormScalarFieldEnum = (typeof EvaluationFormScalarFieldEnum)[keyof typeof EvaluationFormScalarFieldEnum]
+
+
+export const EvaluationAssignmentScalarFieldEnum = {
+  evaluation_assignment_id: 'evaluation_assignment_id',
+  form_id: 'form_id',
+  event_id: 'event_id',
+  assigned_by_id: 'assigned_by_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationAssignmentScalarFieldEnum = (typeof EvaluationAssignmentScalarFieldEnum)[keyof typeof EvaluationAssignmentScalarFieldEnum]
+
+
+export const RankingSettingsScalarFieldEnum = {
+  ranking_settings_id: 'ranking_settings_id',
+  points_per_attendance: 'points_per_attendance',
+  absence_penalty_step: 'absence_penalty_step',
+  absence_reset_days: 'absence_reset_days',
+  donor_pesos_per_point: 'donor_pesos_per_point',
+  goods_type_values: 'goods_type_values',
+  default_period: 'default_period',
+  tiers: 'tiers',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RankingSettingsScalarFieldEnum = (typeof RankingSettingsScalarFieldEnum)[keyof typeof RankingSettingsScalarFieldEnum]
+
+
+export const EvaluationResponseScalarFieldEnum = {
+  evaluation_response_id: 'evaluation_response_id',
+  form_id: 'form_id',
+  event_id: 'event_id',
+  user_id: 'user_id',
+  answers: 'answers',
+  rating: 'rating',
+  status: 'status',
+  submitted_at: 'submitted_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EvaluationResponseScalarFieldEnum = (typeof EvaluationResponseScalarFieldEnum)[keyof typeof EvaluationResponseScalarFieldEnum]
+
+
+export const UserRequestScalarFieldEnum = {
+  user_request_id: 'user_request_id',
+  reference_number: 'reference_number',
+  kind: 'kind',
+  status: 'status',
+  user_id: 'user_id',
+  requested_role: 'requested_role',
+  event_id: 'event_id',
+  id_front_url: 'id_front_url',
+  id_back_url: 'id_back_url',
+  selfie_url: 'selfie_url',
+  residency_proof_url: 'residency_proof_url',
+  residency_proof_name: 'residency_proof_name',
+  residency_proof_mime: 'residency_proof_mime',
+  selfie_embedding: 'selfie_embedding',
+  face_similarity: 'face_similarity',
+  summary: 'summary',
+  decided_by_user_id: 'decided_by_user_id',
+  decided_at: 'decided_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserRequestScalarFieldEnum = (typeof UserRequestScalarFieldEnum)[keyof typeof UserRequestScalarFieldEnum]
+
+
+export const UserRequestTrailEntryScalarFieldEnum = {
+  user_request_trail_entry_id: 'user_request_trail_entry_id',
+  user_request_id: 'user_request_id',
+  label: 'label',
+  actor_name: 'actor_name',
+  createdAt: 'createdAt'
+} as const
+
+export type UserRequestTrailEntryScalarFieldEnum = (typeof UserRequestTrailEntryScalarFieldEnum)[keyof typeof UserRequestTrailEntryScalarFieldEnum]
+
+
+export const DonationPaymentScalarFieldEnum = {
+  donation_payment_id: 'donation_payment_id',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  campaign_id: 'campaign_id',
+  campaign_title: 'campaign_title',
+  amount: 'amount',
+  currency: 'currency',
+  method: 'method',
+  status: 'status',
+  idempotency_key: 'idempotency_key',
+  gateway_reference: 'gateway_reference',
+  gateway_resource_id: 'gateway_resource_id',
+  payment_reference: 'payment_reference',
+  payment_channel: 'payment_channel',
+  checkout_url: 'checkout_url',
+  qr_string: 'qr_string',
+  expires_at: 'expires_at',
+  paid_at: 'paid_at',
+  failure_reason: 'failure_reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationPaymentScalarFieldEnum = (typeof DonationPaymentScalarFieldEnum)[keyof typeof DonationPaymentScalarFieldEnum]
+
+
+export const PaymentWebhookEventScalarFieldEnum = {
+  webhook_id: 'webhook_id',
+  event: 'event',
+  gateway_reference: 'gateway_reference',
+  payload: 'payload',
+  receivedAt: 'receivedAt'
+} as const
+
+export type PaymentWebhookEventScalarFieldEnum = (typeof PaymentWebhookEventScalarFieldEnum)[keyof typeof PaymentWebhookEventScalarFieldEnum]
+
+
+export const PaymentGatewaySettingsScalarFieldEnum = {
+  payment_gateway_settings_id: 'payment_gateway_settings_id',
+  singleton: 'singleton',
+  mode: 'mode',
+  enabled: 'enabled',
+  secret_key_cipher: 'secret_key_cipher',
+  secret_key_last4: 'secret_key_last4',
+  webhook_token_cipher: 'webhook_token_cipher',
+  api_url: 'api_url',
+  statement_name: 'statement_name',
+  support_email: 'support_email',
+  support_contact: 'support_contact',
+  verified_at: 'verified_at',
+  verification_error: 'verification_error',
+  updated_by_user_id: 'updated_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentGatewaySettingsScalarFieldEnum = (typeof PaymentGatewaySettingsScalarFieldEnum)[keyof typeof PaymentGatewaySettingsScalarFieldEnum]
+
+
+export const PaymentMethodSettingScalarFieldEnum = {
+  payment_method_setting_id: 'payment_method_setting_id',
+  settings_id: 'settings_id',
+  method: 'method',
+  enabled: 'enabled',
+  display_name: 'display_name',
+  instructions: 'instructions',
+  account_name: 'account_name',
+  account_number: 'account_number',
+  channel_codes: 'channel_codes',
+  min_amount: 'min_amount',
+  max_amount: 'max_amount',
+  sort_order: 'sort_order',
+  verification: 'verification',
+  verified_at: 'verified_at',
+  verification_message: 'verification_message',
+  verified_channel_codes: 'verified_channel_codes',
+  callbacks_registered_at: 'callbacks_registered_at',
+  account_proof: 'account_proof',
+  account_proof_amount: 'account_proof_amount',
+  account_proof_reference: 'account_proof_reference',
+  account_proof_id: 'account_proof_id',
+  account_proof_sent_at: 'account_proof_sent_at',
+  account_proof_attempts: 'account_proof_attempts',
+  account_proof_message: 'account_proof_message',
+  account_proof_target: 'account_proof_target',
+  account_verified_at: 'account_verified_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentMethodSettingScalarFieldEnum = (typeof PaymentMethodSettingScalarFieldEnum)[keyof typeof PaymentMethodSettingScalarFieldEnum]
+
+
+export const DonationScalarFieldEnum = {
+  donation_id: 'donation_id',
+  sequence: 'sequence',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  kind: 'kind',
+  status: 'status',
+  amount: 'amount',
+  payment_id: 'payment_id',
+  goods_type: 'goods_type',
+  goods_item: 'goods_item',
+  goods_quantity: 'goods_quantity',
+  donor_contact: 'donor_contact',
+  delivery_date: 'delivery_date',
+  confirmed_at: 'confirmed_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
+
+
+export const DonationTrailEntryScalarFieldEnum = {
+  donation_trail_entry_id: 'donation_trail_entry_id',
+  donation_id: 'donation_id',
+  status: 'status',
+  note: 'note',
+  actor_id: 'actor_id',
+  actor_label: 'actor_label',
+  notified_email: 'notified_email',
+  createdAt: 'createdAt'
+} as const
+
+export type DonationTrailEntryScalarFieldEnum = (typeof DonationTrailEntryScalarFieldEnum)[keyof typeof DonationTrailEntryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -205,6 +1039,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

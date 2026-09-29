@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Your CARES account has been restricted</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #24292e; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f6f8fa;">
+    <tr>
+      <td align="center" style="padding: 32px 16px 48px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 544px;">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+                <img src="https://res.cloudinary.com/dhkp7er6i/image/upload/v1781425864/transparent-logo_ahvqrr.png" alt="CARES Logo" style="width: 50px; height: 50px;">
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.25; color: #24292e;">
+                Your CARES account has been restricted
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color: #ffffff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 32px 40px;">
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5; color: #24292e;">
+                Hi {{username}},
+              </p>
+
+              <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                An administrator has restricted your CARES account. Any device you were signed in on has been signed out, and you will not be able to sign in again until the restriction is lifted.
+              </p>
+
+              <!-- Reason -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px;">
+                <tr>
+                  <td style="background-color: #fff5f5; border-left: 4px solid #d73a49; border-radius: 4px; padding: 16px 20px;">
+                    <p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.04em; text-transform: uppercase; color: #86181d;">
+                      Reason given
+                    </p>
+                    <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #24292e; white-space: pre-line;">{{reason}}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Details -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 24px; border-top: 1px solid #e1e4e8;">
+                <tr>
+                  <td style="padding: 12px 0 0; font-size: 13px; line-height: 1.6; color: #586069; width: 140px;">Account</td>
+                  <td style="padding: 12px 0 0; font-size: 13px; line-height: 1.6; color: #24292e;">{{email}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 4px 0 0; font-size: 13px; line-height: 1.6; color: #586069;">Restricted on</td>
+                  <td style="padding: 4px 0 0; font-size: 13px; line-height: 1.6; color: #24292e;">{{restrictedAt}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 4px 0 0; font-size: 13px; line-height: 1.6; color: #586069;">Restricted by</td>
+                  <td style="padding: 4px 0 0; font-size: 13px; line-height: 1.6; color: #24292e;">{{restrictedBy}}</td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 32px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                If you believe this was a mistake, or you would like to appeal, reply to this email or contact us at
+                <a href="mailto:{{supportEmail}}" style="color: #0366d6; text-decoration: none;">{{supportEmail}}</a>.
+                Please include the account email above so we can find your record quickly.
+              </p>
+
+              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #24292e;">
+                Thanks,<br>
+                The CARES Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 24px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #586069; max-width: 480px;">
+                You're receiving this email because it is the sign-in address of a CARES account that was restricted by an administrator. This is an automated notice about your account, not a marketing message.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

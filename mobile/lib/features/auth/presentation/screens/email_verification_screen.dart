@@ -4,33 +4,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
-import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/data/auth_registration_service.dart';
+import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
 import 'package:mobile/features/auth/presentation/widgets/verification_code_input.dart';
-import 'package:mobile/features/dashboard/presentation/screens/home_screen.dart';
 
+/// Runs once the 6-digit code has been accepted. It owns the actual account creation
+/// and must navigate away on success; a thrown [ApiException] is shown on this screen
+/// and the code is cleared for another try.
+typedef EmailVerifiedCallback = Future<void> Function(BuildContext context);
+
+/// OTP step shared by every self-registration that has no provider vouching for the
+/// email — volunteers, beneficiaries, and donors signing up with a password. The
+/// screen only proves the address; what happens afterwards is the caller's
+/// [onVerified], which is why it does not know about registration sessions or roles.
 class EmailVerificationScreen extends ConsumerStatefulWidget {
   const EmailVerificationScreen({
     super.key,
     required this.email,
-    required this.registrationId,
-    required this.ocrData,
-    required this.roleType,
-    required this.password,
+    required this.onVerified,
     this.initialExpiresInSeconds = 0,
     this.emailAlreadyVerified = false,
     this.codeReused = false,
+    this.onConflict,
+    this.purpose = VerificationPurpose.registration,
   });
 
   final String email;
-  final String registrationId;
-  final RegisterOcrSample ocrData;
-  final RegistrationRoleType roleType;
-  final String password;
+  final EmailVerifiedCallback onVerified;
+
+  /// Called after this screen pops itself when the server says the email, phone
+  /// number, or ID number already belongs to another account — the caller sends
+  /// the user back to that input. Without it the message just shows here.
+  final ValueChanged<RegistrationConflict>? onConflict;
   final int initialExpiresInSeconds;
   final bool emailAlreadyVerified;
   final bool codeReused;
+
+  /// Sent again with every resend, so a sign-in verification is not treated as a
+  /// new registration (which would refuse the already-registered email).
+  final VerificationPurpose purpose;
 
   @override
   ConsumerState<EmailVerificationScreen> createState() =>
@@ -119,15 +132,22 @@ class _EmailVerificationScreenState
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
   void _showError(String message) {
     _showMessage(message);
+  }
+
+  /// True when the error was handed off to [EmailVerificationScreen.onConflict].
+  bool _handOffConflict(Object error) {
+    final onConflict = widget.onConflict;
+    final conflict = RegistrationConflict.fromException(error);
+    if (onConflict == null || conflict == null) return false;
+    Navigator.of(context).pop();
+    onConflict(conflict);
+    return true;
   }
 
   Future<void> _resendCode() async {
@@ -137,7 +157,10 @@ class _EmailVerificationScreenState
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
-      final response = await service.sendVerificationCode(email: widget.email);
+      final response = await service.sendVerificationCode(
+        email: widget.email,
+        purpose: widget.purpose,
+      );
       if (!mounted) return;
 
       setState(() {
@@ -154,6 +177,7 @@ class _EmailVerificationScreenState
     } catch (e) {
       if (!mounted) return;
       setState(() => _isResending = false);
+      if (_handOffConflict(e)) return;
       _showError(
         e is ApiException ? e.message : 'Failed to resend verification code.',
       );
@@ -167,15 +191,6 @@ class _EmailVerificationScreenState
       FocusManager.instance.primaryFocus?.unfocus();
       unawaited(_completeRegistration());
     }
-  }
-
-  void _goToHome() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => HomeScreen(email: widget.email),
-      ),
-      (_) => false,
-    );
   }
 
   Future<void> _completeRegistration() async {
@@ -196,25 +211,22 @@ class _EmailVerificationScreenState
         _emailVerified = true;
       }
 
-      await service.registerFromSession(
-        registrationId: widget.registrationId,
-        ocrData: widget.ocrData,
-        roleType: widget.roleType.apiValue,
-        email: widget.email,
-        password: widget.password,
-      );
-
       if (!mounted) return;
 
-      _goToHome();
+      await widget.onVerified(context);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isSubmitting = false;
         _code = '';
       });
+      if (_handOffConflict(e)) return;
       _showError(
-        e is ApiException ? e.message : 'Registration failed. Please try again.',
+        e is ApiException
+            ? e.message
+            : widget.purpose == VerificationPurpose.login
+            ? 'Sign in failed. Please try again.'
+            : 'Registration failed. Please try again.',
       );
     }
   }
@@ -255,9 +267,9 @@ class _EmailVerificationScreenState
                     Text(
                       'Check your inbox',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryDark,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -270,42 +282,6 @@ class _EmailVerificationScreenState
                         color: AppColors.secondary.withValues(alpha: 0.9),
                       ),
                     ),
-                    if (_emailVerified) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.verified_outlined,
-                              size: 20,
-                              color: AppColors.primaryDark,
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Email verified. Fix any registration details if needed, then enter the same code again to finish.',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 32),
                     VerificationCodeInput(
                       code: _code,
@@ -315,7 +291,9 @@ class _EmailVerificationScreenState
                     if (_isSubmitting) ...[
                       const SizedBox(height: 20),
                       const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -378,8 +356,9 @@ class _EmailVerificationScreenState
                     ),
                     const SizedBox(height: 8),
                     TextButton(
-                      onPressed:
-                          _canResend ? () => unawaited(_resendCode()) : null,
+                      onPressed: _canResend
+                          ? () => unawaited(_resendCode())
+                          : null,
                       child: Text(_isResending ? 'Sending…' : 'Resend code'),
                     ),
                     const SizedBox(height: 24),

@@ -1,3 +1,5 @@
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 
@@ -50,13 +52,28 @@ class VerificationStatusResponse {
   final int expiresInSeconds;
 }
 
+class StartSessionResponse {
+  const StartSessionResponse({
+    required this.registrationId,
+    required this.step,
+  });
+
+  factory StartSessionResponse.fromJson(Map<String, dynamic> json) {
+    return StartSessionResponse(
+      registrationId: json['registrationId'] as String,
+      step: json['step'] as String? ?? 'session_started',
+    );
+  }
+
+  final String registrationId;
+  final String step;
+}
+
 class UploadIdResponse {
   const UploadIdResponse({required this.registrationId});
 
   factory UploadIdResponse.fromJson(Map<String, dynamic> json) {
-    return UploadIdResponse(
-      registrationId: json['registrationId'] as String,
-    );
+    return UploadIdResponse(registrationId: json['registrationId'] as String);
   }
 
   final String registrationId;
@@ -102,7 +119,9 @@ class ExtractIdResponse {
     return ExtractIdResponse(
       registrationId: json['registrationId'] as String,
       step: json['step'] as String,
-      ocrData: RegisterOcrSampleApi.fromApiJson(json['ocrData'] as Map<String, dynamic>),
+      ocrData: RegisterOcrSampleApi.fromApiJson(
+        json['ocrData'] as Map<String, dynamic>,
+      ),
     );
   }
 
@@ -142,6 +161,14 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
     required String email,
     required String password,
   }) {
+    final normalizedId = RegisterOcrRawParser.normalizeIdNumber(idNumber);
+    final isBeneficiary = roleType == 'BENEFICIARY';
+    // Beneficiaries register without an ID, so there is no ID number to send.
+    // The registration id keeps the server's unique school-info key unique.
+    final beneficiaryId = normalizedId.isEmpty
+        ? 'BEN-$registrationId'
+        : normalizedId;
+
     return {
       'registrationId': registrationId,
       'firstname': firstname,
@@ -151,22 +178,29 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'gender': _mapGender(gender),
       'age': age,
       'current_address': currentAddress,
-      'phone_number': phoneNumber,
-      'account': {
-        'email': email,
-        'password': password,
-      },
-      'school_info': {
-        'id_number': RegisterOcrRawParser.normalizeIdNumber(idNumber),
-        'graduation_year': graduationYear,
-        'graduation_month': graduationMonth,
-        'graduation_day': graduationDay,
-        'department': {'name': departmentName},
-        'major': {'name': majorName.isEmpty ? departmentName : majorName},
-        'year_level': {
-          'name': yearLevelName.isEmpty ? 'N/A' : yearLevelName,
-        },
-      },
+      'phone_number': normalizePhilippinePhone(phoneNumber),
+      'account': {'email': email, 'password': password},
+      'school_info': isBeneficiary
+          ? {
+              'id_number': beneficiaryId,
+              'graduation_year': 2000,
+              'graduation_month': 1,
+              'graduation_day': 1,
+              'department': {'name': 'N/A'},
+              'major': {'name': 'N/A'},
+              'year_level': {'name': 'N/A'},
+            }
+          : {
+              'id_number': normalizedId,
+              'graduation_year': graduationYear,
+              'graduation_month': graduationMonth,
+              'graduation_day': graduationDay,
+              'department': {'name': departmentName},
+              'major': {'name': majorName.isEmpty ? departmentName : majorName},
+              'year_level': {
+                'name': yearLevelName.isEmpty ? 'N/A' : yearLevelName,
+              },
+            },
     };
   }
 
@@ -177,5 +211,53 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'FEMALE' || 'F' => 'FEMALE',
       _ => 'OTHER',
     };
+  }
+}
+
+/// Which registration input clashed with an existing account. The server sends a
+/// 409 whose `errors` names the field, so the flow can send the user straight
+/// back to that input instead of leaving them on the OTP screen.
+enum RegistrationConflictField {
+  email('email'),
+  phoneNumber('phone_number'),
+  idNumber('id_number');
+
+  const RegistrationConflictField(this.path);
+
+  final String path;
+
+  static RegistrationConflictField? fromPath(String? path) {
+    for (final field in values) {
+      if (field.path == path) return field;
+    }
+    return null;
+  }
+}
+
+class RegistrationConflict {
+  const RegistrationConflict({required this.field, required this.message});
+
+  final RegistrationConflictField field;
+  final String message;
+
+  /// Null when the error is not a conflict on a known registration field.
+  static RegistrationConflict? fromException(Object error) {
+    if (error is! ApiException || error.statusCode != 409) return null;
+
+    final errors = error.errors;
+    if (errors is! List) return null;
+
+    for (final issue in errors) {
+      if (issue is! Map) continue;
+      final field = RegistrationConflictField.fromPath(
+        issue['path'] as String?,
+      );
+      if (field == null) continue;
+      return RegistrationConflict(
+        field: field,
+        message: issue['message'] as String? ?? error.message,
+      );
+    }
+    return null;
   }
 }

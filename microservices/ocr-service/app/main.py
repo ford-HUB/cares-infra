@@ -7,7 +7,8 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.ocr_engine import count_populated_fields, ocr_engine
-from app.schemas import ApiResponse, IdExtractResult
+from app.residency_engine import extract_residency
+from app.schemas import ApiResponse, IdExtractResult, ResidencyExtractResult
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -77,6 +78,28 @@ async def read_upload(file: UploadFile) -> bytes:
     raise failure("File must be an image", 400)
 
 
+def _looks_like_pdf(data: bytes) -> bool:
+    return data.lstrip()[:5] == b"%PDF-"
+
+
+async def read_document_upload(file: UploadFile) -> bytes:
+    """Residency papers arrive as a photo or a scanned / exported PDF."""
+    data = await file.read()
+    if not data:
+        raise failure("Empty document upload", 400)
+
+    content_type = file.content_type or ""
+    if (
+        content_type.startswith("image/")
+        or content_type == "application/pdf"
+        or _looks_like_image(data)
+        or _looks_like_pdf(data)
+    ):
+        return data
+
+    raise failure("File must be an image or a PDF", 400)
+
+
 @app.get("/health")
 async def health() -> ApiResponse:
     return success("Service healthy", {"status": "ok"})
@@ -135,3 +158,41 @@ async def extract(
     )
 
     return success("ID fields extracted", result.model_dump(by_alias=True))
+
+
+@app.post("/api/v1/extract-residency")
+async def extract_residency_document(
+    document: UploadFile = File(...),
+) -> ApiResponse:
+    """Reads the residential address off a barangay certificate or similar
+    proof of residency. Accepts a photo (JPG/PNG/WebP) or a PDF; PDFs with an
+    embedded text layer are read directly, scanned ones are rasterised first."""
+    data = await read_document_upload(document)
+
+    try:
+        parsed = extract_residency(data)
+    except ValueError as exc:
+        raise failure(str(exc), 422) from exc
+
+    logger.info(
+        "Residency extract complete bytes=%s pages=%s text_len=%s address_found=%s",
+        len(data),
+        parsed.pages,
+        len(parsed.raw_text),
+        bool(parsed.address),
+    )
+    if not parsed.address:
+        logger.warning("Residency parser found no address. preview=%r", parsed.raw_text[:300])
+        raise failure(
+            "We could not read an address off this document. Make sure the whole "
+            "page is in frame and the text is sharp, then try again.",
+            422,
+            {"rawText": parsed.raw_text[:2000]},
+        )
+
+    result = ResidencyExtractResult(
+        address=parsed.address,
+        rawText=parsed.raw_text,
+        pages=parsed.pages,
+    )
+    return success("Residency address extracted", result.model_dump())

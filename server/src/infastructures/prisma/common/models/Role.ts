@@ -9,8 +9,8 @@
  * 🟢 You can import this file directly.
  */
 import type * as runtime from "@prisma/client/runtime/client"
-import type * as $Enums from "../enums"
-import type * as Prisma from "../internal/prismaNamespace"
+import type * as $Enums from "../enums.js"
+import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model Role
@@ -307,10 +307,6 @@ export type RoleUpdateOneRequiredWithoutUsersNestedInput = {
   upsert?: Prisma.RoleUpsertWithoutUsersInput
   connect?: Prisma.RoleWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.RoleUpdateToOneWithWhereWithoutUsersInput, Prisma.RoleUpdateWithoutUsersInput>, Prisma.RoleUncheckedUpdateWithoutUsersInput>
-}
-
-export type EnumRoleTypeFieldUpdateOperationsInput = {
-  set?: $Enums.RoleType
 }
 
 export type RoleCreateWithoutUsersInput = {

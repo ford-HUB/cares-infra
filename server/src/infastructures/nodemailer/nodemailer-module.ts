@@ -3,7 +3,7 @@ import { NodemailerService } from './nodemailer-service';
 
 @Global()
 @Module({
-    providers: [NodemailerService],
-    exports: [NodemailerService],
+  providers: [NodemailerService],
+  exports: [NodemailerService],
 })
 export class NodemailerModule {}

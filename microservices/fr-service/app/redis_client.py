@@ -12,13 +12,20 @@ redis: Redis | None = None
 
 async def connect_redis() -> None:
     global redis
-    redis = Redis(
-        host=settings.redis_host,
-        port=settings.redis_port,
-        decode_responses=True,
-    )
+    if settings.redis_url:
+        redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    else:
+        redis = Redis(
+            host=settings.redis_host,
+            port=settings.redis_port,
+            username=settings.redis_username,
+            password=settings.redis_password,
+            decode_responses=True,
+        )
     await redis.ping()
-    logger.info("Connected to Redis at %s:%s", settings.redis_host, settings.redis_port)
+    # Logged from the live connection so a URL's password never reaches the log.
+    connection = redis.connection_pool.connection_kwargs
+    logger.info("Connected to Redis at %s:%s", connection.get("host"), connection.get("port"))
 
 
 async def disconnect_redis() -> None:

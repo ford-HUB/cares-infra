@@ -12,14 +12,13 @@ abstract final class FaceGuideGeometry {
 
   static Path buildFaceGuidePath(Size size) {
     final center = Offset(size.width / 2, size.height * centerYNorm);
-    return Path()
-      ..addOval(
-        Rect.fromCenter(
-          center: center,
-          width: size.width * widthNorm,
-          height: size.height * heightNorm,
-        ),
-      );
+    return Path()..addOval(
+      Rect.fromCenter(
+        center: center,
+        width: size.width * widthNorm,
+        height: size.height * heightNorm,
+      ),
+    );
   }
 
   static bool isFaceDetectable(Face face, CameraFrameInput frame) {

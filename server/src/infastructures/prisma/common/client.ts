@@ -12,14 +12,16 @@
 
 import * as process from 'node:process'
 import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
+globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
 
 import * as runtime from "@prisma/client/runtime/client"
-import * as $Enums from "./enums"
-import * as $Class from "./internal/class"
-import * as Prisma from "./internal/prismaNamespace"
+import * as $Enums from "./enums.js"
+import * as $Class from "./internal/class.js"
+import * as Prisma from "./internal/prismaNamespace.js"
 
-export * as $Enums from './enums'
-export * from "./enums"
+export * as $Enums from './enums.js'
+export * from "./enums.js"
 /**
  * ## Prisma Client
  * 
@@ -45,6 +47,21 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model ResidencyDocument
+ * Proof of residency (barangay certificate, clearance) a mobile user uploaded
+ * to change their address. The address itself is read off the file by OCR
+ * and written to `User.current_address`; the file stays on record here.
+ */
+export type ResidencyDocument = Prisma.ResidencyDocumentModel
+/**
+ * Model UserRoleAvatar
+ * A mobile user's profile photo for one side of their account. The role
+ * switcher is local to the app, so the same person can be a volunteer, donor
+ * and beneficiary; each side keeps its own picture here instead of sharing
+ * `User.avatar`.
+ */
+export type UserRoleAvatar = Prisma.UserRoleAvatarModel
+/**
  * Model UserSchoolInfo
  * 
  */
@@ -66,7 +83,9 @@ export type Major = Prisma.MajorModel
 export type YearLevel = Prisma.YearLevelModel
 /**
  * Model UserVerification
- * 
+ * One ID check per submission. The biometric enrolled for that check hangs off the
+ * verification rather than the user, so a face scan is always tied to the review
+ * it was captured for.
  */
 export type UserVerification = Prisma.UserVerificationModel
 /**
@@ -80,7 +99,313 @@ export type UserBiometric = Prisma.UserBiometricModel
  */
 export type Role = Prisma.RoleModel
 /**
+ * Model RolePermissionDefault
+ * Baseline rights every user of a role inherits. Keyed by `RoleType` rather than
+ * `role_id` because `Role` has no unique constraint on `type` — see the admin seeder.
+ */
+export type RolePermissionDefault = Prisma.RolePermissionDefaultModel
+/**
+ * Model UserPermissionOverride
+ * A per-user departure from the role baseline. Only rows that actually differ from
+ * the role default are stored, so an untouched user has none.
+ */
+export type UserPermissionOverride = Prisma.UserPermissionOverrideModel
+/**
+ * Model UserActionSuspension
+ * A violation-driven suspension of one action. Layers *over* the granted rights: the
+ * grant is preserved so lifting the suspension restores the original scope.
+ */
+export type UserActionSuspension = Prisma.UserActionSuspensionModel
+/**
+ * Model BlockedIp
+ * 
+ */
+export type BlockedIp = Prisma.BlockedIpModel
+/**
+ * Model SecurityPolicy
+ * Portal-wide security settings, held as exactly one row: `singleton` is pinned to
+ * true and unique, so an upsert can never create a second policy. Every field has a
+ * default here that matches the fallback the server applies when the row is missing.
+ */
+export type SecurityPolicy = Prisma.SecurityPolicyModel
+/**
+ * Model LoginActivity
+ * One row per sign-in attempt, successful or not. Append-only: nothing updates or
+ * deletes a row, so the trail stays reviewable. `user_id` is null when the email
+ * matched no account, which is why the typed email is stored alongside it.
+ */
+export type LoginActivity = Prisma.LoginActivityModel
+/**
+ * Model AuditLog
+ * One row per privileged action. Append-only: nothing updates or deletes a row, so
+ * the trail stays reviewable. The actor's name, email, and role are denormalised at
+ * write time so a later rename or role change cannot rewrite history.
+ */
+export type AuditLog = Prisma.AuditLogModel
+/**
  * Model Account
  * 
  */
 export type Account = Prisma.AccountModel
+/**
+ * Model OAuthIdentity
+ * A social identity that may sign in as `user`. One row per provider account, so a
+ * donor can attach both Google and Facebook to the same CARES user.
+ * 
+ * Unlike `GmailConnection` — which stores mailbox tokens and grants no access on its
+ * own — a row here *is* an authentication factor, so no provider token is kept: the
+ * token is verified with the provider at sign-in and then discarded.
+ */
+export type OAuthIdentity = Prisma.OAuthIdentityModel
+/**
+ * Model GmailConnection
+ * One linked Google mailbox per portal user. Tokens are issued by Google OAuth and
+ * refreshed server-side; disconnecting deletes the row so nothing stale is kept.
+ */
+export type GmailConnection = Prisma.GmailConnectionModel
+/**
+ * Model Interest
+ * 
+ */
+export type Interest = Prisma.InterestModel
+/**
+ * Model UserInterest
+ * 
+ */
+export type UserInterest = Prisma.UserInterestModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel
+/**
+ * Model EventAttendance
+ * One volunteer's registration for one event, plus whatever validation has ruled so far.
+ * The row is created on registration and stays PENDING until the coordinates are in and
+ * judged: before the event, while it runs, and after it for as long as an offline device
+ * still has not pushed.
+ */
+export type EventAttendance = Prisma.EventAttendanceModel
+/**
+ * Model EventLocationPing
+ * One GPS reading from a volunteer's device, one per second while their recorder is
+ * on. Live readings arrive one at a time (GEOFENCE); readings buffered offline arrive
+ * later as a CSV batch (OFFLINE_SYNC). `event_id` is the device's best guess and is
+ * null when it could not name a joined event — the validation service re-assigns rows
+ * from the coordinates, so nothing here is authoritative about attendance.
+ */
+export type EventLocationPing = Prisma.EventLocationPingModel
+/**
+ * Model Conversation
+ * Direct (1:1) portal messaging. Participants are portal staff — volunteers use
+ * the mobile app and are not addressable here.
+ */
+export type Conversation = Prisma.ConversationModel
+/**
+ * Model ConversationParticipant
+ * 
+ */
+export type ConversationParticipant = Prisma.ConversationParticipantModel
+/**
+ * Model ChatMessage
+ * 
+ */
+export type ChatMessage = Prisma.ChatMessageModel
+/**
+ * Model ChatAttachment
+ * 
+ */
+export type ChatAttachment = Prisma.ChatAttachmentModel
+/**
+ * Model SupportTicket
+ * A reported problem or request. `reference_number` is the tracking number shown to
+ * the requester — sequential and never reused, which is why it is a DB sequence
+ * rather than a count of rows.
+ */
+export type SupportTicket = Prisma.SupportTicketModel
+/**
+ * Model SupportTicketReply
+ * 
+ */
+export type SupportTicketReply = Prisma.SupportTicketReplyModel
+/**
+ * Model CertificateTemplate
+ * A certificate design a director maintains in the portal. Everything that is pure
+ * drawing instruction — accent, frame, per-block position, fonts, sizes, wording,
+ * seal and where each imported image sits — lives in `design`, shaped by
+ * `CertificateDesignSchema`. It is one document edited as a whole by one screen, so
+ * splitting it into columns would buy nothing and cost a migration per control the
+ * customizer gains. What is *not* in there is anything another feature has to join
+ * on: the signatory accounts and the uploaded files are their own rows.
+ */
+export type CertificateTemplate = Prisma.CertificateTemplateModel
+/**
+ * Model CertificateTemplateSignatory
+ * One printed signature line. The coordinator account is the source of truth for the
+ * signature image, so the line stores the account rather than typed text; the printed
+ * strings are snapshotted beside it so a later rename or transfer cannot silently
+ * reword a template certificates were already issued from.
+ */
+export type CertificateTemplateSignatory = Prisma.CertificateTemplateSignatoryModel
+/**
+ * Model CertificateTemplateAsset
+ * A file a director imported onto a sheet. The bytes live in the private S3 bucket,
+ * so `design` references the row by id and the portal reads the bytes back through
+ * `GET /v1/certificate-templates/:id/assets/:assetId` — an `<img src>` pointed at the
+ * stored object URL would render broken.
+ */
+export type CertificateTemplateAsset = Prisma.CertificateTemplateAssetModel
+/**
+ * Model CertificateDeployment
+ * One template deployed to one event — what the live certificates page lists. The
+ * design, the signature lines and the event's own details are all frozen into the row
+ * at deploy time: the template it came from stays editable, and a certificate already
+ * promised to a volunteer must not silently change wording when a director tidies the
+ * template up afterwards. The template is still referenced, because the frozen design
+ * points at that template's stored artwork.
+ */
+export type CertificateDeployment = Prisma.CertificateDeploymentModel
+/**
+ * Model IssuedCertificate
+ * One certificate the issuing sweep generated for one participant of one deployment.
+ * The sheet is frozen here in full — the deployment's design with every placeholder
+ * filled and each signature line pointing at the image it printed — so what the
+ * volunteer holds never changes if the event, the template or a coordinator's
+ * profile is edited afterwards.
+ */
+export type IssuedCertificate = Prisma.IssuedCertificateModel
+/**
+ * Model MonthlyReportFolder
+ * A named tray the director builds on top of the automatic filing — an accreditation
+ * packet, a set pulled for a board meeting. College folders are *not* rows: they are
+ * derived from each report's `department`, so every approved report has a home before
+ * anyone files it anywhere, and deleting a folder only drops it back to its college.
+ */
+export type MonthlyReportFolder = Prisma.MonthlyReportFolderModel
+/**
+ * Model MonthlyReport
+ * One coordinator submission for one reporting month. The submitter's name, email and
+ * post are snapshotted beside the account: a report already decided on must keep
+ * reading the way it read on the day, even if the coordinator is renamed or moves
+ * college.
+ */
+export type MonthlyReport = Prisma.MonthlyReportModel
+/**
+ * Model MonthlyReportDocument
+ * A file attached to a submission. The bytes live in the private S3 bucket, so the
+ * row holds the object key and the portal reads them back through
+ * `GET /v1/monthly-reports/:id/documents/:documentId` — a stored object URL in an
+ * `<a href>` would 403.
+ */
+export type MonthlyReportDocument = Prisma.MonthlyReportDocumentModel
+/**
+ * Model MonthlyReportTrailEntry
+ * Append-only history of the submission: who submitted, who decided, and the note
+ * that came with it. This is the report's own record, kept beside the entry rather
+ * than in the global audit log because the coordinator reads it too.
+ */
+export type MonthlyReportTrailEntry = Prisma.MonthlyReportTrailEntryModel
+/**
+ * Model Announcement
+ * A notice written on the Maintenance board and read back on System Notices. State
+ * moves forward on its own once a scheduled `publish_at` or `expires_at` passes; the
+ * sweep runs on read, so a page that polls sees the flip without a scheduler.
+ */
+export type Announcement = Prisma.AnnouncementModel
+/**
+ * Model Notification
+ * One row per recipient. A notice addressed to a role is fanned out to every account
+ * holding that role at publish time, so read and dismissed state are per person and
+ * a later hire does not inherit a backlog.
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model EvaluationForm
+ * The post-event questionnaire the director builds in the portal. One form serves
+ * every completed event; the volunteer app only ever sees it once PUBLISHED. The
+ * questions are stored as the JSON the builder edits (see the evaluation validators
+ * for the shape) so adding a question type never needs a migration.
+ */
+export type EvaluationForm = Prisma.EvaluationFormModel
+/**
+ * Model EvaluationAssignment
+ * Which questionnaire one event asks its participants. An event has at most one,
+ * a questionnaire can serve many, and an event without a row falls back to the
+ * questionnaire flagged `is_default` — so feedback never goes dark on an event
+ * the director has not got to yet.
+ */
+export type EvaluationAssignment = Prisma.EvaluationAssignmentModel
+/**
+ * Model RankingSettings
+ * How the volunteer leaderboard is scored and how its tier ladder is cut. One row:
+ * the portal's Rankings → Customization edits it, the volunteer app reads the tiers
+ * to draw its avatar frames. `tiers` is the JSON the customization form edits (see
+ * the rankings validators) so a new frame design never needs a migration.
+ */
+export type RankingSettings = Prisma.RankingSettingsModel
+/**
+ * Model EvaluationResponse
+ * One volunteer's answers to the questionnaire for one completed event they took
+ * part in. `answers` is keyed by question id; `rating` copies the star-rating
+ * answer out so the portal can filter and average without opening the JSON.
+ */
+export type EvaluationResponse = Prisma.EvaluationResponseModel
+/**
+ * Model UserRequest
+ * One request filed from the mobile app for a director to rule on. The proof
+ * behind a ROLE_ACCESS request (ID sides, selfie) is copied off the Redis
+ * registration session at filing time so it outlives that session's TTL.
+ */
+export type UserRequest = Prisma.UserRequestModel
+/**
+ * Model UserRequestTrailEntry
+ * One line on a request's history — filed, accepted, removed, restored.
+ */
+export type UserRequestTrailEntry = Prisma.UserRequestTrailEntryModel
+/**
+ * Model DonationPayment
+ * One money-donation checkout a donor started from the app. A row is created
+ * before the gateway is called so the client's idempotency key can dedupe a
+ * retried tap, and the gateway reference on it is what every Xendit callback
+ * carries back.
+ */
+export type DonationPayment = Prisma.DonationPaymentModel
+/**
+ * Model PaymentWebhookEvent
+ * Every Xendit callback already applied, keyed by its `webhook-id` header.
+ * Xendit retries until it sees a 2xx, so the same event can arrive more than
+ * once; inserting here in the same transaction as the status change makes a
+ * replay a no-op.
+ */
+export type PaymentWebhookEvent = Prisma.PaymentWebhookEventModel
+/**
+ * Model PaymentGatewaySettings
+ * The Xendit account CARES collects donations into, as the director enters it in
+ * the portal's Payments module. One row — every donor pays into the same account.
+ * 
+ * The secrets are held as AES-256-GCM ciphertext (see `secret-cipher-utils.ts`) and
+ * are never sent back to a client: the portal only ever sees `secret_key_last4` and
+ * the `*_set` flags, which is enough to say "a key is saved, and it ends in 1a2b".
+ */
+export type PaymentGatewaySettings = Prisma.PaymentGatewaySettingsModel
+/**
+ * Model PaymentMethodSetting
+ * One donor-facing payment channel. A channel the director has not enabled is not
+ * offered in the app and is refused by the checkout endpoint, so hiding it in the
+ * portal and blocking it on the server are one decision.
+ */
+export type PaymentMethodSetting = Prisma.PaymentMethodSettingModel
+/**
+ * Model Donation
+ * The donation ledger the portal's Donation Tracking works and the donor app's
+ * Activity tab reads. A money row is opened by the gateway callback once a
+ * checkout is paid; a goods row is opened when the donor pledges. Only CONFIRMED
+ * rows count towards the donor board.
+ */
+export type Donation = Prisma.DonationModel
+/**
+ * Model DonationTrailEntry
+ * Every status move on a donation, with who made it — the audit trail the portal
+ * shows and the proof that the donor was notified.
+ */
+export type DonationTrailEntry = Prisma.DonationTrailEntryModel
