@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -73,11 +75,32 @@ android {
         resValue("string", "fb_login_protocol_scheme", "fb$facebookAppId")
     }
 
+    // Release keystore details live in android/key.properties (git-ignored):
+    // storeFile, storePassword, keyAlias, keyPassword.
+    val keyProperties = Properties()
+    val keyPropertiesFile = rootProject.file("key.properties")
+    if (keyPropertiesFile.exists()) {
+        keyPropertiesFile.inputStream().use { keyProperties.load(it) }
+    }
+
+    signingConfigs {
+        if (keyPropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keyProperties.getProperty("storeFile"))
+                storePassword = keyProperties.getProperty("storePassword")
+                keyAlias = keyProperties.getProperty("keyAlias")
+                keyPassword = keyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Falls back to the debug keys while key.properties is absent, so
+            // `flutter run --release` still works on a machine without the keystore.
+            signingConfig = signingConfigs.getByName(
+                if (keyPropertiesFile.exists()) "release" else "debug",
+            )
         }
     }
 }
