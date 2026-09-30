@@ -35,6 +35,8 @@ WORKDIR /usr/src/app
 # Default to production so the mailer and CORS pick their production branch even if
 # the platform forgets to set it; an explicit NODE_ENV still wins.
 ENV NODE_ENV=production
+# BusyBox ps has no --sort; the host metrics sampler needs the procps one.
+RUN apk add --no-cache procps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Fresh runtime-only install rather than pruning the builder's modules.
 RUN pnpm install --frozen-lockfile --prod
