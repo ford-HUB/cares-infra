@@ -62,6 +62,8 @@ __pycache__/
 
 # ML weights & training data — never commit real ID photos or model binaries
 *.keras
+# ucid-service's two classifiers (~19 MB) ship in its image for Railway
+!microservices/ucid-service/models/*.keras
 *.h5
 *.onnx
 *.pb
