@@ -27,6 +27,11 @@ interface CertificateDesignApi {
   element_widths: NonNullable<CertificateDesign['elementWidths']>
   element_heights: NonNullable<CertificateDesign['elementHeights']>
   element_aligns: NonNullable<CertificateDesign['elementAligns']>
+  /** Absent on designs saved before weight and underline existed. */
+  element_weights?: NonNullable<CertificateDesign['elementWeights']>
+  element_underlines?: NonNullable<CertificateDesign['elementUnderlines']>
+  /** Absent on designs saved before the award name had its own wording. */
+  title?: string
   headline: string
   body: string
   show_seal: boolean
@@ -111,6 +116,9 @@ function mapDesign(
     elementWidths: design.element_widths,
     elementHeights: design.element_heights,
     elementAligns: design.element_aligns,
+    elementWeights: design.element_weights ?? {},
+    elementUnderlines: design.element_underlines ?? {},
+    title: design.title,
     headline: design.headline,
     body: design.body,
     showSeal: design.show_seal,
@@ -172,6 +180,9 @@ function toSavePayload(input: CertificateTemplateInput) {
       element_widths: design.elementWidths ?? {},
       element_heights: design.elementHeights ?? {},
       element_aligns: design.elementAligns ?? {},
+      element_weights: design.elementWeights ?? {},
+      element_underlines: design.elementUnderlines ?? {},
+      title: design.title,
       headline: design.headline,
       body: design.body,
       show_seal: design.showSeal,

@@ -101,7 +101,7 @@ export const seedPortalAccount = async (
     await prisma.$transaction([
       prisma.account.update({
         where: { email },
-        data: { password: passwordHash },
+        data: { password: passwordHash, email_verified_at: new Date() },
       }),
       prisma.user.update({
         where: { user_id: existingAccount.user_id },
@@ -125,6 +125,7 @@ export const seedPortalAccount = async (
         create: {
           email,
           password: passwordHash,
+          email_verified_at: new Date(),
         },
       },
     },

@@ -437,6 +437,8 @@ export const ModelName = {
   AssistanceRequestAttachment: 'AssistanceRequestAttachment',
   DonationPayment: 'DonationPayment',
   PaymentWebhookEvent: 'PaymentWebhookEvent',
+  PaymentGatewaySettings: 'PaymentGatewaySettings',
+  PaymentMethodSetting: 'PaymentMethodSetting',
   Donation: 'Donation',
   DonationTrailEntry: 'DonationTrailEntry',
   PaymentGatewaySettings: 'PaymentGatewaySettings',
@@ -456,7 +458,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "issuedCertificate" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification" | "evaluationForm" | "evaluationAssignment" | "rankingSettings" | "evaluationResponse" | "userRequest" | "userRequestTrailEntry" | "needsAssessment" | "assistanceRequest" | "assistanceRequestAttachment" | "donationPayment" | "paymentWebhookEvent" | "donation" | "donationTrailEntry" | "paymentGatewaySettings" | "paymentMethodSetting"
+    modelProps: "user" | "residencyDocument" | "userRoleAvatar" | "userSchoolInfo" | "department" | "major" | "yearLevel" | "userVerification" | "userBiometric" | "role" | "rolePermissionDefault" | "userPermissionOverride" | "userActionSuspension" | "blockedIp" | "securityPolicy" | "loginActivity" | "auditLog" | "account" | "oAuthIdentity" | "gmailConnection" | "interest" | "userInterest" | "event" | "eventAttendance" | "eventLocationPing" | "conversation" | "conversationParticipant" | "chatMessage" | "chatAttachment" | "supportTicket" | "supportTicketReply" | "certificateTemplate" | "certificateTemplateSignatory" | "certificateTemplateAsset" | "certificateDeployment" | "issuedCertificate" | "monthlyReportFolder" | "monthlyReport" | "monthlyReportDocument" | "monthlyReportTrailEntry" | "announcement" | "notification" | "evaluationForm" | "evaluationAssignment" | "rankingSettings" | "evaluationResponse" | "userRequest" | "userRequestTrailEntry" | "donationPayment" | "paymentWebhookEvent" | "paymentGatewaySettings" | "paymentMethodSetting" | "donation" | "donationTrailEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4382,6 +4384,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PaymentGatewaySettings: {
+      payload: Prisma.$PaymentGatewaySettingsPayload<ExtArgs>
+      fields: Prisma.PaymentGatewaySettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentGatewaySettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentGatewaySettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentGatewaySettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentGatewaySettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentGatewaySettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentGatewaySettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentGatewaySettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentGatewaySettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentGatewaySettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>
+        }
+        update: {
+          args: Prisma.PaymentGatewaySettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentGatewaySettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentGatewaySettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentGatewaySettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentGatewaySettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentGatewaySettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentGatewaySettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentGatewaySettings>
+        }
+        groupBy: {
+          args: Prisma.PaymentGatewaySettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentGatewaySettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentGatewaySettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentGatewaySettingsCountAggregateOutputType> | number
+        }
+      }
+    }
+    PaymentMethodSetting: {
+      payload: Prisma.$PaymentMethodSettingPayload<ExtArgs>
+      fields: Prisma.PaymentMethodSettingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentMethodSettingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentMethodSettingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentMethodSettingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentMethodSettingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentMethodSettingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentMethodSettingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentMethodSettingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentMethodSettingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentMethodSettingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>
+        }
+        update: {
+          args: Prisma.PaymentMethodSettingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentMethodSettingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentMethodSettingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentMethodSettingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentMethodSettingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodSettingPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentMethodSettingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentMethodSetting>
+        }
+        groupBy: {
+          args: Prisma.PaymentMethodSettingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentMethodSettingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentMethodSettingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentMethodSettingCountAggregateOutputType> | number
+        }
+      }
+    }
     Donation: {
       payload: Prisma.$DonationPayload<ExtArgs>
       fields: Prisma.DonationFieldRefs
@@ -4982,6 +5132,7 @@ export const AccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
   credential_expires_at: 'credential_expires_at',
   provisioned_by_user_id: 'provisioned_by_user_id',
+  email_verified_at: 'email_verified_at',
   signature_url: 'signature_url',
   is_restricted: 'is_restricted',
   restricted_at: 'restricted_at',
@@ -5584,6 +5735,62 @@ export const PaymentWebhookEventScalarFieldEnum = {
 } as const
 
 export type PaymentWebhookEventScalarFieldEnum = (typeof PaymentWebhookEventScalarFieldEnum)[keyof typeof PaymentWebhookEventScalarFieldEnum]
+
+
+export const PaymentGatewaySettingsScalarFieldEnum = {
+  payment_gateway_settings_id: 'payment_gateway_settings_id',
+  singleton: 'singleton',
+  mode: 'mode',
+  enabled: 'enabled',
+  secret_key_cipher: 'secret_key_cipher',
+  secret_key_last4: 'secret_key_last4',
+  webhook_token_cipher: 'webhook_token_cipher',
+  api_url: 'api_url',
+  statement_name: 'statement_name',
+  support_email: 'support_email',
+  support_contact: 'support_contact',
+  verified_at: 'verified_at',
+  verification_error: 'verification_error',
+  updated_by_user_id: 'updated_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentGatewaySettingsScalarFieldEnum = (typeof PaymentGatewaySettingsScalarFieldEnum)[keyof typeof PaymentGatewaySettingsScalarFieldEnum]
+
+
+export const PaymentMethodSettingScalarFieldEnum = {
+  payment_method_setting_id: 'payment_method_setting_id',
+  settings_id: 'settings_id',
+  method: 'method',
+  enabled: 'enabled',
+  display_name: 'display_name',
+  instructions: 'instructions',
+  account_name: 'account_name',
+  account_number: 'account_number',
+  channel_codes: 'channel_codes',
+  min_amount: 'min_amount',
+  max_amount: 'max_amount',
+  sort_order: 'sort_order',
+  verification: 'verification',
+  verified_at: 'verified_at',
+  verification_message: 'verification_message',
+  verified_channel_codes: 'verified_channel_codes',
+  callbacks_registered_at: 'callbacks_registered_at',
+  account_proof: 'account_proof',
+  account_proof_amount: 'account_proof_amount',
+  account_proof_reference: 'account_proof_reference',
+  account_proof_id: 'account_proof_id',
+  account_proof_sent_at: 'account_proof_sent_at',
+  account_proof_attempts: 'account_proof_attempts',
+  account_proof_message: 'account_proof_message',
+  account_proof_target: 'account_proof_target',
+  account_verified_at: 'account_verified_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentMethodSettingScalarFieldEnum = (typeof PaymentMethodSettingScalarFieldEnum)[keyof typeof PaymentMethodSettingScalarFieldEnum]
 
 
 export const DonationScalarFieldEnum = {
@@ -6454,6 +6661,48 @@ export type ListEnumDonationPaymentStatusFieldRefInput<$PrismaModel> = FieldRefI
 
 
 /**
+ * Reference to a field of type 'PaymentGatewayMode'
+ */
+export type EnumPaymentGatewayModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentGatewayMode'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentGatewayMode[]'
+ */
+export type ListEnumPaymentGatewayModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentGatewayMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentMethodVerification'
+ */
+export type EnumPaymentMethodVerificationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethodVerification'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentMethodVerification[]'
+ */
+export type ListEnumPaymentMethodVerificationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethodVerification[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentAccountProof'
+ */
+export type EnumPaymentAccountProofFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentAccountProof'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentAccountProof[]'
+ */
+export type ListEnumPaymentAccountProofFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentAccountProof[]'>
+    
+
+
+/**
  * Reference to a field of type 'DonationKind'
  */
 export type EnumDonationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationKind'>
@@ -6685,6 +6934,8 @@ export type GlobalOmitConfig = {
   assistanceRequestAttachment?: Prisma.AssistanceRequestAttachmentOmit
   donationPayment?: Prisma.DonationPaymentOmit
   paymentWebhookEvent?: Prisma.PaymentWebhookEventOmit
+  paymentGatewaySettings?: Prisma.PaymentGatewaySettingsOmit
+  paymentMethodSetting?: Prisma.PaymentMethodSettingOmit
   donation?: Prisma.DonationOmit
   donationTrailEntry?: Prisma.DonationTrailEntryOmit
   paymentGatewaySettings?: Prisma.PaymentGatewaySettingsOmit

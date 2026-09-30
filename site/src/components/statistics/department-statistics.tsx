@@ -31,8 +31,6 @@ interface DepartmentStatisticsProps {
   onRangeChange: (range: StatisticsRange) => void
   onCategoryChange: (category: string) => void
   onRefresh: () => void
-  onExportCsv: () => void
-  onExportPdf: () => void
 }
 
 /**
@@ -51,8 +49,6 @@ export function DepartmentStatistics({
   onRangeChange,
   onCategoryChange,
   onRefresh,
-  onExportCsv,
-  onExportPdf,
 }: DepartmentStatisticsProps) {
   const comparison = `vs prior ${STATISTICS_RANGE_MONTHS[range]} mo`
   const percent = (value: number) => `${value.toFixed(1)}%`
@@ -71,8 +67,6 @@ export function DepartmentStatistics({
         onRangeChange={onRangeChange}
         onCategoryChange={onCategoryChange}
         onRefresh={onRefresh}
-        onExportCsv={onExportCsv}
-        onExportPdf={onExportPdf}
       />
 
       <div className="mb-4 grid grid-cols-1 gap-4 *:min-w-0 md:grid-cols-2 xl:grid-cols-4">

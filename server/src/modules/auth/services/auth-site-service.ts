@@ -46,9 +46,8 @@ import {
   RoleType,
   type AuditSeverity,
 } from 'src/infastructures/prisma/common/client';
+import { portalUrl as resolvePortalUrl } from 'src/shared/utils/environment-utils';
 
-/** Where the temporary-password mail's sign-in link points when SITE_URL is unset. */
-const DEFAULT_PORTAL_URL = 'http://localhost:5173';
 /** Minimum gap between two temporary-password mails for the same address. */
 const RESET_COOLDOWN = DurationUtils.ONE_MINUTE * 2;
 
@@ -390,9 +389,7 @@ export class AuthSiteService {
     await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(temporaryPassword);
     const passwordHash = await bcrypt.hash(temporaryPassword, 10);
 
-    const portalUrl = (
-      this.configService.get<string>('SITE_URL')?.trim() || DEFAULT_PORTAL_URL
-    ).replace(/\/+$/, '');
+    const portalUrl = resolvePortalUrl();
 
     const template = await TemplateUtils.compileTemplate(
       'portal-temporary-password.html',

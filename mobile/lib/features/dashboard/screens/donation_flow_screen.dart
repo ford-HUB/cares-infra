@@ -160,6 +160,28 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     }
   }
 
+  /// The chosen channel as the portal describes it, or null before the payment
+  /// step has loaded.
+  AvailablePaymentMethod? get _selectedOffer {
+    final method = _method;
+    if (method == null) return null;
+    return ref
+        .read(availablePaymentMethodsProvider)
+        .valueOrNull
+        ?.forMethod(method);
+  }
+
+  /// "CARES — CIT · 0917 000 0000", from whichever of the two the director gave.
+  String? get _receivingAccount {
+    final offer = _selectedOffer;
+    if (offer == null) return null;
+    final parts = [
+      offer.accountName,
+      offer.accountNumber,
+    ].whereType<String>().where((part) => part.trim().isNotEmpty);
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
   /// Donation types the director enabled on the event behind this campaign.
   bool get _acceptsMoney => widget.campaign?.acceptsMonetary ?? false;
   bool get _acceptsGoods => widget.campaign?.acceptsGoods ?? false;
@@ -924,7 +946,14 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   }
 
   // ------------------------------------------------- Step 3: payment method
+  /// Only what the director enabled in the portal's Payments module is offered,
+  /// with their wording and their per-channel limits. A channel whose limits
+  /// rule out the amount is shown greyed with the reason rather than hidden, so
+  /// the donor can go back and change the amount instead of wondering.
   Widget _choosePaymentStage() {
+    final amount = _effectiveAmount ?? 0;
+    final availability = ref.watch(availablePaymentMethodsProvider);
+
     return _stepScaffold(
       step: 3,
       content: [
@@ -935,19 +964,25 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
               'securely by Xendit.',
         ),
         const SizedBox(height: 16),
-        for (final method in DonationPaymentMethod.values) ...[
-          DonationOptionTile(
-            title: method.label,
-            subtitle: method.description,
-            leading: PaymentMethodBadge(method),
-            selected: _method == method,
-            onTap: () => setState(() {
-              if (_method != method) _resetCheckout();
-              _method = method;
-            }),
-          ),
-          const SizedBox(height: 12),
-        ],
+        ...availability.when(
+          loading: () => const [
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ],
+          error: (error, _) => [
+            _paymentNotice(
+              error is ApiException
+                  ? error.message
+                  : 'The payment methods could not be loaded. Please try again.',
+              onRetry: () => ref.invalidate(availablePaymentMethodsProvider),
+            ),
+          ],
+          data: (data) => _paymentMethodTiles(data, amount),
+        ),
       ],
       footer: FilledButton(
         onPressed: _method == null
@@ -958,9 +993,74 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
+  List<Widget> _paymentMethodTiles(
+    PaymentMethodAvailability availability,
+    int amount,
+  ) {
+    if (availability.methods.isEmpty) {
+      return [
+        _paymentNotice(
+          'CARES is not accepting online payments at the moment. You can still '
+          'donate goods, or reach out if you would like to give money.',
+        ),
+      ];
+    }
+
+    return [
+      for (final offer in availability.methods) ...[
+        DonationOptionTile(
+          title: offer.label,
+          subtitle: offer.accepts(amount)
+              ? offer.description
+              : 'Accepts ${DonationFormat.pesoFull(offer.minAmount)} to '
+                    '${DonationFormat.pesoFull(offer.maxAmount)}',
+          leading: PaymentMethodBadge(offer.method),
+          selected: _method == offer.method,
+          enabled: offer.accepts(amount),
+          onTap: () => setState(() {
+            if (_method != offer.method) _resetCheckout();
+            _method = offer.method;
+          }),
+        ),
+        const SizedBox(height: 12),
+      ],
+    ];
+  }
+
+  /// The one-off message the payment step shows in place of the tiles.
+  Widget _paymentNotice(String message, {VoidCallback? onRetry}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
+        border: Border.all(color: AppColors.borderCard),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            message,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 8),
+            TextButton(onPressed: onRetry, child: const Text('Try again')),
+          ],
+        ],
+      ),
+    );
+  }
+
   // ---------------------------------------------------- Step 4: review
   Widget _reviewStage() {
     final amount = _effectiveAmount ?? 0;
+    final offer = _selectedOffer;
     return _stepScaffold(
       step: 4,
       content: [
@@ -978,7 +1078,14 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
               DonationFormat.pesoFull(amount),
               emphasize: true,
             ),
-            DonationSummaryRow('Payment Method', _method?.label ?? '—'),
+            DonationSummaryRow(
+              'Payment Method',
+              offer?.label ?? _method?.label ?? '—',
+            ),
+            // Where the money lands, when CARES recorded it in the portal —
+            // the donor should be able to see who they are paying.
+            if (_receivingAccount case final account?)
+              DonationSummaryRow('Paid To', account),
           ],
         ),
         const SizedBox(height: 12),

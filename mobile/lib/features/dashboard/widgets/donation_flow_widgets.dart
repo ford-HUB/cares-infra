@@ -74,6 +74,7 @@ class DonationOptionTile extends StatelessWidget {
     this.subtitle,
     this.icon,
     this.leading,
+    this.enabled = true,
   });
 
   final String title;
@@ -83,6 +84,11 @@ class DonationOptionTile extends StatelessWidget {
   final IconData? icon;
   final Widget? leading;
 
+  /// False for an option that is shown but cannot be picked — a payment method
+  /// whose limits rule out the amount the donor typed. It is rendered muted and
+  /// unselectable rather than hidden, so the reason stays on screen.
+  final bool enabled;
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -91,7 +97,7 @@ class DonationOptionTile extends StatelessWidget {
           : AppColors.surface,
       borderRadius: BorderRadius.circular(AppColors.cardRadius),
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: Ink(
           padding: const EdgeInsets.all(16),
@@ -124,10 +130,12 @@ class DonationOptionTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                        color: enabled
+                            ? AppColors.textPrimary
+                            : AppColors.textMuted,
                       ),
                     ),
                     if (subtitle case final sub?) ...[
@@ -148,7 +156,9 @@ class DonationOptionTile extends StatelessWidget {
               Icon(
                 selected
                     ? Icons.radio_button_checked_rounded
-                    : Icons.radio_button_unchecked_rounded,
+                    : enabled
+                    ? Icons.radio_button_unchecked_rounded
+                    : Icons.block_rounded,
                 color: selected ? AppColors.primary : AppColors.textMuted,
                 size: 22,
               ),

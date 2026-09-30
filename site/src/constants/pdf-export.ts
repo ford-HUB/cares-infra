@@ -13,6 +13,10 @@ export const PDF_TEXT_RGB: [number, number, number] = [17, 24, 39]
 export const PDF_MUTED_RGB: [number, number, number] = [107, 114, 128]
 export const PDF_RULE_RGB: [number, number, number] = [229, 231, 235]
 export const PDF_STRIPE_RGB: [number, number, number] = [249, 250, 251]
+/** Seal yellow, for the thin accent under the title band. */
+export const PDF_ACCENT_RGB: [number, number, number] = [234, 199, 38]
+/** Soft white on the brand green, for the band's eyebrow line. */
+export const PDF_BAND_MUTED_RGB: [number, number, number] = [190, 214, 200]
 
 export const PDF_FONT = 'helvetica'
 export const PDF_TITLE_SIZE = 18
@@ -24,6 +28,10 @@ export const PDF_FOOTER_SIZE = 8
 
 /** Name printed in the footer of every export. */
 export const PDF_BRAND_NAME = 'CARES — Community Assistance & Response Engagement System'
+
+/** The seal drawn at the left of the title band, and the square size it is rasterised to. */
+export const PDF_LOGO_SRC = '/transparent-logo.png'
+export const PDF_LOGO_RASTER_PX = 240
 
 export const PDF_GENERATED_AT_FORMAT = 'MMMM D, YYYY · h:mm A'
 export const PDF_DATE_FORMAT = 'MMM D, YYYY'

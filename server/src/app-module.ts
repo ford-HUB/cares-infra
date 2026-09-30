@@ -45,6 +45,7 @@ import { ResidentialNeedsModule } from './modules/residential-needs/modules/resi
 import { RankingsModule } from './modules/rankings/modules/rankings-module';
 import { NotificationsModule } from './modules/notifications/modules/notifications-module';
 import { DonationsModule } from './modules/donations/modules/donations-module';
+import { PaymentsModule } from './modules/payments/modules/payments-module';
 import { SystemServicesModule } from './modules/system-services/modules/system-services-module';
 import { SystemPerformanceModule } from './modules/system-performance/modules/system-performance-module';
 import { SystemDiagnosticsModule } from './modules/system-diagnostics/modules/system-diagnostics-module';
@@ -99,6 +100,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     GatewaysModule,
     NotificationsModule,
     DonationsModule,
+    PaymentsModule,
     SchedulersModule,
     SystemServicesModule,
     SystemPerformanceModule,

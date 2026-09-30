@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Transporter, createTransport } from 'nodemailer';
+import { isProduction } from '../../shared/utils/environment-utils';
 
 export interface MailAttachment {
   filename: string;
@@ -8,7 +9,7 @@ export interface MailAttachment {
 }
 
 export interface SendEmailOptions {
-  /** Where a human reply should land — the sender is always the SMTP account. */
+  /** Where a human reply should land — the sender is always the configured mail account. */
   replyTo?: string;
   attachments?: MailAttachment[];
 }
@@ -16,14 +17,30 @@ export interface SendEmailOptions {
 @Injectable()
 export class NodemailerService {
   private readonly nodemailer: Transporter;
+  private readonly sender: string | undefined;
   constructor() {
-    this.nodemailer = createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
+    // Production sends through Resend's SMTP relay; development keeps the Gmail account.
+    this.nodemailer = isProduction()
+      ? createTransport({
+          host: 'smtp.resend.com',
+          port: 465,
+          secure: true,
+          auth: {
+            user: 'resend',
+            pass: process.env.SMTP_RESEND_APIKEY,
+          },
+        })
+      : createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD,
+          },
+        });
+
+    this.sender = isProduction()
+      ? process.env.SMTP_RESEND_AUTHOR_ORIGIN
+      : process.env.SMTP_USER;
   }
 
   async sendEmail(
@@ -33,7 +50,7 @@ export class NodemailerService {
     options?: SendEmailOptions,
   ): Promise<void> {
     const info = await this.nodemailer.sendMail({
-      from: process.env.SMTP_USER,
+      from: this.sender,
       to,
       subject,
       html: templateName,

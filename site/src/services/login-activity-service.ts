@@ -23,6 +23,7 @@ const OUTCOME_FROM_API: Record<string, LoginOutcome> = {
   OUTSIDE_LOGIN_HOURS: 'outside-login-hours',
   IP_NOT_ALLOWED: 'ip-not-allowed',
   CREDENTIAL_EXPIRED: 'credential-expired',
+  EMAIL_NOT_VERIFIED: 'email-not-verified',
 }
 
 const OUTCOME_TO_API: Record<LoginOutcome, string> = {
@@ -35,6 +36,7 @@ const OUTCOME_TO_API: Record<LoginOutcome, string> = {
   'outside-login-hours': 'OUTSIDE_LOGIN_HOURS',
   'ip-not-allowed': 'IP_NOT_ALLOWED',
   'credential-expired': 'CREDENTIAL_EXPIRED',
+  'email-not-verified': 'EMAIL_NOT_VERIFIED',
 }
 
 interface LoginActivityApiResponse {

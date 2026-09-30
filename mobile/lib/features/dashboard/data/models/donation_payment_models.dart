@@ -98,3 +98,92 @@ class DonationPayment {
     );
   }
 }
+
+/// One channel the director has switched on in the portal's Payments module,
+/// with the copy and limits they chose — `GET /payments/methods`.
+class AvailablePaymentMethod {
+  const AvailablePaymentMethod({
+    required this.method,
+    required this.label,
+    required this.description,
+    required this.minAmount,
+    required this.maxAmount,
+    this.accountName,
+    this.accountNumber,
+  });
+
+  final DonationPaymentMethod method;
+
+  /// What CARES calls this channel; falls back to the built-in name server-side.
+  final String label;
+  final String description;
+
+  /// Whole pesos. The server refuses a checkout outside this range, so the flow
+  /// greys the method out rather than letting the donor hit a 400.
+  final int minAmount;
+  final int maxAmount;
+
+  /// Where the money lands, when CARES recorded it — shown on the review step so
+  /// the donor can see who they are paying.
+  final String? accountName;
+  final String? accountNumber;
+
+  bool accepts(int amount) => amount >= minAmount && amount <= maxAmount;
+
+  factory AvailablePaymentMethod.fromJson(Map<String, dynamic> json) {
+    return AvailablePaymentMethod(
+      method: DonationPaymentMethodMeta.fromWire(json['method'] as String),
+      label: json['label'] as String,
+      description: json['description'] as String,
+      minAmount: (json['min_amount'] as num).toInt(),
+      maxAmount: (json['max_amount'] as num).toInt(),
+      accountName: json['account_name'] as String?,
+      accountNumber: json['account_number'] as String?,
+    );
+  }
+}
+
+/// What CARES can accept right now. [acceptingPayments] is false when the
+/// director switched online donations off or has not entered a gateway key yet;
+/// [methods] is then empty and the money flow says so instead of failing at the
+/// checkout call.
+class PaymentMethodAvailability {
+  const PaymentMethodAvailability({
+    required this.acceptingPayments,
+    required this.methods,
+    this.supportEmail,
+    this.supportContact,
+  });
+
+  const PaymentMethodAvailability.unavailable()
+    : acceptingPayments = false,
+      methods = const [],
+      supportEmail = null,
+      supportContact = null;
+
+  final bool acceptingPayments;
+  final List<AvailablePaymentMethod> methods;
+  final String? supportEmail;
+  final String? supportContact;
+
+  AvailablePaymentMethod? forMethod(DonationPaymentMethod method) {
+    for (final entry in methods) {
+      if (entry.method == method) return entry;
+    }
+    return null;
+  }
+
+  factory PaymentMethodAvailability.fromJson(Map<String, dynamic> json) {
+    final items = (json['items'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(AvailablePaymentMethod.fromJson)
+        .toList();
+
+    return PaymentMethodAvailability(
+      acceptingPayments: json['accepting_payments'] as bool? ?? false,
+      methods: items,
+      supportEmail: json['support_email'] as String?,
+      supportContact: json['support_contact'] as String?,
+    );
+  }
+}

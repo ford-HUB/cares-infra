@@ -129,13 +129,12 @@ export const REQUIRED_CERTIFICATE_TOKENS = CERTIFICATE_TOKENS.filter(
 const TOKEN_LIKE_PATTERN = /\{+[^{}]*\}+/g
 
 /**
- * The one place award-text wording is judged: every brace group must be a real
- * placeholder written exactly, and the required ones must all be present. Optional
- * tokens — hours, organization — are free to be left out.
+ * Every brace group must be a real placeholder written exactly. The award name is held
+ * to this alone — it may carry placeholders, but none is required there.
  *
  * Returns the message to show, or `null` when the wording is fine.
  */
-export function awardTextIssue(text: string): string | null {
+export function placeholderIssue(text: string): string | null {
   const names = new Set(CERTIFICATE_TOKENS.map((entry) => entry.token.slice(2, -2)))
 
   for (const match of text.match(TOKEN_LIKE_PATTERN) ?? []) {
@@ -147,6 +146,20 @@ export function awardTextIssue(text: string): string | null {
       return `“${match}” is written wrong — it must read {{${name}}}.`
     }
   }
+
+  return null
+}
+
+/**
+ * The one place award-text wording is judged: every brace group must be a real
+ * placeholder written exactly, and the required ones must all be present. Optional
+ * tokens — hours, organization — are free to be left out.
+ *
+ * Returns the message to show, or `null` when the wording is fine.
+ */
+export function awardTextIssue(text: string): string | null {
+  const malformed = placeholderIssue(text)
+  if (malformed) return malformed
 
   const missing = CERTIFICATE_TOKENS.filter(
     (entry) => entry.required && !text.includes(entry.token),
@@ -162,6 +175,8 @@ export function awardTextIssue(text: string): string | null {
 export const MAX_SIGNATORIES = 3
 
 export const HEADLINE_MAX_LENGTH = 60
+/** Matches the template name's own limit — the award name starts as a copy of it. */
+export const TITLE_MAX_LENGTH = 80
 export const BODY_MAX_LENGTH = 240
 
 /** Fills every `{{token}}` with its sample so the preview reads like a real award. */
@@ -170,6 +185,17 @@ export function renderCertificateTokens(text: string): string {
     (filled, entry) => filled.split(entry.token).join(entry.sample),
     text,
   )
+}
+
+/**
+ * The award name as printed: the design's own wording, or the template name on a
+ * template saved before the award name was its own field.
+ */
+export function certificateTitle(
+  design: { title?: string },
+  fallback: string,
+): string {
+  return design.title?.trim() ? design.title : fallback
 }
 
 /** The accent a brand-new template starts on, taken from its category. */

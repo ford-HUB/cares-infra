@@ -1,6 +1,7 @@
 import type {
   CertificateDesign,
   CertificateElementId,
+  CertificateFontWeight,
   CertificateTextAlign,
 } from '../types/certificate-template'
 
@@ -122,6 +123,58 @@ export function elementAlign(
   id: CertificateElementId,
 ): CertificateTextAlign {
   return design.elementAligns?.[id] ?? DEFAULT_TEXT_ALIGN
+}
+
+export const FONT_WEIGHT_ORDER: CertificateFontWeight[] = [
+  'regular',
+  'semibold',
+  'bold',
+  'extrabold',
+]
+
+export const FONT_WEIGHT_LABELS: Record<CertificateFontWeight, string> = {
+  regular: 'Regular',
+  semibold: 'Semibold',
+  bold: 'Bold',
+  extrabold: 'Extra bold',
+}
+
+/** CSS `font-weight` for each step — the app maps the same steps to `FontWeight.w*`. */
+export const FONT_WEIGHT_VALUES: Record<CertificateFontWeight, number> = {
+  regular: 400,
+  semibold: 600,
+  bold: 700,
+  extrabold: 800,
+}
+
+/** The block's own weight, or `undefined` while it keeps the frame's weight. */
+export function elementWeight(
+  design: CertificateDesign,
+  id: CertificateElementId,
+): CertificateFontWeight | undefined {
+  return design.elementWeights?.[id]
+}
+
+export function elementUnderline(
+  design: CertificateDesign,
+  id: CertificateElementId,
+): boolean {
+  return design.elementUnderlines?.[id] ?? false
+}
+
+/**
+ * Inline weight and underline for a block. Inline style beats the frame's utility
+ * classes, so a picked weight wins over e.g. the award name's `font-semibold`.
+ */
+export function elementEmphasisStyle(
+  design: CertificateDesign,
+  id: CertificateElementId,
+): { fontWeight?: number; textDecoration?: string } {
+  const weight = elementWeight(design, id)
+  return {
+    ...(weight ? { fontWeight: FONT_WEIGHT_VALUES[weight] } : {}),
+    ...(elementUnderline(design, id) ? { textDecoration: 'underline' } : {}),
+  }
 }
 
 /** Where a block's own contents sit inside its box — the flex twin of `text-align`. */

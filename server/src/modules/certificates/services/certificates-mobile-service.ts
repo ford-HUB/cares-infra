@@ -149,6 +149,7 @@ function toDto(row: IssuedCertificateRow): IssuedCertificateDto {
     body: fillCertificateText(design.body, values),
     design: {
       ...drawn,
+      title: fillCertificateText(design.title ?? row.template_name, values),
       headline: fillCertificateText(design.headline, values),
       body: fillCertificateText(design.body, values),
       signatories: design.signatories.map((line) => ({

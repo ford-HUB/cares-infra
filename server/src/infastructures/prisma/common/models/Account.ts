@@ -33,6 +33,7 @@ export type AccountMinAggregateOutputType = {
   updatedAt: Date | null
   credential_expires_at: Date | null
   provisioned_by_user_id: string | null
+  email_verified_at: Date | null
   signature_url: string | null
   is_restricted: boolean | null
   restricted_at: Date | null
@@ -50,6 +51,7 @@ export type AccountMaxAggregateOutputType = {
   updatedAt: Date | null
   credential_expires_at: Date | null
   provisioned_by_user_id: string | null
+  email_verified_at: Date | null
   signature_url: string | null
   is_restricted: boolean | null
   restricted_at: Date | null
@@ -67,6 +69,7 @@ export type AccountCountAggregateOutputType = {
   updatedAt: number
   credential_expires_at: number
   provisioned_by_user_id: number
+  email_verified_at: number
   signature_url: number
   is_restricted: number
   restricted_at: number
@@ -86,6 +89,7 @@ export type AccountMinAggregateInputType = {
   updatedAt?: true
   credential_expires_at?: true
   provisioned_by_user_id?: true
+  email_verified_at?: true
   signature_url?: true
   is_restricted?: true
   restricted_at?: true
@@ -103,6 +107,7 @@ export type AccountMaxAggregateInputType = {
   updatedAt?: true
   credential_expires_at?: true
   provisioned_by_user_id?: true
+  email_verified_at?: true
   signature_url?: true
   is_restricted?: true
   restricted_at?: true
@@ -120,6 +125,7 @@ export type AccountCountAggregateInputType = {
   updatedAt?: true
   credential_expires_at?: true
   provisioned_by_user_id?: true
+  email_verified_at?: true
   signature_url?: true
   is_restricted?: true
   restricted_at?: true
@@ -210,6 +216,7 @@ export type AccountGroupByOutputType = {
   updatedAt: Date
   credential_expires_at: Date | null
   provisioned_by_user_id: string | null
+  email_verified_at: Date | null
   signature_url: string | null
   is_restricted: boolean
   restricted_at: Date | null
@@ -248,6 +255,7 @@ export type AccountWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   credential_expires_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   provisioned_by_user_id?: Prisma.StringNullableFilter<"Account"> | string | null
+  email_verified_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   signature_url?: Prisma.StringNullableFilter<"Account"> | string | null
   is_restricted?: Prisma.BoolFilter<"Account"> | boolean
   restricted_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
@@ -266,6 +274,7 @@ export type AccountOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   credential_expires_at?: Prisma.SortOrderInput | Prisma.SortOrder
   provisioned_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  email_verified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
   is_restricted?: Prisma.SortOrder
   restricted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -287,6 +296,7 @@ export type AccountWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   credential_expires_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   provisioned_by_user_id?: Prisma.StringNullableFilter<"Account"> | string | null
+  email_verified_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   signature_url?: Prisma.StringNullableFilter<"Account"> | string | null
   is_restricted?: Prisma.BoolFilter<"Account"> | boolean
   restricted_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
@@ -305,6 +315,7 @@ export type AccountOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   credential_expires_at?: Prisma.SortOrderInput | Prisma.SortOrder
   provisioned_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  email_verified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   signature_url?: Prisma.SortOrderInput | Prisma.SortOrder
   is_restricted?: Prisma.SortOrder
   restricted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -328,6 +339,7 @@ export type AccountScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
   credential_expires_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
   provisioned_by_user_id?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
+  email_verified_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
   signature_url?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
   is_restricted?: Prisma.BoolWithAggregatesFilter<"Account"> | boolean
   restricted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
@@ -344,6 +356,7 @@ export type AccountCreateInput = {
   updatedAt?: Date | string
   credential_expires_at?: Date | string | null
   provisioned_by_user_id?: string | null
+  email_verified_at?: Date | string | null
   signature_url?: string | null
   is_restricted?: boolean
   restricted_at?: Date | string | null
@@ -362,6 +375,7 @@ export type AccountUncheckedCreateInput = {
   updatedAt?: Date | string
   credential_expires_at?: Date | string | null
   provisioned_by_user_id?: string | null
+  email_verified_at?: Date | string | null
   signature_url?: string | null
   is_restricted?: boolean
   restricted_at?: Date | string | null
@@ -378,6 +392,7 @@ export type AccountUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -396,6 +411,7 @@ export type AccountUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -413,6 +429,7 @@ export type AccountCreateManyInput = {
   updatedAt?: Date | string
   credential_expires_at?: Date | string | null
   provisioned_by_user_id?: string | null
+  email_verified_at?: Date | string | null
   signature_url?: string | null
   is_restricted?: boolean
   restricted_at?: Date | string | null
@@ -429,6 +446,7 @@ export type AccountUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -446,6 +464,7 @@ export type AccountUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -473,6 +492,7 @@ export type AccountCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   credential_expires_at?: Prisma.SortOrder
   provisioned_by_user_id?: Prisma.SortOrder
+  email_verified_at?: Prisma.SortOrder
   signature_url?: Prisma.SortOrder
   is_restricted?: Prisma.SortOrder
   restricted_at?: Prisma.SortOrder
@@ -490,6 +510,7 @@ export type AccountMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   credential_expires_at?: Prisma.SortOrder
   provisioned_by_user_id?: Prisma.SortOrder
+  email_verified_at?: Prisma.SortOrder
   signature_url?: Prisma.SortOrder
   is_restricted?: Prisma.SortOrder
   restricted_at?: Prisma.SortOrder
@@ -507,6 +528,7 @@ export type AccountMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   credential_expires_at?: Prisma.SortOrder
   provisioned_by_user_id?: Prisma.SortOrder
+  email_verified_at?: Prisma.SortOrder
   signature_url?: Prisma.SortOrder
   is_restricted?: Prisma.SortOrder
   restricted_at?: Prisma.SortOrder
@@ -565,6 +587,7 @@ export type AccountCreateWithoutUserInput = {
   updatedAt?: Date | string
   credential_expires_at?: Date | string | null
   provisioned_by_user_id?: string | null
+  email_verified_at?: Date | string | null
   signature_url?: string | null
   is_restricted?: boolean
   restricted_at?: Date | string | null
@@ -581,6 +604,7 @@ export type AccountUncheckedCreateWithoutUserInput = {
   updatedAt?: Date | string
   credential_expires_at?: Date | string | null
   provisioned_by_user_id?: string | null
+  email_verified_at?: Date | string | null
   signature_url?: string | null
   is_restricted?: boolean
   restricted_at?: Date | string | null
@@ -627,6 +651,7 @@ export type AccountScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   credential_expires_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   provisioned_by_user_id?: Prisma.StringNullableFilter<"Account"> | string | null
+  email_verified_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   signature_url?: Prisma.StringNullableFilter<"Account"> | string | null
   is_restricted?: Prisma.BoolFilter<"Account"> | boolean
   restricted_at?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
@@ -643,6 +668,7 @@ export type AccountCreateManyUserInput = {
   updatedAt?: Date | string
   credential_expires_at?: Date | string | null
   provisioned_by_user_id?: string | null
+  email_verified_at?: Date | string | null
   signature_url?: string | null
   is_restricted?: boolean
   restricted_at?: Date | string | null
@@ -659,6 +685,7 @@ export type AccountUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -675,6 +702,7 @@ export type AccountUncheckedUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -691,6 +719,7 @@ export type AccountUncheckedUpdateManyWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   credential_expires_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   provisioned_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signature_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_restricted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restricted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -710,6 +739,7 @@ export type AccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   credential_expires_at?: boolean
   provisioned_by_user_id?: boolean
+  email_verified_at?: boolean
   signature_url?: boolean
   is_restricted?: boolean
   restricted_at?: boolean
@@ -728,6 +758,7 @@ export type AccountSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   updatedAt?: boolean
   credential_expires_at?: boolean
   provisioned_by_user_id?: boolean
+  email_verified_at?: boolean
   signature_url?: boolean
   is_restricted?: boolean
   restricted_at?: boolean
@@ -746,6 +777,7 @@ export type AccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   updatedAt?: boolean
   credential_expires_at?: boolean
   provisioned_by_user_id?: boolean
+  email_verified_at?: boolean
   signature_url?: boolean
   is_restricted?: boolean
   restricted_at?: boolean
@@ -764,6 +796,7 @@ export type AccountSelectScalar = {
   updatedAt?: boolean
   credential_expires_at?: boolean
   provisioned_by_user_id?: boolean
+  email_verified_at?: boolean
   signature_url?: boolean
   is_restricted?: boolean
   restricted_at?: boolean
@@ -772,7 +805,7 @@ export type AccountSelectScalar = {
   email_verified_at?: boolean
 }
 
-export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"account_id" | "email" | "password" | "user_id" | "createdAt" | "updatedAt" | "credential_expires_at" | "provisioned_by_user_id" | "signature_url" | "is_restricted" | "restricted_at" | "restriction_reason" | "last_login_ip" | "email_verified_at", ExtArgs["result"]["account"]>
+export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"account_id" | "email" | "password" | "credential_expires_at" | "provisioned_by_user_id" | "email_verified_at" | "signature_url" | "is_restricted" | "restricted_at" | "restriction_reason" | "last_login_ip" | "user_id" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
 export type AccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -809,6 +842,12 @@ export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * The administrator who issued the credential in force — null for self-registration.
      */
     provisioned_by_user_id: string | null
+    /**
+     * When the owner proved the address — the sign-up OTP, a provider that vouches for
+     * it, or an administrator mailing the credential to it. Mobile password sign-in is
+     * refused while this is null.
+     */
+    email_verified_at: Date | null
     /**
      * Portal signatory image (directors/coordinators); printed onto certificates.
      */
@@ -1250,6 +1289,7 @@ export interface AccountFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Account", 'DateTime'>
   readonly credential_expires_at: Prisma.FieldRef<"Account", 'DateTime'>
   readonly provisioned_by_user_id: Prisma.FieldRef<"Account", 'String'>
+  readonly email_verified_at: Prisma.FieldRef<"Account", 'DateTime'>
   readonly signature_url: Prisma.FieldRef<"Account", 'String'>
   readonly is_restricted: Prisma.FieldRef<"Account", 'Boolean'>
   readonly restricted_at: Prisma.FieldRef<"Account", 'DateTime'>

@@ -8,6 +8,7 @@ import { EMAIL_JOBS, type SendEmailJobData } from '../jobs/email-scheduler';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from '../scheduler-registry';
 import { SchedulerRepository } from '../scheduler-repository';
 import { CatalogedProcessor } from './base-processor';
+import { portalUrl as resolvePortalUrl } from '../../shared/utils/environment-utils';
 
 /** The digest covers notices that arrived since the previous morning's run. */
 const DIGEST_WINDOW_HOURS = 24;
@@ -16,7 +17,6 @@ const DIGEST_WINDOW_HOURS = 24;
 const DIGEST_PREVIEW_COUNT = 5;
 
 const DEFAULT_SUPPORT_EMAIL = 'careeesadmin@gmail.com';
-const DEFAULT_PORTAL_URL = 'http://localhost:5173';
 
 /**
  * Sends queued mail and compiles the morning digest. A `send` that fails is retried
@@ -74,8 +74,7 @@ export class EmailProcessor extends CatalogedProcessor {
     const supportEmail =
       this.configService.get<string>('ACCESS_REQUEST_EMAIL')?.trim() ||
       DEFAULT_SUPPORT_EMAIL;
-    const portalUrl =
-      this.configService.get<string>('SITE_URL')?.trim() || DEFAULT_PORTAL_URL;
+    const portalUrl = resolvePortalUrl();
 
     for (const digest of digests) {
       const urgent = digest.notifications.filter(

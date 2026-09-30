@@ -14,7 +14,9 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model PaymentMethodSetting
- * 
+ * One donor-facing payment channel. A channel the director has not enabled is not
+ * offered in the app and is refused by the checkout endpoint, so hiding it in the
+ * portal and blocking it on the server are one decision.
  */
 export type PaymentMethodSettingModel = runtime.Types.Result.DefaultSelection<Prisma.$PaymentMethodSettingPayload>
 
@@ -54,8 +56,6 @@ export type PaymentMethodSettingMinAggregateOutputType = {
   min_amount: number | null
   max_amount: number | null
   sort_order: number | null
-  createdAt: Date | null
-  updatedAt: Date | null
   verification: $Enums.PaymentMethodVerification | null
   verified_at: Date | null
   verification_message: string | null
@@ -69,6 +69,8 @@ export type PaymentMethodSettingMinAggregateOutputType = {
   account_proof_message: string | null
   account_proof_target: string | null
   account_verified_at: Date | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type PaymentMethodSettingMaxAggregateOutputType = {
@@ -83,8 +85,6 @@ export type PaymentMethodSettingMaxAggregateOutputType = {
   min_amount: number | null
   max_amount: number | null
   sort_order: number | null
-  createdAt: Date | null
-  updatedAt: Date | null
   verification: $Enums.PaymentMethodVerification | null
   verified_at: Date | null
   verification_message: string | null
@@ -98,6 +98,8 @@ export type PaymentMethodSettingMaxAggregateOutputType = {
   account_proof_message: string | null
   account_proof_target: string | null
   account_verified_at: Date | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type PaymentMethodSettingCountAggregateOutputType = {
@@ -113,8 +115,6 @@ export type PaymentMethodSettingCountAggregateOutputType = {
   min_amount: number
   max_amount: number
   sort_order: number
-  createdAt: number
-  updatedAt: number
   verification: number
   verified_at: number
   verification_message: number
@@ -129,6 +129,8 @@ export type PaymentMethodSettingCountAggregateOutputType = {
   account_proof_message: number
   account_proof_target: number
   account_verified_at: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -161,8 +163,6 @@ export type PaymentMethodSettingMinAggregateInputType = {
   min_amount?: true
   max_amount?: true
   sort_order?: true
-  createdAt?: true
-  updatedAt?: true
   verification?: true
   verified_at?: true
   verification_message?: true
@@ -176,6 +176,8 @@ export type PaymentMethodSettingMinAggregateInputType = {
   account_proof_message?: true
   account_proof_target?: true
   account_verified_at?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type PaymentMethodSettingMaxAggregateInputType = {
@@ -190,8 +192,6 @@ export type PaymentMethodSettingMaxAggregateInputType = {
   min_amount?: true
   max_amount?: true
   sort_order?: true
-  createdAt?: true
-  updatedAt?: true
   verification?: true
   verified_at?: true
   verification_message?: true
@@ -205,6 +205,8 @@ export type PaymentMethodSettingMaxAggregateInputType = {
   account_proof_message?: true
   account_proof_target?: true
   account_verified_at?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type PaymentMethodSettingCountAggregateInputType = {
@@ -220,8 +222,6 @@ export type PaymentMethodSettingCountAggregateInputType = {
   min_amount?: true
   max_amount?: true
   sort_order?: true
-  createdAt?: true
-  updatedAt?: true
   verification?: true
   verified_at?: true
   verification_message?: true
@@ -236,6 +236,8 @@ export type PaymentMethodSettingCountAggregateInputType = {
   account_proof_message?: true
   account_proof_target?: true
   account_verified_at?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -338,8 +340,6 @@ export type PaymentMethodSettingGroupByOutputType = {
   min_amount: number
   max_amount: number
   sort_order: number
-  createdAt: Date
-  updatedAt: Date
   verification: $Enums.PaymentMethodVerification
   verified_at: Date | null
   verification_message: string | null
@@ -354,6 +354,8 @@ export type PaymentMethodSettingGroupByOutputType = {
   account_proof_message: string | null
   account_proof_target: string | null
   account_verified_at: Date | null
+  createdAt: Date
+  updatedAt: Date
   _count: PaymentMethodSettingCountAggregateOutputType | null
   _avg: PaymentMethodSettingAvgAggregateOutputType | null
   _sum: PaymentMethodSettingSumAggregateOutputType | null
@@ -392,8 +394,6 @@ export type PaymentMethodSettingWhereInput = {
   min_amount?: Prisma.IntFilter<"PaymentMethodSetting"> | number
   max_amount?: Prisma.IntFilter<"PaymentMethodSetting"> | number
   sort_order?: Prisma.IntFilter<"PaymentMethodSetting"> | number
-  createdAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFilter<"PaymentMethodSetting"> | $Enums.PaymentMethodVerification
   verified_at?: Prisma.DateTimeNullableFilter<"PaymentMethodSetting"> | Date | string | null
   verification_message?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
@@ -408,7 +408,9 @@ export type PaymentMethodSettingWhereInput = {
   account_proof_message?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
   account_proof_target?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
   account_verified_at?: Prisma.DateTimeNullableFilter<"PaymentMethodSetting"> | Date | string | null
-  PaymentGatewaySettings?: Prisma.XOR<Prisma.PaymentGatewaySettingsScalarRelationFilter, Prisma.PaymentGatewaySettingsWhereInput>
+  createdAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
+  settings?: Prisma.XOR<Prisma.PaymentGatewaySettingsScalarRelationFilter, Prisma.PaymentGatewaySettingsWhereInput>
 }
 
 export type PaymentMethodSettingOrderByWithRelationInput = {
@@ -424,8 +426,6 @@ export type PaymentMethodSettingOrderByWithRelationInput = {
   min_amount?: Prisma.SortOrder
   max_amount?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   verification?: Prisma.SortOrder
   verified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   verification_message?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -440,7 +440,9 @@ export type PaymentMethodSettingOrderByWithRelationInput = {
   account_proof_message?: Prisma.SortOrderInput | Prisma.SortOrder
   account_proof_target?: Prisma.SortOrderInput | Prisma.SortOrder
   account_verified_at?: Prisma.SortOrderInput | Prisma.SortOrder
-  PaymentGatewaySettings?: Prisma.PaymentGatewaySettingsOrderByWithRelationInput
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  settings?: Prisma.PaymentGatewaySettingsOrderByWithRelationInput
 }
 
 export type PaymentMethodSettingWhereUniqueInput = Prisma.AtLeast<{
@@ -460,8 +462,6 @@ export type PaymentMethodSettingWhereUniqueInput = Prisma.AtLeast<{
   min_amount?: Prisma.IntFilter<"PaymentMethodSetting"> | number
   max_amount?: Prisma.IntFilter<"PaymentMethodSetting"> | number
   sort_order?: Prisma.IntFilter<"PaymentMethodSetting"> | number
-  createdAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFilter<"PaymentMethodSetting"> | $Enums.PaymentMethodVerification
   verified_at?: Prisma.DateTimeNullableFilter<"PaymentMethodSetting"> | Date | string | null
   verification_message?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
@@ -476,7 +476,9 @@ export type PaymentMethodSettingWhereUniqueInput = Prisma.AtLeast<{
   account_proof_message?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
   account_proof_target?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
   account_verified_at?: Prisma.DateTimeNullableFilter<"PaymentMethodSetting"> | Date | string | null
-  PaymentGatewaySettings?: Prisma.XOR<Prisma.PaymentGatewaySettingsScalarRelationFilter, Prisma.PaymentGatewaySettingsWhereInput>
+  createdAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
+  settings?: Prisma.XOR<Prisma.PaymentGatewaySettingsScalarRelationFilter, Prisma.PaymentGatewaySettingsWhereInput>
 }, "payment_method_setting_id" | "settings_id_method">
 
 export type PaymentMethodSettingOrderByWithAggregationInput = {
@@ -492,8 +494,6 @@ export type PaymentMethodSettingOrderByWithAggregationInput = {
   min_amount?: Prisma.SortOrder
   max_amount?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   verification?: Prisma.SortOrder
   verified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   verification_message?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -508,6 +508,8 @@ export type PaymentMethodSettingOrderByWithAggregationInput = {
   account_proof_message?: Prisma.SortOrderInput | Prisma.SortOrder
   account_proof_target?: Prisma.SortOrderInput | Prisma.SortOrder
   account_verified_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.PaymentMethodSettingCountOrderByAggregateInput
   _avg?: Prisma.PaymentMethodSettingAvgOrderByAggregateInput
   _max?: Prisma.PaymentMethodSettingMaxOrderByAggregateInput
@@ -531,8 +533,6 @@ export type PaymentMethodSettingScalarWhereWithAggregatesInput = {
   min_amount?: Prisma.IntWithAggregatesFilter<"PaymentMethodSetting"> | number
   max_amount?: Prisma.IntWithAggregatesFilter<"PaymentMethodSetting"> | number
   sort_order?: Prisma.IntWithAggregatesFilter<"PaymentMethodSetting"> | number
-  createdAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentMethodSetting"> | Date | string
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentMethodSetting"> | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationWithAggregatesFilter<"PaymentMethodSetting"> | $Enums.PaymentMethodVerification
   verified_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PaymentMethodSetting"> | Date | string | null
   verification_message?: Prisma.StringNullableWithAggregatesFilter<"PaymentMethodSetting"> | string | null
@@ -547,10 +547,12 @@ export type PaymentMethodSettingScalarWhereWithAggregatesInput = {
   account_proof_message?: Prisma.StringNullableWithAggregatesFilter<"PaymentMethodSetting"> | string | null
   account_proof_target?: Prisma.StringNullableWithAggregatesFilter<"PaymentMethodSetting"> | string | null
   account_verified_at?: Prisma.DateTimeNullableWithAggregatesFilter<"PaymentMethodSetting"> | Date | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentMethodSetting"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentMethodSetting"> | Date | string
 }
 
 export type PaymentMethodSettingCreateInput = {
-  payment_method_setting_id: string
+  payment_method_setting_id?: string
   method: $Enums.DonationPaymentMethod
   enabled?: boolean
   display_name?: string | null
@@ -561,8 +563,6 @@ export type PaymentMethodSettingCreateInput = {
   min_amount?: number
   max_amount?: number
   sort_order?: number
-  createdAt?: Date | string
-  updatedAt: Date | string
   verification?: $Enums.PaymentMethodVerification
   verified_at?: Date | string | null
   verification_message?: string | null
@@ -577,11 +577,13 @@ export type PaymentMethodSettingCreateInput = {
   account_proof_message?: string | null
   account_proof_target?: string | null
   account_verified_at?: Date | string | null
-  PaymentGatewaySettings: Prisma.PaymentGatewaySettingsCreateNestedOneWithoutPaymentMethodSettingInput
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  settings: Prisma.PaymentGatewaySettingsCreateNestedOneWithoutMethodsInput
 }
 
 export type PaymentMethodSettingUncheckedCreateInput = {
-  payment_method_setting_id: string
+  payment_method_setting_id?: string
   settings_id: string
   method: $Enums.DonationPaymentMethod
   enabled?: boolean
@@ -593,8 +595,6 @@ export type PaymentMethodSettingUncheckedCreateInput = {
   min_amount?: number
   max_amount?: number
   sort_order?: number
-  createdAt?: Date | string
-  updatedAt: Date | string
   verification?: $Enums.PaymentMethodVerification
   verified_at?: Date | string | null
   verification_message?: string | null
@@ -609,6 +609,8 @@ export type PaymentMethodSettingUncheckedCreateInput = {
   account_proof_message?: string | null
   account_proof_target?: string | null
   account_verified_at?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PaymentMethodSettingUpdateInput = {
@@ -623,8 +625,6 @@ export type PaymentMethodSettingUpdateInput = {
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -639,7 +639,9 @@ export type PaymentMethodSettingUpdateInput = {
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  PaymentGatewaySettings?: Prisma.PaymentGatewaySettingsUpdateOneRequiredWithoutPaymentMethodSettingNestedInput
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  settings?: Prisma.PaymentGatewaySettingsUpdateOneRequiredWithoutMethodsNestedInput
 }
 
 export type PaymentMethodSettingUncheckedUpdateInput = {
@@ -655,8 +657,6 @@ export type PaymentMethodSettingUncheckedUpdateInput = {
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -671,10 +671,12 @@ export type PaymentMethodSettingUncheckedUpdateInput = {
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentMethodSettingCreateManyInput = {
-  payment_method_setting_id: string
+  payment_method_setting_id?: string
   settings_id: string
   method: $Enums.DonationPaymentMethod
   enabled?: boolean
@@ -686,8 +688,6 @@ export type PaymentMethodSettingCreateManyInput = {
   min_amount?: number
   max_amount?: number
   sort_order?: number
-  createdAt?: Date | string
-  updatedAt: Date | string
   verification?: $Enums.PaymentMethodVerification
   verified_at?: Date | string | null
   verification_message?: string | null
@@ -702,6 +702,8 @@ export type PaymentMethodSettingCreateManyInput = {
   account_proof_message?: string | null
   account_proof_target?: string | null
   account_verified_at?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PaymentMethodSettingUpdateManyMutationInput = {
@@ -716,8 +718,6 @@ export type PaymentMethodSettingUpdateManyMutationInput = {
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -732,6 +732,8 @@ export type PaymentMethodSettingUpdateManyMutationInput = {
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentMethodSettingUncheckedUpdateManyInput = {
@@ -747,8 +749,6 @@ export type PaymentMethodSettingUncheckedUpdateManyInput = {
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -763,6 +763,8 @@ export type PaymentMethodSettingUncheckedUpdateManyInput = {
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentMethodSettingListRelationFilter = {
@@ -793,8 +795,6 @@ export type PaymentMethodSettingCountOrderByAggregateInput = {
   min_amount?: Prisma.SortOrder
   max_amount?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   verification?: Prisma.SortOrder
   verified_at?: Prisma.SortOrder
   verification_message?: Prisma.SortOrder
@@ -809,6 +809,8 @@ export type PaymentMethodSettingCountOrderByAggregateInput = {
   account_proof_message?: Prisma.SortOrder
   account_proof_target?: Prisma.SortOrder
   account_verified_at?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PaymentMethodSettingAvgOrderByAggregateInput = {
@@ -831,8 +833,6 @@ export type PaymentMethodSettingMaxOrderByAggregateInput = {
   min_amount?: Prisma.SortOrder
   max_amount?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   verification?: Prisma.SortOrder
   verified_at?: Prisma.SortOrder
   verification_message?: Prisma.SortOrder
@@ -846,6 +846,8 @@ export type PaymentMethodSettingMaxOrderByAggregateInput = {
   account_proof_message?: Prisma.SortOrder
   account_proof_target?: Prisma.SortOrder
   account_verified_at?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PaymentMethodSettingMinOrderByAggregateInput = {
@@ -860,8 +862,6 @@ export type PaymentMethodSettingMinOrderByAggregateInput = {
   min_amount?: Prisma.SortOrder
   max_amount?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   verification?: Prisma.SortOrder
   verified_at?: Prisma.SortOrder
   verification_message?: Prisma.SortOrder
@@ -875,6 +875,8 @@ export type PaymentMethodSettingMinOrderByAggregateInput = {
   account_proof_message?: Prisma.SortOrder
   account_proof_target?: Prisma.SortOrder
   account_verified_at?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PaymentMethodSettingSumOrderByAggregateInput = {
@@ -885,45 +887,45 @@ export type PaymentMethodSettingSumOrderByAggregateInput = {
   account_proof_attempts?: Prisma.SortOrder
 }
 
-export type PaymentMethodSettingCreateNestedManyWithoutPaymentGatewaySettingsInput = {
-  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput> | Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput[]
-  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput[]
-  createMany?: Prisma.PaymentMethodSettingCreateManyPaymentGatewaySettingsInputEnvelope
+export type PaymentMethodSettingCreateNestedManyWithoutSettingsInput = {
+  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput> | Prisma.PaymentMethodSettingCreateWithoutSettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput[]
+  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput[]
+  createMany?: Prisma.PaymentMethodSettingCreateManySettingsInputEnvelope
   connect?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
 }
 
-export type PaymentMethodSettingUncheckedCreateNestedManyWithoutPaymentGatewaySettingsInput = {
-  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput> | Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput[]
-  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput[]
-  createMany?: Prisma.PaymentMethodSettingCreateManyPaymentGatewaySettingsInputEnvelope
+export type PaymentMethodSettingUncheckedCreateNestedManyWithoutSettingsInput = {
+  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput> | Prisma.PaymentMethodSettingCreateWithoutSettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput[]
+  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput[]
+  createMany?: Prisma.PaymentMethodSettingCreateManySettingsInputEnvelope
   connect?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
 }
 
-export type PaymentMethodSettingUpdateManyWithoutPaymentGatewaySettingsNestedInput = {
-  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput> | Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput[]
-  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput[]
-  upsert?: Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutPaymentGatewaySettingsInput[]
-  createMany?: Prisma.PaymentMethodSettingCreateManyPaymentGatewaySettingsInputEnvelope
+export type PaymentMethodSettingUpdateManyWithoutSettingsNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput> | Prisma.PaymentMethodSettingCreateWithoutSettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput[]
+  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput[]
+  upsert?: Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutSettingsInput | Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutSettingsInput[]
+  createMany?: Prisma.PaymentMethodSettingCreateManySettingsInputEnvelope
   set?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
   disconnect?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
   delete?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
   connect?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
-  update?: Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutPaymentGatewaySettingsInput[]
-  updateMany?: Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutPaymentGatewaySettingsInput[]
+  update?: Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutSettingsInput | Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutSettingsInput[]
+  updateMany?: Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutSettingsInput | Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutSettingsInput[]
   deleteMany?: Prisma.PaymentMethodSettingScalarWhereInput | Prisma.PaymentMethodSettingScalarWhereInput[]
 }
 
-export type PaymentMethodSettingUncheckedUpdateManyWithoutPaymentGatewaySettingsNestedInput = {
-  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput> | Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput[]
-  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput[]
-  upsert?: Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutPaymentGatewaySettingsInput[]
-  createMany?: Prisma.PaymentMethodSettingCreateManyPaymentGatewaySettingsInputEnvelope
+export type PaymentMethodSettingUncheckedUpdateManyWithoutSettingsNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput> | Prisma.PaymentMethodSettingCreateWithoutSettingsInput[] | Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput[]
+  connectOrCreate?: Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput | Prisma.PaymentMethodSettingCreateOrConnectWithoutSettingsInput[]
+  upsert?: Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutSettingsInput | Prisma.PaymentMethodSettingUpsertWithWhereUniqueWithoutSettingsInput[]
+  createMany?: Prisma.PaymentMethodSettingCreateManySettingsInputEnvelope
   set?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
   disconnect?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
   delete?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
   connect?: Prisma.PaymentMethodSettingWhereUniqueInput | Prisma.PaymentMethodSettingWhereUniqueInput[]
-  update?: Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutPaymentGatewaySettingsInput[]
-  updateMany?: Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutPaymentGatewaySettingsInput[]
+  update?: Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutSettingsInput | Prisma.PaymentMethodSettingUpdateWithWhereUniqueWithoutSettingsInput[]
+  updateMany?: Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutSettingsInput | Prisma.PaymentMethodSettingUpdateManyWithWhereWithoutSettingsInput[]
   deleteMany?: Prisma.PaymentMethodSettingScalarWhereInput | Prisma.PaymentMethodSettingScalarWhereInput[]
 }
 
@@ -953,8 +955,8 @@ export type EnumPaymentAccountProofFieldUpdateOperationsInput = {
   set?: $Enums.PaymentAccountProof
 }
 
-export type PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput = {
-  payment_method_setting_id: string
+export type PaymentMethodSettingCreateWithoutSettingsInput = {
+  payment_method_setting_id?: string
   method: $Enums.DonationPaymentMethod
   enabled?: boolean
   display_name?: string | null
@@ -965,8 +967,6 @@ export type PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput = {
   min_amount?: number
   max_amount?: number
   sort_order?: number
-  createdAt?: Date | string
-  updatedAt: Date | string
   verification?: $Enums.PaymentMethodVerification
   verified_at?: Date | string | null
   verification_message?: string | null
@@ -981,10 +981,12 @@ export type PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput = {
   account_proof_message?: string | null
   account_proof_target?: string | null
   account_verified_at?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
-export type PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput = {
-  payment_method_setting_id: string
+export type PaymentMethodSettingUncheckedCreateWithoutSettingsInput = {
+  payment_method_setting_id?: string
   method: $Enums.DonationPaymentMethod
   enabled?: boolean
   display_name?: string | null
@@ -995,8 +997,6 @@ export type PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInpu
   min_amount?: number
   max_amount?: number
   sort_order?: number
-  createdAt?: Date | string
-  updatedAt: Date | string
   verification?: $Enums.PaymentMethodVerification
   verified_at?: Date | string | null
   verification_message?: string | null
@@ -1011,32 +1011,34 @@ export type PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInpu
   account_proof_message?: string | null
   account_proof_target?: string | null
   account_verified_at?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
-export type PaymentMethodSettingCreateOrConnectWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingCreateOrConnectWithoutSettingsInput = {
   where: Prisma.PaymentMethodSettingWhereUniqueInput
-  create: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput>
+  create: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput>
 }
 
-export type PaymentMethodSettingCreateManyPaymentGatewaySettingsInputEnvelope = {
-  data: Prisma.PaymentMethodSettingCreateManyPaymentGatewaySettingsInput | Prisma.PaymentMethodSettingCreateManyPaymentGatewaySettingsInput[]
+export type PaymentMethodSettingCreateManySettingsInputEnvelope = {
+  data: Prisma.PaymentMethodSettingCreateManySettingsInput | Prisma.PaymentMethodSettingCreateManySettingsInput[]
   skipDuplicates?: boolean
 }
 
-export type PaymentMethodSettingUpsertWithWhereUniqueWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingUpsertWithWhereUniqueWithoutSettingsInput = {
   where: Prisma.PaymentMethodSettingWhereUniqueInput
-  update: Prisma.XOR<Prisma.PaymentMethodSettingUpdateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedUpdateWithoutPaymentGatewaySettingsInput>
-  create: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutPaymentGatewaySettingsInput>
+  update: Prisma.XOR<Prisma.PaymentMethodSettingUpdateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedUpdateWithoutSettingsInput>
+  create: Prisma.XOR<Prisma.PaymentMethodSettingCreateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedCreateWithoutSettingsInput>
 }
 
-export type PaymentMethodSettingUpdateWithWhereUniqueWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingUpdateWithWhereUniqueWithoutSettingsInput = {
   where: Prisma.PaymentMethodSettingWhereUniqueInput
-  data: Prisma.XOR<Prisma.PaymentMethodSettingUpdateWithoutPaymentGatewaySettingsInput, Prisma.PaymentMethodSettingUncheckedUpdateWithoutPaymentGatewaySettingsInput>
+  data: Prisma.XOR<Prisma.PaymentMethodSettingUpdateWithoutSettingsInput, Prisma.PaymentMethodSettingUncheckedUpdateWithoutSettingsInput>
 }
 
-export type PaymentMethodSettingUpdateManyWithWhereWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingUpdateManyWithWhereWithoutSettingsInput = {
   where: Prisma.PaymentMethodSettingScalarWhereInput
-  data: Prisma.XOR<Prisma.PaymentMethodSettingUpdateManyMutationInput, Prisma.PaymentMethodSettingUncheckedUpdateManyWithoutPaymentGatewaySettingsInput>
+  data: Prisma.XOR<Prisma.PaymentMethodSettingUpdateManyMutationInput, Prisma.PaymentMethodSettingUncheckedUpdateManyWithoutSettingsInput>
 }
 
 export type PaymentMethodSettingScalarWhereInput = {
@@ -1055,8 +1057,6 @@ export type PaymentMethodSettingScalarWhereInput = {
   min_amount?: Prisma.IntFilter<"PaymentMethodSetting"> | number
   max_amount?: Prisma.IntFilter<"PaymentMethodSetting"> | number
   sort_order?: Prisma.IntFilter<"PaymentMethodSetting"> | number
-  createdAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFilter<"PaymentMethodSetting"> | $Enums.PaymentMethodVerification
   verified_at?: Prisma.DateTimeNullableFilter<"PaymentMethodSetting"> | Date | string | null
   verification_message?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
@@ -1071,10 +1071,12 @@ export type PaymentMethodSettingScalarWhereInput = {
   account_proof_message?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
   account_proof_target?: Prisma.StringNullableFilter<"PaymentMethodSetting"> | string | null
   account_verified_at?: Prisma.DateTimeNullableFilter<"PaymentMethodSetting"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PaymentMethodSetting"> | Date | string
 }
 
-export type PaymentMethodSettingCreateManyPaymentGatewaySettingsInput = {
-  payment_method_setting_id: string
+export type PaymentMethodSettingCreateManySettingsInput = {
+  payment_method_setting_id?: string
   method: $Enums.DonationPaymentMethod
   enabled?: boolean
   display_name?: string | null
@@ -1085,8 +1087,6 @@ export type PaymentMethodSettingCreateManyPaymentGatewaySettingsInput = {
   min_amount?: number
   max_amount?: number
   sort_order?: number
-  createdAt?: Date | string
-  updatedAt: Date | string
   verification?: $Enums.PaymentMethodVerification
   verified_at?: Date | string | null
   verification_message?: string | null
@@ -1101,9 +1101,11 @@ export type PaymentMethodSettingCreateManyPaymentGatewaySettingsInput = {
   account_proof_message?: string | null
   account_proof_target?: string | null
   account_verified_at?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
-export type PaymentMethodSettingUpdateWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingUpdateWithoutSettingsInput = {
   payment_method_setting_id?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.EnumDonationPaymentMethodFieldUpdateOperationsInput | $Enums.DonationPaymentMethod
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1115,8 +1117,6 @@ export type PaymentMethodSettingUpdateWithoutPaymentGatewaySettingsInput = {
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1131,9 +1131,11 @@ export type PaymentMethodSettingUpdateWithoutPaymentGatewaySettingsInput = {
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type PaymentMethodSettingUncheckedUpdateWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingUncheckedUpdateWithoutSettingsInput = {
   payment_method_setting_id?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.EnumDonationPaymentMethodFieldUpdateOperationsInput | $Enums.DonationPaymentMethod
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1145,8 +1147,6 @@ export type PaymentMethodSettingUncheckedUpdateWithoutPaymentGatewaySettingsInpu
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1161,9 +1161,11 @@ export type PaymentMethodSettingUncheckedUpdateWithoutPaymentGatewaySettingsInpu
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type PaymentMethodSettingUncheckedUpdateManyWithoutPaymentGatewaySettingsInput = {
+export type PaymentMethodSettingUncheckedUpdateManyWithoutSettingsInput = {
   payment_method_setting_id?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.EnumDonationPaymentMethodFieldUpdateOperationsInput | $Enums.DonationPaymentMethod
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1175,8 +1177,6 @@ export type PaymentMethodSettingUncheckedUpdateManyWithoutPaymentGatewaySettings
   min_amount?: Prisma.IntFieldUpdateOperationsInput | number
   max_amount?: Prisma.IntFieldUpdateOperationsInput | number
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verification?: Prisma.EnumPaymentMethodVerificationFieldUpdateOperationsInput | $Enums.PaymentMethodVerification
   verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verification_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1191,6 +1191,8 @@ export type PaymentMethodSettingUncheckedUpdateManyWithoutPaymentGatewaySettings
   account_proof_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_proof_target?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   account_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1208,8 +1210,6 @@ export type PaymentMethodSettingSelect<ExtArgs extends runtime.Types.Extensions.
   min_amount?: boolean
   max_amount?: boolean
   sort_order?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
   verification?: boolean
   verified_at?: boolean
   verification_message?: boolean
@@ -1224,7 +1224,9 @@ export type PaymentMethodSettingSelect<ExtArgs extends runtime.Types.Extensions.
   account_proof_message?: boolean
   account_proof_target?: boolean
   account_verified_at?: boolean
-  PaymentGatewaySettings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
+  createdAt?: boolean
+  updatedAt?: boolean
+  settings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["paymentMethodSetting"]>
 
 export type PaymentMethodSettingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1240,8 +1242,6 @@ export type PaymentMethodSettingSelectCreateManyAndReturn<ExtArgs extends runtim
   min_amount?: boolean
   max_amount?: boolean
   sort_order?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
   verification?: boolean
   verified_at?: boolean
   verification_message?: boolean
@@ -1256,7 +1256,9 @@ export type PaymentMethodSettingSelectCreateManyAndReturn<ExtArgs extends runtim
   account_proof_message?: boolean
   account_proof_target?: boolean
   account_verified_at?: boolean
-  PaymentGatewaySettings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
+  createdAt?: boolean
+  updatedAt?: boolean
+  settings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["paymentMethodSetting"]>
 
 export type PaymentMethodSettingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1272,8 +1274,6 @@ export type PaymentMethodSettingSelectUpdateManyAndReturn<ExtArgs extends runtim
   min_amount?: boolean
   max_amount?: boolean
   sort_order?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
   verification?: boolean
   verified_at?: boolean
   verification_message?: boolean
@@ -1288,7 +1288,9 @@ export type PaymentMethodSettingSelectUpdateManyAndReturn<ExtArgs extends runtim
   account_proof_message?: boolean
   account_proof_target?: boolean
   account_verified_at?: boolean
-  PaymentGatewaySettings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
+  createdAt?: boolean
+  updatedAt?: boolean
+  settings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["paymentMethodSetting"]>
 
 export type PaymentMethodSettingSelectScalar = {
@@ -1304,8 +1306,6 @@ export type PaymentMethodSettingSelectScalar = {
   min_amount?: boolean
   max_amount?: boolean
   sort_order?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
   verification?: boolean
   verified_at?: boolean
   verification_message?: boolean
@@ -1320,53 +1320,104 @@ export type PaymentMethodSettingSelectScalar = {
   account_proof_message?: boolean
   account_proof_target?: boolean
   account_verified_at?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type PaymentMethodSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"payment_method_setting_id" | "settings_id" | "method" | "enabled" | "display_name" | "instructions" | "account_name" | "account_number" | "channel_codes" | "min_amount" | "max_amount" | "sort_order" | "createdAt" | "updatedAt" | "verification" | "verified_at" | "verification_message" | "verified_channel_codes" | "callbacks_registered_at" | "account_proof" | "account_proof_amount" | "account_proof_reference" | "account_proof_id" | "account_proof_sent_at" | "account_proof_attempts" | "account_proof_message" | "account_proof_target" | "account_verified_at", ExtArgs["result"]["paymentMethodSetting"]>
+export type PaymentMethodSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"payment_method_setting_id" | "settings_id" | "method" | "enabled" | "display_name" | "instructions" | "account_name" | "account_number" | "channel_codes" | "min_amount" | "max_amount" | "sort_order" | "verification" | "verified_at" | "verification_message" | "verified_channel_codes" | "callbacks_registered_at" | "account_proof" | "account_proof_amount" | "account_proof_reference" | "account_proof_id" | "account_proof_sent_at" | "account_proof_attempts" | "account_proof_message" | "account_proof_target" | "account_verified_at" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentMethodSetting"]>
 export type PaymentMethodSettingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  PaymentGatewaySettings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
+  settings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
 }
 export type PaymentMethodSettingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  PaymentGatewaySettings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
+  settings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
 }
 export type PaymentMethodSettingIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  PaymentGatewaySettings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
+  settings?: boolean | Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>
 }
 
 export type $PaymentMethodSettingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PaymentMethodSetting"
   objects: {
-    PaymentGatewaySettings: Prisma.$PaymentGatewaySettingsPayload<ExtArgs>
+    settings: Prisma.$PaymentGatewaySettingsPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     payment_method_setting_id: string
     settings_id: string
     method: $Enums.DonationPaymentMethod
     enabled: boolean
+    /**
+     * Overrides the channel's built-in name in the app; blank keeps the default.
+     */
     display_name: string | null
+    /**
+     * One line under the name on the donor's method step.
+     */
     instructions: string | null
+    /**
+     * The account the settlement lands in, as the director reads it off Xendit — the
+     * GCash number or bank account. Reference only: Xendit routes to the account
+     * behind the secret key, not to whatever is typed here.
+     */
     account_name: string | null
     account_number: string | null
+    /**
+     * Xendit channel codes this method opens (CARD / BANK_TRANSFER); empty uses the
+     * module's defaults.
+     */
     channel_codes: string[]
+    /**
+     * Whole pesos. 0 falls back to the module-wide donation limits.
+     */
     min_amount: number
     max_amount: number
     sort_order: number
-    createdAt: Date
-    updatedAt: Date
+    /**
+     * Set by the activation check that runs when the director switches this on.
+     */
     verification: $Enums.PaymentMethodVerification
     verified_at: Date | null
+    /**
+     * What the gateway said — the sentence the portal shows under the badge.
+     */
     verification_message: string | null
+    /**
+     * Channel codes Xendit reported activated at the last check, for the record.
+     */
     verified_channel_codes: string[]
+    /**
+     * When the callback URLs for this channel were last registered with Xendit.
+     */
     callbacks_registered_at: Date | null
+    /**
+     * --- ownership proof: is the recorded account really reachable by CARES ---
+     */
     account_proof: $Enums.PaymentAccountProof
+    /**
+     * Whole pesos sent, and the number the director has to report back. Cleared once
+     * the account is verified so a later reader cannot simply look up the answer.
+     */
     account_proof_amount: number | null
+    /**
+     * Our reference on the payout, and Xendit's id for it.
+     */
     account_proof_reference: string | null
     account_proof_id: string | null
     account_proof_sent_at: Date | null
+    /**
+     * Wrong answers so far; the proof locks after `ACCOUNT_PROOF_MAX_ATTEMPTS`.
+     */
     account_proof_attempts: number
+    /**
+     * What the gateway or the check last said, for the portal to show.
+     */
     account_proof_message: string | null
+    /**
+     * The account this proof covered, so editing the number invalidates the proof.
+     */
     account_proof_target: string | null
     account_verified_at: Date | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["paymentMethodSetting"]>
   composites: {}
 }
@@ -1761,7 +1812,7 @@ readonly fields: PaymentMethodSettingFieldRefs;
  */
 export interface Prisma__PaymentMethodSettingClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  PaymentGatewaySettings<T extends Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>>): Prisma.Prisma__PaymentGatewaySettingsClient<runtime.Types.Result.GetResult<Prisma.$PaymentGatewaySettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  settings<T extends Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PaymentGatewaySettingsDefaultArgs<ExtArgs>>): Prisma.Prisma__PaymentGatewaySettingsClient<runtime.Types.Result.GetResult<Prisma.$PaymentGatewaySettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1803,8 +1854,6 @@ export interface PaymentMethodSettingFieldRefs {
   readonly min_amount: Prisma.FieldRef<"PaymentMethodSetting", 'Int'>
   readonly max_amount: Prisma.FieldRef<"PaymentMethodSetting", 'Int'>
   readonly sort_order: Prisma.FieldRef<"PaymentMethodSetting", 'Int'>
-  readonly createdAt: Prisma.FieldRef<"PaymentMethodSetting", 'DateTime'>
-  readonly updatedAt: Prisma.FieldRef<"PaymentMethodSetting", 'DateTime'>
   readonly verification: Prisma.FieldRef<"PaymentMethodSetting", 'PaymentMethodVerification'>
   readonly verified_at: Prisma.FieldRef<"PaymentMethodSetting", 'DateTime'>
   readonly verification_message: Prisma.FieldRef<"PaymentMethodSetting", 'String'>
@@ -1819,6 +1868,8 @@ export interface PaymentMethodSettingFieldRefs {
   readonly account_proof_message: Prisma.FieldRef<"PaymentMethodSetting", 'String'>
   readonly account_proof_target: Prisma.FieldRef<"PaymentMethodSetting", 'String'>
   readonly account_verified_at: Prisma.FieldRef<"PaymentMethodSetting", 'DateTime'>
+  readonly createdAt: Prisma.FieldRef<"PaymentMethodSetting", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"PaymentMethodSetting", 'DateTime'>
 }
     
 

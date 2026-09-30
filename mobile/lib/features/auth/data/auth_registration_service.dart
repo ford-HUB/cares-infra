@@ -116,12 +116,14 @@ class AuthRegistrationService {
   /// [phoneNumber] and [idNumber] are checked for clashes with existing
   /// accounts before a code is sent, so a taken value is reported as a
   /// [RegistrationConflict] on the form rather than after the OTP.
-  /// [resend] forces the server to mail a new code even if one is still live.
+  ///
+  /// [purpose] is [VerificationPurpose.login] when an existing account that never
+  /// finished its OTP is being verified from the sign-in screen.
   Future<SendVerificationResponse> sendVerificationCode({
     required String email,
     String? phoneNumber,
     String? idNumber,
-    bool resend = false,
+    VerificationPurpose purpose = VerificationPurpose.registration,
   }) async {
     final phone = phoneNumber == null
         ? null
@@ -133,7 +135,7 @@ class AuthRegistrationService {
         'email': email.trim(),
         if (phone != null && phone.isNotEmpty) 'phone_number': phone,
         if (id != null && id.isNotEmpty) 'id_number': id,
-        if (resend) 'resend': true,
+        'purpose': purpose.name,
       },
     );
 
@@ -179,3 +181,6 @@ class AuthRegistrationService {
     return MediaType('image', 'jpeg');
   }
 }
+
+/// Why a verification code is being mailed — see `sendVerificationCode`.
+enum VerificationPurpose { registration, login }

@@ -373,6 +373,23 @@ export type DonationPayment = Prisma.DonationPaymentModel
  */
 export type PaymentWebhookEvent = Prisma.PaymentWebhookEventModel
 /**
+ * Model PaymentGatewaySettings
+ * The Xendit account CARES collects donations into, as the director enters it in
+ * the portal's Payments module. One row — every donor pays into the same account.
+ * 
+ * The secrets are held as AES-256-GCM ciphertext (see `secret-cipher-utils.ts`) and
+ * are never sent back to a client: the portal only ever sees `secret_key_last4` and
+ * the `*_set` flags, which is enough to say "a key is saved, and it ends in 1a2b".
+ */
+export type PaymentGatewaySettings = Prisma.PaymentGatewaySettingsModel
+/**
+ * Model PaymentMethodSetting
+ * One donor-facing payment channel. A channel the director has not enabled is not
+ * offered in the app and is refused by the checkout endpoint, so hiding it in the
+ * portal and blocking it on the server are one decision.
+ */
+export type PaymentMethodSetting = Prisma.PaymentMethodSettingModel
+/**
  * Model Donation
  * The donation ledger the portal's Donation Tracking works and the donor app's
  * Activity tab reads. A money row is opened by the gateway callback once a

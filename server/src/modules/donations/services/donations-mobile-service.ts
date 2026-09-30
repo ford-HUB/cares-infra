@@ -17,7 +17,12 @@ import { NotificationScheduler } from '../../../schedulers/jobs/notification-sch
 import {
   XenditRequestError,
   XenditService,
+  type XenditCredentials,
 } from '../../../infastructures/xendit/xendit-service';
+import {
+  PaymentSettingsService,
+  type PaymentChannelConfig,
+} from '../../payments/services/payment-settings-service';
 import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
 import type {
   CreateDonationPaymentDto,
@@ -37,18 +42,10 @@ import {
 } from '../repositories/donations-repository';
 import { toDonationDto, toDonationPaymentDto } from './donations-mapper';
 import { DonationsWebhookService } from './donations-webhook-service';
+import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
 /** How long a checkout stays open before Xendit expires it on its side. */
 const CHECKOUT_TTL_SECONDS = 30 * 60;
-
-/** Xendit invoice channel codes behind the two hosted-checkout options. */
-const CARD_CHANNELS = ['CREDIT_CARD'] as const;
-const BANK_TRANSFER_CHANNELS = [
-  'DD_BPI',
-  'DD_UBP',
-  'DD_RCBC',
-  'DD_CHINABANK',
-] as const;
 
 /**
  * Only ask Xendit for the current status of a pending checkout this often per
@@ -63,6 +60,7 @@ export class DonationsMobileService {
   constructor(
     private readonly donationsRepository: DonationsRepository,
     private readonly xendit: XenditService,
+    private readonly paymentSettings: PaymentSettingsService,
     private readonly webhookService: DonationsWebhookService,
     private readonly rankings: RankingsBoardService,
     private readonly notificationScheduler: NotificationScheduler,
@@ -85,6 +83,11 @@ export class DonationsMobileService {
       idempotencyKey,
     );
     if (existing) return toDonationPaymentDto(existing);
+
+    // What the director enabled in the portal's Payments module decides this, not the
+    // app: a channel switched off there is refused here even if the app still offers it.
+    const { credentials, channel, config } =
+      await this.paymentSettings.resolveCheckout(body.method, body.amount);
 
     let pending: DonationPaymentRow;
     try {
@@ -111,7 +114,11 @@ export class DonationsMobileService {
     }
 
     try {
-      const checkout = await this.openCheckout(pending, userEmail);
+      const checkout = await this.openCheckout(pending, userEmail, {
+        credentials,
+        channel,
+        statementName: config.statementName,
+      });
       const row = await this.donationsRepository.attachCheckout(
         pending.donation_payment_id,
         checkout,
@@ -314,6 +321,11 @@ export class DonationsMobileService {
   private async openCheckout(
     row: DonationPaymentRow,
     payerEmail: string,
+    gateway: {
+      credentials: XenditCredentials;
+      channel: PaymentChannelConfig;
+      statementName: string | null;
+    },
   ): Promise<{
     gateway_resource_id: string;
     checkout_url?: string | null;
@@ -326,12 +338,15 @@ export class DonationsMobileService {
 
     switch (row.method) {
       case 'GCASH': {
-        const charge = await this.xendit.createGcashCharge({
-          referenceId: row.gateway_reference,
-          amount: row.amount,
-          successRedirectUrl: redirect('success'),
-          failureRedirectUrl: redirect('failure'),
-        });
+        const charge = await this.xendit.createGcashCharge(
+          gateway.credentials,
+          {
+            referenceId: row.gateway_reference,
+            amount: row.amount,
+            successRedirectUrl: redirect('success'),
+            failureRedirectUrl: redirect('failure'),
+          },
+        );
         const url =
           charge.actions?.mobile_web_checkout_url ??
           charge.actions?.desktop_web_checkout_url;
@@ -345,7 +360,7 @@ export class DonationsMobileService {
         };
       }
       case 'QRPH': {
-        const qr = await this.xendit.createQrphCode({
+        const qr = await this.xendit.createQrphCode(gateway.credentials, {
           referenceId: row.gateway_reference,
           amount: row.amount,
           expiresAt,
@@ -358,13 +373,14 @@ export class DonationsMobileService {
       }
       case 'CARD':
       case 'BANK_TRANSFER': {
-        const invoice = await this.xendit.createInvoice({
+        const invoice = await this.xendit.createInvoice(gateway.credentials, {
           externalId: row.gateway_reference,
           amount: row.amount,
-          description: `CARES donation — ${row.campaign_title}`,
+          description: `${gateway.statementName?.trim() || 'CARES donation'} — ${row.campaign_title}`,
           payerEmail,
-          paymentMethods:
-            row.method === 'CARD' ? CARD_CHANNELS : BANK_TRANSFER_CHANNELS,
+          // The banks and card networks the director ticked; the catalog defaults
+          // when they ticked none.
+          paymentMethods: gateway.channel.channelCodes,
           successRedirectUrl: redirect('success'),
           failureRedirectUrl: redirect('failure'),
           durationSeconds: CHECKOUT_TTL_SECONDS,
@@ -385,17 +401,25 @@ export class DonationsMobileService {
     row: DonationPaymentRow,
   ): Promise<DonationPaymentRow | null> {
     const resourceId = row.gateway_resource_id!;
+    // A row opened before the director switched a channel off still has to be
+    // reconciled, so only the credentials are required here — not the channel.
+    const credentials = await this.paymentSettings.credentialsOrNull();
+    if (!credentials) return null;
+
     try {
       switch (row.method) {
         case 'GCASH': {
-          const charge = await this.xendit.getEwalletCharge(resourceId);
+          const charge = await this.xendit.getEwalletCharge(
+            credentials,
+            resourceId,
+          );
           await this.webhookService.applyEwalletStatus(charge);
           break;
         }
         case 'QRPH': {
           // QR codes only expose ACTIVE/INACTIVE; a settled QR is reported by
           // the qr.payment callback, so the most we can do here is expire it.
-          const qr = await this.xendit.getQrCode(resourceId);
+          const qr = await this.xendit.getQrCode(credentials, resourceId);
           if (qr.status === 'INACTIVE') {
             await this.webhookService.settle(row, {
               status: 'EXPIRED',
@@ -406,7 +430,7 @@ export class DonationsMobileService {
         }
         case 'CARD':
         case 'BANK_TRANSFER': {
-          const invoice = await this.xendit.getInvoice(resourceId);
+          const invoice = await this.xendit.getInvoice(credentials, resourceId);
           await this.webhookService.applyInvoiceStatus(invoice);
           break;
         }
@@ -430,10 +454,7 @@ export class DonationsMobileService {
   }
 
   private apiBaseUrl(): string {
-    return (
-      process.env.API_PUBLIC_URL ??
-      `http://localhost:${process.env.PORT ?? 3000}`
-    ).replace(/\/+$/, '');
+    return apiPublicUrl();
   }
 }
 

@@ -189,6 +189,14 @@ export const PERMISSION_CATALOG: readonly PermissionDescriptor[] = [
     sensitive: true,
   },
   {
+    key: PermissionKey.PAYMENT_SETTINGS_MANAGE,
+    module: 'Donations',
+    label: 'Manage payment settings',
+    description:
+      'Enter the Xendit credentials donations are collected with, and choose which payment methods donors are offered.',
+    sensitive: true,
+  },
+  {
     key: PermissionKey.SYSTEM_PERFORMANCE_VIEW,
     module: 'System',
     label: 'View performance',
@@ -273,6 +281,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.CERTIFICATES_ISSUE,
     PermissionKey.DONATIONS_VIEW,
     PermissionKey.DONATIONS_RECORD,
+    // The director holds the CARES finance relationship, so the account donations are
+    // collected into is theirs to enter; a coordinator is never given this by default.
+    PermissionKey.PAYMENT_SETTINGS_MANAGE,
     PermissionKey.REPORTS_VIEW,
     PermissionKey.REPORTS_PUBLISH,
     PermissionKey.SECURITY_AUDIT_VIEW,

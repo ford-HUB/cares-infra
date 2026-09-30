@@ -38,6 +38,11 @@ interface DeployedDesignApi {
   element_widths: NonNullable<CertificateDesign['elementWidths']>
   element_heights: NonNullable<CertificateDesign['elementHeights']>
   element_aligns: NonNullable<CertificateDesign['elementAligns']>
+  /** Absent on designs saved before weight and underline existed. */
+  element_weights?: NonNullable<CertificateDesign['elementWeights']>
+  element_underlines?: NonNullable<CertificateDesign['elementUnderlines']>
+  /** Absent on designs saved before the award name had its own wording. */
+  title?: string
   headline: string
   body: string
   show_seal: boolean
@@ -92,6 +97,9 @@ function mapDesign(design: DeployedDesignApi): CertificateDesign {
     elementWidths: design.element_widths,
     elementHeights: design.element_heights,
     elementAligns: design.element_aligns,
+    elementWeights: design.element_weights ?? {},
+    elementUnderlines: design.element_underlines ?? {},
+    title: design.title,
     headline: design.headline,
     body: design.body,
     showSeal: design.show_seal,

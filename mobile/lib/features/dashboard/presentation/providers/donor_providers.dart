@@ -1,13 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/features/dashboard/data/donation_payment_service.dart';
 import 'package:mobile/features/dashboard/data/donation_service.dart';
 import 'package:mobile/features/dashboard/data/models/donation_campaign_models.dart';
 import 'package:mobile/features/dashboard/data/models/donation_models.dart';
+import 'package:mobile/features/dashboard/data/models/donation_payment_models.dart';
 import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
 import 'package:mobile/features/dashboard/presentation/providers/leaderboard_provider.dart';
 
 final donationServiceProvider = Provider<DonationService>(
   (ref) => DonationService(),
 );
+
+final donationPaymentServiceProvider = Provider<DonationPaymentService>(
+  (ref) => DonationPaymentService(),
+);
+
+/// The payment methods the director switched on in the portal, with their copy
+/// and limits. Auto-disposed so re-entering the money flow asks again — the
+/// director can turn a channel off between two donations.
+final availablePaymentMethodsProvider =
+    FutureProvider.autoDispose<PaymentMethodAvailability>(
+      (ref) => ref.read(donationPaymentServiceProvider).fetchAvailableMethods(),
+    );
 
 /// Open events accepting money or goods — the donor home deck, the category
 /// list and the Campaigns tab all read this one fetch. Auto-disposed so a

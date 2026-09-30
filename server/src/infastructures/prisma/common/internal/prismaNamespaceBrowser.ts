@@ -104,6 +104,8 @@ export const ModelName = {
   AssistanceRequestAttachment: 'AssistanceRequestAttachment',
   DonationPayment: 'DonationPayment',
   PaymentWebhookEvent: 'PaymentWebhookEvent',
+  PaymentGatewaySettings: 'PaymentGatewaySettings',
+  PaymentMethodSetting: 'PaymentMethodSetting',
   Donation: 'Donation',
   DonationTrailEntry: 'DonationTrailEntry',
   PaymentGatewaySettings: 'PaymentGatewaySettings',
@@ -391,6 +393,7 @@ export const AccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
   credential_expires_at: 'credential_expires_at',
   provisioned_by_user_id: 'provisioned_by_user_id',
+  email_verified_at: 'email_verified_at',
   signature_url: 'signature_url',
   is_restricted: 'is_restricted',
   restricted_at: 'restricted_at',
@@ -993,6 +996,62 @@ export const PaymentWebhookEventScalarFieldEnum = {
 } as const
 
 export type PaymentWebhookEventScalarFieldEnum = (typeof PaymentWebhookEventScalarFieldEnum)[keyof typeof PaymentWebhookEventScalarFieldEnum]
+
+
+export const PaymentGatewaySettingsScalarFieldEnum = {
+  payment_gateway_settings_id: 'payment_gateway_settings_id',
+  singleton: 'singleton',
+  mode: 'mode',
+  enabled: 'enabled',
+  secret_key_cipher: 'secret_key_cipher',
+  secret_key_last4: 'secret_key_last4',
+  webhook_token_cipher: 'webhook_token_cipher',
+  api_url: 'api_url',
+  statement_name: 'statement_name',
+  support_email: 'support_email',
+  support_contact: 'support_contact',
+  verified_at: 'verified_at',
+  verification_error: 'verification_error',
+  updated_by_user_id: 'updated_by_user_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentGatewaySettingsScalarFieldEnum = (typeof PaymentGatewaySettingsScalarFieldEnum)[keyof typeof PaymentGatewaySettingsScalarFieldEnum]
+
+
+export const PaymentMethodSettingScalarFieldEnum = {
+  payment_method_setting_id: 'payment_method_setting_id',
+  settings_id: 'settings_id',
+  method: 'method',
+  enabled: 'enabled',
+  display_name: 'display_name',
+  instructions: 'instructions',
+  account_name: 'account_name',
+  account_number: 'account_number',
+  channel_codes: 'channel_codes',
+  min_amount: 'min_amount',
+  max_amount: 'max_amount',
+  sort_order: 'sort_order',
+  verification: 'verification',
+  verified_at: 'verified_at',
+  verification_message: 'verification_message',
+  verified_channel_codes: 'verified_channel_codes',
+  callbacks_registered_at: 'callbacks_registered_at',
+  account_proof: 'account_proof',
+  account_proof_amount: 'account_proof_amount',
+  account_proof_reference: 'account_proof_reference',
+  account_proof_id: 'account_proof_id',
+  account_proof_sent_at: 'account_proof_sent_at',
+  account_proof_attempts: 'account_proof_attempts',
+  account_proof_message: 'account_proof_message',
+  account_proof_target: 'account_proof_target',
+  account_verified_at: 'account_verified_at',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentMethodSettingScalarFieldEnum = (typeof PaymentMethodSettingScalarFieldEnum)[keyof typeof PaymentMethodSettingScalarFieldEnum]
 
 
 export const DonationScalarFieldEnum = {

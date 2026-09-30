@@ -103,6 +103,3 @@ export const STATISTICS_DEPARTMENT_AXIS_WIDTH = 240
 
 /** Rows the "top events" table shows — enough to rank, not a full list. */
 export const STATISTICS_TOP_EVENTS = 6
-
-/** Filename the CSV export saves as, with the range appended. */
-export const STATISTICS_EXPORT_FILENAME = 'department-statistics'

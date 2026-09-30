@@ -22,15 +22,18 @@ export const IssuedSignatorySchema = z.object({
  * template's, rewritten onto the certificate's own asset route. `headline` and
  * `body` are re-declared as plain strings: the template rule insists the award text
  * still carries `{{recipient}}`, `{{event}}` and `{{date}}`, and on an issued sheet
- * those have been filled in.
+ * those have been filled in. `title` is always present here: a design saved before
+ * the award name had its own wording falls back to the template name.
  */
 export const IssuedDesignResponseSchema = CertificateDesignSchema.omit({
+  title: true,
   headline: true,
   body: true,
   frame_svg_url: true,
   seal_svg_url: true,
   images: true,
 }).extend({
+  title: z.string(),
   headline: z.string(),
   body: z.string(),
   frame_svg_url: z.string().optional(),

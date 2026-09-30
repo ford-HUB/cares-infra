@@ -91,3 +91,9 @@ export function isAdminOverview(data: OverviewData): data is AdminOverviewData {
 export function isDepartmentOverview(data: OverviewData): data is DepartmentOverviewData {
   return 'reports' in data
 }
+
+/** The four states an event can sit in; together they are `EventCounts.total`. */
+export type EventState = 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+
+/** The account kinds that together make up the platform's user base. */
+export type CommunitySegment = 'volunteers' | 'beneficiaries' | 'donors' | 'staff'

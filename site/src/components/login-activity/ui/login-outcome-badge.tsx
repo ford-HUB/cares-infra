@@ -11,6 +11,7 @@ const outcomeStyles: Record<LoginOutcome, { badge: string; dot: string }> = {
   'outside-login-hours': { badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
   'ip-not-allowed': { badge: 'bg-red-50 text-red-700', dot: 'bg-red-600' },
   'credential-expired': { badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
+  'email-not-verified': { badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
 }
 
 /** Dense badge sized for the login-activity grid. */

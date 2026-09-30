@@ -2,8 +2,9 @@ import axios, { isAxiosError, type AxiosError } from 'axios'
 import { SESSION_ENDED_EVENT, SESSION_KEY, TOKEN_KEY } from '../constants/session'
 import type { BackendError } from '../types/auth'
 import type { ApiResponse } from '../types/portal-roles'
+import { API_BASE_URL } from '../config/api-config'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const baseURL = API_BASE_URL
 
 export const apiClient = axios.create({
   baseURL,

@@ -2,6 +2,8 @@ import dayjs from 'dayjs'
 import { jsPDF } from 'jspdf'
 import autoTable, { type CellDef, type RowInput, type UserOptions } from 'jspdf-autotable'
 import {
+  PDF_ACCENT_RGB,
+  PDF_BAND_MUTED_RGB,
   PDF_BODY_SIZE,
   PDF_BRAND_NAME,
   PDF_BRAND_RGB,
@@ -21,6 +23,7 @@ import {
   PDF_TITLE_SIZE,
   PDF_UNIT,
 } from '../../constants/pdf-export'
+import { getPdfLogo } from './pdf-logo'
 
 /** The plugin records where the last table ended on the document itself. */
 type AutoTableDoc = jsPDF & { lastAutoTable?: { finalY: number } }
@@ -81,32 +84,62 @@ export class PdfReport {
     }
   }
 
-  /** Title band: report name, one-line subtitle, then the scope lines as "Label: value". */
+  /**
+   * Title band: the CARES seal on the left, then a brand eyebrow, the report name and
+   * its subtitle beside it, with a thin seal-yellow accent underneath. Below the band
+   * the scope lines print as a two-column list — labels in one column, values lined
+   * up in the next — so they read as a table rather than a ragged run of text.
+   */
   title(title: string, subtitle: string, meta: { label: string; value: string }[]) {
     const { doc } = this
-    const bandHeight = 22
-    doc.setFillColor(...PDF_BRAND_RGB)
-    doc.rect(0, 0, this.pageWidth, bandHeight, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFont(PDF_FONT, 'bold')
-    doc.setFontSize(PDF_TITLE_SIZE)
-    doc.text(title, PDF_MARGIN_MM, 11)
+    const logo = getPdfLogo()
+    const logoSize = 20
+    const bandPadding = 6
+    const textX = logo ? PDF_MARGIN_MM + logoSize + 5 : PDF_MARGIN_MM
+    const textWidth = this.pageWidth - PDF_MARGIN_MM - textX
+
     doc.setFont(PDF_FONT, 'normal')
     doc.setFontSize(PDF_SUBTITLE_SIZE)
-    doc.text(subtitle, PDF_MARGIN_MM, 17.5)
+    const subtitleLines = doc.splitTextToSize(subtitle, textWidth) as string[]
+    const textHeight = 4 + 7.5 + subtitleLines.length * 5
+    const bandHeight = Math.max(logo ? logoSize : 0, textHeight) + bandPadding * 2
 
-    this.y = bandHeight + 8
+    doc.setFillColor(...PDF_BRAND_RGB)
+    doc.rect(0, 0, this.pageWidth, bandHeight, 'F')
+    doc.setFillColor(...PDF_ACCENT_RGB)
+    doc.rect(0, bandHeight, this.pageWidth, 1.2, 'F')
+    if (logo) {
+      doc.addImage(logo, 'PNG', PDF_MARGIN_MM, (bandHeight - logoSize) / 2, logoSize, logoSize)
+    }
+
+    // Vertically centre the text block against the seal.
+    let textY = (bandHeight - textHeight) / 2 + 3
+    doc.setTextColor(...PDF_BAND_MUTED_RGB)
+    doc.setFont(PDF_FONT, 'bold')
+    doc.setFontSize(PDF_FOOTER_SIZE - 0.5)
+    doc.text(PDF_BRAND_NAME.toUpperCase(), textX, textY, { charSpace: 0.2 })
+    textY += 7.5
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(PDF_TITLE_SIZE)
+    doc.text(title, textX, textY)
+    textY += 5.5
+    doc.setFont(PDF_FONT, 'normal')
+    doc.setFontSize(PDF_SUBTITLE_SIZE)
+    doc.text(subtitleLines, textX, textY)
+
+    this.y = bandHeight + 9
     doc.setFontSize(PDF_BODY_SIZE)
+    doc.setFont(PDF_FONT, 'bold')
+    const labelColumn = Math.max(...meta.map((item) => doc.getTextWidth(item.label)), 0) + 6
     for (const item of meta) {
       doc.setTextColor(...PDF_MUTED_RGB)
       doc.setFont(PDF_FONT, 'bold')
-      doc.text(`${item.label}:`, PDF_MARGIN_MM, this.y)
-      const labelWidth = doc.getTextWidth(`${item.label}: `)
+      doc.text(item.label, PDF_MARGIN_MM, this.y)
       doc.setTextColor(...PDF_TEXT_RGB)
       doc.setFont(PDF_FONT, 'normal')
-      const lines = doc.splitTextToSize(item.value, this.contentWidth - labelWidth) as string[]
-      doc.text(lines, PDF_MARGIN_MM + labelWidth, this.y)
-      this.y += lines.length * 4.6
+      const lines = doc.splitTextToSize(item.value, this.contentWidth - labelColumn) as string[]
+      doc.text(lines, PDF_MARGIN_MM + labelColumn, this.y)
+      this.y += lines.length * 4.6 + 1
     }
     this.y += 2
     this.rule()

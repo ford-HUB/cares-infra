@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { GMAIL_OAUTH_SCOPES } from '../../gmail/gmail-api-client';
+import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
 export const GMAIL_STRATEGY_NAME = 'gmail';
 
@@ -43,7 +44,7 @@ export class GmailStrategy extends PassportStrategy(
       clientSecret: process.env.GOOGLE_SECRET ?? '',
       callbackURL:
         process.env.GOOGLE_CALLBACK_URL ??
-        'http://localhost:8000/api/v1/mailbox/google/callback',
+        `${apiPublicUrl()}/api/v1/mailbox/google/callback`,
       scope: GMAIL_OAUTH_SCOPES,
       passReqToCallback: true,
     });

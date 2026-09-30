@@ -14,6 +14,14 @@ const _sheetWidthPt = 792.0;
 /// Top to bottom, the blocks the portal's editor places.
 const _elementOrder = ['headline', 'title', 'body', 'seal', 'signatures'];
 
+/// Line heights the portal sets each block in — `leading-normal` on the sheet,
+/// `leading-tight` on the award name, `leading-relaxed` on the award text. A
+/// block is centred on its layout point, so any difference here moves its
+/// edges and lets it run into its neighbours.
+const _lineHeightNormal = 1.5;
+const _lineHeightTitle = 1.25;
+const _lineHeightBody = 1.625;
+
 /// The issued certificate, drawn as the director designed it: the frame and
 /// accent, every block at the position and size it was dragged to, the placed
 /// images in their own stacking order, the seal, and the signature lines with
@@ -196,11 +204,18 @@ class _DesignedSheet extends StatelessWidget {
 
   TextStyle _style(String id, {double scale = 1, TextStyle? base}) {
     final size = _pt(design.fontSizePtOf(id) * scale);
+    final start = base ?? const TextStyle();
+    // The weight goes in before the font is resolved, so Google Fonts loads the
+    // real weight rather than faking a bold one.
     return certificateFontStyle(
       fontId: design.fontOf(id),
       frame: design.frame,
       element: id,
-      base: (base ?? const TextStyle()).copyWith(fontSize: size),
+      base: start.copyWith(
+        fontSize: size,
+        fontWeight: design.weightOf(id) ?? start.fontWeight,
+        decoration: design.underlineOf(id) ? TextDecoration.underline : null,
+      ),
     );
   }
 
@@ -213,7 +228,7 @@ class _DesignedSheet extends StatelessWidget {
         base: TextStyle(
           color: tone.headline,
           fontWeight: certificateHeadlineWeight(design.frame),
-          height: 1.25,
+          height: _lineHeightNormal,
         ),
       );
       return Column(
@@ -244,14 +259,14 @@ class _DesignedSheet extends StatelessWidget {
 
     if (id == 'title') {
       return Text(
-        certificate.title,
+        design.title.isEmpty ? certificate.title : design.title,
         textAlign: _textAlign(id),
         style: _style(
           id,
           base: const TextStyle(
             color: certificateInk,
             fontWeight: FontWeight.w600,
-            height: 1.2,
+            height: _lineHeightTitle,
           ),
         ),
       );
@@ -263,7 +278,10 @@ class _DesignedSheet extends StatelessWidget {
         textAlign: _textAlign(id),
         style: _style(
           id,
-          base: const TextStyle(color: certificateInkSoft, height: 1.6),
+          base: const TextStyle(
+            color: certificateInkSoft,
+            height: _lineHeightBody,
+          ),
         ),
       );
     }
@@ -292,17 +310,27 @@ class _DesignedSheet extends StatelessWidget {
     final service = CertificateService();
     final nameStyle = _style(
       id,
-      base: const TextStyle(color: certificateInk, fontWeight: FontWeight.w600),
+      base: const TextStyle(
+        color: certificateInk,
+        fontWeight: FontWeight.w600,
+        height: _lineHeightNormal,
+      ),
     );
     final titleStyle = _style(
       id,
       scale: 0.9,
-      base: const TextStyle(color: certificateInkSoft),
+      base: const TextStyle(
+        color: certificateInkSoft,
+        height: _lineHeightNormal,
+      ),
     );
     final departmentStyle = _style(
       id,
       scale: 0.8,
-      base: const TextStyle(color: certificateInkMuted),
+      base: const TextStyle(
+        color: certificateInkMuted,
+        height: _lineHeightNormal,
+      ),
     );
     final gap = width * 0.04;
     final lineMax = width * 0.30;
@@ -326,41 +354,52 @@ class _DesignedSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(
-                    height: signatureHeight,
-                    child: design.signatories[i].signatureUrl == null
-                        ? null
-                        : Image.network(
+                  // The portal's block is the rule and the three lines — it never
+                  // draws the signature image. So the image sits over the rule
+                  // without taking any height: were it laid out, the block would
+                  // grow and, being centred on its point, climb into the seal.
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(height: 1, color: certificateRuleGrey),
+                      if (design.signatories[i].signatureUrl != null)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 1 + width * 0.004,
+                          height: signatureHeight,
+                          child: Image.network(
                             service.imageUrl(
                               design.signatories[i].signatureUrl!,
                             ),
                             headers: service.imageHeaders,
                             fit: BoxFit.contain,
+                            alignment: Alignment.bottomCenter,
                             errorBuilder: (_, _, _) => const SizedBox.shrink(),
                           ),
+                        ),
+                    ],
                   ),
-                  SizedBox(height: width * 0.008),
-                  Container(height: 1, color: certificateRuleGrey),
                   SizedBox(height: width * 0.008),
                   Text(
                     design.signatories[i].name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                    textAlign: _textAlign(id),
                     style: nameStyle,
                   ),
                   Text(
                     design.signatories[i].title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                    textAlign: _textAlign(id),
                     style: titleStyle,
                   ),
                   Text(
                     design.signatories[i].department,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                    textAlign: _textAlign(id),
                     style: departmentStyle,
                   ),
                 ],
