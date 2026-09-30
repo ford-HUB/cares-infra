@@ -23,10 +23,14 @@ class ApiClient {
 
   final http.Client _client;
 
+  static bool get isProduction =>
+      dotenv.env['APP_ENV']?.trim().toLowerCase() == 'production';
+
   String get baseUrl {
-    final configured = dotenv.env['API_BASE_URL']?.trim();
+    final key = isProduction ? 'PRODUCTION_ORIGIN' : 'DEVELOPMENT_ORIGIN';
+    final configured = dotenv.env[key]?.trim();
     if (configured == null || configured.isEmpty) {
-      throw ApiException('API_BASE_URL is not configured in .env');
+      throw ApiException('$key is not configured in .env');
     }
     return configured.endsWith('/')
         ? configured.substring(0, configured.length - 1)
@@ -197,7 +201,7 @@ class ApiClient {
     } catch (e) {
       throw ApiException(
         'Cannot reach API at ${uri(path)}. '
-        'On a physical device use your PC LAN IP in API_BASE_URL (not 10.0.2.2). '
+        'On a physical device use your PC LAN IP in DEVELOPMENT_ORIGIN (not 10.0.2.2). '
         'Details: $e',
       );
     }

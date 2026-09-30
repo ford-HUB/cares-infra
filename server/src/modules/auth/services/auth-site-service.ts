@@ -14,7 +14,7 @@ import {
   ACCESS_REQUEST_MAX_TOTAL_BYTES,
 } from '../validators/auth-site-validator';
 import { NodemailerService } from 'src/infastructures/nodemailer/nodemailer-service';
-import type { MailAttachment } from 'src/infastructures/nodemailer/nodemailer-service';
+import type { MailAttachment } from 'src/infastructures/nodemailer/mail-types';
 import {
   BadGatewayException,
   BadRequestException,
