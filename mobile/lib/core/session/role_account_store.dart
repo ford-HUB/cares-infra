@@ -285,9 +285,19 @@ class RoleAccountStore extends ChangeNotifier {
   }
 
   /// Mirrors the server's role-access requests onto the roles: an open
-  /// request keeps the role pending, an accepted one unlocks it. Roles with
-  /// no request on file are left as they are.
+  /// request keeps the role pending, an accepted one unlocks it, and a
+  /// rejected one sends a pending role back to locked so it can be requested
+  /// again. Roles with no request on file are left as they are.
   void applyRequestStatuses(Iterable<UserRequestResponse> requests) {
+    // An older rejection must not undo a newer request still under review.
+    final stillOpen = {
+      for (final request in requests)
+        if (request.kind == UserRequestKind.roleAccess &&
+            request.requestedRole != null &&
+            request.status == UserRequestStatus.pending)
+          normalize(request.requestedRole!),
+    };
+
     var changed = false;
     for (final request in requests) {
       if (request.kind != UserRequestKind.roleAccess) continue;
@@ -308,6 +318,13 @@ class RoleAccountStore extends ChangeNotifier {
           if (!account.isPending) {
             _accounts[type] = account.copyWith(
               status: RoleAccountStatus.pending,
+            );
+            changed = true;
+          }
+        case UserRequestStatus.rejected:
+          if (account.isPending && !stillOpen.contains(type)) {
+            _accounts[type] = account.copyWith(
+              status: RoleAccountStatus.locked,
             );
             changed = true;
           }

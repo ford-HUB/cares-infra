@@ -9,9 +9,14 @@ class FeaturedEventsCarousel extends StatefulWidget {
     required this.events,
     this.imageHeaders,
     this.onEventTap,
+    this.showEmptyState = false,
   });
 
   final List<MockEvent> events;
+
+  /// When true and [events] is empty, keeps the section header and shows an
+  /// empty-state card instead of collapsing the whole section.
+  final bool showEmptyState;
 
   /// Sent with every image request — server-hosted event images sit behind
   /// the bearer token.
@@ -46,34 +51,21 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
   @override
   Widget build(BuildContext context) {
     if (widget.events.isEmpty) {
-      return const SizedBox.shrink();
+      if (!widget.showEmptyState) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _header(showHint: false),
+          const SizedBox(height: 12),
+          const _EmptyEventsCard(),
+        ],
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Expanded(
-              child: Text(
-                'Featured Events',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primaryDark,
-                ),
-              ),
-            ),
-            Text(
-              'Swipe to explore',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondary.withValues(alpha: 0.9),
-              ),
-            ),
-          ],
-        ),
+        _header(showHint: true),
         const SizedBox(height: 12),
         SizedBox(
           height: 210,
@@ -136,6 +128,89 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _header({required bool showHint}) {
+    return Row(
+      children: [
+        const Expanded(
+          child: Text(
+            'Featured Events',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryDark,
+            ),
+          ),
+        ),
+        if (showHint)
+          Text(
+            'Swipe to explore',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondary.withValues(alpha: 0.9),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Placeholder shown in place of the carousel when no events are featured.
+class _EmptyEventsCard extends StatelessWidget {
+  const _EmptyEventsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      decoration: BoxDecoration(
+        color: AppColors.light.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.secondary.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.event_busy_outlined,
+              color: AppColors.primaryDark,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No featured events right now',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryDark,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Check back soon — new events for you will show up here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondary.withValues(alpha: 0.95),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

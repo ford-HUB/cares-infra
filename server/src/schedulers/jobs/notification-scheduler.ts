@@ -1,12 +1,26 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { RoleType } from '../../infastructures/prisma/common/client';
 import type { PublishNotificationInput } from '../../modules/notifications/dto/notifications-site-dto';
 import {
   SCHEDULER_QUEUES,
   SchedulerRunRecorder,
   registerQueueSchedulers,
 } from '../scheduler-registry';
+import { SchedulerRepository } from '../scheduler-repository';
+
+/** One notice per participant group; the group decides the audience role. */
+type EventNotice = Omit<
+  PublishNotificationInput,
+  'roles' | 'userIds' | 'audienceRole'
+>;
+
+export interface EventParticipantNotices {
+  volunteers?: EventNotice;
+  beneficiaries?: EventNotice;
+  donors?: EventNotice;
+}
 
 /** Job names on the notification queue. Sweeps share their id with the catalogue. */
 export const NOTIFICATION_JOBS = {
@@ -30,6 +44,7 @@ export class NotificationScheduler implements OnModuleInit {
     @InjectQueue(SCHEDULER_QUEUES.notification)
     private readonly queue: Queue,
     private readonly recorder: SchedulerRunRecorder,
+    private readonly schedulerRepository: SchedulerRepository,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -49,5 +64,29 @@ export class NotificationScheduler implements OnModuleInit {
       removeOnComplete: { count: 200 },
       removeOnFail: { count: 100 },
     });
+  }
+
+  /**
+   * Tells the people attached to an event — registered volunteers, accepted
+   * beneficiaries, donors with a live donation — each in their own words and on
+   * their own side of the app. Recipients are read now, not on the worker, so
+   * this can be called just before the event (and its cascades) is deleted.
+   */
+  async publishToEventParticipants(
+    eventId: number,
+    notices: EventParticipantNotices,
+  ): Promise<void> {
+    const participants =
+      await this.schedulerRepository.findEventParticipantIds(eventId);
+    const groups = [
+      [notices.volunteers, participants.volunteers, RoleType.VOLUNTEER],
+      [notices.beneficiaries, participants.beneficiaries, RoleType.BENEFICIARY],
+      [notices.donors, participants.donors, RoleType.DONOR],
+    ] as const;
+
+    for (const [notice, userIds, audienceRole] of groups) {
+      if (!notice || userIds.length === 0) continue;
+      await this.publish({ ...notice, userIds: [...userIds], audienceRole });
+    }
   }
 }

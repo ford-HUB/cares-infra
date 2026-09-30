@@ -148,6 +148,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           _ocrData.gender.trim().isNotEmpty &&
           _ocrData.age >= 12 &&
           _ocrData.age <= 80 &&
+          // Barangay + city picked from the directory and a real street.
+          _beneficiaryProfile.address.isComplete &&
           _ocrData.currentAddress.trim().isNotEmpty &&
           isValidPhilippinePhone(_ocrData.phoneNumber);
     }

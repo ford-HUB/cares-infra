@@ -9,6 +9,7 @@ import {
   DonationStatus,
   NotificationCategory,
   NotificationTone,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
@@ -172,7 +173,9 @@ export class DonationsSiteService {
         status === DonationStatus.DECLINED
           ? NotificationTone.ATTENTION
           : NotificationTone.INFO,
+      href: `/donations/${row.donation_id}`,
       userIds: [row.user_id],
+      audienceRole: RoleType.DONOR,
       dedupeKey: `donation-status:${row.donation_id}:${status}:${row.trail.length}`,
     });
   }

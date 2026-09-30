@@ -11,12 +11,14 @@ import 'package:mobile/features/auth/data/donor_auth_service.dart';
 import 'package:mobile/features/auth/data/models/donor_auth_models.dart';
 import 'package:mobile/features/auth/data/models/login_api_models.dart';
 import 'package:mobile/features/auth/data/models/registration_api_models.dart';
+import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/data/social_auth_client.dart';
 import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:mobile/features/auth/presentation/widgets/account_exists_dialog.dart';
+import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
 import 'package:mobile/features/auth/presentation/widgets/cares_terms_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
@@ -24,6 +26,7 @@ import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.da
 import 'package:mobile/features/auth/presentation/widgets/terms_agreement_checkbox.dart';
 import 'package:mobile/features/auth/registration/widgets/password_strength_indicator.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_dashboard_screen.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/notification_host.dart';
 
 /// Donor sign-up.
 ///
@@ -50,11 +53,14 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _emailFocus = FocusNode();
   final _phoneFocus = FocusNode();
+
+  /// Barangay + city picked from the directory and a typed street; sent and
+  /// stored as [PhAddress.formatted], the same shape beneficiaries register with.
+  PhAddress _address = PhAddress.empty;
 
   /// Set when the server says the email or phone number belongs to another
   /// account; the input shows the message and takes focus until edited.
@@ -94,7 +100,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         // The server needs both: `phone_number` is unique on the user record, and the
         // address is what donation receipts are issued against.
         isValidPhilippinePhone(_phoneController.text) &&
-        _addressController.text.trim().isNotEmpty &&
+        _address.isComplete &&
         _acceptedTerms;
 
     if (!baseDetailsFilled) return false;
@@ -114,7 +120,6 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _emailFocus.dispose();
@@ -312,7 +317,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       middleName: _middleNameController.text,
       lastName: _lastNameController.text,
       phoneNumber: _phoneController.text,
-      address: _addressController.text,
+      address: _address.formatted,
     );
 
     if (!otpContext.mounted) return;
@@ -321,7 +326,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       middleName: _middleNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
-      address: _addressController.text.trim(),
+      address: _address.formatted,
       navigatorContext: otpContext,
     );
   }
@@ -342,7 +347,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         middleName: _middleNameController.text,
         lastName: _lastNameController.text,
         phoneNumber: _phoneController.text,
-        address: _addressController.text,
+        address: _address.formatted,
       );
 
       if (!mounted) return;
@@ -351,7 +356,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         middleName: _middleNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
-        address: _addressController.text.trim(),
+        address: _address.formatted,
       );
     } on ApiException catch (error) {
       if (!mounted) return;
@@ -405,7 +410,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   void _openDashboard(DonorSessionUser donor, BuildContext navigatorContext) {
     Navigator.of(navigatorContext).pushAndRemoveUntil(
       MaterialPageRoute<void>(
-        builder: (_) => DonorDashboardScreen(donor: donor),
+        builder: (_) =>
+            NotificationHost(child: DonorDashboardScreen(donor: donor)),
       ),
       (_) => false,
     );
@@ -455,6 +461,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
                     _accountSection(),
                     const SizedBox(height: 16),
                     _contactSection(),
+                    const SizedBox(height: 16),
+                    _addressSection(),
                     const SizedBox(height: 16),
                     _termsRow(),
                     const SizedBox(height: 8),
@@ -528,7 +536,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     return _FormCard(
       icon: Icons.place_outlined,
       title: 'Contact details',
-      subtitle: 'Where we reach you and address your receipts.',
+      subtitle: 'Where we reach you about your donations.',
       children: [
         RegisterFormField(
           label: 'Phone Number',
@@ -544,15 +552,21 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
             () => _clearConflict(RegistrationConflictField.phoneNumber),
           ),
         ),
-        const SizedBox(height: 14),
-        RegisterFormField(
-          label: 'Address',
-          hint: 'Street, barangay, city',
-          controller: _addressController,
-          keyboardType: TextInputType.streetAddress,
-          textInputAction: TextInputAction.done,
-          maxLines: 2,
-          onChanged: (_) => setState(() {}),
+      ],
+    );
+  }
+
+  Widget _addressSection() {
+    return _FormCard(
+      icon: Icons.home_outlined,
+      title: 'Home address',
+      subtitle:
+          'Start typing your barangay and pick it from the list — '
+          'we fill in the city for you. Receipts are addressed here.',
+      children: [
+        AddressAutocompleteFields(
+          value: _address,
+          onChanged: (address) => setState(() => _address = address),
         ),
       ],
     );

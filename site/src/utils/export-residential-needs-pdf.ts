@@ -18,9 +18,9 @@ import {
   NEEDS_FILTER_ALL,
   NEEDS_SURVEY_SOURCE_LABEL,
 } from '../constants/residential-needs'
-import { householdPriority } from '../services/residential-needs-mock'
 import type { Household, NeedPriority } from '../types/residential-needs'
 import { PdfReport } from './pdf/pdf-report'
+import { householdPriority } from './residential-needs'
 
 interface ResidentialNeedsPdfOptions {
   /** The barangay picker in force; `NEEDS_FILTER_ALL` when unfiltered. */

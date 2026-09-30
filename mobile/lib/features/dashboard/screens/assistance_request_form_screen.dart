@@ -4,12 +4,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/media_permissions.dart';
 import '../data/assistance_request_data.dart';
 
-/// Static "Request Assistance" form. Submitting files a mock request into the
-/// in-memory store — no backend call in the prototype.
+/// "Request Assistance" form. Submitting files the request, with its proof
+/// documents, to `v1/assistance-requests/me`.
 class AssistanceRequestFormScreen extends StatefulWidget {
   const AssistanceRequestFormScreen({super.key});
 
@@ -63,21 +64,36 @@ class _AssistanceRequestFormScreenState
   Future<void> _submit() async {
     if (!_canSubmit || _isSubmitting) return;
 
+    final householdSize = int.tryParse(_householdController.text.trim());
+    if (householdSize == null || householdSize < 1) {
+      _showMessage('Enter how many people are in your household.');
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
-    // Mock submission delay — no backend call in the prototype.
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    final AssistanceRequest request;
+    try {
+      request = await _store.submit(
+        title: _title,
+        category: _category,
+        description: _descriptionController.text.trim(),
+        urgency: _urgency,
+        householdSize: householdSize,
+        attachments: List.unmodifiable(_attachments),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showMessage(e.message);
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showMessage('Could not submit your request. Please try again.');
+      return;
+    }
     if (!mounted) return;
-
-    final request = _store.submit(
-      title: _title,
-      category: _category,
-      description: _descriptionController.text.trim(),
-      urgency: _urgency,
-      householdSize: int.tryParse(_householdController.text.trim()) ?? 1,
-      attachments: List.unmodifiable(_attachments),
-    );
-
     setState(() => _isSubmitting = false);
 
     await showRequestSubmittedDialog(context, request);

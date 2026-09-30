@@ -9,8 +9,8 @@ import {
   NEED_SERIOUSNESS_MAX,
   NEEDS_SURVEY_SOURCE_LABEL,
 } from '../../../constants/residential-needs'
-import { householdPriority } from '../../../services/residential-needs-mock'
 import type { Household, HouseholdSurvey } from '../../../types/residential-needs'
+import { householdPriority } from '../../../utils/residential-needs'
 import { ClusterSwatch } from './cluster-swatch'
 import { NeedPriorityBadge } from './need-priority-badge'
 
@@ -76,7 +76,7 @@ export function HouseholdTable({
           <div className="min-w-0">
             <p className="text-[15px] font-semibold text-gray-900">Surveyed households</p>
             <p className="text-[11px] text-gray-400">
-              Answers from the {NEEDS_SURVEY_SOURCE_LABEL} · mock, not wired
+              Answers from the {NEEDS_SURVEY_SOURCE_LABEL}
             </p>
           </div>
           <p className="text-[12px] text-gray-500 tabular-nums">{caption}</p>

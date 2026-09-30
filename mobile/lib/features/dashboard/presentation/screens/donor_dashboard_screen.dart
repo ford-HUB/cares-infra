@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/session/donor_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_activity_tab.dart';
 import 'package:mobile/features/dashboard/presentation/screens/donor_campaigns_tab.dart';
@@ -37,6 +38,7 @@ class _DonorDashboardScreenState extends ConsumerState<DonorDashboardScreen> {
     ref.invalidate(donationCampaignsProvider);
     ref.invalidate(myDonationsProvider);
     ref.invalidate(donorLeaderboardProvider);
+    await NotificationSync.instance.refresh();
     if (!mounted) return;
     setState(() => _refreshVersion++);
   }

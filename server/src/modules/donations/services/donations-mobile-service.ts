@@ -9,7 +9,11 @@ import { randomBytes } from 'crypto';
 import {
   DonationStatus,
   EventStatus,
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import {
   XenditRequestError,
   XenditService,
@@ -61,6 +65,7 @@ export class DonationsMobileService {
     private readonly xendit: XenditService,
     private readonly webhookService: DonationsWebhookService,
     private readonly rankings: RankingsBoardService,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   /**
@@ -193,6 +198,10 @@ export class DonationsMobileService {
       await this.goodsData(body),
       await this.donationsRepository.findDonorEmail(userId),
     );
+    await this.notifyGoods(row, {
+      title: `Goods pledge ${donationReference(row)} recorded`,
+      description: `Thank you for pledging to ${row.event.title}. Bring the items to the CARES office on your drop-off day — we'll update you as the pledge moves along.`,
+    });
     return toDonationDto(row);
   }
 
@@ -228,7 +237,27 @@ export class DonationsMobileService {
     if (!updated) {
       throw new BadRequestException('This donation can no longer be cancelled');
     }
+    await this.notifyGoods(updated, {
+      title: `Goods pledge ${donationReference(updated)} cancelled`,
+      description: `Your pledge to ${updated.event.title} was withdrawn. You can pledge again while the campaign is open.`,
+    });
     return toDonationDto(updated);
+  }
+
+  /** The donor's own receipt for a move they made on the Donor side. */
+  private async notifyGoods(
+    row: { donation_id: string; user_id: string; status: DonationStatus },
+    notice: { title: string; description: string },
+  ): Promise<void> {
+    await this.notificationScheduler.publish({
+      ...notice,
+      category: NotificationCategory.DONATION,
+      tone: NotificationTone.INFO,
+      href: `/donations/${row.donation_id}`,
+      userIds: [row.user_id],
+      audienceRole: RoleType.DONOR,
+      dedupeKey: `donation-goods:${row.donation_id}:${row.status}`,
+    });
   }
 
   private async goodsData(
@@ -368,7 +397,7 @@ export class DonationsMobileService {
           // the qr.payment callback, so the most we can do here is expire it.
           const qr = await this.xendit.getQrCode(resourceId);
           if (qr.status === 'INACTIVE') {
-            await this.donationsRepository.settle(row.gateway_reference, {
+            await this.webhookService.settle(row, {
               status: 'EXPIRED',
               failure_reason: 'The QR code expired before it was paid',
             });
@@ -406,4 +435,8 @@ export class DonationsMobileService {
       `http://localhost:${process.env.PORT ?? 3000}`
     ).replace(/\/+$/, '');
   }
+}
+
+function donationReference(row: { sequence: number }): string {
+  return `DN-${String(row.sequence).padStart(4, '0')}`;
 }

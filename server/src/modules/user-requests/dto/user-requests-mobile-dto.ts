@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   CreateEventJoinRequestSchema,
   CreateRoleAccessRequestSchema,
+  EventJoinRoleQuerySchema,
   MobileUserRequestListResponseSchema,
   MobileUserRequestSchema,
 } from '../validators/user-requests-mobile-validator';
@@ -12,6 +13,7 @@ export type CreateRoleAccessRequestDto = z.infer<
 export type CreateEventJoinRequestDto = z.infer<
   typeof CreateEventJoinRequestSchema
 >;
+export type EventJoinRoleQueryDto = z.infer<typeof EventJoinRoleQuerySchema>;
 export type MobileUserRequestDto = z.infer<typeof MobileUserRequestSchema>;
 export type MobileUserRequestListDto = z.infer<
   typeof MobileUserRequestListResponseSchema

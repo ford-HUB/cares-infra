@@ -7,6 +7,7 @@ import {
   CertificateDeploymentStatus,
   NotificationCategory,
   NotificationTone,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type { RequestContextDto } from '../../../shared/decorators/request-context-decorator';
@@ -88,6 +89,7 @@ export class CertificatesSiteService {
         category: NotificationCategory.CERTIFICATE,
         tone: NotificationTone.ATTENTION,
         userIds: awaitingFeedback.map((one) => one.userId),
+        audienceRole: RoleType.VOLUNTEER,
         dedupeKey: `certificate-remind:${deploymentId}:${today}`,
       });
     }
@@ -99,6 +101,7 @@ export class CertificatesSiteService {
         category: NotificationCategory.CERTIFICATE,
         tone: NotificationTone.ATTENTION,
         userIds: awaitingAttendance.map((one) => one.userId),
+        audienceRole: RoleType.VOLUNTEER,
         dedupeKey: `certificate-remind:${deploymentId}:${today}`,
       });
     }

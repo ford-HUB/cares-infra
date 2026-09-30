@@ -7,7 +7,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { ZBody, ZSerialize } from 'nest-zod';
+import { ZBody, ZQuery, ZSerialize } from 'nest-zod';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
@@ -15,6 +15,7 @@ import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   CreateEventJoinRequestDto,
   CreateRoleAccessRequestDto,
+  EventJoinRoleQueryDto,
   MobileUserRequestDto,
   MobileUserRequestListDto,
 } from '../dto/user-requests-mobile-dto';
@@ -22,6 +23,7 @@ import { UserRequestsMobileService } from '../services/user-requests-mobile-serv
 import {
   CreateEventJoinRequestSchema,
   CreateRoleAccessRequestSchema,
+  EventJoinRoleQuerySchema,
   MOBILE_USER_REQUEST_ROLE_TYPES,
   MobileUserRequestListResponseSchema,
   MobileUserRequestResponseSchema,
@@ -72,6 +74,7 @@ export class UserRequestsMobileController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'proof', maxCount: 1 }]))
   async requestEventJoin(
     @ZBody(CreateEventJoinRequestSchema) body: CreateEventJoinRequestDto,
+    @ZQuery(EventJoinRoleQuerySchema) query: EventJoinRoleQueryDto,
     @CurrentUser() user: JwtPayload,
     @UploadedFiles() files?: { proof?: Express.Multer.File[] },
   ): Promise<MobileUserRequestDto> {
@@ -81,7 +84,7 @@ export class UserRequestsMobileController {
     }
     return this.userRequestsMobileService.createEventJoin(
       user.sub,
-      user.role_type,
+      query.role ?? user.role_type,
       body,
       proof,
     );

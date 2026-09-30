@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -14,6 +15,9 @@ class HomeHeader extends StatelessWidget {
 
   final String firstName;
   final int points;
+
+  /// Allows the unread dot at all; it only shows while the open side has
+  /// unread notifications.
   final bool showNotificationDot;
 
   /// Replaces the points pill, e.g. '2 active' on the beneficiary dashboard.
@@ -88,13 +92,18 @@ class HomeHeader extends StatelessWidget {
               Positioned(
                 top: 10,
                 right: 10,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.accentBright,
-                    shape: BoxShape.circle,
-                  ),
+                child: ListenableBuilder(
+                  listenable: NotificationSync.instance,
+                  builder: (context, _) => NotificationSync.instance.unread > 0
+                      ? Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.accentBright,
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ),
           ],

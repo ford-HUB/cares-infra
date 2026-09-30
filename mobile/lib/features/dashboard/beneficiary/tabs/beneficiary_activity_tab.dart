@@ -11,8 +11,8 @@ import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 import 'package:mobile/features/dashboard/widgets/completed_event_widgets.dart';
 
 /// Beneficiary activity — the volunteer tab's layout (All / Registered /
-/// Completed chips over two sections) fed only by events open to
-/// beneficiaries: `GET /events/beneficiary` for the ones still ahead and
+/// Completed chips over two sections) fed by the events this beneficiary
+/// applied for: `GET /events/beneficiary` for the ones still ahead and
 /// `GET /events/beneficiary/completed` for the ones that ran. Nothing of the
 /// volunteer's registrations, feedback or certificates reaches this page.
 class BeneficiaryActivityTab extends ConsumerStatefulWidget {
@@ -44,7 +44,9 @@ class _BeneficiaryActivityTabState
     category: event.category,
     date: event.longDateLabel,
     location: event.location,
-    status: ActivityStatus.registered,
+    status: event.isApplicationRejected
+        ? ActivityStatus.rejected
+        : ActivityStatus.registered,
     hours: 0,
     pointsEarned: 0,
   );
@@ -52,10 +54,18 @@ class _BeneficiaryActivityTabState
   void _open(CaresEvent event) =>
       EventDetailsScreen.open(context, event, readOnly: true);
 
+  /// Only events the beneficiary has applied for — the feeds carry every
+  /// event open to beneficiaries, with `application_status` null on the rest.
+  AsyncValue<List<RecommendedEvent>> _applied(
+    AsyncValue<List<RecommendedEvent>> value,
+  ) => value.whenData(
+    (events) => events.where((e) => e.applicationStatus != null).toList(),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final upcoming = ref.watch(beneficiaryEventsProvider);
-    final completed = ref.watch(beneficiaryCompletedEventsProvider);
+    final upcoming = _applied(ref.watch(beneficiaryEventsProvider));
+    final completed = _applied(ref.watch(beneficiaryCompletedEventsProvider));
 
     return SafeArea(
       bottom: false,
@@ -84,7 +94,7 @@ class _BeneficiaryActivityTabState
                   child: ActivitySection(
                     title: 'Registered events',
                     subtitle: (upcoming.valueOrNull ?? const []).isEmpty
-                        ? 'Events open to beneficiaries will show up here.'
+                        ? 'Events you apply for will show up here.'
                         : 'Tap an event to see the details.',
                     children: [
                       _Body(
@@ -93,9 +103,9 @@ class _BeneficiaryActivityTabState
                             ref.invalidate(beneficiaryEventsProvider),
                         empty: const ActivityEmptyState(
                           icon: Icons.event_available_outlined,
-                          title: 'No upcoming events yet',
+                          title: 'No registered events yet',
                           message:
-                              'New events open to beneficiaries land here as they are posted.',
+                              'Apply for an event from Home or Events and it lands here.',
                         ),
                         builder: (events) => [
                           for (var i = 0; i < events.length; i++) ...[
@@ -120,7 +130,7 @@ class _BeneficiaryActivityTabState
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
                     title: 'Completed events',
-                    subtitle: 'Events for beneficiaries that have already run.',
+                    subtitle: 'Events you applied for that have already run.',
                     children: [
                       _Body(
                         value: completed,
@@ -130,7 +140,7 @@ class _BeneficiaryActivityTabState
                           icon: Icons.task_alt_rounded,
                           title: 'No completed events yet',
                           message:
-                              'Once an event open to beneficiaries wraps up, it lands here.',
+                              'Once an event you applied for wraps up, it lands here.',
                         ),
                         builder: (events) => [
                           for (final event in events)
@@ -138,7 +148,6 @@ class _BeneficiaryActivityTabState
                               event: event,
                               feedbackSubmitted: false,
                               showFeedback: false,
-                              onTap: () => _open(event),
                             ),
                         ],
                       ),
@@ -172,7 +181,7 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Events open to beneficiaries, ahead and completed',
+          'Events you applied for, ahead and completed',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,

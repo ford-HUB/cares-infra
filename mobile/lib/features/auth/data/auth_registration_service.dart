@@ -116,10 +116,12 @@ class AuthRegistrationService {
   /// [phoneNumber] and [idNumber] are checked for clashes with existing
   /// accounts before a code is sent, so a taken value is reported as a
   /// [RegistrationConflict] on the form rather than after the OTP.
+  /// [resend] forces the server to mail a new code even if one is still live.
   Future<SendVerificationResponse> sendVerificationCode({
     required String email,
     String? phoneNumber,
     String? idNumber,
+    bool resend = false,
   }) async {
     final phone = phoneNumber == null
         ? null
@@ -131,6 +133,7 @@ class AuthRegistrationService {
         'email': email.trim(),
         if (phone != null && phone.isNotEmpty) 'phone_number': phone,
         if (id != null && id.isNotEmpty) 'id_number': id,
+        if (resend) 'resend': true,
       },
     );
 

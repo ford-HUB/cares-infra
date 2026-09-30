@@ -5,6 +5,7 @@ import { ContentShell } from '../../components/portal/ui/content-shell'
 import { InlinePageHeader } from '../../components/portal/ui/page-chrome'
 import { UserRequestTimeline } from '../../components/user-request/user-request-timeline'
 import { DeletedRequestsModal } from '../../components/user-request/ui/deleted-requests-modal'
+import { RejectRequestModal } from '../../components/user-request/ui/reject-request-modal'
 import { UserRequestTimelineSkeleton } from '../../components/user-request/ui/user-request-timeline-skeleton'
 import { useUserRequestStore } from '../../store/user-request-store'
 import type { UserRequest } from '../../types/user-request'
@@ -16,11 +17,13 @@ export function UserRequestPage() {
   const error = useUserRequestStore((s) => s.error)
   const fetchRequests = useUserRequestStore((s) => s.fetchRequests)
   const accept = useUserRequestStore((s) => s.accept)
+  const reject = useUserRequestStore((s) => s.reject)
   const remove = useUserRequestStore((s) => s.remove)
   const restore = useUserRequestStore((s) => s.restore)
 
   const [busyId, setBusyId] = useState<string | null>(null)
   const [binOpen, setBinOpen] = useState(false)
+  const [rejecting, setRejecting] = useState<UserRequest | null>(null)
 
   useEffect(() => {
     void fetchRequests()
@@ -60,6 +63,21 @@ export function UserRequestPage() {
       () => accept(request.id),
       `${request.reference} accepted`,
     )
+
+  // The modal stays open until the call settles, so a failed rejection keeps the
+  // typed reason for another try.
+  const handleConfirmReject = async (request: UserRequest, reason: string) => {
+    setBusyId(request.id)
+    try {
+      await reject(request.id, reason)
+      toast.success(`${request.reference} rejected`)
+      setRejecting(null)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'The request could not be rejected')
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   const handleDelete = (request: UserRequest) =>
     void runDecision(
@@ -121,10 +139,20 @@ export function UserRequestPage() {
             requests={timeline}
             busyId={busyId}
             onAccept={handleAccept}
+            onReject={setRejecting}
             onDelete={handleDelete}
           />
         )}
       </div>
+
+      {rejecting && (
+        <RejectRequestModal
+          request={rejecting}
+          busy={busyId === rejecting.id}
+          onConfirm={(reason) => void handleConfirmReject(rejecting, reason)}
+          onClose={() => setRejecting(null)}
+        />
+      )}
 
       {binOpen && (
         <DeletedRequestsModal

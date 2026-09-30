@@ -1,5 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SupportTicketAuthorType } from '../../../infastructures/prisma/common/client';
+import {
+  LoginSource,
+  NotificationCategory,
+  NotificationTone,
+  SupportTicketAuthorType,
+  SupportTicketStatus,
+} from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type {
   ListSupportTicketsQueryDto,
   ReplyToSupportTicketDto,
@@ -16,6 +23,7 @@ import {
 export class SupportTicketsSiteService {
   constructor(
     private readonly supportTicketsRepository: SupportTicketsRepository,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async listTickets(
@@ -41,7 +49,7 @@ export class SupportTicketsSiteService {
     staffUserId: string,
     update: UpdateSupportTicketDto,
   ): Promise<SupportTicketDto> {
-    await this.requireTicket(id);
+    const before = await this.requireTicket(id);
 
     const row = await this.supportTicketsRepository.updateTicket(id, {
       status: update.status,
@@ -50,6 +58,21 @@ export class SupportTicketsSiteService {
         ? await this.staffNote(staffUserId, update.note)
         : undefined,
     });
+
+    if (row.status !== before.status) {
+      await this.notifyRequester(row, {
+        title: `Ticket #${row.reference_number} is now ${STATUS_LABELS[row.status]}`,
+        description: update.note
+          ? `${STATUS_NOTICES[row.status]} Note from support: ${excerpt(update.note)}`
+          : STATUS_NOTICES[row.status],
+        tone: STATUS_NEEDS_REQUESTER.has(row.status)
+          ? NotificationTone.ATTENTION
+          : NotificationTone.INFO,
+        dedupeKey: `ticket-status:${row.support_ticket_id}:${row.status}:${row.replies.length}`,
+      });
+    } else if (update.note) {
+      await this.notifyReply(row, update.note);
+    }
 
     return toSupportTicket(row);
   }
@@ -67,7 +90,43 @@ export class SupportTicketsSiteService {
       note: await this.staffNote(staffUserId, reply.body),
     });
 
+    await this.notifyReply(row, reply.body);
+
     return toSupportTicket(row);
+  }
+
+  private async notifyReply(row: SupportTicketRow, body: string) {
+    await this.notifyRequester(row, {
+      title: `Support replied on ticket #${row.reference_number}`,
+      description: excerpt(body),
+      tone: NotificationTone.INFO,
+      dedupeKey: `ticket-reply:${row.support_ticket_id}:${row.replies.length}`,
+    });
+  }
+
+  /**
+   * A ticket is about the account, not one side of it, so the notice carries no
+   * audience role. Only app-filed tickets get an app link; a portal requester
+   * reads the thread on the portal.
+   */
+  private async notifyRequester(
+    row: SupportTicketRow,
+    notice: {
+      title: string;
+      description: string;
+      tone: NotificationTone;
+      dedupeKey: string;
+    },
+  ) {
+    await this.notificationScheduler.publish({
+      ...notice,
+      category: NotificationCategory.SUPPORT,
+      href:
+        row.source === LoginSource.MOBILE
+          ? `/support/${row.support_ticket_id}`
+          : undefined,
+      userIds: [row.requester_id],
+    });
   }
 
   private async requireTicket(id: string): Promise<SupportTicketRow> {
@@ -93,6 +152,36 @@ export class SupportTicketsSiteService {
       body,
     };
   }
+}
+
+const STATUS_LABELS: Record<SupportTicketStatus, string> = {
+  OPEN: 'open',
+  IN_PROGRESS: 'in progress',
+  UNDER_VERIFICATION: 'awaiting your confirmation',
+  CLIENT_FEEDBACK: 'waiting on you',
+  RESOLVED: 'resolved',
+  CLOSED: 'closed',
+};
+
+const STATUS_NOTICES: Record<SupportTicketStatus, string> = {
+  OPEN: 'Your ticket is back in the support queue.',
+  IN_PROGRESS: 'A member of the support team is working on it.',
+  UNDER_VERIFICATION:
+    'A fix is in. Open the ticket to confirm it works for you, or reopen it.',
+  CLIENT_FEEDBACK:
+    'Support needs more detail from you — reply on the ticket to keep it moving.',
+  RESOLVED: 'Support marked your issue as resolved.',
+  CLOSED: 'This ticket is closed. File a new one if the issue comes back.',
+};
+
+/** Statuses that are blocked on the requester doing something. */
+const STATUS_NEEDS_REQUESTER = new Set<SupportTicketStatus>([
+  SupportTicketStatus.UNDER_VERIFICATION,
+  SupportTicketStatus.CLIENT_FEEDBACK,
+]);
+
+function excerpt(text: string): string {
+  return text.length > 160 ? `${text.slice(0, 160)}…` : text;
 }
 
 export function toSupportTicket(row: SupportTicketRow): SupportTicketDto {

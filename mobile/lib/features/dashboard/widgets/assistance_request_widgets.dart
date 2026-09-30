@@ -261,12 +261,17 @@ class NeedsAssessmentCard extends StatelessWidget {
   const NeedsAssessmentCard({
     super.key,
     required this.summary,
+    this.isLoading = false,
     this.onTakeAssessment,
     this.onViewAssessment,
     this.onUpdateAssessment,
   });
 
   final NeedsAssessmentSummary summary;
+
+  /// True until the saved survey has been fetched — nothing is offered yet,
+  /// so "Take Assessment" never flashes up for someone who already took it.
+  final bool isLoading;
   final VoidCallback? onTakeAssessment;
   final VoidCallback? onViewAssessment;
   final VoidCallback? onUpdateAssessment;
@@ -326,21 +331,35 @@ class NeedsAssessmentCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _AssessmentStatusStrip(
-            icon: beneficiaryAssessmentIcon(state),
-            label: state.label,
-            detail: state.hasSubmission
-                ? 'Submitted ${summary.submittedOnLabel}'
-                : null,
-            color: statusColor,
-          ),
-          const SizedBox(height: 14),
-          if (!state.hasSubmission)
-            _AssessmentActionButton(
-              label: 'Take Assessment',
-              onPressed: onTakeAssessment,
+          if (isLoading && !state.hasSubmission)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.4),
+                ),
+              ),
             )
-          else
+          else if (!state.hasSubmission) ...[
+            const _AssessmentEmptyState(),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: _AssessmentActionButton(
+                label: 'Take Assessment',
+                onPressed: onTakeAssessment,
+              ),
+            ),
+          ] else ...[
+            _AssessmentStatusStrip(
+              icon: beneficiaryAssessmentIcon(state),
+              label: state.label,
+              detail: 'Submitted ${summary.submittedOnLabel}',
+              color: statusColor,
+            ),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Expanded(
@@ -358,6 +377,84 @@ class NeedsAssessmentCard extends StatelessWidget {
                 ],
               ],
             ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown in place of the status strip until the first survey is submitted:
+/// says nothing is on file yet and what taking it involves.
+class _AssessmentEmptyState extends StatelessWidget {
+  const _AssessmentEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+      decoration: BoxDecoration(
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.fieldBorder),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.accentOrange.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.pending_actions_rounded,
+              size: 24,
+              color: AppColors.accentOrange,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'No survey on file yet',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Answer 5 short questions so CARES can match your household '
+            'with the right programs.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.schedule_rounded,
+                size: 14,
+                color: AppColors.textMuted,
+              ),
+              SizedBox(width: 4),
+              Text(
+                'About 3 minutes',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

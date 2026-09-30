@@ -21,6 +21,13 @@ import {
   type SaveAnnouncementInput,
 } from '../repositories/announcements-repository';
 
+/** Roles that read notices in the app rather than on the portal. */
+const APP_ROLES = new Set<RoleType>([
+  RoleType.VOLUNTEER,
+  RoleType.DONOR,
+  RoleType.BENEFICIARY,
+]);
+
 @Injectable()
 export class AnnouncementsSiteService {
   constructor(
@@ -134,15 +141,20 @@ export class AnnouncementsSiteService {
       },
     );
 
-    // Every addressed role gets it in their feed — the app polls its own inbox
-    // and pops a device notification — plus every director and admin, who read the
-    // System Notices board regardless of who a notice was addressed to.
+    // Every addressed role gets it in their feed, plus every director and admin,
+    // who read the System Notices board regardless of who a notice was
+    // addressed to. App audiences get their own row tagged with the side it
+    // belongs to, so a donor who also volunteers sees a donors-only notice on
+    // the Donor side and not the Volunteer one.
     const portalRoles = new Set<RoleType>([RoleType.ADMIN, RoleType.DIRECTOR]);
+    const appRoles = new Set<RoleType>();
     for (const audience of row.audiences) {
-      for (const role of AUDIENCE_ROLES[audience]) portalRoles.add(role);
+      for (const role of AUDIENCE_ROLES[audience]) {
+        (APP_ROLES.has(role) ? appRoles : portalRoles).add(role);
+      }
     }
 
-    await this.notificationScheduler.publish({
+    const notice = {
       title: row.title,
       description:
         row.body.length > 200 ? `${row.body.slice(0, 200)}…` : row.body,
@@ -153,11 +165,22 @@ export class AnnouncementsSiteService {
           : row.tone === AnnouncementTone.WARNING
             ? NotificationTone.ATTENTION
             : NotificationTone.INFO,
-      href: '/admin/system-notices',
-      roles: [...portalRoles],
       // A notice re-published after being taken down is not news twice.
       dedupeKey: `announcement:${row.announcement_id}`,
+    };
+
+    await this.notificationScheduler.publish({
+      ...notice,
+      href: '/admin/system-notices',
+      roles: [...portalRoles],
     });
+    for (const role of appRoles) {
+      await this.notificationScheduler.publish({
+        ...notice,
+        roles: [role],
+        audienceRole: role,
+      });
+    }
 
     return published;
   }

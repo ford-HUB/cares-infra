@@ -99,6 +99,7 @@ export function toNotificationDto(row: NotificationRow): NotificationDto {
     category: row.category,
     tone: row.tone,
     href: row.href,
+    audience_role: row.audience_role,
     read: row.read_at !== null,
     created_at: row.createdAt.toISOString(),
   };

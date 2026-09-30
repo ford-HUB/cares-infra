@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common';
 import {
   EventStatus,
+  NotificationCategory,
+  NotificationTone,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { S3Service } from '../../../infastructures/s3/s3-service';
 import { AuthMobileService } from '../../auth/services/auth-mobile-service';
@@ -31,6 +34,7 @@ export class UserRequestsMobileService {
     private readonly authMobileService: AuthMobileService,
     private readonly prisma: PrismaService,
     private readonly s3Service: S3Service,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async listMine(userId: string): Promise<MobileUserRequestListDto> {
@@ -96,6 +100,15 @@ export class UserRequestsMobileService {
       selfieEmbedding: session.selfieEmbedding,
       faceSimilarity: session.faceSimilarity,
     });
+    await this.notificationScheduler.publish({
+      title: `${labelFor(body.roleType)} access request received`,
+      description: `REQ-${String(row.reference_number).padStart(3, '0')} is waiting for administrator approval. We'll let you know as soon as it's decided.`,
+      category: NotificationCategory.USER_REQUEST,
+      tone: NotificationTone.INFO,
+      href: `/requests/${row.user_request_id}`,
+      userIds: [userId],
+      dedupeKey: `user-request:${row.user_request_id}:filed`,
+    });
     return toMobileDto(row);
   }
 
@@ -104,14 +117,18 @@ export class UserRequestsMobileService {
    * this does not take a slot straight away — the row waits for a director,
    * who reviews the attached proof of residency, and the attendance record is
    * only created when they accept.
+   *
+   * [viewRole] is the side the app has open (`?role=`, else the registered
+   * role). The role switcher is local, so a donor or volunteer who switched
+   * to their beneficiary side applies exactly like a beneficiary account.
    */
   async createEventJoin(
     userId: string,
-    callerRole: RoleType,
+    viewRole: RoleType,
     body: CreateEventJoinRequestDto,
     proof: Express.Multer.File,
   ): Promise<MobileUserRequestDto> {
-    if (callerRole !== RoleType.BENEFICIARY) {
+    if (viewRole !== RoleType.BENEFICIARY) {
       throw new BadRequestException(
         'Only beneficiary accounts request to join an event this way',
       );
@@ -176,6 +193,16 @@ export class UserRequestsMobileService {
         ? `${name.firstname} ${name.lastname}`.trim()
         : 'Requester',
       residencyProof: { url, name: proof.originalname, mime },
+    });
+    await this.notificationScheduler.publish({
+      title: `Application sent for ${event.title}`,
+      description: `REQ-${String(row.reference_number).padStart(3, '0')} is waiting for review. We'll let you know once your place is confirmed.`,
+      category: NotificationCategory.USER_REQUEST,
+      tone: NotificationTone.INFO,
+      href: `/requests/${row.user_request_id}`,
+      userIds: [userId],
+      audienceRole: RoleType.BENEFICIARY,
+      dedupeKey: `user-request:${row.user_request_id}:filed`,
     });
     return toMobileDto(row);
   }

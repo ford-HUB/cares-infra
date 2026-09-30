@@ -33,6 +33,16 @@ export const CreateEventJoinRequestSchema = z
   })
   .strict();
 
+/**
+ * `?role=` names the side the app has open. The role switcher is local to the
+ * app, so a donor- or volunteer-registered account applies from its
+ * beneficiary dashboard with `role=BENEFICIARY`. Defaults to the registered
+ * role.
+ */
+export const EventJoinRoleQuerySchema = z.object({
+  role: z.enum(MOBILE_USER_REQUEST_ROLE_TYPES).optional(),
+});
+
 /** The proof of residency attached to an event application — a PDF only. */
 export const EVENT_JOIN_PROOF_MAX_BYTES = 10 * 1024 * 1024;
 export const EVENT_JOIN_PROOF_ALLOWED_MIMES = ['application/pdf'] as const;
@@ -46,6 +56,8 @@ export const MobileUserRequestSchema = z.object({
   event_id: z.number().nullable(),
   summary: z.string(),
   decided_at: z.iso.datetime().nullable(),
+  /** REJECTED only — the director's reason, shown to the requester. */
+  rejection_reason: z.string().nullable(),
   created_at: z.iso.datetime(),
 });
 

@@ -4,6 +4,7 @@ import '../../features/dashboard/beneficiary/beneficiary_dashboard_screen.dart';
 import '../../features/dashboard/placeholder_dashboard_screen.dart';
 import '../../features/dashboard/presentation/screens/donor_dashboard_screen.dart';
 import '../../features/dashboard/presentation/screens/home_screen.dart';
+import '../../features/dashboard/presentation/widgets/notification_host.dart';
 import '../../features/dashboard/student/student_dashboard_screen.dart';
 import '../session/donor_session.dart';
 import '../session/role_account_store.dart';
@@ -98,7 +99,7 @@ class DashboardRouter {
     // stores (notifyListeners), which must not run inside a route builder.
     final screen = screenFor(user);
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => screen),
+      MaterialPageRoute<void>(builder: (_) => NotificationHost(child: screen)),
       (_) => false,
     );
   }
@@ -127,7 +128,7 @@ class DashboardRouter {
       hasInterests: hasInterests,
     );
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => screen),
+      MaterialPageRoute<void>(builder: (_) => NotificationHost(child: screen)),
       (_) => false,
     );
   }

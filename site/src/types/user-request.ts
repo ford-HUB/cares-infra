@@ -10,8 +10,10 @@ export type UserRequestKind = 'role_access' | 'event_join'
 /**
  * `deleted` is a recycle bin, not a hard delete — the director can restore a request
  * back into the queue, which is why a dropped row keeps its whole trail.
+ * `rejected` is a decision the beneficiary sees, with the director's reason; they
+ * can apply again for the same event, which files a new request.
  */
-export type UserRequestStatus = 'pending' | 'accepted' | 'deleted'
+export type UserRequestStatus = 'pending' | 'accepted' | 'deleted' | 'rejected'
 
 export type UserRequestAttachmentKind =
   | 'id-front'
@@ -71,6 +73,8 @@ export interface UserRequest {
   /** Set once the request leaves `pending`; cleared again on restore. */
   decidedAt?: string
   decidedBy?: string
+  /** `rejected` only — the reason the director gave, shown to the beneficiary. */
+  rejectionReason?: string
   attachments: UserRequestAttachment[]
   trail: UserRequestEvent[]
 }

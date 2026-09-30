@@ -1,36 +1,38 @@
 import type { ApiResponse } from '../types/portal-roles'
 import type {
   ClusterBarangay,
+  CommunityProblem,
   Household,
   NeedBarrier,
   NeedCategory,
   NeedPriority,
+  NeedSeriousness,
   NeedsClusteringResult,
   NeedsFeatureKey,
 } from '../types/residential-needs'
 import { apiClient, parseApiError } from './api-client'
 
 /**
- * Residential Needs — the K-Means grouping behind the Clusters screen. The rows
- * travel in the request because the survey is not in the database yet: the portal
- * sends what it is showing (today the mock households) and the server hands them to
- * decision-service, which runs scikit-learn KMeans and describes each group.
+ * Residential Needs — the Needs Assessment Surveys beneficiaries submitted from
+ * the mobile app, and the K-Means grouping of them behind the Clusters screen.
+ * The server reads the rows from the database for both, and hands them to
+ * decision-service (scikit-learn KMeans) for the grouping.
  */
 
-interface HouseholdApiPayload {
+interface HouseholdApiRow {
   id: string
   family_name: string
   barangay: string
   members: number
   survey: {
     needs: NeedCategory[]
-    other_need?: string
+    other_need: string | null
     seriousness: number
     barriers: NeedBarrier[]
-    other_barrier?: string
-    community_problem: string
-    other_community_problem?: string
-    concern?: string
+    other_barrier: string | null
+    community_problem: CommunityProblem
+    other_community_problem: string | null
+    concern: string | null
   }
   surveyed_at: string
 }
@@ -59,26 +61,24 @@ interface ClusterNeedsApiResponse {
   generated_at: string
 }
 
-function toApiHousehold(household: Household): HouseholdApiPayload {
-  const { survey } = household
+function mapHousehold(row: HouseholdApiRow): Household {
+  const { survey } = row
   return {
-    id: household.id,
-    family_name: household.familyName,
-    barangay: household.barangay,
-    members: household.members,
+    id: row.id,
+    familyName: row.family_name,
+    barangay: row.barangay,
+    members: row.members,
     survey: {
       needs: survey.needs,
-      ...(survey.otherNeed ? { other_need: survey.otherNeed } : {}),
-      seriousness: survey.seriousness,
+      otherNeed: survey.other_need ?? undefined,
+      seriousness: survey.seriousness as NeedSeriousness,
       barriers: survey.barriers,
-      ...(survey.otherBarrier ? { other_barrier: survey.otherBarrier } : {}),
-      community_problem: survey.communityProblem,
-      ...(survey.otherCommunityProblem
-        ? { other_community_problem: survey.otherCommunityProblem }
-        : {}),
-      ...(survey.concern ? { concern: survey.concern } : {}),
+      otherBarrier: survey.other_barrier ?? undefined,
+      communityProblem: survey.community_problem,
+      otherCommunityProblem: survey.other_community_problem ?? undefined,
+      concern: survey.concern ?? undefined,
     },
-    surveyed_at: household.surveyedAt,
+    surveyedAt: row.surveyed_at,
   }
 }
 
@@ -105,8 +105,21 @@ function mapClusteringResult(body: ClusterNeedsApiResponse): NeedsClusteringResu
   }
 }
 
+/** Every submitted survey, newest first. */
+export async function fetchHouseholds(): Promise<ApiResponse<Household[]>> {
+  try {
+    const { data: body } = await apiClient.get<{
+      ok: true
+      data: { items: HouseholdApiRow[] }
+    }>('/api/v1/residential-needs/households')
+    return { success: true, data: body.data.items.map(mapHousehold) }
+  } catch (error) {
+    return { success: false, message: parseApiError(error), data: null }
+  }
+}
+
+/** Groups every submitted survey; the server reads the rows itself. */
 export async function clusterHouseholds(
-  households: Household[],
   k: number,
   seed: number,
 ): Promise<ApiResponse<NeedsClusteringResult>> {
@@ -114,11 +127,7 @@ export async function clusterHouseholds(
     const { data: body } = await apiClient.post<{
       ok: true
       data: ClusterNeedsApiResponse
-    }>('/api/v1/residential-needs/clusters', {
-      households: households.map(toApiHousehold),
-      k,
-      seed,
-    })
+    }>('/api/v1/residential-needs/clusters', { k, seed })
     return { success: true, data: mapClusteringResult(body.data) }
   } catch (error) {
     return { success: false, message: parseApiError(error), data: null }

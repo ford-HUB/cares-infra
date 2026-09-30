@@ -47,6 +47,7 @@ class RecommendedEvent {
     this.fundsRaised = 0,
     this.donationsCount = 0,
     this.applicationStatus,
+    this.applicationRejectionReason,
     required this.matchedInterests,
     required this.matchScore,
     this.imageCount = 0,
@@ -78,6 +79,8 @@ class RecommendedEvent {
       fundsRaised: (json['funds_raised'] as num?)?.toInt() ?? 0,
       donationsCount: (json['donations_count'] as num?)?.toInt() ?? 0,
       applicationStatus: json['application_status'] as String?,
+      applicationRejectionReason:
+          json['application_rejection_reason'] as String?,
       markerLat: (json['marker_lat'] as num?)?.toDouble(),
       markerLng: (json['marker_lng'] as num?)?.toDouble(),
       imageCount: json['image_count'] as int? ?? 0,
@@ -123,9 +126,12 @@ class RecommendedEvent {
   /// Money and goods donations opened on this event.
   final int donationsCount;
 
-  /// Beneficiary rows only: `PENDING` / `ACCEPTED` for the caller's own
-  /// application, null otherwise.
+  /// Beneficiary rows only: `PENDING` / `ACCEPTED` / `REJECTED` for the
+  /// caller's own latest application, null otherwise.
   final String? applicationStatus;
+
+  /// The director's reason when [applicationStatus] is `REJECTED`.
+  final String? applicationRejectionReason;
   final double? markerLat;
   final double? markerLng;
 
@@ -189,6 +195,7 @@ class RecommendedEvent {
       imageUrls: imageUrls,
       attendanceStatus: attendanceStatus,
       applicationStatus: applicationStatus,
+      applicationRejectionReason: applicationRejectionReason,
     );
   }
 }

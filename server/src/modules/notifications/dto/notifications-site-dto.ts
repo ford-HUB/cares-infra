@@ -33,6 +33,12 @@ export interface PublishNotificationInput {
   /** Specific people, in addition to (or instead of) the roles. */
   userIds?: string[];
   /**
+   * The side of a mobile account the notice belongs to — a donation update is
+   * the Donor side's, an attendance ruling the Volunteer side's. Leave unset
+   * for anything about the account itself (support, security, portal notices).
+   */
+  audienceRole?: RoleType;
+  /**
    * Stable per thing-being-announced (e.g. `event-start:42`). A recipient who already
    * holds a row with this key is skipped, so a sweep that runs every few minutes
    * cannot announce the same event twice.

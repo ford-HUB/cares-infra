@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
 import type {
   ListMobileNotificationsQueryDto,
+  MarkAllMobileNotificationsReadQueryDto,
   MobileNotificationFeedDto,
 } from '../dto/notifications-mobile-dto';
 import { NotificationsRepository } from '../repositories/notifications-repository';
@@ -24,8 +25,12 @@ export class NotificationsMobileService {
     query: ListMobileNotificationsQueryDto,
   ): Promise<MobileNotificationFeedDto> {
     const [rows, counts] = await Promise.all([
-      this.notificationsRepository.listForUser(caller.sub, query.limit),
-      this.notificationsRepository.countForUser(caller.sub),
+      this.notificationsRepository.listForUser(
+        caller.sub,
+        query.limit,
+        query.role,
+      ),
+      this.notificationsRepository.countForUser(caller.sub, query.role),
     ]);
     return {
       summary: {
@@ -50,8 +55,15 @@ export class NotificationsMobileService {
     return this.reload(caller);
   }
 
-  async markAllRead(caller: JwtPayload): Promise<MobileNotificationFeedDto> {
-    await this.notificationsRepository.markAllRead(caller.sub);
+  /**
+   * "Mark all as read" on one side of the account leaves the other sides'
+   * unread rows alone — they have not been seen yet.
+   */
+  async markAllRead(
+    caller: JwtPayload,
+    query: MarkAllMobileNotificationsReadQueryDto = {},
+  ): Promise<MobileNotificationFeedDto> {
+    await this.notificationsRepository.markAllRead(caller.sub, query.role);
     return this.reload(caller);
   }
 

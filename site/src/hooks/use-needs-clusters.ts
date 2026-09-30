@@ -5,7 +5,8 @@ import type { Household } from '../types/residential-needs'
 /**
  * Owns the two knobs the Clusters screen exposes — how many groups, and which random
  * start — and asks decision-service (through the server) for a fresh grouping
- * whenever either moves, plus which cluster card is selected.
+ * whenever either moves, plus which cluster card is selected. The server clusters
+ * every submitted survey, so a new `households` list (a survey came in) re-runs it.
  */
 export function useNeedsClusters(households: Household[]) {
   const k = useNeedsClustersStore((s) => s.k)
@@ -20,22 +21,22 @@ export function useNeedsClusters(households: Household[]) {
   const [selected, setSelected] = useState<number | null>(null)
 
   useEffect(() => {
-    void fetchClusters(households)
+    void fetchClusters()
   }, [households, fetchClusters])
 
   const changeK = useCallback(
     (next: number) => {
       setSelected(null)
-      void setK(households, next)
+      void setK(next)
     },
-    [households, setK],
+    [setK],
   )
 
   /** A new start can land the same households in different groups — that is the point. */
   const reseed = useCallback(() => {
     setSelected(null)
-    void reseedStore(households)
-  }, [households, reseedStore])
+    void reseedStore()
+  }, [reseedStore])
 
   const toggleSelected = useCallback((index: number) => {
     setSelected((current) => (current === index ? null : index))

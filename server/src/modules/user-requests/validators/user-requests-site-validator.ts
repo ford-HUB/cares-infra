@@ -27,6 +27,22 @@ export const ListUserRequestsQuerySchema = z
   })
   .strict();
 
+export const REJECTION_REASON_MAX_LENGTH = 500;
+
+/** The director must say why — the requester reads this in the app. */
+export const RejectUserRequestSchema = z
+  .object({
+    reason: z
+      .string()
+      .trim()
+      .min(1, 'Enter a reason for the rejection')
+      .max(
+        REJECTION_REASON_MAX_LENGTH,
+        `Keep the reason under ${REJECTION_REASON_MAX_LENGTH} characters`,
+      ),
+  })
+  .strict();
+
 /** Which stored proof image a `GET :id/attachments/:kind` streams back. */
 export const UserRequestAttachmentKindSchema = z.enum([
   'id-front',
@@ -70,6 +86,7 @@ export const UserRequestSchema = z.object({
   attachments: z.array(UserRequestAttachmentSchema),
   decided_by_name: z.string().nullable(),
   decided_at: z.iso.datetime().nullable(),
+  rejection_reason: z.string().nullable(),
   trail: z.array(UserRequestTrailEntrySchema),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),

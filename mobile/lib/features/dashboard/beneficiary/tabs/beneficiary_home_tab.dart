@@ -5,6 +5,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 import 'package:mobile/features/dashboard/domain/mock_event.dart';
+import 'package:mobile/features/dashboard/presentation/providers/beneficiary_request_counts_provider.dart';
 import 'package:mobile/features/dashboard/presentation/providers/recommended_events_provider.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/featured_events_carousel.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_header.dart';
@@ -19,7 +20,8 @@ import 'package:mobile/features/dashboard/widgets/assistance_request_widgets.dar
 /// tab (header, featured events, stats row, action card), with assistance
 /// requests in place of volunteer service stats. The featured carousel is the
 /// open events flagged for beneficiaries ([beneficiaryEventsProvider]); it
-/// hides itself while loading or when nothing is flagged.
+/// hides itself while loading and shows an empty-state card when nothing is
+/// flagged.
 class BeneficiaryHomeTab extends ConsumerStatefulWidget {
   const BeneficiaryHomeTab({
     super.key,
@@ -42,6 +44,7 @@ class BeneficiaryHomeTab extends ConsumerStatefulWidget {
 
 class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
   final _store = AssistanceRequestStore.instance;
+  final _assessment = NeedsAssessmentStore.instance;
 
   /// The carousel still draws the prototype card model; project the server
   /// rows onto it. The first image is the poster, with the bearer token sent
@@ -95,11 +98,15 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
   void initState() {
     super.initState();
     _store.addListener(_onStoreChanged);
+    _assessment.addListener(_onStoreChanged);
+    _store.load();
+    _assessment.load();
   }
 
   @override
   void dispose() {
     _store.removeListener(_onStoreChanged);
+    _assessment.removeListener(_onStoreChanged);
     super.dispose();
   }
 
@@ -109,9 +116,11 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    final current = _store.currentRequests;
-    final approved = _store.approvedRequests;
-    final completed = _store.completedRequests;
+    // Dash while the counts load or when the fetch failed.
+    final counts = ref.watch(beneficiaryRequestCountsProvider).valueOrNull;
+    String count(int Function(BeneficiaryRequestCounts c) pick) =>
+        counts == null ? '–' : '${pick(counts)}';
+    final assessment = _assessment.summary;
     final latest = _store.history.isEmpty ? null : _store.history.first;
 
     return SafeArea(
@@ -124,23 +133,29 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
             HomeHeader(
               firstName: widget.firstName,
               points: 0,
-              badgeLabel: '${current.length} active',
+              badgeLabel: counts == null
+                  ? 'Requests'
+                  : '${counts.pending + counts.approved} active',
             ),
             ...ref
                 .watch(beneficiaryEventsProvider)
                 .maybeWhen(
                   data: (events) {
                     _featured = events.take(_carouselLimit).toList();
-                    if (_featured.isEmpty) return const <Widget>[];
                     return [
                       const SizedBox(height: 22),
                       FeaturedEventsCarousel(
                         events: _featured.map(_toCard).toList(),
                         imageHeaders: ApiClient().authHeaders(),
                         onEventTap: _openEvent,
+                        showEmptyState: true,
                       ),
                     ];
                   },
+                  error: (_, _) => const [
+                    SizedBox(height: 22),
+                    FeaturedEventsCarousel(events: [], showEmptyState: true),
+                  ],
                   orElse: () => const <Widget>[],
                 ),
             const SizedBox(height: 22),
@@ -148,19 +163,19 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
               items: [
                 StatsRowItem(
                   icon: Icons.hourglass_top_outlined,
-                  value: '${current.length}',
+                  value: count((c) => c.pending),
                   label: 'Pending',
                   iconBackground: const Color(0xFFFFE0B2),
                   iconColor: AppColors.accentOrange,
                 ),
                 StatsRowItem(
                   icon: Icons.verified_outlined,
-                  value: '${approved.length}',
+                  value: count((c) => c.approved),
                   label: 'Approved',
                 ),
                 StatsRowItem(
                   icon: Icons.task_alt_outlined,
-                  value: '${completed.length}',
+                  value: count((c) => c.completed),
                   label: 'Completed',
                 ),
               ],
@@ -179,21 +194,22 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
             _RequestAssistanceCard(onTap: widget.onRequestAssistance),
             const SizedBox(height: 16),
             NeedsAssessmentCard(
-              summary: kMockNeedsAssessment,
+              summary: assessment,
+              isLoading: !_assessment.hasLoaded && _assessment.isLoading,
               onTakeAssessment: () => NeedsAssessmentScreen.open(
                 context,
                 mode: NeedsAssessmentMode.take,
-                summary: kMockNeedsAssessment,
+                summary: assessment,
               ),
               onViewAssessment: () => NeedsAssessmentScreen.open(
                 context,
                 mode: NeedsAssessmentMode.view,
-                summary: kMockNeedsAssessment,
+                summary: assessment,
               ),
               onUpdateAssessment: () => NeedsAssessmentScreen.open(
                 context,
                 mode: NeedsAssessmentMode.update,
-                summary: kMockNeedsAssessment,
+                summary: assessment,
               ),
             ),
             if (latest != null) ...[

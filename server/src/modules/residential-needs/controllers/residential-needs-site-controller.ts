@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ZBody, ZSerialize } from 'nest-zod';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
@@ -6,14 +6,19 @@ import { Roles } from 'src/shared/decorators/roles-decorator';
 import type {
   ClusterNeedsDto,
   ClusterNeedsResponseDto,
+  HouseholdListResponseDto,
 } from '../dto/residential-needs-site-dto';
 import { ResidentialNeedsSiteService } from '../services/residential-needs-site-service';
 import {
   ClusterNeedsResponseSchema,
   ClusterNeedsSchema,
+  HouseholdListResponseSchema,
 } from '../validators/residential-needs-site-validator';
 
-/** Residential Needs — the K-Means grouping behind the Clusters screen. */
+/**
+ * Residential Needs — the submitted Needs Assessment Surveys and the K-Means
+ * grouping behind the Clusters screen.
+ */
 @Controller('v1/residential-needs')
 @Roles(...PORTAL_ROLE_TYPES)
 export class ResidentialNeedsSiteController {
@@ -21,9 +26,17 @@ export class ResidentialNeedsSiteController {
     private readonly residentialNeedsSiteService: ResidentialNeedsSiteService,
   ) {}
 
+  /** Every submitted survey, newest first, with the respondent's household details. */
+  @Get('households')
+  @ResponseMessage('Surveyed households')
+  @ZSerialize(HouseholdListResponseSchema)
+  async listHouseholds(): Promise<HouseholdListResponseDto> {
+    return this.residentialNeedsSiteService.listHouseholds();
+  }
+
   /**
-   * POST rather than GET because the rows travel in the body: the survey is not in
-   * the database yet, so the portal sends what it is showing.
+   * Clusters every submitted survey. POST because each call runs the model
+   * afresh with the given group count and random start.
    */
   @Post('clusters')
   @HttpCode(HttpStatus.OK)

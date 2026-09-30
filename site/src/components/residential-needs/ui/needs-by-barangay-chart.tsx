@@ -15,11 +15,8 @@ import {
   NEEDS_GRID_STROKE,
   NEEDS_SMALL_CHART_HEIGHT,
 } from '../../../constants/residential-needs'
-import {
-  householdPriority,
-  RESIDENTIAL_NEEDS_BARANGAYS,
-} from '../../../services/residential-needs-mock'
 import type { Household, NeedPriority } from '../../../types/residential-needs'
+import { householdBarangays, householdPriority } from '../../../utils/residential-needs'
 
 interface NeedsByBarangayChartProps {
   households: Household[]
@@ -49,7 +46,7 @@ const legendOrder = (item: { dataKey?: unknown }) =>
  * start even when its total is small.
  */
 export function NeedsByBarangayChart({ households }: NeedsByBarangayChartProps) {
-  const rows = RESIDENTIAL_NEEDS_BARANGAYS.map((barangay) => {
+  const rows = householdBarangays(households).map((barangay) => {
     const counts = Object.fromEntries(NEED_PRIORITY_ORDER.map((band) => [band, 0])) as Record<
       NeedPriority,
       number

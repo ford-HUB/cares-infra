@@ -7,6 +7,7 @@ interface UserRequestTimelineProps {
   requests: UserRequest[]
   busyId: string | null
   onAccept: (request: UserRequest) => void
+  onReject: (request: UserRequest) => void
   onDelete: (request: UserRequest) => void
 }
 
@@ -28,6 +29,7 @@ export function UserRequestTimeline({
   requests,
   busyId,
   onAccept,
+  onReject,
   onDelete,
 }: UserRequestTimelineProps) {
   if (requests.length === 0) {
@@ -58,6 +60,7 @@ export function UserRequestTimeline({
                 busy={busyId === request.id}
                 disabled={busyId !== null}
                 onAccept={onAccept}
+                onReject={onReject}
                 onDelete={onDelete}
               />
             ))}

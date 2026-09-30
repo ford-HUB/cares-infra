@@ -9,6 +9,8 @@ import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/media_permissions.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/domain/ph_address.dart';
+import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
@@ -53,7 +55,16 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
   final _lastName = TextEditingController();
   final _phone = TextEditingController();
   final _age = TextEditingController();
-  final _address = TextEditingController();
+
+  /// Donors and volunteers pick barangay + city and type a street, the same
+  /// fields as registration. Stays [PhAddress.empty] when the address on file
+  /// is older free text that doesn't resolve — see [_addressEdited].
+  PhAddress _address = PhAddress.empty;
+
+  /// Until the address fields are touched the address on file is sent back
+  /// unchanged, so an older free-text address never blocks saving a name or
+  /// phone change. Once touched, it must be complete to save.
+  bool _addressEdited = false;
 
   String _gender = 'OTHER';
 
@@ -90,14 +101,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
 
   @override
   void dispose() {
-    for (final c in [
-      _firstName,
-      _middleName,
-      _lastName,
-      _phone,
-      _age,
-      _address,
-    ]) {
+    for (final c in [_firstName, _middleName, _lastName, _phone, _age]) {
       c.dispose();
     }
     super.dispose();
@@ -111,7 +115,6 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     _lastName,
     _phone,
     _age,
-    _address,
   ];
 
   void _onFieldChanged() {
@@ -173,7 +176,8 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     _lastName.text = draft.lastName;
     _phone.text = normalizePhilippinePhone(draft.phoneNumber);
     _age.text = draft.age > 0 ? '${draft.age}' : '';
-    _address.text = draft.address ?? '';
+    _address = _structuredAddress(profile.address);
+    _addressEdited = false;
     _gender = _genders.contains(draft.gender) ? draft.gender : 'OTHER';
     _householdSize = draft.householdSize;
   }
@@ -186,6 +190,27 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
       _profile?.roleType == RoleAccountStore.volunteer;
 
   bool get _isBeneficiary => widget.roleType == RoleAccountStore.beneficiary;
+
+  static PhAddress _structuredAddress(ProfileAddress address) =>
+      PhAddress.resolve(
+        street: address.street,
+        barangay: address.barangay,
+        city: address.city,
+        full: address.full,
+      );
+
+  void _onAddressChanged(PhAddress address) {
+    setState(() {
+      _address = address;
+      _addressEdited = true;
+    });
+  }
+
+  /// What `current_address` would be sent as: the picked address once the
+  /// fields were touched, otherwise exactly what is on file.
+  String get _addressToSend => _addressEdited
+      ? _address.formatted
+      : MobileProfileUpdate.fromProfile(_profile!).address ?? '';
 
   // ---------------------------------------------------------------------------
   // Validation
@@ -213,7 +238,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
     phoneNumber: normalizePhilippinePhone(_phone.text),
     gender: _gender,
     age: int.tryParse(_age.text.trim()) ?? 0,
-    address: _isBeneficiary ? null : _address.text,
+    address: _isBeneficiary || _profile == null ? null : _addressToSend,
     householdSize: _isBeneficiary ? _householdSize : null,
   );
 
@@ -242,7 +267,10 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
         _phoneConflict == null &&
         _age.text.trim().isNotEmpty &&
         _ageError == null &&
-        (_isBeneficiary || _address.text.trim().isNotEmpty);
+        (_isBeneficiary ||
+            (_addressEdited
+                ? _address.isComplete
+                : _addressToSend.trim().isNotEmpty));
   }
 
   /// "Required" only once the person has started editing, so a freshly
@@ -448,7 +476,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
         // Only the address (and the document list) changed server-side; keep
         // whatever the person has typed in the other fields.
         _profile = refreshed;
-        _address.text = refreshed.address.display;
+        _address = _structuredAddress(refreshed.address);
         _uploadingResidency = false;
       });
       _showMessage('Address updated to "${refreshed.address.display}".');
@@ -698,6 +726,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
         if (_isBeneficiary)
           ProfileResidencyAddressCard(
             address: profile.address.display,
+            structured: _structuredAddress(profile.address),
             documents: profile.residencyDocuments,
             uploading: _uploadingResidency,
             onTapLocked: _onAddressTapped,
@@ -707,17 +736,19 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
           RegistrationFormCard(
             icon: Icons.home_outlined,
             title: 'Address',
-            subtitle: 'Where you currently live.',
+            subtitle:
+                'Where you currently live. Start typing your barangay and '
+                'pick it from the list.',
             children: [
-              RegisterFormField(
-                label: 'Current address',
-                hint: 'House no., street, barangay, city',
-                controller: _address,
-                maxLines: 2,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _dismissKeyboard(),
-                inputFormatters: [LengthLimitingTextInputFormatter(300)],
-                errorText: _requiredError(_address),
+              if (!_address.isComplete &&
+                  !_addressEdited &&
+                  profile.address.display.trim().isNotEmpty) ...[
+                ProfileLegacyAddressNote(address: profile.address.display),
+                const SizedBox(height: 14),
+              ],
+              AddressAutocompleteFields(
+                value: _address,
+                onChanged: _onAddressChanged,
               ),
             ],
           ),

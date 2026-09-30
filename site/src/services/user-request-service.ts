@@ -23,7 +23,7 @@ interface UserRequestApiResponse {
   user_request_id: string
   reference_number: number
   kind: 'ROLE_ACCESS' | 'EVENT_JOIN'
-  status: 'PENDING' | 'ACCEPTED' | 'DELETED'
+  status: 'PENDING' | 'ACCEPTED' | 'DELETED' | 'REJECTED'
   requester_id: string
   requester_firstname: string
   requester_lastname: string
@@ -43,6 +43,7 @@ interface UserRequestApiResponse {
   }[]
   decided_by_name: string | null
   decided_at: string | null
+  rejection_reason: string | null
   trail: UserRequestTrailApiResponse[]
   created_at: string
   updated_at: string
@@ -85,6 +86,7 @@ function mapRequest(data: UserRequestApiResponse): UserRequest {
     submittedAt: data.created_at,
     decidedAt: data.decided_at ?? undefined,
     decidedBy: data.decided_by_name ?? undefined,
+    rejectionReason: data.rejection_reason ?? undefined,
     attachments: data.attachments.map((attachment) => ({
       kind: attachment.kind,
       label: attachment.label,
@@ -125,5 +127,19 @@ async function decide(id: string, action: 'accept' | 'remove' | 'restore'): Prom
 
 /** Every decision returns the updated request, so the store swaps one row in place. */
 export const acceptUserRequest = (id: string) => decide(id, 'accept')
+
+/** A rejection must say why — the beneficiary reads the reason in the app. */
+export async function rejectUserRequest(id: string, reason: string): Promise<UserRequest> {
+  try {
+    const { data: body } = await apiClient.post<ApiEnvelope<UserRequestApiResponse>>(
+      `${USER_REQUESTS_URL}/${id}/reject`,
+      { reason },
+    )
+    return mapRequest(body.data)
+  } catch (error) {
+    throw new Error(parseApiError(error), { cause: error })
+  }
+}
+
 export const deleteUserRequest = (id: string) => decide(id, 'remove')
 export const restoreUserRequest = (id: string) => decide(id, 'restore')

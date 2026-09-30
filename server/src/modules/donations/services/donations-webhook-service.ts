@@ -1,11 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Prisma } from '../../../infastructures/prisma/common/client';
+import {
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
+  type DonationPaymentStatus,
+  type Prisma,
+} from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type {
   EwalletCharge,
   Invoice,
   QrPayment,
 } from '../../../infastructures/xendit/xendit-service';
-import { DonationsRepository } from '../repositories/donations-repository';
+import {
+  DonationsRepository,
+  type DonationPaymentRow,
+} from '../repositories/donations-repository';
 
 /**
  * Translates each Xendit callback into a status change on the matching
@@ -23,7 +33,10 @@ import { DonationsRepository } from '../repositories/donations-repository';
 export class DonationsWebhookService {
   private readonly logger = new Logger(DonationsWebhookService.name);
 
-  constructor(private readonly donationsRepository: DonationsRepository) {}
+  constructor(
+    private readonly donationsRepository: DonationsRepository,
+    private readonly notificationScheduler: NotificationScheduler,
+  ) {}
 
   /** Returns what happened, for the log line and the 200 body. */
   async handle(
@@ -79,8 +92,8 @@ export class DonationsWebhookService {
           charge.capture_amount ?? charge.charge_amount,
         )
       ) {
-        await this.donationsRepository.settle(
-          charge.reference_id,
+        await this.settle(
+          row,
           {
             status: 'FAILED',
             failure_reason: 'Captured amount did not match the donation',
@@ -89,8 +102,8 @@ export class DonationsWebhookService {
         );
         return;
       }
-      await this.donationsRepository.settle(
-        charge.reference_id,
+      await this.settle(
+        row,
         {
           status: 'PAID',
           payment_reference: charge.id,
@@ -100,8 +113,8 @@ export class DonationsWebhookService {
         tx,
       );
     } else if (charge.status === 'FAILED' || charge.status === 'VOIDED') {
-      await this.donationsRepository.settle(
-        charge.reference_id,
+      await this.settle(
+        row,
         {
           status: 'FAILED',
           failure_reason: charge.failure_code ?? 'GCash payment failed',
@@ -121,8 +134,8 @@ export class DonationsWebhookService {
     if (!row) return;
     if (payment.status === 'SUCCEEDED') {
       if (!this.amountMatches(row.amount, payment.amount)) {
-        await this.donationsRepository.settle(
-          payment.reference_id,
+        await this.settle(
+          row,
           {
             status: 'FAILED',
             failure_reason: 'Scanned amount did not match the donation',
@@ -131,8 +144,8 @@ export class DonationsWebhookService {
         );
         return;
       }
-      await this.donationsRepository.settle(
-        payment.reference_id,
+      await this.settle(
+        row,
         {
           status: 'PAID',
           payment_reference: payment.id,
@@ -142,8 +155,8 @@ export class DonationsWebhookService {
         tx,
       );
     } else {
-      await this.donationsRepository.settle(
-        payment.reference_id,
+      await this.settle(
+        row,
         { status: 'FAILED', failure_reason: 'QR Ph payment failed' },
         tx,
       );
@@ -162,8 +175,8 @@ export class DonationsWebhookService {
       if (
         !this.amountMatches(row.amount, invoice.paid_amount ?? invoice.amount)
       ) {
-        await this.donationsRepository.settle(
-          invoice.external_id,
+        await this.settle(
+          row,
           {
             status: 'FAILED',
             failure_reason: 'Paid amount did not match the donation',
@@ -172,8 +185,8 @@ export class DonationsWebhookService {
         );
         return;
       }
-      await this.donationsRepository.settle(
-        invoice.external_id,
+      await this.settle(
+        row,
         {
           status: 'PAID',
           payment_reference: invoice.payment_id ?? invoice.id,
@@ -184,8 +197,8 @@ export class DonationsWebhookService {
         tx,
       );
     } else if (invoice.status === 'EXPIRED') {
-      await this.donationsRepository.settle(
-        invoice.external_id,
+      await this.settle(
+        row,
         {
           status: 'EXPIRED',
           failure_reason: 'The checkout expired before it was paid',
@@ -193,6 +206,61 @@ export class DonationsWebhookService {
         tx,
       );
     }
+  }
+
+  /**
+   * Every payment outcome goes through here — callbacks and the app's own
+   * reconcile poll alike — so the donor hears about it exactly once: the
+   * repository only moves a PENDING row, and a zero count means another path
+   * already settled it and notified.
+   */
+  async settle(
+    row: DonationPaymentRow,
+    data: Parameters<DonationsRepository['settle']>[1],
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const count = await this.donationsRepository.settle(
+      row.gateway_reference,
+      data,
+      tx,
+    );
+    if (count === 0) return;
+    await this.notifyDonor(row, data.status, data.failure_reason ?? null);
+  }
+
+  private async notifyDonor(
+    row: DonationPaymentRow,
+    status: Exclude<DonationPaymentStatus, 'PENDING'>,
+    reason: string | null,
+  ): Promise<void> {
+    const amount = `₱${row.amount.toLocaleString('en-PH')}`;
+    const notice =
+      status === 'PAID'
+        ? {
+            title: `Thank you — your ${amount} donation went through`,
+            description: `Your gift to ${row.campaign_title} was received. CARES will verify and confirm it shortly.`,
+            tone: NotificationTone.INFO,
+          }
+        : status === 'EXPIRED'
+          ? {
+              title: `Your ${amount} checkout expired`,
+              description: `The payment for ${row.campaign_title} was not completed in time. Nothing was charged — you can donate again from the campaign.`,
+              tone: NotificationTone.ATTENTION,
+            }
+          : {
+              title: `Your ${amount} donation did not go through`,
+              description: `${reason ?? 'The payment failed'}. Nothing was recorded for ${row.campaign_title} — you can try again from the campaign.`,
+              tone: NotificationTone.ATTENTION,
+            };
+
+    await this.notificationScheduler.publish({
+      ...notice,
+      category: NotificationCategory.DONATION,
+      href: `/donations/payments/${row.donation_payment_id}`,
+      userIds: [row.user_id],
+      audienceRole: RoleType.DONOR,
+      dedupeKey: `donation-payment:${row.donation_payment_id}:${status}`,
+    });
   }
 
   // ------------------------------------------------------------ internals

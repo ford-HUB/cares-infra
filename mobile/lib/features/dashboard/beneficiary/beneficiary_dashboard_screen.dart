@@ -8,6 +8,7 @@ import 'package:mobile/features/dashboard/beneficiary/tabs/beneficiary_activity_
 import 'package:mobile/features/dashboard/beneficiary/tabs/beneficiary_home_tab.dart';
 import 'package:mobile/features/dashboard/beneficiary/tabs/beneficiary_requests_tab.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/presentation/screens/events_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/mobile_profile_edit_screen.dart';
@@ -102,9 +103,10 @@ class _BeneficiaryDashboardScreenState
     }
   }
 
-  /// Pull-to-refresh: refetch the profile, then remount every tab.
+  /// Pull-to-refresh: refetch the profile and the feed, then remount every
+  /// tab.
   Future<void> _refreshAll() async {
-    await _loadProfile();
+    await Future.wait([_loadProfile(), NotificationSync.instance.refresh()]);
     if (!mounted) return;
     setState(() => _refreshVersion++);
   }

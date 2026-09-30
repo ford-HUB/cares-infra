@@ -151,7 +151,10 @@ class _EmailVerificationScreenState
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
-      final response = await service.sendVerificationCode(email: widget.email);
+      final response = await service.sendVerificationCode(
+        email: widget.email,
+        resend: true,
+      );
       if (!mounted) return;
 
       setState(() {

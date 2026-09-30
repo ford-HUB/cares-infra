@@ -1,10 +1,11 @@
-enum ActivityStatus { completed, registered, cancelled }
+enum ActivityStatus { completed, registered, cancelled, rejected }
 
 extension ActivityStatusX on ActivityStatus {
   String get label => switch (this) {
     ActivityStatus.completed => 'Completed',
     ActivityStatus.registered => 'Registered',
     ActivityStatus.cancelled => 'Cancelled',
+    ActivityStatus.rejected => 'Rejected',
   };
 }
 

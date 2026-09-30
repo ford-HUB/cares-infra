@@ -674,9 +674,11 @@ export class AuthMobileService {
       idNumber: data.id_number,
     });
 
-    const existingOtp = await this.redisService.get<string>(
-      this.otpKey(normalizedEmail),
-    );
+    // An explicit resend always mails a fresh code; otherwise a still-live code is
+    // reused so re-entering the OTP screen doesn't spam the inbox.
+    const existingOtp = data.resend
+      ? null
+      : await this.redisService.get<string>(this.otpKey(normalizedEmail));
     if (existingOtp) {
       const expiresInSeconds = await this.redisService.ttl(
         this.otpKey(normalizedEmail),
@@ -698,7 +700,7 @@ export class AuthMobileService {
       {
         code: otp,
         username: normalizedEmail,
-        expiresInMinutes: 30,
+        expiresInMinutes: DurationUtils.ONE_MINUTE / 60,
       },
     );
 
@@ -720,7 +722,7 @@ export class AuthMobileService {
     await this.redisService.set(
       this.otpKey(normalizedEmail),
       otp,
-      DurationUtils.THIRTY_MINUTES,
+      DurationUtils.ONE_MINUTE,
     );
 
     return {
@@ -728,7 +730,7 @@ export class AuthMobileService {
       sent: true,
       reused: false,
       verified: false,
-      expiresInSeconds: DurationUtils.THIRTY_MINUTES,
+      expiresInSeconds: DurationUtils.ONE_MINUTE,
     };
   }
 

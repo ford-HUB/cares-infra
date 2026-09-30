@@ -1,6 +1,7 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/help_center_data.dart';
 import 'package:mobile/features/dashboard/data/models/support_ticket_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// The requester's side of `v1/support-tickets` — everything under `me/`.
 class SupportTicketService {
@@ -30,7 +31,7 @@ class SupportTicketService {
     required String description,
     required SupportTicketType type,
   }) async {
-    return _ticket(
+    final ticket = _ticket(
       await _api.postJson(
         _base,
         body: {
@@ -40,6 +41,9 @@ class SupportTicketService {
         },
       ),
     );
+    // The server answers with a notice; pull it in without waiting a poll.
+    NotificationSync.instance.refreshSoon();
+    return ticket;
   }
 
   Future<SupportRequest> reply(String id, String body) async {

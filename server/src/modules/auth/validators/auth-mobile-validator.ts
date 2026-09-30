@@ -87,6 +87,8 @@ export const SendVerificationSchema = z
     // a taken phone number or ID number is caught on the form, not after OTP.
     phone_number: PhoneNumberSchema.optional(),
     id_number: z.string().trim().min(1).optional(),
+    // Set by the "Resend code" button to force a new code instead of reusing a live one.
+    resend: z.boolean().optional(),
   })
   .strict();
 

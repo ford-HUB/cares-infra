@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/data/models/donation_payment_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// `/donations/payments` — opens a Xendit checkout for a money donation and
 /// watches it settle. The server owns the gateway; the app only ever sees the
@@ -42,7 +43,12 @@ class DonationPaymentService {
 
   Future<DonationPayment> fetchPayment(String id) async {
     final response = await _api.getJson('/donations/payments/$id');
-    return DonationPayment.fromJson(response['data'] as Map<String, dynamic>);
+    final payment = DonationPayment.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+    // A settled payment means the server just wrote the donor's receipt.
+    if (payment.status.isTerminal) NotificationSync.instance.refreshSoon();
+    return payment;
   }
 
   /// RFC 4122 v4 UUID from the platform's secure RNG.
