@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { CLUSTER_DEFAULT_SEED, CLUSTER_K_DEFAULT } from '../constants/residential-needs'
 import { clusterHouseholds } from '../services/residential-needs-service'
-import type { Household, NeedsClusteringResult } from '../types/residential-needs'
+import type { NeedsClusteringResult } from '../types/residential-needs'
 
 interface NeedsClustersState {
   result: NeedsClusteringResult | null
@@ -13,9 +13,9 @@ interface NeedsClustersState {
   error: string | null
   /** Ticks per request so a reply that arrives after a newer request is dropped. */
   requestId: number
-  fetchClusters: (households: Household[]) => Promise<void>
-  setK: (households: Household[], k: number) => Promise<void>
-  reseed: (households: Household[]) => Promise<void>
+  fetchClusters: () => Promise<void>
+  setK: (k: number) => Promise<void>
+  reseed: () => Promise<void>
 }
 
 /**
@@ -30,11 +30,11 @@ export const useNeedsClustersStore = create<NeedsClustersState>((set, get) => ({
   error: null,
   requestId: 0,
 
-  fetchClusters: async (households) => {
+  fetchClusters: async () => {
     const { k, seed } = get()
     const requestId = get().requestId + 1
     set({ loading: true, error: null, requestId })
-    const res = await clusterHouseholds(households, k, seed)
+    const res = await clusterHouseholds(k, seed)
     if (get().requestId !== requestId) return
     if (res.success && res.data) {
       set({ result: res.data, loading: false })
@@ -43,13 +43,13 @@ export const useNeedsClustersStore = create<NeedsClustersState>((set, get) => ({
     }
   },
 
-  setK: async (households, k) => {
+  setK: async (k) => {
     set({ k })
-    await get().fetchClusters(households)
+    await get().fetchClusters()
   },
 
-  reseed: async (households) => {
+  reseed: async () => {
     set({ seed: get().seed + 1 })
-    await get().fetchClusters(households)
+    await get().fetchClusters()
   },
 }))

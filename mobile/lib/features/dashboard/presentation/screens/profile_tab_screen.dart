@@ -16,9 +16,9 @@ import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/data/user_request_service.dart';
+import 'package:mobile/features/dashboard/presentation/providers/beneficiary_request_counts_provider.dart';
 import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 import 'package:mobile/features/dashboard/data/activity_log_service.dart';
-import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
@@ -254,8 +254,6 @@ class _ProfileTabBody extends StatelessWidget {
       points: points,
     );
 
-    final requestStore = AssistanceRequestStore.instance;
-
     final profile = _ResolvedProfile.from(
       displayName: displayName,
 
@@ -369,34 +367,37 @@ class _ProfileTabBody extends StatelessWidget {
                       },
                     )
                   else if (isBeneficiary)
-                    StatsRow.custom(
-                      items: [
-                        StatsRowItem(
-                          icon: Icons.hourglass_top_outlined,
-
-                          value: '${requestStore.currentRequests.length}',
-
-                          label: 'Pending',
-                          iconBackground: const Color(0xFFFFE0B2),
-                          iconColor: AppColors.accentOrange,
-                        ),
-
-                        StatsRowItem(
-                          icon: Icons.verified_outlined,
-
-                          value: '${requestStore.approvedRequests.length}',
-
-                          label: 'Approved',
-                        ),
-
-                        StatsRowItem(
-                          icon: Icons.task_alt_outlined,
-
-                          value: '${requestStore.completedRequests.length}',
-
-                          label: 'Completed',
-                        ),
-                      ],
+                    Consumer(
+                      builder: (context, ref, _) {
+                        // Dash while the counts load or when the fetch failed.
+                        final counts = ref
+                            .watch(beneficiaryRequestCountsProvider)
+                            .valueOrNull;
+                        String count(
+                          int Function(BeneficiaryRequestCounts c) pick,
+                        ) => counts == null ? '–' : '${pick(counts)}';
+                        return StatsRow.custom(
+                          items: [
+                            StatsRowItem(
+                              icon: Icons.hourglass_top_outlined,
+                              value: count((c) => c.pending),
+                              label: 'Pending',
+                              iconBackground: const Color(0xFFFFE0B2),
+                              iconColor: AppColors.accentOrange,
+                            ),
+                            StatsRowItem(
+                              icon: Icons.verified_outlined,
+                              value: count((c) => c.approved),
+                              label: 'Approved',
+                            ),
+                            StatsRowItem(
+                              icon: Icons.task_alt_outlined,
+                              value: count((c) => c.completed),
+                              label: 'Completed',
+                            ),
+                          ],
+                        );
+                      },
                     )
                   else
                     StatsRow(

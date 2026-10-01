@@ -2,7 +2,7 @@
 /// `v1/user-requests/me` returns it.
 enum UserRequestKind { roleAccess, eventJoin, unknown }
 
-enum UserRequestStatus { pending, accepted, deleted, unknown }
+enum UserRequestStatus { pending, accepted, deleted, rejected, unknown }
 
 class UserRequestResponse {
   const UserRequestResponse({
@@ -15,6 +15,7 @@ class UserRequestResponse {
     this.requestedRole,
     this.eventId,
     this.decidedAt,
+    this.rejectionReason,
   });
 
   factory UserRequestResponse.fromJson(Map<String, dynamic> json) {
@@ -30,12 +31,14 @@ class UserRequestResponse {
         'PENDING' => UserRequestStatus.pending,
         'ACCEPTED' => UserRequestStatus.accepted,
         'DELETED' => UserRequestStatus.deleted,
+        'REJECTED' => UserRequestStatus.rejected,
         _ => UserRequestStatus.unknown,
       },
       summary: json['summary'] as String? ?? '',
       requestedRole: json['requested_role'] as String?,
       eventId: json['event_id'] as int?,
       decidedAt: DateTime.tryParse(json['decided_at'] as String? ?? ''),
+      rejectionReason: json['rejection_reason'] as String?,
       createdAt:
           DateTime.tryParse(json['created_at'] as String? ?? '') ??
           DateTime.now(),
@@ -52,5 +55,8 @@ class UserRequestResponse {
   final String? requestedRole;
   final int? eventId;
   final DateTime? decidedAt;
+
+  /// The director's reason, set only on a [UserRequestStatus.rejected] row.
+  final String? rejectionReason;
   final DateTime createdAt;
 }

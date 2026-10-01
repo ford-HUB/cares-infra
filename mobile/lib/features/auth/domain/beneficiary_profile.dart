@@ -1,3 +1,5 @@
+import 'package:mobile/features/auth/domain/ph_address.dart';
+
 /// Whether a beneficiary is signing up for themselves or on behalf of a group.
 enum BeneficiaryKind { individual, organization }
 
@@ -19,6 +21,7 @@ class BeneficiaryProfile {
     this.organizationType,
     this.organizationRole = '',
     this.organizationAddress = '',
+    this.address = PhAddress.empty,
   });
 
   final BeneficiaryKind? kind;
@@ -26,6 +29,10 @@ class BeneficiaryProfile {
   final String? organizationType;
   final String organizationRole;
   final String organizationAddress;
+
+  /// The beneficiary's own home address. Registration sends it as
+  /// [PhAddress.formatted] in `current_address`.
+  final PhAddress address;
 
   static const organizationTypes = [
     'Non-profit / NGO',
@@ -55,6 +62,7 @@ class BeneficiaryProfile {
     String? organizationType,
     String? organizationRole,
     String? organizationAddress,
+    PhAddress? address,
   }) {
     return BeneficiaryProfile(
       kind: kind ?? this.kind,
@@ -62,11 +70,12 @@ class BeneficiaryProfile {
       organizationType: organizationType ?? this.organizationType,
       organizationRole: organizationRole ?? this.organizationRole,
       organizationAddress: organizationAddress ?? this.organizationAddress,
+      address: address ?? this.address,
     );
   }
 
   /// Clears the organization answers when the beneficiary switches back to
-  /// registering as an individual.
+  /// registering as an individual. The home address is kept.
   BeneficiaryProfile asIndividual() =>
-      const BeneficiaryProfile(kind: BeneficiaryKind.individual);
+      BeneficiaryProfile(kind: BeneficiaryKind.individual, address: address);
 }

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   NotificationCategory,
   NotificationTone,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
 
 /**
@@ -30,6 +31,8 @@ export const NotificationSchema = z.object({
   category: z.enum(NotificationCategory),
   tone: z.enum(NotificationTone),
   href: z.string().nullable(),
+  /** The side of a mobile account the row belongs to; null is account-wide. */
+  audience_role: z.enum(RoleType).nullable(),
   read: z.boolean(),
   created_at: z.iso.datetime(),
 });

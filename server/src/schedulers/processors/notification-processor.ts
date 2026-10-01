@@ -90,6 +90,7 @@ export class NotificationProcessor extends CatalogedProcessor {
         tone: input.tone ?? NotificationTone.INFO,
         href: input.href ?? null,
         dedupeKey: input.dedupeKey ?? null,
+        audienceRole: input.audienceRole ?? null,
       })),
     );
 
@@ -148,7 +149,27 @@ export class NotificationProcessor extends CatalogedProcessor {
           tone: NotificationTone.ATTENTION,
           href: `/events/${event.event_id}`,
           userIds: volunteers,
+          audienceRole: RoleType.VOLUNTEER,
           dedupeKey: `event-start-volunteer:${event.event_id}`,
+        });
+      }
+
+      // Accepted beneficiaries are expected too — they receive rather than
+      // serve, so their reminder is about getting there, not the geofence.
+      const beneficiaries =
+        await this.schedulerRepository.findAcceptedBeneficiaryIds(
+          event.event_id,
+        );
+      if (beneficiaries.length > 0) {
+        written += await this.publish({
+          title: `${event.title} starts ${startsIn}`,
+          description: `Your place is confirmed for ${formatTimeOfDay(event.event_started)}. Bring a valid ID so the team can check you in.`,
+          category: NotificationCategory.EVENT,
+          tone: NotificationTone.ATTENTION,
+          href: `/events/${event.event_id}`,
+          userIds: beneficiaries,
+          audienceRole: RoleType.BENEFICIARY,
+          dedupeKey: `event-start-beneficiary:${event.event_id}`,
         });
       }
     }

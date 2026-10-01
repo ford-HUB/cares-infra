@@ -28,6 +28,7 @@ class CaresEvent {
     this.organizerDescription,
     this.attendanceStatus,
     this.applicationStatus,
+    this.applicationRejectionReason,
   });
 
   final String id;
@@ -93,12 +94,20 @@ class CaresEvent {
   bool get canGiveFeedback => !isMarkedAbsent && !isAttendancePending;
 
   /// A beneficiary's own application for this event, as the server sends it:
-  /// `PENDING` while a director has yet to rule, `ACCEPTED` once they have.
-  /// Null for volunteers and events not applied for.
+  /// `PENDING` while a director has yet to rule, `ACCEPTED` once they have,
+  /// `REJECTED` when they turned it down. Null for volunteers and events not
+  /// applied for.
   final String? applicationStatus;
+
+  /// The director's reason when [applicationStatus] is `REJECTED`.
+  final String? applicationRejectionReason;
 
   bool get isApplicationPending => applicationStatus == 'PENDING';
   bool get isApplicationAccepted => applicationStatus == 'ACCEPTED';
+
+  /// Rejected applications can be filed again — a new application replaces
+  /// this status with `PENDING`.
+  bool get isApplicationRejected => applicationStatus == 'REJECTED';
 
   String get monthLabel {
     const months = [
@@ -196,10 +205,12 @@ class CaresEvent {
       organizerDescription: organizerDescription,
       attendanceStatus: attendanceStatus,
       applicationStatus: applicationStatus,
+      applicationRejectionReason: applicationRejectionReason,
     );
   }
 
-  /// The same event with the beneficiary's application moved along.
+  /// The same event with the beneficiary's application moved along. Any
+  /// earlier rejection reason is dropped — it belonged to the old filing.
   CaresEvent withApplicationStatus(String? status) {
     return CaresEvent(
       id: id,

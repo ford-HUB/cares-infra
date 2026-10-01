@@ -41,6 +41,14 @@ class AppColors {
   static const Color textSecondary = Color(0xFF6E9E58);
   static const Color textMuted = Color(0xFF95B888);
 
+  // "Dark green → black" immersive surface (see mobile-flutter skill).
+  static const Color darkGreenTop = Color(0xFF0F2A1A);
+  static const Color darkGreenMid = Color(0xFF0B1F14);
+  static const Color darkGreenBottom = Color(0xFF050A07);
+  static const Color darkGreenField = Color(0xFF1A2F22);
+  static const Color onDarkGreen = Color(0xFFFFFFFF);
+  static const Color onDarkGreenMuted = Color(0xFFB7C9BC);
+
   static const double cardRadius = 18;
   static const double pillRadius = 999;
 

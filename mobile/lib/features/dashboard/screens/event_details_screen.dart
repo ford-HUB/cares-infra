@@ -14,6 +14,7 @@ import '../data/event_location_tracker.dart';
 import '../data/event_registration_service.dart';
 import '../data/event_registration_store.dart';
 import '../domain/cares_event.dart';
+import '../presentation/providers/beneficiary_request_counts_provider.dart';
 import '../presentation/providers/recommended_events_provider.dart';
 import '../widgets/event_details_widgets.dart';
 import '../widgets/event_reminder_sheet.dart';
@@ -380,9 +381,23 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               ] else if (isRegistered) ...[
                                 const SizedBox(width: 10),
                                 const EventStatusPill(label: 'REGISTERED'),
+                              ] else if (widget.readOnly &&
+                                  event.isApplicationRejected) ...[
+                                const SizedBox(width: 10),
+                                const EventStatusPill(
+                                  label: 'REJECTED',
+                                  color: AppColors.heart,
+                                ),
                               ],
                             ],
                           ),
+                          if (widget.readOnly &&
+                              event.isApplicationRejected) ...[
+                            const SizedBox(height: 14),
+                            ApplicationRejectedBanner(
+                              reason: event.applicationRejectionReason,
+                            ),
+                          ],
                           const SizedBox(height: 14),
                           EventInfoCard(event: event),
                           const SizedBox(height: 14),
@@ -575,7 +590,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   /// The beneficiary's action, by where their application stands: apply,
-  /// wait for the director, or see that it was approved.
+  /// wait for the director, see that it was approved, or apply again after
+  /// a rejection.
   Widget _buildBeneficiaryBar(CaresEvent event, bool isCompleted) {
     if (isCompleted) {
       return FilledButton.icon(
@@ -601,6 +617,14 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         style: _pillStyle,
       );
     }
+    if (event.isApplicationRejected) {
+      return FilledButton.icon(
+        onPressed: _applyAsBeneficiary,
+        icon: const Icon(Icons.refresh_rounded),
+        label: const Text('Apply Again'),
+        style: _pillStyle,
+      );
+    }
     return FilledButton.icon(
       onPressed: _applyAsBeneficiary,
       icon: const Icon(Icons.volunteer_activism_outlined),
@@ -619,6 +643,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     // The lists behind this screen carry the same status flag.
     final container = ProviderScope.containerOf(context, listen: false);
     container.invalidate(beneficiaryEventsProvider);
+    container.invalidate(beneficiaryRequestCountsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(

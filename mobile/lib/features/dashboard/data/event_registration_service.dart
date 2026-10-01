@@ -1,4 +1,5 @@
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// The event's slot numbers as the server holds them right after a join or a
 /// cancellation — what the details screen and the cards redraw from.
@@ -42,6 +43,8 @@ class EventRegistrationService {
       '/events/$eventId/register',
       body: const {},
     );
+    // The server answers with a notice; pull it in without waiting a poll.
+    NotificationSync.instance.refreshSoon();
     return EventRegistrationResult.fromJson(
       response['data'] as Map<String, dynamic>,
     );
@@ -49,6 +52,7 @@ class EventRegistrationService {
 
   Future<EventRegistrationResult> cancel(int eventId) async {
     final response = await _api.deleteJson('/events/$eventId/register');
+    NotificationSync.instance.refreshSoon();
     return EventRegistrationResult.fromJson(
       response['data'] as Map<String, dynamic>,
     );

@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import { CalendarDays, Check, ImageIcon, Loader2, MapPin, ScanFace, Trash2 } from 'lucide-react'
+import {
+  CalendarDays,
+  Check,
+  ImageIcon,
+  Loader2,
+  MapPin,
+  MessageSquareWarning,
+  ScanFace,
+  Trash2,
+  XCircle,
+} from 'lucide-react'
 import {
   REQUEST_KIND_STYLES,
   formatEventDate,
@@ -17,6 +27,8 @@ interface RequestTimelineItemProps {
   /** Any decision in flight — keeps a second click from racing the first. */
   disabled: boolean
   onAccept: (request: UserRequest) => void
+  /** Opens the reason prompt; only event applications can be rejected. */
+  onReject: (request: UserRequest) => void
   onDelete: (request: UserRequest) => void
 }
 
@@ -25,9 +37,11 @@ export function RequestTimelineItem({
   busy,
   disabled,
   onAccept,
+  onReject,
   onDelete,
 }: RequestTimelineItemProps) {
   const pending = request.status === 'pending'
+  const rejectable = pending && request.kind === 'event_join'
   const [preview, setPreview] = useState<UserRequestAttachment | null>(null)
 
   return (
@@ -107,6 +121,16 @@ export function RequestTimelineItem({
           </ul>
         )}
 
+        {request.status === 'rejected' && request.rejectionReason && (
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2">
+            <MessageSquareWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
+            <div className="text-xs">
+              <p className="font-medium text-red-800">Reason for rejection</p>
+              <p className="mt-0.5 whitespace-pre-line text-red-700">{request.rejectionReason}</p>
+            </div>
+          </div>
+        )}
+
         {/* The trail is what makes the row readable after a decision — it says who
             acted and when, which the status pill alone can't. */}
         <ol className="mt-3 space-y-1 border-t border-gray-100 pt-3">
@@ -130,6 +154,17 @@ export function RequestTimelineItem({
               <Trash2 className="h-3.5 w-3.5" />
               Delete
             </button>
+            {rejectable && (
+              <button
+                type="button"
+                onClick={() => onReject(request)}
+                disabled={disabled}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                Reject
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onAccept(request)}

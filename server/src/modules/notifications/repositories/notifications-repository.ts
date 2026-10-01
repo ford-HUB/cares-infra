@@ -18,20 +18,37 @@ export interface CreateNotificationRowInput {
   tone: NotificationTone;
   href: string | null;
   dedupeKey: string | null;
+  audienceRole: RoleType | null;
 }
 
-/** Live rows only — a dismissed notification is gone from every list and count. */
-function visibleTo(userId: string): Prisma.NotificationWhereInput {
-  return { user_id: userId, dismissed_at: null };
+/**
+ * Live rows only — a dismissed notification is gone from every list and count.
+ * With `audience`, only that side's rows and the account-wide ones (no role).
+ */
+function visibleTo(
+  userId: string,
+  audience?: RoleType,
+): Prisma.NotificationWhereInput {
+  return {
+    user_id: userId,
+    dismissed_at: null,
+    ...(audience
+      ? { OR: [{ audience_role: null }, { audience_role: audience }] }
+      : {}),
+  };
 }
 
 @Injectable()
 export class NotificationsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listForUser(userId: string, limit: number): Promise<NotificationRow[]> {
+  async listForUser(
+    userId: string,
+    limit: number,
+    audience?: RoleType,
+  ): Promise<NotificationRow[]> {
     return this.prisma.notification.findMany({
-      where: visibleTo(userId),
+      where: visibleTo(userId, audience),
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
@@ -39,11 +56,12 @@ export class NotificationsRepository {
 
   async countForUser(
     userId: string,
+    audience?: RoleType,
   ): Promise<{ total: number; unread: number }> {
     const [total, unread] = await Promise.all([
-      this.prisma.notification.count({ where: visibleTo(userId) }),
+      this.prisma.notification.count({ where: visibleTo(userId, audience) }),
       this.prisma.notification.count({
-        where: { ...visibleTo(userId), read_at: null },
+        where: { ...visibleTo(userId, audience), read_at: null },
       }),
     ]);
     return { total, unread };
@@ -69,9 +87,9 @@ export class NotificationsRepository {
     });
   }
 
-  async markAllRead(userId: string): Promise<number> {
+  async markAllRead(userId: string, audience?: RoleType): Promise<number> {
     const result = await this.prisma.notification.updateMany({
-      where: { ...visibleTo(userId), read_at: null },
+      where: { ...visibleTo(userId, audience), read_at: null },
       data: { read_at: new Date() },
     });
     return result.count;
@@ -128,6 +146,7 @@ export class NotificationsRepository {
         tone: row.tone,
         href: row.href,
         dedupe_key: row.dedupeKey,
+        audience_role: row.audienceRole,
       })),
       skipDuplicates: true,
     });

@@ -1,5 +1,5 @@
 import { Controller, Get, Post, StreamableFile } from '@nestjs/common';
-import { ZParam, ZQuery, ZSerialize } from 'nest-zod';
+import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { z } from 'zod';
 import { PermissionKey } from 'src/infastructures/prisma/common/client';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
@@ -10,6 +10,7 @@ import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   ListUserRequestsQueryDto,
+  RejectUserRequestDto,
   UserRequestAttachmentKind,
   UserRequestDto,
   UserRequestListDto,
@@ -17,6 +18,7 @@ import type {
 import { UserRequestsSiteService } from '../services/user-requests-site-service';
 import {
   ListUserRequestsQuerySchema,
+  RejectUserRequestSchema,
   UserRequestAttachmentKindSchema,
   UserRequestListResponseSchema,
   UserRequestResponseSchema,
@@ -63,6 +65,17 @@ export class UserRequestsSiteController {
     @CurrentUser() user: JwtPayload,
   ): Promise<UserRequestDto> {
     return this.userRequestsSiteService.accept(id, user.sub);
+  }
+
+  @Post(':id/reject')
+  @ResponseMessage('Request rejected')
+  @ZSerialize(UserRequestResponseSchema)
+  async reject(
+    @ZParam('id', RequestIdParamSchema) id: string,
+    @ZBody(RejectUserRequestSchema) body: RejectUserRequestDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<UserRequestDto> {
+    return this.userRequestsSiteService.reject(id, user.sub, body);
   }
 
   @Post(':id/remove')

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AttendanceStatus,
+  DonationStatus,
   EventStatus,
   NotificationTone,
   ReportDepartment,
@@ -46,6 +47,55 @@ export class SchedulerRepository {
       select: { user_id: true },
     });
     return rows.map((row) => row.user_id);
+  }
+
+  /**
+   * Everyone on the app side with a stake in one event: volunteers registered
+   * for it, beneficiaries whose application was accepted, and donors with a
+   * donation still in play. Ruled-on attendance is kept — a volunteer who was
+   * marked present still wants to hear the event was changed afterwards.
+   */
+  async findEventParticipantIds(eventId: number): Promise<{
+    volunteers: string[];
+    beneficiaries: string[];
+    donors: string[];
+  }> {
+    const [attendance, requests, donations] = await Promise.all([
+      this.prisma.eventAttendance.findMany({
+        where: { event_id: eventId },
+        select: { user_id: true },
+      }),
+      this.prisma.userRequest.findMany({
+        where: { event_id: eventId, kind: 'EVENT_JOIN', status: 'ACCEPTED' },
+        select: { user_id: true },
+      }),
+      this.prisma.donation.findMany({
+        where: {
+          event_id: eventId,
+          status: {
+            notIn: [DonationStatus.CANCELLED, DonationStatus.DECLINED],
+          },
+        },
+        select: { user_id: true },
+      }),
+    ]);
+    const ids = (rows: { user_id: string }[]) => [
+      ...new Set(rows.map((row) => row.user_id)),
+    ];
+    return {
+      volunteers: ids(attendance),
+      beneficiaries: ids(requests),
+      donors: ids(donations),
+    };
+  }
+
+  /** Beneficiaries whose application to the event was accepted. */
+  async findAcceptedBeneficiaryIds(eventId: number): Promise<string[]> {
+    const rows = await this.prisma.userRequest.findMany({
+      where: { event_id: eventId, kind: 'EVENT_JOIN', status: 'ACCEPTED' },
+      select: { user_id: true },
+    });
+    return [...new Set(rows.map((row) => row.user_id))];
   }
 
   async findCoordinatorIdsForDepartment(

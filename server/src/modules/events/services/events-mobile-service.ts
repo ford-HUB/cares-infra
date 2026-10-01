@@ -10,8 +10,12 @@ import { createHash } from 'node:crypto';
 import {
   EventStatus,
   InterestCode,
+  NotificationCategory,
+  NotificationTone,
   Prisma,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import {
   NlpEventMatch,
   NlpInterestScore,
@@ -48,6 +52,7 @@ export class EventsMobileService {
     private readonly nlpServiceClient: NlpServiceClient,
     private readonly redisService: RedisService,
     private readonly donationsRepository: DonationsRepository,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   /**
@@ -151,20 +156,28 @@ export class EventsMobileService {
         userId,
         events.map((event) => event.event_id),
       );
-    const status = new Map<number, 'PENDING' | 'ACCEPTED'>();
+    // Newest first, so the first row seen per event is the latest filing — a
+    // re-application after a rejection shows as PENDING, not REJECTED.
+    const latest = new Map<number, (typeof applications)[number]>();
     for (const application of applications) {
-      if (application.event_id === null || status.has(application.event_id)) {
+      if (application.event_id === null || latest.has(application.event_id)) {
         continue;
       }
-      status.set(
-        application.event_id,
-        application.status === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING',
-      );
+      latest.set(application.event_id, application);
     }
-    return events.map((event) => ({
-      ...this.mapToDto(event, []),
-      application_status: status.get(event.event_id) ?? null,
-    }));
+    return events.map((event) => {
+      const application = latest.get(event.event_id);
+      return {
+        ...this.mapToDto(event, []),
+        application_status: application
+          ? (application.status as 'PENDING' | 'ACCEPTED' | 'REJECTED')
+          : null,
+        application_rejection_reason:
+          application?.status === 'REJECTED'
+            ? application.rejection_reason
+            : null,
+      };
+    });
   }
 
   /**
@@ -186,13 +199,25 @@ export class EventsMobileService {
     userId: string,
     eventId: number,
   ): Promise<EventRegistrationResponseDto> {
-    await this.assertOpen(eventId);
+    const event = await this.assertOpen(eventId);
 
     const counts = await this.withSerializationRetry(() =>
       this.eventsRepository.register(eventId, userId),
     );
     if (!counts) {
       throw new ConflictException('This event has no slots left');
+    }
+    if (counts.created) {
+      await this.notificationScheduler.publish({
+        title: `You're registered for ${event.title}`,
+        description: `See you ${formatEventStart(event.event_started)} at ${event.location}. We'll remind you before it starts — attendance is tracked by geofence once you arrive.`,
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.INFO,
+        href: `/events/${eventId}`,
+        userIds: [userId],
+        audienceRole: RoleType.VOLUNTEER,
+        dedupeKey: `event-registered:${eventId}:${Date.now()}`,
+      });
     }
     return this.toRegistrationDto(eventId, counts, true);
   }
@@ -218,11 +243,24 @@ export class EventsMobileService {
     const counts = await this.withSerializationRetry(() =>
       this.eventsRepository.unregister(eventId, userId),
     );
+    if (counts.removed) {
+      await this.notificationScheduler.publish({
+        title: `Registration cancelled for ${event.title}`,
+        description:
+          'Your slot was released. You can register again while the event is still open.',
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.INFO,
+        href: `/events/${eventId}`,
+        userIds: [userId],
+        audienceRole: RoleType.VOLUNTEER,
+        dedupeKey: `event-unregistered:${eventId}:${Date.now()}`,
+      });
+    }
     return this.toRegistrationDto(eventId, counts, false);
   }
 
   /** Registration only makes sense while the event is still ahead and accepting. */
-  private async assertOpen(eventId: number): Promise<void> {
+  private async assertOpen(eventId: number) {
     const event = await this.eventsRepository.findById(eventId);
     if (!event) throw new NotFoundException('Event not found');
     const open =
@@ -234,6 +272,7 @@ export class EventsMobileService {
         'This event is no longer accepting registrations',
       );
     }
+    return event;
   }
 
   /**
@@ -419,6 +458,7 @@ export class EventsMobileService {
       funds_raised: donations.fundsRaised,
       donations_count: donations.donations,
       application_status: null,
+      application_rejection_reason: null,
       marker_lat: event.marker_lat ?? null,
       marker_lng: event.marker_lng ?? null,
       image_count: event.images.length,
@@ -427,4 +467,15 @@ export class EventsMobileService {
         matched.length === 0 ? 0 : Math.max(...matched.map((m) => m.score)),
     };
   }
+}
+
+function formatEventStart(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: process.env.TZ || 'Asia/Manila',
+  }).format(date);
 }

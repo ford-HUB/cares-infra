@@ -9,6 +9,7 @@ import {
   AttendanceStatus,
   NotificationCategory,
   NotificationTone,
+  RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
@@ -193,6 +194,7 @@ export class EventAttendanceValidationService {
               tone: NotificationTone.INFO,
               href: `/events/${event.event_id}/feedback`,
               userIds: [userId],
+              audienceRole: RoleType.VOLUNTEER,
               dedupeKey: `attendance-ruled:${event.event_id}`,
             }
           : {
@@ -206,6 +208,7 @@ export class EventAttendanceValidationService {
               tone: NotificationTone.ATTENTION,
               href: `/events/${event.event_id}`,
               userIds: [userId],
+              audienceRole: RoleType.VOLUNTEER,
               dedupeKey: `attendance-ruled:${event.event_id}`,
             },
       );

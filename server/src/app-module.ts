@@ -34,6 +34,7 @@ import { AuditLogsModule } from './modules/audit-logs/modules/audit-logs-module'
 import { SecurityPolicyModule } from './modules/security-policy/modules/security-policy-module';
 import { SupportTicketsModule } from './modules/support-tickets/modules/support-tickets-module';
 import { UserRequestsModule } from './modules/user-requests/modules/user-requests-module';
+import { AssistanceRequestsModule } from './modules/assistance-requests/modules/assistance-requests-module';
 import { MonthlyReportsModule } from './modules/monthly-reports/modules/monthly-reports-module';
 import { MailboxModule } from './modules/mailbox/modules/mailbox-module';
 import { ChatModule } from './modules/chat/modules/chat-module';
@@ -87,6 +88,7 @@ import { SessionGuard } from './shared/guards/session-guard';
     SecurityPolicyModule,
     SupportTicketsModule,
     UserRequestsModule,
+    AssistanceRequestsModule,
     MonthlyReportsModule,
     MailboxModule,
     ChatModule,

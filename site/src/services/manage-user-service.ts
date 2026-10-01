@@ -280,7 +280,8 @@ function mapApiUserDetail(data: ManagedUserDetailApiResponse): ManagedUserDetail
           department: data.school_info.department,
           major: data.school_info.major,
           yearLevel: data.school_info.year_level,
-          graduationDate: data.school_info.graduation_date,
+          // Only the year is collected at registration; month/day are placeholders.
+          graduationYear: data.school_info.graduation_date.slice(0, 4),
         }
       : undefined,
     verifications: data.verifications.map((verification) => ({

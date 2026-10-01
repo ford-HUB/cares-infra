@@ -3,6 +3,7 @@ import {
   acceptUserRequest,
   deleteUserRequest,
   fetchUserRequests,
+  rejectUserRequest,
   restoreUserRequest,
 } from '../services/user-request-service'
 import type { UserRequest } from '../types/user-request'
@@ -15,6 +16,7 @@ interface UserRequestState {
   error: string | null
   fetchRequests: () => Promise<void>
   accept: (id: string) => Promise<void>
+  reject: (id: string, reason: string) => Promise<void>
   remove: (id: string) => Promise<void>
   restore: (id: string) => Promise<void>
 }
@@ -48,6 +50,7 @@ export const useUserRequestStore = create<UserRequestState>((set) => {
     },
 
     accept: async (id) => swap(await acceptUserRequest(id)),
+    reject: async (id, reason) => swap(await rejectUserRequest(id, reason)),
     remove: async (id) => swap(await deleteUserRequest(id)),
     restore: async (id) => swap(await restoreUserRequest(id)),
   }

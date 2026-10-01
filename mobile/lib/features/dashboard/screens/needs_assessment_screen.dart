@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/assistance_request_data.dart';
 
 /// How the Needs Assessment Survey screen is opened from the card.
 enum NeedsAssessmentMode { take, view, update }
 
-/// Static Needs Assessment Survey screen for the prototype.
+/// Needs Assessment Survey screen.
 ///
 /// * [NeedsAssessmentMode.view] renders the submitted answers read-only.
 /// * [NeedsAssessmentMode.take] / [NeedsAssessmentMode.update] walk through
-///   the five survey steps; submitting only shows a confirmation — nothing is
-///   persisted and no backend is called.
+///   the five survey steps; submitting saves the answers to the server
+///   through [NeedsAssessmentStore].
 class NeedsAssessmentScreen extends StatelessWidget {
   const NeedsAssessmentScreen({
     super.key,
@@ -72,6 +73,7 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   ];
 
   int _step = 0;
+  bool _isSubmitting = false;
 
   late final Set<String> _householdNeeds;
   late final TextEditingController _otherHouseholdNeed;
@@ -133,7 +135,7 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   };
 
   void _next() {
-    if (!_canContinue) return;
+    if (!_canContinue || _isSubmitting) return;
     if (_isLastStep) {
       _submit();
       return;
@@ -142,6 +144,7 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   }
 
   void _back() {
+    if (_isSubmitting) return;
     if (_step == 0) {
       Navigator.of(context).pop();
       return;
@@ -150,7 +153,6 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   }
 
   Future<void> _submit() async {
-    // Prototype only — the response is not stored anywhere.
     final response = NeedsAssessmentResponse(
       householdNeeds: _householdNeeds.toList(),
       otherHouseholdNeed: _otherHouseholdNeed.text,
@@ -161,6 +163,25 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
       otherCommunityProblem: _otherCommunityProblem.text,
       additionalConcern: _additionalConcern.text,
     );
+    setState(() => _isSubmitting = true);
+    try {
+      await NeedsAssessmentStore.instance.submit(response);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e is ApiException
+                ? e.message
+                : 'Could not save your assessment. Please try again.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
 
     await showAssessmentSubmittedDialog(
       context,
@@ -174,7 +195,7 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: _step == 0,
+      canPop: _step == 0 && !_isSubmitting,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _back();
       },
@@ -216,7 +237,7 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
                 child: SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: _canContinue ? _next : null,
+                    onPressed: _canContinue && !_isSubmitting ? _next : null,
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primaryDark,
                       foregroundColor: Colors.white,
@@ -228,7 +249,9 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
                       ),
                     ),
                     child: Text(
-                      _isLastStep
+                      _isSubmitting
+                          ? 'Submitting...'
+                          : _isLastStep
                           ? (widget.isUpdate
                                 ? 'Submit Updated Assessment'
                                 : 'Submit Assessment')

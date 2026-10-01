@@ -58,6 +58,7 @@ export function toSiteDto(row: UserRequestRow): UserRequestDto {
       ? `${row.decided_by.firstname} ${row.decided_by.lastname}`.trim()
       : null,
     decided_at: row.decided_at?.toISOString() ?? null,
+    rejection_reason: row.rejection_reason,
     trail: row.trail.map((entry) => ({
       user_request_trail_entry_id: entry.user_request_trail_entry_id,
       label: entry.label,
@@ -79,6 +80,7 @@ export function toMobileDto(row: UserRequestRow): MobileUserRequestDto {
     event_id: row.event_id,
     summary: row.summary,
     decided_at: row.decided_at?.toISOString() ?? null,
+    rejection_reason: row.rejection_reason,
     created_at: row.createdAt.toISOString(),
   };
 }

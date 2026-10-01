@@ -7,11 +7,13 @@ import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import type {
   ListMobileNotificationsQueryDto,
+  MarkAllMobileNotificationsReadQueryDto,
   MobileNotificationFeedDto,
 } from '../dto/notifications-mobile-dto';
 import { NotificationsMobileService } from '../services/notifications-mobile-service';
 import {
   ListMobileNotificationsQuerySchema,
+  MarkAllMobileNotificationsReadQuerySchema,
   MobileNotificationFeedSchema,
   NotificationIdParamSchema,
 } from '../validators/notifications-mobile-validator';
@@ -44,8 +46,10 @@ export class NotificationsMobileController {
   @ZSerialize(MobileNotificationFeedSchema)
   async markAllRead(
     @CurrentUser() caller: JwtPayload,
+    @ZQuery(MarkAllMobileNotificationsReadQuerySchema)
+    query: MarkAllMobileNotificationsReadQueryDto,
   ): Promise<MobileNotificationFeedDto> {
-    return this.notificationsMobileService.markAllRead(caller);
+    return this.notificationsMobileService.markAllRead(caller, query);
   }
 
   @Patch(':id/read')

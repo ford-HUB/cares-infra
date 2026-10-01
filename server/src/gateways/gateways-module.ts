@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ChatGateway } from './chat-gateway';
 import { NotificationGateway } from './notification-gateway';
+import { ResidentialNeedsGateway } from './residential-needs-gateway';
 
 /**
  * Every socket.io namespace the server exposes. Global so a feature service or a
@@ -9,7 +10,7 @@ import { NotificationGateway } from './notification-gateway';
  */
 @Global()
 @Module({
-  providers: [ChatGateway, NotificationGateway],
-  exports: [ChatGateway, NotificationGateway],
+  providers: [ChatGateway, NotificationGateway, ResidentialNeedsGateway],
+  exports: [ChatGateway, NotificationGateway, ResidentialNeedsGateway],
 })
 export class GatewaysModule {}

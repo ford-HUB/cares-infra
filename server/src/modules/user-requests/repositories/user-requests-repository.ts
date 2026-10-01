@@ -35,6 +35,8 @@ export interface DecideUserRequestInput {
   status: UserRequestStatus;
   /** Null clears the decision — what a restore back to PENDING does. */
   decidedByUserId: string | null;
+  /** Only a REJECTED decision carries one; every other decision leaves it null. */
+  rejectionReason?: string | null;
   trail: { label: string; actorName: string };
 }
 
@@ -175,6 +177,7 @@ export class UserRequestsRepository {
         status: input.status,
         decided_by_user_id: input.decidedByUserId,
         decided_at: input.decidedByUserId ? new Date() : null,
+        rejection_reason: input.rejectionReason ?? null,
         trail: {
           create: {
             label: input.trail.label,

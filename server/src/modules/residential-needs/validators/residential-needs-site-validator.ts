@@ -46,8 +46,9 @@ export const NEED_PRIORITIES = ['critical', 'high', 'moderate', 'low'] as const;
 export const CLUSTER_K_MIN = 1;
 export const CLUSTER_K_MAX = 12;
 export const CLUSTER_K_DEFAULT = 3;
-/** Rows one request may carry — the survey is small; this is a payload guard. */
-export const CLUSTER_MAX_HOUSEHOLDS = 5000;
+
+/** Shown when the respondent has no barangay on their profile yet. */
+export const UNSPECIFIED_BARANGAY = 'Unspecified';
 
 const OptionalText = z.string().trim().max(2000).nullish();
 
@@ -64,20 +65,12 @@ export const HouseholdSurveySchema = z
   })
   .strict();
 
-export const HouseholdSchema = z
-  .object({
-    id: z.string().trim().min(1).max(120),
-    family_name: z.string().trim().max(160).default(''),
-    barangay: z.string().trim().min(1).max(160),
-    members: z.number().int().min(1).max(100),
-    survey: HouseholdSurveySchema,
-    surveyed_at: z.string().datetime({ offset: true }).nullish(),
-  })
-  .strict();
-
+/**
+ * The households are read from the submitted surveys, so the portal only picks
+ * how many groups to find and which random start to use.
+ */
 export const ClusterNeedsSchema = z
   .object({
-    households: z.array(HouseholdSchema).max(CLUSTER_MAX_HOUSEHOLDS),
     k: z
       .number()
       .int()
@@ -88,6 +81,32 @@ export const ClusterNeedsSchema = z
     seed: z.number().int().min(0).default(0),
   })
   .strict();
+
+/**
+ * One submitted survey as the portal lists it. Codes come back as plain strings
+ * so a retired option never fails the read; they were validated on the way in.
+ */
+export const HouseholdRowSchema = z.object({
+  id: z.string(),
+  family_name: z.string(),
+  barangay: z.string(),
+  members: z.number(),
+  survey: z.object({
+    needs: z.array(z.string()),
+    other_need: z.string().nullable(),
+    seriousness: z.number(),
+    barriers: z.array(z.string()),
+    other_barrier: z.string().nullable(),
+    community_problem: z.string(),
+    other_community_problem: z.string().nullable(),
+    concern: z.string().nullable(),
+  }),
+  surveyed_at: z.iso.datetime(),
+});
+
+export const HouseholdListResponseSchema = z.object({
+  items: z.array(HouseholdRowSchema),
+});
 
 export const ClusterBarangaySchema = z.object({
   name: z.string(),

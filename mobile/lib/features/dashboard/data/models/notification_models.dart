@@ -1,9 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/session/app_role.dart';
 
-/// The server's notification categories, folded into the four looks the feed
+/// The server's notification categories, folded into the looks the feed
 /// draws. Unknown values fall back to [system] so a new category never blanks
 /// a row.
-enum NotificationType { event, donation, activity, system }
+enum NotificationType {
+  event,
+  donation,
+  activity,
+  certificate,
+  request,
+  support,
+  account,
+  system,
+}
+
+extension NotificationTypeX on NotificationType {
+  /// Chip label on the feed's filter row.
+  String get label => switch (this) {
+    NotificationType.event => 'Events',
+    NotificationType.donation => 'Donations',
+    NotificationType.activity => 'Activity',
+    NotificationType.certificate => 'Certificates',
+    NotificationType.request => 'Requests',
+    NotificationType.support => 'Support',
+    NotificationType.account => 'Account',
+    NotificationType.system => 'Announcements',
+  };
+}
 
 /// One row of the person's feed as the server holds it.
 class AppNotification {
@@ -15,11 +39,13 @@ class AppNotification {
     required this.type,
     required this.attention,
     required this.isUnread,
+    this.audienceRole,
     this.href,
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     final tone = json['tone'] as String? ?? 'INFO';
+    final audience = json['audience_role'] as String?;
     return AppNotification(
       id: json['notification_id'] as String,
       title: json['title'] as String? ?? '',
@@ -28,6 +54,7 @@ class AppNotification {
       type: _typeFor(json['category'] as String?),
       attention: tone != 'INFO',
       isUnread: !(json['read'] as bool? ?? false),
+      audienceRole: audience == null ? null : AppRoleX.fromApiValue(audience),
       href: json['href'] as String?,
     );
   }
@@ -42,9 +69,17 @@ class AppNotification {
   final bool attention;
   final bool isUnread;
 
+  /// The side of the account the row belongs to. Null means it is about the
+  /// account itself (support, role unlocks, …) and shows on every side.
+  final AppRole? audienceRole;
+
   /// Where the row leads: `/events/<id>` for an event, `/events/<id>/feedback`
-  /// for the questionnaire, or a portal path the app cannot open.
+  /// for the questionnaire, `/donations/<id>`, `/requests/<id>`,
+  /// `/support/<id>`, or a portal path the app cannot open.
   final String? href;
+
+  /// Whether the row belongs on [role]'s feed.
+  bool isFor(AppRole role) => audienceRole == null || audienceRole == role;
 
   AppNotification copyWith({bool? isUnread}) => AppNotification(
     id: id,
@@ -54,6 +89,7 @@ class AppNotification {
     type: type,
     attention: attention,
     isUnread: isUnread ?? this.isUnread,
+    audienceRole: audienceRole,
     href: href,
   );
 
@@ -70,7 +106,11 @@ class AppNotification {
   static NotificationType _typeFor(String? category) => switch (category) {
     'EVENT' => NotificationType.event,
     'DONATION' => NotificationType.donation,
-    'VOLUNTEER' || 'CERTIFICATE' => NotificationType.activity,
+    'VOLUNTEER' => NotificationType.activity,
+    'CERTIFICATE' => NotificationType.certificate,
+    'USER_REQUEST' => NotificationType.request,
+    'SUPPORT' => NotificationType.support,
+    'ACCESS' || 'SECURITY' => NotificationType.account,
     _ => NotificationType.system,
   };
 }
@@ -100,6 +140,10 @@ IconData iconForNotificationType(NotificationType type) {
     NotificationType.event => Icons.event_available_rounded,
     NotificationType.donation => Icons.favorite_rounded,
     NotificationType.activity => Icons.star_rounded,
-    NotificationType.system => Icons.info_outline_rounded,
+    NotificationType.certificate => Icons.workspace_premium_rounded,
+    NotificationType.request => Icons.assignment_turned_in_rounded,
+    NotificationType.support => Icons.support_agent_rounded,
+    NotificationType.account => Icons.shield_outlined,
+    NotificationType.system => Icons.campaign_rounded,
   };
 }

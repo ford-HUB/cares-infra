@@ -20,14 +20,12 @@ import {
   NEED_PRIORITY_LABELS,
   NEED_PRIORITY_ORDER,
   NEEDS_FILTER_ALL,
+  NEEDS_SURVEY_SOURCE_LABEL,
 } from '../../constants/residential-needs'
 import { ADMIN_NEEDS_CLUSTERS_PATH } from '../../constants/routes'
-import {
-  householdPriority,
-  RESIDENTIAL_NEEDS_BARANGAYS,
-} from '../../services/residential-needs-mock'
 import type { Household, NeedPriority } from '../../types/residential-needs'
 import { exportResidentialNeedsPdf } from '../../utils/export-residential-needs-pdf'
+import { householdBarangays, householdPriority } from '../../utils/residential-needs'
 import { HouseholdTable } from './ui/household-table'
 import { NeedsByBarangayChart } from './ui/needs-by-barangay-chart'
 import { NeedsModuleTabs } from './ui/needs-module-tabs'
@@ -45,6 +43,7 @@ interface ResidentialNeedsOverviewProps {
 export function ResidentialNeedsOverview({ households }: ResidentialNeedsOverviewProps) {
   const [priority, setPriority] = useState<PriorityFilter>(NEEDS_FILTER_ALL)
   const [barangay, setBarangay] = useState<string>(NEEDS_FILTER_ALL)
+  const barangays = useMemo(() => householdBarangays(households), [households])
 
   const scoped = useMemo(
     () =>
@@ -122,7 +121,7 @@ export function ResidentialNeedsOverview({ households }: ResidentialNeedsOvervie
             Household survey across partner barangays — what families lack and how urgently.
           </p>
           <p className="mt-0.5 text-[11px] text-gray-400">
-            Mock survey data — not connected to the server.
+            Live from the {NEEDS_SURVEY_SOURCE_LABEL} — updates as beneficiaries submit.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -132,7 +131,7 @@ export function ResidentialNeedsOverview({ households }: ResidentialNeedsOvervie
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NEEDS_FILTER_ALL}>All barangays</SelectItem>
-              {RESIDENTIAL_NEEDS_BARANGAYS.map((name) => (
+              {barangays.map((name) => (
                 <SelectItem key={name} value={name}>
                   {name}
                 </SelectItem>

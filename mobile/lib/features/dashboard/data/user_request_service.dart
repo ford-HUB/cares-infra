@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/features/dashboard/data/models/user_request_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// The requester's side of `v1/user-requests` — everything under `me/`.
 ///
@@ -31,6 +33,8 @@ class UserRequestService {
       '$_base/role-access',
       body: {'registrationId': registrationId, 'roleType': roleType},
     );
+    // The server answers with a notice; pull it in without waiting a poll.
+    NotificationSync.instance.refreshSoon();
     return UserRequestResponse.fromJson(
       response['data'] as Map<String, dynamic>,
     );
@@ -39,6 +43,10 @@ class UserRequestService {
   /// Beneficiaries do not take a slot on the spot — the application carries a
   /// proof of residency (photo or PDF), the director reviews it, and that
   /// acceptance is what books the place.
+  ///
+  /// Always sent as the beneficiary side (`?role=BENEFICIARY`): the role
+  /// switcher is local, so a donor- or volunteer-registered account that
+  /// switched to Beneficiary would otherwise be judged by its registered role.
   Future<UserRequestResponse> applyForEvent({
     required int eventId,
     required String proofPath,
@@ -52,10 +60,11 @@ class UserRequestService {
       contentType: _mediaTypeForName(proofName, proofMimeType),
     );
     final response = await _api.postMultipart(
-      '$_base/event-join',
+      '$_base/event-join?role=${RoleAccountStore.beneficiary}',
       fields: {'eventId': '$eventId'},
       files: [proof],
     );
+    NotificationSync.instance.refreshSoon();
     return UserRequestResponse.fromJson(
       response['data'] as Map<String, dynamic>,
     );

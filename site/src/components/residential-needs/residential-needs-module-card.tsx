@@ -15,16 +15,17 @@ import {
   ADMIN_NEEDS_CLUSTERS_PATH,
   ADMIN_RESIDENTIAL_NEEDS_PATH,
 } from '../../constants/routes'
-import { getMockHouseholds, householdPriority } from '../../services/residential-needs-mock'
+import { useResidentialNeeds } from '../../hooks/use-residential-needs'
 import type { NeedPriority } from '../../types/residential-needs'
+import { householdPriority } from '../../utils/residential-needs'
 
 /**
  * The Residential Needs module as it appears on the director's Overview: the one
  * number (households needing urgent help), the priority split, and the two doors
- * into the module. Reads the same mock survey the module screens do.
+ * into the module. Reads the same live survey the module screens do.
  */
 export function ResidentialNeedsModuleCard() {
-  const households = getMockHouseholds()
+  const { households } = useResidentialNeeds()
   const counts = Object.fromEntries(NEED_PRIORITY_ORDER.map((band) => [band, 0])) as Record<
     NeedPriority,
     number
@@ -65,7 +66,9 @@ export function ResidentialNeedsModuleCard() {
               </span>
             </p>
             <p className="truncate text-[11px] text-gray-400">
-              Top need: {NEED_CATEGORY_LABELS[topNeed].toLowerCase()} · mock survey
+              {total > 0
+                ? `Top need: ${NEED_CATEGORY_LABELS[topNeed].toLowerCase()}`
+                : 'No surveys submitted yet'}
             </p>
           </div>
         </div>

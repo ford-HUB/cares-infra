@@ -4,7 +4,9 @@ import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
+import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
+import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
@@ -42,7 +44,6 @@ class _RegisterBeneficiaryDetailsStepState
   late final TextEditingController _middleName;
   late final TextEditingController _lastname;
   late final TextEditingController _age;
-  late final TextEditingController _address;
   late final TextEditingController _phone;
   late final TextEditingController _organizationName;
   late final TextEditingController _organizationRole;
@@ -61,7 +62,6 @@ class _RegisterBeneficiaryDetailsStepState
     _middleName = TextEditingController(text: data.middleName);
     _lastname = TextEditingController(text: data.lastname);
     _age = TextEditingController(text: data.age > 0 ? '${data.age}' : '');
-    _address = TextEditingController(text: data.currentAddress);
     _phone = TextEditingController(
       text: normalizePhilippinePhone(data.phoneNumber),
     );
@@ -92,7 +92,6 @@ class _RegisterBeneficiaryDetailsStepState
     _middleName.dispose();
     _lastname.dispose();
     _age.dispose();
-    _address.dispose();
     _phone.dispose();
     _organizationName.dispose();
     _organizationRole.dispose();
@@ -108,7 +107,6 @@ class _RegisterBeneficiaryDetailsStepState
         lastname: _lastname.text.trim(),
         gender: _gender,
         age: int.tryParse(_age.text.trim()) ?? 0,
-        currentAddress: _address.text.trim(),
         phoneNumber: _phone.text.trim(),
         // Beneficiaries register without an ID or school information.
         idNumber: '',
@@ -121,6 +119,14 @@ class _RegisterBeneficiaryDetailsStepState
         volunteerType: '',
       ),
     );
+  }
+
+  /// The structured address lives on the profile; the flat `current_address`
+  /// sent to the server is its formatted form, or empty while incomplete so
+  /// the step can't continue.
+  void _onAddressChanged(PhAddress address) {
+    widget.onProfileChanged(_profile.copyWith(address: address));
+    widget.onChanged(widget.data.copyWith(currentAddress: address.formatted));
   }
 
   void _onFieldChanged(String _) {
@@ -166,6 +172,8 @@ class _RegisterBeneficiaryDetailsStepState
         ],
         const SizedBox(height: 16),
         _personalCard(),
+        const SizedBox(height: 16),
+        _addressCard(),
         const SizedBox(height: 8),
       ],
     );
@@ -308,14 +316,6 @@ class _RegisterBeneficiaryDetailsStepState
         ),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Address',
-          hint: 'House no., street, barangay, city',
-          controller: _address,
-          maxLines: 2,
-          onChanged: _onFieldChanged,
-        ),
-        const SizedBox(height: 14),
-        RegisterFormField(
           label: 'Phone number',
           hint: '+639XXXXXXXXX',
           controller: _phone,
@@ -325,6 +325,22 @@ class _RegisterBeneficiaryDetailsStepState
           textInputAction: TextInputAction.done,
           inputFormatters: const [PhilippinePhoneFormatter()],
           onChanged: _onFieldChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _addressCard() {
+    return RegistrationFormCard(
+      icon: Icons.home_outlined,
+      title: 'Home address',
+      subtitle:
+          'Start typing your barangay and pick it from the list — '
+          'we fill in the city for you.',
+      children: [
+        AddressAutocompleteFields(
+          value: _profile.address,
+          onChanged: _onAddressChanged,
         ),
       ],
     );

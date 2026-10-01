@@ -4,9 +4,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { S3Service } from '../../../infastructures/s3/s3-service';
-import { EventStatus } from '../../../infastructures/prisma/common/client';
+import {
+  EventStatus,
+  NotificationCategory,
+  NotificationTone,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
+import type { PublishNotificationInput } from '../../notifications/dto/notifications-site-dto';
+import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
 import type {
   ListUserRequestsQueryDto,
+  RejectUserRequestDto,
   UserRequestAttachmentKind,
   UserRequestDto,
   UserRequestListDto,
@@ -22,6 +30,7 @@ export class UserRequestsSiteService {
   constructor(
     private readonly userRequestsRepository: UserRequestsRepository,
     private readonly s3Service: S3Service,
+    private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
   async list(query: ListUserRequestsQueryDto): Promise<UserRequestListDto> {
@@ -67,6 +76,38 @@ export class UserRequestsSiteService {
               actorName,
             },
           });
+    await this.notifyRequester(updated, 'ACCEPTED');
+    return toSiteDto(updated);
+  }
+
+  /**
+   * Turns down a beneficiary's event application with a reason they see in
+   * the app. Unlike a removal this is final for the row — nothing restores
+   * it — but the beneficiary may file a fresh application for the same event,
+   * since only a PENDING row counts as a duplicate.
+   */
+  async reject(
+    id: string,
+    callerId: string,
+    body: RejectUserRequestDto,
+  ): Promise<UserRequestDto> {
+    const row = await this.requirePending(id);
+    if (row.kind !== 'EVENT_JOIN') {
+      throw new BadRequestException(
+        'Only event applications can be rejected with a reason',
+      );
+    }
+    const actorName = await this.callerName(callerId);
+    const updated = await this.userRequestsRepository.decide(id, {
+      status: 'REJECTED',
+      decidedByUserId: callerId,
+      rejectionReason: body.reason,
+      trail: {
+        label: `Request rejected — ${body.reason}`,
+        actorName,
+      },
+    });
+    await this.notifyRequester(updated, 'REJECTED');
     return toSiteDto(updated);
   }
 
@@ -81,6 +122,7 @@ export class UserRequestsSiteService {
       decidedByUserId: callerId,
       trail: { label: 'Request removed from the review queue', actorName },
     });
+    await this.notifyRequester(updated, 'DELETED');
     return toSiteDto(updated);
   }
 
@@ -95,6 +137,7 @@ export class UserRequestsSiteService {
       decidedByUserId: null,
       trail: { label: 'Request restored to the review queue', actorName },
     });
+    await this.notifyRequester(updated, 'PENDING');
     return toSiteDto(updated);
   }
 
@@ -141,6 +184,85 @@ export class UserRequestsSiteService {
     }
   }
 
+  /**
+   * Every move on a request is news to the person who filed it — it is the
+   * only way they learn a decision was made. An event application belongs to
+   * the Beneficiary side; a role unlock is about the account itself, so it
+   * shows on whichever side they have open.
+   */
+  private async notifyRequester(
+    row: UserRequestRow,
+    status: 'ACCEPTED' | 'REJECTED' | 'DELETED' | 'PENDING',
+  ): Promise<void> {
+    const reference = `REQ-${String(row.reference_number).padStart(3, '0')}`;
+    const base = {
+      category: NotificationCategory.USER_REQUEST,
+      href: `/requests/${row.user_request_id}`,
+      userIds: [row.user_id],
+      // A restored request can be decided again; each move is its own notice.
+      dedupeKey: `user-request:${row.user_request_id}:${status}:${row.trail.length}`,
+    };
+
+    let notice: PublishNotificationInput;
+    if (row.kind === 'ROLE_ACCESS') {
+      const role = roleLabel(row.requested_role ?? RoleType.VOLUNTEER);
+      notice = {
+        ...base,
+        ...{
+          ACCEPTED: {
+            title: `Your ${role} side is unlocked`,
+            description: `${reference} was approved. Switch to ${role} from your profile to start.`,
+            tone: NotificationTone.INFO,
+          },
+          REJECTED: {
+            title: `Your ${role} access request was declined`,
+            description: `${reference} was not approved.`,
+            tone: NotificationTone.ATTENTION,
+          },
+          DELETED: {
+            title: `Your ${role} access request was closed`,
+            description: `${reference} was removed from the review queue. You can verify and request again from your profile.`,
+            tone: NotificationTone.ATTENTION,
+          },
+          PENDING: {
+            title: `Your ${role} access request is back under review`,
+            description: `${reference} was returned to the review queue.`,
+            tone: NotificationTone.INFO,
+          },
+        }[status],
+      };
+    } else {
+      const event = row.event?.title ?? 'the event';
+      notice = {
+        ...base,
+        audienceRole: RoleType.BENEFICIARY,
+        ...{
+          ACCEPTED: {
+            title: `You're confirmed for ${event}`,
+            description: `${reference} was approved — your place is reserved. We'll remind you before it starts.`,
+            tone: NotificationTone.INFO,
+          },
+          REJECTED: {
+            title: `Your application for ${event} was not approved`,
+            description: `${reference}: ${row.rejection_reason ?? 'No reason was given.'} You may apply again.`,
+            tone: NotificationTone.ATTENTION,
+          },
+          DELETED: {
+            title: `Your application for ${event} was closed`,
+            description: `${reference} was removed from the review queue.`,
+            tone: NotificationTone.ATTENTION,
+          },
+          PENDING: {
+            title: `Your application for ${event} is back under review`,
+            description: `${reference} was returned to the review queue.`,
+            tone: NotificationTone.INFO,
+          },
+        }[status],
+      };
+    }
+    await this.notificationScheduler.publish(notice);
+  }
+
   private async requireRow(id: string): Promise<UserRequestRow> {
     const row = await this.userRequestsRepository.findById(id);
     if (!row) throw new NotFoundException('Request not found');
@@ -159,4 +281,8 @@ export class UserRequestsSiteService {
     const name = await this.userRequestsRepository.findUserName(callerId);
     return name ? `${name.firstname} ${name.lastname}`.trim() : 'Portal staff';
   }
+}
+
+function roleLabel(role: RoleType): string {
+  return role.charAt(0) + role.slice(1).toLowerCase();
 }

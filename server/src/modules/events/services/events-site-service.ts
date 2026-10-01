@@ -123,6 +123,8 @@ export class EventsSiteService {
       dedupeKey: `event-published:${created.event_id}`,
     });
 
+    await this.announceNewEvent(created);
+
     return this.mapToDto(created);
   }
 
@@ -147,6 +149,7 @@ export class EventsSiteService {
     const persisted = this.toPersistDto(data, images);
     const changes = diffEvent(existing, persisted);
     const updated = await this.eventsRepository.update(id, persisted);
+    await this.notifyScheduleChange(updated, changes);
 
     await this.auditLogRecorder.record({
       action: 'event.updated',
@@ -182,6 +185,22 @@ export class EventsSiteService {
       goods_donation: options.goods,
       goods_types: options.goods ? options.goodsTypes : [],
     });
+
+    const opened =
+      (!existing.funds_donation && updated.funds_donation) ||
+      (!existing.goods_donation && updated.goods_donation);
+    if (opened && isOpenEvent(updated)) {
+      await this.notificationScheduler.publish({
+        title: `${updated.title} now accepts donations`,
+        description: `${donationKinds(updated)} can now be given toward this event. Starts ${formatEventStart(updated.event_started)}.`,
+        category: NotificationCategory.DONATION,
+        tone: NotificationTone.INFO,
+        href: `/events/${updated.event_id}`,
+        roles: [RoleType.DONOR],
+        audienceRole: RoleType.DONOR,
+        dedupeKey: `event-donations-open:${updated.event_id}:${updated.funds_donation}:${updated.goods_donation}`,
+      });
+    }
 
     await this.auditLogRecorder.record({
       action: 'event.donations.updated',
@@ -233,6 +252,34 @@ export class EventsSiteService {
       EventStatus.Cancelled,
     );
 
+    await this.notificationScheduler.publishToEventParticipants(id, {
+      volunteers: {
+        title: `${updated.title} was cancelled`,
+        description: `The event on ${formatEventStart(updated.event_started)} will not go ahead. Your registration is closed and no ranking points are affected.`,
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.ATTENTION,
+        href: `/events/${id}`,
+        dedupeKey: `event-cancelled:${id}`,
+      },
+      beneficiaries: {
+        title: `${updated.title} was cancelled`,
+        description: `The event on ${formatEventStart(updated.event_started)} will not go ahead. You can apply to another event from the Events tab.`,
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.ATTENTION,
+        href: `/events/${id}`,
+        dedupeKey: `event-cancelled:${id}`,
+      },
+      donors: {
+        title: `${updated.title} was cancelled`,
+        description:
+          'The campaign you gave to will not go ahead. The CARES team will reach out about your donation.',
+        category: NotificationCategory.DONATION,
+        tone: NotificationTone.ATTENTION,
+        href: `/events/${id}`,
+        dedupeKey: `event-cancelled:${id}`,
+      },
+    });
+
     await this.auditLogRecorder.record({
       action: 'event.cancelled',
       description: `Cancelled the event "${updated.title}"`,
@@ -269,6 +316,23 @@ export class EventsSiteService {
       throw new NotFoundException('Event not found');
     }
 
+    // Read the participants before the delete cascades their rows away. A
+    // finished event going is housekeeping — nobody is waiting on it.
+    if (isOpenEvent(existing)) {
+      const notice = {
+        title: `${existing.title} was removed`,
+        description: `The event on ${formatEventStart(existing.event_started)} is no longer on the calendar.`,
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.ATTENTION,
+        dedupeKey: `event-deleted:${id}`,
+      };
+      await this.notificationScheduler.publishToEventParticipants(id, {
+        volunteers: notice,
+        beneficiaries: notice,
+        donors: { ...notice, category: NotificationCategory.DONATION },
+      });
+    }
+
     await this.eventsRepository.delete(id);
 
     await this.auditLogRecorder.record({
@@ -289,6 +353,84 @@ export class EventsSiteService {
         participants: String(existing.participants),
       },
     });
+  }
+
+  /**
+   * A new open event is news for every app side it serves: volunteers can
+   * register, beneficiaries can apply when it takes them, donors can give
+   * when it accepts donations.
+   */
+  private async announceNewEvent(event: StoredEvent): Promise<void> {
+    if (!isOpenEvent(event)) return;
+    const when = `Starts ${formatEventStart(event.event_started)} · ${event.location}`;
+
+    await this.notificationScheduler.publish({
+      title: `New event: ${event.title}`,
+      description: `${when}. Registration is open.`,
+      category: NotificationCategory.EVENT,
+      tone: NotificationTone.INFO,
+      href: `/events/${event.event_id}`,
+      roles: [RoleType.VOLUNTEER],
+      audienceRole: RoleType.VOLUNTEER,
+      dedupeKey: `event-new:${event.event_id}`,
+    });
+    if (event.beneficiary_applicable) {
+      await this.notificationScheduler.publish({
+        title: `New event open to beneficiaries: ${event.title}`,
+        description: `${when}. Apply from the Events tab to reserve a place.`,
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.INFO,
+        href: `/events/${event.event_id}`,
+        roles: [RoleType.BENEFICIARY],
+        audienceRole: RoleType.BENEFICIARY,
+        dedupeKey: `event-new:${event.event_id}`,
+      });
+    }
+    if (event.funds_donation || event.goods_donation) {
+      await this.notificationScheduler.publish({
+        title: `New campaign: ${event.title}`,
+        description: `${donationKinds(event)} can be given toward this event. ${when}.`,
+        category: NotificationCategory.DONATION,
+        tone: NotificationTone.INFO,
+        href: `/events/${event.event_id}`,
+        roles: [RoleType.DONOR],
+        audienceRole: RoleType.DONOR,
+        dedupeKey: `event-new:${event.event_id}`,
+      });
+    }
+  }
+
+  /**
+   * Participants only hear about edits that change where they need to be and
+   * when — a reworded description is not worth a device notification.
+   */
+  private async notifyScheduleChange(
+    event: StoredEvent,
+    changes: AuditLogChangeDto[],
+  ): Promise<void> {
+    const moved = changes.filter((change) => SCHEDULE_FIELDS.has(change.field));
+    if (moved.length === 0 || !isOpenEvent(event)) return;
+
+    const what = moved
+      .map((change) => SCHEDULE_FIELDS.get(change.field))
+      .join(' and ');
+    const notice = {
+      title: `${event.title}: ${what} changed`,
+      description: `Now ${formatEventStart(event.event_started)} at ${event.location}. Check the event details before you go.`,
+      category: NotificationCategory.EVENT,
+      tone: NotificationTone.ATTENTION,
+      href: `/events/${event.event_id}`,
+      // Each edit is its own notice; a second move must not be swallowed.
+      dedupeKey: `event-moved:${event.event_id}:${Date.now()}`,
+    };
+    await this.notificationScheduler.publishToEventParticipants(
+      event.event_id,
+      {
+        volunteers: notice,
+        beneficiaries: notice,
+        donors: { ...notice, category: NotificationCategory.DONATION },
+      },
+    );
   }
 
   private toPersistDto(
@@ -447,6 +589,33 @@ function formatEventValue(value: EventFieldValue | undefined): string {
 }
 
 /** "Sat, Sep 20, 6:00 AM" in the portal's timezone — a person reads this. */
+/** Edits a participant has to act on, with how the notice names them. */
+const SCHEDULE_FIELDS = new Map<string, string>([
+  ['event_started', 'start time'],
+  ['event_ended', 'end time'],
+  ['location', 'venue'],
+]);
+
+/** Still ahead or running — the only events whose changes anyone acts on. */
+function isOpenEvent(event: {
+  status: EventStatus;
+  event_ended: Date;
+}): boolean {
+  return (
+    (event.status === EventStatus.Upcoming ||
+      event.status === EventStatus.Ongoing) &&
+    event.event_ended.getTime() >= Date.now()
+  );
+}
+
+function donationKinds(event: {
+  funds_donation: boolean;
+  goods_donation: boolean;
+}): string {
+  if (event.funds_donation && event.goods_donation) return 'Funds and goods';
+  return event.funds_donation ? 'Funds' : 'Goods';
+}
+
 function formatEventStart(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'short',

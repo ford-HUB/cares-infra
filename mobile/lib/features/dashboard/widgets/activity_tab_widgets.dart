@@ -213,6 +213,7 @@ class ActivityEntryCard extends StatelessWidget {
     ActivityStatus.completed => AppColors.primary,
     ActivityStatus.registered => const Color(0xFF1976D2),
     ActivityStatus.cancelled => AppColors.heart,
+    ActivityStatus.rejected => AppColors.heart,
   };
 
   @override

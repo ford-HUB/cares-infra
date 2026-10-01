@@ -113,8 +113,9 @@ export class EventsRepository {
   }
 
   /**
-   * The beneficiary's live applications (EVENT_JOIN requests) for the given
-   * events — pending or accepted; a removed request no longer counts.
+   * The beneficiary's applications (EVENT_JOIN requests) for the given
+   * events — pending, accepted or rejected, newest first so the latest filing
+   * wins; a removed request no longer counts.
    */
   async findBeneficiaryApplications(userId: string, eventIds: number[]) {
     if (eventIds.length === 0) return [];
@@ -123,9 +124,9 @@ export class EventsRepository {
         user_id: userId,
         kind: 'EVENT_JOIN',
         event_id: { in: eventIds },
-        status: { in: ['PENDING', 'ACCEPTED'] },
+        status: { in: ['PENDING', 'ACCEPTED', 'REJECTED'] },
       },
-      select: { event_id: true, status: true },
+      select: { event_id: true, status: true, rejection_reason: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -191,7 +192,12 @@ export class EventsRepository {
             where: { event_id: eventId },
             data: { participants },
           });
-          return { participants, max_participants: event.max_participants };
+          return {
+            participants,
+            max_participants: event.max_participants,
+            /** False when the volunteer already held a slot (idempotent call). */
+            created: !existing,
+          };
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
@@ -205,7 +211,7 @@ export class EventsRepository {
   async unregister(eventId: number, userId: string) {
     return this.prisma.$transaction(
       async (tx) => {
-        await tx.eventAttendance.deleteMany({
+        const removed = await tx.eventAttendance.deleteMany({
           where: { event_id: eventId, user_id: userId },
         });
         const participants = await tx.eventAttendance.count({
@@ -216,7 +222,11 @@ export class EventsRepository {
           data: { participants },
           select: { max_participants: true },
         });
-        return { participants, max_participants: event.max_participants };
+        return {
+          participants,
+          max_participants: event.max_participants,
+          removed: removed.count > 0,
+        };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );

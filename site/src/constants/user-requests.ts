@@ -26,13 +26,18 @@ export const REQUEST_STATUS_LABELS: Record<UserRequestStatus, string> = {
   pending: 'Awaiting review',
   accepted: 'Accepted',
   deleted: 'Removed',
+  rejected: 'Rejected',
 }
 
 export const REQUEST_STATUS_STYLES: Record<UserRequestStatus, string> = {
   pending: 'bg-blue-50 text-blue-700',
   accepted: 'bg-green-50 text-green-700',
   deleted: 'bg-gray-100 text-gray-600',
+  rejected: 'bg-red-50 text-red-700',
 }
+
+/** Kept in step with the server's cap on a rejection reason. */
+export const REJECTION_REASON_MAX_LENGTH = 500
 
 /** Rows the skeleton draws before the first fetch settles. */
 export const REQUEST_SKELETON_ROWS = 4

@@ -280,7 +280,7 @@ class CompletedEventCard extends StatelessWidget {
     super.key,
     required this.event,
     required this.feedbackSubmitted,
-    required this.onTap,
+    this.onTap,
     this.certificateIssued = false,
     this.onFeedbackTap,
     this.showFeedback = true,
@@ -295,7 +295,9 @@ class CompletedEventCard extends StatelessWidget {
 
   /// The scheduler has generated the sheet; the strip offers to open it.
   final bool certificateIssued;
-  final VoidCallback onTap;
+
+  /// Null leaves the card read-only — nothing on it responds to a tap.
+  final VoidCallback? onTap;
 
   /// Tapping the feedback strip itself — the "Submit Feedback" / "View
   /// Certificate" call to action. Falls back to [onTap] when not given.

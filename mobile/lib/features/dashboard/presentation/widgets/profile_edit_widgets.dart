@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 import 'package:mobile/features/dashboard/beneficiary/domain/beneficiary_profile.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
@@ -347,6 +348,60 @@ class ProfileHouseholdSizeCard extends StatelessWidget {
   }
 }
 
+/// An address saved before barangay / city were picked from a list. It stays
+/// on file (and is saved back untouched) until the person fills the fields
+/// below, so this shows what is there now.
+class ProfileLegacyAddressNote extends StatelessWidget {
+  const ProfileLegacyAddressNote({super.key, required this.address});
+
+  final String address;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.fieldFill.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.fieldBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline, size: 18, color: AppColors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(text: 'On file: '),
+                  TextSpan(
+                    text: address,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const TextSpan(
+                    text:
+                        '\nPick your barangay and city below to update it to '
+                        'the new format.',
+                  ),
+                ],
+              ),
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Beneficiary address. The field is locked: the address is only ever set by
 /// OCR from an uploaded proof of residency, so a tap explains that and starts
 /// the upload instead of opening a keyboard. Files already on record are
@@ -355,6 +410,7 @@ class ProfileResidencyAddressCard extends StatelessWidget {
   const ProfileResidencyAddressCard({
     super.key,
     required this.address,
+    this.structured = PhAddress.empty,
     required this.documents,
     required this.uploading,
     required this.onTapLocked,
@@ -362,6 +418,11 @@ class ProfileResidencyAddressCard extends StatelessWidget {
   });
 
   final String address;
+
+  /// [address] already resolved against [PhAddressDirectory]. When it isn't
+  /// complete the card splits [address] itself with [PhAddress.lenient].
+  /// Every row is locked either way.
+  final PhAddress structured;
   final List<ResidencyDocument> documents;
 
   /// True while a document is being read; the list shows a pending row.
@@ -371,16 +432,31 @@ class ProfileResidencyAddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Split columns when the server has them, otherwise the best split of the
+    // text on file (OCR reads don't always match the barangay list exactly).
+    final parts = structured.isComplete
+        ? structured
+        : PhAddress.lenient(address);
     return RegistrationFormCard(
       icon: Icons.home_outlined,
       title: 'Address',
       subtitle: 'Read from your proof of residency — tap to update it.',
       children: [
         _LockedField(
-          label: 'Current address',
-          value: address,
+          label: 'Barangay',
+          value: parts.barangay?.name ?? '',
           onTap: onTapLocked,
         ),
+        const SizedBox(height: 14),
+        _LockedField(
+          label: 'City/Municipality',
+          value: parts.locality == null
+              ? ''
+              : '${parts.locality!.name}, ${parts.locality!.province}',
+          onTap: onTapLocked,
+        ),
+        const SizedBox(height: 14),
+        _LockedField(label: 'Street', value: parts.street, onTap: onTapLocked),
         const SizedBox(height: 16),
         Row(
           children: [

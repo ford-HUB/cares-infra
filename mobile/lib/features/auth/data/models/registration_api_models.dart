@@ -193,8 +193,13 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
           : {
               'id_number': normalizedId,
               'graduation_year': graduationYear,
-              'graduation_month': graduationMonth,
-              'graduation_day': graduationDay,
+              // Only the year is collected; the server still needs a full date.
+              'graduation_month': graduationMonth >= 1 && graduationMonth <= 12
+                  ? graduationMonth
+                  : 1,
+              'graduation_day': graduationDay >= 1 && graduationDay <= 31
+                  ? graduationDay
+                  : 1,
               'department': {'name': departmentName},
               'major': {'name': majorName.isEmpty ? departmentName : majorName},
               'year_level': {

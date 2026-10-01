@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
+import 'package:mobile/features/auth/domain/volunteer_field_rules.dart';
 import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
@@ -148,6 +149,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           _ocrData.gender.trim().isNotEmpty &&
           _ocrData.age >= 12 &&
           _ocrData.age <= 80 &&
+          // Barangay + city picked from the directory and a real street.
+          _beneficiaryProfile.address.isComplete &&
           _ocrData.currentAddress.trim().isNotEmpty &&
           isValidPhilippinePhone(_ocrData.phoneNumber);
     }
@@ -155,7 +158,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     final baseValid =
         _ocrData.firstname.trim().isNotEmpty &&
         _ocrData.lastname.trim().isNotEmpty &&
-        _ocrData.age > 0 &&
+        VolunteerFieldRules.isValidAge(_ocrData.age) &&
         _ocrData.currentAddress.trim().isNotEmpty &&
         isValidPhilippinePhone(_ocrData.phoneNumber) &&
         _ocrData.idNumber.trim().isNotEmpty &&
@@ -170,16 +173,18 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         baseValid &&
             _ocrData.majorName.trim().isNotEmpty &&
             _ocrData.yearLevelName.trim().isNotEmpty &&
-            _ocrData.graduationYear >= 1900 &&
-            _ocrData.graduationMonth >= 1 &&
-            _ocrData.graduationMonth <= 12 &&
-            _ocrData.graduationDay >= 1 &&
-            _ocrData.graduationDay <= 31,
+            VolunteerFieldRules.isValidGraduationYear(
+              _ocrData.graduationYear,
+              VolunteerType.student,
+            ),
       VolunteerType.staff => baseValid,
       VolunteerType.alumni =>
         baseValid &&
             _ocrData.majorName.trim().isNotEmpty &&
-            _ocrData.graduationYear >= 1900,
+            VolunteerFieldRules.isValidGraduationYear(
+              _ocrData.graduationYear,
+              VolunteerType.alumni,
+            ),
     };
   }
 

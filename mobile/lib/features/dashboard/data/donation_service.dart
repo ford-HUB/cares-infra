@@ -3,6 +3,7 @@ import 'package:mobile/features/dashboard/data/donation_format.dart';
 import 'package:mobile/features/dashboard/data/models/donation_campaign_models.dart';
 import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
+import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// What a goods pledge carries — the same fields for a new pledge and an edit.
 /// Goods are handed in at the CARES Office, so there is no address or time to
@@ -76,6 +77,8 @@ class DonationService {
       '/donations/goods',
       body: {'eventId': eventId, ...input.toJson()},
     );
+    // The server answers with a notice; pull it in without waiting a poll.
+    NotificationSync.instance.refreshSoon();
     return Donation.fromJson(response['data'] as Map<String, dynamic>);
   }
 
@@ -92,6 +95,7 @@ class DonationService {
       '/donations/$id/cancel',
       body: const {},
     );
+    NotificationSync.instance.refreshSoon();
     return Donation.fromJson(response['data'] as Map<String, dynamic>);
   }
 }

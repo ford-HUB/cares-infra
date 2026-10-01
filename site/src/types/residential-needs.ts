@@ -2,8 +2,8 @@
  * Residential needs — what a household in a partner barangay lacks, as answered on
  * the Beneficiary Needs Assessment survey (the five-question form a beneficiary
  * fills in on the mobile app). Every screen in the module is built on a list of
- * these rows. The rows are still mock; the Clusters screen sends them to the server,
- * which groups them with decision-service (scikit-learn K-Means).
+ * these rows, read from the server; the Clusters screen asks the server to group
+ * them with decision-service (scikit-learn K-Means).
  */
 
 /** Q1 — what the household currently needs help with (select all that apply). */

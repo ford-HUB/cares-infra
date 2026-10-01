@@ -125,8 +125,15 @@ export const NEED_PRIORITY_DOT_STYLES: Record<NeedPriority, string> = {
   low: 'bg-gray-300',
 }
 
-/** Where the rows come from — named on screen so nobody mistakes the mock for live data. */
+/** Where the rows come from — every row is a survey submitted from the mobile app. */
 export const NEEDS_SURVEY_SOURCE_LABEL = 'Beneficiary Needs Assessment survey'
+
+/** The server's label for a respondent with no barangay on their profile. */
+export const UNSPECIFIED_BARANGAY = 'Unspecified'
+
+/** Socket.IO namespace + event that announce a submitted or updated survey. */
+export const RESIDENTIAL_NEEDS_SOCKET_NAMESPACE = '/residential-needs'
+export const RESIDENTIAL_NEEDS_CHANGED_EVENT = 'residential-needs:changed'
 
 /** The "every barangay" / "every priority" choice in the household table filters. */
 export const NEEDS_FILTER_ALL = 'all'

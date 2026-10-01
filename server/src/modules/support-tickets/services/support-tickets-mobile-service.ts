@@ -111,6 +111,17 @@ export class SupportTicketsMobileService {
       dedupeKey: `ticket-created:${row.support_ticket_id}`,
     });
 
+    // The requester's receipt: proof the report landed, and the number to quote.
+    await this.notificationScheduler.publish({
+      title: `We received ticket #${row.reference_number}`,
+      description: `"${data.subject}" is with the CARES support team. You'll be notified when they reply or the status changes.`,
+      category: NotificationCategory.SUPPORT,
+      tone: NotificationTone.INFO,
+      href: `/support/${row.support_ticket_id}`,
+      userIds: [userId],
+      dedupeKey: `ticket-received:${row.support_ticket_id}`,
+    });
+
     return toMobileSupportTicket(row);
   }
 

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   ListUserRequestsQuerySchema,
+  RejectUserRequestSchema,
   UserRequestAttachmentKindSchema,
   UserRequestAttachmentSchema,
   UserRequestListResponseSchema,
@@ -11,6 +12,7 @@ import {
 export type ListUserRequestsQueryDto = z.infer<
   typeof ListUserRequestsQuerySchema
 >;
+export type RejectUserRequestDto = z.infer<typeof RejectUserRequestSchema>;
 export type UserRequestAttachmentKind = z.infer<
   typeof UserRequestAttachmentKindSchema
 >;

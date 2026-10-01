@@ -180,6 +180,7 @@ export class CertificateIssuanceService {
       category: NotificationCategory.CERTIFICATE,
       tone: NotificationTone.INFO,
       userIds: certificates.map((certificate) => certificate.userId),
+      audienceRole: RoleType.VOLUNTEER,
       dedupeKey: `certificate-issued:${deployment.certificate_deployment_id}`,
     });
 

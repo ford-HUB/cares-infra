@@ -218,6 +218,73 @@ class EventStatusPill extends StatelessWidget {
   }
 }
 
+/// Shown to a beneficiary whose application a director rejected: the
+/// director's reason, and a nudge that they can apply again.
+class ApplicationRejectedBanner extends StatelessWidget {
+  const ApplicationRejectedBanner({super.key, this.reason});
+
+  final String? reason;
+
+  @override
+  Widget build(BuildContext context) {
+    const c = AppColors.heart;
+    final text = reason?.trim() ?? '';
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.cancel_outlined, color: c, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Application rejected',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: c,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Reason from the director',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: kEventMuted,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  text.isEmpty ? 'No reason was given.' : text,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: kEventInk,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'You can apply again with an updated document.',
+                  style: TextStyle(fontSize: 12, color: kEventMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// "38 Members are joined:" with a stack of avatar discs and an orange
 /// "+N" overflow disc. Reads "Be the first to join" while nobody has
 /// registered.

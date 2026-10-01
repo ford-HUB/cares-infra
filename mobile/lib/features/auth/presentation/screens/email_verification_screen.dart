@@ -160,6 +160,7 @@ class _EmailVerificationScreenState
       final response = await service.sendVerificationCode(
         email: widget.email,
         purpose: widget.purpose,
+        resend: true,
       );
       if (!mounted) return;
 
