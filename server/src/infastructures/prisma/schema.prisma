@@ -297,76 +297,6 @@ model LoginActivity {
   @@index([email])
 }
 
-/// One row per privileged action. Append-only: nothing updates or deletes a row, so
-/// the trail stays reviewable. The actor's name, email, and role are denormalised at
-/// write time so a later rename or role change cannot rewrite history.
-model AuditLog {
-  audit_log_id  String        @id @default(uuid())
-  /// Machine key, e.g. `access-control.permission.revoked` — stable across wording changes.
-  action        String
-  /// The sentence the portal renders in the grid.
-  description   String
-  category      AuditCategory
-  severity      AuditSeverity @default(INFO)
-  outcome       AuditOutcome  @default(SUCCESS)
-  /// Null for background jobs, and for actors whose account was later deleted.
-  actor_user_id String?
-  actor_name    String
-  actor_email   String
-  /// Null when the actor is the system rather than an account.
-  actor_role    RoleType?
-  /// What the action was performed on — `user`, `event`, `certificate`, `system`, …
-  target_type   String
-  target_label  String
-  /// Null when the target is not a single record (a route, a role baseline, a service).
-  target_id     String?
-  ip_address    String
-  user_agent    String?
-  source        AuditSource   @default(PORTAL)
-  /// Correlates every entry written by one request.
-  request_id    String?
-  /// Operator-supplied justification, when the action asks for one.
-  reason        String?
-  /// Field-level before/after pairs: `[{ field, before, after }]`.
-  changes       Json          @default("[]")
-  /// Free-form context — counts, service scores, template names.
-  metadata      Json          @default("{}")
-  createdAt     DateTime      @default(now())
-  actor_user    User?         @relation(fields: [actor_user_id], references: [user_id])
-
-  @@index([actor_user_id])
-  @@index([createdAt])
-  @@index([category])
-  @@index([severity])
-  @@index([outcome])
-  @@index([action])
-}
-
-model Account {
-  account_id             String    @id @default(uuid())
-  email                  String    @unique
-  /// Null for an account that only ever signs in through a social provider — see
-  /// `OAuthIdentity`. Password sign-in is refused outright when this is null.
-  password               String?
-  user_id                String
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-  /// Set when an administrator provisioned this account with temporary credentials.
-  /// Sign-in is refused once it passes; null means the password does not expire, which
-  /// is what a self-registered account and a completed hand-over both look like.
-  credential_expires_at  DateTime?
-  /// The administrator who issued the credential in force — null for self-registration.
-  provisioned_by_user_id String?
-  /// Portal signatory image (directors/coordinators); printed onto certificates.
-  signature_url          String?
-  is_restricted          Boolean   @default(false)
-  restricted_at          DateTime?
-  restriction_reason     String?
-  last_login_ip          String?
-  email_verified_at      DateTime?
-  user                   User      @relation(fields: [user_id], references: [user_id])
-}
-
 /// A social identity that may sign in as `user`. One row per provider account, so a
 /// donor can attach both Google and Facebook to the same CARES user.
 ///
@@ -1157,64 +1087,6 @@ model AssistanceRequestAttachment {
   @@index([assistance_request_id])
 }
 
-/// One money-donation checkout a donor started from the app. A row is created
-/// before the gateway is called so the client's idempotency key can dedupe a
-/// retried tap, and the gateway reference on it is what every Xendit callback
-/// carries back.
-model DonationPayment {
-  donation_payment_id String                @id @default(uuid())
-  user_id             String
-  /// The director event behind the campaign, when the campaign is event-backed.
-  event_id            Int?
-  campaign_id         String
-  campaign_title      String
-  /// Whole pesos.
-  amount              Int
-  currency            String                @default("PHP")
-  method              DonationPaymentMethod
-  status              DonationPaymentStatus @default(PENDING)
-  /// Client-generated per checkout attempt; the same key returns the same row.
-  idempotency_key     String
-  /// The `reference_id` / `external_id` handed to Xendit; callbacks carry it back.
-  gateway_reference   String                @unique
-  /// Xendit's id for the charge, QR code or invoice we created.
-  gateway_resource_id String?
-  /// Xendit's id for the settled payment — the reference shown on the receipt.
-  payment_reference   String?
-  /// Payment channel Xendit reported on settlement (e.g. DD_BPI for a bank transfer).
-  payment_channel     String?
-  /// GCASH / CARD / BANK_TRANSFER: where the donor completes the payment.
-  checkout_url        String?
-  /// QRPH only: the EMV string the app renders as a QR code.
-  qr_string           String?
-  expires_at          DateTime?
-  paid_at             DateTime?
-  failure_reason      String?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  donation            Donation?
-  event               Event?                @relation(fields: [event_id], references: [event_id])
-  user                User                  @relation("DonationPaymentDonor", fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@unique([user_id, idempotency_key])
-  @@index([user_id])
-  @@index([status])
-}
-
-/// Every Xendit callback already applied, keyed by its `webhook-id` header.
-/// Xendit retries until it sees a 2xx, so the same event can arrive more than
-/// once; inserting here in the same transaction as the status change makes a
-/// replay a no-op.
-model PaymentWebhookEvent {
-  webhook_id        String   @id
-  event             String
-  gateway_reference String?
-  payload           Json
-  receivedAt        DateTime @default(now())
-
-  @@index([gateway_reference])
-}
-
 /// The donation ledger the portal's Donation Tracking works and the donor app's
 /// Activity tab reads. A money row is opened by the gateway callback once a
 /// checkout is paid; a goods row is opened when the donor pledges. Only CONFIRMED
@@ -1270,60 +1142,6 @@ model DonationTrailEntry {
   donation                Donation       @relation(fields: [donation_id], references: [donation_id], onDelete: Cascade)
 
   @@index([donation_id])
-}
-
-model PaymentGatewaySettings {
-  payment_gateway_settings_id String                 @id
-  singleton                   Boolean                @unique @default(true)
-  mode                        PaymentGatewayMode     @default(TEST)
-  enabled                     Boolean                @default(false)
-  secret_key_cipher           String?
-  secret_key_last4            String?
-  webhook_token_cipher        String?
-  api_url                     String?
-  statement_name              String?
-  support_email               String?
-  support_contact             String?
-  verified_at                 DateTime?
-  verification_error          String?
-  updated_by_user_id          String?
-  createdAt                   DateTime               @default(now())
-  updatedAt                   DateTime
-  PaymentMethodSetting        PaymentMethodSetting[]
-}
-
-model PaymentMethodSetting {
-  payment_method_setting_id String                    @id
-  settings_id               String
-  method                    DonationPaymentMethod
-  enabled                   Boolean                   @default(false)
-  display_name              String?
-  instructions              String?
-  account_name              String?
-  account_number            String?
-  channel_codes             String[]                  @default([])
-  min_amount                Int                       @default(0)
-  max_amount                Int                       @default(0)
-  sort_order                Int                       @default(0)
-  createdAt                 DateTime                  @default(now())
-  updatedAt                 DateTime
-  verification              PaymentMethodVerification @default(NOT_VERIFIED)
-  verified_at               DateTime?
-  verification_message      String?
-  verified_channel_codes    String[]                  @default([])
-  callbacks_registered_at   DateTime?
-  account_proof             PaymentAccountProof       @default(NOT_STARTED)
-  account_proof_amount      Int?
-  account_proof_reference   String?
-  account_proof_id          String?
-  account_proof_sent_at     DateTime?
-  account_proof_attempts    Int                       @default(0)
-  account_proof_message     String?
-  account_proof_target      String?
-  account_verified_at       DateTime?
-  PaymentGatewaySettings    PaymentGatewaySettings    @relation(fields: [settings_id], references: [payment_gateway_settings_id], onDelete: Cascade)
-
-  @@unique([settings_id, method])
 }
 
 enum GenderType {
@@ -1391,7 +1209,6 @@ enum PermissionKey {
   CHAT_ACCESS
   MAIL_ACCESS
   SUPPORT_TICKET_MANAGE
-  PAYMENT_SETTINGS_MANAGE
 }
 
 enum PermissionOverrideEffect {
@@ -2034,24 +1851,4 @@ enum DonationStatus {
   CONFIRMED
   DECLINED
   CANCELLED
-}
-
-enum PaymentAccountProof {
-  NOT_STARTED
-  SENDING
-  AWAITING_CONFIRMATION
-  VERIFIED
-  FAILED
-}
-
-enum PaymentGatewayMode {
-  TEST
-  LIVE
-}
-
-enum PaymentMethodVerification {
-  NOT_VERIFIED
-  PENDING
-  VERIFIED
-  FAILED
 }
