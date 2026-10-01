@@ -23,7 +23,19 @@ import 'package:mobile/features/auth/presentation/widgets/weather_panel.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.onHeaderPullStart,
+    this.onHeaderPullUpdate,
+    this.onHeaderPullEnd,
+  });
+
+  /// Vertical drags on the green header, used by [AppFlow] to pull the leading
+  /// story back down over login. Null when login is pushed on its own (e.g.
+  /// after a session ends), and then the header has no handle.
+  final GestureDragStartCallback? onHeaderPullStart;
+  final GestureDragUpdateCallback? onHeaderPullUpdate;
+  final GestureDragEndCallback? onHeaderPullEnd;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -305,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildHeader(t),
+                _buildPullableHeader(t),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
                   child: Column(
@@ -326,9 +338,60 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  /// The header doubles as the grip for pulling the leading story back down:
+  /// a drag here wins over the page scroll, and a small handle with a hint
+  /// sits in the status-bar gap to say so.
+  Widget _buildPullableHeader(double t) {
+    if (widget.onHeaderPullUpdate == null) return _buildHeader(t);
+
+    final topInset = MediaQuery.paddingOf(context).top;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragStart: widget.onHeaderPullStart,
+      onVerticalDragUpdate: widget.onHeaderPullUpdate,
+      onVerticalDragEnd: widget.onHeaderPullEnd,
+      child: Stack(
+        children: [
+          // Extra headroom so the hint clears the weather panel.
+          _buildHeader(t, extraTop: 14),
+          Positioned(
+            top: topInset + 6,
+            left: 0,
+            right: 0,
+            child: Opacity(
+              opacity: _interval(t, 0.5, 0.9),
+              child: Column(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppCopy.leadingPullHint,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Green band carrying the wordmark and the live weather. The rest of the
   /// page stays white so the sign-in card is the thing you look at.
-  Widget _buildHeader(double t) {
+  Widget _buildHeader(double t, {double extraTop = 0}) {
     final topInset = MediaQuery.paddingOf(context).top;
     final titleOpacity = _interval(t, 0.1, 0.4);
     final subtitleOpacity = _interval(t, 0.2, 0.5);
@@ -358,7 +421,7 @@ class _LoginScreenState extends State<LoginScreen>
       // shows through — opaque at the top-left to hold the wordmark, thinner
       // toward the bottom-right behind the sun panel.
       child: Container(
-        padding: EdgeInsets.fromLTRB(24, topInset + 20, 24, 32),
+        padding: EdgeInsets.fromLTRB(24, topInset + 20 + extraTop, 24, 32),
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.vertical(
             bottom: Radius.circular(32),

@@ -14,6 +14,18 @@ abstract final class AppAssets {
   /// Outreach photo sitting behind the green login header band.
   static const String loginEntryBanner = 'assets/images/entry-login-banner.png';
 
+  /// Leading story photos shown between the splash and login.
+  static const String leadingSunriseCleanup =
+      'assets/images/leadings/voluntering-trash.png';
+  static const String leadingCleanUpDay =
+      'assets/images/leadings/community-giving.png';
+  static const String leadingCampusOutreach =
+      'assets/images/leadings/school-donations.png';
+  static const String leadingChristmasGiving =
+      'assets/images/leadings/christmas-giving.png';
+  static const String leadingChristmasTeam =
+      'assets/images/leadings/christmas-party-activitiy.png';
+
   static const String mascotWaving = 'assets/images/mascot/waving.png';
   static const String mascotSmile = 'assets/images/mascot/smile.png';
   static const String mascotHappy = 'assets/images/mascot/happy.png';

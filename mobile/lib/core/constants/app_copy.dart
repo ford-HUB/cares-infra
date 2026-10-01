@@ -85,6 +85,64 @@ abstract final class AppCopy {
       mascotAsset: 'assets/images/mascot/happy.png',
     ),
   ];
+
+  static const String leadingContinueCta = 'Continue';
+  static const String leadingSkipCta = 'Skip';
+  static const String leadingBackCta = 'Back';
+  static const String leadingPullHint = 'Pull down for our story';
+
+  /// Leading story told between the splash and login — one beat per photo in
+  /// assets/images/leadings/, ordered from first light to the Christmas team.
+  static const List<LeadingSlideCopy> leadingSlides = [
+    LeadingSlideCopy(
+      kicker: 'Meet CARES',
+      title: 'It starts before sunrise.',
+      body:
+          '$fullName — the University of Cebu\'s community extension program, '
+          'where students, faculty, and staff show up for the people around them.',
+    ),
+    LeadingSlideCopy(
+      kicker: 'World Clean Up Day · Sept 20, 2025',
+      title: 'Cleaner streets, one bag at a time.',
+      body:
+          'Volunteers from the College of Business and Accountancy joined the '
+          'worldwide clean-up, clearing roadsides side by side with the community.',
+    ),
+    LeadingSlideCopy(
+      kicker: 'Campus outreach',
+      title: 'Caring starts close to home.',
+      body:
+          'From refreshment drives to school donations, CARES makes sure the '
+          'people nearest to us are looked after too.',
+    ),
+    LeadingSlideCopy(
+      kicker: 'Christmas Gift Giving · Dec 20, 2025',
+      title: 'A Christmas they\'ll remember.',
+      body:
+          'Children from our partner communities filled the covered court in '
+          'Santa hats and went home with gifts prepared by CARES volunteers.',
+    ),
+    LeadingSlideCopy(
+      kicker: 'UCLM CARES',
+      title: 'Now it\'s your turn.',
+      body:
+          'Every activity began with someone who chose to show up. Join events, '
+          'log your hours, and grow with a community that gives back. $slogan',
+    ),
+  ];
+}
+
+/// One beat of the leading story: a short label, a headline, and a line of body.
+class LeadingSlideCopy {
+  const LeadingSlideCopy({
+    required this.kicker,
+    required this.title,
+    required this.body,
+  });
+
+  final String kicker;
+  final String title;
+  final String body;
 }
 
 /// One beat on the welcome presentation board.
