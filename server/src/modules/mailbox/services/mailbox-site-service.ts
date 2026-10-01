@@ -37,7 +37,10 @@ import {
   SendMailResponseDto,
 } from '../dto/mailbox-site-dto';
 import { MailboxRepository } from '../repositories/mailbox-repository';
-import { apiPublicUrl, portalUrl } from '../../../shared/utils/environment-utils';
+import {
+  apiPublicUrl,
+  portalUrl,
+} from '../../../shared/utils/environment-utils';
 
 /** Gmail system labels behind each folder the portal shows. */
 const FOLDER_LABELS: Record<MailboxFolder, string> = {
@@ -431,8 +434,7 @@ export class MailboxSiteService {
 
   private portalRedirect(status: string): string {
     const target =
-      process.env.MAILBOX_REDIRECT_URL ??
-      `${portalUrl()}/admin/mail-inbox`;
+      process.env.MAILBOX_REDIRECT_URL ?? `${portalUrl()}/admin/mail-inbox`;
     return `${target}?gmail=${status}`;
   }
 }

@@ -90,8 +90,12 @@ export const SendVerificationSchema = z
     // `login` mails a code to an existing account that signed up without finishing
     // the OTP, so its next sign-in can prove the address instead of being refused.
     purpose: z.enum(['registration', 'login']).default('registration'),
+<<<<<<< Updated upstream
     // Set by the OTP screen's resend button so a fresh code is mailed even while
     // the previous one is still live; without it a live code is reused.
+=======
+    // Set by the "Resend code" button to force a new code instead of reusing a live one.
+>>>>>>> Stashed changes
     resend: z.boolean().optional(),
   })
   .strict();

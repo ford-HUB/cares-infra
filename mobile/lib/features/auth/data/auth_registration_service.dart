@@ -119,11 +119,14 @@ class AuthRegistrationService {
   ///
   /// [purpose] is [VerificationPurpose.login] when an existing account that never
   /// finished its OTP is being verified from the sign-in screen.
+  ///
+  /// [resend] forces the server to mail a new code even if one is still live.
   Future<SendVerificationResponse> sendVerificationCode({
     required String email,
     String? phoneNumber,
     String? idNumber,
     VerificationPurpose purpose = VerificationPurpose.registration,
+    bool resend = false,
   }) async {
     final phone = phoneNumber == null
         ? null
@@ -136,6 +139,7 @@ class AuthRegistrationService {
         if (phone != null && phone.isNotEmpty) 'phone_number': phone,
         if (id != null && id.isNotEmpty) 'id_number': id,
         'purpose': purpose.name,
+        if (resend) 'resend': true,
       },
     );
 

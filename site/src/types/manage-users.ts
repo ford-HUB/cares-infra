@@ -90,7 +90,7 @@ export interface ManagedUserSchoolInfo {
   department: string
   major: string
   yearLevel: string
-  graduationDate: string
+  graduationYear: string
 }
 
 /** Server status codes: N = pending, F = failed, V = verified. */

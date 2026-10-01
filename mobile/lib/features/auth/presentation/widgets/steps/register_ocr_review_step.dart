@@ -5,9 +5,12 @@ import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/domain/volunteer_field_rules.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
+import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
@@ -63,22 +66,31 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   late final TextEditingController _lastname;
   late final TextEditingController _middleName;
   late final TextEditingController _age;
-  late final TextEditingController _address;
   late final TextEditingController _phone;
   late final TextEditingController _idNumber;
   late final TextEditingController _yearLevel;
   late final TextEditingController _gradYear;
-  late final TextEditingController _gradMonth;
-  late final TextEditingController _gradDay;
   late final TextEditingController _volunteerTypeLabel;
 
-  late final FocusNode _gradMonthFocus;
-  late final FocusNode _gradDayFocus;
   late final FocusNode _gradYearFocus;
   late final FocusNode _phoneFocus;
   late final FocusNode _idNumberFocus;
 
   late String _gender;
+
+  /// Errors on a blank field wait until the user has typed in it; a value
+  /// that is filled in (typed or scanned) is checked straight away.
+  bool _ageTouched = false;
+  bool _gradYearTouched = false;
+
+  /// Barangay + city picked from the directory and a typed street, pre-filled
+  /// from whatever the ID scan read ([PhAddress.lenient]). Sent as
+  /// [PhAddress.formatted] — empty while incomplete, which keeps Continue off.
+  PhAddress _address = PhAddress.empty;
+
+  /// Bumped whenever [_applyData] replaces [_address], so the address fields
+  /// rebuild with the new pre-fill instead of keeping what they started with.
+  int _addressRevision = 0;
   String? _selectedDepartment;
   String? _selectedCourse;
   String? _selectedYearLevel;
@@ -104,18 +116,13 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _lastname = TextEditingController();
     _middleName = TextEditingController();
     _age = TextEditingController();
-    _address = TextEditingController();
     _phone = TextEditingController();
     _idNumber = TextEditingController();
     _yearLevel = TextEditingController();
     _gradYear = TextEditingController();
-    _gradMonth = TextEditingController();
-    _gradDay = TextEditingController();
     _volunteerTypeLabel = TextEditingController(
       text: widget.volunteerType?.label ?? '',
     );
-    _gradMonthFocus = FocusNode();
-    _gradDayFocus = FocusNode();
     _gradYearFocus = FocusNode();
     _phoneFocus = FocusNode();
     _idNumberFocus = FocusNode();
@@ -174,21 +181,14 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _setControllerText(_lastname, enriched.lastname);
     _setControllerText(_middleName, enriched.middleName);
     _setControllerText(_age, enriched.age > 0 ? '${enriched.age}' : '');
-    _setControllerText(_address, enriched.currentAddress);
+    _address = PhAddress.lenient(enriched.currentAddress);
+    _addressRevision++;
     _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
     _setControllerText(_idNumber, enriched.idNumber);
     _setControllerText(_yearLevel, enriched.yearLevelName);
     _setControllerText(
       _gradYear,
       enriched.graduationYear > 0 ? '${enriched.graduationYear}' : '',
-    );
-    _setControllerText(
-      _gradMonth,
-      enriched.graduationMonth > 0 ? '${enriched.graduationMonth}' : '',
-    );
-    _setControllerText(
-      _gradDay,
-      enriched.graduationDay > 0 ? '${enriched.graduationDay}' : '',
     );
     _volunteerTypeLabel.text = widget.volunteerType?.label ?? '';
 
@@ -224,41 +224,36 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _lastname.dispose();
     _middleName.dispose();
     _age.dispose();
-    _address.dispose();
     _phone.dispose();
     _idNumber.dispose();
     _yearLevel.dispose();
     _gradYear.dispose();
-    _gradMonth.dispose();
-    _gradDay.dispose();
     _volunteerTypeLabel.dispose();
-    _gradMonthFocus.dispose();
-    _gradDayFocus.dispose();
     _gradYearFocus.dispose();
     _phoneFocus.dispose();
     _idNumberFocus.dispose();
     super.dispose();
   }
 
-  void _focusNextField(FocusNode next) {
-    FocusScope.of(context).requestFocus(next);
+  String? get _ageError {
+    if (_age.text.trim().isEmpty && !_ageTouched) return null;
+    return VolunteerFieldRules.ageError(_age.text);
   }
 
-  void _onGradMonthChanged(String value) {
-    _notifyParent();
-    if (value.length >= 2) {
-      _focusNextField(_gradDayFocus);
-    }
+  String? get _gradYearError {
+    final type = widget.volunteerType;
+    if (type == null) return null;
+    if (_gradYear.text.trim().isEmpty && !_gradYearTouched) return null;
+    return VolunteerFieldRules.graduationYearError(_gradYear.text, type);
   }
 
-  void _onGradDayChanged(String value) {
+  void _onAgeChanged(String _) {
+    setState(() => _ageTouched = true);
     _notifyParent();
-    if (value.length >= 2) {
-      _focusNextField(_gradYearFocus);
-    }
   }
 
   void _onGradYearChanged(String value) {
+    setState(() => _gradYearTouched = true);
     _notifyParent();
     if (value.length >= 4) {
       _gradYearFocus.unfocus();
@@ -296,8 +291,6 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     final base = _effectiveData;
     final age = int.tryParse(_age.text.trim()) ?? 0;
     final gradYear = int.tryParse(_gradYear.text.trim()) ?? 0;
-    final gradMonth = int.tryParse(_gradMonth.text.trim()) ?? 0;
-    final gradDay = int.tryParse(_gradDay.text.trim()) ?? 0;
 
     String fieldOrParsed(String controllerValue, String parsedValue) {
       final trimmed = controllerValue.trim();
@@ -310,8 +303,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         lastname: fieldOrParsed(_lastname.text, base.lastname),
         middleName: fieldOrParsed(_middleName.text, base.middleName),
         gender: _gender.trim().isNotEmpty ? _gender : base.gender,
-        age: age > 0 ? age : base.age,
-        currentAddress: fieldOrParsed(_address.text, base.currentAddress),
+        // What is typed wins, so a cleared or invalid age keeps Continue off.
+        age: age,
+        // Never falls back to the raw scan: only a picked barangay + city count.
+        currentAddress: _address.formatted,
         phoneNumber: fieldOrParsed(_phone.text, base.phoneNumber),
         idNumber: fieldOrParsed(_idNumber.text, base.idNumber),
         departmentName: _isBeneficiary
@@ -326,15 +321,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                       base.yearLevelName,
                     )
                   : ''),
-        graduationYear: _isBeneficiary
-            ? 0
-            : (gradYear > 0 ? gradYear : base.graduationYear),
-        graduationMonth: _isBeneficiary
-            ? 0
-            : (gradMonth > 0 ? gradMonth : base.graduationMonth),
-        graduationDay: _isBeneficiary
-            ? 0
-            : (gradDay > 0 ? gradDay : base.graduationDay),
+        // Only the year is collected; month/day are filled in at submit.
+        graduationYear: _isBeneficiary ? 0 : gradYear,
         volunteerType: widget.volunteerType?.apiValue ?? base.volunteerType,
       ),
     );
@@ -490,16 +478,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             RegisterFormField(
               label: 'Age',
               controller: _age,
+              errorText: _ageError,
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (_) => _notifyParent(),
-            ),
-            const SizedBox(height: 14),
-            RegisterFormField(
-              label: 'Address',
-              controller: _address,
-              maxLines: 2,
-              onChanged: (_) => _notifyParent(),
+              inputFormatters: _twoDigitInputFormatters,
+              onChanged: _onAgeChanged,
             ),
             const SizedBox(height: 14),
             RegisterFormField(
@@ -511,6 +493,24 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
               keyboardType: TextInputType.phone,
               inputFormatters: const [PhilippinePhoneFormatter()],
               onChanged: (_) => _notifyParent(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        RegistrationFormCard(
+          icon: Icons.home_outlined,
+          title: 'Home address',
+          subtitle:
+              'Filled in from your ID where we could read it. Check it, and '
+              'pick your barangay from the list — we fill in the city.',
+          children: [
+            AddressAutocompleteFields(
+              key: ValueKey(_addressRevision),
+              value: _address,
+              onChanged: (address) {
+                setState(() => _address = address);
+                _notifyParent();
+              },
             ),
           ],
         ),
@@ -574,6 +574,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 label: 'Graduated year',
                 controller: _gradYear,
                 focusNode: _gradYearFocus,
+                errorText: _gradYearError,
                 keyboardType: TextInputType.number,
                 inputFormatters: _fourDigitInputFormatters,
                 onChanged: _onGradYearChanged,
@@ -581,54 +582,16 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ],
             if (_isStudent) ...[
               const SizedBox(height: 14),
-              Text(
-                'Graduation date',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondary.withValues(alpha: 0.95),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Expanded(
-                    child: RegisterFormField(
-                      label: 'Month',
-                      controller: _gradMonth,
-                      focusNode: _gradMonthFocus,
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
-                      inputFormatters: _twoDigitInputFormatters,
-                      onChanged: _onGradMonthChanged,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: RegisterFormField(
-                      label: 'Day',
-                      controller: _gradDay,
-                      focusNode: _gradDayFocus,
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
-                      inputFormatters: _twoDigitInputFormatters,
-                      onChanged: _onGradDayChanged,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 2,
-                    child: RegisterFormField(
-                      label: 'Year',
-                      controller: _gradYear,
-                      focusNode: _gradYearFocus,
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.done,
-                      inputFormatters: _fourDigitInputFormatters,
-                      onChanged: _onGradYearChanged,
-                    ),
-                  ),
-                ],
+              RegisterFormField(
+                label: 'Expected graduation year',
+                hint: 'YYYY',
+                controller: _gradYear,
+                focusNode: _gradYearFocus,
+                errorText: _gradYearError,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                inputFormatters: _fourDigitInputFormatters,
+                onChanged: _onGradYearChanged,
               ),
             ],
           ],

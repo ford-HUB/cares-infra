@@ -560,4 +560,3 @@ function format(
   if (Array.isArray(value)) return value.length ? value.join(', ') : 'none';
   return String(value);
 }
-

@@ -117,7 +117,7 @@ export function UserDetailsPanel({
                 <Field label="Department" value={detail.schoolInfo.department} />
                 <Field label="Major" value={detail.schoolInfo.major} />
                 <Field label="Year level" value={detail.schoolInfo.yearLevel} />
-                <Field label="Graduation" value={detail.schoolInfo.graduationDate} />
+                <Field label="Graduation year" value={detail.schoolInfo.graduationYear} />
               </Section>
             )}
 
