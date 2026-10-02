@@ -36,6 +36,15 @@ export class AssistanceRequestsRepository {
     });
   }
 
+  /** The household size saved on the beneficiary's profile, if any. */
+  async findHouseholdSize(userId: string): Promise<number | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { household_size: true },
+    });
+    return user?.household_size ?? null;
+  }
+
   async create(
     input: CreateAssistanceRequestInput,
   ): Promise<AssistanceRequestRow> {

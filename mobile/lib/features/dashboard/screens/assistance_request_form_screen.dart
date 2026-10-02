@@ -5,17 +5,27 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/api_client.dart';
+import '../../../core/session/role_account_store.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/media_permissions.dart';
 import '../data/assistance_request_data.dart';
+import '../presentation/utils/profile_gate.dart';
 
 /// "Request Assistance" form. Submitting files the request, with its proof
-/// documents, to `v1/assistance-requests/me`.
+/// documents, to `v1/assistance-requests/me`. Household size is not asked
+/// here — it comes from the beneficiary's profile, which must be complete
+/// before the form opens.
 class AssistanceRequestFormScreen extends StatefulWidget {
   const AssistanceRequestFormScreen({super.key});
 
-  /// Returns the created request when one was filed.
-  static Future<AssistanceRequest?> open(BuildContext context) {
+  /// Returns the created request when one was filed. Locked until the
+  /// beneficiary profile is complete.
+  static Future<AssistanceRequest?> open(BuildContext context) async {
+    final allowed = await ProfileGate.ensureComplete(
+      context,
+      RoleAccountStore.beneficiary,
+    );
+    if (!allowed || !context.mounted) return null;
     return Navigator.of(context).push<AssistanceRequest>(
       MaterialPageRoute<AssistanceRequest>(
         builder: (_) => const AssistanceRequestFormScreen(),
@@ -33,7 +43,6 @@ class _AssistanceRequestFormScreenState
   final _store = AssistanceRequestStore.instance;
   final _otherNeedController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _householdController = TextEditingController(text: '5');
   final _attachments = <RequestAttachment>[];
 
   static const _maxAttachments = 3;
@@ -57,16 +66,18 @@ class _AssistanceRequestFormScreenState
   void dispose() {
     _otherNeedController.dispose();
     _descriptionController.dispose();
-    _householdController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_canSubmit || _isSubmitting) return;
 
-    final householdSize = int.tryParse(_householdController.text.trim());
+    final householdSize = RoleAccountStore.instance
+        .byType(RoleAccountStore.beneficiary)
+        ?.serverProfile
+        ?.householdSize;
     if (householdSize == null || householdSize < 1) {
-      _showMessage('Enter how many people are in your household.');
+      _showMessage('Add your household size to your profile first.');
       return;
     }
 
@@ -286,14 +297,6 @@ class _AssistanceRequestFormScreenState
                       ),
                     );
                   }).toList(),
-                ),
-                const SizedBox(height: 18),
-                const _FieldLabel('Household size'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _householdController,
-                  keyboardType: TextInputType.number,
-                  decoration: _inputDecoration('Number of members'),
                 ),
                 const SizedBox(height: 18),
                 const _FieldLabel('Describe your situation'),

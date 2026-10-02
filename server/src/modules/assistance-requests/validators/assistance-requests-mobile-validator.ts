@@ -40,11 +40,6 @@ export const CreateAssistanceRequestSchema = z
       .min(1, 'Describe your situation')
       .max(500, 'Keep the description under 500 characters'),
     urgency: z.enum(AssistanceUrgency, 'Choose how urgent this is'),
-    householdSize: z.coerce
-      .number('Enter your household size')
-      .int('Household size must be a whole number')
-      .min(1, 'Household size must be at least 1')
-      .max(100, 'Household size must be 100 or fewer'),
   })
   .strict();
 

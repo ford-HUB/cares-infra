@@ -64,6 +64,14 @@ export class AssistanceRequestsMobileService {
         `You can attach up to ${ASSISTANCE_ATTACHMENT_MAX_COUNT} files`,
       );
     }
+    // Household size lives on the profile, not on each request.
+    const householdSize =
+      await this.assistanceRequestsRepository.findHouseholdSize(userId);
+    if (householdSize == null) {
+      throw new BadRequestException(
+        'Complete your profile, including your household size, before requesting assistance',
+      );
+    }
     const checked = files.map((file) => ({ file, mime: resolveMime(file) }));
     for (const { file, mime } of checked) {
       if (!file.buffer?.length) {
@@ -101,7 +109,7 @@ export class AssistanceRequestsMobileService {
       category: body.category,
       description: body.description,
       urgency: body.urgency,
-      householdSize: body.householdSize,
+      householdSize,
       attachments,
     });
     return toMobileDto(row);
