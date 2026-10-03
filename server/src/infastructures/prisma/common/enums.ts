@@ -475,7 +475,8 @@ export const AssistanceRequestStatus = {
   UNDER_REVIEW: 'UNDER_REVIEW',
   APPROVED: 'APPROVED',
   COMPLETED: 'COMPLETED',
-  DECLINED: 'DECLINED'
+  DECLINED: 'DECLINED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type AssistanceRequestStatus = (typeof AssistanceRequestStatus)[keyof typeof AssistanceRequestStatus]

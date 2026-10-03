@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../core/services/api_client.dart';
 import '../../../core/session/role_account_store.dart';
@@ -10,13 +11,19 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/media_permissions.dart';
 import '../data/assistance_request_data.dart';
 import '../presentation/utils/profile_gate.dart';
+import '../widgets/assistance_location_widgets.dart';
 
 /// "Request Assistance" form. Submitting files the request, with its proof
-/// documents, to `v1/assistance-requests/me`. Household size is not asked
-/// here — it comes from the beneficiary's profile, which must be complete
-/// before the form opens.
+/// documents and the pinned location, to `v1/assistance-requests/me`.
+/// Household size is not asked here — it comes from the beneficiary's
+/// profile, which must be complete before the form opens.
+///
+/// Given an [initial] request, the same form edits it instead; attachments
+/// stay as filed.
 class AssistanceRequestFormScreen extends StatefulWidget {
-  const AssistanceRequestFormScreen({super.key});
+  const AssistanceRequestFormScreen({super.key, this.initial});
+
+  final AssistanceRequest? initial;
 
   /// Returns the created request when one was filed. Locked until the
   /// beneficiary profile is complete.
@@ -33,6 +40,18 @@ class AssistanceRequestFormScreen extends StatefulWidget {
     );
   }
 
+  /// Returns the updated request when an edit was saved.
+  static Future<AssistanceRequest?> openEdit(
+    BuildContext context,
+    AssistanceRequest request,
+  ) {
+    return Navigator.of(context).push<AssistanceRequest>(
+      MaterialPageRoute<AssistanceRequest>(
+        builder: (_) => AssistanceRequestFormScreen(initial: request),
+      ),
+    );
+  }
+
   @override
   State<AssistanceRequestFormScreen> createState() =>
       _AssistanceRequestFormScreenState();
@@ -43,6 +62,7 @@ class _AssistanceRequestFormScreenState
   final _store = AssistanceRequestStore.instance;
   final _otherNeedController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _locationDetailsController = TextEditingController();
   final _attachments = <RequestAttachment>[];
 
   static const _maxAttachments = 3;
@@ -51,7 +71,10 @@ class _AssistanceRequestFormScreenState
   String? _need;
   String _category = kAssistanceCategories.first;
   String _urgency = 'Normal';
+  LatLng? _location;
   bool _isSubmitting = false;
+
+  bool get _isEditing => widget.initial != null;
 
   bool get _isOtherNeed => _need == kOtherOption;
 
@@ -63,14 +86,68 @@ class _AssistanceRequestFormScreenState
       _title.isNotEmpty && _descriptionController.text.trim().isNotEmpty;
 
   @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    if (initial == null) return;
+    if (kAssistanceNeedOptions.contains(initial.title)) {
+      _need = initial.title;
+    } else {
+      _need = kOtherOption;
+      _otherNeedController.text = initial.title;
+    }
+    if (kAssistanceCategories.contains(initial.category)) {
+      _category = initial.category;
+    }
+    if (kAssistanceUrgencyLevels.contains(initial.urgency)) {
+      _urgency = initial.urgency;
+    }
+    _descriptionController.text = initial.description;
+    _location = initial.location;
+    _locationDetailsController.text = initial.locationDetails ?? '';
+  }
+
+  @override
   void dispose() {
     _otherNeedController.dispose();
     _descriptionController.dispose();
+    _locationDetailsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveEdit(AssistanceRequest initial) async {
+    setState(() => _isSubmitting = true);
+    try {
+      final updated = await _store.update(
+        initial.id,
+        title: _title,
+        category: _category,
+        description: _descriptionController.text.trim(),
+        urgency: _urgency,
+        location: _location,
+        locationDetails: _locationDetailsController.text.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your request was updated.')),
+      );
+      Navigator.of(context).pop(updated);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showMessage('Could not save your changes. Please try again.');
+    }
   }
 
   Future<void> _submit() async {
     if (!_canSubmit || _isSubmitting) return;
+
+    final initial = widget.initial;
+    if (initial != null) return _saveEdit(initial);
 
     final householdSize = RoleAccountStore.instance
         .byType(RoleAccountStore.beneficiary)
@@ -90,7 +167,8 @@ class _AssistanceRequestFormScreenState
         category: _category,
         description: _descriptionController.text.trim(),
         urgency: _urgency,
-        householdSize: householdSize,
+        location: _location,
+        locationDetails: _locationDetailsController.text.trim(),
         attachments: List.unmodifiable(_attachments),
       );
     } on ApiException catch (e) {
@@ -175,7 +253,7 @@ class _AssistanceRequestFormScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Request Assistance'),
+        title: Text(_isEditing ? 'Edit Request' : 'Request Assistance'),
         centerTitle: true,
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
@@ -208,9 +286,9 @@ class _AssistanceRequestFormScreenState
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Tell us what your household needs. A field officer '
-                          'reviews every request and may schedule a needs '
-                          'assessment visit.',
+                          'Tell us what your household needs and pin where '
+                          'help is needed. A field officer reviews every '
+                          'request and may schedule a needs assessment visit.',
                           style: TextStyle(
                             fontSize: 12.5,
                             height: 1.45,
@@ -313,12 +391,11 @@ class _AssistanceRequestFormScreenState
                   ),
                 ),
                 const SizedBox(height: 10),
-                const _FieldLabel('Proof / supporting documents'),
+                const _FieldLabel('Where is assistance needed?'),
                 const SizedBox(height: 4),
                 const Text(
-                  'Optional. Attach an ID, bill, medical certificate, or a '
-                  'photo that supports your request (PDF or image, up to '
-                  '$_maxAttachments files).',
+                  'Optional, but it helps the field officer find you. Tap '
+                  'the map to drop a pin, or use your current location.',
                   style: TextStyle(
                     fontSize: 12,
                     height: 1.4,
@@ -326,12 +403,38 @@ class _AssistanceRequestFormScreenState
                   ),
                 ),
                 const SizedBox(height: 10),
-                for (var i = 0; i < _attachments.length; i++)
-                  _AttachmentTile(
-                    attachment: _attachments[i],
-                    onRemove: () => setState(() => _attachments.removeAt(i)),
+                AssistanceLocationField(
+                  location: _location,
+                  onChanged: (point) => setState(() => _location = point),
+                  detailsController: _locationDetailsController,
+                ),
+                const SizedBox(height: 10),
+                const _FieldLabel('Proof / supporting documents'),
+                const SizedBox(height: 4),
+                Text(
+                  _isEditing
+                      ? 'Documents stay as filed and cannot be changed in an '
+                            'edit.'
+                      : 'Optional. Attach an ID, bill, medical certificate, '
+                            'or a photo that supports your request (PDF or '
+                            'image, up to $_maxAttachments files).',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppColors.textMuted,
                   ),
-                if (_canAddAttachment)
+                ),
+                const SizedBox(height: 10),
+                if (_isEditing)
+                  for (final file in widget.initial!.attachments)
+                    _AttachmentTile(attachment: file, onRemove: null)
+                else
+                  for (var i = 0; i < _attachments.length; i++)
+                    _AttachmentTile(
+                      attachment: _attachments[i],
+                      onRemove: () => setState(() => _attachments.removeAt(i)),
+                    ),
+                if (!_isEditing && _canAddAttachment)
                   Row(
                     children: [
                       Expanded(
@@ -366,7 +469,7 @@ class _AssistanceRequestFormScreenState
                       padding: EdgeInsets.only(bottom: 10),
                       child: Text(
                         'Choose what you need and describe your situation to '
-                        'submit your request.',
+                        'continue.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -385,9 +488,15 @@ class _AssistanceRequestFormScreenState
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(Icons.send_rounded),
+                        : Icon(
+                            _isEditing
+                                ? Icons.save_rounded
+                                : Icons.send_rounded,
+                          ),
                     label: Text(
-                      _isSubmitting ? 'Submitting...' : 'Submit Request',
+                      _isSubmitting
+                          ? (_isEditing ? 'Saving...' : 'Submitting...')
+                          : (_isEditing ? 'Save Changes' : 'Submit Request'),
                     ),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -479,7 +588,11 @@ class _AttachmentTile extends StatelessWidget {
   const _AttachmentTile({required this.attachment, required this.onRemove});
 
   final RequestAttachment attachment;
-  final VoidCallback onRemove;
+
+  /// Null for a document already filed, which stays as it is.
+  final VoidCallback? onRemove;
+
+  bool get _isLocal => !attachment.path.startsWith('http');
 
   @override
   Widget build(BuildContext context) {
@@ -494,7 +607,7 @@ class _AttachmentTile extends StatelessWidget {
             child: SizedBox(
               width: 44,
               height: 44,
-              child: attachment.isImage
+              child: attachment.isImage && _isLocal
                   ? Image.file(
                       File(attachment.path),
                       fit: BoxFit.cover,
@@ -532,15 +645,18 @@ class _AttachmentTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onRemove,
-            tooltip: 'Remove',
-            icon: const Icon(
-              Icons.close_rounded,
-              size: 20,
-              color: AppColors.textMuted,
-            ),
-          ),
+          if (onRemove != null)
+            IconButton(
+              onPressed: onRemove,
+              tooltip: 'Remove',
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 20,
+                color: AppColors.textMuted,
+              ),
+            )
+          else
+            const SizedBox(width: 12),
         ],
       ),
     );

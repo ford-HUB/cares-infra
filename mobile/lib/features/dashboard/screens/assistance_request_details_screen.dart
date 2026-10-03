@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/assistance_request_data.dart';
+import '../widgets/assistance_location_widgets.dart';
 import '../widgets/assistance_request_widgets.dart';
+import 'assistance_request_form_screen.dart';
 
 /// Full details of one assistance request: status, progress trail, needs
-/// assessment, and what was requested.
-class AssistanceRequestDetailsScreen extends StatelessWidget {
+/// assessment, where it is needed, and what was requested. While the server
+/// allows it, the beneficiary can edit or cancel it from here.
+class AssistanceRequestDetailsScreen extends StatefulWidget {
   const AssistanceRequestDetailsScreen({super.key, required this.request});
 
   final AssistanceRequest request;
@@ -20,8 +24,69 @@ class AssistanceRequestDetailsScreen extends StatelessWidget {
   }
 
   @override
+  State<AssistanceRequestDetailsScreen> createState() =>
+      _AssistanceRequestDetailsScreenState();
+}
+
+class _AssistanceRequestDetailsScreenState
+    extends State<AssistanceRequestDetailsScreen> {
+  late AssistanceRequest _request = widget.request;
+  bool _isCancelling = false;
+
+  Future<void> _edit() async {
+    final updated = await AssistanceRequestFormScreen.openEdit(
+      context,
+      _request,
+    );
+    if (updated == null || !mounted) return;
+    setState(() => _request = updated);
+  }
+
+  Future<void> _cancel() async {
+    final reason = await showCancelRequestSheet(context, _request);
+    if (reason == null || !mounted) return;
+
+    setState(() => _isCancelling = true);
+    try {
+      final cancelled = await AssistanceRequestStore.instance.cancel(
+        _request.id,
+        reason: reason,
+      );
+      if (!mounted) return;
+      setState(() {
+        _request = cancelled;
+        _isCancelling = false;
+      });
+      _showMessage('Your request was cancelled.');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isCancelling = false);
+      _showMessage(e.message);
+      // The server refused because the request moved on — show where it is.
+      await AssistanceRequestStore.instance.load();
+      if (!mounted) return;
+      final fresh = AssistanceRequestStore.instance.requests
+          .where((r) => r.id == _request.id)
+          .firstOrNull;
+      if (fresh != null) setState(() => _request = fresh);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isCancelling = false);
+      _showMessage('Could not cancel your request. Please try again.');
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final request = _request;
     final statusColor = assistanceStatusColor(request.status);
+    final location = request.location;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -32,6 +97,15 @@ class AssistanceRequestDetailsScreen extends StatelessWidget {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
+      bottomNavigationBar: request.canEdit || request.canCancel
+          ? _RequestActions(
+              canEdit: request.canEdit,
+              canCancel: request.canCancel,
+              isCancelling: _isCancelling,
+              onEdit: _edit,
+              onCancel: _cancel,
+            )
+          : null,
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
         children: [
@@ -197,6 +271,15 @@ class AssistanceRequestDetailsScreen extends StatelessWidget {
               ],
             ),
           ),
+          if (location != null) ...[
+            const SizedBox(height: 20),
+            const _SectionTitle('Location'),
+            const SizedBox(height: 10),
+            AssistanceLocationPreview(
+              location: location,
+              details: request.locationDetails,
+            ),
+          ],
           const SizedBox(height: 20),
           const _SectionTitle('Description'),
           const SizedBox(height: 10),
@@ -321,6 +404,204 @@ class AssistanceRequestDetailsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Edit / Cancel bar under the details. Editing is only offered until the
+/// relief desk starts screening; cancelling until the request is completed.
+class _RequestActions extends StatelessWidget {
+  const _RequestActions({
+    required this.canEdit,
+    required this.canCancel,
+    required this.isCancelling,
+    required this.onEdit,
+    required this.onCancel,
+  });
+
+  final bool canEdit;
+  final bool canCancel;
+  final bool isCancelling;
+  final VoidCallback onEdit;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+    );
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+        child: Row(
+          children: [
+            if (canCancel)
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: isCancelling ? null : onCancel,
+                  icon: isCancelling
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.block_rounded, size: 18),
+                  label: Text(
+                    isCancelling ? 'Cancelling...' : 'Cancel Request',
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    minimumSize: const Size.fromHeight(50),
+                    shape: shape,
+                  ),
+                ),
+              ),
+            if (canCancel && canEdit) const SizedBox(width: 12),
+            if (canEdit)
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: isCancelling ? null : onEdit,
+                  icon: const Icon(Icons.edit_rounded, size: 18),
+                  label: const Text('Edit Request'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    minimumSize: const Size.fromHeight(50),
+                    shape: shape,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Confirms a cancellation. Returns the optional reason (possibly empty)
+/// when confirmed, or null when the beneficiary keeps the request.
+Future<String?> showCancelRequestSheet(
+  BuildContext context,
+  AssistanceRequest request,
+) {
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (_) => _CancelRequestSheet(request: request),
+  );
+}
+
+class _CancelRequestSheet extends StatefulWidget {
+  const _CancelRequestSheet({required this.request});
+
+  final AssistanceRequest request;
+
+  @override
+  State<_CancelRequestSheet> createState() => _CancelRequestSheetState();
+}
+
+class _CancelRequestSheetState extends State<_CancelRequestSheet> {
+  final _reasonController = TextEditingController();
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final approved = widget.request.status == AssistanceRequestStatus.approved;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        20,
+        24,
+        20 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Cancel this request?',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${widget.request.referenceNumber} will be withdrawn and the '
+              'relief desk will stop processing it.'
+              '${approved ? ' It is already approved, so any assistance '
+                        'set aside for you will be released to others.' : ''}'
+              ' This cannot be undone — you can file a new request later.',
+              style: const TextStyle(
+                fontSize: 13.5,
+                height: 1.5,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _reasonController,
+              maxLength: 300,
+              maxLines: 3,
+              minLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: 'Reason for cancelling (optional)',
+                filled: true,
+                fillColor: AppColors.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.inputFill),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.inputFill),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.primary),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(_reasonController.text.trim()),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.error,
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Text('Yes, cancel request'),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                minimumSize: const Size.fromHeight(46),
+              ),
+              child: const Text('Keep request'),
+            ),
+          ],
+        ),
       ),
     );
   }

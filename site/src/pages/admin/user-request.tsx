@@ -3,10 +3,13 @@ import { Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { ContentShell } from '../../components/portal/ui/content-shell'
 import { InlinePageHeader } from '../../components/portal/ui/page-chrome'
+import { AssistanceRequestTabPanel } from '../../components/user-request/assistance-request-tab-panel'
 import { UserRequestTimeline } from '../../components/user-request/user-request-timeline'
+import { RequestTypeTabs, type RequestTab } from '../../components/user-request/ui/request-type-tabs'
 import { DeletedRequestsModal } from '../../components/user-request/ui/deleted-requests-modal'
 import { RejectRequestModal } from '../../components/user-request/ui/reject-request-modal'
 import { UserRequestTimelineSkeleton } from '../../components/user-request/ui/user-request-timeline-skeleton'
+import { useAssistanceRequestReview } from '../../hooks/use-assistance-request-review'
 import { useUserRequestStore } from '../../store/user-request-store'
 import type { UserRequest } from '../../types/user-request'
 
@@ -24,6 +27,13 @@ export function UserRequestPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [binOpen, setBinOpen] = useState(false)
   const [rejecting, setRejecting] = useState<UserRequest | null>(null)
+  const [tab, setTab] = useState<RequestTab>('access')
+  // Loaded with the page, so the Assistance tab's count shows before it is opened.
+  const assistance = useAssistanceRequestReview()
+  const pendingAccess = useMemo(
+    () => requests.filter((request) => request.status === 'pending').length,
+    [requests],
+  )
 
   useEffect(() => {
     void fetchRequests()
@@ -99,68 +109,83 @@ export function UserRequestPage() {
     <ContentShell>
       <InlinePageHeader
         title="User Request"
-        description="Volunteer access requests from donors and beneficiaries, and beneficiary event-join requests, submitted from the mobile app."
+        description="Volunteer access requests, beneficiary event-join requests, and beneficiaries' assistance requests, submitted from the mobile app."
         action={
-          <button
-            type="button"
-            onClick={() => setBinOpen(true)}
-            aria-label="View deleted requests"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            <Trash2 className="h-4 w-4" />
-            Deleted
-            {deleted.length > 0 && (
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
-                {deleted.length}
-              </span>
-            )}
-          </button>
+          // The bin belongs to the access queue; assistance requests are never deleted.
+          tab === 'access' && (
+            <button
+              type="button"
+              onClick={() => setBinOpen(true)}
+              aria-label="View deleted requests"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <Trash2 className="h-4 w-4" />
+              Deleted
+              {deleted.length > 0 && (
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+                  {deleted.length}
+                </span>
+              )}
+            </button>
+          )
         }
       />
 
-      {error && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
-          <span>{error}</span>
-          <button
-            type="button"
-            onClick={() => void fetchRequests()}
-            className="font-medium underline underline-offset-2 hover:text-red-900"
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      <RequestTypeTabs
+        tab={tab}
+        onTabChange={setTab}
+        counts={{ access: pendingAccess, assistance: assistance.awaitingCount }}
+      />
 
-      <div aria-busy={showSkeleton}>
-        {showSkeleton ? (
-          <UserRequestTimelineSkeleton />
-        ) : (
-          <UserRequestTimeline
-            requests={timeline}
-            busyId={busyId}
-            onAccept={handleAccept}
-            onReject={setRejecting}
-            onDelete={handleDelete}
+      {tab === 'assistance' ? (
+        <AssistanceRequestTabPanel {...assistance} />
+      ) : (
+        <>
+        {error && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => void fetchRequests()}
+              className="font-medium underline underline-offset-2 hover:text-red-900"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        <div aria-busy={showSkeleton}>
+          {showSkeleton ? (
+            <UserRequestTimelineSkeleton />
+          ) : (
+            <UserRequestTimeline
+              requests={timeline}
+              busyId={busyId}
+              onAccept={handleAccept}
+              onReject={setRejecting}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
+
+        {rejecting && (
+          <RejectRequestModal
+            request={rejecting}
+            busy={busyId === rejecting.id}
+            onConfirm={(reason) => void handleConfirmReject(rejecting, reason)}
+            onClose={() => setRejecting(null)}
           />
         )}
-      </div>
 
-      {rejecting && (
-        <RejectRequestModal
-          request={rejecting}
-          busy={busyId === rejecting.id}
-          onConfirm={(reason) => void handleConfirmReject(rejecting, reason)}
-          onClose={() => setRejecting(null)}
-        />
-      )}
-
-      {binOpen && (
-        <DeletedRequestsModal
-          requests={deleted}
-          busyId={busyId}
-          onRestore={handleRestore}
-          onClose={() => setBinOpen(false)}
-        />
+        {binOpen && (
+          <DeletedRequestsModal
+            requests={deleted}
+            busyId={busyId}
+            onRestore={handleRestore}
+            onClose={() => setBinOpen(false)}
+          />
+        )}
+        </>
       )}
     </ContentShell>
   )

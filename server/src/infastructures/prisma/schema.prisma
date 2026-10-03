@@ -1052,6 +1052,12 @@ model AssistanceRequest {
   description           String
   urgency               AssistanceUrgency
   household_size        Int
+  /// Where the assistance is needed, pinned by the beneficiary on the map.
+  /// Both are set together or both are null.
+  location_latitude     Float?
+  location_longitude    Float?
+  /// Landmark or address details typed beside the pin.
+  location_details      String?
   status                AssistanceRequestStatus       @default(PENDING)
   assessment_status     AssistanceAssessmentStatus    @default(NOT_STARTED)
   /// The needs assessment visit — scheduled or held.
@@ -1064,6 +1070,9 @@ model AssistanceRequest {
   screened_at           DateTime?
   decided_at            DateTime?
   released_at           DateTime?
+  /// Set when the beneficiary withdraws the request themselves.
+  cancelled_at          DateTime?
+  cancel_reason         String?
   createdAt             DateTime                      @default(now())
   updatedAt             DateTime                      @updatedAt
   user                  User                          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -1615,6 +1624,8 @@ enum AssistanceRequestStatus {
   APPROVED
   COMPLETED
   DECLINED
+  /// Withdrawn by the beneficiary before it was completed.
+  CANCELLED
 }
 
 /// Where the request's needs assessment visit stands.
