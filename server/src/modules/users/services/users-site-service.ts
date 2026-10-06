@@ -891,12 +891,7 @@ function toManagedUserDetail(row: UserDetailRow): ManagedUserDetailDto {
     age: row.age,
     phone_number: row.phone_number,
     current_address: row.current_address,
-    address: {
-      street: row.address_street,
-      barangay: row.address_barangay,
-      city: row.address_city,
-      province: row.address_province,
-    },
+    address: toAddressParts(row),
     has_avatar: Boolean(row.avatar),
     has_signature: Boolean(row.accounts[0]?.signature_url),
     restricted_at: row.accounts[0]?.restricted_at?.toISOString() ?? null,
@@ -920,6 +915,38 @@ function toManagedUserDetail(row: UserDetailRow): ManagedUserDetailDto {
       reason: blocked.reason,
       blocked_at: blocked.createdAt.toISOString(),
     })),
+  };
+}
+
+/**
+ * The split address columns are only written by the portal profile form.
+ * Mobile users register (and edit) a single `current_address` that the app
+ * always formats as `Street, Barangay, City/Municipality, Province`, so when
+ * the columns are empty the parts are read back out of that string instead.
+ */
+function toAddressParts(row: UserDetailRow) {
+  const stored = {
+    street: row.address_street,
+    barangay: row.address_barangay,
+    city: row.address_city,
+    province: row.address_province,
+  };
+  if (Object.values(stored).some((part) => part?.trim())) return stored;
+
+  const parts = row.current_address
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  // Anything shorter isn't the app's canonical shape (e.g. a free-text
+  // address read off a residency document) — guessing would mislabel it.
+  if (parts.length < 4) return stored;
+
+  const [barangay, city, province] = parts.slice(-3);
+  return {
+    street: parts.slice(0, -3).join(', '),
+    barangay,
+    city,
+    province,
   };
 }
 

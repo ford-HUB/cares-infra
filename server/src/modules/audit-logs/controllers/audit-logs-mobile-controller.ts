@@ -8,7 +8,7 @@ import {
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { MOBILE_PROFILE_ROLE_TYPES } from 'src/modules/profile/validators/profile-mobile-validator';
+import { MOBILE_PROFILE_ACCESS_ROLE_TYPES } from 'src/modules/profile/validators/profile-mobile-validator';
 import type {
   ActivityLogPageDto,
   ListMyActivityQueryDto,
@@ -32,7 +32,7 @@ export class AuditLogsMobileController {
   ) {}
 
   @Get('me')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Activity logs')
   @ZSerialize(ActivityLogPageResponseSchema)
   async listMyActivity(
@@ -45,7 +45,7 @@ export class AuditLogsMobileController {
   /** Device-side actions (role switch/unlock) the app reports to keep the trail whole. */
   @Post('me/activity')
   @HttpCode(200)
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Activity recorded')
   async recordClientActivity(
     @CurrentUser() user: JwtPayload,

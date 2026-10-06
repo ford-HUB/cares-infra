@@ -4,7 +4,7 @@ import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
+import { MOBILE_SIGN_IN_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import type {
   DonationEventsResponseDto,
   EventRegistrationResponseDto,
@@ -27,7 +27,7 @@ export class EventsMobileController {
   constructor(private readonly eventsMobileService: EventsMobileService) {}
 
   @Get('recommended')
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Recommended events')
   @ZSerialize(RecommendedEventsResponseSchema)
   async listRecommended(
@@ -38,7 +38,7 @@ export class EventsMobileController {
   }
 
   @Get('beneficiary')
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Events open to beneficiaries')
   @ZSerialize(RegisteredEventsResponseSchema)
   async listForBeneficiaries(
@@ -48,7 +48,7 @@ export class EventsMobileController {
   }
 
   @Get('beneficiary/completed')
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Completed events for beneficiaries')
   @ZSerialize(RegisteredEventsResponseSchema)
   async listCompletedForBeneficiaries(
@@ -59,7 +59,7 @@ export class EventsMobileController {
 
   /** Open events with money or goods donations enabled — the donor's campaigns. */
   @Get('donations')
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Events accepting donations')
   @ZSerialize(DonationEventsResponseSchema)
   async listForDonors(
@@ -69,7 +69,7 @@ export class EventsMobileController {
   }
 
   @Get('registered')
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Registered events')
   @ZSerialize(RegisteredEventsResponseSchema)
   async listRegistered(
@@ -80,7 +80,7 @@ export class EventsMobileController {
 
   @Post(':id/register')
   @HttpCode(200)
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Registered for the event')
   @ZSerialize(EventRegistrationResponseSchema)
   async register(
@@ -91,7 +91,7 @@ export class EventsMobileController {
   }
 
   @Delete(':id/register')
-  @Roles(...MOBILE_ROLE_TYPES)
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
   @ResponseMessage('Registration cancelled')
   @ZSerialize(EventRegistrationResponseSchema)
   async unregister(

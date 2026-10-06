@@ -4,7 +4,7 @@ import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
+import { MOBILE_SIGN_IN_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import type {
   DonorLeaderboardResponseDto,
   LeaderboardQueryDto,
@@ -19,7 +19,7 @@ import {
 
 /** The volunteer app's Ranks tab and the home header's rank badge. */
 @Controller('v1/rankings')
-@Roles(...MOBILE_ROLE_TYPES)
+@Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class RankingsMobileController {
   constructor(private readonly rankingsMobileService: RankingsMobileService) {}
 

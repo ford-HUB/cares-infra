@@ -15,6 +15,12 @@ import {
 } from '../../../infastructures/microservices/ocr-service-client';
 import { S3Service } from '../../../infastructures/s3/s3-service';
 import { resolveImageMimeType } from '../../../shared/utils/image-mime';
+import {
+  isStaffVolunteerRole,
+  toMobileRole,
+  type MobileRoleType,
+  type MobileSignInRoleType,
+} from '../../../shared/constants/mobile-role-types';
 import { AuthMobileService } from '../../auth/services/auth-mobile-service';
 import { AuditLogRecorder } from '../../audit-logs/services/audit-log-recorder';
 import type { RequestContextDto } from '../../../shared/decorators/request-context-decorator';
@@ -38,7 +44,6 @@ import {
   MOBILE_PROFILE_ALLOWED_RESIDENCY_MIMES,
   MOBILE_PROFILE_MAX_AVATAR_BYTES,
   MOBILE_PROFILE_MAX_RESIDENCY_BYTES,
-  MOBILE_PROFILE_ROLE_TYPES,
 } from '../validators/profile-mobile-validator';
 import {
   ProfileCacheService,
@@ -46,10 +51,25 @@ import {
 } from './profile-cache-service';
 import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
 
-type MobileRoleType = (typeof MOBILE_PROFILE_ROLE_TYPES)[number];
-
-function isMobileRole(role: RoleType): role is MobileRoleType {
-  return (MOBILE_PROFILE_ROLE_TYPES as readonly RoleType[]).includes(role);
+/**
+ * The side a profile read or write is scoped to: [viewRole] if the app named
+ * one, else the side the registered role lands on. Directors and coordinators
+ * only have the Volunteer side in the app, so any other side is refused.
+ */
+function resolveProfilingRole(
+  registeredRole: RoleType,
+  viewRole?: MobileRoleType,
+): MobileRoleType {
+  const home = toMobileRole(registeredRole);
+  if (!home) {
+    throw new ForbiddenException('Profile is not available for this role');
+  }
+  if (isStaffVolunteerRole(registeredRole) && viewRole && viewRole !== home) {
+    throw new ForbiddenException(
+      'Only the Volunteer side is available to staff accounts',
+    );
+  }
+  return viewRole ?? home;
 }
 
 @Injectable()
@@ -85,11 +105,9 @@ export class ProfileMobileService {
       throw new NotFoundException('User not found');
     }
 
-    const roleType = row.role.type;
-    if (!isMobileRole(roleType)) {
-      throw new ForbiddenException('Profile is not available for this role');
-    }
-    const profilingRole = viewRole ?? roleType;
+    // Already narrowed by the controller's role gate; resolveProfilingRole re-checks.
+    const roleType = row.role.type as MobileSignInRoleType;
+    const profilingRole = resolveProfilingRole(roleType, viewRole);
 
     const volunteer =
       profilingRole === RoleType.VOLUNTEER
@@ -151,9 +169,8 @@ export class ProfileMobileService {
     if (!existing) {
       throw new NotFoundException('User not found');
     }
-    if (!isMobileRole(existing.role.type)) {
-      throw new ForbiddenException('Profile is not available for this role');
-    }
+    const registeredRole = existing.role.type;
+    const avatarRole = resolveProfilingRole(registeredRole, viewRole);
 
     const phoneOwner = await this.profileRepository.findPhoneOwner(
       data.phone_number,
@@ -166,9 +183,8 @@ export class ProfileMobileService {
     // The photo belongs to the side being edited, never to the whole
     // account: a donor picture must not show up on the volunteer dashboard.
     // The registered role also mirrors onto `User.avatar` so the portal
-    // (staff views, chat) keeps seeing the primary picture.
-    const registeredRole = existing.role.type;
-    const avatarRole = viewRole ?? registeredRole;
+    // (staff views, chat) keeps seeing the primary picture. A director's or
+    // coordinator's Volunteer side never matches, so their portal photo stays.
     const avatarUrl = avatar
       ? await this.uploadAvatar(userId, avatarRole, avatar)
       : undefined;
@@ -237,10 +253,7 @@ export class ProfileMobileService {
     if (!row) {
       throw new NotFoundException('User not found');
     }
-    if (!isMobileRole(row.role.type)) {
-      throw new ForbiddenException('Profile is not available for this role');
-    }
-    const role = viewRole ?? row.role.type;
+    const role = resolveProfilingRole(row.role.type, viewRole);
     const kind = this.roleAvatarKind(role);
 
     const cached = await this.profileCacheService.getAsset(userId, kind);
@@ -266,7 +279,8 @@ export class ProfileMobileService {
     if (own) {
       return own;
     }
-    return role === row.role.type ? row.avatar : null;
+    // Staff land on the Volunteer side, so their portal photo stands in there.
+    return role === toMobileRole(row.role.type) ? row.avatar : null;
   }
 
   private roleAvatarKind(role: MobileRoleType): ProfileAssetKind {
@@ -368,9 +382,7 @@ export class ProfileMobileService {
     if (!existing) {
       throw new NotFoundException('User not found');
     }
-    if (!isMobileRole(existing.role.type)) {
-      throw new ForbiddenException('Profile is not available for this role');
-    }
+    resolveProfilingRole(existing.role.type, viewRole);
 
     if (file.size > MOBILE_PROFILE_MAX_RESIDENCY_BYTES) {
       const limitMb = MOBILE_PROFILE_MAX_RESIDENCY_BYTES / (1024 * 1024);
@@ -548,11 +560,16 @@ export class ProfileMobileService {
     };
 
     if (roleType === RoleType.VOLUNTEER) {
+      // Directors and coordinators sign in with their portal account: they were
+      // vetted as staff, never registered with a school ID or a face match.
+      const staff = isStaffVolunteerRole(row.role.type);
       // A director-approved volunteer side has no school record to fill in.
-      if (!this.isDirectorGrantedVolunteer(row)) {
+      if (!staff && !this.isDirectorGrantedVolunteer(row)) {
         steps.school_record = row.user_school_info.length > 0;
       }
-      steps.id_verification = biometricSubmitted;
+      if (!staff) {
+        steps.id_verification = biometricSubmitted;
+      }
       steps.interests = hasInterests;
     } else if (roleType === RoleType.BENEFICIARY) {
       steps.household_size = row.household_size != null;

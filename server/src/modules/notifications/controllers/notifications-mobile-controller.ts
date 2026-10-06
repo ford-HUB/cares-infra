@@ -4,7 +4,7 @@ import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import { MOBILE_SIGN_IN_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import type {
   ListMobileNotificationsQueryDto,
   MarkAllMobileNotificationsReadQueryDto,
@@ -23,7 +23,7 @@ import {
  * `GET /v1/notifications`, which carries a different role gate.
  */
 @Controller('v1/notifications/mobile')
-@Roles(RoleType.VOLUNTEER, RoleType.DONOR, RoleType.BENEFICIARY)
+@Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class NotificationsMobileController {
   constructor(
     private readonly notificationsMobileService: NotificationsMobileService,

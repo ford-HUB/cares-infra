@@ -32,7 +32,7 @@ import type {
 } from '../dto/profile-mobile-dto';
 import { ProfileMobileService } from '../services/profile-mobile-service';
 import {
-  MOBILE_PROFILE_ROLE_TYPES,
+  MOBILE_PROFILE_ACCESS_ROLE_TYPES,
   ApplySchoolRecordSchema,
   MobileProfileResponseSchema,
   MobileProfileRoleQuerySchema,
@@ -52,7 +52,7 @@ export class ProfileMobileController {
    * local), so completion and the role section are scoped to that side.
    */
   @Get('me/mobile')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Profile')
   @ZSerialize(MobileProfileResponseSchema)
   async getMyProfile(
@@ -67,7 +67,7 @@ export class ProfileMobileController {
    * sends every field each time (a full replace, not a patch).
    */
   @Put('me/mobile')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Profile updated')
   @ZSerialize(MobileProfileResponseSchema)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }]))
@@ -119,7 +119,7 @@ export class ProfileMobileController {
    * it, and the file is kept on record. Nothing is typed in.
    */
   @Post('me/mobile/residency')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Address updated from your residency document')
   @ZSerialize(MobileProfileResponseSchema)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'document', maxCount: 1 }]))
@@ -144,7 +144,7 @@ export class ProfileMobileController {
 
   /** The uploaded file itself, private to its owner, for the in-app viewer. */
   @Get('me/mobile/residency/:documentId')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   async getResidencyDocument(
     @CurrentUser() user: JwtPayload,
     @Param('documentId') documentId: string,
@@ -167,7 +167,7 @@ export class ProfileMobileController {
    * the portal uses for its navbar avatar.
    */
   @Get('me/mobile/avatar')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   async getAvatar(
     @CurrentUser() user: JwtPayload,
     @ZQuery(MobileProfileRoleQuerySchema) query: MobileProfileRoleQueryDto,
