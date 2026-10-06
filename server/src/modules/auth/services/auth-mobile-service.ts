@@ -21,6 +21,7 @@ import {
 } from '../dto/auth-mobile-dto';
 import {
   EmbeddingType,
+  PermissionKey,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 import {
@@ -47,6 +48,8 @@ import { SessionRegistry } from 'src/modules/sessions/services/session-registry'
 import { LoginPolicyEnforcer } from 'src/modules/security-policy/services/login-policy-enforcer';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { AuditLogRecorder } from 'src/modules/audit-logs/services/audit-log-recorder';
+import { AccessControlSiteService } from 'src/modules/access-control/services/access-control-site-service';
+import { isStaffVolunteerRole } from 'src/shared/constants/mobile-role-types';
 import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
 
 /** Wrong codes tolerated before the reset code is thrown away. */
@@ -70,6 +73,7 @@ export class AuthMobileService {
     private readonly sessionRegistry: SessionRegistry,
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
     private readonly auditLogRecorder: AuditLogRecorder,
+    private readonly accessControlSiteService: AccessControlSiteService,
   ) {}
 
   /**
@@ -184,10 +188,38 @@ export class AuthMobileService {
       throw new ForbiddenException(message);
     }
 
+    // Directors and coordinators reach the app on the "Use the mobile app" right, which
+    // an admin can take away per role or per account in Access Control.
+    if (isStaffVolunteerRole(account.user.role.type)) {
+      const held = await this.accessControlSiteService.effectivePermissionsFor(
+        account.user.user_id,
+      );
+      if (!held.includes(PermissionKey.MOBILE_APP_ACCESS)) {
+        const message =
+          'Mobile app access is not enabled for this account — ask an administrator';
+        await this.loginActivityRecorder.record({
+          ...attempt,
+          userId: account.user.user_id,
+          outcome: 'ROLE_NOT_ALLOWED',
+          failureReason: message,
+        });
+        await this.recordSignIn(account, attempt, {
+          outcome: 'DENIED',
+          description: 'Sign-in refused: mobile app access not granted',
+        });
+        throw new ForbiddenException(message);
+      }
+    }
+
     // An account that never finished the sign-up OTP cannot sign in. The one way
     // through is a code sent with `purpose: 'login'` and accepted by `verify-otp` —
     // that code plus the password just checked are what stamp the account verified.
-    if (!account.email_verified_at) {
+    // Directors and coordinators skip it: their account was issued from the portal,
+    // which vouches for the address, and they sign in with those same credentials.
+    if (
+      !account.email_verified_at &&
+      !isStaffVolunteerRole(account.user.role.type)
+    ) {
       if (!(await this.isEmailVerified(email))) {
         const message =
           'Verify your email address to finish setting up this account';

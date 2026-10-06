@@ -1218,6 +1218,7 @@ enum PermissionKey {
   CHAT_ACCESS
   MAIL_ACCESS
   SUPPORT_TICKET_MANAGE
+  MOBILE_APP_ACCESS
 }
 
 enum PermissionOverrideEffect {

@@ -245,6 +245,14 @@ export const PERMISSION_CATALOG: readonly PermissionDescriptor[] = [
     description: 'Triage and resolve portal support requests.',
     sensitive: false,
   },
+  {
+    key: PermissionKey.MOBILE_APP_ACCESS,
+    module: 'Mobile App',
+    label: 'Use the mobile app',
+    description:
+      'Sign in to the CARES mobile app with portal credentials, on its Volunteer side. Applies to directors and coordinators; revoking it also signs out their open app sessions.',
+    sensitive: true,
+  },
 ];
 
 /** Module order for the portal — the catalog array order, deduplicated. */
@@ -293,6 +301,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.CHAT_ACCESS,
     PermissionKey.MAIL_ACCESS,
     PermissionKey.SUPPORT_TICKET_MANAGE,
+    PermissionKey.MOBILE_APP_ACCESS,
   ],
   [RoleType.COORDINATOR]: [
     PermissionKey.EVENTS_VIEW,
@@ -306,6 +315,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.REPORTS_VIEW,
     PermissionKey.CHAT_ACCESS,
     PermissionKey.MAIL_ACCESS,
+    PermissionKey.MOBILE_APP_ACCESS,
   ],
 };
 
