@@ -12,7 +12,7 @@ import {
   isPortalRole,
   PORTAL_ROLE_TYPES,
 } from 'src/shared/constants/portal-role-types';
-import { MOBILE_PROFILE_ROLE_TYPES } from 'src/modules/profile/validators/profile-mobile-validator';
+import { MOBILE_PROFILE_ACCESS_ROLE_TYPES } from 'src/modules/profile/validators/profile-mobile-validator';
 import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import type {
   InterestCatalogItemDto,
@@ -49,7 +49,7 @@ export class InterestsMobileController {
    * carries the registered role in its token.
    */
   @Put()
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Interests saved')
   @ZSerialize(SaveUserInterestsResponseSchema)
   async saveUserInterests(
@@ -65,7 +65,7 @@ export class InterestsMobileController {
   }
 
   @Get(':userId')
-  @Roles(...MOBILE_PROFILE_ROLE_TYPES, ...PORTAL_ROLE_TYPES)
+  @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES, ...PORTAL_ROLE_TYPES)
   @ResponseMessage('User interests')
   @ZSerialize(UserInterestsResponseSchema)
   async getUserInterests(

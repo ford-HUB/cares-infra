@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/session/role_account_store.dart';
 import '../../../core/session/static_user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/certificate_data.dart';
@@ -16,6 +17,7 @@ import '../data/event_registration_store.dart';
 import '../domain/cares_event.dart';
 import '../presentation/providers/beneficiary_request_counts_provider.dart';
 import '../presentation/providers/recommended_events_provider.dart';
+import '../presentation/utils/profile_gate.dart';
 import '../widgets/event_details_widgets.dart';
 import '../widgets/event_reminder_sheet.dart';
 import 'event_participants_screen.dart';
@@ -177,6 +179,14 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _isRegistered => _store.isRegistered(_event.id, _participantEmail);
 
   Future<void> _confirmJoin() async {
+    if (!await ProfileGate.ensureComplete(
+      context,
+      RoleAccountStore.volunteer,
+    )) {
+      return;
+    }
+    if (!mounted) return;
+
     final confirmed = await showEventJoinConfirmationDialog(context, _event);
 
     if (!confirmed || !mounted) return;
@@ -634,6 +644,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Future<void> _applyAsBeneficiary() async {
+    final allowed = await ProfileGate.ensureComplete(
+      context,
+      RoleAccountStore.beneficiary,
+    );
+    if (!allowed || !mounted) return;
+
     final applied = await showBeneficiaryEventApplicationDialog(
       context,
       _event,

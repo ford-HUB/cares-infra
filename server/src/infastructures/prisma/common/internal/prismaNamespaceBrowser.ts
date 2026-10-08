@@ -880,6 +880,9 @@ export const AssistanceRequestScalarFieldEnum = {
   description: 'description',
   urgency: 'urgency',
   household_size: 'household_size',
+  location_latitude: 'location_latitude',
+  location_longitude: 'location_longitude',
+  location_details: 'location_details',
   status: 'status',
   assessment_status: 'assessment_status',
   assessment_date: 'assessment_date',
@@ -889,6 +892,8 @@ export const AssistanceRequestScalarFieldEnum = {
   screened_at: 'screened_at',
   decided_at: 'decided_at',
   released_at: 'released_at',
+  cancelled_at: 'cancelled_at',
+  cancel_reason: 'cancel_reason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

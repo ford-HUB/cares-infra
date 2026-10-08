@@ -29,11 +29,15 @@ export type AggregateAssistanceRequest = {
 export type AssistanceRequestAvgAggregateOutputType = {
   reference_number: number | null
   household_size: number | null
+  location_latitude: number | null
+  location_longitude: number | null
 }
 
 export type AssistanceRequestSumAggregateOutputType = {
   reference_number: number | null
   household_size: number | null
+  location_latitude: number | null
+  location_longitude: number | null
 }
 
 export type AssistanceRequestMinAggregateOutputType = {
@@ -45,6 +49,9 @@ export type AssistanceRequestMinAggregateOutputType = {
   description: string | null
   urgency: $Enums.AssistanceUrgency | null
   household_size: number | null
+  location_latitude: number | null
+  location_longitude: number | null
+  location_details: string | null
   status: $Enums.AssistanceRequestStatus | null
   assessment_status: $Enums.AssistanceAssessmentStatus | null
   assessment_date: Date | null
@@ -53,6 +60,8 @@ export type AssistanceRequestMinAggregateOutputType = {
   screened_at: Date | null
   decided_at: Date | null
   released_at: Date | null
+  cancelled_at: Date | null
+  cancel_reason: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +75,9 @@ export type AssistanceRequestMaxAggregateOutputType = {
   description: string | null
   urgency: $Enums.AssistanceUrgency | null
   household_size: number | null
+  location_latitude: number | null
+  location_longitude: number | null
+  location_details: string | null
   status: $Enums.AssistanceRequestStatus | null
   assessment_status: $Enums.AssistanceAssessmentStatus | null
   assessment_date: Date | null
@@ -74,6 +86,8 @@ export type AssistanceRequestMaxAggregateOutputType = {
   screened_at: Date | null
   decided_at: Date | null
   released_at: Date | null
+  cancelled_at: Date | null
+  cancel_reason: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -87,6 +101,9 @@ export type AssistanceRequestCountAggregateOutputType = {
   description: number
   urgency: number
   household_size: number
+  location_latitude: number
+  location_longitude: number
+  location_details: number
   status: number
   assessment_status: number
   assessment_date: number
@@ -96,6 +113,8 @@ export type AssistanceRequestCountAggregateOutputType = {
   screened_at: number
   decided_at: number
   released_at: number
+  cancelled_at: number
+  cancel_reason: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -105,11 +124,15 @@ export type AssistanceRequestCountAggregateOutputType = {
 export type AssistanceRequestAvgAggregateInputType = {
   reference_number?: true
   household_size?: true
+  location_latitude?: true
+  location_longitude?: true
 }
 
 export type AssistanceRequestSumAggregateInputType = {
   reference_number?: true
   household_size?: true
+  location_latitude?: true
+  location_longitude?: true
 }
 
 export type AssistanceRequestMinAggregateInputType = {
@@ -121,6 +144,9 @@ export type AssistanceRequestMinAggregateInputType = {
   description?: true
   urgency?: true
   household_size?: true
+  location_latitude?: true
+  location_longitude?: true
+  location_details?: true
   status?: true
   assessment_status?: true
   assessment_date?: true
@@ -129,6 +155,8 @@ export type AssistanceRequestMinAggregateInputType = {
   screened_at?: true
   decided_at?: true
   released_at?: true
+  cancelled_at?: true
+  cancel_reason?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -142,6 +170,9 @@ export type AssistanceRequestMaxAggregateInputType = {
   description?: true
   urgency?: true
   household_size?: true
+  location_latitude?: true
+  location_longitude?: true
+  location_details?: true
   status?: true
   assessment_status?: true
   assessment_date?: true
@@ -150,6 +181,8 @@ export type AssistanceRequestMaxAggregateInputType = {
   screened_at?: true
   decided_at?: true
   released_at?: true
+  cancelled_at?: true
+  cancel_reason?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -163,6 +196,9 @@ export type AssistanceRequestCountAggregateInputType = {
   description?: true
   urgency?: true
   household_size?: true
+  location_latitude?: true
+  location_longitude?: true
+  location_details?: true
   status?: true
   assessment_status?: true
   assessment_date?: true
@@ -172,6 +208,8 @@ export type AssistanceRequestCountAggregateInputType = {
   screened_at?: true
   decided_at?: true
   released_at?: true
+  cancelled_at?: true
+  cancel_reason?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -272,6 +310,9 @@ export type AssistanceRequestGroupByOutputType = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude: number | null
+  location_longitude: number | null
+  location_details: string | null
   status: $Enums.AssistanceRequestStatus
   assessment_status: $Enums.AssistanceAssessmentStatus
   assessment_date: Date | null
@@ -281,6 +322,8 @@ export type AssistanceRequestGroupByOutputType = {
   screened_at: Date | null
   decided_at: Date | null
   released_at: Date | null
+  cancelled_at: Date | null
+  cancel_reason: string | null
   createdAt: Date
   updatedAt: Date
   _count: AssistanceRequestCountAggregateOutputType | null
@@ -317,6 +360,9 @@ export type AssistanceRequestWhereInput = {
   description?: Prisma.StringFilter<"AssistanceRequest"> | string
   urgency?: Prisma.EnumAssistanceUrgencyFilter<"AssistanceRequest"> | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFilter<"AssistanceRequest"> | number
+  location_latitude?: Prisma.FloatNullableFilter<"AssistanceRequest"> | number | null
+  location_longitude?: Prisma.FloatNullableFilter<"AssistanceRequest"> | number | null
+  location_details?: Prisma.StringNullableFilter<"AssistanceRequest"> | string | null
   status?: Prisma.EnumAssistanceRequestStatusFilter<"AssistanceRequest"> | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFilter<"AssistanceRequest"> | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
@@ -326,6 +372,8 @@ export type AssistanceRequestWhereInput = {
   screened_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
   decided_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
   released_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
+  cancelled_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
+  cancel_reason?: Prisma.StringNullableFilter<"AssistanceRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AssistanceRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AssistanceRequest"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -341,6 +389,9 @@ export type AssistanceRequestOrderByWithRelationInput = {
   description?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_details?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   assessment_status?: Prisma.SortOrder
   assessment_date?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -350,6 +401,8 @@ export type AssistanceRequestOrderByWithRelationInput = {
   screened_at?: Prisma.SortOrderInput | Prisma.SortOrder
   decided_at?: Prisma.SortOrderInput | Prisma.SortOrder
   released_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelled_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancel_reason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -368,6 +421,9 @@ export type AssistanceRequestWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"AssistanceRequest"> | string
   urgency?: Prisma.EnumAssistanceUrgencyFilter<"AssistanceRequest"> | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFilter<"AssistanceRequest"> | number
+  location_latitude?: Prisma.FloatNullableFilter<"AssistanceRequest"> | number | null
+  location_longitude?: Prisma.FloatNullableFilter<"AssistanceRequest"> | number | null
+  location_details?: Prisma.StringNullableFilter<"AssistanceRequest"> | string | null
   status?: Prisma.EnumAssistanceRequestStatusFilter<"AssistanceRequest"> | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFilter<"AssistanceRequest"> | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
@@ -377,6 +433,8 @@ export type AssistanceRequestWhereUniqueInput = Prisma.AtLeast<{
   screened_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
   decided_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
   released_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
+  cancelled_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
+  cancel_reason?: Prisma.StringNullableFilter<"AssistanceRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AssistanceRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AssistanceRequest"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -392,6 +450,9 @@ export type AssistanceRequestOrderByWithAggregationInput = {
   description?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_details?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   assessment_status?: Prisma.SortOrder
   assessment_date?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -401,6 +462,8 @@ export type AssistanceRequestOrderByWithAggregationInput = {
   screened_at?: Prisma.SortOrderInput | Prisma.SortOrder
   decided_at?: Prisma.SortOrderInput | Prisma.SortOrder
   released_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelled_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancel_reason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AssistanceRequestCountOrderByAggregateInput
@@ -422,6 +485,9 @@ export type AssistanceRequestScalarWhereWithAggregatesInput = {
   description?: Prisma.StringWithAggregatesFilter<"AssistanceRequest"> | string
   urgency?: Prisma.EnumAssistanceUrgencyWithAggregatesFilter<"AssistanceRequest"> | $Enums.AssistanceUrgency
   household_size?: Prisma.IntWithAggregatesFilter<"AssistanceRequest"> | number
+  location_latitude?: Prisma.FloatNullableWithAggregatesFilter<"AssistanceRequest"> | number | null
+  location_longitude?: Prisma.FloatNullableWithAggregatesFilter<"AssistanceRequest"> | number | null
+  location_details?: Prisma.StringNullableWithAggregatesFilter<"AssistanceRequest"> | string | null
   status?: Prisma.EnumAssistanceRequestStatusWithAggregatesFilter<"AssistanceRequest"> | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusWithAggregatesFilter<"AssistanceRequest"> | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.DateTimeNullableWithAggregatesFilter<"AssistanceRequest"> | Date | string | null
@@ -431,6 +497,8 @@ export type AssistanceRequestScalarWhereWithAggregatesInput = {
   screened_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AssistanceRequest"> | Date | string | null
   decided_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AssistanceRequest"> | Date | string | null
   released_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AssistanceRequest"> | Date | string | null
+  cancelled_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AssistanceRequest"> | Date | string | null
+  cancel_reason?: Prisma.StringNullableWithAggregatesFilter<"AssistanceRequest"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AssistanceRequest"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AssistanceRequest"> | Date | string
 }
@@ -443,6 +511,9 @@ export type AssistanceRequestCreateInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -452,6 +523,8 @@ export type AssistanceRequestCreateInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAssistance_requestsInput
@@ -467,6 +540,9 @@ export type AssistanceRequestUncheckedCreateInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -476,6 +552,8 @@ export type AssistanceRequestUncheckedCreateInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   attachments?: Prisma.AssistanceRequestAttachmentUncheckedCreateNestedManyWithoutAssistance_requestInput
@@ -488,6 +566,9 @@ export type AssistanceRequestUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -497,6 +578,8 @@ export type AssistanceRequestUpdateInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAssistance_requestsNestedInput
@@ -512,6 +595,9 @@ export type AssistanceRequestUncheckedUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -521,6 +607,8 @@ export type AssistanceRequestUncheckedUpdateInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attachments?: Prisma.AssistanceRequestAttachmentUncheckedUpdateManyWithoutAssistance_requestNestedInput
@@ -535,6 +623,9 @@ export type AssistanceRequestCreateManyInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -544,6 +635,8 @@ export type AssistanceRequestCreateManyInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -555,6 +648,9 @@ export type AssistanceRequestUpdateManyMutationInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -564,6 +660,8 @@ export type AssistanceRequestUpdateManyMutationInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -577,6 +675,9 @@ export type AssistanceRequestUncheckedUpdateManyInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -586,6 +687,8 @@ export type AssistanceRequestUncheckedUpdateManyInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -609,6 +712,9 @@ export type AssistanceRequestCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrder
+  location_longitude?: Prisma.SortOrder
+  location_details?: Prisma.SortOrder
   status?: Prisma.SortOrder
   assessment_status?: Prisma.SortOrder
   assessment_date?: Prisma.SortOrder
@@ -618,6 +724,8 @@ export type AssistanceRequestCountOrderByAggregateInput = {
   screened_at?: Prisma.SortOrder
   decided_at?: Prisma.SortOrder
   released_at?: Prisma.SortOrder
+  cancelled_at?: Prisma.SortOrder
+  cancel_reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -625,6 +733,8 @@ export type AssistanceRequestCountOrderByAggregateInput = {
 export type AssistanceRequestAvgOrderByAggregateInput = {
   reference_number?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrder
+  location_longitude?: Prisma.SortOrder
 }
 
 export type AssistanceRequestMaxOrderByAggregateInput = {
@@ -636,6 +746,9 @@ export type AssistanceRequestMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrder
+  location_longitude?: Prisma.SortOrder
+  location_details?: Prisma.SortOrder
   status?: Prisma.SortOrder
   assessment_status?: Prisma.SortOrder
   assessment_date?: Prisma.SortOrder
@@ -644,6 +757,8 @@ export type AssistanceRequestMaxOrderByAggregateInput = {
   screened_at?: Prisma.SortOrder
   decided_at?: Prisma.SortOrder
   released_at?: Prisma.SortOrder
+  cancelled_at?: Prisma.SortOrder
+  cancel_reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -657,6 +772,9 @@ export type AssistanceRequestMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrder
+  location_longitude?: Prisma.SortOrder
+  location_details?: Prisma.SortOrder
   status?: Prisma.SortOrder
   assessment_status?: Prisma.SortOrder
   assessment_date?: Prisma.SortOrder
@@ -665,6 +783,8 @@ export type AssistanceRequestMinOrderByAggregateInput = {
   screened_at?: Prisma.SortOrder
   decided_at?: Prisma.SortOrder
   released_at?: Prisma.SortOrder
+  cancelled_at?: Prisma.SortOrder
+  cancel_reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -672,6 +792,8 @@ export type AssistanceRequestMinOrderByAggregateInput = {
 export type AssistanceRequestSumOrderByAggregateInput = {
   reference_number?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  location_latitude?: Prisma.SortOrder
+  location_longitude?: Prisma.SortOrder
 }
 
 export type AssistanceRequestScalarRelationFilter = {
@@ -768,6 +890,9 @@ export type AssistanceRequestCreateWithoutUserInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -777,6 +902,8 @@ export type AssistanceRequestCreateWithoutUserInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   attachments?: Prisma.AssistanceRequestAttachmentCreateNestedManyWithoutAssistance_requestInput
@@ -790,6 +917,9 @@ export type AssistanceRequestUncheckedCreateWithoutUserInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -799,6 +929,8 @@ export type AssistanceRequestUncheckedCreateWithoutUserInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   attachments?: Prisma.AssistanceRequestAttachmentUncheckedCreateNestedManyWithoutAssistance_requestInput
@@ -842,6 +974,9 @@ export type AssistanceRequestScalarWhereInput = {
   description?: Prisma.StringFilter<"AssistanceRequest"> | string
   urgency?: Prisma.EnumAssistanceUrgencyFilter<"AssistanceRequest"> | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFilter<"AssistanceRequest"> | number
+  location_latitude?: Prisma.FloatNullableFilter<"AssistanceRequest"> | number | null
+  location_longitude?: Prisma.FloatNullableFilter<"AssistanceRequest"> | number | null
+  location_details?: Prisma.StringNullableFilter<"AssistanceRequest"> | string | null
   status?: Prisma.EnumAssistanceRequestStatusFilter<"AssistanceRequest"> | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFilter<"AssistanceRequest"> | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
@@ -851,6 +986,8 @@ export type AssistanceRequestScalarWhereInput = {
   screened_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
   decided_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
   released_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
+  cancelled_at?: Prisma.DateTimeNullableFilter<"AssistanceRequest"> | Date | string | null
+  cancel_reason?: Prisma.StringNullableFilter<"AssistanceRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AssistanceRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AssistanceRequest"> | Date | string
 }
@@ -863,6 +1000,9 @@ export type AssistanceRequestCreateWithoutAttachmentsInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -872,6 +1012,8 @@ export type AssistanceRequestCreateWithoutAttachmentsInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAssistance_requestsInput
@@ -886,6 +1028,9 @@ export type AssistanceRequestUncheckedCreateWithoutAttachmentsInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -895,6 +1040,8 @@ export type AssistanceRequestUncheckedCreateWithoutAttachmentsInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -922,6 +1069,9 @@ export type AssistanceRequestUpdateWithoutAttachmentsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -931,6 +1081,8 @@ export type AssistanceRequestUpdateWithoutAttachmentsInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAssistance_requestsNestedInput
@@ -945,6 +1097,9 @@ export type AssistanceRequestUncheckedUpdateWithoutAttachmentsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -954,6 +1109,8 @@ export type AssistanceRequestUncheckedUpdateWithoutAttachmentsInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -966,6 +1123,9 @@ export type AssistanceRequestCreateManyUserInput = {
   description: string
   urgency: $Enums.AssistanceUrgency
   household_size: number
+  location_latitude?: number | null
+  location_longitude?: number | null
+  location_details?: string | null
   status?: $Enums.AssistanceRequestStatus
   assessment_status?: $Enums.AssistanceAssessmentStatus
   assessment_date?: Date | string | null
@@ -975,6 +1135,8 @@ export type AssistanceRequestCreateManyUserInput = {
   screened_at?: Date | string | null
   decided_at?: Date | string | null
   released_at?: Date | string | null
+  cancelled_at?: Date | string | null
+  cancel_reason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -986,6 +1148,9 @@ export type AssistanceRequestUpdateWithoutUserInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -995,6 +1160,8 @@ export type AssistanceRequestUpdateWithoutUserInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attachments?: Prisma.AssistanceRequestAttachmentUpdateManyWithoutAssistance_requestNestedInput
@@ -1008,6 +1175,9 @@ export type AssistanceRequestUncheckedUpdateWithoutUserInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1017,6 +1187,8 @@ export type AssistanceRequestUncheckedUpdateWithoutUserInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attachments?: Prisma.AssistanceRequestAttachmentUncheckedUpdateManyWithoutAssistance_requestNestedInput
@@ -1030,6 +1202,9 @@ export type AssistanceRequestUncheckedUpdateManyWithoutUserInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   urgency?: Prisma.EnumAssistanceUrgencyFieldUpdateOperationsInput | $Enums.AssistanceUrgency
   household_size?: Prisma.IntFieldUpdateOperationsInput | number
+  location_latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_details?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssistanceRequestStatusFieldUpdateOperationsInput | $Enums.AssistanceRequestStatus
   assessment_status?: Prisma.EnumAssistanceAssessmentStatusFieldUpdateOperationsInput | $Enums.AssistanceAssessmentStatus
   assessment_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1039,6 +1214,8 @@ export type AssistanceRequestUncheckedUpdateManyWithoutUserInput = {
   screened_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decided_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   released_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1083,6 +1260,9 @@ export type AssistanceRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   description?: boolean
   urgency?: boolean
   household_size?: boolean
+  location_latitude?: boolean
+  location_longitude?: boolean
+  location_details?: boolean
   status?: boolean
   assessment_status?: boolean
   assessment_date?: boolean
@@ -1092,6 +1272,8 @@ export type AssistanceRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   screened_at?: boolean
   decided_at?: boolean
   released_at?: boolean
+  cancelled_at?: boolean
+  cancel_reason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1108,6 +1290,9 @@ export type AssistanceRequestSelectCreateManyAndReturn<ExtArgs extends runtime.T
   description?: boolean
   urgency?: boolean
   household_size?: boolean
+  location_latitude?: boolean
+  location_longitude?: boolean
+  location_details?: boolean
   status?: boolean
   assessment_status?: boolean
   assessment_date?: boolean
@@ -1117,6 +1302,8 @@ export type AssistanceRequestSelectCreateManyAndReturn<ExtArgs extends runtime.T
   screened_at?: boolean
   decided_at?: boolean
   released_at?: boolean
+  cancelled_at?: boolean
+  cancel_reason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1131,6 +1318,9 @@ export type AssistanceRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   description?: boolean
   urgency?: boolean
   household_size?: boolean
+  location_latitude?: boolean
+  location_longitude?: boolean
+  location_details?: boolean
   status?: boolean
   assessment_status?: boolean
   assessment_date?: boolean
@@ -1140,6 +1330,8 @@ export type AssistanceRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   screened_at?: boolean
   decided_at?: boolean
   released_at?: boolean
+  cancelled_at?: boolean
+  cancel_reason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1154,6 +1346,9 @@ export type AssistanceRequestSelectScalar = {
   description?: boolean
   urgency?: boolean
   household_size?: boolean
+  location_latitude?: boolean
+  location_longitude?: boolean
+  location_details?: boolean
   status?: boolean
   assessment_status?: boolean
   assessment_date?: boolean
@@ -1163,11 +1358,13 @@ export type AssistanceRequestSelectScalar = {
   screened_at?: boolean
   decided_at?: boolean
   released_at?: boolean
+  cancelled_at?: boolean
+  cancel_reason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AssistanceRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"assistance_request_id" | "reference_number" | "user_id" | "title" | "category" | "description" | "urgency" | "household_size" | "status" | "assessment_status" | "assessment_date" | "assigned_organization" | "items" | "status_note" | "screened_at" | "decided_at" | "released_at" | "createdAt" | "updatedAt", ExtArgs["result"]["assistanceRequest"]>
+export type AssistanceRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"assistance_request_id" | "reference_number" | "user_id" | "title" | "category" | "description" | "urgency" | "household_size" | "location_latitude" | "location_longitude" | "location_details" | "status" | "assessment_status" | "assessment_date" | "assigned_organization" | "items" | "status_note" | "screened_at" | "decided_at" | "released_at" | "cancelled_at" | "cancel_reason" | "createdAt" | "updatedAt", ExtArgs["result"]["assistanceRequest"]>
 export type AssistanceRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   attachments?: boolean | Prisma.AssistanceRequest$attachmentsArgs<ExtArgs>
@@ -1201,6 +1398,16 @@ export type $AssistanceRequestPayload<ExtArgs extends runtime.Types.Extensions.I
     description: string
     urgency: $Enums.AssistanceUrgency
     household_size: number
+    /**
+     * Where the assistance is needed, pinned by the beneficiary on the map.
+     * Both are set together or both are null.
+     */
+    location_latitude: number | null
+    location_longitude: number | null
+    /**
+     * Landmark or address details typed beside the pin.
+     */
+    location_details: string | null
     status: $Enums.AssistanceRequestStatus
     assessment_status: $Enums.AssistanceAssessmentStatus
     /**
@@ -1219,6 +1426,11 @@ export type $AssistanceRequestPayload<ExtArgs extends runtime.Types.Extensions.I
     screened_at: Date | null
     decided_at: Date | null
     released_at: Date | null
+    /**
+     * Set when the beneficiary withdraws the request themselves.
+     */
+    cancelled_at: Date | null
+    cancel_reason: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["assistanceRequest"]>
@@ -1654,6 +1866,9 @@ export interface AssistanceRequestFieldRefs {
   readonly description: Prisma.FieldRef<"AssistanceRequest", 'String'>
   readonly urgency: Prisma.FieldRef<"AssistanceRequest", 'AssistanceUrgency'>
   readonly household_size: Prisma.FieldRef<"AssistanceRequest", 'Int'>
+  readonly location_latitude: Prisma.FieldRef<"AssistanceRequest", 'Float'>
+  readonly location_longitude: Prisma.FieldRef<"AssistanceRequest", 'Float'>
+  readonly location_details: Prisma.FieldRef<"AssistanceRequest", 'String'>
   readonly status: Prisma.FieldRef<"AssistanceRequest", 'AssistanceRequestStatus'>
   readonly assessment_status: Prisma.FieldRef<"AssistanceRequest", 'AssistanceAssessmentStatus'>
   readonly assessment_date: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
@@ -1663,6 +1878,8 @@ export interface AssistanceRequestFieldRefs {
   readonly screened_at: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
   readonly decided_at: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
   readonly released_at: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
+  readonly cancelled_at: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
+  readonly cancel_reason: Prisma.FieldRef<"AssistanceRequest", 'String'>
   readonly createdAt: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AssistanceRequest", 'DateTime'>
 }

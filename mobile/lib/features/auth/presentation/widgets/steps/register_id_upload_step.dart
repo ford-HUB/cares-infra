@@ -5,11 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/media_permissions.dart';
+import 'package:mobile/features/auth/data/id_image_pre_validator.dart';
+import 'package:mobile/features/auth/domain/id_image_quality.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
+import 'package:mobile/features/auth/presentation/widgets/id_image_check_banner.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-enum IdCardSide { front, back }
-
+/// Each side is pre-validated on-device ([IdImagePreValidator]) before it is
+/// accepted: [onFrontPicked] / [onBackPicked] only fire for a photo that passed,
+/// so the back can't be uploaded until the front has, and Continue stays off
+/// until both have.
 class RegisterIdUploadStep extends StatefulWidget {
   const RegisterIdUploadStep({
     super.key,
@@ -18,6 +23,8 @@ class RegisterIdUploadStep extends StatefulWidget {
     required this.backImage,
     required this.onFrontPicked,
     required this.onBackPicked,
+    this.onSideValidated,
+    this.validator,
   });
 
   final RegistrationRoleType roleType;
@@ -26,15 +33,34 @@ class RegisterIdUploadStep extends StatefulWidget {
   final ValueChanged<XFile> onFrontPicked;
   final ValueChanged<XFile> onBackPicked;
 
+  /// The accepted side's check, including its on-device OCR text.
+  final ValueChanged<IdImageCheckResult>? onSideValidated;
+  final IdImagePreValidator? validator;
+
   @override
   State<RegisterIdUploadStep> createState() => _RegisterIdUploadStepState();
 }
 
 class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
+  /// Layout misses on one side before "Use this photo anyway" is offered.
+  static const _overrideAfterAttempts = 2;
+
   final _picker = ImagePicker();
   final _flippableKey = GlobalKey<FlippableIdCardState>();
+  late final IdImagePreValidator _validator =
+      widget.validator ?? IdImagePreValidator();
   IdCardSide? _pickingSide;
+  bool _checking = false;
   bool _showingBack = false;
+
+  /// Last rejected check per side, shown until that side is picked again.
+  final _failures = <IdCardSide, IdImageCheckResult>{};
+  final _rejectedFiles = <IdCardSide, XFile>{};
+  final _detailMisses = <IdCardSide, int>{};
+
+  /// The accepted front's OCR text, for finding the name / ID number across
+  /// both sides when the back is checked.
+  String? _frontText;
 
   bool get _frontUploaded => widget.frontImage != null;
   bool get _backUploaded => widget.backImage != null;
@@ -74,30 +100,118 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
 
     setState(() => _pickingSide = side);
 
+    XFile? file;
     try {
-      final file = await _picker.pickImage(
+      file = await _picker.pickImage(
         source: source,
         imageQuality: 85,
         maxWidth: 2400,
       );
-
-      if (!mounted || file == null) return;
-
-      if (side == IdCardSide.front) {
-        widget.onFrontPicked(file);
-      } else {
-        widget.onBackPicked(file);
-      }
     } catch (e) {
       if (mounted) {
+        setState(() => _pickingSide = null);
         _showMessage(
           'Could not open ${source == ImageSource.camera ? 'camera' : 'gallery'}. '
           'Try again or enable permissions in Settings.',
         );
       }
-    } finally {
-      if (mounted) setState(() => _pickingSide = null);
+      return;
     }
+
+    if (!mounted) return;
+    if (file == null) {
+      setState(() => _pickingSide = null);
+      return;
+    }
+
+    await _validate(file, side);
+  }
+
+  Future<void> _validate(XFile file, IdCardSide side) async {
+    setState(() {
+      _checking = true;
+      _failures.remove(side);
+    });
+
+    try {
+      final result = await _validator.check(
+        file,
+        side,
+        frontText: side == IdCardSide.back ? await _acceptedFrontText() : null,
+      );
+      if (!mounted) return;
+
+      if (result.passed) {
+        _accept(file, result);
+      } else {
+        setState(() {
+          _failures[side] = result;
+          _rejectedFiles[side] = file;
+          if (result.overridable) {
+            _detailMisses[side] = (_detailMisses[side] ?? 0) + 1;
+          }
+        });
+      }
+    } catch (_) {
+      // Never let an unchecked photo through: ask for another attempt.
+      if (mounted) {
+        _showMessage('Could not check this photo. Please try again.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _checking = false;
+          _pickingSide = null;
+        });
+      }
+    }
+  }
+
+  /// The front's OCR text; re-read if this step was rebuilt after the front
+  /// was accepted (e.g. coming back from the face scan).
+  Future<String> _acceptedFrontText() async {
+    final cached = _frontText;
+    if (cached != null) return cached;
+    final front = widget.frontImage;
+    if (front == null) return '';
+    return _frontText = await _validator.recognizeText(front);
+  }
+
+  void _accept(XFile file, IdImageCheckResult result) {
+    final side = result.side;
+    setState(() {
+      _failures.remove(side);
+      _rejectedFiles.remove(side);
+      _detailMisses.remove(side);
+      if (side == IdCardSide.front) _frontText = result.recognizedText;
+    });
+    widget.onSideValidated?.call(result);
+
+    if (side == IdCardSide.front) {
+      widget.onFrontPicked(file);
+      // Move straight on to the back once the front is accepted.
+      if (widget.backImage == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_showingBack) _flipCard();
+        });
+      }
+    } else {
+      widget.onBackPicked(file);
+    }
+  }
+
+  void _useRejectedAnyway(IdCardSide side) {
+    final file = _rejectedFiles[side];
+    final result = _failures[side];
+    if (file == null || result == null) return;
+    _accept(
+      file,
+      IdImageCheckResult(
+        side: side,
+        issues: const [],
+        recognizedText: result.recognizedText,
+      ),
+    );
   }
 
   void _showMessage(String text, {SnackBarAction? action}) {
@@ -137,8 +251,10 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
                     '(e.g. National ID, Driver\'s License, Passport, Postal ID, or SSS/UMID). '
                     'Include the front first, then flip to add the back when your ID has two sides.'
               : _frontUploaded && !_showingBack
-              ? 'Front uploaded — flip the card to add the back.'
-              : 'Upload the front first, then flip to upload the back.',
+              ? 'Front passed the photo check — flip the card to add the back.'
+              : 'Upload the front first, then flip to upload the back. Each '
+                    'photo is checked for blur, glare and readable text before '
+                    'you can move on.',
           style: TextStyle(
             fontSize: 14,
             height: 1.45,
@@ -167,6 +283,7 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
           canFlip: _canFlip,
           isLoading: _pickingSide != null,
           loadingSide: _pickingSide,
+          loadingLabel: _checking ? 'Checking photo quality…' : null,
           onShowingBackChanged: (isBack) {
             if (mounted) setState(() => _showingBack = isBack);
           },
@@ -182,6 +299,17 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
             ),
           ),
         ),
+        if (_failures[_activeSide] case final failure?) ...[
+          const SizedBox(height: 12),
+          IdImageCheckBanner(
+            result: failure,
+            onUseAnyway:
+                failure.overridable &&
+                    (_detailMisses[_activeSide] ?? 0) >= _overrideAfterAttempts
+                ? () => _useRejectedAnyway(_activeSide)
+                : null,
+          ),
+        ],
         if (_canFlip) ...[
           const SizedBox(height: 8),
           Center(
@@ -252,7 +380,8 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Front and back uploaded. Tap View ID to review, then continue.',
+                    'Both sides passed the photo check. Tap View ID to review, '
+                    'then continue.',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -309,6 +438,7 @@ class FlippableIdCard extends StatefulWidget {
     required this.canFlip,
     required this.isLoading,
     required this.loadingSide,
+    this.loadingLabel,
     this.onShowingBackChanged,
   });
 
@@ -317,6 +447,7 @@ class FlippableIdCard extends StatefulWidget {
   final bool canFlip;
   final bool isLoading;
   final IdCardSide? loadingSide;
+  final String? loadingLabel;
   final ValueChanged<bool>? onShowingBackChanged;
 
   @override
@@ -416,6 +547,7 @@ class FlippableIdCardState extends State<FlippableIdCard>
                         isLoading:
                             widget.isLoading &&
                             widget.loadingSide == IdCardSide.back,
+                        loadingLabel: widget.loadingLabel,
                         canFlipHint: widget.canFlip,
                       ),
                     )
@@ -425,6 +557,7 @@ class FlippableIdCardState extends State<FlippableIdCard>
                       isLoading:
                           widget.isLoading &&
                           widget.loadingSide == IdCardSide.front,
+                      loadingLabel: widget.loadingLabel,
                       canFlipHint: widget.canFlip && widget.frontImage != null,
                     ),
             ),
@@ -441,11 +574,13 @@ class _CardFace extends StatelessWidget {
     required this.image,
     required this.isLoading,
     required this.canFlipHint,
+    this.loadingLabel,
   });
 
   final IdCardSide side;
   final XFile? image;
   final bool isLoading;
+  final String? loadingLabel;
   final bool canFlipHint;
 
   @override
@@ -476,8 +611,21 @@ class _CardFace extends StatelessWidget {
           children: [
             ColoredBox(color: AppColors.background.withValues(alpha: 0.5)),
             if (isLoading)
-              const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(color: AppColors.primary),
+                  if (loadingLabel != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      loadingLabel!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                  ],
+                ],
               )
             else if (hasImage)
               Image.file(File(image!.path), fit: BoxFit.cover)

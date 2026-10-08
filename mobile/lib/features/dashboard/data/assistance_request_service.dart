@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 
@@ -27,7 +28,8 @@ class AssistanceRequestService {
     required String categoryCode,
     required String description,
     required String urgencyCode,
-    required int householdSize,
+    LatLng? location,
+    String? locationDetails,
     List<RequestAttachment> attachments = const [],
   }) async {
     final files = await Future.wait(
@@ -42,14 +44,58 @@ class AssistanceRequestService {
     );
     final response = await _api.postMultipart(
       _path,
+      // Household size is read from the profile server-side, and the body
+      // is validated strictly, so it is not sent here.
       fields: {
         'title': title,
         'category': categoryCode,
         'description': description,
         'urgency': urgencyCode,
-        'householdSize': '$householdSize',
+        if (location != null) ...{
+          'location_latitude': '${location.latitude}',
+          'location_longitude': '${location.longitude}',
+        },
+        if (locationDetails != null && locationDetails.isNotEmpty)
+          'location_details': locationDetails,
       },
       files: files,
+    );
+    return assistanceRequestFromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  /// `PATCH me/:id` — every field the form shows; a null [location] removes
+  /// the pin. Attachments stay as filed.
+  Future<AssistanceRequest> update(
+    String id, {
+    required String title,
+    required String categoryCode,
+    required String description,
+    required String urgencyCode,
+    LatLng? location,
+    String? locationDetails,
+  }) async {
+    final response = await _api.patchJson(
+      '$_path/$id',
+      body: {
+        'title': title,
+        'category': categoryCode,
+        'description': description,
+        'urgency': urgencyCode,
+        'location_latitude': location?.latitude,
+        'location_longitude': location?.longitude,
+        'location_details': (locationDetails?.isEmpty ?? true)
+            ? null
+            : locationDetails,
+      },
+    );
+    return assistanceRequestFromJson(response['data'] as Map<String, dynamic>);
+  }
+
+  /// `POST me/:id/cancel` with an optional reason.
+  Future<AssistanceRequest> cancel(String id, {String? reason}) async {
+    final response = await _api.postJson(
+      '$_path/$id/cancel',
+      body: {if (reason != null && reason.isNotEmpty) 'reason': reason},
     );
     return assistanceRequestFromJson(response['data'] as Map<String, dynamic>);
   }

@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
+import {
+  MOBILE_ROLE_TYPES,
+  MOBILE_SIGN_IN_ROLE_TYPES,
+} from '../../../shared/constants/mobile-role-types';
 import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 import {
   AuthProvider,
@@ -10,6 +13,12 @@ import {
 
 /** Roles the Flutter app signs in as — the only callers of the mobile profile. */
 export const MOBILE_PROFILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
+
+/**
+ * Who may call the mobile profile routes: the app's roles plus the portal staff
+ * who sign in to use its Volunteer side.
+ */
+export const MOBILE_PROFILE_ACCESS_ROLE_TYPES = MOBILE_SIGN_IN_ROLE_TYPES;
 
 /**
  * `?role=` on the mobile profile routes. The app's role switcher is local —
@@ -101,8 +110,8 @@ export const ProfileCompletionSchema = z.object({
 
 export const MobileProfileResponseSchema = z.object({
   user_id: z.string(),
-  /** The role the account registered with. */
-  role_type: z.enum(MOBILE_PROFILE_ROLE_TYPES),
+  /** The role the account registered with — a portal role for staff on the Volunteer side. */
+  role_type: z.enum(MOBILE_PROFILE_ACCESS_ROLE_TYPES),
   /**
    * The role `profile_completion` and the section below are scoped to — the
    * `?role=` the app asked for, else `role_type`. The app files the profile

@@ -186,6 +186,8 @@ class _BeneficiaryDashboardScreenState
                           _serverProfile != null &&
                           !_profileComplete,
                       onCompleteProfile: _openProfileSetup,
+                      actionsLocked:
+                          _serverProfile != null && !_profileComplete,
                     ),
                     const EventsTabScreen(forBeneficiary: true),
                     const BeneficiaryActivityTab(),

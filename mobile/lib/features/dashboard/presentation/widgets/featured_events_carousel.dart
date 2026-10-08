@@ -169,9 +169,7 @@ class _EmptyEventsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.light.withValues(alpha: 0.28),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.secondary.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.35)),
       ),
       child: Column(
         children: [
