@@ -9,6 +9,8 @@ import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/domain/volunteer_field_rules.dart';
 import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
+import 'package:mobile/features/auth/domain/id_extraction_review.dart';
+import 'package:mobile/features/auth/domain/id_image_quality.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
@@ -52,6 +54,12 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   int _stepIndex = 0;
   XFile? _idFrontImage;
   XFile? _idBackImage;
+
+  /// What on-device OCR read off each side during pre-validation, used to
+  /// fill and cross-check the server's extraction.
+  String _idFrontText = '';
+  String _idBackText = '';
+  List<IdFieldFlag> _extractionFlags = const [];
   String? _registrationId;
   FaceCaptureSet _faceCaptures = const FaceCaptureSet();
   bool _ocrExtracting = false;
@@ -454,11 +462,18 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         // beneficiary registration.
         ocrData = ocrData.copyWith(volunteerType: '');
       }
+      final review = IdExtractionReview.of(
+        ocrData,
+        deviceFrontText: _idFrontText,
+        deviceBackText: _idBackText,
+        volunteerType: volunteerType,
+      );
 
       setState(() {
         _ocrExtracting = false;
         _ocrExtractSucceeded = true;
-        _ocrData = ocrData;
+        _ocrData = review.data;
+        _extractionFlags = review.flags;
       });
     } catch (e) {
       if (!mounted) return;
@@ -563,6 +578,13 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           backImage: _idBackImage,
           onFrontPicked: (file) => setState(() => _idFrontImage = file),
           onBackPicked: (file) => setState(() => _idBackImage = file),
+          onSideValidated: (result) {
+            if (result.side == IdCardSide.front) {
+              _idFrontText = result.recognizedText;
+            } else {
+              _idBackText = result.recognizedText;
+            }
+          },
         );
       case _RegisterStep.faceScan:
         if (registrationId == null) {
@@ -611,6 +633,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           isExtracting: _ocrExtracting,
           extractFailed: _ocrExtractFailed,
           extractErrorMessage: _ocrExtractError,
+          extractionFlags: _extractionFlags,
           onRetry: () => unawaited(_runOcrExtract()),
           phoneError: _conflictMessageFor(
             RegistrationConflictField.phoneNumber,
