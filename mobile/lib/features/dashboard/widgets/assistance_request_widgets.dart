@@ -10,6 +10,7 @@ Color assistanceStatusColor(AssistanceRequestStatus status) => switch (status) {
   AssistanceRequestStatus.approved => AppColors.primary,
   AssistanceRequestStatus.completed => AppColors.primaryDark,
   AssistanceRequestStatus.declined => AppColors.heart,
+  AssistanceRequestStatus.cancelled => AppColors.textMuted,
 };
 
 IconData assistanceStatusIcon(AssistanceRequestStatus status) =>
@@ -19,6 +20,7 @@ IconData assistanceStatusIcon(AssistanceRequestStatus status) =>
       AssistanceRequestStatus.approved => Icons.verified_rounded,
       AssistanceRequestStatus.completed => Icons.task_alt_rounded,
       AssistanceRequestStatus.declined => Icons.cancel_outlined,
+      AssistanceRequestStatus.cancelled => Icons.block_rounded,
     };
 
 Color needsAssessmentColor(NeedsAssessmentStatus status) => switch (status) {

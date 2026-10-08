@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/session/role_account_store.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/models/donation_campaign_models.dart';
+import '../presentation/utils/profile_gate.dart';
 import '../presentation/widgets/home_event_image.dart';
 import 'donation_flow_screen.dart';
 
@@ -24,7 +26,12 @@ class DonationDetailsScreen extends StatefulWidget {
 }
 
 class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
-  void _startDonation() {
+  /// Giving is locked until the donor profile is complete.
+  Future<void> _startDonation() async {
+    if (!await ProfileGate.ensureComplete(context, RoleAccountStore.donor)) {
+      return;
+    }
+    if (!mounted) return;
     DonationFlowScreen.open(context, campaign: widget.donation);
   }
 

@@ -30,6 +30,7 @@ class BeneficiaryHomeTab extends ConsumerStatefulWidget {
     this.onViewRequests,
     this.showProfileCompletionCard = false,
     this.onCompleteProfile,
+    this.actionsLocked = false,
   });
 
   final String firstName;
@@ -37,6 +38,10 @@ class BeneficiaryHomeTab extends ConsumerStatefulWidget {
   final VoidCallback? onViewRequests;
   final bool showProfileCompletionCard;
   final VoidCallback? onCompleteProfile;
+
+  /// The profile is incomplete, so assistance actions show as locked (the
+  /// tap still goes through and explains what is missing).
+  final bool actionsLocked;
 
   @override
   ConsumerState<BeneficiaryHomeTab> createState() => _BeneficiaryHomeTabState();
@@ -191,7 +196,10 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
               ),
             ],
             const SizedBox(height: 16),
-            _RequestAssistanceCard(onTap: widget.onRequestAssistance),
+            _RequestAssistanceCard(
+              onTap: widget.onRequestAssistance,
+              locked: widget.actionsLocked,
+            ),
             const SizedBox(height: 16),
             NeedsAssessmentCard(
               summary: assessment,
@@ -250,9 +258,10 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
 
 /// Primary action card — mirrors the volunteer profile-completion card.
 class _RequestAssistanceCard extends StatelessWidget {
-  const _RequestAssistanceCard({this.onTap});
+  const _RequestAssistanceCard({this.onTap, this.locked = false});
 
   final VoidCallback? onTap;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +307,9 @@ class _RequestAssistanceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Tell CARES what your household needs and track it here',
+                      locked
+                          ? 'Complete your profile to unlock assistance requests'
+                          : 'Tell CARES what your household needs and track it here',
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.35,
@@ -310,8 +321,10 @@ class _RequestAssistanceCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right_rounded,
+              Icon(
+                locked
+                    ? Icons.lock_outline_rounded
+                    : Icons.chevron_right_rounded,
                 color: AppColors.primaryDark,
               ),
             ],

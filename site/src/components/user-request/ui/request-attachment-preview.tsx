@@ -3,7 +3,8 @@ import { useAuthenticatedImage } from '../../../hooks/use-authenticated-image'
 import type { UserRequestAttachment } from '../../../types/user-request'
 
 interface RequestAttachmentPreviewProps {
-  attachment: UserRequestAttachment
+  /** Only what the viewer needs, so assistance-request files can open here too. */
+  attachment: Pick<UserRequestAttachment, 'label' | 'path' | 'contentType'>
   onClose: () => void
 }
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/services/api_client.dart';
+import '../../../core/session/role_account_store.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/assistance_request_data.dart';
+import '../presentation/utils/profile_gate.dart';
 
 /// How the Needs Assessment Survey screen is opened from the card.
 enum NeedsAssessmentMode { take, view, update }
@@ -23,11 +25,20 @@ class NeedsAssessmentScreen extends StatelessWidget {
   final NeedsAssessmentMode mode;
   final NeedsAssessmentSummary summary;
 
-  static void open(
+  /// Taking or updating the assessment is locked until the beneficiary
+  /// profile is complete; viewing a filed one never is.
+  static Future<void> open(
     BuildContext context, {
     required NeedsAssessmentMode mode,
     required NeedsAssessmentSummary summary,
-  }) {
+  }) async {
+    if (mode != NeedsAssessmentMode.view) {
+      final allowed = await ProfileGate.ensureComplete(
+        context,
+        RoleAccountStore.beneficiary,
+      );
+      if (!allowed || !context.mounted) return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => NeedsAssessmentScreen(mode: mode, summary: summary),

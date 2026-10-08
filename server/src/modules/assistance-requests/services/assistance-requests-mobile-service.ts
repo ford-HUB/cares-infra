@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   AssistanceAssessmentStatus,
   AssistanceRequestStatus,
@@ -6,16 +11,20 @@ import {
 import { S3Service } from '../../../infastructures/s3/s3-service';
 import type {
   AssistanceTimelineEntryDto,
+  CancelAssistanceRequestDto,
   CreateAssistanceRequestDto,
   MobileAssistanceRequestDto,
   MobileAssistanceRequestListDto,
+  UpdateAssistanceRequestDto,
 } from '../dto/assistance-requests-mobile-dto';
 import {
   AssistanceRequestsRepository,
+  type AssistanceRequestFieldsInput,
   type AssistanceRequestRow,
 } from '../repositories/assistance-requests-repository';
 import {
   ASSISTANCE_ATTACHMENT_ALLOWED_MIMES,
+  ASSISTANCE_CANCELLABLE_STATUSES,
   ASSISTANCE_ATTACHMENT_MAX_BYTES,
   ASSISTANCE_ATTACHMENT_MAX_COUNT,
 } from '../validators/assistance-requests-mobile-validator';
@@ -36,7 +45,11 @@ const STOCK_STATUS_NOTES: Record<AssistanceRequestStatus, string> = {
   APPROVED: 'Approved — we will tell you when and where to claim it.',
   COMPLETED: 'Completed — the assistance has been released.',
   DECLINED: 'Not approved this time — you may file a new request.',
+  CANCELLED: 'You cancelled this request.',
 };
+
+/** Only a request the relief desk has not started screening can be edited. */
+const EDITABLE_STATUS = AssistanceRequestStatus.PENDING;
 
 @Injectable()
 export class AssistanceRequestsMobileService {
@@ -62,6 +75,14 @@ export class AssistanceRequestsMobileService {
     if (files.length > ASSISTANCE_ATTACHMENT_MAX_COUNT) {
       throw new BadRequestException(
         `You can attach up to ${ASSISTANCE_ATTACHMENT_MAX_COUNT} files`,
+      );
+    }
+    // Household size lives on the profile, not on each request.
+    const householdSize =
+      await this.assistanceRequestsRepository.findHouseholdSize(userId);
+    if (householdSize == null) {
+      throw new BadRequestException(
+        'Complete your profile, including your household size, before requesting assistance',
       );
     }
     const checked = files.map((file) => ({ file, mime: resolveMime(file) }));
@@ -97,15 +118,111 @@ export class AssistanceRequestsMobileService {
 
     const row = await this.assistanceRequestsRepository.create({
       userId,
-      title: body.title,
-      category: body.category,
-      description: body.description,
-      urgency: body.urgency,
-      householdSize: body.householdSize,
+      ...toFieldsInput(body),
+      householdSize,
       attachments,
     });
     return toMobileDto(row);
   }
+
+  /**
+   * Changes what the beneficiary filled in, while the relief desk has not
+   * started on it. Attachments stay as filed.
+   */
+  async update(
+    userId: string,
+    requestId: string,
+    body: UpdateAssistanceRequestDto,
+  ): Promise<MobileAssistanceRequestDto> {
+    const existing = await this.findOwnOrThrow(userId, requestId);
+    if (!canEdit(existing)) {
+      throw new ConflictException(
+        'This request is already being processed and can no longer be edited',
+      );
+    }
+    const row = await this.assistanceRequestsRepository.updateFieldsIfEditable(
+      requestId,
+      EDITABLE_STATUS,
+      toFieldsInput(body),
+    );
+    if (!row) {
+      throw new ConflictException(
+        'This request was just picked up for review and can no longer be edited',
+      );
+    }
+    return toMobileDto(row);
+  }
+
+  /** Withdraws a request that has not been completed yet. */
+  async cancel(
+    userId: string,
+    requestId: string,
+    body: CancelAssistanceRequestDto,
+  ): Promise<MobileAssistanceRequestDto> {
+    const existing = await this.findOwnOrThrow(userId, requestId);
+    if (!canCancel(existing)) {
+      throw new ConflictException(
+        `A ${STATUS_WORDS[existing.status]} request can no longer be cancelled`,
+      );
+    }
+    const row = await this.assistanceRequestsRepository.cancelIfCancellable(
+      requestId,
+      ASSISTANCE_CANCELLABLE_STATUSES,
+      body.reason?.trim() || null,
+    );
+    if (!row) {
+      throw new ConflictException(
+        'This request was just updated and can no longer be cancelled',
+      );
+    }
+    return toMobileDto(row);
+  }
+
+  private async findOwnOrThrow(
+    userId: string,
+    requestId: string,
+  ): Promise<AssistanceRequestRow> {
+    const row = await this.assistanceRequestsRepository.findForUser(
+      userId,
+      requestId,
+    );
+    if (!row) throw new NotFoundException('Assistance request not found');
+    return row;
+  }
+}
+
+const STATUS_WORDS: Record<AssistanceRequestStatus, string> = {
+  PENDING: 'pending',
+  UNDER_REVIEW: 'reviewed',
+  APPROVED: 'approved',
+  COMPLETED: 'completed',
+  DECLINED: 'declined',
+  CANCELLED: 'cancelled',
+};
+
+/** Filing and editing send the same fields, so one mapping serves both. */
+function toFieldsInput(
+  body: CreateAssistanceRequestDto,
+): AssistanceRequestFieldsInput {
+  return {
+    title: body.title,
+    category: body.category,
+    description: body.description,
+    urgency: body.urgency,
+    locationLatitude: body.location_latitude ?? null,
+    locationLongitude: body.location_longitude ?? null,
+    locationDetails: body.location_details?.trim() || null,
+  };
+}
+
+function canEdit(row: AssistanceRequestRow): boolean {
+  return row.status === EDITABLE_STATUS && row.screened_at === null;
+}
+
+function canCancel(row: AssistanceRequestRow): boolean {
+  return (ASSISTANCE_CANCELLABLE_STATUSES as readonly string[]).includes(
+    row.status,
+  );
 }
 
 /** Trusts the declared type when it is specific, else the file extension. */
@@ -158,7 +275,9 @@ function buildTimeline(
       label: 'Initial screening',
       date: iso(row.screened_at),
       done:
-        row.screened_at !== null || status !== AssistanceRequestStatus.PENDING,
+        row.screened_at !== null ||
+        (status !== AssistanceRequestStatus.PENDING &&
+          status !== AssistanceRequestStatus.CANCELLED),
       note: null,
     },
     {
@@ -175,6 +294,18 @@ function buildTimeline(
         status === AssistanceRequestStatus.DECLINED ? row.status_note : null,
     },
   ];
+  if (status === AssistanceRequestStatus.CANCELLED) {
+    // Stages that never happened drop off; the trail ends at the withdrawal.
+    return [
+      ...timeline.filter((entry) => entry.done),
+      {
+        label: 'Request cancelled',
+        date: iso(row.cancelled_at),
+        done: true,
+        note: row.cancel_reason,
+      },
+    ];
+  }
   if (status !== AssistanceRequestStatus.DECLINED) {
     timeline.push({
       label: 'Assistance released',
@@ -196,6 +327,9 @@ function toMobileDto(row: AssistanceRequestRow): MobileAssistanceRequestDto {
     description: row.description,
     urgency: row.urgency,
     household_size: row.household_size,
+    location_latitude: row.location_latitude,
+    location_longitude: row.location_longitude,
+    location_details: row.location_details,
     status: row.status,
     assessment_status: row.assessment_status,
     assessment_date: iso(row.assessment_date),
@@ -209,6 +343,10 @@ function toMobileDto(row: AssistanceRequestRow): MobileAssistanceRequestDto {
       size_bytes: file.size_bytes,
     })),
     timeline: buildTimeline(row),
+    can_edit: canEdit(row),
+    can_cancel: canCancel(row),
+    cancelled_at: iso(row.cancelled_at),
+    cancel_reason: row.cancel_reason,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
   };

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_service.dart';
@@ -11,6 +12,7 @@ enum AssistanceRequestStatus {
   approved,
   completed,
   declined,
+  cancelled,
 }
 
 extension AssistanceRequestStatusX on AssistanceRequestStatus {
@@ -20,6 +22,7 @@ extension AssistanceRequestStatusX on AssistanceRequestStatus {
     AssistanceRequestStatus.approved => 'Approved',
     AssistanceRequestStatus.completed => 'Completed',
     AssistanceRequestStatus.declined => 'Declined',
+    AssistanceRequestStatus.cancelled => 'Cancelled',
   };
 
   /// Pending and under-review requests are the beneficiary's current ones.
@@ -105,6 +108,11 @@ class AssistanceRequest {
     this.assessmentDate,
     this.statusNote,
     this.attachments = const [],
+    this.location,
+    this.locationDetails,
+    this.canEdit = false,
+    this.canCancel = false,
+    this.cancelReason,
   });
 
   final String id;
@@ -126,6 +134,21 @@ class AssistanceRequest {
 
   /// Proof documents the beneficiary attached when filing.
   final List<RequestAttachment> attachments;
+
+  /// Where the assistance is needed, pinned on the form's map.
+  final LatLng? location;
+
+  /// Landmark or address details typed beside the pin.
+  final String? locationDetails;
+
+  /// The server's call: true until the relief desk starts screening it.
+  final bool canEdit;
+
+  /// The server's call: true until it is completed, declined, or cancelled.
+  final bool canCancel;
+
+  /// Why the beneficiary withdrew it, when they said.
+  final String? cancelReason;
 
   String get submittedOnLabel => formatRequestDate(submittedOn);
 
@@ -200,6 +223,11 @@ String _labelFor(Map<String, String> codes, String? code) {
 DateTime? _parseDate(Object? value) =>
     value is String ? DateTime.tryParse(value)?.toLocal() : null;
 
+LatLng? _parseLocation(Object? latitude, Object? longitude) =>
+    latitude is num && longitude is num
+    ? LatLng(latitude.toDouble(), longitude.toDouble())
+    : null;
+
 /// One row of `GET /assistance-requests/me`.
 AssistanceRequest assistanceRequestFromJson(Map<String, dynamic> json) {
   return AssistanceRequest(
@@ -215,6 +243,7 @@ AssistanceRequest assistanceRequestFromJson(Map<String, dynamic> json) {
       'APPROVED' => AssistanceRequestStatus.approved,
       'COMPLETED' => AssistanceRequestStatus.completed,
       'DECLINED' => AssistanceRequestStatus.declined,
+      'CANCELLED' => AssistanceRequestStatus.cancelled,
       _ => AssistanceRequestStatus.pending,
     },
     needsAssessment: switch (json['assessment_status'] as String?) {
@@ -233,6 +262,14 @@ AssistanceRequest assistanceRequestFromJson(Map<String, dynamic> json) {
         item as String,
     ],
     statusNote: json['status_note'] as String?,
+    location: _parseLocation(
+      json['location_latitude'],
+      json['location_longitude'],
+    ),
+    locationDetails: json['location_details'] as String?,
+    canEdit: json['can_edit'] as bool? ?? false,
+    canCancel: json['can_cancel'] as bool? ?? false,
+    cancelReason: json['cancel_reason'] as String?,
     attachments: [
       for (final file in json['attachments'] as List<dynamic>? ?? const [])
         RequestAttachment(
@@ -624,7 +661,8 @@ class AssistanceRequestStore extends _AccountScopedStore {
     required String category,
     required String description,
     required String urgency,
-    required int householdSize,
+    LatLng? location,
+    String? locationDetails,
     List<RequestAttachment> attachments = const [],
   }) async {
     _claimForCurrentAccount();
@@ -633,11 +671,52 @@ class AssistanceRequestStore extends _AccountScopedStore {
       categoryCode: kAssistanceCategoryCodes[category] ?? category,
       description: description,
       urgencyCode: kAssistanceUrgencyCodes[urgency] ?? urgency,
-      householdSize: householdSize,
+      location: location,
+      locationDetails: locationDetails,
       attachments: attachments,
     );
     _requests = [request, ..._requests];
     notifyListeners();
     return request;
+  }
+
+  /// Saves an edit of a request the relief desk has not picked up yet.
+  /// Throws [ApiException] when the server refuses (e.g. it was just
+  /// screened); the stored request is left as it was.
+  Future<AssistanceRequest> update(
+    String id, {
+    required String title,
+    required String category,
+    required String description,
+    required String urgency,
+    LatLng? location,
+    String? locationDetails,
+  }) async {
+    _claimForCurrentAccount();
+    final request = await _service.update(
+      id,
+      title: title,
+      categoryCode: kAssistanceCategoryCodes[category] ?? category,
+      description: description,
+      urgencyCode: kAssistanceUrgencyCodes[urgency] ?? urgency,
+      location: location,
+      locationDetails: locationDetails,
+    );
+    _replace(request);
+    return request;
+  }
+
+  /// Withdraws a request that has not been completed. Throws [ApiException]
+  /// when the server refuses.
+  Future<AssistanceRequest> cancel(String id, {String? reason}) async {
+    _claimForCurrentAccount();
+    final request = await _service.cancel(id, reason: reason);
+    _replace(request);
+    return request;
+  }
+
+  void _replace(AssistanceRequest request) {
+    _requests = [for (final r in _requests) r.id == request.id ? request : r];
+    notifyListeners();
   }
 }

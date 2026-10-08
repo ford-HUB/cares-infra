@@ -137,7 +137,17 @@ class RoleAccountStore extends ChangeNotifier {
 
   static const List<String> allRoleTypes = [volunteer, donor, beneficiary];
 
-  static String normalize(String roleType) => roleType.trim().toUpperCase();
+  /// Portal roles that sign in with their portal account. In the app they only
+  /// get the Volunteer side, so they are filed under [volunteer].
+  static const List<String> staffRoleTypes = ['DIRECTOR', 'COORDINATOR'];
+
+  static bool isStaffRole(String roleType) =>
+      staffRoleTypes.contains(roleType.trim().toUpperCase());
+
+  static String normalize(String roleType) {
+    final type = roleType.trim().toUpperCase();
+    return staffRoleTypes.contains(type) ? volunteer : type;
+  }
 
   static String labelFor(String roleType) => switch (normalize(roleType)) {
     donor => 'Donor',
@@ -170,6 +180,8 @@ class RoleAccountStore extends ChangeNotifier {
 
   String? _primaryRoleType;
 
+  bool _staffAccount = false;
+
   bool get isEmpty => _accounts.isEmpty;
 
   /// Roles in a stable order: volunteer, donor, beneficiary.
@@ -192,6 +204,10 @@ class RoleAccountStore extends ChangeNotifier {
       accounts.where((a) => a.roleType != _activeRoleType).toList();
 
   bool isUnlocked(String roleType) => byType(roleType)?.isUnlocked ?? false;
+
+  /// Signed in with a director or coordinator portal account — Volunteer side
+  /// only, with no school record or ID check behind it.
+  bool get isStaffAccount => _staffAccount;
 
   /// The Volunteer side was opened by a director approving a role-access
   /// request from a donor or beneficiary — someone from outside the school
@@ -228,9 +244,11 @@ class RoleAccountStore extends ChangeNotifier {
       _accounts.clear();
       _ownerEmail = key;
       _primaryRoleType = type;
+      _staffAccount = isStaffRole(roleType);
     }
 
-    for (final other in allRoleTypes) {
+    // Staff have no donor or beneficiary side to unlock.
+    for (final other in _staffAccount ? const [volunteer] : allRoleTypes) {
       _accounts.putIfAbsent(
         other,
         () => RoleAccount(
@@ -418,6 +436,7 @@ class RoleAccountStore extends ChangeNotifier {
     _ownerEmail = null;
     _activeRoleType = null;
     _primaryRoleType = null;
+    _staffAccount = false;
     notifyListeners();
   }
 

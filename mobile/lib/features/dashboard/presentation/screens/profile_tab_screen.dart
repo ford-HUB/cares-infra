@@ -465,8 +465,10 @@ class _ProfileTabBody extends StatelessWidget {
                     if (volunteerServer != null) ...[
                       // A beneficiary/donor whose Volunteer side a director
                       // approved never uploaded a school record — only a
-                      // registered volunteer has one to show.
-                      if (!volunteerServer.accessGrantedByDirector) ...[
+                      // registered volunteer has one to show. Neither has a
+                      // director or coordinator signed in from the portal.
+                      if (!volunteerServer.accessGrantedByDirector &&
+                          !RoleAccountStore.instance.isStaffAccount) ...[
                         _SectionTitle(title: 'School Information'),
 
                         const SizedBox(height: 8),

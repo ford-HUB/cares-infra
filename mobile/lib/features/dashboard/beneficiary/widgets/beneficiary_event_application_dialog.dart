@@ -132,7 +132,6 @@ class _BeneficiaryEventApplicationDialogState
             ),
           ),
           const SizedBox(width: 12),
-          
         ],
       ),
       content: SingleChildScrollView(

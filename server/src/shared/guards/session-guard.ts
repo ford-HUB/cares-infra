@@ -8,6 +8,9 @@ import { Reflector } from '@nestjs/core';
 import type { SessionRecord } from 'src/modules/sessions/services/session-registry';
 import { SessionRegistry } from 'src/modules/sessions/services/session-registry';
 import { SecurityPolicyService } from 'src/modules/security-policy/services/security-policy-service';
+import { AccessControlSiteService } from 'src/modules/access-control/services/access-control-site-service';
+import { PermissionKey } from '../../infastructures/prisma/common/client';
+import { isStaffVolunteerRole } from '../constants/mobile-role-types';
 import { IS_PUBLIC_KEY } from '../decorators/public-decorator';
 import { AuthenticatedRequest } from '../types/authenticated-request';
 
@@ -29,6 +32,7 @@ export class SessionGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly sessionRegistry: SessionRegistry,
     private readonly securityPolicyService: SecurityPolicyService,
+    private readonly accessControlSiteService: AccessControlSiteService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -59,9 +63,35 @@ export class SessionGuard implements CanActivate {
     }
 
     await this.assertWithinPolicyLimits(session);
+    await this.assertMobileAccessHeld(session);
 
     await this.sessionRegistry.touch(session);
     return true;
+  }
+
+  /**
+   * A director or coordinator signed in to the app keeps that session only while they
+   * hold "Use the mobile app" — an admin revoking it in Access Control signs them out
+   * of the app on its next request rather than when the token expires. Their portal
+   * sessions are untouched.
+   */
+  private async assertMobileAccessHeld(session: SessionRecord): Promise<void> {
+    if (
+      session.source !== 'MOBILE' ||
+      !isStaffVolunteerRole(session.role_type)
+    ) {
+      return;
+    }
+
+    const held = await this.accessControlSiteService.effectivePermissionsFor(
+      session.user_id,
+    );
+    if (!held.includes(PermissionKey.MOBILE_APP_ACCESS)) {
+      await this.sessionRegistry.revoke(session.session_id);
+      throw new UnauthorizedException(
+        'Mobile app access was turned off for this account — ask an administrator',
+      );
+    }
   }
 
   /**

@@ -81,7 +81,8 @@ export const PermissionKey = {
   SYSTEM_MAINTENANCE_MANAGE: 'SYSTEM_MAINTENANCE_MANAGE',
   CHAT_ACCESS: 'CHAT_ACCESS',
   MAIL_ACCESS: 'MAIL_ACCESS',
-  SUPPORT_TICKET_MANAGE: 'SUPPORT_TICKET_MANAGE'
+  SUPPORT_TICKET_MANAGE: 'SUPPORT_TICKET_MANAGE',
+  MOBILE_APP_ACCESS: 'MOBILE_APP_ACCESS'
 } as const
 
 export type PermissionKey = (typeof PermissionKey)[keyof typeof PermissionKey]
@@ -475,7 +476,8 @@ export const AssistanceRequestStatus = {
   UNDER_REVIEW: 'UNDER_REVIEW',
   APPROVED: 'APPROVED',
   COMPLETED: 'COMPLETED',
-  DECLINED: 'DECLINED'
+  DECLINED: 'DECLINED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type AssistanceRequestStatus = (typeof AssistanceRequestStatus)[keyof typeof AssistanceRequestStatus]

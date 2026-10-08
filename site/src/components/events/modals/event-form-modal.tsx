@@ -13,13 +13,16 @@ import {
   GOODS_TYPE_OPTIONS,
   summarizeEventDuration,
 } from '../../../constants/event'
+import { useTargetBeneficiaries } from '../../../hooks/use-target-beneficiaries'
 import { useEventStore } from '../../../store/event-store'
 import type { CreateEventPayload, EventCategory } from '../../../types/event'
 import { eventFormSchema, type EventFormValues } from '../../../validators/event-schema'
 import { AddressAutocomplete } from '../ui/address-autocomplete'
 import { BeneficiaryDonationPanel } from '../ui/beneficiary-donation-panel'
 import { EventImage } from '../ui/event-image'
+import { TargetBeneficiaryField } from '../ui/target-beneficiary-field'
 import { EventMapDraw } from '../map/event-map-draw'
+import { TargetBeneficiaryModal } from './target-beneficiary-modal'
 
 interface EventFormModalProps {
   mode: 'create' | 'edit'
@@ -53,9 +56,14 @@ export function EventFormModal({
   const { addEvent, editEvent } = useEventStore()
   const scoped = lockedDepartment !== undefined
   const [previews, setPreviews] = useState<string[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<{ lng: number; lat: number } | null>(
-    null,
-  )
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lng: number
+    lat: number
+    replaceArea?: boolean
+  } | null>(null)
+  const [pickingTargets, setPickingTargets] = useState(false)
+  /** The targeted request whose pin the event is currently placed on. */
+  const locationTargetId = useRef<string | null>(null)
 
   const {
     register,
@@ -83,6 +91,7 @@ export function EventFormModal({
       funds_donation: defaultValues?.funds_donation ?? false,
       goods_donation: defaultValues?.goods_donation ?? false,
       goods_types: defaultValues?.goods_types ?? [],
+      target_beneficiaries: defaultValues?.target_beneficiaries ?? [],
       geojson: defaultValues?.geojson ?? null,
       area_sqm: defaultValues?.area_sqm ?? null,
       marker_lat: defaultValues?.marker_lat ?? null,
@@ -101,6 +110,50 @@ export function EventFormModal({
   const fundsDonation = watch('funds_donation')
   const goodsDonation = watch('goods_donation')
   const goodsTypes = watch('goods_types')
+  const targetIds = watch('target_beneficiaries')
+  const maxBeneficiaries = watch('max_beneficiaries')
+  const targets = useTargetBeneficiaries(
+    targetIds ?? [],
+    !scoped && Boolean(beneficiaryApplicable),
+  )
+
+  // Max beneficiaries is no longer typed in: it is every family member across the
+  // targeted households. Targets are not stored with the event yet, so an edited
+  // event keeps its saved max until the director picks targets again.
+  const familyTotal = targets.selected.reduce((sum, request) => sum + request.householdSize, 0)
+  const targetsTouched = useRef(false)
+
+  useEffect(() => {
+    if (!targetsTouched.current) return
+    setValue('max_beneficiaries', familyTotal > 0 ? familyTotal : undefined, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  }, [familyTotal, setValue])
+
+  const setTargets = (ids: string[]) => {
+    targetsTouched.current = true
+    setValue('target_beneficiaries', ids, { shouldDirty: true, shouldValidate: true })
+
+    // The event sits on the first targeted beneficiary who pinned a location. It only
+    // moves when that beneficiary changes, so adding more targets leaves it in place.
+    const anchor = ids
+      .map((id) => targets.approved.find((request) => request.id === id))
+      .find((request) => request?.location)
+    if (!anchor?.location || anchor.id === locationTargetId.current) return
+    locationTargetId.current = anchor.id
+
+    // A readable placeholder until the map's reverse geocode replaces it.
+    const fallbackLabel = anchor.location.details ?? anchor.requester.barangay
+    if (fallbackLabel) {
+      setValue('location', fallbackLabel, { shouldDirty: true, shouldValidate: true })
+    }
+    setSelectedLocation({
+      lng: anchor.location.longitude,
+      lat: anchor.location.latitude,
+      replaceArea: true,
+    })
+  }
 
   useEffect(() => {
     if (!beneficiaryApplicable) {
@@ -108,6 +161,8 @@ export function EventFormModal({
       setValue('funds_donation', false, { shouldValidate: false })
       setValue('goods_donation', false, { shouldValidate: false })
       setValue('goods_types', [], { shouldValidate: false })
+      setValue('target_beneficiaries', [], { shouldValidate: false })
+      locationTargetId.current = null
     }
   }, [beneficiaryApplicable, setValue])
 
@@ -401,6 +456,7 @@ export function EventFormModal({
           <EventMapDraw
             value={geojson ?? null}
             focus={selectedLocation}
+            beneficiaryPins={beneficiaryApplicable ? targets.pins : undefined}
             marker={
               defaultValues?.marker_lat != null && defaultValues?.marker_lng != null
                 ? { lat: defaultValues.marker_lat, lng: defaultValues.marker_lng }
@@ -414,6 +470,9 @@ export function EventFormModal({
               setValue('marker_lat', center.lat, { shouldDirty: true })
               setValue('marker_lng', center.lng, { shouldDirty: true })
             }}
+            onFocusAddressResolved={(label) =>
+              setValue('location', label, { shouldDirty: true, shouldValidate: true })
+            }
             onAddressResolved={(label, center) => {
               setValue('location', label, { shouldDirty: true, shouldValidate: true })
               setSelectedLocation(center)
@@ -500,13 +559,31 @@ export function EventFormModal({
             </label>
           )}
 
-          {beneficiaryApplicable && (
-            <Field label="Max beneficiaries (optional)" error={errors.max_beneficiaries?.message}>
+
+          {!scoped && beneficiaryApplicable && (
+            <div>
+              <TargetBeneficiaryField
+                selected={targets.selected}
+                onOpen={() => setPickingTargets(true)}
+                onRemove={(id) => setTargets((targetIds ?? []).filter((t) => t !== id))}
+              />
+              {errors.target_beneficiaries && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.target_beneficiaries.message as string}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Read-only: derived from the targeted households, carried by the form value. */}
+          {!scoped && beneficiaryApplicable && (
+            <Field label="Total family members" error={errors.max_beneficiaries?.message}>
               <input
                 type="number"
-                min={1}
-                className={inputClass(!!errors.max_beneficiaries)}
-                {...register('max_beneficiaries')}
+                disabled
+                value={maxBeneficiaries ?? ''}
+                placeholder="Select target beneficiaries to count their families"
+                className={`${inputClass(false)} cursor-not-allowed bg-gray-100 text-gray-700`}
               />
             </Field>
           )}
@@ -544,6 +621,20 @@ export function EventFormModal({
           />
         )}
       </div>
+
+      <TargetBeneficiaryModal
+        isOpen={pickingTargets}
+        requests={targets.approved}
+        loading={targets.loading}
+        error={targets.error}
+        initialSelected={targetIds ?? []}
+        onRetry={targets.retry}
+        onCancel={() => setPickingTargets(false)}
+        onConfirm={(ids) => {
+          setTargets(ids)
+          setPickingTargets(false)
+        }}
+      />
     </div>
   )
 }

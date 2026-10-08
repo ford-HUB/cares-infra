@@ -5,12 +5,14 @@ import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/domain/id_extraction_review.dart';
 import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/domain/volunteer_field_rules.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
+import 'package:mobile/features/auth/presentation/widgets/id_extraction_flags_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
@@ -26,6 +28,7 @@ class RegisterOcrReviewStep extends StatefulWidget {
     this.phoneError,
     this.idNumberError,
     this.extractErrorMessage,
+    this.extractionFlags = const [],
     this.onRetry,
   }) : assert(
          roleType != RegistrationRoleType.volunteer || volunteerType != null,
@@ -38,6 +41,9 @@ class RegisterOcrReviewStep extends StatefulWidget {
   final bool isExtracting;
   final bool extractFailed;
   final String? extractErrorMessage;
+
+  /// Extracted fields that are missing or doubtful (see [IdExtractionReview]).
+  final List<IdFieldFlag> extractionFlags;
   final VoidCallback? onRetry;
   final ValueChanged<RegisterOcrSample> onChanged;
 
@@ -434,6 +440,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ],
           ),
         ),
+        if (widget.extractionFlags.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          IdExtractionFlagsCard(flags: widget.extractionFlags),
+        ],
         const SizedBox(height: 16),
         RegistrationFormCard(
           icon: Icons.person_outline_rounded,

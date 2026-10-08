@@ -65,6 +65,8 @@ export const eventFormSchema = z
     funds_donation: z.boolean().default(false),
     goods_donation: z.boolean().default(false),
     goods_types: z.array(z.string()).default([]),
+    /** Approved assistance request ids the event is aimed at. */
+    target_beneficiaries: z.array(z.string()).default([]),
     geojson: z.unknown().optional().nullable(),
     area_sqm: z.number().optional().nullable(),
     marker_lat: z.number().optional().nullable(),
@@ -99,5 +101,6 @@ export const eventFormSchema = z
       path: ['goods_types'],
     },
   )
+
 
 export type EventFormValues = z.infer<typeof eventFormSchema>

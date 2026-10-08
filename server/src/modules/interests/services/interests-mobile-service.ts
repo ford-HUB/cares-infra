@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InterestCode } from '../../../infastructures/prisma/common/client';
-import { isPortalRole } from '../../../shared/constants/portal-role-types';
+import { toMobileRole } from '../../../shared/constants/mobile-role-types';
 import { UserInterestsResponseDto } from '../dto/interests-mobile-dto';
 import { InterestsRepository } from '../repositories/interests-repository';
 import { AuditLogRecorder } from '../../audit-logs/services/audit-log-recorder';
@@ -35,8 +35,9 @@ export class InterestsMobileService {
 
     // Any mobile account may hold interests — the app's role switcher is
     // local, so a beneficiary-registered user volunteering keeps their token
-    // role. Only portal staff are excluded.
-    if (isPortalRole(user.role.type)) {
+    // role. Directors and coordinators hold them for their Volunteer side;
+    // other portal staff are excluded.
+    if (!toMobileRole(user.role.type)) {
       throw new ForbiddenException('Only mobile accounts can save interests');
     }
 

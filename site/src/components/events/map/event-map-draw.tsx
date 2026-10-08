@@ -11,6 +11,7 @@ import {
   MAPBOX_BUILDING_LAYER,
   MAPBOX_MAP_STYLE,
 } from '../../../constants/mapbox'
+import type { BeneficiaryPin } from '../../../hooks/use-target-beneficiaries'
 import { getPlaceDetails } from '../../../services/geocoding-service'
 import type { PlaceDetails } from '../../../types/geocoding'
 import { ConfirmBuildingModal } from './confirm-building-modal'
@@ -27,8 +28,14 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 interface EventMapDrawProps {
   value?: Geometry | null
-  /** When set, the map flies to this location and drops a marker. */
-  focus?: { lng: number; lat: number } | null
+  /**
+   * When set, the map flies to this location and drops a marker. `replaceArea`
+   * discards whatever area is drawn and traces a fresh one around the point — used
+   * when a targeted beneficiary's pin becomes the event location.
+   */
+  focus?: { lng: number; lat: number; replaceArea?: boolean } | null
+  /** Address resolved for a `replaceArea` focus, so the caller can fill its field. */
+  onFocusAddressResolved?: (label: string) => void
   onChange: (geojson: Geometry | null, areaSqM: number | null) => void
   /** Called when a building/place is picked on the map (auto-fills the address). */
   onAddressResolved?: (label: string, center: { lng: number; lat: number }) => void
@@ -36,6 +43,11 @@ interface EventMapDrawProps {
   marker?: { lng: number; lat: number } | null
   /** The pin inside the area, whenever it is dropped or dragged. */
   onMarkerChange?: (marker: { lng: number; lat: number }) => void
+  /**
+   * Where targeted beneficiaries pinned their assistance requests. Each gets a red
+   * marker, and the map moves to frame them whenever the set changes.
+   */
+  beneficiaryPins?: BeneficiaryPin[]
 }
 
 function formatArea(sqM: number) {
@@ -43,6 +55,11 @@ function formatArea(sqM: number) {
   if (sqM >= 10_000) return `${(sqM / 10_000).toFixed(2)} hectares`
   return `${sqM.toFixed(0)} sq m`
 }
+
+const BENEFICIARY_PIN_COLOR = '#e53935'
+/** Closest the map zooms in when framing beneficiary pins. */
+const BENEFICIARY_FRAME_MAX_ZOOM = 16
+const BENEFICIARY_FRAME_PADDING = 48
 
 /** One press of the grow/shrink buttons changes the area by this factor. */
 const RESIZE_STEP = 1.15
@@ -142,6 +159,8 @@ export function EventMapDraw({
   onChange,
   onAddressResolved,
   onMarkerChange,
+  onFocusAddressResolved,
+  beneficiaryPins,
 }: EventMapDrawProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -150,11 +169,14 @@ export function EventMapDraw({
   const onChangeRef = useRef(onChange)
   const onAddressResolvedRef = useRef(onAddressResolved)
   const onMarkerChangeRef = useRef(onMarkerChange)
+  const onFocusAddressResolvedRef = useRef(onFocusAddressResolved)
   const detailsAbortRef = useRef<AbortController | null>(null)
   const valueRef = useRef(value)
   const initialMarkerRef = useRef(marker)
   const placeMarkerRef = useRef<((lng: number, lat: number) => void) | null>(null)
   const tracedFocusRef = useRef<string | null>(null)
+  const beneficiaryMarkersRef = useRef<mapboxgl.Marker[]>([])
+  const framedPinsRef = useRef<string>('')
   const [ready, setReady] = useState(false)
   const [detecting, setDetecting] = useState(false)
   /** Building resolved by a double-click, waiting for the operator to confirm it. */
@@ -187,6 +209,10 @@ export function EventMapDraw({
   useEffect(() => {
     onMarkerChangeRef.current = onMarkerChange
   }, [onMarkerChange])
+
+  useEffect(() => {
+    onFocusAddressResolvedRef.current = onFocusAddressResolved
+  }, [onFocusAddressResolved])
 
   /** Replace whatever is drawn with `geometry` and push the change upwards. */
   const applyGeometry = useCallback((draw: MapboxDraw, geometry: Geometry) => {
@@ -559,6 +585,9 @@ export function EventMapDraw({
       window.removeEventListener('mouseup', onEdgeUp)
       markerRef.current?.remove()
       markerRef.current = null
+      beneficiaryMarkersRef.current.forEach((m) => m.remove())
+      beneficiaryMarkersRef.current = []
+      framedPinsRef.current = ''
       map.remove()
       mapRef.current = null
       drawRef.current = null
@@ -571,13 +600,23 @@ export function EventMapDraw({
     const draw = drawRef.current
     if (!map || !draw || !ready || !focus) return
 
+    const focusKey = `${focus.lng},${focus.lat}`
+    const replacing = !!focus.replaceArea && tracedFocusRef.current !== focusKey
+    // Cleared before the pin drops, or the pin would be clamped into the old area.
+    if (replacing && draw.getAll().features.length > 0) {
+      draw.deleteAll()
+      setAreaLabel(null)
+      setHasArea(false)
+      onChangeRef.current(null, null)
+    }
+
     map.flyTo({ center: [focus.lng, focus.lat], zoom: 18, essential: true })
 
     placeMarker(focus.lng, focus.lat)
 
     // Pre-trace the building under the picked suggestion so the area starts filled
-    // in. Never clobber an area that is already drawn — the operator owns that one.
-    const focusKey = `${focus.lng},${focus.lat}`
+    // in. Never clobber an area that is already drawn — the operator owns that one —
+    // unless the focus explicitly asked to replace it (cleared above).
     if (tracedFocusRef.current === focusKey) return
     tracedFocusRef.current = focusKey
     if (draw.getAll().features.length > 0) return
@@ -599,6 +638,7 @@ export function EventMapDraw({
       .then((details) => {
         if (controller.signal.aborted) return
         setDetecting(false)
+        if (focus.replaceArea && details) onFocusAddressResolvedRef.current?.(details.label)
         if (draw.getAll().features.length > 0) return
         applyGeometry(
           draw,
@@ -607,6 +647,35 @@ export function EventMapDraw({
         placeMarker(focus.lng, focus.lat)
       })
   }, [applyGeometry, focus, placeMarker, ready])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+
+    const pins = beneficiaryPins ?? []
+    beneficiaryMarkersRef.current.forEach((m) => m.remove())
+    beneficiaryMarkersRef.current = pins.map((pin) =>
+      new mapboxgl.Marker({ color: BENEFICIARY_PIN_COLOR, scale: 0.8 })
+        .setLngLat([pin.lng, pin.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 24, closeButton: false }).setText(pin.label))
+        .addTo(map),
+    )
+
+    // Only move the camera when the targeted set itself changes, not on a refetch.
+    const key = pins.map((pin) => `${pin.id}:${pin.lng},${pin.lat}`).join('|')
+    if (key === framedPinsRef.current) return
+    framedPinsRef.current = key
+    // A lone pin becomes the event location, and that focus already flies to it.
+    if (pins.length < 2) return
+
+    const bounds = new mapboxgl.LngLatBounds()
+    pins.forEach((pin) => bounds.extend([pin.lng, pin.lat]))
+    map.fitBounds(bounds, {
+      padding: BENEFICIARY_FRAME_PADDING,
+      maxZoom: BENEFICIARY_FRAME_MAX_ZOOM,
+      essential: true,
+    })
+  }, [beneficiaryPins, ready])
 
   /** Replace the drawn area with the confirmed building's footprint. */
   const confirmPendingPlace = useCallback(() => {
@@ -685,6 +754,12 @@ export function EventMapDraw({
         it, drag the pin to the meeting spot, or use + / − to resize. Double-click another building
         to trace it instead, or use the draw tool to size an area by dragging.
       </p>
+      {beneficiaryPins && beneficiaryPins.length > 0 && (
+        <p className="flex items-center gap-1.5 text-xs text-gray-600">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#e53935]" />
+          Red pins mark where the targeted beneficiaries requested assistance.
+        </p>
+      )}
       {drawArmed && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-xs font-medium text-green-800">
           Press on the middle of the spot and drag outwards to size the new area — letting go

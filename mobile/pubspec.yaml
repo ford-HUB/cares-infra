@@ -78,6 +78,10 @@ dependencies:
   # external browser; QR Ph codes render in-app from the EMV string.
   url_launcher: ^6.3.1
   qr_flutter: ^4.1.0
+  # ID upload pre-validation: each side is checked on-device for blur, glare,
+  # exposure and readable text before the next upload stage unlocks.
+  google_mlkit_text_recognition: ^0.15.1
+  image: ^4.5.4
 
 dev_dependencies:
   flutter_test:
