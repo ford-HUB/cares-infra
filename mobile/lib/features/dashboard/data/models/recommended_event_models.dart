@@ -1,5 +1,6 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
+import 'package:mobile/features/dashboard/utils/geo_utils.dart';
 
 /// One interest the volunteer picked that the server's NLP tagging found in
 /// an event. [score] is the blended 0–1 confidence; the UI shows the label.
@@ -53,6 +54,7 @@ class RecommendedEvent {
     this.imageCount = 0,
     this.markerLat,
     this.markerLng,
+    this.geofence,
   });
 
   factory RecommendedEvent.fromJson(Map<String, dynamic> json) {
@@ -83,6 +85,7 @@ class RecommendedEvent {
           json['application_rejection_reason'] as String?,
       markerLat: (json['marker_lat'] as num?)?.toDouble(),
       markerLng: (json['marker_lng'] as num?)?.toDouble(),
+      geofence: GeoUtils.geofenceFromJson(json['geofence']),
       imageCount: json['image_count'] as int? ?? 0,
       matchedInterests: (json['matched_interests'] as List<dynamic>? ?? [])
           .map((e) => MatchedInterest.fromJson(e as Map<String, dynamic>))
@@ -135,6 +138,9 @@ class RecommendedEvent {
   final double? markerLat;
   final double? markerLng;
 
+  /// The attendance area drawn on the portal map, null when none was drawn.
+  final List<GeofenceRing>? geofence;
+
   /// Images sit in a private bucket; the server streams them by index.
   final int imageCount;
 
@@ -169,6 +175,12 @@ class RecommendedEvent {
     final minute = startsAt.minute.toString().padLeft(2, '0');
     final meridiem = startsAt.hour < 12 ? 'AM' : 'PM';
 
+    // Without a pin the drawn area's centre stands in for the venue.
+    final area = geofence;
+    final centre = area == null ? null : GeoUtils.centroid(area);
+    final venueLat = markerLat ?? centre?.lat ?? 0;
+    final venueLng = markerLng ?? centre?.lng ?? 0;
+
     return CaresEvent(
       id: caresEventId,
       title: title,
@@ -187,8 +199,16 @@ class RecommendedEvent {
       registeredCount: participants,
       totalCapacity: maxParticipants,
       requirements: const [],
-      venueLatitude: markerLat ?? 0,
-      venueLongitude: markerLng ?? 0,
+      venueLatitude: venueLat,
+      venueLongitude: venueLng,
+      attendanceRadiusMeters: area == null
+          ? 500
+          : GeoUtils.reachMeters(
+              area,
+              fromLatitude: venueLat,
+              fromLongitude: venueLng,
+            ),
+      geofence: area,
       openToBeneficiaries: beneficiaryApplicable,
       isCompleted: status == 'Completed',
       endDate: endsAt,

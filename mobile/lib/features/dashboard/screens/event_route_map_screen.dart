@@ -175,18 +175,6 @@ class _EventRouteMapScreenState extends State<EventRouteMapScreen> {
                 userAgentPackageName: 'com.caresinfra.mobile',
                 errorTileCallback: (_, _, _) => _demoteTiles(),
               ),
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: _venue,
-                    radius: event.attendanceRadiusMeters,
-                    useRadiusInMeter: true,
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    borderColor: AppColors.primary.withValues(alpha: 0.5),
-                    borderStrokeWidth: 1.5,
-                  ),
-                ],
-              ),
               if (route != null)
                 PolylineLayer(
                   polylines: [
@@ -397,8 +385,10 @@ class _RouteSummaryCard extends StatelessWidget {
             ],
             const SizedBox(height: 8),
             Text(
-              'Check in once you are within '
-              '${event.attendanceRadiusMeters.round()}m of the venue.',
+              event.geofence != null
+                  ? 'Check in once you are inside the event area.'
+                  : 'Check in once you are within '
+                        '${event.attendanceRadiusMeters.round()}m of the venue.',
               style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
             ),
           ],

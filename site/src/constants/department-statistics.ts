@@ -30,16 +30,21 @@ export const STATISTICS_DEPARTMENT_ALL = 'all'
  * so a coordinator's profile department matches a row here by name.
  */
 export const STATISTICS_DEPARTMENTS: readonly string[] = [
-  'College of Teacher Education',
-  'College of Hospitality & Tourism Management',
-  'College of Computer Studies',
+  'College of Maritime Engineering',
+  'College of Teacher Education (BSED)',
+  'College of Maritime Transportation',
   'College of Nursing',
-  'College of Maritime',
-  'College of Business Administration',
+  'Senior High School Department',
+  'College of Teacher Education (BEED)',
+  'College of Business and Accountancy',
+  'College of Computer Studies',
+  'College of Criminology',
   'College of Customs Administration',
-  'College of Bussines & Accountancy',
-  'College of Engeneering',
-  'Senior High Department',
+  'College of Engineering',
+  'College of Hospitality and Tourism Management',
+  'Basic Education (Junior High School)',
+  'Basic Education (Elementary)',
+  'Non-Teaching Personnel',
 ]
 
 /**

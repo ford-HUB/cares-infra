@@ -184,7 +184,7 @@ class LocationCaptureDb {
     final path = p.join(await getDatabasesPath(), 'cares_geofence.db');
     final db = await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, _) async {
         await _createStateTable(db);
         await _createJoinedTable(db);
@@ -213,6 +213,9 @@ class LocationCaptureDb {
       },
       onUpgrade: (db, oldVersion, _) async {
         if (oldVersion < 4) await _createJoinedTable(db);
+        if (oldVersion == 4) {
+          await _addColumnIfMissing(db, _joinedTable, 'geofence', 'TEXT');
+        }
         if (oldVersion < 3) await _createStateTable(db);
         if (oldVersion < 2) {
           await db.execute(
@@ -226,6 +229,20 @@ class LocationCaptureDb {
     );
     _db = db;
     return db;
+  }
+
+  /// The UI and the Android location service each open this database, so
+  /// both can run the same upgrade; a column added by one must not make the
+  /// other's ALTER fail.
+  static Future<void> _addColumnIfMissing(
+    Database db,
+    String table,
+    String column,
+    String type,
+  ) async {
+    final columns = await db.rawQuery('PRAGMA table_info($table)');
+    if (columns.any((c) => c['name'] == column)) return;
+    await db.execute('ALTER TABLE $table ADD COLUMN $column $type');
   }
 
   static Future<void> _createStateTable(Database db) => db.execute(
@@ -248,6 +265,7 @@ class LocationCaptureDb {
     'starts_at INTEGER NOT NULL, '
     'ends_at INTEGER NOT NULL, '
     'is_completed INTEGER NOT NULL, '
+    'geofence TEXT, '
     'PRIMARY KEY (event_id, participant_email))',
   );
 
@@ -384,6 +402,20 @@ class LocationCaptureDb {
       firstCapturedAt: at(m['first_at']),
       lastCapturedAt: at(m['last_at']),
     );
+  }
+
+  /// The device's most recent fix for this volunteer, whichever event it was
+  /// tagged with — used to tell where the phone is right now.
+  Future<LocationCaptureRow?> latestFix(String email) async {
+    final db = await _database;
+    final rows = await db.query(
+      _table,
+      where: 'participant_email = ?',
+      whereArgs: [_norm(email)],
+      orderBy: 'captured_at DESC',
+      limit: 1,
+    );
+    return rows.isEmpty ? null : LocationCaptureRow.fromMap(rows.first);
   }
 
   /// Days with captures, newest first — one entry per daily CSV.

@@ -29,48 +29,59 @@ export const ALL_DEPARTMENTS = 'All Departments'
 
 /** Departments (and their courses) offered — source of truth for the dropdown. */
 export const DEPARTMENT_COURSES: Record<string, string[]> = {
-  'College of Teacher Education': [
-    'BSED - Bachelor of Secondary Education',
-    'BEED - Bachelor of Elementary Education',
-    'BTLEd - Bachelor of Technology and Livelihood Education',
+  'College of Maritime Engineering': [
+    'BSMarE - Bachelor of Science in Marine Engineering',
   ],
-  'College of Hospitality & Tourism Management': [
-    'BSHM - Bachelor of Science in Hospitality Management',
-    'BSTM - Bachelor of Science in Tourism Management',
+  'College of Teacher Education (BSED)': [
+    'BSED - Bachelor of Secondary Education',
+  ],
+  'College of Maritime Transportation': [
+    'BSMT - Bachelor of Science in Marine Transportation',
+  ],
+  'College of Nursing': [
+    'BSN - Bachelor of Science in Nursing',
+  ],
+  'Senior High School Department': [
+    'SHS - Senior High School',
+  ],
+  'College of Teacher Education (BEED)': [
+    'BEED - Bachelor of Elementary Education',
+  ],
+  'College of Business and Accountancy': [
+    'BSA - Bachelor of Science in Accountancy',
+    'BSBA - Bachelor of Science in Business Administration',
+    'BSMA - Bachelor of Science in Management Accounting',
   ],
   'College of Computer Studies': [
     'BSIT - Bachelor of Science in Information Technology',
     'BSCS - Bachelor of Science in Computer Science',
   ],
-  'College of Nursing': ['BSN - Bachelor of Science in Nursing'],
-  'College of Maritime': [
-    'BSMarE - Bachelor of Science in Marine Engineering',
-    'BSMT - Bachelor of Science in Marine Transportation',
-  ],
-  'College of Business Administration': [
-    'BSBA-Marketing - Bachelor of Science in Business Administration Major in Marketing',
-    'BSBA-HRM - Bachelor of Science in Business Administration Major in HRM',
+  'College of Criminology': [
+    'BSCrim - Bachelor of Science in Criminology',
   ],
   'College of Customs Administration': [
     'BSCA - Bachelor of Science in Customs Administration',
   ],
-  'College of Business & Accountancy': [
-    'BSBA - Bachelor of Science in Business Administration',
-    'BSA - Bachelor of Science in Accountancy',
-  ],
   'College of Engineering': [
-    'BSCpE - Bachelor of Science in Computer Engineering',
-    'BSEE - Bachelor of Science in Electrical Engineering',
     'BSCE - Bachelor of Science in Civil Engineering',
+    'BSEE - Bachelor of Science in Electrical Engineering',
+    'BSECE - Bachelor of Science in Electronics Engineering',
+    'BSME - Bachelor of Science in Mechanical Engineering',
+    'BSIE - Bachelor of Science in Industrial Engineering',
+    'BSCpE - Bachelor of Science in Computer Engineering',
   ],
-  'Senior High Department': [
-    'STEM - Science, Technology, Engineering, and Mathematics',
-    'ABM - Accountancy, Business, and Management',
-    'HUMSS - Humanities and Social Sciences',
-    'GAS - General Academic Strand',
-    'ICT - Information and Communications Technology',
-    'HE - Home Economics',
-    'IA - Industrial Arts',
+  'College of Hospitality and Tourism Management': [
+    'BSHM - Bachelor of Science in Hospitality Management',
+    'BSTM - Bachelor of Science in Tourism Management',
+  ],
+  'Basic Education (Junior High School)': [
+    'JHS - Junior High School',
+  ],
+  'Basic Education (Elementary)': [
+    'ES - Elementary School',
+  ],
+  'Non-Teaching Personnel': [
+    'NT - Non-Teaching Personnel',
   ],
 }
 

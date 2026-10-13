@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -6,6 +8,7 @@ import '../data/event_registration_store.dart';
 import '../data/location_capture_db.dart';
 import '../data/location_sync_service.dart';
 import '../domain/cares_event.dart';
+import '../utils/geo_utils.dart';
 
 /// Bottom sheet for a joined event: what the geofence is doing right now,
 /// how many fixes sit on the device, and a button to push the pending ones
@@ -42,7 +45,12 @@ class _EventSyncSheetState extends State<_EventSyncSheet> {
   final _db = LocationCaptureDb.instance;
   final _sync = LocationSyncService();
 
+  /// A fix older than this no longer says where the phone is now.
+  static const _fixFreshFor = Duration(seconds: 60);
+
   LocationCaptureStats _stats = LocationCaptureStats.empty;
+  LocationCaptureRow? _latestFix;
+  Timer? _areaTicker;
   bool _syncing = false;
   String? _notice;
   bool _noticeIsError = false;
@@ -53,18 +61,41 @@ class _EventSyncSheetState extends State<_EventSyncSheet> {
   void initState() {
     super.initState();
     _tracker.addListener(_reload);
+    // Keeps the Area status current while the sheet stays open.
+    _areaTicker = Timer.periodic(const Duration(seconds: 5), (_) => _reload());
     _reload();
   }
 
   @override
   void dispose() {
+    _areaTicker?.cancel();
     _tracker.removeListener(_reload);
     super.dispose();
   }
 
   Future<void> _reload() async {
     final stats = await _db.statsForEvent(widget.event.id, _email);
-    if (mounted) setState(() => _stats = stats);
+    final latest = await _db.latestFix(_email);
+    if (mounted) {
+      setState(() {
+        _stats = stats;
+        _latestFix = latest;
+      });
+    }
+  }
+
+  /// Metres from the latest fresh fix to this event's venue, or null when
+  /// there is no recent fix to judge by.
+  double? get _distanceToVenue {
+    final fix = _latestFix;
+    if (fix == null) return null;
+    if (DateTime.now().difference(fix.capturedAt) > _fixFreshFor) return null;
+    return GeoUtils.distanceInMeters(
+      fromLatitude: fix.latitude,
+      fromLongitude: fix.longitude,
+      toLatitude: widget.event.venueLatitude,
+      toLongitude: widget.event.venueLongitude,
+    );
   }
 
   Future<void> _syncNow() async {
@@ -106,6 +137,17 @@ class _EventSyncSheetState extends State<_EventSyncSheet> {
       EventTrackingState.inactive => Icons.pause_circle_outline_rounded,
     };
     final hasPending = _stats.pending > 0;
+    final distance = state == EventTrackingState.ended
+        ? null
+        : _distanceToVenue;
+    final fix = _latestFix;
+    final inArea =
+        distance != null &&
+        fix != null &&
+        widget.event.containsPoint(
+          latitude: fix.latitude,
+          longitude: fix.longitude,
+        );
 
     return SafeArea(
       top: false,
@@ -182,6 +224,24 @@ class _EventSyncSheetState extends State<_EventSyncSheet> {
                     icon: Icons.event_available_rounded,
                     label: 'Registered',
                     value: _formatDateTime(widget.participation.registeredAt),
+                  ),
+                  const SizedBox(height: 12),
+                  _StatusRow(
+                    icon: Icons.place_outlined,
+                    label: 'Area',
+                    value: distance == null
+                        ? (state == EventTrackingState.ended
+                              ? '—'
+                              : 'Checking your location...')
+                        : inArea
+                        ? 'In area'
+                        : 'Outside the area · ${_formatDistance(distance)} away',
+                    valueColor: distance == null
+                        ? AppColors.textMuted
+                        : inArea
+                        ? AppColors.primary
+                        : AppColors.accentOrange,
+                    leadingDot: distance != null,
                   ),
                   const SizedBox(height: 12),
                   const _StatusRow(
@@ -298,6 +358,10 @@ class _EventSyncSheetState extends State<_EventSyncSheet> {
     return '$hour12:$minute $suffix';
   }
 
+  static String _formatDistance(double meters) => meters < 1000
+      ? '${meters.round()} m'
+      : '${(meters / 1000).toStringAsFixed(1)} km';
+
   static String _formatDateTime(DateTime dt) =>
       '${dt.month}/${dt.day}/${dt.year} · ${_formatTime(dt)}';
 }
@@ -308,12 +372,16 @@ class _StatusRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
+    this.leadingDot = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
   final Color? valueColor;
+
+  /// Prefixes the value with a dot in [valueColor] — a status at a glance.
+  final bool leadingDot;
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +401,18 @@ class _StatusRow extends StatelessWidget {
             ),
           ),
         ),
+        if (leadingDot)
+          Padding(
+            padding: const EdgeInsets.only(top: 5, right: 6),
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: valueColor ?? AppColors.textPrimary,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
         Expanded(
           child: Text(
             value,

@@ -7,14 +7,14 @@ void main() {
   const deviceFront =
       'STUDENT\n'
       'MARIA L SANTOS\n'
-      '2021-08452\n'
+      '21208452\n'
       'FEMALE\n';
   const deviceBack =
       'ADDRESS: Looc, Mandaue City, Cebu\n'
       'TEL NO. 09171234567\n';
 
   RegisterOcrSample complete() => RegisterOcrSample.sample.copyWith(
-    idNumber: '202108452',
+    idNumber: '21208452',
     lastname: 'SANTOS',
   );
 
@@ -36,7 +36,7 @@ void main() {
       deviceBackText: deviceBack,
       volunteerType: VolunteerType.student,
     );
-    expect(review.data.idNumber, '202108452');
+    expect(review.data.idNumber, '21208452');
     expect(review.data.phoneNumber, '09171234567');
     expect(
       review.flags,
@@ -49,12 +49,12 @@ void main() {
 
   test('flags an ID number the two scans read differently', () {
     final review = IdExtractionReview.of(
-      complete().copyWith(idNumber: '202108457'),
+      complete().copyWith(idNumber: '21208457'),
       deviceFrontText: deviceFront,
       deviceBackText: deviceBack,
       volunteerType: VolunteerType.student,
     );
-    expect(review.data.idNumber, '202108457');
+    expect(review.data.idNumber, '21208457');
     expect(
       review.flags,
       contains(const IdFieldFlag('ID number', IdFieldFlagReason.mismatch)),
