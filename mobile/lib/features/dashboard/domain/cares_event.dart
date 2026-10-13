@@ -1,3 +1,5 @@
+import '../utils/geo_utils.dart';
+
 class CaresEvent {
   const CaresEvent({
     required this.id,
@@ -18,6 +20,7 @@ class CaresEvent {
     required this.venueLatitude,
     required this.venueLongitude,
     this.attendanceRadiusMeters = 500,
+    this.geofence,
     this.isFeatured = false,
     this.openToBeneficiaries = false,
     this.isCompleted = false,
@@ -48,7 +51,16 @@ class CaresEvent {
   final List<String> requirements;
   final double venueLatitude;
   final double venueLongitude;
+
+  /// Reach of the attendance area around the venue. For a server event with a
+  /// drawn [geofence] this is the boundary's furthest point; otherwise it is
+  /// the circle the area check falls back to.
   final double attendanceRadiusMeters;
+
+  /// The attendance area the director drew on the portal map. Null on
+  /// prototype fixtures and events without one — [containsPoint] then uses
+  /// [attendanceRadiusMeters] around the venue.
+  final List<GeofenceRing>? geofence;
   final bool isFeatured;
 
   /// True when beneficiaries may attend or receive assistance at this event.
@@ -161,6 +173,17 @@ class CaresEvent {
       ? 'Ongoing'
       : 'Upcoming';
 
+  /// Whether a position is inside this event's attendance area.
+  bool containsPoint({required double latitude, required double longitude}) =>
+      GeoUtils.isInsideEventArea(
+        latitude: latitude,
+        longitude: longitude,
+        geofence: geofence,
+        venueLatitude: venueLatitude,
+        venueLongitude: venueLongitude,
+        radiusMeters: attendanceRadiusMeters,
+      );
+
   /// Numeric id on the server, or null for a prototype fixture. Server rows
   /// carry the `event-<id>` form (see `RecommendedEvent.toCaresEvent`).
   int? get serverId {
@@ -195,6 +218,7 @@ class CaresEvent {
       venueLatitude: venueLatitude,
       venueLongitude: venueLongitude,
       attendanceRadiusMeters: attendanceRadiusMeters,
+      geofence: geofence,
       isFeatured: isFeatured,
       openToBeneficiaries: openToBeneficiaries,
       isCompleted: isCompleted,
@@ -231,6 +255,7 @@ class CaresEvent {
       venueLatitude: venueLatitude,
       venueLongitude: venueLongitude,
       attendanceRadiusMeters: attendanceRadiusMeters,
+      geofence: geofence,
       isFeatured: isFeatured,
       openToBeneficiaries: openToBeneficiaries,
       isCompleted: isCompleted,

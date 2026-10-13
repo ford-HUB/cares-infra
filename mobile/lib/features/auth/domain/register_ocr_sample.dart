@@ -139,7 +139,7 @@ class RegisterOcrSample {
     currentAddress: 'Looc, Mandaue City, Cebu',
     phoneNumber: '+639171234567',
     idNumber: '2021-08452',
-    departmentName: 'College of Teacher Education',
+    departmentName: 'College of Teacher Education (BEED)',
     majorName: 'BEED - Bachelor of Elementary Education',
     yearLevelName: '3rd Year',
     graduationYear: 2026,

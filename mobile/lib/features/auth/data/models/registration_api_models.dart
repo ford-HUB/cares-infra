@@ -192,7 +192,8 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
             }
           : {
               'id_number': normalizedId,
-              'graduation_year': graduationYear,
+              // Non-teaching personnel skip the year; the server still needs one.
+              'graduation_year': graduationYear > 0 ? graduationYear : 2000,
               // Only the year is collected; the server still needs a full date.
               'graduation_month': graduationMonth >= 1 && graduationMonth <= 12
                   ? graduationMonth

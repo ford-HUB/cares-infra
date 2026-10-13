@@ -71,6 +71,13 @@ export const RecommendedEventSchema = z.object({
   application_rejection_reason: z.string().nullable(),
   marker_lat: z.number().nullable(),
   marker_lng: z.number().nullable(),
+  /**
+   * The attendance area the director drew on the portal map, as `[lng, lat]`
+   * rings (holes and MultiPolygon parts flattened in). The app tests the
+   * volunteer's position against it with an even-odd rule — the same boundary
+   * the gps-validator-service rules attendance on. Null when none was drawn.
+   */
+  geofence: z.array(z.array(z.tuple([z.number(), z.number()]))).nullable(),
   /** How many images the event carries; each streams from `GET /events/:id/images/:index`. */
   image_count: z.number().int().min(0),
   /** Interests the volunteer selected that this event was tagged with, best first. */
