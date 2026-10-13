@@ -30,7 +30,7 @@ class RegisterOcrRawParser {
       age: _extractAge(combined, lines),
       currentAddress: _extractAddress(lines, combined),
       phoneNumber: _extractPhone(combined, lines),
-      idNumber: _extractIdNumber(combined),
+      idNumber: _extractIdNumber(frontText),
     );
   }
 
@@ -259,21 +259,88 @@ class RegisterOcrRawParser {
   static String normalizeIdNumber(String value) =>
       value.replaceAll(RegExp(r'\D'), '');
 
-  static String _extractIdNumber(String text) {
-    final hyphenated = RegExp(r'\b(\d{4}-\d{4,6})\b').firstMatch(text);
-    if (hyphenated != null) return normalizeIdNumber(hyphenated.group(1)!);
+  // UCLM student IDs are 8 digits (YY + 6-digit serial, e.g. 24247447)
+  // printed above the "ID NO ____" line on the front of the card. Mirrors
+  // _extract_id_number in microservices/ocr-service/app/ocr_engine.py.
+  static const _studentIdLength = 8;
+  static const _studentIdMinRealDigits = 6;
+  static final _studentIdLabel = RegExp(
+    r'\b(?:I[D0O]|1D)\s*(?:N[O0]\b\.?|NUMBER\b|#)\s*[:.]?',
+    caseSensitive: false,
+  );
+  // Exactly 8 digit-like chars (OCR may read 0 as O, 1 as I/l, 8 as B, ...),
+  // optionally split by hyphens; bounded on both sides so longer runs such as
+  // phone numbers (11 digits) and dates never yield an 8-digit slice.
+  static final _studentIdToken = RegExp(
+    r'(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){7})(?![A-Za-z0-9/]|-[0-9A-Za-z])',
+  );
+  static final _schoolYearRange = RegExp(r'^((?:19|20)\d{2})((?:19|20)\d{2})$');
 
-    final spaced = RegExp(r'\b(\d{4})[\s\-](\d{4,6})\b').firstMatch(text);
-    if (spaced != null) {
-      return normalizeIdNumber('${spaced.group(1)}${spaced.group(2)}');
+  static List<String> _studentIdCandidates(String line) {
+    final candidates = <String>[];
+    for (final match in _studentIdToken.allMatches(line)) {
+      final raw = match.group(1)!;
+      if (RegExp(r'\d').allMatches(raw).length < _studentIdMinRealDigits) {
+        continue;
+      }
+      final digits = normalizeIdNumber(_normalizeDigits(raw));
+      if (digits.length != _studentIdLength) continue;
+      // "2024-2025" from a school-year row is not an ID.
+      final yearRange = _schoolYearRange.firstMatch(digits);
+      if (yearRange != null) {
+        final gap =
+            int.parse(yearRange.group(2)!) - int.parse(yearRange.group(1)!);
+        if (gap == 0 || gap == 1) continue;
+      }
+      candidates.add(digits);
     }
+    return candidates;
+  }
 
-    final eightDigit = RegExp(
-      r'\b(\d{8})\b',
-    ).firstMatch(_normalizeDigits(text));
-    if (eightDigit != null) return eightDigit.group(1)!;
+  static bool _hasPlausibleYearPrefix(String digits) =>
+      int.parse(digits.substring(0, 2)) <= (DateTime.now().year % 100) + 1;
 
+  static String _pickStudentId(List<String> candidates) {
+    for (final candidate in candidates) {
+      if (_hasPlausibleYearPrefix(candidate)) return candidate;
+    }
+    return candidates.isEmpty ? '' : candidates.first;
+  }
+
+  static String _studentIdNearLabel(List<String> lines) {
+    for (var index = 0; index < lines.length; index++) {
+      final line = lines[index];
+      final label = _studentIdLabel.firstMatch(line);
+      if (label == null) continue;
+      // UCLM prints the number just above the "ID NO ____" line; OCR may also
+      // merge it onto the label line or push it below.
+      final nearby = [
+        line.substring(label.end),
+        line.substring(0, label.start),
+        if (index > 0) lines[index - 1],
+        if (index + 1 < lines.length) lines[index + 1],
+      ];
+      final picked = _pickStudentId([
+        for (final text in nearby) ..._studentIdCandidates(text),
+      ]);
+      if (picked.isNotEmpty) return picked;
+    }
     return '';
+  }
+
+  /// The student ID is only printed on the front of the card; the back
+  /// carries school years, phone and birthdate, so it is never consulted.
+  static String _extractIdNumber(String frontText) {
+    final lines = frontText
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    final labeled = _studentIdNearLabel(lines);
+    if (labeled.isNotEmpty) return labeled;
+    return _pickStudentId([
+      for (final line in lines) ..._studentIdCandidates(line),
+    ]);
   }
 
   static String _extractPhone(String text, List<String> lines) {

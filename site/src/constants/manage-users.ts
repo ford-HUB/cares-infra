@@ -35,16 +35,21 @@ export const PROVISIONABLE_ROLES = [
  * the department statistics by name.
  */
 export const PROVISIONABLE_DEPARTMENTS = [
-  'College of Teacher Education',
-  'College of Hospitality & Tourism Management',
-  'College of Computer Studies',
+  'College of Maritime Engineering',
+  'College of Teacher Education (BSED)',
+  'College of Maritime Transportation',
   'College of Nursing',
-  'College of Maritime',
-  'College of Business Administration',
+  'Senior High School Department',
+  'College of Teacher Education (BEED)',
+  'College of Business and Accountancy',
+  'College of Computer Studies',
+  'College of Criminology',
   'College of Customs Administration',
-  'College of Bussines & Accountancy',
-  'College of Engeneering',
-  'Senior High Department',
+  'College of Engineering',
+  'College of Hospitality and Tourism Management',
+  'Basic Education (Junior High School)',
+  'Basic Education (Elementary)',
+  'Non-Teaching Personnel',
 ].map((name) => ({ value: name, label: name }))
 
 /** Mirrors CREDENTIAL_MIN_HOURS/MAX_HOURS on the server — a stricter range is a 400. */

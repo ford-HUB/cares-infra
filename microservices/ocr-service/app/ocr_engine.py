@@ -75,6 +75,22 @@ LABEL_LINE = re.compile(
 )
 NAME_CHARS = re.compile(r"^[A-Za-zÑñ.\-'\s,®]+$")
 
+# UCLM student IDs are 8 digits (YY + 6-digit serial, e.g. 24247447) printed
+# above the "ID NO ____" line on the front of the card.
+STUDENT_ID_LENGTH = 8
+STUDENT_ID_MIN_REAL_DIGITS = 6
+STUDENT_ID_LABEL = re.compile(
+    r"\b(?:I[D0O]|1D)\s*(?:N[O0]\b\.?|NUMBER\b|#)\s*[:.]?",
+    re.IGNORECASE,
+)
+# Exactly 8 digit-like chars (OCR may read 0 as O, 1 as I/l, 8 as B, ...),
+# optionally split by hyphens; bounded on both sides so longer runs such as
+# phone numbers (11 digits) and dates never yield an 8-digit slice.
+STUDENT_ID_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){7})(?![A-Za-z0-9/]|-[0-9A-Za-z])"
+)
+SCHOOL_YEAR_RANGE = re.compile(r"((?:19|20)\d{2})((?:19|20)\d{2})")
+
 
 @dataclass
 class ParsedIdFields:
@@ -110,7 +126,7 @@ class OcrEngine:
         lines = _normalize_lines(combined)
         fields = ParsedIdFields()
 
-        fields.id_number = _extract_id_number(combined)
+        fields.id_number = _extract_id_number(front_text)
         fields.phone_number = _extract_phone(combined, lines)
         fields.gender = _extract_gender(combined)
         fields.department_name = match_department_in_text(combined) or ""
@@ -381,28 +397,63 @@ def _extract_address(lines: list[str], combined: str) -> str:
 
 
 def _normalize_id_number(value: str) -> str:
-    return re.sub(r"\D", "", value)
+    return re.sub(r"\D", "", _normalize_ocr_digits(value))
 
 
-def _extract_id_number(text: str) -> str:
-    patterns = (
-        r"\b(\d{4}-\d{4,6})\b",
-        r"\b(\d{4})[\s\-](\d{4,6})\b",
-    )
-    for pattern in patterns:
-        match = re.search(pattern, text)
-        if not match:
+def _student_id_candidates(line: str) -> list[str]:
+    candidates: list[str] = []
+    for match in STUDENT_ID_TOKEN.finditer(line):
+        raw = match.group(1)
+        if len(re.findall(r"\d", raw)) < STUDENT_ID_MIN_REAL_DIGITS:
             continue
-        if match.lastindex == 1:
-            return _normalize_id_number(match.group(1))
-        return _normalize_id_number(f"{match.group(1)}{match.group(2)}")
+        digits = _normalize_id_number(raw)
+        if len(digits) != STUDENT_ID_LENGTH:
+            continue
+        year_range = SCHOOL_YEAR_RANGE.fullmatch(digits)
+        if year_range and int(year_range.group(2)) - int(year_range.group(1)) in (0, 1):
+            continue
+        candidates.append(digits)
+    return candidates
 
-    normalized = _normalize_ocr_digits(text)
-    eight_digit = re.search(r"\b(\d{8})\b", normalized)
-    if eight_digit:
-        return eight_digit.group(1)
 
+def _has_plausible_year_prefix(digits: str) -> bool:
+    return int(digits[:2]) <= (date.today().year % 100) + 1
+
+
+def _pick_student_id(candidates: list[str]) -> str:
+    for candidate in candidates:
+        if _has_plausible_year_prefix(candidate):
+            return candidate
+    return candidates[0] if candidates else ""
+
+
+def _student_id_near_label(lines: list[str]) -> str:
+    for index, line in enumerate(lines):
+        label = STUDENT_ID_LABEL.search(line)
+        if not label:
+            continue
+        # UCLM prints the number just above the "ID NO ____" line; OCR may also
+        # merge it onto the label line or push it below.
+        nearby = [line[label.end() :], line[: label.start()]]
+        if index > 0:
+            nearby.append(lines[index - 1])
+        if index + 1 < len(lines):
+            nearby.append(lines[index + 1])
+        candidates = [c for text in nearby for c in _student_id_candidates(text)]
+        picked = _pick_student_id(candidates)
+        if picked:
+            return picked
     return ""
+
+
+def _extract_id_number(front_text: str) -> str:
+    # The student ID is only printed on the front of the card; the back carries
+    # school years, phone and birthdate, so it is never consulted.
+    lines = _normalize_lines(front_text)
+    labeled = _student_id_near_label(lines)
+    if labeled:
+        return labeled
+    return _pick_student_id([c for line in lines for c in _student_id_candidates(line)])
 
 
 def _extract_phone(text: str, lines: list[str]) -> str:
@@ -437,7 +488,7 @@ def _extract_gender(text: str) -> str:
 
 def _extract_year_level(text: str) -> str:
     match = re.search(
-        r"\b(\d+(?:st|nd|rd|th)\s+Year|First Year|Second Year|Third Year|Fourth Year|Grade\s*11|Grade\s*12)\b",
+        r"\b(\d+(?:st|nd|rd|th)\s+Year|First Year|Second Year|Third Year|Fourth Year|Grade\s*(?:1[0-2]|[1-9]))\b",
         text,
         re.IGNORECASE,
     )

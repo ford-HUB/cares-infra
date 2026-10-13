@@ -104,7 +104,7 @@ void main() {
         'UNIVERSITY OF CEBU LAPU-LAPU AND MANDAUE\n'
         'STUDENT\n'
         'MARIA L SANTOS\n'
-        '2021-08452\n';
+        '21208452\n';
     const back =
         'ADDRESS: Looc, Mandaue City, Cebu\n'
         'TEL NO. 09171234567\n';

@@ -1,3 +1,4 @@
+import '../utils/geo_utils.dart';
 import 'cares_event.dart';
 
 /// The slice of a joined [CaresEvent] the geofence recorder needs — small
@@ -14,6 +15,7 @@ class TrackedEvent {
     required this.startsAt,
     required this.endsAt,
     required this.isCompleted,
+    this.geofence,
   });
 
   factory TrackedEvent.fromEvent(CaresEvent event) => TrackedEvent(
@@ -26,6 +28,7 @@ class TrackedEvent {
     startsAt: event.startsAt,
     endsAt: event.endsAt,
     isCompleted: event.isCompleted,
+    geofence: event.geofence,
   );
 
   final String id;
@@ -38,8 +41,22 @@ class TrackedEvent {
   final DateTime endsAt;
   final bool isCompleted;
 
+  /// The portal-drawn attendance area; null falls back to the radius.
+  final List<GeofenceRing>? geofence;
+
   /// Not over yet, as of [now].
   bool isUpcoming(DateTime now) => !isCompleted && now.isBefore(endsAt);
+
+  /// Whether a position is inside this event's attendance area.
+  bool containsPoint({required double latitude, required double longitude}) =>
+      GeoUtils.isInsideEventArea(
+        latitude: latitude,
+        longitude: longitude,
+        geofence: geofence,
+        venueLatitude: venueLatitude,
+        venueLongitude: venueLongitude,
+        radiusMeters: attendanceRadiusMeters,
+      );
 
   bool isTrackingWindowOpen(DateTime now) =>
       !isCompleted && !now.isBefore(trackingStartsAt) && now.isBefore(endsAt);
@@ -55,6 +72,7 @@ class TrackedEvent {
     'starts_at': startsAt.toUtc().millisecondsSinceEpoch,
     'ends_at': endsAt.toUtc().millisecondsSinceEpoch,
     'is_completed': isCompleted ? 1 : 0,
+    'geofence': GeoUtils.geofenceToJson(geofence),
   };
 
   static TrackedEvent fromMap(Map<String, Object?> m) => TrackedEvent(
@@ -67,6 +85,7 @@ class TrackedEvent {
     startsAt: _local(m['starts_at'] as int),
     endsAt: _local(m['ends_at'] as int),
     isCompleted: (m['is_completed'] as int) == 1,
+    geofence: GeoUtils.geofenceFromJsonString(m['geofence'] as String?),
   );
 
   static DateTime _local(int utcMillis) =>

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
@@ -175,6 +176,14 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     final volunteerType =
         VolunteerTypeX.fromApiValue(_ocrData.volunteerType) ??
         widget.volunteerType!;
+
+    // Non-teaching personnel have no year level or graduation year to check.
+    if (UclmDepartments.isNonTeaching(_ocrData.departmentName)) {
+      return switch (volunteerType) {
+        VolunteerType.staff => baseValid,
+        _ => baseValid && _ocrData.majorName.trim().isNotEmpty,
+      };
+    }
 
     return switch (volunteerType) {
       VolunteerType.student =>

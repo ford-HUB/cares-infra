@@ -58,7 +58,6 @@ class RegisterOcrReviewStep extends StatefulWidget {
 class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   static const _genders = ['MALE', 'FEMALE', 'OTHER'];
   static const _yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
-  static const _shsGradeLevels = ['Grade 11', 'Grade 12'];
   static final _twoDigitInputFormatters = [
     FilteringTextInputFormatter.digitsOnly,
     LengthLimitingTextInputFormatter(2),
@@ -101,15 +100,21 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   String? _selectedCourse;
   String? _selectedYearLevel;
 
+  /// Set once the scan reads an ID number; the field is then locked so the
+  /// number can only change by rescanning the ID.
+  bool _idNumberVerified = false;
+
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
   bool get _isStudent => widget.volunteerType == VolunteerType.student;
   bool get _isAlumni => widget.volunteerType == VolunteerType.alumni;
   bool get _usesCourseField => _isStudent || _isAlumni;
-  bool get _isSeniorHigh => _selectedDepartment == 'Senior High Department';
+  bool get _isNonTeaching => UclmDepartments.isNonTeaching(_selectedDepartment);
+  List<String>? get _gradeLevels =>
+      UclmDepartments.gradeLevelsFor(_selectedDepartment);
+  bool get _usesGradeLevels => _gradeLevels != null;
 
-  List<String> get _yearLevelOptions =>
-      _isSeniorHigh ? _shsGradeLevels : _yearLevels;
+  List<String> get _yearLevelOptions => _gradeLevels ?? _yearLevels;
 
   List<String> get _courseOptions => _selectedDepartment == null
       ? const []
@@ -191,6 +196,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _addressRevision++;
     _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
     _setControllerText(_idNumber, enriched.idNumber);
+    _idNumberVerified = enriched.idNumber.trim().isNotEmpty;
     _setControllerText(_yearLevel, enriched.yearLevelName);
     _setControllerText(
       _gradYear,
@@ -319,7 +325,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ? ''
             : (_selectedDepartment ?? base.departmentName),
         majorName: _isBeneficiary ? '' : (_selectedCourse ?? base.majorName),
-        yearLevelName: _isBeneficiary
+        yearLevelName: _isBeneficiary || _isNonTeaching
             ? ''
             : (_isStudent
                   ? fieldOrParsed(
@@ -328,7 +334,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                     )
                   : ''),
         // Only the year is collected; month/day are filled in at submit.
-        graduationYear: _isBeneficiary ? 0 : gradYear,
+        graduationYear: _isBeneficiary || _isNonTeaching ? 0 : gradYear,
         volunteerType: widget.volunteerType?.apiValue ?? base.volunteerType,
       ),
     );
@@ -535,6 +541,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
               controller: _idNumber,
               focusNode: _idNumberFocus,
               errorText: widget.idNumberError,
+              readOnly: _idNumberVerified,
               onChanged: (_) => _notifyParent(),
             ),
             const SizedBox(height: 14),
@@ -555,30 +562,30 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             if (_usesCourseField) ...[
               const SizedBox(height: 14),
               _dropdown(
-                label: _isSeniorHigh ? 'Strand' : 'Course',
+                label: _usesGradeLevels ? 'Program' : 'Course',
                 value: _selectedCourse,
                 items: _courseOptions,
                 hint: _selectedDepartment == null
                     ? 'Select a department first'
-                    : 'Select your ${_isSeniorHigh ? 'strand' : 'course'}',
+                    : 'Select your ${_usesGradeLevels ? 'program' : 'course'}',
                 isExpanded: true,
                 enabled:
                     _selectedDepartment != null && _courseOptions.isNotEmpty,
                 onChanged: _onCourseChanged,
               ),
             ],
-            if (_isStudent) ...[
+            if (_isStudent && !_isNonTeaching) ...[
               const SizedBox(height: 14),
               _dropdown(
-                label: _isSeniorHigh ? 'Grade level' : 'Year level',
+                label: _usesGradeLevels ? 'Grade level' : 'Year level',
                 value: _selectedYearLevel,
                 hint:
-                    'Select your ${_isSeniorHigh ? 'grade level' : 'year level'}',
+                    'Select your ${_usesGradeLevels ? 'grade level' : 'year level'}',
                 items: _yearLevelOptions,
                 onChanged: _onYearLevelChanged,
               ),
             ],
-            if (_isAlumni) ...[
+            if (_isAlumni && !_isNonTeaching) ...[
               const SizedBox(height: 14),
               RegisterFormField(
                 label: 'Graduated year',
@@ -590,7 +597,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 onChanged: _onGradYearChanged,
               ),
             ],
-            if (_isStudent) ...[
+            if (_isStudent && !_isNonTeaching) ...[
               const SizedBox(height: 14),
               RegisterFormField(
                 label: 'Expected graduation year',
