@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/services/connectivity_monitor.dart';
 import '../domain/location_records.dart';
 import '../domain/tracked_event.dart';
-import '../utils/geo_utils.dart';
 import 'location_capture_db.dart';
 import 'location_sync_service.dart';
 
@@ -210,16 +209,12 @@ class LocationRecorder {
 
     final capturedAt = DateTime.now();
     final event = _hintEvent(capturedAt);
-    var inArea = false;
-    if (event != null) {
-      final distance = GeoUtils.distanceInMeters(
-        fromLatitude: position.latitude,
-        fromLongitude: position.longitude,
-        toLatitude: event.venueLatitude,
-        toLongitude: event.venueLongitude,
-      );
-      inArea = distance <= event.attendanceRadiusMeters;
-    }
+    final inArea =
+        event?.containsPoint(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        ) ??
+        false;
 
     final row = LocationCaptureRow(
       eventId: event?.id ?? unassignedEventId,

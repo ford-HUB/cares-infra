@@ -23,6 +23,7 @@ import {
 } from '../../../infastructures/microservices/nlp-service-client';
 import { RedisService } from '../../../infastructures/redis/redis-service';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
+import { geofenceRings } from '../../../shared/utils/geofence-utils';
 import { DonationsRepository } from '../../donations/repositories/donations-repository';
 import { InterestsRepository } from '../../interests/repositories/interests-repository';
 import {
@@ -461,6 +462,7 @@ export class EventsMobileService {
       application_rejection_reason: null,
       marker_lat: event.marker_lat ?? null,
       marker_lng: event.marker_lng ?? null,
+      geofence: geofenceRings(event.geojson),
       image_count: event.images.length,
       matched_interests: matched,
       match_score:
