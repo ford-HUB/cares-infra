@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GOODS_TYPE_IDS } from '../../../shared/constants/goods-types';
+import { SPECIAL_PARTICIPATION_ROLES } from '../../../shared/constants/participation-role-points';
 
 /** How far back the standings are counted. */
 export const RANKING_PERIODS = ['month', 'quarter', 'year', 'all'] as const;
@@ -61,11 +62,21 @@ export const GoodsTypeValuesSchema = z.partialRecord(
   z.number().int().min(0).max(GOODS_TYPE_VALUE_MAX),
 );
 
+export const PARTICIPATION_ROLE_POINTS_MAX = 500;
+
+/** Extra points per attended event for each approved special role. */
+export const ParticipationRolePointsSchema = z.partialRecord(
+  z.enum(SPECIAL_PARTICIPATION_ROLES),
+  z.number().int().min(0).max(PARTICIPATION_ROLE_POINTS_MAX),
+);
+
 /** The whole scoring rule and ladder, as stored and as the portal edits it. */
 export const RankingSettingsResponseSchema = z.object({
   points_per_attendance: z.number().int(),
   absence_penalty_step: z.number().int(),
   absence_reset_days: z.number().int(),
+  /** Bonus on top of `points_per_attendance` for an approved Organizer/Facilitator/Speaker. */
+  participation_role_points: ParticipationRolePointsSchema,
   /** Donor board: one point per this many pesos of confirmed donations. */
   donor_pesos_per_point: z.number().int(),
   goods_type_values: GoodsTypeValuesSchema,
@@ -80,6 +91,7 @@ export const UpdateRankingSettingsSchema = z
     points_per_attendance: z.number().int().min(1).max(500),
     absence_penalty_step: z.number().int().min(0).max(100),
     absence_reset_days: z.number().int().min(1).max(90),
+    participation_role_points: ParticipationRolePointsSchema,
     donor_pesos_per_point: z
       .number()
       .int()
@@ -126,6 +138,14 @@ export const VolunteerRankingEntrySchema = z.object({
   previous_rank: z.number().int().nullable(),
   points: z.number().int(),
   points_earned: z.number().int(),
+  /** The share of `points_earned` that came from approved participation roles. */
+  role_points: z.number().int(),
+  /** Attended events served as each approved special role. */
+  role_counts: z.object({
+    ORGANIZER: z.number().int(),
+    FACILITATOR: z.number().int(),
+    SPEAKER: z.number().int(),
+  }),
   points_deducted: z.number().int(),
   events_attended: z.number().int(),
   events_missed: z.number().int(),

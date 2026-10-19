@@ -3,6 +3,7 @@ import {
   DEFAULT_GOODS_TYPE_VALUES,
   GOODS_TYPE_IDS,
 } from '../../../shared/constants/goods-types';
+import { DEFAULT_PARTICIPATION_ROLE_POINTS } from '../../../shared/constants/participation-role-points';
 import type {
   GoodsTypeValuesDto,
   RankingPeriod,
@@ -12,6 +13,7 @@ import type {
 } from '../dto/rankings-site-dto';
 import {
   GoodsTypeValuesSchema,
+  ParticipationRolePointsSchema,
   RankingTierSchema,
   RANKING_PERIODS,
 } from '../validators/rankings-site-validator';
@@ -82,6 +84,7 @@ export const DEFAULT_RANKING_SETTINGS: Omit<RankingSettingsDto, 'updated_at'> =
     points_per_attendance: 10,
     absence_penalty_step: 2,
     absence_reset_days: 7,
+    participation_role_points: DEFAULT_PARTICIPATION_ROLE_POINTS,
     donor_pesos_per_point: 100,
     goods_type_values: DEFAULT_GOODS_TYPE_VALUES,
     default_period: 'month',
@@ -136,10 +139,18 @@ export class RankingsBoardService {
     }
     const tiers = RankingTierSchema.array().safeParse(row.tiers);
     const goodsValues = GoodsTypeValuesSchema.safeParse(row.goods_type_values);
+    const rolePoints = ParticipationRolePointsSchema.safeParse(
+      row.participation_role_points,
+    );
     return {
       points_per_attendance: row.points_per_attendance,
       absence_penalty_step: row.absence_penalty_step,
       absence_reset_days: row.absence_reset_days,
+      // A row saved before the criterion existed scores roles at the defaults.
+      participation_role_points: {
+        ...DEFAULT_PARTICIPATION_ROLE_POINTS,
+        ...(rolePoints.success ? rolePoints.data : {}),
+      },
       donor_pesos_per_point: row.donor_pesos_per_point,
       // A type added to the catalog after the row was saved takes its default.
       goods_type_values: {
@@ -169,6 +180,7 @@ export class RankingsBoardService {
       pointsPerAttendance: settings.points_per_attendance,
       absencePenaltyStep: settings.absence_penalty_step,
       absenceResetDays: settings.absence_reset_days,
+      participationRolePoints: settings.participation_role_points,
     };
   }
 
@@ -200,11 +212,7 @@ export class RankingsBoardService {
     const settings = await this.getSettings();
     const rows = await this.repository.findRankedAttendance(now, { userId });
     return scoreAttendance(
-      rows.map((row) => ({
-        status: row.status,
-        endedAt: row.event.event_ended,
-        hoursRendered: row.hours_rendered,
-      })),
+      rows.map(toScoredAttendance),
       this.ruleOf(settings),
       now,
     );
@@ -342,6 +350,16 @@ function previousWindow(
   };
 }
 
+function toScoredAttendance(row: RankedAttendanceRow): ScoredAttendance {
+  return {
+    status: row.status,
+    endedAt: row.event.event_ended,
+    hoursRendered: row.hours_rendered,
+    participationRole: row.participation_role,
+    roleApproval: row.role_approval,
+  };
+}
+
 function rankRows(
   rows: RankedAttendanceRow[],
   rule: ScoringRule,
@@ -353,11 +371,7 @@ function rankRows(
   >();
   for (const row of rows) {
     const bucket = byUser.get(row.user.user_id) ?? { row, attendance: [] };
-    bucket.attendance.push({
-      status: row.status,
-      endedAt: row.event.event_ended,
-      hoursRendered: row.hours_rendered,
-    });
+    bucket.attendance.push(toScoredAttendance(row));
     byUser.set(row.user.user_id, bucket);
   }
 

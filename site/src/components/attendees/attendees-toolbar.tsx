@@ -1,4 +1,4 @@
-import { Download, Search } from 'lucide-react'
+import { Download, Search, UserCheck } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { SessionSuspension } from '../../types/access-control'
 import { LockedActionButton } from '../portal/ui/locked-action'
@@ -26,6 +26,12 @@ interface AttendeesToolbarProps {
   onExport?: () => void
   /** Set when the export right is suspended — the button is drawn locked instead. */
   exportSuspension?: SessionSuspension
+  /** Omitted when the account lacks the manual attendance right — not drawn. */
+  onMarkPresent?: () => void
+  /** Set when manual attendance is suspended — the button is drawn locked instead. */
+  markPresentSuspension?: SessionSuspension
+  /** How many rows are ticked; the button stays disabled at zero. */
+  selectedCount?: number
 }
 
 const selectClass =
@@ -44,6 +50,9 @@ export function AttendeesToolbar({
   onStatusChange,
   onExport,
   exportSuspension,
+  onMarkPresent,
+  markPresentSuspension,
+  selectedCount = 0,
 }: AttendeesToolbarProps) {
   return (
     <div className="mb-4 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -98,6 +107,31 @@ export function AttendeesToolbar({
             </option>
           ))}
         </select>
+
+        {markPresentSuspension ? (
+          <LockedActionButton
+            suspension={markPresentSuspension}
+            icon={UserCheck}
+            label="Mark Present"
+          />
+        ) : (
+          onMarkPresent && (
+            <button
+              type="button"
+              onClick={onMarkPresent}
+              disabled={selectedCount === 0}
+              title={
+                selectedCount === 0
+                  ? 'Tick the participants geofence attendance missed'
+                  : undefined
+              }
+              className="flex h-9 items-center gap-2 rounded-lg bg-[var(--cares-primary)] px-3 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <UserCheck className="h-3.5 w-3.5" />
+              Mark Present{selectedCount > 0 ? ` (${selectedCount})` : ''}
+            </button>
+          )
+        )}
 
         {exportSuspension ? (
           <LockedActionButton

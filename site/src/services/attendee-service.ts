@@ -2,6 +2,7 @@ import type {
   AttendanceStatus,
   EventAttendee,
   GeoValidationMethod,
+  ManualAttendanceResult,
 } from '../types/attendee'
 import type { ApiResponse } from '../types/portal-roles'
 import { apiClient, parseApiError } from './api-client'
@@ -15,6 +16,7 @@ interface EventAttendeeResponse {
   event_id: number
   event_title: string
   event_started: string
+  event_ended: string
   event_department: string | null
   user_id: string
   firstname: string
@@ -54,6 +56,7 @@ function toEventAttendee(row: EventAttendeeResponse): EventAttendee {
     eventId: row.event_id,
     eventTitle: row.event_title,
     eventDate: row.event_started,
+    eventEndDate: row.event_ended,
     eventDepartment: row.event_department ?? undefined,
     firstName: row.firstname,
     lastName: row.lastname,
@@ -80,6 +83,37 @@ export async function listEventAttendees(): Promise<ApiResponse<EventAttendee[]>
       '/api/v1/event-attendees',
     )
     return { success: true, data: body.data.map(toEventAttendee) }
+  } catch (error) {
+    return { success: false, message: parseApiError(error), data: null }
+  }
+}
+
+interface ManualAttendanceResponse {
+  marked: EventAttendeeResponse[]
+  already_completed: number
+}
+
+/**
+ * The backup for a failed geofence: marks these attendance rows present. The server
+ * credits each the event's full start-to-end window as service hours.
+ */
+export async function markAttendeesPresent(
+  eventAttendanceIds: string[],
+  reason?: string,
+): Promise<ApiResponse<ManualAttendanceResult>> {
+  try {
+    const { data: body } = await apiClient.post<ApiEnvelope<ManualAttendanceResponse>>(
+      '/api/v1/event-attendees/manual-attendance',
+      { event_attendance_ids: eventAttendanceIds, reason: reason || undefined },
+    )
+    return {
+      success: true,
+      message: body.message,
+      data: {
+        marked: body.data.marked.map(toEventAttendee),
+        alreadyCompleted: body.data.already_completed,
+      },
+    }
   } catch (error) {
     return { success: false, message: parseApiError(error), data: null }
   }

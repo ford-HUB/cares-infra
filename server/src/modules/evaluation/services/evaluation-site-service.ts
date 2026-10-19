@@ -20,7 +20,11 @@ import {
   EvaluationRepository,
   type EvaluationResponseRow,
 } from '../repositories/evaluation-repository';
-import { EvaluationAnswersSchema } from '../validators/evaluation-site-validator';
+import { S3Service } from '../../../infastructures/s3/s3-service';
+import {
+  EVALUATION_IMAGE_KEY_PREFIX,
+  EvaluationAnswersSchema,
+} from '../validators/evaluation-site-validator';
 import { EvaluationFormService } from './evaluation-form-service';
 
 @Injectable()
@@ -28,6 +32,7 @@ export class EvaluationSiteService {
   constructor(
     private readonly evaluationRepository: EvaluationRepository,
     private readonly evaluationFormService: EvaluationFormService,
+    private readonly s3Service: S3Service,
   ) {}
 
   /** Every questionnaire, for the builder's switcher and the Forms page's list. */
@@ -193,6 +198,23 @@ export class EvaluationSiteService {
   async listResponses(eventId?: number): Promise<EvaluationResponseRowDto[]> {
     const rows = await this.evaluationRepository.findResponses(eventId);
     return rows.map((row) => this.mapToDto(row));
+  }
+
+  /**
+   * One photo a participant attached to an image-upload answer. The key is read
+   * off the stored answer rather than taken from the caller, and must sit under
+   * the evaluation prefix, so this can never be steered at another object.
+   */
+  async getAnswerImage(responseId: string, questionId: string, index: number) {
+    const row = await this.evaluationRepository.findResponseAnswers(responseId);
+    if (!row) throw new NotFoundException('Response not found');
+
+    const value = this.parseAnswers(row.answers)[questionId];
+    const key = Array.isArray(value) ? value[index] : undefined;
+    if (!key || !key.startsWith(EVALUATION_IMAGE_KEY_PREFIX)) {
+      throw new NotFoundException('Image not found');
+    }
+    return this.s3Service.getObject(key);
   }
 
   private mapToDto(row: EvaluationResponseRow): EvaluationResponseRowDto {

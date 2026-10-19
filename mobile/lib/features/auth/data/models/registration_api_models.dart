@@ -69,6 +69,28 @@ class StartSessionResponse {
   final String step;
 }
 
+/// The supporting document now riding on a beneficiary's registration session.
+class RegistrationDocumentResponse {
+  const RegistrationDocumentResponse({
+    required this.registrationId,
+    required this.name,
+    required this.sizeBytes,
+  });
+
+  factory RegistrationDocumentResponse.fromJson(Map<String, dynamic> json) {
+    final document = json['document'] as Map<String, dynamic>? ?? const {};
+    return RegistrationDocumentResponse(
+      registrationId: json['registrationId'] as String,
+      name: document['name'] as String? ?? '',
+      sizeBytes: (document['size_bytes'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  final String registrationId;
+  final String name;
+  final int sizeBytes;
+}
+
 class UploadIdResponse {
   const UploadIdResponse({required this.registrationId});
 

@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, HttpCode, Post, Put } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Put,
+  StreamableFile,
+} from '@nestjs/common';
 import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
@@ -25,6 +33,9 @@ import {
   EvaluationFormIdParamSchema,
   EvaluationFormListSchema,
   EvaluationFormResponseSchema,
+  EvaluationImageIndexParamSchema,
+  EvaluationQuestionIdParamSchema,
+  EvaluationResponseIdParamSchema,
   EvaluationResponseListSchema,
   EvaluationResponsesQuerySchema,
   SaveEvaluationFormSchema,
@@ -132,5 +143,23 @@ export class EvaluationSiteController {
     @ZQuery(EvaluationResponsesQuerySchema) query: EvaluationResponsesQueryDto,
   ): Promise<EvaluationResponseRowDto[]> {
     return this.evaluationSiteService.listResponses(query.event_id);
+  }
+
+  /** Answer photos are private in S3, so the portal streams them here. */
+  @Get('responses/:id/answers/:questionId/images/:index')
+  async getAnswerImage(
+    @ZParam('id', EvaluationResponseIdParamSchema) id: string,
+    @ZParam('questionId', EvaluationQuestionIdParamSchema) questionId: string,
+    @ZParam('index', EvaluationImageIndexParamSchema) index: number,
+  ) {
+    const asset = await this.evaluationSiteService.getAnswerImage(
+      id,
+      questionId,
+      index,
+    );
+    return new StreamableFile(asset.buffer, {
+      type: asset.contentType,
+      disposition: 'inline',
+    });
   }
 }

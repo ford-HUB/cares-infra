@@ -1,5 +1,6 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
+import 'package:mobile/features/dashboard/domain/event_participation_role.dart';
 import 'package:mobile/features/dashboard/utils/geo_utils.dart';
 
 /// One interest the volunteer picked that the server's NLP tagging found in
@@ -38,6 +39,8 @@ class RecommendedEvent {
     required this.participants,
     required this.isRegistered,
     this.attendanceStatus,
+    this.participationRole,
+    this.roleApproval,
     required this.organizerName,
     required this.category,
     required this.status,
@@ -69,6 +72,10 @@ class RecommendedEvent {
       participants: json['participants'] as int? ?? 0,
       isRegistered: json['is_registered'] as bool? ?? false,
       attendanceStatus: json['attendance_status'] as String?,
+      participationRole: EventParticipationRole.fromApi(
+        json['participation_role'] as String?,
+      ),
+      roleApproval: EventRoleApproval.fromApi(json['role_approval'] as String?),
       organizerName: json['organizer_name'] as String? ?? '',
       category: json['category'] as String? ?? '',
       status: json['status'] as String? ?? 'Upcoming',
@@ -111,6 +118,12 @@ class RecommendedEvent {
   /// The geofence ruling on the volunteer's attendance (`PENDING`,
   /// `COMPLETED`, `ABSENT`); null when not registered.
   final String? attendanceStatus;
+
+  /// The role the volunteer registered for; null when not registered.
+  final EventParticipationRole? participationRole;
+
+  /// Where that role stands; null when not registered.
+  final EventRoleApproval? roleApproval;
   final String organizerName;
   final String category;
   final String status;
@@ -216,6 +229,8 @@ class RecommendedEvent {
       attendanceStatus: attendanceStatus,
       applicationStatus: applicationStatus,
       applicationRejectionReason: applicationRejectionReason,
+      participationRole: participationRole,
+      roleApproval: roleApproval,
     );
   }
 }

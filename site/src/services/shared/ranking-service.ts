@@ -5,7 +5,7 @@
  * coordinator's volunteer call is cut to their own college's events; the donor
  * board is scored from confirmed donations.
  */
-import { RANKING_DEFAULT_BOARD } from '../../constants/ranking'
+import { PARTICIPATION_ROLE_POINTS, RANKING_DEFAULT_BOARD } from '../../constants/ranking'
 import type { ApiResponse } from '../../types/portal-roles'
 import type {
   DepartmentRankingEntry,
@@ -17,6 +17,7 @@ import type {
   RankingSettings,
   RankingTier,
   RankingTrend,
+  SpecialParticipationRole,
   VolunteerRankingEntry,
 } from '../../types/ranking'
 import { apiClient, parseApiError } from '../api-client'
@@ -38,6 +39,7 @@ interface RankingSettingsResponse {
   points_per_attendance: number
   absence_penalty_step: number
   absence_reset_days: number
+  participation_role_points: Partial<Record<SpecialParticipationRole, number>>
   donor_pesos_per_point: number
   goods_type_values: Record<string, number>
   default_period: RankingPeriod
@@ -55,6 +57,8 @@ interface VolunteerRankingEntryResponse {
   previous_rank: number | null
   points: number
   points_earned: number
+  role_points: number
+  role_counts?: Record<SpecialParticipationRole, number>
   points_deducted: number
   events_attended: number
   events_missed: number
@@ -148,6 +152,10 @@ function toSettings(row: RankingSettingsResponse): RankingSettings {
     pointsPerAttendance: row.points_per_attendance,
     absencePenaltyStep: row.absence_penalty_step,
     absenceResetDays: row.absence_reset_days,
+    participationRolePoints: {
+      ...PARTICIPATION_ROLE_POINTS,
+      ...row.participation_role_points,
+    },
     donorPesosPerPoint: row.donor_pesos_per_point,
     goodsTypeValues: row.goods_type_values,
     defaultBoard: localSettings.defaultBoard,
@@ -187,6 +195,8 @@ function toVolunteerEntry(row: VolunteerRankingEntryResponse): VolunteerRankingE
     eventsJoined: row.events_attended,
     eventsMissed: row.events_missed,
     pointsEarned: row.points_earned,
+    rolePoints: row.role_points ?? 0,
+    roleCounts: row.role_counts ?? { ORGANIZER: 0, FACILITATOR: 0, SPEAKER: 0 },
     pointsDeducted: row.points_deducted,
     currentStreak: row.current_streak,
     lastActiveAt: row.last_active_at,
@@ -214,6 +224,7 @@ export async function updateRankingSettings(
         points_per_attendance: settings.pointsPerAttendance,
         absence_penalty_step: settings.absencePenaltyStep,
         absence_reset_days: settings.absenceResetDays,
+        participation_role_points: settings.participationRolePoints,
         donor_pesos_per_point: settings.donorPesosPerPoint,
         goods_type_values: settings.goodsTypeValues,
         default_period: settings.defaultPeriod,

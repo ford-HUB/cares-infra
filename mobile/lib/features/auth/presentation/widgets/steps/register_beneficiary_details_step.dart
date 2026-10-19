@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
@@ -10,9 +11,14 @@ import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_f
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
+/// Largest supporting document the server accepts — kept in step with
+/// `REGISTRATION_DOCUMENT_MAX_BYTES`.
+const int kRegistrationDocumentMaxBytes = 10 * 1024 * 1024;
+
 /// Beneficiary details form — the donor sign-up pattern: hero panel, then one
 /// card per idea. Beneficiaries type everything in, so there is no OCR review
-/// and no ID or face capture behind this step.
+/// and no ID or face capture behind this step. A supporting document (any file
+/// type) is attached here for the director who approves the account.
 class RegisterBeneficiaryDetailsStep extends StatefulWidget {
   const RegisterBeneficiaryDetailsStep({
     super.key,
@@ -20,6 +26,8 @@ class RegisterBeneficiaryDetailsStep extends StatefulWidget {
     required this.profile,
     required this.onChanged,
     required this.onProfileChanged,
+    required this.document,
+    required this.onDocumentChanged,
     this.phoneError,
   });
 
@@ -27,6 +35,10 @@ class RegisterBeneficiaryDetailsStep extends StatefulWidget {
   final BeneficiaryProfile profile;
   final ValueChanged<RegisterOcrSample> onChanged;
   final ValueChanged<BeneficiaryProfile> onProfileChanged;
+
+  /// The picked supporting document; null until one is chosen.
+  final PlatformFile? document;
+  final ValueChanged<PlatformFile?> onDocumentChanged;
 
   /// Server-side conflict on the phone number — shown inline and focused.
   final String? phoneError;
@@ -174,9 +186,133 @@ class _RegisterBeneficiaryDetailsStepState
         _personalCard(),
         const SizedBox(height: 16),
         _addressCard(),
+        const SizedBox(height: 16),
+        _documentCard(),
         const SizedBox(height: 8),
       ],
     );
+  }
+
+  String? _documentError;
+
+  Future<void> _pickDocument() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        withData: false,
+      );
+      final file = result?.files.single;
+      if (file == null || file.path == null || !mounted) return;
+
+      if (file.size > kRegistrationDocumentMaxBytes) {
+        setState(
+          () => _documentError =
+              'That file is over ${kRegistrationDocumentMaxBytes ~/ (1024 * 1024)} MB. '
+              'Pick a smaller one.',
+        );
+        return;
+      }
+      setState(() => _documentError = null);
+      widget.onDocumentChanged(file);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _documentError = 'Could not open that file. Try another.');
+    }
+  }
+
+  Widget _documentCard() {
+    final document = widget.document;
+    return RegistrationFormCard(
+      icon: Icons.attach_file_rounded,
+      title: 'Supporting document',
+      subtitle:
+          'Attach a file that supports your registration — a barangay '
+          'certificate, valid ID, or similar. Any file type, up to '
+          '${kRegistrationDocumentMaxBytes ~/ (1024 * 1024)} MB.',
+      children: [
+        if (document == null)
+          OutlinedButton.icon(
+            onPressed: () => _pickDocument(),
+            icon: const Icon(Icons.upload_file_rounded),
+            label: const Text('Choose a file'),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.insert_drive_file_outlined,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        document.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _formatSize(document.size),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _pickDocument(),
+                  child: const Text('Replace'),
+                ),
+                IconButton(
+                  tooltip: 'Remove file',
+                  onPressed: () => widget.onDocumentChanged(null),
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        if (_documentError != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _documentError!,
+            style: const TextStyle(fontSize: 12, color: AppColors.error),
+          ),
+        ] else if (document == null) ...[
+          const SizedBox(height: 8),
+          const Text(
+            'Required — a director reviews it before your account opens.',
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+          ),
+        ],
+      ],
+    );
+  }
+
+  static String _formatSize(int bytes) {
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    if (bytes >= 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
+    return '$bytes B';
   }
 
   Widget _nameCard() {

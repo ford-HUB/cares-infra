@@ -15,6 +15,7 @@ import 'package:mobile/features/auth/data/social_auth_client.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_donor_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
+import 'package:mobile/features/auth/presentation/screens/registration_under_review_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/donor_only_sign_in_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/forgot_password_dialog.dart';
@@ -115,6 +116,7 @@ class _LoginScreenState extends State<LoginScreen>
         await _verifyEmailThenSignIn(email: email, password: password);
         return;
       }
+      if (_showRegistrationReview(error, email: email)) return;
       _showMessage(error.message);
     } catch (error) {
       if (!mounted) return;
@@ -147,6 +149,23 @@ class _LoginScreenState extends State<LoginScreen>
       profileComplete: loginResult.hasInterests,
       hasInterests: loginResult.hasInterests,
     );
+  }
+
+  /// A beneficiary whose sign-up a director has not approved (or refused) gets
+  /// the review screen rather than a passing toast. True when it was shown.
+  bool _showRegistrationReview(ApiException error, {required String email}) {
+    final state = registrationReviewStateOf(error);
+    if (state == null) return false;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RegistrationUnderReviewScreen(
+          email: email,
+          state: state,
+          message: error.message,
+        ),
+      ),
+    );
+    return true;
   }
 
   /// The server's 403 for an account whose sign-up OTP was never completed.
@@ -263,6 +282,7 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } on ApiException catch (error) {
       if (!mounted) return;
+      if (_showRegistrationReview(error, email: '')) return;
       _showMessage(error.message);
     } catch (error) {
       if (!mounted) return;

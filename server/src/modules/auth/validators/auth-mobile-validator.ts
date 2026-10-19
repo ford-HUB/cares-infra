@@ -168,6 +168,21 @@ export const RegisterUserResponseSchema = z.object({
   account_id: z.string(),
   // Null for a beneficiary — no face is enrolled on an ID-less registration.
   user_biometric_id: z.string().nullable(),
+  // True for a self-registered beneficiary: the account cannot sign in until a
+  // director accepts its registration request.
+  requires_approval: z.boolean(),
+});
+
+/** The supporting document a beneficiary attaches; any file type is accepted. */
+export const REGISTRATION_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+export const RegistrationDocumentResponseSchema = z.object({
+  registrationId: z.string(),
+  document: z.object({
+    name: z.string(),
+    mime: z.string(),
+    size_bytes: z.number(),
+  }),
 });
 
 export const LoginResponseSchema = z.object({

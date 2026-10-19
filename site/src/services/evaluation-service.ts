@@ -30,6 +30,7 @@ interface QuestionPayload {
   scale_max: number
   scale_min_label: string
   scale_max_label: string
+  max_files: number
   typography: TypographyPayload
 }
 
@@ -91,6 +92,18 @@ interface ResponsePayload {
   answers: Record<string, EvaluationAnswerValue>
 }
 
+/**
+ * Where the portal reads one photo of an image-upload answer. The bucket is
+ * private, so it goes through the API with the bearer token.
+ */
+export function evaluationAnswerImagePath(
+  responseId: string,
+  questionId: string,
+  index: number,
+): string {
+  return `/api/v1/evaluation/responses/${responseId}/answers/${encodeURIComponent(questionId)}/images/${index}`
+}
+
 /* ---------- Mapping ---------- */
 
 const toTypography = (t: TypographyPayload): EvaluationTypography => ({
@@ -114,6 +127,7 @@ function toQuestion(q: QuestionPayload): EvaluationQuestion {
     scaleMax: q.scale_max,
     scaleMinLabel: q.scale_min_label,
     scaleMaxLabel: q.scale_max_label,
+    maxFiles: q.max_files,
     typography: toTypography(q.typography),
   }
 }
@@ -129,6 +143,7 @@ function fromQuestion(q: EvaluationQuestion): QuestionPayload {
     scale_max: q.scaleMax,
     scale_min_label: q.scaleMinLabel,
     scale_max_label: q.scaleMaxLabel,
+    max_files: q.maxFiles,
     typography: fromTypography(q.typography),
   }
 }

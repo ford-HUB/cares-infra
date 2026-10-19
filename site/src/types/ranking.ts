@@ -4,6 +4,12 @@
  */
 export type RankingBoard = 'volunteer' | 'donor' | 'department'
 
+/**
+ * An event role that needs approval and, once approved, earns a bonus on every
+ * attended event. Regular is the plain slot and never carries one.
+ */
+export type SpecialParticipationRole = 'ORGANIZER' | 'FACILITATOR' | 'SPEAKER'
+
 /** The two tabs: headline figures, or the full standings table. */
 export type RankingView = 'dashboard' | 'list'
 
@@ -32,6 +38,10 @@ export interface VolunteerRankingEntry extends RankedEntry {
   /** Registered events the volunteer skipped — each one cost an escalating penalty. */
   eventsMissed: number
   pointsEarned: number
+  /** The share of `pointsEarned` that came from approved participation roles. */
+  rolePoints: number
+  /** Attended events served in each approved special role. */
+  roleCounts: Record<SpecialParticipationRole, number>
   pointsDeducted: number
   /** Straight misses still counting against the next one; 0 once the window passed. */
   currentStreak: number
@@ -140,6 +150,8 @@ export interface RankingSettings {
   absencePenaltyStep: number
   /** Misses further apart than this many days restart the penalty at the first step. */
   absenceResetDays: number
+  /** Extra points per attended event for an approved special role, keyed by role. */
+  participationRolePoints: Record<SpecialParticipationRole, number>
   donorPesosPerPoint: number
   /** Pesos credited per unit of each goods type, keyed by goods-type id. */
   goodsTypeValues: Record<string, number>

@@ -11,6 +11,8 @@ export function formatRequestReference(sequence: number): string {
 export const REQUEST_KIND_LABELS: Record<UserRequestKind, string> = {
   role_access: 'Volunteer Access',
   event_join: 'Event Join',
+  beneficiary_registration: 'Beneficiary Registration',
+  event_role: 'Event Role',
 }
 
 /**
@@ -20,6 +22,8 @@ export const REQUEST_KIND_LABELS: Record<UserRequestKind, string> = {
 export const REQUEST_KIND_STYLES: Record<UserRequestKind, { chip: string; dot: string }> = {
   role_access: { chip: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
   event_join: { chip: 'bg-sky-50 text-sky-700', dot: 'bg-sky-500' },
+  beneficiary_registration: { chip: 'bg-violet-50 text-violet-700', dot: 'bg-violet-500' },
+  event_role: { chip: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
 }
 
 export const REQUEST_STATUS_LABELS: Record<UserRequestStatus, string> = {
@@ -38,6 +42,12 @@ export const REQUEST_STATUS_STYLES: Record<UserRequestStatus, string> = {
 
 /** Kept in step with the server's cap on a rejection reason. */
 export const REJECTION_REASON_MAX_LENGTH = 500
+
+export function formatFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${bytes} B`
+}
 
 /** Rows the skeleton draws before the first fetch settles. */
 export const REQUEST_SKELETON_ROWS = 4

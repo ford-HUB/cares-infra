@@ -16,6 +16,7 @@ import {
   RegisterUserResponseSchema,
   RegistrationIdSchema,
   RegistrationStepSchema,
+  RegistrationDocumentResponseSchema,
   SendVerificationResponseSchema,
   SendVerificationSchema,
   StartSessionResponseSchema,
@@ -52,6 +53,9 @@ export type RegisterUserResponseDto = z.infer<
 >;
 export type LoginResponseDto = z.infer<typeof LoginResponseSchema>;
 export type UploadIdResponseDto = z.infer<typeof UploadIdResponseSchema>;
+export type RegistrationDocumentResponseDto = z.infer<
+  typeof RegistrationDocumentResponseSchema
+>;
 export type StartSessionResponseDto = z.infer<
   typeof StartSessionResponseSchema
 >;
@@ -86,6 +90,18 @@ export interface RegistrationSessionDto {
   faceSimilarity: number | null;
   selfieEmbedding: number[] | null;
   ocrData: IdOcrResultDto | null;
+  /**
+   * Beneficiary sessions only — the supporting document from the sign-up form,
+   * already in S3. Registration copies it onto the director's review request.
+   */
+  supportingDocument?: RegistrationDocumentDto | null;
   step: RegistrationStep;
   createdAt: number;
+}
+
+export interface RegistrationDocumentDto {
+  url: string;
+  name: string;
+  mime: string;
+  sizeBytes: number;
 }

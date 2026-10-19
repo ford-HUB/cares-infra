@@ -1,7 +1,9 @@
 import dayjs from 'dayjs'
-import { X } from 'lucide-react'
+import { ImageOff, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { ANSWER_SUBMITTED_AT_FORMAT, QUESTION_TYPE_META } from '../../../constants/evaluation'
+import { useAuthenticatedImage } from '../../../hooks/use-authenticated-image'
+import { evaluationAnswerImagePath } from '../../../services/evaluation-service'
 import type {
   EvaluationAnswerValue,
   EvaluationQuestion,
@@ -17,11 +19,41 @@ interface AnswerDetailsModalProps {
   onClose: () => void
 }
 
+/** One attached photo, fetched behind the token; opens full size in a new tab. */
+function AnswerImage({ path, label }: { path: string; label: string }) {
+  const { objectUrl, loading, failed } = useAuthenticatedImage(path)
+
+  if (loading) {
+    return <span className="block h-24 w-24 animate-pulse rounded-lg bg-gray-100" />
+  }
+  if (failed || !objectUrl) {
+    return (
+      <span className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-200 text-[11px] text-gray-400">
+        <ImageOff className="h-4 w-4" />
+        Unavailable
+      </span>
+    )
+  }
+  return (
+    <a
+      href={objectUrl}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Open ${label}`}
+      className="block h-24 w-24 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
+    >
+      <img src={objectUrl} alt={label} className="h-full w-full object-cover" />
+    </a>
+  )
+}
+
 /** Renders one answer in the shape its question type calls for. */
 function AnswerValue({
+  responseId,
   question,
   value,
 }: {
+  responseId: string
   question: EvaluationQuestion
   value: EvaluationAnswerValue | undefined
 }) {
@@ -57,6 +89,22 @@ function AnswerValue({
           ))}
         </ul>
       )
+
+    case 'image_upload': {
+      const count = Array.isArray(value) ? value.length : 1
+      return (
+        <ul className="flex flex-wrap gap-2">
+          {Array.from({ length: count }, (_, index) => (
+            <li key={index}>
+              <AnswerImage
+                path={evaluationAnswerImagePath(responseId, question.id, index)}
+                label={`image ${index + 1} of ${count}`}
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    }
 
     case 'date':
       return (
@@ -185,7 +233,11 @@ export function AnswerDetailsModal({ response, questions, onClose }: AnswerDetai
                   </p>
                 </div>
                 <div className="pl-7">
-                  <AnswerValue question={question} value={response.answers[question.id]} />
+                  <AnswerValue
+                    responseId={response.id}
+                    question={question}
+                    value={response.answers[question.id]}
+                  />
                 </div>
               </div>
             )

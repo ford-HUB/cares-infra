@@ -1,4 +1,12 @@
-import { Ban, KeyRound, MoreVertical, RotateCcw, ShieldOff, UserPen } from 'lucide-react'
+import {
+  Ban,
+  KeyRound,
+  MoreVertical,
+  RotateCcw,
+  ShieldOff,
+  Trash2,
+  UserPen,
+} from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { SessionSuspension } from '../../../types/access-control'
 import type { ManagedUser } from '../../../types/manage-users'
@@ -14,6 +22,8 @@ interface UserActionsMenuProps {
   onUnblockIp?: (user: ManagedUser) => void
   /** Undefined for a caller who cannot issue credentials — the item is then hidden. */
   onReissueCredentials?: (user: ManagedUser) => void
+  /** Undefined for a caller who cannot delete accounts — the item is then hidden. */
+  onDelete?: (user: ManagedUser) => void
   /**
    * Set when the right behind an action is suspended. The entry is then kept in the
    * menu, locked and red, with the reason and window on hover.
@@ -37,6 +47,7 @@ export function UserActionsMenu({
   onBlockIp,
   onUnblockIp,
   onReissueCredentials,
+  onDelete,
   restrictSuspension,
   blockIpSuspension,
 }: UserActionsMenuProps) {
@@ -201,6 +212,21 @@ export function UserActionsMenu({
                 Block IP
               </button>
             )
+          )}
+
+          {onDelete && (
+            <>
+              <div role="separator" className="my-1 border-t border-gray-100" />
+              <button
+                type="button"
+                role="menuitem"
+                className={`${itemClass} text-red-600 hover:bg-red-50`}
+                onClick={run(onDelete)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete user
+              </button>
+            </>
           )}
         </div>
       )}

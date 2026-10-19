@@ -45,6 +45,10 @@ function formatAnswer(question: EvaluationQuestion, value: EvaluationAnswerValue
       return (Array.isArray(value) ? value : [String(value)]).join(', ')
     case 'date':
       return dayjs(String(value)).format(PDF_DATE_FORMAT)
+    case 'image_upload': {
+      const count = Array.isArray(value) ? value.length : 1
+      return `${count} image${count === 1 ? '' : 's'} attached (view in the portal)`
+    }
     default:
       return Array.isArray(value) ? value.join(', ') : String(value)
   }
@@ -125,6 +129,20 @@ function summariseQuestion(
           columnWidths: { 1: 28, 2: 40 },
           foot: [`Average: ${mean.toFixed(2)} of ${question.scaleMax}`, formatNumber(answered), ''],
         },
+      )
+      return
+    }
+
+    case 'image_upload': {
+      const images = values.reduce<number>(
+        (sum, value) => sum + (Array.isArray(value) ? value.length : 1),
+        0,
+      )
+      report.paragraph(
+        answered
+          ? `${answered} respondent${answered === 1 ? '' : 's'} attached ${images} image${images === 1 ? '' : 's'} — open a response in the portal to view them.`
+          : 'No images attached.',
+        { muted: true, italic: true },
       )
       return
     }

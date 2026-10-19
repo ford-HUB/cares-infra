@@ -4,8 +4,17 @@
  *   for the Volunteer side of their account to be opened.
  * - `event_join` — a beneficiary asking for a place on an event; accepting is what
  *   books the slot.
+ * - `beneficiary_registration` — a new beneficiary account that cannot sign in
+ *   until a director approves it; it carries the supporting document from sign-up.
+ * - `event_role` — a volunteer registered for an event as Organizer, Facilitator
+ *   or Speaker. No proof is attached: the reviewer decides on what they know of
+ *   the volunteer. Rejecting keeps the registration; they take part as Regular.
  */
-export type UserRequestKind = 'role_access' | 'event_join'
+export type UserRequestKind =
+  | 'role_access'
+  | 'event_join'
+  | 'beneficiary_registration'
+  | 'event_role'
 
 /**
  * `deleted` is a recycle bin, not a hard delete — the director can restore a request
@@ -20,6 +29,7 @@ export type UserRequestAttachmentKind =
   | 'id-back'
   | 'selfie'
   | 'residency-proof'
+  | 'supporting-document'
 
 export interface UserRequestAttachment {
   kind: UserRequestAttachmentKind
@@ -27,8 +37,11 @@ export interface UserRequestAttachment {
   label: string
   /** API path the portal streams the file from behind the bearer token. */
   path: string
-  /** Set when the file may not be an image — a PDF proof of residency. */
+  /** Set when the file may not be an image — a PDF, or a document of any type. */
   contentType?: string
+  /** The uploaded file's own name, kept for downloads. */
+  fileName?: string
+  sizeBytes?: number
 }
 
 /** One entry on the request's timeline — submitted, accepted, removed, restored. */
@@ -46,6 +59,8 @@ export interface UserRequestSubmitter {
   /** The role the account registered with — the side the request comes from. */
   role: string
   barangay: string | null
+  phone: string
+  address: string
 }
 
 export interface UserRequestEventTarget {
@@ -65,7 +80,9 @@ export interface UserRequest {
   summary: string
   /** `role_access` only — the role label being asked for. */
   requestedRole?: string
-  /** `event_join` only — the event the beneficiary wants a place on. */
+  /** `event_role` only — the event role label being asked for, e.g. `Organizer`. */
+  participationRole?: string
+  /** `event_join` / `event_role` — the event the request is about. */
   event?: UserRequestEventTarget
   /** `role_access` only — how closely the selfie matched the ID photo, 0–1. */
   faceSimilarity?: number

@@ -1,19 +1,15 @@
-import { LandingCapabilities } from '../../components/public/landing-capabilities'
-import { LandingFooter } from '../../components/public/landing-footer'
-import { LandingHeader } from '../../components/public/landing-header'
+import { LandingExplore } from '../../components/public/landing-explore'
 import { LandingHero } from '../../components/public/landing-hero'
-import { LandingRoles } from '../../components/public/landing-roles'
+import { LandingHomeStats } from '../../components/public/landing-home-stats'
+import { LandingImpact } from '../../components/public/landing-impact'
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--cares-bg)]">
-      <LandingHeader />
-      <main className="flex-1">
-        <LandingHero />
-        <LandingRoles />
-        <LandingCapabilities />
-      </main>
-      <LandingFooter />
-    </div>
+    <>
+      <LandingHero />
+      <LandingImpact />
+      <LandingHomeStats />
+      <LandingExplore />
+    </>
   )
 }

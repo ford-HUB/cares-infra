@@ -1,6 +1,6 @@
 /// One request the signed-in person filed for a director to rule on, as
 /// `v1/user-requests/me` returns it.
-enum UserRequestKind { roleAccess, eventJoin, unknown }
+enum UserRequestKind { roleAccess, eventJoin, eventRole, unknown }
 
 enum UserRequestStatus { pending, accepted, deleted, rejected, unknown }
 
@@ -13,6 +13,7 @@ class UserRequestResponse {
     required this.summary,
     required this.createdAt,
     this.requestedRole,
+    this.participationRole,
     this.eventId,
     this.decidedAt,
     this.rejectionReason,
@@ -25,6 +26,7 @@ class UserRequestResponse {
       kind: switch (json['kind'] as String?) {
         'ROLE_ACCESS' => UserRequestKind.roleAccess,
         'EVENT_JOIN' => UserRequestKind.eventJoin,
+        'EVENT_ROLE' => UserRequestKind.eventRole,
         _ => UserRequestKind.unknown,
       },
       status: switch (json['status'] as String?) {
@@ -36,6 +38,7 @@ class UserRequestResponse {
       },
       summary: json['summary'] as String? ?? '',
       requestedRole: json['requested_role'] as String?,
+      participationRole: json['participation_role'] as String?,
       eventId: json['event_id'] as int?,
       decidedAt: DateTime.tryParse(json['decided_at'] as String? ?? ''),
       rejectionReason: json['rejection_reason'] as String?,
@@ -53,6 +56,9 @@ class UserRequestResponse {
 
   /// Server role type (`VOLUNTEER`) for a role-access request.
   final String? requestedRole;
+
+  /// Server event role (`ORGANIZER`, …) for an event-role request.
+  final String? participationRole;
   final int? eventId;
   final DateTime? decidedAt;
 

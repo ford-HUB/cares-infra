@@ -22,7 +22,7 @@ interface UserRequestTrailApiResponse {
 interface UserRequestApiResponse {
   user_request_id: string
   reference_number: number
-  kind: 'ROLE_ACCESS' | 'EVENT_JOIN'
+  kind: 'ROLE_ACCESS' | 'EVENT_JOIN' | 'BENEFICIARY_REGISTRATION' | 'EVENT_ROLE'
   status: 'PENDING' | 'ACCEPTED' | 'DELETED' | 'REJECTED'
   requester_id: string
   requester_firstname: string
@@ -30,7 +30,10 @@ interface UserRequestApiResponse {
   requester_email: string
   requester_role_type: string
   requester_barangay: string | null
+  requester_phone: string
+  requester_address: string
   requested_role: string | null
+  participation_role: 'REGULAR' | 'ORGANIZER' | 'FACILITATOR' | 'SPEAKER' | null
   event_id: number | null
   event_title: string | null
   event_started: string | null
@@ -40,6 +43,8 @@ interface UserRequestApiResponse {
     kind: UserRequestAttachmentKind
     label: string
     content_type: string | null
+    file_name: string | null
+    size_bytes: number | null
   }[]
   decided_by_name: string | null
   decided_at: string | null
@@ -58,6 +63,8 @@ interface UserRequestListApiResponse {
 const KIND_MAP: Record<UserRequestApiResponse['kind'], UserRequestKind> = {
   ROLE_ACCESS: 'role_access',
   EVENT_JOIN: 'event_join',
+  BENEFICIARY_REGISTRATION: 'beneficiary_registration',
+  EVENT_ROLE: 'event_role',
 }
 
 function titleCase(value: string): string {
@@ -75,9 +82,12 @@ function mapRequest(data: UserRequestApiResponse): UserRequest {
       email: data.requester_email,
       role: titleCase(data.requester_role_type),
       barangay: data.requester_barangay,
+      phone: data.requester_phone,
+      address: data.requester_address,
     },
     summary: data.summary,
     requestedRole: data.requested_role ? titleCase(data.requested_role) : undefined,
+    participationRole: data.participation_role ? titleCase(data.participation_role) : undefined,
     event:
       data.event_id !== null && data.event_title !== null && data.event_started !== null
         ? { id: data.event_id, title: data.event_title, startsAt: data.event_started }
@@ -92,6 +102,8 @@ function mapRequest(data: UserRequestApiResponse): UserRequest {
       label: attachment.label,
       path: `${USER_REQUESTS_URL}/${data.user_request_id}/attachments/${attachment.kind}`,
       contentType: attachment.content_type ?? undefined,
+      fileName: attachment.file_name ?? undefined,
+      sizeBytes: attachment.size_bytes ?? undefined,
     })),
     trail: data.trail.map((entry) => ({
       id: entry.user_request_trail_entry_id,

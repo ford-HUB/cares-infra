@@ -8,6 +8,7 @@ export type EvaluationQuestionType =
   | 'linear_scale'
   | 'star_rating'
   | 'date'
+  | 'image_upload'
 
 /** Faces available to a question or the form header — all loaded by `index.css`. */
 export type EvaluationFontFamily =
@@ -39,6 +40,8 @@ export interface EvaluationQuestion {
   scaleMax: number
   scaleMinLabel: string
   scaleMaxLabel: string
+  /** Image upload only: how many photos a participant may attach. */
+  maxFiles: number
   typography: EvaluationTypography
 }
 
@@ -105,7 +108,11 @@ export interface EvaluationFormCounts {
   responses: number
 }
 
-/** A single answer keyed to a question; the value shape follows the question type. */
+/**
+ * A single answer keyed to a question; the value shape follows the question type.
+ * An image upload holds its stored image keys — read them through the response's
+ * image route, never directly.
+ */
 export type EvaluationAnswerValue = string | string[] | number | null
 
 export interface EvaluationResponse {

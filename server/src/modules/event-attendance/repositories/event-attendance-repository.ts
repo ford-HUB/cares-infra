@@ -22,6 +22,7 @@ const ROSTER_INCLUDE = {
       event_id: true,
       title: true,
       event_started: true,
+      event_ended: true,
       department: true,
     },
   },
@@ -59,6 +60,11 @@ const EVENT_ZONE_SELECT = {
   area_sqm: true,
 } as const;
 
+const EVENT_ZONE_SELECT_WITH_DEPARTMENT = {
+  ...EVENT_ZONE_SELECT,
+  department: true,
+} as const;
+
 @Injectable()
 export class EventAttendanceRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -74,6 +80,59 @@ export class EventAttendanceRepository {
         { user: { firstname: 'asc' } },
       ],
     });
+  }
+
+  /** These rows in the same roster shape as `findRoster`, for echoing back an update. */
+  async findRosterByIds(eventAttendanceIds: string[]) {
+    return this.prisma.eventAttendance.findMany({
+      where: { event_attendance_id: { in: eventAttendanceIds } },
+      include: ROSTER_INCLUDE,
+    });
+  }
+
+  /** What a manual ruling needs per row: where it stands and its event's window. */
+  async findForManualMark(eventAttendanceIds: string[]) {
+    return this.prisma.eventAttendance.findMany({
+      where: { event_attendance_id: { in: eventAttendanceIds } },
+      select: {
+        event_attendance_id: true,
+        user_id: true,
+        status: true,
+        participation_role: true,
+        role_approval: true,
+        event: { select: EVENT_ZONE_SELECT_WITH_DEPARTMENT },
+      },
+    });
+  }
+
+  async findUserDepartment(userId: string) {
+    return this.prisma.user.findUnique({
+      where: { user_id: userId },
+      select: { portal_department: true },
+    });
+  }
+
+  /**
+   * A director's or coordinator's ruling, used when the geofence could not rule. It
+   * is stored as MANUAL so the validator never overrides it, and a row that is
+   * already COMPLETED is left alone so its hours are not credited twice.
+   */
+  async applyManualPresence(
+    eventAttendanceId: string,
+    ruling: { hours_rendered: number; remarks: string },
+  ): Promise<boolean> {
+    const { count } = await this.prisma.eventAttendance.updateMany({
+      where: {
+        event_attendance_id: eventAttendanceId,
+        status: { not: AttendanceStatus.COMPLETED },
+      },
+      data: {
+        status: AttendanceStatus.COMPLETED,
+        validation_method: GeoValidationMethod.MANUAL,
+        ...ruling,
+      },
+    });
+    return count > 0;
   }
 
   /** What the validator needs to judge one event: its window and its fence. */
@@ -128,7 +187,12 @@ export class EventAttendanceRepository {
         ],
         ...(userIds ? { user_id: { in: userIds } } : {}),
       },
-      select: { event_attendance_id: true, user_id: true },
+      select: {
+        event_attendance_id: true,
+        user_id: true,
+        participation_role: true,
+        role_approval: true,
+      },
     });
   }
 
@@ -269,6 +333,10 @@ export class EventAttendanceRepository {
 
 export type RosterRow = Awaited<
   ReturnType<EventAttendanceRepository['findRoster']>
+>[number];
+
+export type ManualMarkRow = Awaited<
+  ReturnType<EventAttendanceRepository['findForManualMark']>
 >[number];
 
 export type EventZoneRow = NonNullable<

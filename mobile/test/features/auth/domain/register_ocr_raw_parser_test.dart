@@ -57,4 +57,64 @@ void main() {
       test(name, () => expect(idOf(front, back), expected));
     }
   });
+
+  // The cardholder's name is only on the front; the back holds the emergency
+  // contact and the president's signature line.
+  (String, String, String) nameOf(String front, [String back = '']) {
+    final parsed = RegisterOcrRawParser.parse(front, back);
+    return (parsed.firstname, parsed.middleName, parsed.lastname);
+  }
+
+  const presidentBack = '$uclmBack\nATTY AUG STOW GO\nPRESIDENT';
+
+  final nameCases = <(String, String, String, (String, String, String))>[
+    (
+      'name under label',
+      'UNIVERSITY OF CEBU\n24250698\nID NO\nNAME\nJAY S. ICOY\nSIGNATURE',
+      presidentBack,
+      ('JAY', 'S.', 'ICOY'),
+    ),
+    (
+      'initial glued to surname',
+      '24250698\nNAME _ .\n- JAY S.ICOY',
+      '',
+      ('JAY', 'S.', 'ICOY'),
+    ),
+    (
+      'initial glued to both names',
+      'NAME , ; :\n_ JAYS.ICOY _ .',
+      '',
+      ('JAY', 'S.', 'ICOY'),
+    ),
+    (
+      'junk after label and name',
+      'NAME i .\n- JAYS.ICOY  .;\nSIG NATURE .',
+      '',
+      ('JAY', 'S.', 'ICOY'),
+    ),
+    (
+      'unlabelled name line',
+      '24250698\n| JAYS.ICOY .\nSIG NATURE .',
+      '',
+      ('JAY', 'S.', 'ICOY'),
+    ),
+    (
+      'course strip is not a name',
+      '24250698\nID NO\nINFORMATION TECHNOLOGY',
+      '',
+      ('', '', ''),
+    ),
+    (
+      'back is never read',
+      '24250698\nID NO',
+      presidentBack,
+      ('', '', ''),
+    ),
+  ];
+
+  group('cardholder name extraction', () {
+    for (final (name, front, back, expected) in nameCases) {
+      test(name, () => expect(nameOf(front, back), expected));
+    }
+  });
 }

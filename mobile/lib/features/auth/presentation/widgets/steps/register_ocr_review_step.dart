@@ -196,7 +196,12 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _addressRevision++;
     _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
     _setControllerText(_idNumber, enriched.idNumber);
-    _idNumberVerified = enriched.idNumber.trim().isNotEmpty;
+    // Only lock a number both scans agree on. A flagged one (the scans
+    // disagree, or only the on-device scan read it) may be misread digits, so
+    // the user must be able to correct it against the card.
+    _idNumberVerified =
+        enriched.idNumber.trim().isNotEmpty &&
+        !widget.extractionFlags.any((flag) => flag.label == 'ID number');
     _setControllerText(_yearLevel, enriched.yearLevelName);
     _setControllerText(
       _gradYear,

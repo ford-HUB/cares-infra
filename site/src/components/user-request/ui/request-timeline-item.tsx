@@ -2,10 +2,14 @@ import { useState } from 'react'
 import {
   CalendarDays,
   Check,
+  FileText,
+  Home,
   ImageIcon,
   Loader2,
   MapPin,
   MessageSquareWarning,
+  Phone,
+  UserCog,
   ScanFace,
   Trash2,
   XCircle,
@@ -13,6 +17,7 @@ import {
 import {
   REQUEST_KIND_STYLES,
   formatEventDate,
+  formatFileSize,
   formatRequestTime,
 } from '../../../constants/user-requests'
 import { formatRelativeTime } from '../../../constants/formatting'
@@ -27,7 +32,7 @@ interface RequestTimelineItemProps {
   /** Any decision in flight — keeps a second click from racing the first. */
   disabled: boolean
   onAccept: (request: UserRequest) => void
-  /** Opens the reason prompt; only event applications can be rejected. */
+  /** Opens the reason prompt; event applications, event roles and registrations can be rejected. */
   onReject: (request: UserRequest) => void
   onDelete: (request: UserRequest) => void
 }
@@ -41,7 +46,8 @@ export function RequestTimelineItem({
   onDelete,
 }: RequestTimelineItemProps) {
   const pending = request.status === 'pending'
-  const rejectable = pending && request.kind === 'event_join'
+  const registration = request.kind === 'beneficiary_registration'
+  const rejectable = pending && request.kind !== 'role_access'
   const [preview, setPreview] = useState<UserRequestAttachment | null>(null)
 
   return (
@@ -83,9 +89,37 @@ export function RequestTimelineItem({
           )}
         </p>
 
+        {/* A registration is a whole account being let in, so the director sees the
+            contact details it was registered with — the other kinds come from an
+            account the portal already knows. */}
+        {registration && (
+          <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+            <div className="inline-flex items-center gap-1">
+              <Phone className="h-3 w-3 text-gray-400" />
+              <dt className="sr-only">Phone</dt>
+              <dd>{request.submitter.phone}</dd>
+            </div>
+            <div className="inline-flex min-w-0 items-center gap-1">
+              <Home className="h-3 w-3 shrink-0 text-gray-400" />
+              <dt className="sr-only">Address</dt>
+              <dd className="truncate">{request.submitter.address}</dd>
+            </div>
+          </dl>
+        )}
+
         <p className="mt-2 text-sm text-gray-700">{request.summary}</p>
 
-        {/* What the decision is about: the event for a join, the proof for an unlock. */}
+        {/* What the decision is about: the event for a join or a role, the proof
+            for an unlock. An event role carries no proof — the reviewer decides
+            on what they know of the volunteer. */}
+        {request.participationRole && (
+          <div className="mt-3 mr-2 inline-flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-1.5">
+            <UserCog className="h-3.5 w-3.5 text-amber-600" />
+            <span className="text-xs font-medium text-amber-800">
+              Requested role: {request.participationRole}
+            </span>
+          </div>
+        )}
         {request.event && (
           <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5">
             <CalendarDays className="h-3.5 w-3.5 text-gray-400" />
@@ -105,8 +139,19 @@ export function RequestTimelineItem({
                   onClick={() => setPreview(attachment)}
                   className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 hover:bg-gray-100"
                 >
-                  <ImageIcon className="h-3.5 w-3.5 text-gray-400" />
+                  {attachment.fileName ? (
+                    <FileText className="h-3.5 w-3.5 text-gray-400" />
+                  ) : (
+                    <ImageIcon className="h-3.5 w-3.5 text-gray-400" />
+                  )}
                   <span className="text-xs text-gray-700">{attachment.label}</span>
+                  {attachment.kind === 'supporting-document' && attachment.fileName && (
+                    <span className="max-w-[16rem] truncate text-[11px] text-gray-400">
+                      {attachment.fileName}
+                      {attachment.sizeBytes !== undefined &&
+                        ` · ${formatFileSize(attachment.sizeBytes)}`}
+                    </span>
+                  )}
                 </button>
               </li>
             ))}
@@ -145,15 +190,19 @@ export function RequestTimelineItem({
 
         {pending && (
           <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => onDelete(request)}
-              disabled={disabled}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete
-            </button>
+            {/* A registration is approved or rejected, never binned — a removed one
+                would leave the account shut with no decision on record. */}
+            {!registration && (
+              <button
+                type="button"
+                onClick={() => onDelete(request)}
+                disabled={disabled}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            )}
             {rejectable && (
               <button
                 type="button"
@@ -176,7 +225,7 @@ export function RequestTimelineItem({
               ) : (
                 <Check className="h-3.5 w-3.5" />
               )}
-              Accept
+              {registration ? 'Approve' : 'Accept'}
             </button>
           </div>
         )}

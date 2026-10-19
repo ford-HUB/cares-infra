@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   EmbeddingType,
+  type EventRoleApproval,
   Prisma,
   VerificationStatus,
   type RoleType,
@@ -46,6 +47,8 @@ const requestInclude = {
       firstname: true,
       lastname: true,
       address_barangay: true,
+      phone_number: true,
+      current_address: true,
       accounts: { select: { email: true }, take: 1 },
       role: { select: { type: true } },
     },
@@ -186,6 +189,51 @@ export class UserRequestsRepository {
         },
       },
       include: requestInclude,
+    });
+  }
+
+  /** The volunteer's attendance row an EVENT_ROLE request is about, if they still hold one. */
+  async findEventRoleAttendance(userId: string, eventId: number) {
+    return this.prisma.eventAttendance.findUnique({
+      where: { event_id_user_id: { event_id: eventId, user_id: userId } },
+      select: { event_attendance_id: true, participation_role: true },
+    });
+  }
+
+  /**
+   * Rules on an EVENT_ROLE request and moves the volunteer's attendance row to
+   * match, in one transaction — the app reads the role's standing off the
+   * attendance row, the portal off the request, so they must never disagree.
+   */
+  async decideEventRole(
+    id: string,
+    input: DecideUserRequestInput,
+    roleApproval: EventRoleApproval,
+  ): Promise<UserRequestRow> {
+    return this.prisma.$transaction(async (tx) => {
+      const row = await tx.userRequest.update({
+        where: { user_request_id: id },
+        data: {
+          status: input.status,
+          decided_by_user_id: input.decidedByUserId,
+          decided_at: input.decidedByUserId ? new Date() : null,
+          rejection_reason: input.rejectionReason ?? null,
+          trail: {
+            create: {
+              label: input.trail.label,
+              actor_name: input.trail.actorName,
+            },
+          },
+        },
+        include: requestInclude,
+      });
+      if (row.event_id !== null) {
+        await tx.eventAttendance.updateMany({
+          where: { event_id: row.event_id, user_id: row.user_id },
+          data: { role_approval: roleApproval },
+        });
+      }
+      return row;
     });
   }
 

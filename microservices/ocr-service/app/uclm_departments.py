@@ -1,5 +1,6 @@
 """UCLM department and course constants for OCR fuzzy matching."""
 
+import difflib
 import re
 
 DEPARTMENT_NAMES = [
@@ -86,6 +87,60 @@ def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
 
 
+GENERIC_DEPARTMENT_WORDS = {"college", "of", "the", "and", "department", "school", "basic"}
+MIN_DISTINCTIVE_LETTERS = 6
+
+
+def _distinctive_letters(normalized: str) -> str:
+    words = re.findall(r"[a-z]+", normalized)
+    return "".join(word for word in words if word not in GENERIC_DEPARTMENT_WORDS)
+
+
+def _letters_only(text: str) -> str:
+    return re.sub(r"[^a-z]", "", text.lower())
+
+
+def _course_band_keyword(course: str) -> str:
+    # "BSIT - Bachelor of Science in Information Technology" -> "informationtechnology",
+    # which is how the course is printed on the coloured strip of the ID front.
+    title = course.split(" - ", 1)[-1]
+    title = re.sub(r"^bachelor\s+of\s+(?:science\s+in\s+)?", "", title, flags=re.IGNORECASE)
+    return _letters_only(title)
+
+
+COURSE_BAND_KEYWORDS: list[tuple[str, str, str]] = sorted(
+    (
+        (_course_band_keyword(course), department, course)
+        for department, courses in COURSES_BY_DEPARTMENT.items()
+        for course in courses
+    ),
+    key=lambda entry: len(entry[0]),
+    reverse=True,
+)
+COURSE_BAND_MIN_RATIO = 0.85
+
+
+def match_course_band(text: str) -> tuple[str, str] | None:
+    """Maps the course strip on a UCLM ID front (e.g. "INFORMATION TECHNOLOGY")
+    to its (department, course) pair."""
+    lines = [_letters_only(line) for line in text.splitlines()]
+    lines = [line for line in lines if len(line) >= 4]
+
+    for keyword, department, course in COURSE_BAND_KEYWORDS:
+        if any(keyword in line for line in lines):
+            return department, course
+
+    best: tuple[str, str] | None = None
+    best_ratio = COURSE_BAND_MIN_RATIO
+    for keyword, department, course in COURSE_BAND_KEYWORDS:
+        for line in lines:
+            ratio = difflib.SequenceMatcher(None, keyword, line).ratio()
+            if ratio >= best_ratio:
+                best = (department, course)
+                best_ratio = ratio
+    return best
+
+
 def match_department(extracted: str) -> str | None:
     normalized = _normalize(extracted)
     if not normalized:
@@ -95,11 +150,15 @@ def match_department(extracted: str) -> str | None:
         if name.lower() == normalized:
             return name
 
+    # A fragment like "e" or "college of" sits inside every department name, so
+    # only let a fragment match when it carries a distinctive word.
+    fragment_ok = len(_distinctive_letters(normalized)) >= MIN_DISTINCTIVE_LETTERS
+
     best: str | None = None
     best_score = 0
     for name in DEPARTMENT_NAMES:
         lower = name.lower()
-        if lower in normalized or normalized in lower:
+        if lower in normalized or (fragment_ok and normalized in lower):
             score = min(len(normalized), len(lower))
             if score > best_score:
                 best = name

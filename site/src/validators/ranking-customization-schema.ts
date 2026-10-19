@@ -4,6 +4,8 @@ import {
   DONOR_PESOS_PER_POINT_MIN,
   GOODS_TYPE_VALUE_MAX,
   GOODS_TYPE_VALUE_MIN,
+  PARTICIPATION_ROLE_POINTS_MAX,
+  PARTICIPATION_ROLE_POINTS_MIN,
   RANKING_DEFAULT_SETTINGS,
   RANKING_TIER_LABEL_MAX,
   RANKING_TIER_MAX_COUNT,
@@ -23,6 +25,9 @@ const wholeNumber = (min: number, max: number, label: string) =>
     .int(`${label} must be a whole number`)
     .min(min, `${label} must be at least ${min}`)
     .max(max, `${label} must not exceed ${max}`)
+
+const rolePoints = (label: string) =>
+  wholeNumber(PARTICIPATION_ROLE_POINTS_MIN, PARTICIPATION_ROLE_POINTS_MAX, label)
 
 /**
  * The last tier catches everyone below the ones above it, so its cut-off is not
@@ -77,6 +82,11 @@ export const rankingCustomizationSchema = z
       VOLUNTEER_ABSENCE_RESET_DAYS_MAX,
       'Streak window',
     ),
+    participationRolePoints: z.object({
+      ORGANIZER: rolePoints('Organizer bonus'),
+      FACILITATOR: rolePoints('Facilitator bonus'),
+      SPEAKER: rolePoints('Speaker bonus'),
+    }),
     donorPesosPerPoint: wholeNumber(
       DONOR_PESOS_PER_POINT_MIN,
       DONOR_PESOS_PER_POINT_MAX,
