@@ -48,6 +48,14 @@ export const PERMISSION_CATALOG: readonly PermissionDescriptor[] = [
     sensitive: false,
   },
   {
+    key: PermissionKey.USERS_REQUEST,
+    module: 'Users',
+    label: 'User requests',
+    description:
+      'Open the user request queue, and accept, reject, or remove requests.',
+    sensitive: true,
+  },
+  {
     key: PermissionKey.ACCESS_CONTROL_VIEW,
     module: 'Access Control',
     label: 'View rights',
@@ -117,6 +125,14 @@ export const PERMISSION_CATALOG: readonly PermissionDescriptor[] = [
     label: 'Export attendance',
     description: 'Download attendance records.',
     sensitive: false,
+  },
+  {
+    key: PermissionKey.ATTENDANCE_MANUAL_MARK,
+    module: 'Attendance',
+    label: 'Mark attendance manually',
+    description:
+      'Mark selected participants present on the Attendees screen when geofence attendance failed. Credits the full event duration as service hours.',
+    sensitive: true,
   },
   {
     key: PermissionKey.CERTIFICATES_VIEW,
@@ -275,6 +291,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.USERS_VIEW,
     PermissionKey.USERS_RESTRICT,
     PermissionKey.USERS_EXPORT,
+    PermissionKey.USERS_REQUEST,
     PermissionKey.ACCESS_CONTROL_VIEW,
     PermissionKey.EVENTS_VIEW,
     PermissionKey.EVENTS_CREATE,
@@ -284,6 +301,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.ATTENDANCE_VIEW,
     PermissionKey.ATTENDANCE_RECORD,
     PermissionKey.ATTENDANCE_EXPORT,
+    // The fallback when the geofence could not rule on a volunteer who was there.
+    PermissionKey.ATTENDANCE_MANUAL_MARK,
     PermissionKey.CERTIFICATES_VIEW,
     PermissionKey.CERTIFICATES_TEMPLATE_MANAGE,
     PermissionKey.CERTIFICATES_ISSUE,
@@ -304,11 +323,15 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<
     PermissionKey.MOBILE_APP_ACCESS,
   ],
   [RoleType.COORDINATOR]: [
+    // Coordinators rule on volunteers' event-role requests (Organizer,
+    // Facilitator, Speaker) alongside directors, which live in this queue.
+    PermissionKey.USERS_REQUEST,
     PermissionKey.EVENTS_VIEW,
     PermissionKey.EVENTS_CREATE,
     PermissionKey.EVENTS_UPDATE,
     PermissionKey.ATTENDANCE_VIEW,
     PermissionKey.ATTENDANCE_RECORD,
+    PermissionKey.ATTENDANCE_MANUAL_MARK,
     PermissionKey.CERTIFICATES_VIEW,
     PermissionKey.CERTIFICATES_ISSUE,
     PermissionKey.DONATIONS_VIEW,

@@ -4,6 +4,7 @@ import { ManageUsersTable } from '../../components/manage-users/manage-users-tab
 import { ManageUsersToolbar } from '../../components/manage-users/manage-users-toolbar'
 import { AddUserModal } from '../../components/manage-users/ui/add-user-modal'
 import { BlockIpModal } from '../../components/manage-users/ui/block-ip-modal'
+import { DeleteUserModal } from '../../components/manage-users/ui/delete-user-modal'
 import { ReissueCredentialsModal } from '../../components/manage-users/ui/reissue-credentials-modal'
 import { RestrictUserModal } from '../../components/manage-users/ui/restrict-user-modal'
 import { UserDetailsModal } from '../../components/manage-users/ui/user-details-modal'
@@ -37,6 +38,7 @@ export function ManageUsersPage() {
     unrestrictUser,
     blockUserIp,
     unblockUserIp,
+    deleteUser,
     reissueCredentials,
   } = useManageUsersStore()
 
@@ -53,6 +55,7 @@ export function ManageUsersPage() {
   const [detailError, setDetailError] = useState<string | undefined>()
   const [restrictingUser, setRestrictingUser] = useState<ManagedUser | null>(null)
   const [blockingIpUser, setBlockingIpUser] = useState<ManagedUser | null>(null)
+  const [deletingUser, setDeletingUser] = useState<ManagedUser | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [addUserOpen, setAddUserOpen] = useState(false)
   const [reissueUser, setReissueUser] = useState<ManagedUser | null>(null)
@@ -140,6 +143,15 @@ export function ManageUsersPage() {
       `${payload.ipAddress} blocked`,
     )
     if (ok) setBlockingIpUser(null)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deletingUser) return
+    const ok = await runMutation(
+      () => deleteUser(deletingUser.id),
+      `${deletingUser.firstName} ${deletingUser.lastName} deleted`,
+    )
+    if (ok) setDeletingUser(null)
   }
 
   const handleUnrestrict = useCallback(
@@ -247,6 +259,8 @@ export function ManageUsersPage() {
         onBlockIp={canBlockIp ? setBlockingIpUser : undefined}
         onUnblockIp={canBlockIp ? handleUnblockIp : undefined}
         onReissueCredentials={canProvision ? setReissueUser : undefined}
+        // Deleting is admin-only on the server, the same as issuing an account.
+        onDelete={canProvision ? setDeletingUser : undefined}
         restrictSuspension={restrictSuspension}
         blockIpSuspension={blockIpSuspension}
       />
@@ -276,6 +290,14 @@ export function ManageUsersPage() {
         loading={submitting}
         onClose={() => setBlockingIpUser(null)}
         onConfirm={(payload) => void handleConfirmBlockIp(payload)}
+      />
+
+      <DeleteUserModal
+        key={`delete-${deletingUser?.id}`}
+        user={deletingUser}
+        loading={submitting}
+        onClose={() => setDeletingUser(null)}
+        onConfirm={() => void handleConfirmDelete()}
       />
 
       <ReissueCredentialsModal

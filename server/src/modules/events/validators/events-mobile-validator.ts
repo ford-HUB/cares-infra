@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import {
   AttendanceStatus,
+  EventParticipationRole,
+  EventRoleApproval,
   EventStatus,
   InterestCode,
 } from '../../../infastructures/prisma/common/client';
@@ -48,6 +50,15 @@ export const RecommendedEventSchema = z.object({
    * event is judged, then COMPLETED or ABSENT. Null when not registered.
    */
   attendance_status: z.enum(AttendanceStatus).nullable(),
+  /** The role the caller registered for. Null when not registered. */
+  participation_role: z.enum(EventParticipationRole).nullable(),
+  /**
+   * Where that role stands — APPROVED for Regular, PENDING while a director or
+   * coordinator reviews an Organizer/Facilitator/Speaker request, REJECTED when
+   * they turned it down (the volunteer stays on as Regular). Null when not
+   * registered.
+   */
+  role_approval: z.enum(EventRoleApproval).nullable(),
   organizer_name: z.string(),
   category: z.string(),
   status: z.enum(EventStatus),
@@ -102,9 +113,41 @@ export const RegisteredEventsResponseSchema = z.object({
   events: z.array(RecommendedEventSchema),
 });
 
+/**
+ * `POST /events/:id/register` body. The role defaults to REGULAR, so an empty
+ * body (older app builds) registers exactly as before.
+ */
+export const RegisterForEventBodySchema = z
+  .object({
+    participation_role: z
+      .enum(EventParticipationRole)
+      .default(EventParticipationRole.REGULAR),
+  })
+  .strict()
+  .default({ participation_role: EventParticipationRole.REGULAR });
+
+export const EventParticipantSchema = z.object({
+  /** First and last name as the volunteer registered them. */
+  name: z.string(),
+  /** True on the caller's own row, so the app can badge it without user ids. */
+  is_me: z.boolean(),
+  participation_role: z.enum(EventParticipationRole),
+  role_approval: z.enum(EventRoleApproval),
+  attendance_status: z.enum(AttendanceStatus),
+});
+
+/** `GET /events/:id/participants` — the volunteers registered for an event. */
+export const EventParticipantsResponseSchema = z.object({
+  event_id: z.number(),
+  participants: z.array(EventParticipantSchema),
+});
+
 export const EventRegistrationResponseSchema = z.object({
   event_id: z.number(),
   is_registered: z.boolean(),
+  /** Null once the registration is cancelled. */
+  participation_role: z.enum(EventParticipationRole).nullable(),
+  role_approval: z.enum(EventRoleApproval).nullable(),
   max_participants: z.number(),
   participants: z.number(),
   slots_left: z.number().int().min(0),

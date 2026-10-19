@@ -59,6 +59,31 @@ class AuthRegistrationService {
     return UploadIdResponse.fromJson(response['data'] as Map<String, dynamic>);
   }
 
+  /// Attaches the beneficiary's supporting document (any file type) to the
+  /// registration session; a second call replaces the first file.
+  Future<RegistrationDocumentResponse> uploadRegistrationDocument({
+    required String registrationId,
+    required String path,
+    required String name,
+  }) async {
+    final response = await _api.postMultipart(
+      '/auth/registration-document',
+      fields: {'registrationId': registrationId},
+      files: [
+        await http.MultipartFile.fromPath(
+          'document',
+          path,
+          filename: name,
+          contentType: _documentContentType(name),
+        ),
+      ],
+    );
+
+    return RegistrationDocumentResponse.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+  }
+
   Future<VerifyFaceResponse> verifyFace({
     required String registrationId,
     required XFile selfie,
@@ -166,6 +191,31 @@ class AuthRegistrationService {
       '/auth/verify-otp',
       body: {'email': email.trim(), 'otp': otp.trim()},
     );
+  }
+
+  /// Any file type is accepted; well-known ones get their real type so the
+  /// portal can preview them, everything else goes up as a generic binary.
+  MediaType _documentContentType(String name) {
+    final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';
+    return switch (ext) {
+      'pdf' => MediaType('application', 'pdf'),
+      'png' => MediaType('image', 'png'),
+      'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+      'webp' => MediaType('image', 'webp'),
+      'heic' => MediaType('image', 'heic'),
+      'doc' => MediaType('application', 'msword'),
+      'docx' => MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ),
+      'xls' => MediaType('application', 'vnd.ms-excel'),
+      'xlsx' => MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ),
+      'txt' => MediaType('text', 'plain'),
+      _ => MediaType('application', 'octet-stream'),
+    };
   }
 
   MediaType _imageContentType(XFile file) {

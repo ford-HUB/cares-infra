@@ -1,5 +1,6 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
+import 'package:mobile/features/dashboard/domain/event_participation_role.dart';
 
 /// The event's slot numbers as the server holds them right after a join or a
 /// cancellation — what the details screen and the cards redraw from.
@@ -10,6 +11,8 @@ class EventRegistrationResult {
     required this.maxParticipants,
     required this.participants,
     required this.slotsLeft,
+    this.participationRole,
+    this.roleApproval,
   });
 
   factory EventRegistrationResult.fromJson(Map<String, dynamic> json) {
@@ -19,6 +22,10 @@ class EventRegistrationResult {
       maxParticipants: json['max_participants'] as int? ?? 0,
       participants: json['participants'] as int? ?? 0,
       slotsLeft: json['slots_left'] as int? ?? 0,
+      participationRole: EventParticipationRole.fromApi(
+        json['participation_role'] as String?,
+      ),
+      roleApproval: EventRoleApproval.fromApi(json['role_approval'] as String?),
     );
   }
 
@@ -27,6 +34,13 @@ class EventRegistrationResult {
   final int maxParticipants;
   final int participants;
   final int slotsLeft;
+
+  /// The role on the caller's registration; null after a cancellation.
+  final EventParticipationRole? participationRole;
+
+  /// Pending for Organizer, Facilitator and Speaker until a Director or
+  /// Coordinator rules; approved straight away for Regular.
+  final EventRoleApproval? roleApproval;
 }
 
 /// `POST` / `DELETE /events/:id/register` — takes or gives back one slot on a
@@ -38,10 +52,15 @@ class EventRegistrationService {
 
   final ApiClient _api;
 
-  Future<EventRegistrationResult> register(int eventId) async {
+  /// Registers in [role]. Anything but Regular is filed for a Director's or
+  /// Coordinator's review — no proof is uploaded.
+  Future<EventRegistrationResult> register(
+    int eventId, {
+    EventParticipationRole role = EventParticipationRole.regular,
+  }) async {
     final response = await _api.postJson(
       '/events/$eventId/register',
-      body: const {},
+      body: {'participation_role': role.apiValue},
     );
     // The server answers with a notice; pull it in without waiting a poll.
     NotificationSync.instance.refreshSoon();

@@ -31,6 +31,7 @@ interface ManageUsersTableProps {
   onBlockIp?: (user: ManagedUser) => void
   onUnblockIp?: (user: ManagedUser) => void
   onReissueCredentials?: (user: ManagedUser) => void
+  onDelete?: (user: ManagedUser) => void
   /** Suspended rights — the matching menu entry is drawn locked rather than left out. */
   restrictSuspension?: SessionSuspension
   blockIpSuspension?: SessionSuspension
@@ -52,6 +53,7 @@ export function ManageUsersTable({
   onBlockIp,
   onUnblockIp,
   onReissueCredentials,
+  onDelete,
   restrictSuspension,
   blockIpSuspension,
 }: ManageUsersTableProps) {
@@ -181,6 +183,7 @@ export function ManageUsersTable({
                       onBlockIp={onBlockIp}
                       onUnblockIp={onUnblockIp}
                       onReissueCredentials={onReissueCredentials}
+                      onDelete={onDelete}
                       restrictSuspension={restrictSuspension}
                       blockIpSuspension={blockIpSuspension}
                     />

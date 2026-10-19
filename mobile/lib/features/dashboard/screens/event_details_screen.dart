@@ -15,6 +15,7 @@ import '../data/event_location_tracker.dart';
 import '../data/event_registration_service.dart';
 import '../data/event_registration_store.dart';
 import '../domain/cares_event.dart';
+import '../domain/event_participation_role.dart';
 import '../presentation/providers/beneficiary_request_counts_provider.dart';
 import '../presentation/providers/recommended_events_provider.dart';
 import '../presentation/utils/profile_gate.dart';
@@ -23,6 +24,7 @@ import '../widgets/event_reminder_sheet.dart';
 import 'event_participants_screen.dart';
 import '../widgets/completed_event_widgets.dart';
 import '../widgets/event_image_carousel.dart';
+import '../widgets/event_participation_role_widgets.dart';
 import '../widgets/event_registration_dialogs.dart';
 import '../widgets/event_sync_sheet.dart';
 import '../widgets/location_permission_dialogs.dart';
@@ -74,6 +76,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool _descriptionExpanded = false;
   bool _organizerExpanded = false;
   bool _registrationBusy = false;
+
+  /// The role picked in the "Participation Role" dropdown before joining.
+  EventParticipationRole _selectedRole = EventParticipationRole.regular;
 
   /// Redraws once a minute so the screen crosses from upcoming to ongoing to
   /// finished on its own while it stays open.
@@ -187,7 +192,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     }
     if (!mounted) return;
 
-    final confirmed = await showEventJoinConfirmationDialog(context, _event);
+    final role = _selectedRole;
+    final confirmed = await showEventJoinConfirmationDialog(
+      context,
+      _event,
+      role: role,
+    );
 
     if (!confirmed || !mounted) return;
 
@@ -196,15 +206,34 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
     // Server events take the slot on the server first; the fixture keeps the
     // in-memory flow. Either way the local store drives the geofence tracker.
-    final synced = await _syncRegistration(join: true);
+    final synced = await _syncRegistration(join: true, role: role);
     if (!synced || !mounted) return;
 
+    // Fixtures have no server to answer with the role, so mirror what it
+    // would have said.
+    if (_event.serverId == null) {
+      _event = _event.withParticipationRole(
+        role,
+        role.requiresApproval
+            ? EventRoleApproval.pending
+            : EventRoleApproval.approved,
+      );
+    }
     _store.register(_event, email: _participantEmail);
     _tracker.refresh();
     setState(() {});
 
+    final registeredRole = _event.participationRole ?? role;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("You're registered for this event.")),
+      SnackBar(
+        content: Text(
+          _event.isRolePendingApproval
+              ? "You're registered. Your ${registeredRole.label} role is "
+                    'pending approval by the Director or Coordinator.'
+              : "You're registered for this event.",
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -212,20 +241,25 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   /// back, then refreshes the recommended lists so every card agrees. Returns
   /// false when the server refused (full, closed, offline) — the message is
   /// shown and nothing changes locally.
-  Future<bool> _syncRegistration({required bool join}) async {
+  Future<bool> _syncRegistration({
+    required bool join,
+    EventParticipationRole role = EventParticipationRole.regular,
+  }) async {
     final serverId = _event.serverId;
     if (serverId == null || _registrationBusy) return serverId == null;
 
     setState(() => _registrationBusy = true);
     try {
       final result = join
-          ? await _registrationApi.register(serverId)
+          ? await _registrationApi.register(serverId, role: role)
           : await _registrationApi.cancel(serverId);
       if (!mounted) return false;
-      _event = _event.withParticipants(
-        registeredCount: result.participants,
-        totalCapacity: result.maxParticipants,
-      );
+      _event = _event
+          .withParticipants(
+            registeredCount: result.participants,
+            totalCapacity: result.maxParticipants,
+          )
+          .withParticipationRole(result.participationRole, result.roleApproval);
       final container = ProviderScope.containerOf(context, listen: false);
       container.invalidate(recommendedEventsProvider);
       container.invalidate(registeredEventsProvider);
@@ -266,7 +300,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
     _store.cancelParticipation(_event.id, _participantEmail);
     _tracker.refresh();
-    setState(() {});
+    setState(() {
+      _event = _event.withParticipationRole(null, null);
+      _selectedRole = EventParticipationRole.regular;
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Your registration has been cancelled.')),
@@ -435,6 +472,30 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                   _descriptionExpanded = !_descriptionExpanded,
                             ),
                           ),
+                          // Volunteers pick their role before joining; once
+                          // joined the role and its review status show here.
+                          if (!widget.readOnly && !isCompleted) ...[
+                            if (!isRegistered) ...[
+                              const SizedBox(height: 24),
+                              const EventSectionTitle('Participation Role'),
+                              const SizedBox(height: 10),
+                              EventParticipationRoleField(
+                                value: _selectedRole,
+                                onChanged: _registrationBusy
+                                    ? null
+                                    : (role) =>
+                                          setState(() => _selectedRole = role),
+                              ),
+                            ] else if (event.participationRole != null) ...[
+                              const SizedBox(height: 24),
+                              const EventSectionTitle('Your Role'),
+                              const SizedBox(height: 10),
+                              EventRoleStatusCard(
+                                role: event.participationRole!,
+                                approval: event.roleApproval,
+                              ),
+                            ],
+                          ],
                           if (event.requirements.isNotEmpty) ...[
                             const SizedBox(height: 24),
                             const EventSectionTitle('What to bring'),

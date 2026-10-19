@@ -3,11 +3,13 @@ import toast from 'react-hot-toast'
 import { AttendeesTable } from '../../components/attendees/attendees-table'
 import { AttendeesToolbar } from '../../components/attendees/attendees-toolbar'
 import { AttendeeDetailModal } from '../../components/attendees/ui/attendee-detail-modal'
+import { ManualAttendanceModal } from '../../components/attendees/ui/manual-attendance-modal'
 import { ContentShell } from '../../components/portal/ui/content-shell'
 import {
   ATTENDEE_EVENT_FILTER_ALL,
   ATTENDEE_STATUS_FILTER_ALL,
   type AttendeeStatusFilter,
+  isManuallyMarkable,
 } from '../../constants/attendees'
 import { useAttendeeStore } from '../../store/attendee-store'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
@@ -30,6 +32,8 @@ export function EventAttendeesPage() {
   )
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<EventAttendee | null>(null)
+  const [checkedIds, setCheckedIds] = useState<ReadonlySet<string>>(() => new Set())
+  const [confirmingManual, setConfirmingManual] = useState(false)
 
   // A coordinator sees only the volunteers on their own college's events. Until the
   // profile has loaded the department is unknown, so the roster stays empty rather
@@ -37,6 +41,8 @@ export function EventAttendeesPage() {
   const isCoordinator = usePortalRole() === 'coordinator'
   const canExport = usePermission(PORTAL_PERMISSION.ATTENDANCE_EXPORT)
   const exportSuspension = useSuspension(PORTAL_PERMISSION.ATTENDANCE_EXPORT)
+  const canMarkManually = usePermission(PORTAL_PERMISSION.ATTENDANCE_MANUAL_MARK)
+  const markSuspension = useSuspension(PORTAL_PERMISSION.ATTENDANCE_MANUAL_MARK)
   const profileDepartment = useProfileStore((s) => s.profile?.department)
   const ensureProfile = useProfileStore((s) => s.ensureProfile)
 
@@ -96,11 +102,47 @@ export function EventAttendeesPage() {
     })
   }, [inSelectedEvent, search, statusFilter])
 
+  // Ticks only ever cover rows still visible and still markable, so a filter change
+  // or a completed ruling can't leave a hidden row selected.
+  const markable = useMemo(
+    () => filtered.filter((attendee) => isManuallyMarkable(attendee)),
+    [filtered],
+  )
+  const checkedAttendees = useMemo(
+    () => markable.filter((attendee) => checkedIds.has(attendee.id)),
+    [checkedIds, markable],
+  )
+  const selectedIds = useMemo(
+    () => new Set(checkedAttendees.map((attendee) => attendee.id)),
+    [checkedAttendees],
+  )
+
+  const toggleChecked = (attendee: EventAttendee) =>
+    setCheckedIds((previous) => {
+      const next = new Set(previous)
+      if (next.has(attendee.id)) next.delete(attendee.id)
+      else next.add(attendee.id)
+      return next
+    })
+
+  const toggleAllChecked = () =>
+    setCheckedIds(
+      selectedIds.size >= markable.length
+        ? new Set()
+        : new Set(markable.map((attendee) => attendee.id)),
+    )
+
+  const clearChecked = () => {
+    setCheckedIds(new Set())
+    setConfirmingManual(false)
+  }
+
   const resetToFirstPage =
     <T,>(apply: (value: T) => void) =>
     (value: T) => {
       apply(value)
       setPage(1)
+      setCheckedIds(new Set())
     }
 
   const handleExport = () => {
@@ -136,6 +178,11 @@ export function EventAttendeesPage() {
         onStatusChange={resetToFirstPage(setStatusFilter)}
         onExport={canExport ? handleExport : undefined}
         exportSuspension={exportSuspension}
+        onMarkPresent={
+          canMarkManually && !markSuspension ? () => setConfirmingManual(true) : undefined
+        }
+        markPresentSuspension={markSuspension}
+        selectedCount={checkedAttendees.length}
       />
 
       {error && (
@@ -151,9 +198,25 @@ export function EventAttendeesPage() {
         page={page}
         onPageChange={setPage}
         onView={setSelected}
+        selection={
+          canMarkManually && !markSuspension
+            ? {
+                selectedIds,
+                markableCount: markable.length,
+                onToggle: toggleChecked,
+                onToggleAll: toggleAllChecked,
+              }
+            : undefined
+        }
       />
 
       <AttendeeDetailModal attendee={selected} onClose={() => setSelected(null)} />
+
+      <ManualAttendanceModal
+        attendees={confirmingManual ? checkedAttendees : []}
+        onClose={() => setConfirmingManual(false)}
+        onMarked={clearChecked}
+      />
     </ContentShell>
   )
 }

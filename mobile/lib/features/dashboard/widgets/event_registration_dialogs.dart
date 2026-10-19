@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../domain/cares_event.dart';
+import '../domain/event_participation_role.dart';
 
 /// Shows [child] as a modal dialog with a "bounce pop" entrance: it scales
 /// up from slightly small, overshoots, then settles, while fading in.
@@ -39,8 +40,9 @@ Future<T?> _showBouncePopDialog<T>({
 
 Future<bool> showEventJoinConfirmationDialog(
   BuildContext context,
-  CaresEvent event,
-) {
+  CaresEvent event, {
+  EventParticipationRole role = EventParticipationRole.regular,
+}) {
   return _showBouncePopDialog<bool>(
     context: context,
     barrierDismissible: true,
@@ -80,6 +82,19 @@ Future<bool> showEventJoinConfirmationDialog(
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              role.requiresApproval
+                  ? 'Role: ${role.label} — pending approval by the Director '
+                        'or Coordinator after you register.'
+                  : 'Role: ${role.label}',
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                height: 1.35,
               ),
             ),
             const SizedBox(height: 16),

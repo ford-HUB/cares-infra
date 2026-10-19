@@ -8,6 +8,7 @@ import {
   GenderType,
   Prisma,
   RoleType,
+  UserRequestKind,
   VerificationStatus,
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
@@ -32,6 +33,17 @@ export interface CreateDonorInput extends DonorDetailsInput {
 export interface CreateDonorWithPasswordInput extends DonorDetailsInput {
   /** Already bcrypt-hashed — the repository never sees a plaintext password. */
   hashedPassword: string;
+}
+
+/**
+ * The review request a self-registered beneficiary files with their sign-up — written
+ * in the same transaction as the account, so the account never exists without it.
+ */
+export interface BeneficiaryRegistrationRequestInput {
+  summary: string;
+  /** The first trail line's actor — the person who just registered. */
+  actorName: string;
+  document: { url: string; name: string; mime: string; sizeBytes: number };
 }
 
 export type RegistrationConflictField = 'email' | 'phone_number' | 'id_number';
@@ -63,9 +75,12 @@ export function registrationConflict(
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(data: CreateUserDto) {
+  async createUser(
+    data: CreateUserDto,
+    registrationRequest?: BeneficiaryRegistrationRequestInput,
+  ) {
     try {
-      return await this.createUserInTransaction(data);
+      return await this.createUserInTransaction(data, registrationRequest);
     } catch (error) {
       throw this.mapUniqueViolation(error);
     }
@@ -95,7 +110,10 @@ export class AuthRepository {
       : new ConflictException('Some of these details are already registered');
   }
 
-  private async createUserInTransaction(data: CreateUserDto) {
+  private async createUserInTransaction(
+    data: CreateUserDto,
+    registrationRequest?: BeneficiaryRegistrationRequestInput,
+  ) {
     return await this.prisma.$transaction(async (tx) => {
       const department = await this.findOrCreateDepartment(
         tx,
@@ -160,12 +178,12 @@ export class AuthRepository {
               },
             },
           },
-          // An enrolled face opens a pending verification that owns it; the
-          // biometric is only reachable through that review.
+          // A face is only enrolled once it has matched the ID during sign-up, so
+          // the verification it owns is already passed — not left pending.
           user_verifications: data.biometric
             ? {
                 create: {
-                  status: VerificationStatus.N,
+                  status: VerificationStatus.V,
                   user_biometric: {
                     create: {
                       face_url: data.biometric.face_url,
@@ -204,6 +222,26 @@ export class AuthRepository {
           account_id: true,
         },
       });
+
+      if (registrationRequest) {
+        await tx.userRequest.create({
+          data: {
+            kind: UserRequestKind.BENEFICIARY_REGISTRATION,
+            user_id: user.user_id,
+            summary: registrationRequest.summary,
+            document_url: registrationRequest.document.url,
+            document_name: registrationRequest.document.name,
+            document_mime: registrationRequest.document.mime,
+            document_size_bytes: registrationRequest.document.sizeBytes,
+            trail: {
+              create: {
+                label: 'Registration submitted from the mobile app',
+                actor_name: registrationRequest.actorName,
+              },
+            },
+          },
+        });
+      }
 
       return {
         user_id: user.user_id,
@@ -415,6 +453,18 @@ export class AuthRepository {
       include: {
         user: true,
       },
+    });
+  }
+
+  /** The latest sign-up review on the account, if it registered through one. */
+  async findBeneficiaryRegistration(userId: string) {
+    return this.prisma.userRequest.findFirst({
+      where: {
+        user_id: userId,
+        kind: UserRequestKind.BENEFICIARY_REGISTRATION,
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { status: true, rejection_reason: true },
     });
   }
 

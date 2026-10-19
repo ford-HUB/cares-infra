@@ -119,8 +119,9 @@ export const adminNav: PortalNavConfig = {
       label: 'Manage Users',
       icon: Users,
       children: [
-        // A director asks the admin for an account; the form is theirs alone.
-        { label: 'Request', to: '/admin/user-request', roles: ['director'], permission: P.USERS_VIEW },
+        // Open to whichever director or coordinator holds "User requests"; the admin
+        // stays out as with the other operations screens.
+        { label: 'Request', to: '/admin/user-request', roles: OPERATIONS_ROLES, permission: P.USERS_REQUEST },
         { label: 'Master', to: '/admin/manage-users', permission: P.USERS_VIEW },
         { label: 'Access Control', to: '/admin/access-control', permission: P.ACCESS_CONTROL_VIEW },
       ],

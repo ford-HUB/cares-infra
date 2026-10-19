@@ -7,6 +7,7 @@ import type {
   RankingSettings,
   RankingTier,
   RankingView,
+  SpecialParticipationRole,
 } from '../types/ranking'
 
 /**
@@ -18,6 +19,39 @@ export const VOLUNTEER_POINTS_PER_ATTENDANCE = 10
 export const VOLUNTEER_ABSENCE_PENALTY_STEP = 2
 export const VOLUNTEER_ABSENCE_RESET_DAYS = 7
 export const DONOR_PESOS_PER_POINT = 100
+
+/**
+ * The Participation Role criterion: the roles a director prices, in the order the
+ * form lists them. Mirrors the server's `SPECIAL_PARTICIPATION_ROLES`.
+ */
+export const PARTICIPATION_ROLE_OPTIONS: {
+  id: SpecialParticipationRole
+  label: string
+  description: string
+}[] = [
+  {
+    id: 'ORGANIZER',
+    label: 'Organizer',
+    description: 'Assists the Director or Coordinator in running the event.',
+  },
+  {
+    id: 'FACILITATOR',
+    label: 'Facilitator',
+    description: 'Facilitates activities or guides participants.',
+  },
+  {
+    id: 'SPEAKER',
+    label: 'Speaker',
+    description: 'Speaks as an invited or assigned speaker.',
+  },
+]
+
+/** Shipped bonuses — mirrors the server's `DEFAULT_PARTICIPATION_ROLE_POINTS`. */
+export const PARTICIPATION_ROLE_POINTS: Record<SpecialParticipationRole, number> = {
+  ORGANIZER: 5,
+  FACILITATOR: 5,
+  SPEAKER: 10,
+}
 
 /**
  * Pesos credited per unit of each goods type when a goods donation is scored —
@@ -58,8 +92,16 @@ export function boardCriteria(board: RankingBoard, settings: RankingSettings): s
     return "Colleges ranked on their volunteers' service hours and the confirmed donations to their events"
   }
   return board === 'volunteer'
-    ? `+${settings.pointsPerAttendance} per event attended · a missed registration costs −${settings.absencePenaltyStep}, then −${settings.absencePenaltyStep * 2}, −${settings.absencePenaltyStep * 3}… for straight misses within ${settings.absenceResetDays} days`
+    ? `+${settings.pointsPerAttendance} per event attended${roleBonusCriteria(settings)} · a missed registration costs −${settings.absencePenaltyStep}, then −${settings.absencePenaltyStep * 2}, −${settings.absencePenaltyStep * 3}… for straight misses within ${settings.absenceResetDays} days`
     : `1 point per ₱${settings.donorPesosPerPoint} of confirmed donations · goods count at their set value per unit`
+}
+
+/** ` (+5 Organizer, +10 Speaker)` — the approved-role bonuses that are switched on. */
+function roleBonusCriteria(settings: RankingSettings): string {
+  const bonuses = PARTICIPATION_ROLE_OPTIONS.filter(
+    (role) => (settings.participationRolePoints[role.id] ?? 0) > 0,
+  ).map((role) => `+${settings.participationRolePoints[role.id]} ${role.label}`)
+  return bonuses.length > 0 ? ` (${bonuses.join(', ')} when the role is approved)` : ''
 }
 
 export const RANKING_PERIODS: { value: RankingPeriod; label: string }[] = [
@@ -114,6 +156,7 @@ export const VOLUNTEER_RANKING_COLUMNS = [
   { key: 'department', label: 'Department', width: 'w-[12rem]' },
   { key: 'attended', label: 'Attended', width: 'w-[7rem]' },
   { key: 'missed', label: 'Missed', width: 'w-[7rem]' },
+  { key: 'roles', label: 'Roles Served', width: 'w-[13rem]' },
   { key: 'lastActive', label: 'Last Active', width: 'w-[10rem]' },
   { key: 'points', label: 'Points', width: 'w-[9rem]' },
 ] as const
@@ -227,6 +270,7 @@ export const RANKING_DEFAULT_SETTINGS: RankingSettings = {
   pointsPerAttendance: VOLUNTEER_POINTS_PER_ATTENDANCE,
   absencePenaltyStep: VOLUNTEER_ABSENCE_PENALTY_STEP,
   absenceResetDays: VOLUNTEER_ABSENCE_RESET_DAYS,
+  participationRolePoints: PARTICIPATION_ROLE_POINTS,
   donorPesosPerPoint: DONOR_PESOS_PER_POINT,
   goodsTypeValues: DONOR_GOODS_TYPE_VALUES,
   defaultBoard: RANKING_DEFAULT_BOARD,
@@ -258,6 +302,8 @@ export const VOLUNTEER_ABSENCE_PENALTY_STEP_MIN = 0
 export const VOLUNTEER_ABSENCE_PENALTY_STEP_MAX = 100
 export const VOLUNTEER_ABSENCE_RESET_DAYS_MIN = 1
 export const VOLUNTEER_ABSENCE_RESET_DAYS_MAX = 90
+export const PARTICIPATION_ROLE_POINTS_MIN = 0
+export const PARTICIPATION_ROLE_POINTS_MAX = 500
 export const DONOR_PESOS_PER_POINT_MIN = 1
 export const DONOR_PESOS_PER_POINT_MAX = 100000
 export const RANKING_TIER_LABEL_MAX = 24

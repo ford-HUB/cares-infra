@@ -101,8 +101,10 @@ abstract final class IdImageQualityThresholds {
   /// so every photo is measured at this size.
   static const analysisLongSide = 1000;
 
-  static const minLongSide = 720;
-  static const minShortSide = 450;
+  /// Below roughly this size the 8-digit student ID is only a few pixels tall
+  /// and OCR starts flipping digits (5/6, 8/9), so ask for a sharper photo.
+  static const minLongSide = 1280;
+  static const minShortSide = 960;
   static const minMeanLuma = 55.0;
   static const maxMeanLuma = 220.0;
   static const glareLuma = 250;

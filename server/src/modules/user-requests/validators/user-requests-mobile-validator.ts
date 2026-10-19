@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  EventParticipationRole,
   RoleType,
   UserRequestKind,
   UserRequestStatus,
@@ -53,6 +54,8 @@ export const MobileUserRequestSchema = z.object({
   kind: z.enum(UserRequestKind),
   status: z.enum(UserRequestStatus),
   requested_role: z.enum(RoleType).nullable(),
+  /** EVENT_ROLE only — the event role the volunteer asked to take. */
+  participation_role: z.enum(EventParticipationRole).nullable(),
   event_id: z.number().nullable(),
   summary: z.string(),
   decided_at: z.iso.datetime().nullable(),

@@ -412,6 +412,12 @@ model EventAttendance {
   last_ping_at        DateTime?
   /// Credited service hours; only meaningful once the row is COMPLETED.
   hours_rendered      Float?
+  /// The role the volunteer registered for. REGULAR needs no review; the others
+  /// file an EVENT_ROLE user request a director or coordinator rules on.
+  participation_role  EventParticipationRole @default(REGULAR)
+  /// Where that role stands. A REJECTED role keeps the registration — the
+  /// volunteer simply takes part as a regular volunteer.
+  role_approval       EventRoleApproval      @default(APPROVED)
   remarks             String?
   registered_at       DateTime             @default(now())
   createdAt           DateTime             @default(now())
@@ -931,6 +937,10 @@ model RankingSettings {
   /// Peso value credited per unit of each goods type (`food`, `clothing`, …) when a
   /// goods donation is scored; null falls back to the shipped defaults.
   goods_type_values     Json?
+  /// Extra points per attended event for an approved special role (`ORGANIZER`,
+  /// `FACILITATOR`, `SPEAKER`), on top of `points_per_attendance`; null falls back
+  /// to the shipped defaults.
+  participation_role_points Json?
 }
 
 /// One volunteer's answers to the questionnaire for one completed event they took
@@ -968,8 +978,10 @@ model UserRequest {
   user_id              String
   /// ROLE_ACCESS only — the role being asked for.
   requested_role       RoleType?
-  /// EVENT_JOIN only — the event the beneficiary wants to attend.
+  /// EVENT_JOIN / EVENT_ROLE — the event the request is about.
   event_id             Int?
+  /// EVENT_ROLE only — the event role the volunteer asked to take.
+  participation_role   EventParticipationRole?
   id_front_url         String?
   id_back_url          String?
   selfie_url           String?
@@ -990,6 +1002,12 @@ model UserRequest {
   residency_proof_url  String?
   residency_proof_name String?
   residency_proof_mime String?
+  /// BENEFICIARY_REGISTRATION only — the supporting document attached to the
+  /// sign-up form. Any file type; the director opens it before approving.
+  document_url         String?
+  document_name        String?
+  document_mime        String?
+  document_size_bytes  Int?
   decided_by           User?                   @relation("UserRequestDecider", fields: [decided_by_user_id], references: [user_id])
   event                Event?                  @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
   user                 User                    @relation("UserRequestRequester", fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -1175,9 +1193,7 @@ enum EmbeddingType {
 enum RoleType {
   ADMIN
   DIRECTOR
-  STAFF
   COORDINATOR
-  ASSISTANT_COORDINATOR
   VOLUNTEER
   DONOR
   BENEFICIARY
@@ -1190,6 +1206,7 @@ enum PermissionKey {
   USERS_RESTRICT
   USERS_BLOCK_IP
   USERS_EXPORT
+  USERS_REQUEST
   ACCESS_CONTROL_VIEW
   ACCESS_CONTROL_MANAGE
   EVENTS_VIEW
@@ -1219,6 +1236,7 @@ enum PermissionKey {
   MAIL_ACCESS
   SUPPORT_TICKET_MANAGE
   MOBILE_APP_ACCESS
+  ATTENDANCE_MANUAL_MARK
 }
 
 enum PermissionOverrideEffect {
@@ -1397,6 +1415,25 @@ enum AttendanceStatus {
   PENDING
   COMPLETED
   ABSENT
+}
+
+/// What a volunteer registers to do at an event. REGULAR is the plain
+/// volunteer slot; the others help run the event and need a director's or
+/// coordinator's approval, judged on what they know of the volunteer — no
+/// proof is attached.
+enum EventParticipationRole {
+  REGULAR
+  ORGANIZER
+  FACILITATOR
+  SPEAKER
+}
+
+/// Review state of a volunteer's event role. REGULAR registrations start
+/// APPROVED; the other roles start PENDING until the EVENT_ROLE request is ruled.
+enum EventRoleApproval {
+  APPROVED
+  PENDING
+  REJECTED
 }
 
 /// Where the coordinates the validation service judged came from. Offline devices buffer
@@ -1585,10 +1622,14 @@ enum EvaluationResponseStatus {
 
 /// What a mobile user is asking the portal for. ROLE_ACCESS is a donor or
 /// beneficiary who passed the ID + face check and wants the volunteer side
-/// opened; EVENT_JOIN is a beneficiary asking to attend an event.
+/// opened; EVENT_JOIN is a beneficiary asking to attend an event;
+/// BENEFICIARY_REGISTRATION is a new beneficiary account waiting for a
+/// director's approval — the account cannot sign in until it is accepted.
 enum UserRequestKind {
   ROLE_ACCESS
   EVENT_JOIN
+  BENEFICIARY_REGISTRATION
+  EVENT_ROLE
 }
 
 /// DELETED is a recycle bin, not a hard delete — the director can restore a

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import {
   DEFAULT_QUESTION_TYPOGRAPHY,
+  DEFAULT_IMAGE_UPLOAD_FILES,
   DEFAULT_SCALE_MAX,
   QUESTION_MAX_OPTIONS,
   QUESTION_TYPE_META,
@@ -102,6 +103,7 @@ function blankQuestion(type: EvaluationQuestionType): EvaluationQuestion {
     scaleMax: DEFAULT_SCALE_MAX,
     scaleMinLabel: '',
     scaleMaxLabel: '',
+    maxFiles: DEFAULT_IMAGE_UPLOAD_FILES,
     typography: { ...DEFAULT_QUESTION_TYPOGRAPHY },
   }
 }

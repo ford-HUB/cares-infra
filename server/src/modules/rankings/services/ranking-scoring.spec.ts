@@ -1,5 +1,6 @@
 import {
   nextAbsencePenalty,
+  participationRoleBonus,
   scoreAttendance,
   type ScoredAttendance,
 } from './ranking-scoring';
@@ -8,6 +9,7 @@ const RULE = {
   pointsPerAttendance: 10,
   absencePenaltyStep: 2,
   absenceResetDays: 7,
+  participationRolePoints: { ORGANIZER: 5, FACILITATOR: 3, SPEAKER: 8 },
 };
 const NOW = new Date('2026-09-21T12:00:00Z');
 
@@ -15,11 +17,20 @@ function day(offset: number): Date {
   return new Date(NOW.getTime() - offset * 24 * 60 * 60 * 1000);
 }
 
-function attended(daysAgo: number, hours = 4): ScoredAttendance {
+function attended(
+  daysAgo: number,
+  hours = 4,
+  role: Partial<
+    Pick<ScoredAttendance, 'participationRole' | 'roleApproval'>
+  > = {},
+): ScoredAttendance {
   return {
     status: 'COMPLETED',
     endedAt: day(daysAgo),
     hoursRendered: hours,
+    participationRole: 'REGULAR',
+    roleApproval: 'APPROVED',
+    ...role,
   };
 }
 
@@ -28,6 +39,8 @@ function missed(daysAgo: number): ScoredAttendance {
     status: 'ABSENT',
     endedAt: day(daysAgo),
     hoursRendered: null,
+    participationRole: 'REGULAR',
+    roleApproval: 'APPROVED',
   };
 }
 
@@ -81,6 +94,8 @@ describe('scoreAttendance', () => {
           status: 'PENDING',
           endedAt: day(1),
           hoursRendered: null,
+          participationRole: 'SPEAKER',
+          roleApproval: 'APPROVED',
         },
       ],
       RULE,
@@ -96,5 +111,74 @@ describe('scoreAttendance', () => {
     expect(score.pointsDeducted).toBe(6);
     expect(score.currentStreak).toBe(0);
     expect(nextAbsencePenalty(score.currentStreak, RULE)).toBe(2);
+  });
+
+  it('adds the role bonus for an approved special role on an attended event', () => {
+    const score = scoreAttendance(
+      [
+        attended(10, 4, { participationRole: 'SPEAKER' }),
+        attended(5, 4, { participationRole: 'ORGANIZER' }),
+        attended(3),
+      ],
+      RULE,
+      NOW,
+    );
+    expect(score.pointsEarned).toBe(30 + 8 + 5);
+    expect(score.rolePoints).toBe(13);
+    expect(score.roleCounts).toEqual({
+      ORGANIZER: 1,
+      FACILITATOR: 0,
+      SPEAKER: 1,
+    });
+    expect(score.points).toBe(43);
+  });
+
+  it('gives no bonus while a role is pending or after it was rejected', () => {
+    const score = scoreAttendance(
+      [
+        attended(6, 4, {
+          participationRole: 'SPEAKER',
+          roleApproval: 'PENDING',
+        }),
+        attended(4, 4, {
+          participationRole: 'FACILITATOR',
+          roleApproval: 'REJECTED',
+        }),
+      ],
+      RULE,
+      NOW,
+    );
+    expect(score.pointsEarned).toBe(20);
+    expect(score.rolePoints).toBe(0);
+    expect(score.roleCounts).toEqual({
+      ORGANIZER: 0,
+      FACILITATOR: 0,
+      SPEAKER: 0,
+    });
+  });
+
+  it('gives no bonus for a missed event even with an approved role', () => {
+    const score = scoreAttendance(
+      [{ ...missed(2), participationRole: 'ORGANIZER' }],
+      RULE,
+      NOW,
+    );
+    expect(score.rolePoints).toBe(0);
+    expect(score.pointsDeducted).toBe(2);
+  });
+
+  it('treats Regular and roles left out of the rule as no bonus', () => {
+    expect(
+      participationRoleBonus(
+        { participationRole: 'REGULAR', roleApproval: 'APPROVED' },
+        RULE,
+      ),
+    ).toBe(0);
+    expect(
+      participationRoleBonus(
+        { participationRole: 'SPEAKER', roleApproval: 'APPROVED' },
+        { ...RULE, participationRolePoints: {} },
+      ),
+    ).toBe(0);
   });
 });

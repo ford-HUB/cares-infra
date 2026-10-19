@@ -1,7 +1,8 @@
-export type RequestTab = 'access' | 'assistance'
+export type RequestTab = 'access' | 'registration' | 'assistance'
 
 const TABS: { value: RequestTab; label: string }[] = [
   { value: 'access', label: 'Access & event requests' },
+  { value: 'registration', label: 'Beneficiary registrations' },
   { value: 'assistance', label: 'Assistance requests' },
 ]
 
@@ -12,7 +13,7 @@ interface RequestTypeTabsProps {
   counts: Record<RequestTab, number>
 }
 
-/** Underline tabs splitting the Request page into its two queues. */
+/** Underline tabs splitting the Request page into its queues. */
 export function RequestTypeTabs({ tab, onTabChange, counts }: RequestTypeTabsProps) {
   return (
     <div role="tablist" aria-label="Request type" className="mb-5 flex gap-6 border-b border-gray-200">

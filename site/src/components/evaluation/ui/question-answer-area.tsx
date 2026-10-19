@@ -1,6 +1,7 @@
-import { CheckSquare, ChevronDown, CircleDot, Plus, X } from 'lucide-react'
+import { CheckSquare, ChevronDown, CircleDot, ImageUp, Plus, X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import {
+  IMAGE_UPLOAD_MAX_FILES,
   LINEAR_SCALE_MAX,
   LINEAR_SCALE_MIN,
   QUESTION_MAX_OPTIONS,
@@ -69,6 +70,39 @@ export function QuestionAnswerArea({
         >
           Month, day, year
         </p>
+      )
+
+    case 'image_upload':
+      return (
+        <div className="space-y-3">
+          {editing && (
+            <div className="flex flex-wrap items-center gap-2 text-[12px] text-gray-500">
+              <span>Up to</span>
+              <select
+                aria-label="Maximum number of images"
+                value={question.maxFiles}
+                onChange={(event) => onPatch({ maxFiles: Number(event.target.value) })}
+                className="h-8 rounded-md border border-gray-200 bg-white px-2 text-[12px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+              >
+                {rangeOptions(1, IMAGE_UPLOAD_MAX_FILES).map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <span>{question.maxFiles === 1 ? 'image' : 'images'} · JPEG, PNG, WebP or HEIC, 10 MB each</span>
+            </div>
+          )}
+          <div
+            style={bodyStyle}
+            className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-gray-400"
+          >
+            <ImageUp className="h-5 w-5 shrink-0" />
+            <span>
+              Add {question.maxFiles === 1 ? 'a photo' : `up to ${question.maxFiles} photos`}
+            </span>
+          </div>
+        </div>
       )
 
     case 'multiple_choice':

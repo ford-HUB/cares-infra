@@ -402,6 +402,51 @@ export class UsersSiteService {
   }
 
   /**
+   * Permanently removes an account. Live sessions are ended first so a token that is
+   * still in flight cannot outlive the row it points at; the trail entry is written
+   * after the delete and keeps the denormalised name, since the user row is gone.
+   */
+  async deleteUser(
+    caller: JwtPayload,
+    userId: string,
+    context: RequestContextDto = {},
+  ): Promise<void> {
+    const target = await this.requireVisibleUser(caller, userId);
+
+    if (target.user_id === caller.sub) {
+      throw new BadRequestException('You cannot delete your own account');
+    }
+
+    const revoked = await this.sessionRegistry.revokeAllForUser(userId);
+    await this.usersRepository.deleteUser(userId);
+
+    await this.auditLogRecorder.record({
+      action: 'user.deleted',
+      description: `Deleted the account of ${displayName(target)}`,
+      category: 'USER_MANAGEMENT',
+      // Irreversible — nothing this screen does is heavier.
+      severity: 'CRITICAL',
+      actor: caller,
+      targetType: 'user',
+      targetLabel: displayName(target),
+      targetId: target.user_id,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      changes: [
+        {
+          field: 'email',
+          before: target.accounts[0]?.email ?? null,
+          after: null,
+        },
+      ],
+      metadata: {
+        role: target.role.type,
+        sessions_revoked: String(revoked),
+      },
+    });
+  }
+
+  /**
    * Creates a portal account for someone whose access request was approved, and hands
    * back the one credential they sign in with. The password is generated in both modes
    * and returned in plaintext exactly once — it is bcrypt-hashed before it is stored,

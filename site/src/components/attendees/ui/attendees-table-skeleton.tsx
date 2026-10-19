@@ -4,11 +4,14 @@ import {
   ATTENDEE_CELL_BORDER,
   ATTENDEE_COLUMNS,
   ATTENDEE_GUTTER_CELL,
+  ATTENDEE_SELECT_CELL,
 } from '../../../constants/attendees'
 
 interface AttendeesTableSkeletonProps {
   /** Same row count the loaded table will render, so the swap causes no jump. */
   rows: number
+  /** Mirrors the table's checkbox column so the swap causes no horizontal jump. */
+  selectable?: boolean
 }
 
 /** Column-shaped placeholders — the volunteer cell mirrors the avatar + label pairing. */
@@ -37,12 +40,20 @@ function CellContent({
  * Renders into the table's existing `<tbody>`, so the header, borders, and column
  * widths above it stay exactly where they are while rows load.
  */
-export function AttendeesTableSkeleton({ rows }: AttendeesTableSkeletonProps) {
+export function AttendeesTableSkeleton({
+  rows,
+  selectable = false,
+}: AttendeesTableSkeletonProps) {
   return (
     <>
       {Array.from({ length: rows }, (_, index) => (
         <tr key={`skeleton-${index}`} aria-hidden className="odd:bg-gray-50/40">
           <td className={`${ATTENDEE_GUTTER_CELL} ${ATTENDEE_CELL_BASE} px-0`} />
+          {selectable && (
+            <td className={`${ATTENDEE_CELL_BASE} ${ATTENDEE_SELECT_CELL}`}>
+              <Skeleton className="mx-auto h-4 w-4 rounded" />
+            </td>
+          )}
           {ATTENDEE_COLUMNS.map((column) => (
             <td
               key={column.key}

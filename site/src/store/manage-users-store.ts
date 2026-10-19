@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import {
   blockManagedUserIp,
+  deleteManagedUser,
   listManagedUsers,
   provisionManagedUser,
   reissueManagedUserCredentials,
@@ -48,6 +49,7 @@ interface ManageUsersState {
     payload: { ipAddress?: string; reason?: string },
   ) => Promise<MutationOutcome>
   unblockUserIp: (id: string, ipAddress?: string) => Promise<MutationOutcome>
+  deleteUser: (id: string) => Promise<MutationOutcome>
   provisionUser: (payload: ProvisionUserPayload) => Promise<CredentialOutcome>
   reissueCredentials: (
     id: string,
@@ -117,6 +119,20 @@ export const useManageUsersStore = create<ManageUsersState>((set, get) => {
 
     unblockUserIp: async (id, ipAddress) =>
       applyMutation(await unblockManagedUserIp(id, ipAddress)),
+
+    deleteUser: async (id) => {
+      const result = await deleteManagedUser(id)
+      if (!result.success) {
+        return { ok: false, message: result.message }
+      }
+
+      // Drop the row locally rather than refetching the whole list.
+      set({
+        users: get().users.filter((user) => user.id !== id),
+        total: Math.max(0, get().total - 1),
+      })
+      return { ok: true, message: result.message }
+    },
 
     provisionUser: async (payload) => {
       const result = await provisionManagedUser(payload)

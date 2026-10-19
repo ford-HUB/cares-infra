@@ -9,6 +9,8 @@ interface UserRequestTimelineProps {
   onAccept: (request: UserRequest) => void
   onReject: (request: UserRequest) => void
   onDelete: (request: UserRequest) => void
+  /** What the empty state says — each tab names its own queue. */
+  emptyMessage?: string
 }
 
 /** Groups the queue by submission day, newest first, keeping each day's rows in order. */
@@ -31,14 +33,13 @@ export function UserRequestTimeline({
   onAccept,
   onReject,
   onDelete,
+  emptyMessage = 'No requests are waiting for review.',
 }: UserRequestTimelineProps) {
   if (requests.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
         <Inbox className="mx-auto h-8 w-8 text-gray-400" />
-        <p className="mt-3 text-sm text-gray-500">
-          No requests are waiting for review.
-        </p>
+        <p className="mt-3 text-sm text-gray-500">{emptyMessage}</p>
       </div>
     )
   }

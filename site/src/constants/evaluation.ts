@@ -4,6 +4,7 @@ import {
   CheckSquare,
   ChevronDownCircle,
   CircleDot,
+  ImageUp,
   MoveHorizontal,
   Star,
   Type,
@@ -27,6 +28,7 @@ export const QUESTION_TYPE_ORDER: EvaluationQuestionType[] = [
   'linear_scale',
   'star_rating',
   'date',
+  'image_upload',
 ]
 
 export const QUESTION_TYPE_META: Record<
@@ -41,6 +43,7 @@ export const QUESTION_TYPE_META: Record<
   linear_scale: { label: 'Linear scale', icon: MoveHorizontal, hasOptions: false, hasScale: true },
   star_rating: { label: 'Star rating', icon: Star, hasOptions: false, hasScale: true },
   date: { label: 'Date', icon: Calendar, hasOptions: false, hasScale: false },
+  image_upload: { label: 'Image upload', icon: ImageUp, hasOptions: false, hasScale: false },
 }
 
 /** Faces already loaded by the `@import` lines at the top of `index.css`. */
@@ -98,6 +101,10 @@ export const STAR_RATING_MAX = 10
 export const DEFAULT_SCALE_MAX = 5
 
 export const QUESTION_MAX_OPTIONS = 10
+
+/** Mirrors the server's cap on photos per image-upload question. */
+export const IMAGE_UPLOAD_MAX_FILES = 5
+export const DEFAULT_IMAGE_UPLOAD_FILES = 1
 export const QUESTION_TITLE_PLACEHOLDER = 'Untitled question'
 export const QUESTION_DESCRIPTION_PLACEHOLDER = 'Description (optional)'
 

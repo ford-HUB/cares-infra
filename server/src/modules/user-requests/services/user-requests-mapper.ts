@@ -13,24 +13,40 @@ export function attachmentsOf(row: UserRequestRow): UserRequestAttachmentDto[] {
       kind: 'id-front',
       label: 'Valid ID (front)',
       content_type: null,
+      file_name: null,
+      size_bytes: null,
     });
   if (row.id_back_url)
     attachments.push({
       kind: 'id-back',
       label: 'Valid ID (back)',
       content_type: null,
+      file_name: null,
+      size_bytes: null,
     });
   if (row.selfie_url)
     attachments.push({
       kind: 'selfie',
       label: 'Face verification selfie',
       content_type: null,
+      file_name: null,
+      size_bytes: null,
     });
   if (row.residency_proof_url)
     attachments.push({
       kind: 'residency-proof',
       label: 'Proof of residency',
       content_type: row.residency_proof_mime,
+      file_name: row.residency_proof_name,
+      size_bytes: null,
+    });
+  if (row.document_url)
+    attachments.push({
+      kind: 'supporting-document',
+      label: 'Supporting document',
+      content_type: row.document_mime,
+      file_name: row.document_name,
+      size_bytes: row.document_size_bytes,
     });
   return attachments;
 }
@@ -47,7 +63,10 @@ export function toSiteDto(row: UserRequestRow): UserRequestDto {
     requester_email: row.user.accounts[0]?.email ?? '',
     requester_role_type: row.user.role.type,
     requester_barangay: row.user.address_barangay,
+    requester_phone: row.user.phone_number,
+    requester_address: row.user.current_address,
     requested_role: row.requested_role,
+    participation_role: row.participation_role,
     event_id: row.event_id,
     event_title: row.event?.title ?? null,
     event_started: row.event?.event_started.toISOString() ?? null,
@@ -77,6 +96,7 @@ export function toMobileDto(row: UserRequestRow): MobileUserRequestDto {
     kind: row.kind,
     status: row.status,
     requested_role: row.requested_role,
+    participation_role: row.participation_role,
     event_id: row.event_id,
     summary: row.summary,
     decided_at: row.decided_at?.toISOString() ?? null,

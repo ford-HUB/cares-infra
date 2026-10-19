@@ -10,6 +10,7 @@ from PIL import Image, ImageOps
 
 from app.config import settings
 from app.uclm_departments import (
+    match_course_band,
     match_course_in_text,
     match_department_in_text,
 )
@@ -17,6 +18,36 @@ from app.uclm_departments import (
 MIN_OCR_WIDTH = 1200
 MIN_TEXT_CHARS = 12
 TESSERACT_CONFIGS = ("--psm 6 --oem 3", "--psm 11 --oem 3")
+# Card detection: the ID is the large white, low-saturation region of the photo.
+CARD_DETECT_SIZE = 1000
+CARD_MIN_VALUE = 160
+CARD_MAX_SATURATION = 70
+CARD_MIN_AREA_RATIO = 0.1
+CARD_MAX_AREA_RATIO = 0.9
+# Tesseract reads the card best at roughly this size; huge photos add noise.
+CARD_OCR_SHORT_SIDE = 1600
+# The student ID digits are small and a worn card flips 8/9 and 5/6, so the
+# number's box is located and re-read on its own, digits only, at a few scales.
+ID_LOCATE_CONFIGS = ("--psm 6 --oem 3", "--psm 11 --oem 3")
+ID_REREAD_CONFIG = "--psm 7 --oem 3 -c tessedit_char_whitelist=0123456789"
+# Digit heights (px) the box is re-read at; sized off the box so a small or
+# large photo is read the same way.
+ID_REREAD_DIGIT_HEIGHTS = (120, 180, 240)
+ID_REREAD_PAD = 0.6
+# A row of the number's box counts as text when this share of it is ink; a
+# mostly-black row is the ID photo's edge, an empty one is blank card.
+ID_TEXT_ROW_MIN_DARK = 0.03
+ID_TEXT_ROW_MAX_DARK = 0.7
+# The course is printed in white on a saturated colour strip at the foot of the
+# card front; plain Otsu binarisation washes it out, so it gets its own pass.
+BAND_MIN_SATURATION = 150
+BAND_MIN_VALUE = 130
+BAND_TEXT_MAX_SATURATION = 80
+BAND_TEXT_MIN_VALUE = 150
+BAND_MIN_WIDTH_RATIO = 0.25
+BAND_MIN_ASPECT = 3
+BAND_OCR_HEIGHT = 120
+BAND_TESSERACT_CONFIGS = ("--psm 6 --oem 3", "--psm 7 --oem 3")
 
 NAME_LABEL = re.compile(
     r"^(?:name|pangalan|student\s*name|full\s*name)\s*[:\-]?\s*(.*)$",
@@ -26,10 +57,12 @@ NAME_INLINE = re.compile(
     r"\bNAME\s+([A-Z][A-Z\s.']+?)(?:\s*[®*]?\s*$)",
     re.IGNORECASE,
 )
-NAME_ONLY_LABEL = re.compile(r"^['\s,|.:]*NAME\s*[|:]?\s*$", re.IGNORECASE)
-PERSON_NAME_LINE = re.compile(
-    r"^['\s,|.:]*([A-Z]{2,}(?:\s+[A-Z]{1,}(?:\.\s*|\s+))*[A-Z]{2,}(?:\s+[A-Z]\.?)?\s+[A-Z]{2,})\s*$",
-)
+NAME_ONLY_LABEL = re.compile(r"^['\s,|.:]*NAME[^A-Za-z0-9]*$", re.IGNORECASE)
+NAME_LABEL_WITH_JUNK = re.compile(r"^\W*NAME\W+[A-Za-z]?\W*$", re.IGNORECASE)
+# An unlabelled, already-cleaned line printed like a name: upper case, first and
+# last words of 2+ letters, initials or words between ("JAY S. ICOY").
+PERSON_NAME_LINE = re.compile(r"^[A-Z]{2,}(?:\s+(?:[A-Z]\.?|[A-Z]{2,}))*\s+[A-Z]{2,}$")
+PERSON_NAME_MIN_LETTERS = 6
 ADDRESS_INLINE = re.compile(
     r"\bADDRESS\.?\s*[:\-]?\s*(.+)$",
     re.IGNORECASE,
@@ -111,34 +144,66 @@ class ParsedIdFields:
     volunteer_type: str = "STUDENT"
 
 
+@dataclass
+class FrontRead:
+    text: str
+    course_band: str
+    id_number: str
+
+
 class OcrEngine:
     def __init__(self) -> None:
         if settings.tesseract_cmd:
             pytesseract.pytesseract.tesseract_cmd = settings.tesseract_cmd
 
     def extract_text(self, image_bytes: bytes) -> str:
-        image = self._load_oriented_image(image_bytes)
+        image = self._crop_to_card(self._load_oriented_image(image_bytes))
         processed = self._preprocess(image)
         return self._run_tesseract(processed)
 
-    def parse_id_text(self, front_text: str, back_text: str) -> ParsedIdFields:
+    def extract_front(self, image_bytes: bytes) -> FrontRead:
+        """Reads the ID front: its text, the coloured course strip (kept apart so
+        it can never be mistaken for the cardholder's name) and a digit-only
+        re-read of the student ID, which a worn card often garbles."""
+        image = self._crop_to_card(self._load_oriented_image(image_bytes))
+        processed = self._preprocess(image)
+        return FrontRead(
+            text=self._run_tesseract(processed),
+            course_band=self._read_course_band(image),
+            id_number=self._reread_id_number(image, processed),
+        )
+
+    def parse_id_text(
+        self,
+        front_text: str,
+        back_text: str,
+        course_band: str = "",
+        id_number: str = "",
+    ) -> ParsedIdFields:
         combined = f"{front_text}\n{back_text}"
         lines = _normalize_lines(combined)
         fields = ParsedIdFields()
 
-        fields.id_number = _extract_id_number(front_text)
+        fields.id_number = id_number or _extract_id_number(front_text)
         fields.phone_number = _extract_phone(combined, lines)
         fields.gender = _extract_gender(combined)
-        fields.department_name = match_department_in_text(combined) or ""
 
-        if fields.department_name:
-            fields.major_name = match_course_in_text(fields.department_name, combined) or ""
+        band = match_course_band(course_band) or match_course_band(front_text)
+        if band:
+            fields.department_name, fields.major_name = band
+        else:
+            fields.department_name = match_department_in_text(combined) or ""
+            if fields.department_name:
+                fields.major_name = match_course_in_text(fields.department_name, combined) or ""
 
         fields.year_level_name = _extract_year_level(combined)
         _extract_graduation_date(combined, fields)
         fields.current_address = _extract_address(lines, combined)
 
-        first, middle, last = _extract_name(lines)
+        # The cardholder's name is only printed on the front. The back carries
+        # the emergency contact's NAME and the president's signature line, so
+        # it is never consulted.
+        first, middle, last = _extract_name(_normalize_lines(front_text))
         fields.firstname = first
         fields.middle_name = middle
         fields.lastname = last
@@ -180,6 +245,110 @@ class OcrEngine:
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         return binary
 
+    def _crop_to_card(self, image: np.ndarray) -> np.ndarray:
+        """Cuts the white card out of a phone photo and squares it up. Background
+        texture (tables, fabric) otherwise floods Tesseract with noise and the
+        name line is lost. Photos already framed on the card pass through."""
+        height, width = image.shape[:2]
+        scale = CARD_DETECT_SIZE / max(height, width)
+        small = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+        hsv = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
+        card = cv2.inRange(hsv, (0, 0, CARD_MIN_VALUE), (180, CARD_MAX_SATURATION, 255))
+        card = cv2.morphologyEx(
+            card, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
+        )
+        card = cv2.morphologyEx(
+            card, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+        )
+        contours, _ = cv2.findContours(card, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            contour = max(contours, key=cv2.contourArea)
+            area_ratio = cv2.contourArea(contour) / (small.shape[0] * small.shape[1])
+            if CARD_MIN_AREA_RATIO <= area_ratio <= CARD_MAX_AREA_RATIO:
+                image = _warp_to_rect(image, cv2.boxPoints(cv2.minAreaRect(contour)) / scale)
+
+        short_side = min(image.shape[:2])
+        if short_side > CARD_OCR_SHORT_SIDE:
+            factor = CARD_OCR_SHORT_SIDE / short_side
+            image = cv2.resize(image, None, fx=factor, fy=factor, interpolation=cv2.INTER_AREA)
+        return image
+
+    def _reread_id_number(self, image: np.ndarray, processed: np.ndarray) -> str:
+        box = _find_id_number_box(processed)
+        if box is None:
+            return ""
+
+        box = _trim_to_text_row(processed, box)
+        # _preprocess may have enlarged a small card; map the box back onto it.
+        ratio = image.shape[1] / processed.shape[1]
+        x, y, w, h = (int(round(value * ratio)) for value in box)
+        pad = int(h * ID_REREAD_PAD)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        roi = gray[max(y - pad, 0) : y + h + pad, max(x - pad, 0) : x + w + pad]
+        if roi.size == 0:
+            return ""
+
+        votes: dict[str, int] = {}
+        for digit_height in ID_REREAD_DIGIT_HEIGHTS:
+            scale = digit_height / max(h, 1)
+            enlarged = cv2.resize(roi, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+            enlarged = cv2.GaussianBlur(enlarged, (3, 3), 0)
+            _, binary = cv2.threshold(enlarged, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            digits = re.sub(r"\D", "", pytesseract.image_to_string(binary, config=ID_REREAD_CONFIG))
+            if len(digits) == STUDENT_ID_LENGTH and _has_plausible_year_prefix(digits):
+                votes[digits] = votes.get(digits, 0) + 1
+
+        if not votes:
+            return ""
+        best, count = max(votes.items(), key=lambda item: item[1])
+        # A single read out of three is no better than the full-page OCR.
+        return best if count >= 2 else ""
+
+    def _read_course_band(self, image: np.ndarray) -> str:
+        height, width = image.shape[:2]
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        strip = cv2.inRange(hsv, (0, BAND_MIN_SATURATION, BAND_MIN_VALUE), (180, 255, 255))
+        kernel = cv2.getStructuringElement(
+            cv2.MORPH_RECT, (max(width // 40, 3), max(height // 80, 3))
+        )
+        strip = cv2.morphologyEx(strip, cv2.MORPH_CLOSE, kernel)
+        contours, _ = cv2.findContours(strip, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        best: tuple[int, int, int, int] | None = None
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            if w < width * BAND_MIN_WIDTH_RATIO or w < h * BAND_MIN_ASPECT:
+                continue
+            if best is None or w * h > best[2] * best[3]:
+                best = (x, y, w, h)
+        if best is None:
+            return ""
+
+        x, y, w, h = best
+        band = hsv[y : y + h, x : x + w]
+        # White lettering on the colour strip -> black text on white for Tesseract.
+        letters = cv2.inRange(
+            band, (0, 0, BAND_TEXT_MIN_VALUE), (180, BAND_TEXT_MAX_SATURATION, 255)
+        )
+        if h < BAND_OCR_HEIGHT:
+            scale = BAND_OCR_HEIGHT / h
+            letters = cv2.resize(letters, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+        # Drop the thin card-edge / strip-border strokes that confuse line OCR.
+        stroke = max(letters.shape[0] // 25, 3)
+        letters = cv2.morphologyEx(
+            letters, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (stroke, stroke))
+        )
+        page = cv2.copyMakeBorder(
+            cv2.bitwise_not(letters), 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255
+        )
+
+        for config in BAND_TESSERACT_CONFIGS:
+            text = pytesseract.image_to_string(page, config=config)
+            words = re.findall(r"[A-Za-z]{2,}", text)
+            if sum(len(word) for word in words) >= 4:
+                return " ".join(words).upper()
+        return ""
+
     def _run_tesseract(self, image: np.ndarray) -> str:
         best_text = ""
         for config in TESSERACT_CONFIGS:
@@ -191,6 +360,64 @@ class OcrEngine:
                 break
 
         return best_text
+
+
+def _find_id_number_box(processed: np.ndarray) -> tuple[int, int, int, int] | None:
+    for config in ID_LOCATE_CONFIGS:
+        data = pytesseract.image_to_data(
+            processed, config=config, output_type=pytesseract.Output.DICT
+        )
+        for index, word in enumerate(data["text"]):
+            if _student_id_candidates(word) or len(re.findall(r"\d", word)) >= STUDENT_ID_MIN_REAL_DIGITS:
+                return (
+                    data["left"][index],
+                    data["top"][index],
+                    data["width"][index],
+                    data["height"][index],
+                )
+    return None
+
+
+def _trim_to_text_row(
+    processed: np.ndarray, box: tuple[int, int, int, int]
+) -> tuple[int, int, int, int]:
+    """Tesseract's word box can swallow the bottom edge of the ID photo above
+    the number; that solid dark block wrecks the re-read's thresholding. Keep
+    only the longest run of rows that look like a line of text."""
+    x, y, w, h = box
+    region = processed[y : y + h, x : x + w]
+    if region.size == 0:
+        return box
+    dark = (region < 128).mean(axis=1)
+    is_text = (dark > ID_TEXT_ROW_MIN_DARK) & (dark < ID_TEXT_ROW_MAX_DARK)
+
+    best_start, best_len, start = 0, 0, None
+    for row, flag in enumerate(list(is_text) + [False]):
+        if flag and start is None:
+            start = row
+        elif not flag and start is not None:
+            if row - start > best_len:
+                best_start, best_len = start, row - start
+            start = None
+    if best_len < h * 0.3:
+        return box
+    return x, y + best_start, w, best_len
+
+
+def _warp_to_rect(image: np.ndarray, box: np.ndarray) -> np.ndarray:
+    sums = box.sum(axis=1)
+    diffs = np.diff(box, axis=1).ravel()
+    top_left, bottom_right = box[np.argmin(sums)], box[np.argmax(sums)]
+    top_right, bottom_left = box[np.argmin(diffs)], box[np.argmax(diffs)]
+    width = int(max(np.linalg.norm(top_right - top_left), np.linalg.norm(bottom_right - bottom_left)))
+    height = int(max(np.linalg.norm(bottom_left - top_left), np.linalg.norm(bottom_right - top_right)))
+    if width < 2 or height < 2:
+        return image
+    matrix = cv2.getPerspectiveTransform(
+        np.float32([top_left, top_right, bottom_right, bottom_left]),
+        np.float32([[0, 0], [width, 0], [width, height], [0, height]]),
+    )
+    return cv2.warpPerspective(image, matrix, (width, height))
 
 
 def _normalize_lines(text: str) -> list[str]:
@@ -216,9 +443,13 @@ def _inline_or_next(lines: list[str], index: int, inline: str) -> str:
 
 def _clean_name_value(name_value: str) -> str:
     cleaned = re.sub(r"\s+", " ", name_value.strip())
-    cleaned = re.sub(r"^['\s,|.:]+", "", cleaned)
+    cleaned = re.sub(r"^['\s,|.:_\-—–]+", "", cleaned)
     cleaned = re.split(r"\b(?:ADDRESS|TEL|ID\s*NO|BIRTHDATE)\b", cleaned, maxsplit=1, flags=re.I)[0]
-    return cleaned.strip(" .®*")
+    # OCR often glues a middle initial to its neighbours: "JAYS.ICOY", "JAY S.ICOY".
+    cleaned = re.sub(r"\b([A-Za-z]{2,})([A-Za-z])\.(?=[A-Za-z]{2,})", r"\1 \2. ", cleaned)
+    cleaned = re.sub(r"\b([A-Za-z])\.(?=[A-Za-z]{2,})", r"\1. ", cleaned)
+    cleaned = re.sub(r"[\s.,;:|_®*'\-—–]+$", "", cleaned)
+    return cleaned.strip()
 
 
 def _looks_like_person_name(text: str) -> bool:
@@ -226,10 +457,17 @@ def _looks_like_person_name(text: str) -> bool:
     if len(tokens) < 2 or len(tokens) > 5:
         return False
     if re.search(
-        r"\b(UNIVERSITY|COLLEGE|STUDENT|EMERGENCY|NON-TRANSFERABLE|NOTIFY|SIGNATURE)\b",
+        r"\b(UNIVERSITY|COLLEGE|STUDENT|EMERGENCY|NON-TRANSFERABLE|NOTIFY|SIGNATURE|"
+        r"CEBU|MANDAUE|LAPU|PHILIPPINES|PRESIDENT|ATTY)\b",
         text,
         re.I,
     ):
+        return False
+    if match_course_band(text):
+        return False
+    # OCR splits labels too: "SIG NATURE".
+    letters = re.sub(r"[^A-Za-z]", "", text).upper()
+    if any(word in letters for word in ("SIGNATURE", "IDNO")):
         return False
     return all(re.fullmatch(r"[A-Za-z][A-Za-z.']*", token) for token in tokens)
 
@@ -264,21 +502,30 @@ def _extract_name(lines: list[str]) -> tuple[str, str, str]:
     for line in lines:
         inline = NAME_INLINE.search(line)
         if inline:
-            return _split_name_value(inline.group(1))
-
-    for index, line in enumerate(lines):
-        if NAME_ONLY_LABEL.match(line):
-            value = _inline_or_next(lines, index, "")
-            cleaned = _clean_name_value(value)
-            if cleaned and _looks_like_person_name(cleaned):
-                return _split_name_value(cleaned)
-
-    for line in lines:
-        person = PERSON_NAME_LINE.match(line)
-        if person:
-            candidate = _clean_name_value(person.group(1))
+            candidate = _clean_name_value(inline.group(1))
             if candidate and _looks_like_person_name(candidate):
                 return _split_name_value(candidate)
+
+    # "NAME" followed by OCR junk ("NAME i .", "NAME — .") is still the label;
+    # the name sits on one of the next lines.
+    for index, line in enumerate(lines):
+        if not (NAME_ONLY_LABEL.match(line) or NAME_LABEL_WITH_JUNK.match(line)):
+            continue
+        for offset in range(1, 4):
+            if index + offset >= len(lines):
+                break
+            candidate = _clean_name_value(lines[index + offset])
+            if candidate and _looks_like_person_name(candidate):
+                return _split_name_value(candidate)
+
+    for line in lines:
+        candidate = _clean_name_value(line)
+        if (
+            PERSON_NAME_LINE.match(candidate)
+            and len(re.sub(r"[^A-Z]", "", candidate)) >= PERSON_NAME_MIN_LETTERS
+            and _looks_like_person_name(candidate)
+        ):
+            return _split_name_value(candidate)
 
     for index, line in enumerate(lines):
         for pattern, target in (

@@ -123,6 +123,18 @@ export class UsersSiteController {
     return this.usersSiteService.getUserDetail(caller, id);
   }
 
+  /** Permanent and admin-only, on the same footing as issuing an account. */
+  @Delete(':id')
+  @Roles(RoleType.ADMIN)
+  @ResponseMessage('User deleted')
+  async deleteUser(
+    @CurrentUser() caller: JwtPayload,
+    @ZParam('id', UserIdParamSchema) id: string,
+    @RequestContext() context: RequestContextDto,
+  ): Promise<void> {
+    return this.usersSiteService.deleteUser(caller, id, context);
+  }
+
   @Get(':id/avatar')
   async getUserAvatar(
     @CurrentUser() caller: JwtPayload,

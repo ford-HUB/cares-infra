@@ -30,9 +30,22 @@ export function UserRequestPage() {
   const [tab, setTab] = useState<RequestTab>('access')
   // Loaded with the page, so the Assistance tab's count shows before it is opened.
   const assistance = useAssistanceRequestReview()
-  const pendingAccess = useMemo(
-    () => requests.filter((request) => request.status === 'pending').length,
+  // Sign-up reviews get their own tab; the access tab keeps role and event requests.
+  const accessRequests = useMemo(
+    () => requests.filter((request) => request.kind !== 'beneficiary_registration'),
     [requests],
+  )
+  const registrations = useMemo(
+    () => requests.filter((request) => request.kind === 'beneficiary_registration'),
+    [requests],
+  )
+  const pendingAccess = useMemo(
+    () => accessRequests.filter((request) => request.status === 'pending').length,
+    [accessRequests],
+  )
+  const pendingRegistrations = useMemo(
+    () => registrations.filter((request) => request.status === 'pending').length,
+    [registrations],
   )
 
   useEffect(() => {
@@ -42,12 +55,12 @@ export function UserRequestPage() {
   // Deleted rows live in the bin, not the timeline — everything else stays on the
   // trail so an accepted request keeps its place in the day it came in.
   const timeline = useMemo(
-    () => requests.filter((request) => request.status !== 'deleted'),
-    [requests],
+    () => accessRequests.filter((request) => request.status !== 'deleted'),
+    [accessRequests],
   )
   const deleted = useMemo(
-    () => requests.filter((request) => request.status === 'deleted'),
-    [requests],
+    () => accessRequests.filter((request) => request.status === 'deleted'),
+    [accessRequests],
   )
 
   const runDecision = async (
@@ -71,7 +84,9 @@ export function UserRequestPage() {
     void runDecision(
       request,
       () => accept(request.id),
-      `${request.reference} accepted`,
+      request.kind === 'beneficiary_registration'
+        ? `${request.reference} approved — the account can now sign in`
+        : `${request.reference} accepted`,
     )
 
   // The modal stays open until the call settles, so a failed rejection keeps the
@@ -109,7 +124,7 @@ export function UserRequestPage() {
     <ContentShell>
       <InlinePageHeader
         title="User Request"
-        description="Volunteer access requests, beneficiary event-join requests, and beneficiaries' assistance requests, submitted from the mobile app."
+        description="Volunteer access requests, beneficiary event-join requests, new beneficiary registrations, and beneficiaries' assistance requests, submitted from the mobile app."
         action={
           // The bin belongs to the access queue; assistance requests are never deleted.
           tab === 'access' && (
@@ -134,7 +149,11 @@ export function UserRequestPage() {
       <RequestTypeTabs
         tab={tab}
         onTabChange={setTab}
-        counts={{ access: pendingAccess, assistance: assistance.awaitingCount }}
+        counts={{
+          access: pendingAccess,
+          registration: pendingRegistrations,
+          assistance: assistance.awaitingCount,
+        }}
       />
 
       {tab === 'assistance' ? (
@@ -159,11 +178,16 @@ export function UserRequestPage() {
             <UserRequestTimelineSkeleton />
           ) : (
             <UserRequestTimeline
-              requests={timeline}
+              requests={tab === 'registration' ? registrations : timeline}
               busyId={busyId}
               onAccept={handleAccept}
               onReject={setRejecting}
               onDelete={handleDelete}
+              emptyMessage={
+                tab === 'registration'
+                  ? 'No beneficiary registrations yet.'
+                  : 'No requests are waiting for review.'
+              }
             />
           )}
         </div>

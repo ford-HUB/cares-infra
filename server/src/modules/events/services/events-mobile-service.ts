@@ -8,6 +8,8 @@ import {
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import {
+  EventParticipationRole,
+  EventRoleApproval,
   EventStatus,
   InterestCode,
   NotificationCategory,
@@ -28,12 +30,16 @@ import { DonationsRepository } from '../../donations/repositories/donations-repo
 import { InterestsRepository } from '../../interests/repositories/interests-repository';
 import {
   DonationEventsResponseDto,
+  EventParticipantsResponseDto,
   EventRegistrationResponseDto,
   RecommendedEventDto,
   RecommendedEventsResponseDto,
   RegisteredEventsResponseDto,
 } from '../dto/events-mobile-dto';
-import { EventsRepository } from '../repositories/events-repository';
+import {
+  EventsRepository,
+  participationRoleLabel,
+} from '../repositories/events-repository';
 
 type OpenEvent = Awaited<
   ReturnType<EventsRepository['findOpenForVolunteers']>
@@ -193,25 +199,59 @@ export class EventsMobileService {
   }
 
   /**
-   * Takes one slot on the event for the volunteer. Idempotent: a second call for
-   * an event they already joined just returns the current counts.
+   * The volunteers registered for an event, by name — the participants list on
+   * the event screen. Only names and roles leave the server; the caller's own
+   * row is flagged instead of exposing user ids.
+   */
+  async listParticipants(
+    userId: string,
+    eventId: number,
+  ): Promise<EventParticipantsResponseDto> {
+    const event = await this.eventsRepository.findById(eventId);
+    if (!event) throw new NotFoundException('Event not found');
+
+    const rows = await this.eventsRepository.findParticipants(eventId);
+    return {
+      event_id: eventId,
+      participants: rows.map((row) => ({
+        name:
+          `${row.user.firstname} ${row.user.lastname}`.trim() || 'Volunteer',
+        is_me: row.user_id === userId,
+        participation_role: row.participation_role,
+        role_approval: row.role_approval,
+        attendance_status: row.status,
+      })),
+    };
+  }
+
+  /**
+   * Takes one slot on the event for the volunteer, in the participation role
+   * they picked. Regular is confirmed outright; Organizer, Facilitator and
+   * Speaker hold the slot with the role pending a director's or coordinator's
+   * approval. Idempotent: a second call for an event they already joined just
+   * returns the current counts and the role already on record.
    */
   async register(
     userId: string,
     eventId: number,
+    role: EventParticipationRole = EventParticipationRole.REGULAR,
   ): Promise<EventRegistrationResponseDto> {
     const event = await this.assertOpen(eventId);
 
     const counts = await this.withSerializationRetry(() =>
-      this.eventsRepository.register(eventId, userId),
+      this.eventsRepository.register(eventId, userId, role),
     );
     if (!counts) {
       throw new ConflictException('This event has no slots left');
     }
     if (counts.created) {
+      const pendingRole =
+        counts.role_approval === EventRoleApproval.PENDING
+          ? ` Your ${participationRoleLabel(counts.participation_role)} role is pending approval by the Director or Coordinator — until then you're registered as a regular volunteer.`
+          : '';
       await this.notificationScheduler.publish({
         title: `You're registered for ${event.title}`,
-        description: `See you ${formatEventStart(event.event_started)} at ${event.location}. We'll remind you before it starts — attendance is tracked by geofence once you arrive.`,
+        description: `See you ${formatEventStart(event.event_started)} at ${event.location}. We'll remind you before it starts — attendance is tracked by geofence once you arrive.${pendingRole}`,
         category: NotificationCategory.EVENT,
         tone: NotificationTone.INFO,
         href: `/events/${eventId}`,
@@ -220,7 +260,10 @@ export class EventsMobileService {
         dedupeKey: `event-registered:${eventId}:${Date.now()}`,
       });
     }
-    return this.toRegistrationDto(eventId, counts, true);
+    return this.toRegistrationDto(eventId, counts, {
+      participation_role: counts.participation_role,
+      role_approval: counts.role_approval,
+    });
   }
 
   /** Gives the slot back. Not registered is not an error — the counts still come back. */
@@ -257,7 +300,7 @@ export class EventsMobileService {
         dedupeKey: `event-unregistered:${eventId}:${Date.now()}`,
       });
     }
-    return this.toRegistrationDto(eventId, counts, false);
+    return this.toRegistrationDto(eventId, counts, null);
   }
 
   /** Registration only makes sense while the event is still ahead and accepting. */
@@ -297,14 +340,20 @@ export class EventsMobileService {
     }
   }
 
+  /** `registration` is the caller's role on the event, or null when they hold no slot. */
   private toRegistrationDto(
     eventId: number,
     counts: { participants: number; max_participants: number },
-    isRegistered: boolean,
+    registration: {
+      participation_role: EventParticipationRole;
+      role_approval: EventRoleApproval;
+    } | null,
   ): EventRegistrationResponseDto {
     return {
       event_id: eventId,
-      is_registered: isRegistered,
+      is_registered: registration !== null,
+      participation_role: registration?.participation_role ?? null,
+      role_approval: registration?.role_approval ?? null,
       max_participants: counts.max_participants,
       participants: counts.participants,
       slots_left: Math.max(0, counts.max_participants - counts.participants),
@@ -449,6 +498,8 @@ export class EventsMobileService {
       ),
       is_registered: event.attendances.length > 0,
       attendance_status: event.attendances[0]?.status ?? null,
+      participation_role: event.attendances[0]?.participation_role ?? null,
+      role_approval: event.attendances[0]?.role_approval ?? null,
       organizer_name: event.organizer_name,
       category: event.category,
       status: event.status,

@@ -7,7 +7,9 @@ import {
   ATTENDEE_GUTTER_CELL,
   ATTENDEE_HEADER_HEIGHT_PX,
   ATTENDEE_ROW_HEIGHT_PX,
+  ATTENDEE_SELECT_CELL,
   GEO_VALIDATION_METHOD_LABELS,
+  isManuallyMarkable,
 } from '../../constants/attendees'
 import { formatDateShort, formatTimeOfDay } from '../../constants/formatting'
 import { useRowsPerPage } from '../../hooks/use-rows-per-page'
@@ -25,6 +27,47 @@ interface AttendeesTableProps {
   page: number
   onPageChange: (page: number) => void
   onView: (attendee: EventAttendee) => void
+  /**
+   * Set only for accounts that may mark attendance by hand — the checkbox column is
+   * drawn when present. Rows that cannot be marked (event not over, or already
+   * completed) show a disabled box.
+   */
+  selection?: {
+    selectedIds: ReadonlySet<string>
+    /** Markable rows across the whole filtered list, not just this page. */
+    markableCount: number
+    onToggle: (attendee: EventAttendee) => void
+    onToggleAll: () => void
+  }
+}
+
+function SelectAllCheckbox({
+  checked,
+  indeterminate,
+  disabled,
+  onChange,
+  label,
+}: {
+  checked: boolean
+  indeterminate: boolean
+  disabled: boolean
+  onChange: () => void
+  label: string
+}) {
+  return (
+    <input
+      type="checkbox"
+      aria-label={label}
+      title={label}
+      checked={checked}
+      disabled={disabled}
+      ref={(node) => {
+        if (node) node.indeterminate = indeterminate
+      }}
+      onChange={onChange}
+      className="h-4 w-4 cursor-pointer rounded border-gray-300 text-[var(--cares-primary)] focus:ring-2 focus:ring-[var(--cares-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+    />
+  )
 }
 
 const cellBorder = ATTENDEE_CELL_BORDER
@@ -38,7 +81,12 @@ export function AttendeesTable({
   page,
   onPageChange,
   onView,
+  selection,
 }: AttendeesTableProps) {
+  const selectable = Boolean(selection)
+  const columnCount = ATTENDEE_COLUMNS.length + (selectable ? 1 : 0)
+  const selectedCount = selection?.selectedIds.size ?? 0
+  const markableCount = selection?.markableCount ?? 0
   const scrollRef = useRef<HTMLDivElement>(null)
   const { rowsPerPage, remainder } = useRowsPerPage(
     scrollRef,
@@ -75,6 +123,24 @@ export function AttendeesTable({
               >
                 #
               </th>
+              {selection && (
+                <th
+                  scope="col"
+                  className={`${ATTENDEE_SELECT_CELL} h-9 border-b border-gray-200 bg-gray-50`}
+                >
+                  <SelectAllCheckbox
+                    label={
+                      markableCount === 0
+                        ? 'No participants here can be marked present'
+                        : `Select all ${markableCount} participants that can be marked present`
+                    }
+                    checked={markableCount > 0 && selectedCount >= markableCount}
+                    indeterminate={selectedCount > 0 && selectedCount < markableCount}
+                    disabled={markableCount === 0}
+                    onChange={selection.onToggleAll}
+                  />
+                </th>
+              )}
               {ATTENDEE_COLUMNS.map((column) => (
                 <th
                   key={column.key}
@@ -88,12 +154,14 @@ export function AttendeesTable({
           </thead>
 
           <tbody>
-            {showSkeleton && <AttendeesTableSkeleton rows={rowsPerPage} />}
+            {showSkeleton && (
+              <AttendeesTableSkeleton rows={rowsPerPage} selectable={selectable} />
+            )}
 
             {!showSkeleton && attendees.length === 0 && (
               <tr>
                 <td
-                  colSpan={ATTENDEE_COLUMNS.length + 1}
+                  colSpan={columnCount + 1}
                   className="h-32 text-center text-sm text-gray-500"
                 >
                   No attendees match the current filters.
@@ -116,6 +184,19 @@ export function AttendeesTable({
                   className="cursor-pointer outline-none odd:bg-gray-50/40 hover:bg-green-50/60 focus-visible:bg-green-50/60"
                 >
                   <td className={`${gutter} ${cellBase} px-0`}>{start + index + 1}</td>
+
+                  {selection && (
+                    <td
+                      className={`${cellBase} ${ATTENDEE_SELECT_CELL}`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <RowCheckbox
+                        attendee={attendee}
+                        checked={selection.selectedIds.has(attendee.id)}
+                        onToggle={selection.onToggle}
+                      />
+                    </td>
+                  )}
 
                   <td className={`${cellBorder} ${cellBase}`}>
                     <div className="flex items-center gap-2.5">
@@ -171,6 +252,7 @@ export function AttendeesTable({
               fillers.map((_, index) => (
                 <tr key={`filler-${index}`} aria-hidden className="odd:bg-gray-50/40">
                   <td className={`${gutter} ${cellBase} px-0`} />
+                  {selectable && <td className={`${cellBase} ${ATTENDEE_SELECT_CELL}`} />}
                   {ATTENDEE_COLUMNS.map((column) => (
                     <td key={column.key} className={`${cellBorder} ${cellBase}`} />
                   ))}
@@ -180,6 +262,7 @@ export function AttendeesTable({
             {!showSkeleton && attendees.length > 0 && remainder > 0 && (
               <tr aria-hidden style={{ height: remainder }} className="odd:bg-gray-50/40">
                 <td className={`${gutter} p-0`} />
+                {selectable && <td className={`${ATTENDEE_SELECT_CELL} p-0`} />}
                 {ATTENDEE_COLUMNS.map((column) => (
                   <td key={column.key} className={`${cellBorder} p-0`} />
                 ))}
@@ -207,5 +290,36 @@ export function AttendeesTable({
         />
       </div>
     </div>
+  )
+}
+
+function RowCheckbox({
+  attendee,
+  checked,
+  onToggle,
+}: {
+  attendee: EventAttendee
+  checked: boolean
+  onToggle: (attendee: EventAttendee) => void
+}) {
+  const markable = isManuallyMarkable(attendee)
+  const name = `${attendee.firstName} ${attendee.lastName}`
+  const hint = markable
+    ? `Select ${name}`
+    : attendee.status === 'completed'
+      ? 'Already completed'
+      : 'Available once the event has ended'
+
+  return (
+    <input
+      type="checkbox"
+      aria-label={hint}
+      title={hint}
+      checked={markable && checked}
+      disabled={!markable}
+      onChange={() => onToggle(attendee)}
+      onKeyDown={(event) => event.stopPropagation()}
+      className="h-4 w-4 cursor-pointer rounded border-gray-300 text-[var(--cares-primary)] focus:ring-2 focus:ring-[var(--cares-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+    />
   )
 }
