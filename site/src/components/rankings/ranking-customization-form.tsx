@@ -5,6 +5,9 @@ import {
   DONOR_PESOS_PER_POINT_MIN,
   GOODS_TYPE_VALUE_MAX,
   GOODS_TYPE_VALUE_MIN,
+  PARTICIPATION_ROLE_OPTIONS,
+  PARTICIPATION_ROLE_POINTS_MAX,
+  PARTICIPATION_ROLE_POINTS_MIN,
   RANKING_BOARDS,
   RANKING_PERIODS,
   VOLUNTEER_ABSENCE_PENALTY_STEP_MAX,
@@ -48,6 +51,7 @@ export function RankingCustomizationForm({
   const penaltyStep = form.watch('absencePenaltyStep')
   const resetDays = form.watch('absenceResetDays')
   const pesosPerPoint = form.watch('donorPesosPerPoint')
+  const rolePoints = form.watch('participationRolePoints')
 
   // The escalation spelled out: −2, −4, −6 for three straight misses.
   const streakExample = Array.from(
@@ -70,7 +74,8 @@ export function RankingCustomizationForm({
         <h2 className="text-[15px] font-semibold text-gray-900">Scoring Criteria</h2>
         <p className="mt-1 text-[12px] text-gray-500">
           The two boards are scored apart: volunteers on attendance, donors on amount
-          given. Every event attended earns points; a registered event skipped costs a
+          given. Every event attended earns points, plus a bonus when the volunteer
+          served in an approved participation role; a registered event skipped costs a
           penalty that grows with each straight miss and resets after the window.
           Saving rescores both boards.
         </p>
@@ -162,6 +167,53 @@ export function RankingCustomizationForm({
               </span>
             )}
           </label>
+        </div>
+
+        <h3 className="mt-5 text-[13px] font-semibold text-gray-900">
+          Participation Role
+        </h3>
+        <p className="mt-1 text-[12px] text-gray-500">
+          Extra points added to the points per attendance when a volunteer attends an
+          event in a special role a Director or Coordinator approved. A role still
+          pending or rejected earns the regular points only; set a role to 0 to give
+          it no bonus.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {PARTICIPATION_ROLE_OPTIONS.map((role) => {
+            const fieldError = errors.participationRolePoints?.[role.id]
+            const bonus = rolePoints?.[role.id] || 0
+            return (
+              <label key={role.id} className="block">
+                <span className="text-[13px] font-medium text-gray-700">
+                  {role.label}
+                </span>
+                <span className="block text-[12px] text-gray-500">{role.description}</span>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[13px] text-gray-400">
+                    +
+                  </span>
+                  <input
+                    type="number"
+                    min={PARTICIPATION_ROLE_POINTS_MIN}
+                    max={PARTICIPATION_ROLE_POINTS_MAX}
+                    {...form.register(`participationRolePoints.${role.id}`, {
+                      valueAsNumber: true,
+                    })}
+                    className={`${inputClass} w-full pl-7`}
+                  />
+                </div>
+                <span className="mt-1 block text-[12px] text-gray-500">
+                  One event as {role.label} ={' '}
+                  {formatNumber((pointsPerAttendance || 0) + bonus)} pts
+                </span>
+                {fieldError && (
+                  <span className="mt-1 block text-[12px] text-red-600">
+                    {fieldError.message}
+                  </span>
+                )}
+              </label>
+            )
+          })}
         </div>
 
         <h3 className="mt-5 text-[13px] font-semibold text-gray-900">Goods values</h3>

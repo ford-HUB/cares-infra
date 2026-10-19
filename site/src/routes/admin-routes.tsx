@@ -111,6 +111,11 @@ export const adminRoutes: RouteObject[] = [
             element: gated(P.USERS_VIEW),
             children: [
               { path: 'manage-users', element: <ManageUsersPage /> },
+            ],
+          },
+          {
+            element: gated(P.USERS_REQUEST),
+            children: [
               { path: 'user-request', element: <UserRequestPage /> },
             ],
           },

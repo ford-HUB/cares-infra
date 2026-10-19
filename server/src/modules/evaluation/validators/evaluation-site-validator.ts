@@ -14,7 +14,20 @@ export const EvaluationQuestionTypeSchema = z.enum([
   'linear_scale',
   'star_rating',
   'date',
+  'image_upload',
 ]);
+
+/** Photos one image-upload question may take; the builder offers 1..this. */
+export const EVALUATION_IMAGE_MAX_FILES = 5;
+export const EVALUATION_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+export const EVALUATION_IMAGE_ALLOWED_MIMES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+] as const;
+/** Prefix of every stored answer image, so a portal read can't reach other keys. */
+export const EVALUATION_IMAGE_KEY_PREFIX = 'evaluation-responses/';
 
 export const EvaluationFontFamilySchema = z.enum([
   'inter',
@@ -50,6 +63,13 @@ export const EvaluationQuestionSchema = z
     scale_max: z.number().int().min(2).max(10),
     scale_min_label: z.string().max(100),
     scale_max_label: z.string().max(100),
+    /** Image upload only: how many photos the participant may attach. */
+    max_files: z
+      .number()
+      .int()
+      .min(1)
+      .max(EVALUATION_IMAGE_MAX_FILES)
+      .default(1),
     typography: EvaluationTypographySchema,
   })
   .strict();
@@ -103,6 +123,26 @@ export const CreateEvaluationFormSchema = z
     description: z.string().max(2000).default(''),
   })
   .strict();
+
+export const EvaluationResponseIdParamSchema = z.uuid(
+  'A valid response id is required',
+);
+
+export const EvaluationQuestionIdParamSchema = z
+  .string()
+  .min(1, 'Question id is required')
+  .max(64);
+
+export const EvaluationImageIndexParamSchema = z
+  .union([z.string(), z.number()])
+  .transform((v) => (typeof v === 'string' ? Number(v) : v))
+  .pipe(
+    z
+      .number()
+      .int()
+      .min(0)
+      .max(EVALUATION_IMAGE_MAX_FILES - 1),
+  );
 
 export const EvaluationFormIdParamSchema = z
   .string()
@@ -165,7 +205,10 @@ export const EvaluationResponsesQuerySchema = z
   })
   .strict();
 
-/** The value shape follows the question type: text, a choice list, or a number. */
+/**
+ * The value shape follows the question type: text, a choice list (or, for an
+ * image upload, the stored image keys), or a number.
+ */
 export const EvaluationAnswerValueSchema = z.union([
   z.string().max(5000),
   z.array(z.string().max(200)).max(10),

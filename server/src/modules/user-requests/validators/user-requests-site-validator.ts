@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  EventParticipationRole,
   RoleType,
   UserRequestKind,
   UserRequestStatus,
@@ -43,20 +44,27 @@ export const RejectUserRequestSchema = z
   })
   .strict();
 
-/** Which stored proof image a `GET :id/attachments/:kind` streams back. */
+/** Which stored proof file a `GET :id/attachments/:kind` streams back. */
 export const UserRequestAttachmentKindSchema = z.enum([
   'id-front',
   'id-back',
   'selfie',
   'residency-proof',
+  'supporting-document',
 ]);
 
 export const UserRequestAttachmentSchema = z.object({
-  /** Stable per request: `id-front`, `id-back`, `selfie`, `residency-proof`. */
+  /**
+   * Stable per request: `id-front`, `id-back`, `selfie`, `residency-proof`,
+   * `supporting-document`.
+   */
   kind: UserRequestAttachmentKindSchema,
   label: z.string(),
-  /** Set when the file is not necessarily an image (a PDF proof of residency). */
+  /** Set when the file is not necessarily an image (a PDF, or any document type). */
   content_type: z.string().nullable(),
+  /** The uploaded file's own name — set for documents, so a download keeps it. */
+  file_name: z.string().nullable(),
+  size_bytes: z.number().nullable(),
 });
 
 export const UserRequestTrailEntrySchema = z.object({
@@ -77,7 +85,11 @@ export const UserRequestSchema = z.object({
   requester_email: z.string(),
   requester_role_type: z.enum(RoleType),
   requester_barangay: z.string().nullable(),
+  requester_phone: z.string(),
+  requester_address: z.string(),
   requested_role: z.enum(RoleType).nullable(),
+  /** EVENT_ROLE only — the event role the volunteer asked to take. */
+  participation_role: z.enum(EventParticipationRole).nullable(),
   event_id: z.number().nullable(),
   event_title: z.string().nullable(),
   event_started: z.iso.datetime().nullable(),

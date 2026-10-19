@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/api_client.dart';
 import '../../../core/session/static_user_session.dart';
@@ -37,7 +40,8 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
   final _service = EventEvaluationService();
 
   /// Answers keyed by question id, in the shape the server stores them:
-  /// a string, a list of strings, or a number.
+  /// a string, a list of strings, or a number. An image-upload answer holds
+  /// the picked photos' local paths until submit sends them as files.
   final Map<String, dynamic> _answers = {};
 
   EventEvaluation? _evaluation;
@@ -106,7 +110,9 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
 
   void _setAnswer(String id, dynamic value) {
     setState(() {
-      if (value == null || (value is String && value.trim().isEmpty)) {
+      if (value == null ||
+          (value is String && value.trim().isEmpty) ||
+          (value is List && value.isEmpty)) {
         _answers.remove(id);
       } else {
         _answers[id] = value;
@@ -125,10 +131,20 @@ class _EventFeedbackScreenState extends State<EventFeedbackScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      final submission = await _service.submit(serverId, {
-        for (final q in _questions)
-          if (_answers.containsKey(q.id)) q.id: _answers[q.id],
-      });
+      bool isImage(EvaluationQuestion q) =>
+          q.type == EvaluationQuestionType.imageUpload;
+      final submission = await _service.submit(
+        serverId,
+        {
+          for (final q in _questions)
+            if (!isImage(q) && _answers.containsKey(q.id)) q.id: _answers[q.id],
+        },
+        images: {
+          for (final q in _questions)
+            if (isImage(q) && _answers[q.id] is List)
+              q.id: (_answers[q.id] as List).cast<String>(),
+        },
+      );
       if (!mounted) return;
       _store.markSubmitted(
         eventId: widget.event.id,
@@ -563,6 +579,12 @@ class _QuestionCard extends StatelessWidget {
         );
       case EvaluationQuestionType.date:
         return _DateAnswer(value: value as String?, onChanged: onChanged);
+      case EvaluationQuestionType.imageUpload:
+        return _ImageAnswer(
+          maxFiles: question.maxFiles.clamp(1, 5),
+          paths: (value as List?)?.cast<String>() ?? const <String>[],
+          onChanged: onChanged,
+        );
     }
   }
 }
@@ -816,6 +838,201 @@ class _DateAnswer extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         minimumSize: const Size.fromHeight(44),
       ),
+    );
+  }
+}
+
+/// Photo picker for an image-upload question: thumbnails of what is attached,
+/// each removable, plus an add tile until the director's limit is reached.
+class _ImageAnswer extends StatefulWidget {
+  const _ImageAnswer({
+    required this.maxFiles,
+    required this.paths,
+    required this.onChanged,
+  });
+
+  final int maxFiles;
+  final List<String> paths;
+  final ValueChanged<dynamic> onChanged;
+
+  @override
+  State<_ImageAnswer> createState() => _ImageAnswerState();
+}
+
+class _ImageAnswerState extends State<_ImageAnswer> {
+  static const _tileSize = 84.0;
+
+  final _picker = ImagePicker();
+  bool _picking = false;
+
+  int get _remaining => widget.maxFiles - widget.paths.length;
+
+  Future<void> _add() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    setState(() => _picking = true);
+    List<XFile> picked;
+    try {
+      if (source == ImageSource.gallery && _remaining > 1) {
+        picked = await _picker.pickMultiImage(
+          imageQuality: 85,
+          maxWidth: 2400,
+          limit: _remaining,
+        );
+      } else {
+        final file = await _picker.pickImage(
+          source: source,
+          imageQuality: 85,
+          maxWidth: 2400,
+        );
+        picked = file == null ? const [] : [file];
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _picking = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not open the ${source == ImageSource.camera ? 'camera' : 'gallery'}. '
+            'Try again or enable permissions in Settings.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _picking = false);
+    if (picked.isEmpty) return;
+
+    // The multi-picker's limit is a hint on some platforms, so trim here too.
+    widget.onChanged([
+      ...widget.paths,
+      ...picked.take(_remaining).map((file) => file.path),
+    ]);
+  }
+
+  void _remove(int index) {
+    widget.onChanged([...widget.paths]..removeAt(index));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (var i = 0; i < widget.paths.length; i++)
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(widget.paths[i]),
+                      width: _tileSize,
+                      height: _tileSize,
+                      fit: BoxFit.cover,
+                      cacheWidth: 256,
+                    ),
+                  ),
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: Material(
+                      color: AppColors.textPrimary,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => _remove(i),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 14,
+                            color: Colors.white,
+                            semanticLabel: 'Remove photo',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (_remaining > 0)
+              InkWell(
+                onTap: _picking ? null : _add,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: _tileSize,
+                  height: _tileSize,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.inputFill),
+                  ),
+                  child: _picking
+                      ? const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo_outlined,
+                              color: AppColors.primary,
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Add photo',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${widget.paths.length} of ${widget.maxFiles} '
+          '${widget.maxFiles == 1 ? 'photo' : 'photos'} · up to 10 MB each',
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+        ),
+      ],
     );
   }
 }

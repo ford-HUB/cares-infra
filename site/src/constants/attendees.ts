@@ -1,4 +1,8 @@
-import type { AttendanceStatus, GeoValidationMethod } from '../types/attendee'
+import type {
+  AttendanceStatus,
+  EventAttendee,
+  GeoValidationMethod,
+} from '../types/attendee'
 
 /** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const ATTENDEE_ROW_HEIGHT_PX = 44
@@ -55,5 +59,26 @@ export const ATTENDEE_COLUMNS = [
 export const ATTENDEE_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const ATTENDEE_CELL_BASE =
   'h-11 truncate border-b border-gray-100 px-3 py-0 text-[13px]'
+/** The checkbox column drawn only for accounts that may mark attendance by hand. */
+export const ATTENDEE_SELECT_CELL = 'w-10 border-r border-gray-100 px-0 text-center'
 export const ATTENDEE_GUTTER_CELL =
   'sticky left-0 z-10 w-10 border-r border-gray-200 bg-gray-50 text-center text-[11px] tabular-nums text-gray-400'
+
+export const MANUAL_ATTENDANCE_REASON_MAX = 300
+
+/**
+ * Whether a row can be marked present by hand: the event must be over (the ruling
+ * credits its whole window) and the row not already completed.
+ */
+export function isManuallyMarkable(attendee: EventAttendee, now = Date.now()): boolean {
+  return (
+    attendee.status !== 'completed' && new Date(attendee.eventEndDate).getTime() <= now
+  )
+}
+
+/** The event's scheduled length in hours, to two decimals — what the server credits. */
+export function scheduledEventHours(attendee: EventAttendee): number {
+  const ms =
+    new Date(attendee.eventEndDate).getTime() - new Date(attendee.eventDate).getTime()
+  return Math.max(0, Math.round((ms / 3_600_000) * 100) / 100)
+}

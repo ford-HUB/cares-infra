@@ -21,6 +21,8 @@ export interface EventAttendee {
   eventId: number
   eventTitle: string
   eventDate: string
+  /** When the event is scheduled to end; manual attendance opens after it. */
+  eventEndDate: string
   /** The college the event was run for; undefined for non-School events. */
   eventDepartment?: string
   firstName: string
@@ -46,4 +48,11 @@ export interface AttendeeEventOption {
   eventId: number
   title: string
   eventDate: string
+}
+
+/** The outcome of a manual ruling, as the page applies it to the roster. */
+export interface ManualAttendanceResult {
+  marked: EventAttendee[]
+  /** Selected rows the server found already completed and left untouched. */
+  alreadyCompleted: number
 }

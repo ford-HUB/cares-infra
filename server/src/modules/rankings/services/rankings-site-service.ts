@@ -92,6 +92,8 @@ export class RankingsSiteService {
         previous_rank: previous.get(entry.userId) ?? null,
         points: entry.points,
         points_earned: entry.pointsEarned,
+        role_points: entry.rolePoints,
+        role_counts: entry.roleCounts,
         points_deducted: entry.pointsDeducted,
         events_attended: entry.eventsAttended,
         events_missed: entry.eventsMissed,

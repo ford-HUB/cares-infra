@@ -1,4 +1,5 @@
 import {
+  PARTICIPATION_ROLE_OPTIONS,
   RANKING_CELL_BASE,
   RANKING_CELL_BORDER,
   VOLUNTEER_RANKING_COLUMNS,
@@ -94,15 +95,40 @@ export function VolunteerRankingTable({
             )}
           </td>
 
+          {/* Approved special roles on attended events — what the role bonus paid for. */}
+          <td className={`${RANKING_CELL_BORDER} ${RANKING_CELL_BASE}`}>
+            {PARTICIPATION_ROLE_OPTIONS.some((role) => entry.roleCounts[role.id] > 0) ? (
+              <span className="flex flex-wrap gap-1">
+                {PARTICIPATION_ROLE_OPTIONS.filter(
+                  (role) => entry.roleCounts[role.id] > 0,
+                ).map((role) => (
+                  <span
+                    key={role.id}
+                    className="rounded-full bg-green-50 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--cares-primary)]"
+                    title={`Served as ${role.label} at ${entry.roleCounts[role.id]} attended ${
+                      entry.roleCounts[role.id] === 1 ? 'event' : 'events'
+                    }`}
+                  >
+                    {role.label} ×{entry.roleCounts[role.id]}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <span className="text-gray-400">—</span>
+            )}
+          </td>
+
           <td className={`${RANKING_CELL_BORDER} ${RANKING_CELL_BASE} text-gray-600`}>
             {entry.lastActiveAt ? formatDateShort(entry.lastActiveAt) : '—'}
           </td>
 
           <td
             className={`${RANKING_CELL_BORDER} ${RANKING_CELL_BASE}`}
-            title={`+${formatNumber(entry.pointsEarned)} earned − ${formatNumber(
-              entry.pointsDeducted,
-            )} deducted`}
+            title={`+${formatNumber(entry.pointsEarned)} earned${
+              entry.rolePoints > 0
+                ? ` (incl. +${formatNumber(entry.rolePoints)} from participation roles)`
+                : ''
+            } − ${formatNumber(entry.pointsDeducted)} deducted`}
           >
             <span className="font-semibold text-[var(--cares-primary)]">
               {formatNumber(entry.points)}

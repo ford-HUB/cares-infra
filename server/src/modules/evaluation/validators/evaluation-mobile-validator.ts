@@ -27,11 +27,26 @@ export const EventEvaluationResponseSchema = z.object({
   submission: EvaluationSubmissionSchema.nullable(),
 });
 
+/**
+ * A plain JSON body, or — when the form has image-upload questions — multipart,
+ * where `answers` arrives as a JSON string beside one `image_<questionId>` file
+ * field per photo.
+ */
 export const SubmitEvaluationSchema = z
   .object({
-    answers: EvaluationAnswersSchema,
+    answers: z.preprocess((value) => {
+      if (typeof value !== 'string') return value;
+      try {
+        return JSON.parse(value) as unknown;
+      } catch {
+        return value;
+      }
+    }, EvaluationAnswersSchema),
   })
   .strict();
+
+/** The multipart field an image answer is sent under. */
+export const EVALUATION_IMAGE_FIELD_PREFIX = 'image_';
 
 export const SubmitEvaluationResponseSchema = z.object({
   event_id: z.number(),

@@ -1,4 +1,5 @@
 import '../utils/geo_utils.dart';
+import 'event_participation_role.dart';
 
 class CaresEvent {
   const CaresEvent({
@@ -32,6 +33,8 @@ class CaresEvent {
     this.attendanceStatus,
     this.applicationStatus,
     this.applicationRejectionReason,
+    this.participationRole,
+    this.roleApproval,
   });
 
   final String id;
@@ -120,6 +123,16 @@ class CaresEvent {
   /// Rejected applications can be filed again — a new application replaces
   /// this status with `PENDING`.
   bool get isApplicationRejected => applicationStatus == 'REJECTED';
+
+  /// The role the volunteer registered for, as the server holds it. Null on
+  /// prototype fixtures and on events the volunteer has not joined.
+  final EventParticipationRole? participationRole;
+
+  /// Where [participationRole] stands: approved, pending a Director's or
+  /// Coordinator's review, or rejected (the volunteer stays on as Regular).
+  final EventRoleApproval? roleApproval;
+
+  bool get isRolePendingApproval => roleApproval == EventRoleApproval.pending;
 
   String get monthLabel {
     const months = [
@@ -230,6 +243,50 @@ class CaresEvent {
       attendanceStatus: attendanceStatus,
       applicationStatus: applicationStatus,
       applicationRejectionReason: applicationRejectionReason,
+      participationRole: participationRole,
+      roleApproval: roleApproval,
+    );
+  }
+
+  /// The same event with the volunteer's registered role and its standing —
+  /// what a join answers with. Null for both clears them on a cancellation.
+  CaresEvent withParticipationRole(
+    EventParticipationRole? role,
+    EventRoleApproval? approval,
+  ) {
+    return CaresEvent(
+      id: id,
+      title: title,
+      organization: organization,
+      date: date,
+      time: time,
+      location: location,
+      description: description,
+      slotsLeft: slotsLeft,
+      daysUntil: daysUntil,
+      capacityFilled: capacityFilled,
+      category: category,
+      tags: tags,
+      registeredCount: registeredCount,
+      totalCapacity: totalCapacity,
+      requirements: requirements,
+      venueLatitude: venueLatitude,
+      venueLongitude: venueLongitude,
+      attendanceRadiusMeters: attendanceRadiusMeters,
+      geofence: geofence,
+      isFeatured: isFeatured,
+      openToBeneficiaries: openToBeneficiaries,
+      isCompleted: isCompleted,
+      hoursCompleted: hoursCompleted,
+      endDate: endDate,
+      imageAsset: imageAsset,
+      imageUrls: imageUrls,
+      organizerDescription: organizerDescription,
+      attendanceStatus: attendanceStatus,
+      applicationStatus: applicationStatus,
+      applicationRejectionReason: applicationRejectionReason,
+      participationRole: role,
+      roleApproval: approval,
     );
   }
 
@@ -266,6 +323,8 @@ class CaresEvent {
       organizerDescription: organizerDescription,
       attendanceStatus: attendanceStatus,
       applicationStatus: status,
+      participationRole: participationRole,
+      roleApproval: roleApproval,
     );
   }
 

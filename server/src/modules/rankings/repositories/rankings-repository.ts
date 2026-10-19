@@ -12,6 +12,8 @@ import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 const RANKED_ATTENDANCE_SELECT = {
   status: true,
   hours_rendered: true,
+  participation_role: true,
+  role_approval: true,
   event: { select: { event_ended: true } },
   user: {
     select: {
@@ -89,6 +91,7 @@ export class RankingsRepository {
     points_per_attendance: number;
     absence_penalty_step: number;
     absence_reset_days: number;
+    participation_role_points: Prisma.InputJsonValue;
     donor_pesos_per_point: number;
     goods_type_values: Prisma.InputJsonValue;
     default_period: string;

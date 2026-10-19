@@ -28,6 +28,7 @@ export const EventAttendeeResponseSchema = z.object({
   event_id: z.number(),
   event_title: z.string(),
   event_started: z.string(),
+  event_ended: z.string(),
   /** The college the event was run for; null for non-School events. */
   event_department: z.string().nullable(),
   user_id: z.string(),
@@ -49,6 +50,37 @@ export const EventAttendeeResponseSchema = z.object({
 export const EventAttendeeListResponseSchema = z.array(
   EventAttendeeResponseSchema,
 );
+
+/** How many rows one manual ruling may carry — a full event roster fits easily. */
+export const MANUAL_ATTENDANCE_MAX_ROWS = 500;
+export const MANUAL_ATTENDANCE_REASON_MAX = 300;
+
+/**
+ * The fallback when the geofence could not rule: mark these attendance rows present.
+ * The reason is optional but lands in the row's remarks and the audit trail.
+ */
+export const ManualAttendanceSchema = z
+  .object({
+    event_attendance_ids: z
+      .array(z.string().uuid())
+      .min(1, 'Select at least one participant')
+      .max(MANUAL_ATTENDANCE_MAX_ROWS)
+      .transform((ids) => [...new Set(ids)]),
+    reason: z
+      .string()
+      .trim()
+      .max(MANUAL_ATTENDANCE_REASON_MAX)
+      .optional()
+      .transform((value) => (value ? value : undefined)),
+  })
+  .strict();
+
+export const ManualAttendanceResponseSchema = z.object({
+  /** The rows now COMPLETED by this ruling, in the roster shape. */
+  marked: EventAttendeeListResponseSchema,
+  /** Rows that were already completed and so were left as they were. */
+  already_completed: z.number(),
+});
 
 /**
  * What the geofence is seeing for one volunteer right now. Not `AttendanceStatus`:

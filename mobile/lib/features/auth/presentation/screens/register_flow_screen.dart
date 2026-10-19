@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,6 +26,7 @@ import 'package:mobile/features/auth/presentation/widgets/steps/register_benefic
 import 'package:mobile/features/auth/presentation/widgets/steps/register_face_scan_step.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
+import 'package:mobile/features/auth/presentation/screens/registration_under_review_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_id_upload_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_review_step.dart';
 
@@ -73,6 +75,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
   late RegisterOcrSample _ocrData;
   BeneficiaryProfile _beneficiaryProfile = const BeneficiaryProfile();
+
+  /// The beneficiary's supporting document, and the copy already attached to
+  /// the registration session — re-uploaded only when the pick changes.
+  PlatformFile? _supportingDocument;
+  PlatformFile? _uploadedDocument;
   String _email = '';
   String _password = '';
   String _confirmPassword = '';
@@ -161,7 +168,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           // Barangay + city picked from the directory and a real street.
           _beneficiaryProfile.address.isComplete &&
           _ocrData.currentAddress.trim().isNotEmpty &&
-          isValidPhilippinePhone(_ocrData.phoneNumber);
+          isValidPhilippinePhone(_ocrData.phoneNumber) &&
+          _supportingDocument != null;
     }
 
     final baseValid =
@@ -296,9 +304,51 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       case _RegisterStep.faceScan:
         return;
       case _RegisterStep.details:
+        if (_isBeneficiary && !await _attachSupportingDocument()) return;
+        if (!mounted) return;
         setState(() => _stepIndex = _indexOf(_RegisterStep.account));
       case _RegisterStep.account:
         await _sendVerificationCode();
+    }
+  }
+
+  /// Puts the picked supporting document on the registration session, so the
+  /// director's review request is filed with it at sign-up. Skipped when that
+  /// same file is already attached. Returns false when the upload failed.
+  Future<bool> _attachSupportingDocument() async {
+    final document = _supportingDocument;
+    final registrationId = _registrationId;
+    if (document == null || document.path == null) return false;
+    if (identical(document, _uploadedDocument)) return true;
+    if (registrationId == null) {
+      _showError('Registration session expired. Please restart registration.');
+      return false;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      await ref
+          .read(authRegistrationServiceProvider)
+          .uploadRegistrationDocument(
+            registrationId: registrationId,
+            path: document.path!,
+            name: document.name,
+          );
+      if (!mounted) return false;
+      setState(() {
+        _uploadedDocument = document;
+        _isSubmitting = false;
+      });
+      return true;
+    } catch (e) {
+      if (!mounted) return false;
+      setState(() => _isSubmitting = false);
+      _showError(
+        e is ApiException
+            ? e.message
+            : 'Could not upload your supporting document. Please try again.',
+      );
+      return false;
     }
   }
 
@@ -361,6 +411,19 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
                 password: password,
               );
               if (!otpContext.mounted) return;
+
+              // A new beneficiary account waits for a director's approval, so
+              // the flow ends on the review screen rather than a dashboard.
+              if (_isBeneficiary) {
+                Navigator.of(otpContext).pushAndRemoveUntil(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        RegistrationUnderReviewScreen(email: email),
+                  ),
+                  (route) => route.isFirst,
+                );
+                return;
+              }
 
               // Land on the dashboard for the role registered under — a
               // beneficiary must never end up on the volunteer dashboard.
@@ -632,6 +695,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
             }),
             onProfileChanged: (profile) =>
                 setState(() => _beneficiaryProfile = profile),
+            document: _supportingDocument,
+            onDocumentChanged: (document) =>
+                setState(() => _supportingDocument = document),
           );
         }
         return RegisterOcrReviewStep(

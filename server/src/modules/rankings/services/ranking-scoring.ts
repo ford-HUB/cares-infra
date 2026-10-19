@@ -1,4 +1,12 @@
-import type { AttendanceStatus } from '../../../infastructures/prisma/common/client';
+import type {
+  AttendanceStatus,
+  EventParticipationRole,
+  EventRoleApproval,
+} from '../../../infastructures/prisma/common/client';
+import {
+  SPECIAL_PARTICIPATION_ROLES,
+  type SpecialParticipationRole,
+} from '../../../shared/constants/participation-role-points';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -7,6 +15,8 @@ export interface ScoringRule {
   pointsPerAttendance: number;
   absencePenaltyStep: number;
   absenceResetDays: number;
+  /** Extra points per attended event, by approved role; a role left out earns none. */
+  participationRolePoints: Partial<Record<EventParticipationRole, number>>;
 }
 
 /** One ruled attendance row, in the shape the scorer needs and nothing more. */
@@ -15,10 +25,18 @@ export interface ScoredAttendance {
   /** When the event ended — the moment the ruling applies to. */
   endedAt: Date;
   hoursRendered: number | null;
+  /** The role the volunteer registered for, and where its review stands. */
+  participationRole: EventParticipationRole;
+  roleApproval: EventRoleApproval;
 }
 
 export interface VolunteerScore {
+  /** Attendance points plus role bonuses — everything earned before deductions. */
   pointsEarned: number;
+  /** The share of `pointsEarned` that came from approved participation roles. */
+  rolePoints: number;
+  /** Attended events served in each approved special role. */
+  roleCounts: Record<SpecialParticipationRole, number>;
   pointsDeducted: number;
   /** Earned minus deducted, floored at zero so a standing never reads negative. */
   points: number;
@@ -33,7 +51,9 @@ export interface VolunteerScore {
 /**
  * The volunteer scoring mechanic:
  *
- * - every attended event (COMPLETED) earns `pointsPerAttendance`;
+ * - every attended event (COMPLETED) earns `pointsPerAttendance`, plus the
+ *   `participationRolePoints` bonus for the role the volunteer took — only once
+ *   that role was APPROVED; a pending or rejected role counts as Regular;
  * - a registered event the volunteer skipped (ABSENT) costs `absencePenaltyStep`
  *   the first time, and each straight miss within `absenceResetDays` of the last
  *   one costs one step more — −2, −4, −6 …;
@@ -56,6 +76,8 @@ export function scoreAttendance(
 
   const score: VolunteerScore = {
     pointsEarned: 0,
+    rolePoints: 0,
+    roleCounts: { ORGANIZER: 0, FACILITATOR: 0, SPEAKER: 0 },
     pointsDeducted: 0,
     points: 0,
     eventsAttended: 0,
@@ -69,7 +91,15 @@ export function scoreAttendance(
 
   for (const row of ordered) {
     if (row.status === 'COMPLETED') {
-      score.pointsEarned += rule.pointsPerAttendance;
+      const bonus = participationRoleBonus(row, rule);
+      score.pointsEarned += rule.pointsPerAttendance + bonus;
+      score.rolePoints += bonus;
+      if (
+        row.roleApproval === 'APPROVED' &&
+        isSpecialRole(row.participationRole)
+      ) {
+        score.roleCounts[row.participationRole] += 1;
+      }
       score.eventsAttended += 1;
       score.hours += row.hoursRendered ?? 0;
       score.lastActiveAt = row.endedAt;
@@ -103,4 +133,23 @@ export function nextAbsencePenalty(
   rule: ScoringRule,
 ): number {
   return rule.absencePenaltyStep * (currentStreak + 1);
+}
+
+/**
+ * The extra points one attended event earns for the volunteer's role. Zero for
+ * Regular, and for any role still pending or rejected — the volunteer took part
+ * as Regular then.
+ */
+export function participationRoleBonus(
+  row: Pick<ScoredAttendance, 'participationRole' | 'roleApproval'>,
+  rule: ScoringRule,
+): number {
+  if (row.roleApproval !== 'APPROVED') return 0;
+  return rule.participationRolePoints[row.participationRole] ?? 0;
+}
+
+function isSpecialRole(
+  role: EventParticipationRole,
+): role is SpecialParticipationRole {
+  return (SPECIAL_PARTICIPATION_ROLES as readonly string[]).includes(role);
 }

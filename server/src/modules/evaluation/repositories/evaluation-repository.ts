@@ -291,6 +291,14 @@ export class EvaluationRepository {
     });
   }
 
+  /** Just the answers of one response — what the image proxy checks a key against. */
+  async findResponseAnswers(responseId: string) {
+    return this.prisma.evaluationResponse.findUnique({
+      where: { evaluation_response_id: responseId },
+      select: { answers: true },
+    });
+  }
+
   /** All responses, or one event's, newest first for the portal table. */
   async findResponses(eventId?: number): Promise<EvaluationResponseRow[]> {
     return this.prisma.evaluationResponse.findMany({

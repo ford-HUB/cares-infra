@@ -16,6 +16,8 @@ interface RejectRequestModalProps {
  * the app, and it is what tells them what to fix before they apply again.
  */
 export function RejectRequestModal({ request, busy, onConfirm, onClose }: RejectRequestModalProps) {
+  const registration = request.kind === 'beneficiary_registration'
+  const eventRole = request.kind === 'event_role'
   const [reason, setReason] = useState('')
   const [touched, setTouched] = useState(false)
 
@@ -62,7 +64,11 @@ export function RejectRequestModal({ request, busy, onConfirm, onClose }: Reject
             Reason for rejection
           </label>
           <p className="mt-0.5 text-xs text-gray-500">
-            The beneficiary sees this in the app and can apply again with a corrected document.
+            {registration
+              ? 'The account stays closed. This reason is emailed to the registrant and shown when they try to sign in.'
+              : eventRole
+                ? 'The volunteer sees this in the app. They stay registered for the event as a regular volunteer.'
+                : 'The beneficiary sees this in the app and can apply again with a corrected document.'}
           </p>
           <textarea
             id="rejection-reason"
@@ -72,7 +78,13 @@ export function RejectRequestModal({ request, busy, onConfirm, onClose }: Reject
             maxLength={REJECTION_REASON_MAX_LENGTH}
             rows={4}
             autoFocus
-            placeholder="e.g. The proof of residency is unreadable — please upload a clearer scan of your barangay certificate."
+            placeholder={
+              registration
+                ? 'e.g. The supporting document does not show your name or address. Visit the CARES office with your barangay certificate.'
+                : eventRole
+                  ? 'e.g. The speaker line-up for this event is already complete.'
+                  : 'e.g. The proof of residency is unreadable — please upload a clearer scan of your barangay certificate.'
+            }
             aria-invalid={touched && missing}
             aria-describedby="rejection-reason-hint"
             className="mt-2 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--cares-primary)] focus:ring-1 focus:ring-[var(--cares-primary)] focus:outline-none aria-[invalid=true]:border-red-400"

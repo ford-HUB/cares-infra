@@ -21,7 +21,16 @@ class RegisterOcrRawParser {
         .where((line) => line.isNotEmpty)
         .toList();
 
-    final name = _extractName(lines);
+    // The cardholder's name is only printed on the front. The back carries the
+    // emergency contact's NAME and the president's signature line, so it is
+    // never consulted.
+    final name = _extractName(
+      frontText
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList(),
+    );
     return (
       firstname: name.$1,
       lastname: name.$3,
@@ -88,17 +97,16 @@ class RegisterOcrRawParser {
       }
     }
 
+    // An unlabelled line printed like a name: upper case, first and last
+    // words of 2+ letters, initials or words between ("JAY S. ICOY").
     for (final line in lines) {
-      final person = RegExp(
-        r'^([A-Za-z]{2,}(?:\s+[A-Za-z]{1,}(?:\.\s*|\s+))*'
-        r'[A-Za-z]{2,}(?:\s+[A-Za-z]\.?)?\s+[A-Za-z]{2,})\s*$',
-        caseSensitive: false,
-      ).firstMatch(_stripLeadingJunk(line));
-      if (person != null) {
-        final candidate = _cleanName(person.group(1) ?? '');
-        if (candidate.isNotEmpty && _looksLikePersonName(candidate)) {
-          return _splitName(candidate);
-        }
+      final candidate = _cleanName(line);
+      if (RegExp(
+            r'^[A-Z]{2,}(?:\s+(?:[A-Z]\.?|[A-Z]{2,}))*\s+[A-Z]{2,}$',
+          ).hasMatch(candidate) &&
+          candidate.replaceAll(RegExp('[^A-Z]'), '').length >= 6 &&
+          _looksLikePersonName(candidate)) {
+        return _splitName(candidate);
       }
     }
 
@@ -125,7 +133,7 @@ class RegisterOcrRawParser {
 
   static String _cleanName(String value) {
     var cleaned = value.replaceAll(RegExp(r'\s+'), ' ').trim();
-    cleaned = _stripLeadingJunk(cleaned);
+    cleaned = _stripLeadingJunk(cleaned).replaceFirst(RegExp(r'^[_\-—–\s]+'), '');
     cleaned = cleaned
         .split(
           RegExp(
@@ -134,14 +142,41 @@ class RegisterOcrRawParser {
           ),
         )
         .first;
-    return cleaned.replaceAll(RegExp(r'[ .*]+$'), '').trim();
+    // OCR often glues a middle initial to its neighbours: "JAYS.ICOY", "JAY S.ICOY".
+    cleaned = cleaned
+        .replaceAllMapped(
+          RegExp(r'\b([A-Za-z]{2,})([A-Za-z])\.(?=[A-Za-z]{2,})'),
+          (m) => '${m[1]} ${m[2]}. ',
+        )
+        .replaceAllMapped(
+          RegExp(r'\b([A-Za-z])\.(?=[A-Za-z]{2,})'),
+          (m) => '${m[1]}. ',
+        );
+    return cleaned.replaceAll(RegExp(r"[\s.,;:*|_'\-—–]+$"), '').trim();
   }
 
   static bool _looksLikePersonName(String text) {
     final tokens = text.split(' ');
     if (tokens.length < 2 || tokens.length > 5) return false;
     if (RegExp(
-      r'\b(UNIVERSITY|COLLEGE|STUDENT|EMERGENCY|NON-TRANSFERABLE|NOTIFY|SIGNATURE)\b',
+      r'\b(UNIVERSITY|COLLEGE|STUDENT|EMERGENCY|NON-TRANSFERABLE|NOTIFY|SIGNATURE|'
+      r'CEBU|MANDAUE|LAPU|PHILIPPINES|PRESIDENT|ATTY)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      return false;
+    }
+    // OCR splits labels too: "SIG NATURE".
+    final letters = text.replaceAll(RegExp('[^A-Za-z]'), '').toUpperCase();
+    if (letters.contains('SIGNATURE') || letters.contains('IDNO')) {
+      return false;
+    }
+    // The coloured course strip on the front ("INFORMATION TECHNOLOGY") is
+    // shaped like a two-word name but is never one.
+    if (RegExp(
+      r'\b(INFORMATION|TECHNOLOGY|COMPUTER|SCIENCE|ENGINEERING|EDUCATION|'
+      r'SECONDARY|ELEMENTARY|NURSING|CRIMINOLOGY|ACCOUNTANCY|ACCOUNTING|'
+      r'BUSINESS|ADMINISTRATION|MANAGEMENT|HOSPITALITY|TOURISM|MARINE|'
+      r'MARITIME|TRANSPORTATION|CUSTOMS|SENIOR|JUNIOR|HIGH|SCHOOL)\b',
       caseSensitive: false,
     ).hasMatch(text)) {
       return false;

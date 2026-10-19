@@ -8,7 +8,8 @@ enum EvaluationQuestionType {
   dropdown('dropdown'),
   linearScale('linear_scale'),
   starRating('star_rating'),
-  date('date');
+  date('date'),
+  imageUpload('image_upload');
 
   const EvaluationQuestionType(this.wire);
 
@@ -33,6 +34,7 @@ class EvaluationQuestion {
     required this.scaleMax,
     required this.scaleMinLabel,
     required this.scaleMaxLabel,
+    required this.maxFiles,
   });
 
   factory EvaluationQuestion.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class EvaluationQuestion {
       scaleMax: json['scale_max'] as int? ?? 5,
       scaleMinLabel: json['scale_min_label'] as String? ?? '',
       scaleMaxLabel: json['scale_max_label'] as String? ?? '',
+      maxFiles: json['max_files'] as int? ?? 1,
     );
   }
 
@@ -64,6 +67,9 @@ class EvaluationQuestion {
   final int scaleMax;
   final String scaleMinLabel;
   final String scaleMaxLabel;
+
+  /// Image upload only: how many photos the volunteer may attach.
+  final int maxFiles;
 }
 
 /// The questionnaire volunteers answer after one event. The director assigns a

@@ -1,6 +1,7 @@
 import {
   AuthRepository,
   registrationConflict,
+  type BeneficiaryRegistrationRequestInput,
 } from '../repositories/auth-repository';
 import {
   CreateUserDto,
@@ -10,6 +11,8 @@ import {
   ForgotPasswordResponseDto,
   LoginResponseDto,
   RegisterFromSessionDto,
+  RegisterUserResponseDto,
+  RegistrationDocumentResponseDto,
   SendVerificationDto,
   ResetPasswordDto,
   ResetPasswordResponseDto,
@@ -51,6 +54,8 @@ import { AuditLogRecorder } from 'src/modules/audit-logs/services/audit-log-reco
 import { AccessControlSiteService } from 'src/modules/access-control/services/access-control-site-service';
 import { isStaffVolunteerRole } from 'src/shared/constants/mobile-role-types';
 import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
+import { REGISTRATION_DOCUMENT_MAX_BYTES } from '../validators/auth-mobile-validator';
+import { BeneficiaryApprovalGate } from './beneficiary-approval-gate';
 
 /** Wrong codes tolerated before the reset code is thrown away. */
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
@@ -74,6 +79,7 @@ export class AuthMobileService {
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
     private readonly auditLogRecorder: AuditLogRecorder,
     private readonly accessControlSiteService: AccessControlSiteService,
+    private readonly beneficiaryApprovalGate: BeneficiaryApprovalGate,
   ) {}
 
   /**
@@ -81,28 +87,42 @@ export class AuthMobileService {
    * needs the same email OTP as `registerFromSession` — without it the endpoint would
    * mint accounts for addresses nobody proved.
    */
-  async registerUser(data: CreateUserDto) {
+  async registerUser(data: CreateUserDto): Promise<RegisterUserResponseDto> {
+    // A beneficiary account waits for a director's approval, which only the
+    // session flow files — this door would skip the review entirely.
+    if (data.role_type === RoleType.BENEFICIARY) {
+      throw new BadRequestException(
+        'Beneficiaries register through the app sign-up, which a director reviews',
+      );
+    }
+
     const normalizedEmail = data.account.email.trim().toLowerCase();
     await this.requireVerifiedEmail(normalizedEmail);
 
     const user = await this.createAccount(data);
     await this.clearOtpState(normalizedEmail);
-    return user;
+    return { ...user, requires_approval: false };
   }
 
-  private async createAccount(data: CreateUserDto) {
+  private async createAccount(
+    data: CreateUserDto,
+    registrationRequest?: BeneficiaryRegistrationRequestInput,
+  ) {
     await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(
       data.account.password,
     );
 
     const hashedPassword = await bcrypt.hash(data.account.password, 10);
-    return this.authRepository.createUser({
-      ...data,
-      account: {
-        ...data.account,
-        password: hashedPassword,
+    return this.authRepository.createUser(
+      {
+        ...data,
+        account: {
+          ...data.account,
+          password: hashedPassword,
+        },
       },
-    });
+      registrationRequest,
+    );
   }
 
   async login(
@@ -242,6 +262,13 @@ export class AuthMobileService {
       await this.authRepository.markEmailVerified(email);
       await this.clearOtpState(email);
     }
+
+    // A self-registered beneficiary stays shut out until a director accepts the
+    // sign-up; the app turns this 403 into its "under review" screen.
+    await this.beneficiaryApprovalGate.assertApproved(
+      account.user.user_id,
+      attempt,
+    );
 
     if (ipAddress) {
       await this.authRepository.recordLoginIp(account.user.user_id, ipAddress);
@@ -416,11 +443,61 @@ export class AuthMobileService {
       faceSimilarity: null,
       selfieEmbedding: null,
       ocrData: null,
+      supportingDocument: null,
       step: 'session_started',
       createdAt: Date.now(),
     });
 
     return { registrationId, step: 'session_started' };
+  }
+
+  /**
+   * Stores the supporting document a beneficiary attaches to their sign-up. Any file
+   * type is accepted — the director opens it while reviewing the registration. A
+   * second upload replaces the first, so the form can swap the file before submitting.
+   */
+  async uploadRegistrationDocument(
+    registrationId: string,
+    file: Express.Multer.File,
+  ): Promise<RegistrationDocumentResponseDto> {
+    const session = await this.requireSession(registrationId);
+    if (session.roleType !== RoleType.BENEFICIARY || session.idFrontImageUrl) {
+      throw new BadRequestException(
+        'Supporting documents are only attached to beneficiary registrations',
+      );
+    }
+    if (!file.buffer?.length) {
+      throw new BadRequestException('The attached file is empty');
+    }
+    if (file.size > REGISTRATION_DOCUMENT_MAX_BYTES) {
+      const limitMb = REGISTRATION_DOCUMENT_MAX_BYTES / (1024 * 1024);
+      throw new BadRequestException(
+        `The supporting document must be ${limitMb} MB or smaller`,
+      );
+    }
+
+    const mime = file.mimetype || 'application/octet-stream';
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const url = await this.s3Service.uploadToS3(
+      `${registrationId}/supporting-${Date.now()}-${safeName}`,
+      file.buffer,
+      mime,
+    );
+
+    await this.saveSession(registrationId, {
+      ...session,
+      supportingDocument: {
+        url,
+        name: file.originalname,
+        mime,
+        sizeBytes: file.size,
+      },
+    });
+
+    return {
+      registrationId,
+      document: { name: file.originalname, mime, size_bytes: file.size },
+    };
   }
 
   async verifyFace(
@@ -570,7 +647,7 @@ export class AuthMobileService {
   async registerFromSession(
     data: RegisterFromSessionDto,
     context: RequestContextDto = {},
-  ) {
+  ): Promise<RegisterUserResponseDto> {
     const session = await this.requireSession(data.registrationId);
 
     await this.requireVerifiedEmail(data.account.email);
@@ -585,6 +662,15 @@ export class AuthMobileService {
     ) {
       throw new BadRequestException(
         'This registration session requires an uploaded ID',
+      );
+    }
+
+    // The supporting document is what the director reviews before the account
+    // opens, so a beneficiary sign-up cannot be filed without one.
+    const supportingDocument = session.supportingDocument ?? null;
+    if (isIdLess && !supportingDocument) {
+      throw new BadRequestException(
+        'Attach a supporting document before submitting your registration',
       );
     }
 
@@ -633,20 +719,33 @@ export class AuthMobileService {
       idNumber: data.school_info.id_number,
     });
 
-    const user = await this.createAccount({
-      firstname: data.firstname,
-      lastname: data.lastname,
-      middle_name: data.middle_name,
-      role_type: data.role_type,
-      gender: data.gender,
-      age: data.age,
-      current_address: data.current_address,
-      phone_number: data.phone_number,
-      avatar: data.avatar,
-      account: data.account,
-      school_info: { ...data.school_info, school_id_url: schoolIdUrl },
-      biometric,
-    });
+    const fullName = `${data.firstname} ${data.lastname}`.trim();
+    const user = await this.createAccount(
+      {
+        firstname: data.firstname,
+        lastname: data.lastname,
+        middle_name: data.middle_name,
+        role_type: data.role_type,
+        gender: data.gender,
+        age: data.age,
+        current_address: data.current_address,
+        phone_number: data.phone_number,
+        avatar: data.avatar,
+        account: data.account,
+        school_info: { ...data.school_info, school_id_url: schoolIdUrl },
+        biometric,
+      },
+      // Filed in the same transaction as the account, so it can never sign in
+      // without a review on record.
+      supportingDocument
+        ? {
+            summary:
+              'Registered a beneficiary account and is waiting for approval to sign in.',
+            actorName: fullName || 'Registrant',
+            document: supportingDocument,
+          }
+        : undefined,
+    );
 
     const normalizedEmail = data.account.email.trim().toLowerCase();
     await this.clearOtpState(normalizedEmail);
@@ -655,7 +754,7 @@ export class AuthMobileService {
     await this.auditLogRecorder.record({
       action: 'auth.mobile.registered',
       description: isIdLess
-        ? 'Account created with email verification'
+        ? 'Account created with email verification; awaiting director approval'
         : 'Account created with ID upload and face verification',
       category: 'AUTHENTICATION',
       actor: {
@@ -672,7 +771,7 @@ export class AuthMobileService {
       metadata: { role: data.role_type },
     });
 
-    return user;
+    return { ...user, requires_approval: isIdLess };
   }
 
   async getRegistrationSession(

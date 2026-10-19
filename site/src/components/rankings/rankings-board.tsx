@@ -1,3 +1,5 @@
+import { FileText } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DEPARTMENT_RANKING_BASES,
   RANKING_PERIODS,
@@ -12,6 +14,7 @@ import type {
   RankingTrend,
   RankingView,
 } from '../../types/ranking'
+import { exportRankingsPdf } from '../../utils/export-rankings-pdf'
 import { rankingDashboard } from '../../utils/ranking-dashboard'
 import { RankingList, type RankingListProps } from './ranking-list'
 import { RankingsDashboard } from './rankings-dashboard'
@@ -70,6 +73,25 @@ export function RankingsBoard({
   // The list carries the basis in its own toolbar; the dashboard needs it up here
   // so the podium can be re-ordered without leaving the tab.
   const showBasis = board === 'department' && view === 'dashboard'
+
+  // Exports the active board as the Ranking List would show it — same search and
+  // filter — whichever tab is open.
+  const exportPdf = () =>
+    exportRankingsPdf({
+      board,
+      period,
+      settings,
+      scopeDepartment: dashboard.scopeDepartment,
+      volunteers: list.volunteers,
+      donors: list.donors,
+      departments: list.departments,
+      totals: list.totals,
+      search: list.search,
+      volunteerDepartment: list.volunteerDepartment,
+      donorKind: list.donorKind,
+      departmentBasis: list.departmentBasis,
+      departmentUnattributed: dashboard.departmentUnattributed,
+    })
 
   return (
     <>
@@ -162,6 +184,16 @@ export function RankingsBoard({
               </option>
             ))}
           </select>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={exportPdf}
+            disabled={loading}
+            className="h-9 text-[13px]"
+          >
+            <FileText />
+            Export PDF
+          </Button>
         </div>
       </div>
 

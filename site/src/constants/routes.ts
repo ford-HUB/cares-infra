@@ -1,3 +1,8 @@
+export const HOME_PATH = '/'
+export const ABOUT_PATH = '/about'
+export const PROGRAMS_PATH = '/programs'
+export const HIGHLIGHTS_PATH = '/highlights'
+export const STAFF_PORTAL_PATH = '/staff-portal'
 export const LOGIN_PATH = '/login'
 export const REQUEST_ACCESS_PATH = '/request-access'
 export const ADMIN_BASE_PATH = '/admin'

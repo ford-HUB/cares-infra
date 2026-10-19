@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/event_evaluation_models.dart';
 
@@ -36,14 +39,32 @@ class EventEvaluationService {
   /// Sends the answers keyed by question id. The server rejects a second
   /// submission for the same event, so callers check [EventEvaluation.canSubmit]
   /// first.
+  ///
+  /// [images] holds the picked photo paths per image-upload question. When
+  /// there are any, the request goes multipart: `answers` as a JSON string and
+  /// each photo under `image_<questionId>`; the server stores them and fills
+  /// those answers itself.
   Future<EvaluationSubmission> submit(
     int eventId,
-    Map<String, dynamic> answers,
-  ) async {
-    final response = await _api.postJson(
-      '/evaluation/events/$eventId/responses',
-      body: {'answers': answers},
-    );
+    Map<String, dynamic> answers, {
+    Map<String, List<String>> images = const {},
+  }) async {
+    final path = '/evaluation/events/$eventId/responses';
+    final hasImages = images.values.any((paths) => paths.isNotEmpty);
+    final response = hasImages
+        ? await _api.postMultipart(
+            path,
+            fields: {'answers': jsonEncode(answers)},
+            files: [
+              for (final entry in images.entries)
+                for (final filePath in entry.value)
+                  await http.MultipartFile.fromPath(
+                    'image_${entry.key}',
+                    filePath,
+                  ),
+            ],
+          )
+        : await _api.postJson(path, body: {'answers': answers});
     final data = response['data'] as Map<String, dynamic>;
     return EvaluationSubmission.fromJson(
       data['submission'] as Map<String, dynamic>,

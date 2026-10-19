@@ -188,6 +188,16 @@ export async function unrestrictManagedUser(id: string): Promise<MutationResult>
   }
 }
 
+/** Permanent — the server removes the account and everything tied to it. */
+export async function deleteManagedUser(id: string): Promise<MutationResult> {
+  try {
+    await apiClient.delete(`/api/v1/users/${id}`)
+    return { success: true, message: 'User deleted' }
+  } catch (error) {
+    return { success: false, message: parseApiError(error) }
+  }
+}
+
 export async function blockManagedUserIp(
   id: string,
   payload: { ipAddress?: string; reason?: string },

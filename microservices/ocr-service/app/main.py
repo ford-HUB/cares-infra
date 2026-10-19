@@ -114,9 +114,12 @@ async def extract(
     back_bytes = await read_upload(back)
 
     try:
-        front_text = ocr_engine.extract_text(front_bytes)
+        front = ocr_engine.extract_front(front_bytes)
+        front_text = front.text
         back_text = ocr_engine.extract_text(back_bytes)
-        parsed = ocr_engine.parse_id_text(front_text, back_text)
+        parsed = ocr_engine.parse_id_text(
+            front_text, back_text, front.course_band, front.id_number
+        )
     except ValueError as exc:
         raise failure(str(exc), 422) from exc
 

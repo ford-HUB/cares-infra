@@ -26,10 +26,10 @@ import {
 
 const RequestIdParamSchema = z.uuid('A valid request id is required');
 
-/** The queue lives under Users → Request in the portal, so it follows that page's gate. */
+/** The queue lives under Users → Request in the portal, gated on its own right. */
 @Controller('v1/user-requests')
 @Roles(...PORTAL_ROLE_TYPES)
-@RequirePermission(PermissionKey.USERS_VIEW)
+@RequirePermission(PermissionKey.USERS_REQUEST)
 export class UserRequestsSiteController {
   constructor(
     private readonly userRequestsSiteService: UserRequestsSiteService,

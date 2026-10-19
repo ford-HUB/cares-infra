@@ -5,6 +5,7 @@ import {
   DonorRankingEntrySchema,
   DonorRankingsResponseSchema,
   GoodsTypeValuesSchema,
+  ParticipationRolePointsSchema,
   RankingPeriodSchema,
   RankingSettingsResponseSchema,
   RankingTierSchema,
@@ -32,6 +33,9 @@ export type RankingTrendResponseDto = z.infer<
   typeof RankingTrendResponseSchema
 >;
 export type GoodsTypeValuesDto = z.infer<typeof GoodsTypeValuesSchema>;
+export type ParticipationRolePointsDto = z.infer<
+  typeof ParticipationRolePointsSchema
+>;
 export type DonorRankingEntryDto = z.infer<typeof DonorRankingEntrySchema>;
 export type DonorRankingsResponseDto = z.infer<
   typeof DonorRankingsResponseSchema

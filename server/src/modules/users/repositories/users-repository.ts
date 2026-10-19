@@ -286,6 +286,41 @@ export class UsersRepository {
       select: { account_id: true },
     });
   }
+
+  /**
+   * Removes the user row and everything hanging off it. Most relations cascade or
+   * null out in the schema; the few that would block the delete (the sign-in account,
+   * school record, verifications and their face scans, certificate signatory lines)
+   * are cleared first, all in one transaction so a failure leaves nothing half-gone.
+   */
+  async deleteUser(userId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const verifications = await tx.userVerification.findMany({
+        where: { user_id: userId },
+        select: { user_biometric_id: true },
+      });
+      const biometricIds = verifications
+        .map((verification) => verification.user_biometric_id)
+        .filter((id): id is string => id !== null);
+
+      await tx.userVerification.deleteMany({ where: { user_id: userId } });
+      if (biometricIds.length > 0) {
+        await tx.userBiometric.deleteMany({
+          where: { user_biometric_id: { in: biometricIds } },
+        });
+      }
+      await tx.userSchoolInfo.deleteMany({ where: { user_id: userId } });
+      await tx.certificateTemplateSignatory.deleteMany({
+        where: { coordinator_user_id: userId },
+      });
+      await tx.account.deleteMany({ where: { user_id: userId } });
+
+      return tx.user.delete({
+        where: { user_id: userId },
+        select: { user_id: true },
+      });
+    });
+  }
 }
 
 function buildWhere(filter: ListUsersFilter): Prisma.UserWhereInput {

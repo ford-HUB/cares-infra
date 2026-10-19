@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, HttpCode, Post } from '@nestjs/common';
-import { ZParam, ZQuery, ZSerialize } from 'nest-zod';
+import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
@@ -7,17 +7,21 @@ import type { JwtPayload } from 'src/shared/types/jwt-payload';
 import { MOBILE_SIGN_IN_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 import type {
   DonationEventsResponseDto,
+  EventParticipantsResponseDto,
   EventRegistrationResponseDto,
   RecommendedEventsQueryDto,
   RecommendedEventsResponseDto,
+  RegisterForEventBodyDto,
   RegisteredEventsResponseDto,
 } from '../dto/events-mobile-dto';
 import { EventsMobileService } from '../services/events-mobile-service';
 import {
   DonationEventsResponseSchema,
+  EventParticipantsResponseSchema,
   EventRegistrationResponseSchema,
   RecommendedEventsQuerySchema,
   RecommendedEventsResponseSchema,
+  RegisterForEventBodySchema,
   RegisteredEventsResponseSchema,
 } from '../validators/events-mobile-validator';
 import { EventIdParamSchema } from '../validators/events-site-validator';
@@ -78,6 +82,17 @@ export class EventsMobileController {
     return this.eventsMobileService.listRegistered(user.sub);
   }
 
+  @Get(':id/participants')
+  @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
+  @ResponseMessage('Event participants')
+  @ZSerialize(EventParticipantsResponseSchema)
+  async listParticipants(
+    @CurrentUser() user: JwtPayload,
+    @ZParam('id', EventIdParamSchema) id: number,
+  ): Promise<EventParticipantsResponseDto> {
+    return this.eventsMobileService.listParticipants(user.sub, id);
+  }
+
   @Post(':id/register')
   @HttpCode(200)
   @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
@@ -86,8 +101,13 @@ export class EventsMobileController {
   async register(
     @CurrentUser() user: JwtPayload,
     @ZParam('id', EventIdParamSchema) id: number,
+    @ZBody(RegisterForEventBodySchema) body: RegisterForEventBodyDto,
   ): Promise<EventRegistrationResponseDto> {
-    return this.eventsMobileService.register(user.sub, id);
+    return this.eventsMobileService.register(
+      user.sub,
+      id,
+      body.participation_role,
+    );
   }
 
   @Delete(':id/register')

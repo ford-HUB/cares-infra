@@ -1,13 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import {
+  EventParticipationRole,
+  EventRoleApproval,
   EventStatus,
   Prisma,
+  UserRequestKind,
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 import { PersistEventDto } from '../dto/events-site-dto';
 
 /** Thrown inside the register transaction to roll it back when no slot is left. */
 class EventFullError extends Error {}
+
+/** `ORGANIZER` → `Organizer`, as the volunteer and the reviewer read it. */
+export function participationRoleLabel(role: EventParticipationRole): string {
+  return role.charAt(0) + role.slice(1).toLowerCase();
+}
 
 @Injectable()
 export class EventsRepository {
@@ -34,7 +42,12 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true, status: true },
+          select: {
+            event_attendance_id: true,
+            status: true,
+            participation_role: true,
+            role_approval: true,
+          },
         },
       },
       orderBy: { event_started: 'asc' },
@@ -57,7 +70,12 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true, status: true },
+          select: {
+            event_attendance_id: true,
+            status: true,
+            participation_role: true,
+            role_approval: true,
+          },
         },
       },
       orderBy: { event_started: 'asc' },
@@ -80,7 +98,12 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true, status: true },
+          select: {
+            event_attendance_id: true,
+            status: true,
+            participation_role: true,
+            role_approval: true,
+          },
         },
       },
       orderBy: { event_started: 'asc' },
@@ -105,7 +128,12 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true, status: true },
+          select: {
+            event_attendance_id: true,
+            status: true,
+            participation_role: true,
+            role_approval: true,
+          },
         },
       },
       orderBy: { event_started: 'desc' },
@@ -146,10 +174,30 @@ export class EventsRepository {
         _count: { select: { attendances: true } },
         attendances: {
           where: { user_id: userId },
-          select: { event_attendance_id: true, status: true },
+          select: {
+            event_attendance_id: true,
+            status: true,
+            participation_role: true,
+            role_approval: true,
+          },
         },
       },
       orderBy: { event_started: 'desc' },
+    });
+  }
+
+  /** Everyone holding a slot on the event, earliest registration first. */
+  async findParticipants(eventId: number) {
+    return this.prisma.eventAttendance.findMany({
+      where: { event_id: eventId },
+      select: {
+        user_id: true,
+        status: true,
+        participation_role: true,
+        role_approval: true,
+        user: { select: { firstname: true, lastname: true } },
+      },
+      orderBy: { registered_at: 'asc' },
     });
   }
 
@@ -159,33 +207,76 @@ export class EventsRepository {
    * racing for the last slot cannot both get it; the caller retries on a
    * serialization failure. Returns null when the event is full (nothing is
    * written) and the fresh counts otherwise. Already registered is a no-op that
-   * still returns the counts.
+   * still returns the counts and the role already on the row.
+   *
+   * A role other than REGULAR is held PENDING and filed as an EVENT_ROLE user
+   * request in the same transaction, so the registration and its review either
+   * both land or neither does. No proof is attached — the reviewer decides on
+   * what they know of the volunteer.
    */
-  async register(eventId: number, userId: string) {
+  async register(
+    eventId: number,
+    userId: string,
+    role: EventParticipationRole,
+  ) {
     return this.prisma
       .$transaction(
         async (tx) => {
           const existing = await tx.eventAttendance.findUnique({
             where: { event_id_user_id: { event_id: eventId, user_id: userId } },
-            select: { event_attendance_id: true },
+            select: { participation_role: true, role_approval: true },
           });
-          if (!existing) {
-            await tx.eventAttendance.create({
-              data: { event_id: eventId, user_id: userId },
-            });
-          }
+          const needsApproval = role !== EventParticipationRole.REGULAR;
+          const attendance =
+            existing ??
+            (await tx.eventAttendance.create({
+              data: {
+                event_id: eventId,
+                user_id: userId,
+                participation_role: role,
+                role_approval: needsApproval
+                  ? EventRoleApproval.PENDING
+                  : EventRoleApproval.APPROVED,
+              },
+              select: { participation_role: true, role_approval: true },
+            }));
 
           const participants = await tx.eventAttendance.count({
             where: { event_id: eventId },
           });
           const event = await tx.event.findUniqueOrThrow({
             where: { event_id: eventId },
-            select: { max_participants: true },
+            select: { max_participants: true, title: true },
           });
           if (!existing && participants > event.max_participants) {
             // Roll the insert back: the transaction is discarded on a throw, so
             // the sentinel is turned into a null return below.
             throw new EventFullError();
+          }
+
+          if (!existing && needsApproval) {
+            const user = await tx.user.findUniqueOrThrow({
+              where: { user_id: userId },
+              select: { firstname: true, lastname: true },
+            });
+            const roleLabel = participationRoleLabel(role);
+            await tx.userRequest.create({
+              data: {
+                kind: UserRequestKind.EVENT_ROLE,
+                user_id: userId,
+                event_id: eventId,
+                participation_role: role,
+                summary: `Requests to serve as ${roleLabel} for ${event.title}.`,
+                trail: {
+                  create: {
+                    label: `Registered for the event as ${roleLabel} — pending approval`,
+                    actor_name:
+                      `${user.firstname} ${user.lastname}`.trim() ||
+                      'Volunteer',
+                  },
+                },
+              },
+            });
           }
 
           await tx.event.update({
@@ -195,6 +286,8 @@ export class EventsRepository {
           return {
             participants,
             max_participants: event.max_participants,
+            participation_role: attendance.participation_role,
+            role_approval: attendance.role_approval,
             /** False when the volunteer already held a slot (idempotent call). */
             created: !existing,
           };
@@ -207,13 +300,48 @@ export class EventsRepository {
       });
   }
 
-  /** Drops the volunteer's attendance row and recounts `participants`. */
+  /**
+   * Drops the volunteer's attendance row and recounts `participants`. A role
+   * request still awaiting review is withdrawn with it — there is no longer a
+   * registration for the reviewer to approve.
+   */
   async unregister(eventId: number, userId: string) {
     return this.prisma.$transaction(
       async (tx) => {
         const removed = await tx.eventAttendance.deleteMany({
           where: { event_id: eventId, user_id: userId },
         });
+        if (removed.count > 0) {
+          const pending = await tx.userRequest.findMany({
+            where: {
+              user_id: userId,
+              event_id: eventId,
+              kind: UserRequestKind.EVENT_ROLE,
+              status: 'PENDING',
+            },
+            select: {
+              user_request_id: true,
+              user: { select: { firstname: true, lastname: true } },
+            },
+          });
+          for (const request of pending) {
+            await tx.userRequest.update({
+              where: { user_request_id: request.user_request_id },
+              data: {
+                status: 'DELETED',
+                trail: {
+                  create: {
+                    label:
+                      'Withdrawn — the volunteer cancelled their registration',
+                    actor_name:
+                      `${request.user.firstname} ${request.user.lastname}`.trim() ||
+                      'Volunteer',
+                  },
+                },
+              },
+            });
+          }
+        }
         const participants = await tx.eventAttendance.count({
           where: { event_id: eventId },
         });

@@ -29,6 +29,8 @@ import {
   LoginSchema,
   RegisterFromSessionSchema,
   RegisterUserResponseSchema,
+  REGISTRATION_DOCUMENT_MAX_BYTES,
+  RegistrationDocumentResponseSchema,
   RegistrationIdSchema,
   SendVerificationResponseSchema,
   SendVerificationSchema,
@@ -53,6 +55,7 @@ import type {
   LoginResponseDto,
   RegisterFromSessionDto,
   RegisterUserResponseDto,
+  RegistrationDocumentResponseDto,
   RegistrationIdDto,
   SendVerificationDto,
   SendVerificationResponseDto,
@@ -170,6 +173,41 @@ export class AuthMobileController {
     return await this.authMobileService.verifyFace(
       registrationResult.data.registrationId,
       selfie,
+    );
+  }
+
+  /**
+   * The supporting document on a beneficiary sign-up. Multipart: `registrationId`
+   * beside a `document` file of any type; it rides on the registration session until
+   * `register-from-session` files it with the director's review request.
+   */
+  @Post('registration-document')
+  @Public()
+  @ResponseMessage('Document attached')
+  @ZSerialize(RegistrationDocumentResponseSchema)
+  @UseInterceptors(
+    FileInterceptor('document', {
+      limits: { fileSize: REGISTRATION_DOCUMENT_MAX_BYTES },
+    }),
+  )
+  async uploadRegistrationDocument(
+    @Body('registrationId') registrationId: string,
+    @UploadedFile() document: Express.Multer.File,
+  ): Promise<RegistrationDocumentResponseDto> {
+    const registrationResult = RegistrationIdSchema.safeParse({
+      registrationId,
+    });
+    if (!registrationResult.success) {
+      throw new BadRequestException('Valid registrationId is required');
+    }
+
+    if (!document) {
+      throw new BadRequestException('Attach a supporting document');
+    }
+
+    return await this.authMobileService.uploadRegistrationDocument(
+      registrationResult.data.registrationId,
+      document,
     );
   }
 
