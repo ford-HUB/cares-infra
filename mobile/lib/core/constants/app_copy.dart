@@ -95,39 +95,39 @@ abstract final class AppCopy {
   /// assets/images/leadings/, ordered from first light to the Christmas team.
   static const List<LeadingSlideCopy> leadingSlides = [
     LeadingSlideCopy(
-      kicker: 'Meet CARES',
-      title: 'It starts before sunrise.',
+      kicker: 'Meet UCLM CARES',
+      title: 'Hope begins with service.',
       body:
-          '$fullName — the University of Cebu\'s community extension program, '
-          'where students, faculty, and staff show up for the people around them.',
+          'UCLM CARES brings students, faculty, staff, alumni, and communities together '
+          'through meaningful extension programs that address social, economic, and environmental needs.',
     ),
     LeadingSlideCopy(
-      kicker: 'World Clean Up Day · Sept 20, 2025',
-      title: 'Cleaner streets, one bag at a time.',
+      kicker: 'Community Empowerment',
+      title: 'Creating opportunities, changing lives.',
       body:
-          'Volunteers from the College of Business and Accountancy joined the '
-          'worldwide clean-up, clearing roadsides side by side with the community.',
+          'Through education, skills training, community outreach, and partnerships, '
+          'CARES shares knowledge and resources to empower communities and create opportunities for growth.',
     ),
     LeadingSlideCopy(
-      kicker: 'Campus outreach',
-      title: 'Caring starts close to home.',
+      kicker: 'Environmental Stewardship',
+      title: 'A cleaner future starts with us.',
       body:
-          'From refreshment drives to school donations, CARES makes sure the '
-          'people nearest to us are looked after too.',
+          'From cleanup drives to environmental awareness activities, '
+          'CARES brings volunteers and communities together to protect the environment and promote responsible practices.',
     ),
     LeadingSlideCopy(
-      kicker: 'Christmas Gift Giving · Dec 20, 2025',
-      title: 'A Christmas they\'ll remember.',
+      kicker: 'Compassion in Action',
+      title: 'Small acts of kindness. Lasting impact.',
       body:
-          'Children from our partner communities filled the covered court in '
-          'Santa hats and went home with gifts prepared by CARES volunteers.',
+          'Through outreach and community service, CARES encourages compassion, strengthens partnerships, '
+          'and supports the welfare of communities through meaningful acts of service.',
     ),
     LeadingSlideCopy(
-      kicker: 'UCLM CARES',
-      title: 'Now it\'s your turn.',
+      kicker: 'Be part of UCLM CARES',
+      title: 'Give hope. Transform lives.',
       body:
-          'Every activity began with someone who chose to show up. Join events, '
-          'log your hours, and grow with a community that gives back. $slogan',
+          'Be part of a community that creates meaningful change. Join CARES activities, '
+          'work alongside fellow volunteers, and help build stronger, more empowered communities. $slogan',
     ),
   ];
 }

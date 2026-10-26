@@ -5,6 +5,7 @@ import alsFunRun from '../assets/landing_page/photos/als-fun-run.jpg'
 import basicEdTutorial from '../assets/landing_page/photos/basic-ed-tutorial.jpg'
 import computerLiteracy from '../assets/landing_page/photos/computer-literacy.jpg'
 import heroBackground from '../assets/landing_page/photos/hero-background.jpg'
+import caresMembers from '../assets/landing_page/photos/cares-members.jpg'
 import loocReads from '../assets/landing_page/photos/looc-reads.jpg'
 import mangrovePlanting from '../assets/landing_page/photos/mangrove-planting.jpg'
 import tutorialProgram from '../assets/landing_page/photos/tutorial-program.jpg'
@@ -38,6 +39,7 @@ export const LANDING_MOTION = {
 
 /** Photos the hero background crossfades between, under the CARES tint. */
 export const LANDING_HERO_BACKGROUNDS: readonly string[] = [
+  caresMembers,
   heroBackground,
   computerLiteracy,
   basicEdTutorial,
@@ -57,7 +59,7 @@ export const LANDING_NAV_LINKS: readonly { label: string; to: string; end?: bool
 export const LANDING_BULLETIN = {
   // volume: 'Vol. 2, No. 1, 2025',
   // issn: 'ISSN 3082-5504',
-  schoolYear: 'School Year 2024–2025',
+  // schoolYear: 'School Year 2024–2025',
 } as const
 
 export interface LandingHexPhoto {
@@ -117,33 +119,33 @@ export interface LandingImpactStat {
   icon: LucideIcon
 }
 
-export const LANDING_IMPACT: readonly LandingImpactStat[] = [
-  {
-    count: 4,
-    label: 'adopted barangays',
-    source: 'Looc, Opao, Umapad and Paknaan',
-    icon: HeartHandshake,
-  },
-  {
-    count: 123,
-    label: 'blood bags collected',
-    source: 'Bloodletting with VSMMC, March 2025',
-    icon: Droplets,
-  },
-  {
-    count: 500,
-    label: 'books donated',
-    source: 'Lusong Elementary School, July 2024',
-    icon: BookOpen,
-  },
-  {
-    count: 150,
-    suffix: '+',
-    label: 'ALS learners reached',
-    source: 'CTE walkathon & fun run, May 2025',
-    icon: GraduationCap,
-  },
-] as const
+// export const LANDING_IMPACT: readonly LandingImpactStat[] = [
+//   {
+//     count: 4,
+//     label: 'adopted barangays',
+//     source: 'Looc, Opao, Umapad and Paknaan',
+//     icon: HeartHandshake,
+//   },
+//   {
+//     count: 123,
+//     label: 'blood bags collected',
+//     source: 'Bloodletting with VSMMC, March 2025',
+//     icon: Droplets,
+//   },
+//   {
+//     count: 500,
+//     label: 'books donated',
+//     source: 'Lusong Elementary School, July 2024',
+//     icon: BookOpen,
+//   },
+//   {
+//     count: 150,
+//     suffix: '+',
+//     label: 'ALS learners reached',
+//     source: 'CTE walkathon & fun run, May 2025',
+//     icon: GraduationCap,
+//   },
+// ] as const
 
 export const LANDING_VISION =
   'Fosters a visible community extension program that gives hope and transforms lives.'

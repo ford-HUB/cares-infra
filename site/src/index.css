@@ -59,28 +59,6 @@
   }
 }
 
-/* Public site colour trial: blue instead of green. Scoped to the landing layout,
-   so the signed-in portal keeps the green palette. It re-points the CARES tokens
-   and the emerald scale the landing components use; delete this block to go back
-   to green. */
-.cares-landing {
-  --cares-primary: #0f2f5c;
-  --cares-primary-hover: #1d4f91;
-  --cares-bg: #f1f5fb;
-
-  --color-emerald-50: #eff6ff;
-  --color-emerald-100: #dbeafe;
-  --color-emerald-200: #bfdbfe;
-  --color-emerald-300: #93c5fd;
-  --color-emerald-400: #60a5fa;
-  --color-emerald-500: #3b82f6;
-  --color-emerald-600: #2563eb;
-  --color-emerald-700: #1d4ed8;
-  --color-emerald-800: #1e40af;
-  --color-emerald-900: #1e3a8a;
-  --color-emerald-950: #172554;
-}
-
 /* In-page anchor jumps glide on the landing page, unless motion is reduced. */
 @media (prefers-reduced-motion: no-preference) {
   html:has(.cares-landing) {

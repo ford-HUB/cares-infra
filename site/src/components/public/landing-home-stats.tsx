@@ -9,7 +9,7 @@ import {
   LANDING_PERCENT_FORMAT,
   LANDING_RATING_BUCKETS,
   LANDING_RATING_MAX,
-  LANDING_STATS_NOTE,
+  // LANDING_STATS_NOTE,
 } from '../../constants/landing-home'
 import { LandingReveal } from './ui/landing-reveal'
 import { LandingSectionHeading } from './ui/landing-section-heading'
@@ -165,7 +165,7 @@ export function LandingHomeStats() {
         </LandingReveal>
       </div>
 
-      <p className="mt-4 text-[11px] text-gray-400">{LANDING_STATS_NOTE}</p>
+      {/* <p className="mt-4 text-[11px] text-gray-400">{LANDING_STATS_NOTE}</p> */}
     </section>
   )
 }

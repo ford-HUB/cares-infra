@@ -2,7 +2,7 @@ import { Card } from '../ui/card'
 import { useCountUp } from '../../hooks/use-count-up'
 import { useReveal } from '../../hooks/use-reveal'
 import {
-  LANDING_IMPACT,
+  // LANDING_IMPACT,
   LANDING_MOTION,
   type LandingImpactStat,
 } from '../../constants/landing-bulletin'
@@ -44,9 +44,9 @@ export function LandingImpact() {
     <section className="relative z-10 mx-auto -mt-12 w-full max-w-6xl px-5 sm:px-8">
       <div ref={ref}>
         <Card className="grid gap-px bg-gray-100 py-0 shadow-lg shadow-black/5 sm:grid-cols-2 lg:grid-cols-4">
-          {LANDING_IMPACT.map((stat) => (
+          {/* {LANDING_IMPACT.map((stat) => (
             <ImpactCell key={stat.label} stat={stat} start={visible} />
-          ))}
+          ))} */}
         </Card>
       </div>
     </section>
