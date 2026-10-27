@@ -7,7 +7,6 @@ services:
     container_name: local_server
     ports:
       - "9000:9000"
-    # The server's env (Neon DATABASE_URL included) is read from server/.env via the source mount.
     command: pnpm run start:dev
     environment:
       - PORT=9000
