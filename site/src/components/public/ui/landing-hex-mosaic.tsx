@@ -10,6 +10,11 @@ const ROW_STEP_PCT = 30
 const CELL_HEIGHT_PCT = 40
 const CELL_INSET_PCT = 0.8
 
+/* clip-path cuts off a real CSS border, so each cell is an outer hex filled with
+ * the border colour and an inner hex inset by the border width. */
+const CELL_FRAME = 'bg-emerald-200/80 p-[3px]'
+const CELL_INNER_STYLE = { clipPath: HEX_CLIP }
+
 /** Cells pop in one after another, after the hero copy has started. */
 const CELL_ENTER =
   'motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-75 motion-safe:fill-mode-both motion-safe:duration-700'
@@ -29,31 +34,35 @@ function cellStyle(x: number, y: number, order: number) {
 export function LandingHexMosaic() {
   return (
     <div className="relative mx-auto aspect-[3/2.887] w-full max-w-md">
-      <div
-        className={`${CELL_ENTER} absolute flex items-center justify-center bg-white`}
-        style={cellStyle(1, 1, 0)}
-      >
-        <img
-          src="/transparent-logo.png"
-          alt="UCLM CARES seal"
-          className="h-[58%] w-[58%] object-contain motion-safe:animate-landing-float"
-        />
+      <div className={`${CELL_ENTER} ${CELL_FRAME} absolute`} style={cellStyle(1, 1, 0)}>
+        <div
+          className="flex h-full w-full items-center justify-center bg-white"
+          style={CELL_INNER_STYLE}
+        >
+          <img
+            src="/transparent-logo.png"
+            alt="UCLM CARES seal"
+            className="h-[58%] w-[58%] object-contain motion-safe:animate-landing-float"
+          />
+        </div>
       </div>
       {LANDING_HEX_PHOTOS.map((photo, index) => (
         <div
           key={photo.src}
-          className={`${CELL_ENTER} group absolute bg-white/10`}
+          className={`${CELL_ENTER} ${CELL_FRAME} group absolute`}
           style={cellStyle(photo.x, photo.y, index + 1)}
         >
-          <img
-            src={photo.src}
-            alt={photo.alt}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-          />
-          <span
-            aria-hidden
-            className="absolute inset-0 bg-[var(--cares-primary)] opacity-20 transition-opacity duration-500 group-hover:opacity-0"
-          />
+          <div className="relative h-full w-full bg-white/10" style={CELL_INNER_STYLE}>
+            <img
+              src={photo.src}
+              alt={photo.alt}
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            />
+            <span
+              aria-hidden
+              className="absolute inset-0 bg-[var(--cares-primary)] opacity-20 transition-opacity duration-500 group-hover:opacity-0"
+            />
+          </div>
         </div>
       ))}
     </div>

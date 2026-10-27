@@ -4,7 +4,7 @@ import { LOGIN_PATH, REQUEST_ACCESS_PATH } from '../../constants/routes'
 import { LANDING_TRUST_POINTS } from '../../constants/landing'
 import { useRotatingIndex } from '../../hooks/use-rotating-index'
 import {
-  LANDING_BULLETIN,
+  // LANDING_BULLETIN,
   LANDING_HERO_BACKGROUNDS,
   LANDING_MOTION,
   LANDING_SECTION_IDS,
@@ -23,7 +23,7 @@ export function LandingHero() {
   const activePhoto = useRotatingIndex(LANDING_HERO_BACKGROUNDS.length, LANDING_MOTION.heroSlideMs)
 
   return (
-    <section className="relative overflow-hidden bg-[var(--cares-primary)] text-white">
+    <section className="relative overflow-hidden bg-gradient-to-r from-[var(--cares-primary)] to-[var(--cares-primary-hover)] text-white">
       {/* Photos crossfade underneath, tinted CARES green so the copy stays legible:
           solid behind the text on the left, thinning toward the mosaic. */}
       {/* The wrapper fades the photos in from the solid colour on first load; the
@@ -46,11 +46,13 @@ export function LandingHero() {
       </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--cares-primary)] via-[var(--cares-primary)]/90 to-[var(--cares-primary)]/65"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--cares-primary)] via-[var(--cares-primary-hover)]/85 to-[var(--cares-primary-hover)]/0"
       />
+      {/* Bottom fade repeats the horizontal gradient, masked to fade upward, so the
+          edge doesn't flatten into a single colour band. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[var(--cares-primary)] to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-r from-[var(--cares-primary)] to-[var(--cares-primary-hover)] [mask-image:linear-gradient(to_top,black,transparent)]"
       />
       <div
         aria-hidden
@@ -67,7 +69,7 @@ export function LandingHero() {
             className={`${ENTER} flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium tracking-[0.2em] text-white/70 uppercase`}
             style={step(0)}
           >
-            <span>{LANDING_BULLETIN.schoolYear}</span>
+            {/* <span>{LANDING_BULLETIN.schoolYear}</span> */}
             {/* <span aria-hidden className="h-3 w-px bg-white/30" /> */}
             {/* <span>{LANDING_BULLETIN.issn}</span> */}
           </p>

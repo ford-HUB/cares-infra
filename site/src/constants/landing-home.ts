@@ -7,8 +7,8 @@ import { ABOUT_PATH, HIGHLIGHTS_PATH, PROGRAMS_PATH } from './routes'
  *  like the event-evaluation and attendance records the portal already keeps.
  *  Swap them for a public summary endpoint when one exists. */
 
-export const LANDING_STATS_NOTE =
-  'Sample figures for SY 2024–2025 — live values will come from event evaluations and attendance records.'
+// export const LANDING_STATS_NOTE =
+//   'Sample figures for SY 2024–2025 — live values will come from event evaluations and attendance records.'
 
 export interface LandingRatingBucket {
   stars: 1 | 2 | 3 | 4 | 5

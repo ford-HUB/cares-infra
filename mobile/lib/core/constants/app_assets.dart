@@ -23,8 +23,7 @@ abstract final class AppAssets {
       'assets/images/leadings/school-donations.png';
   static const String leadingChristmasGiving =
       'assets/images/leadings/christmas-giving.png';
-  static const String leadingChristmasTeam =
-      'assets/images/leadings/christmas-party-activitiy.png';
+  static const String leadingChristmasTeam = 'assets/images/leadings/cares.png';
 
   static const String mascotWaving = 'assets/images/mascot/waving.png';
   static const String mascotSmile = 'assets/images/mascot/smile.png';
