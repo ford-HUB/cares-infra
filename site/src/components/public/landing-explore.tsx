@@ -1,6 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { LANDING_SERIF } from '../../constants/landing-bulletin'
+import { LANDING_CONTAINER, LANDING_SERIF } from '../../constants/landing-bulletin'
 import { LANDING_EXPLORE_LINKS } from '../../constants/landing-home'
 import { LandingReveal } from './ui/landing-reveal'
 import { LandingSectionHeading } from './ui/landing-section-heading'
@@ -9,7 +9,7 @@ import { LandingSectionHeading } from './ui/landing-section-heading'
 export function LandingExplore() {
   return (
     <section className="border-t border-[var(--cares-border)] bg-white">
-      <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      <div className={`${LANDING_CONTAINER} py-16 sm:py-20`}>
         <LandingReveal>
           <LandingSectionHeading title="Get to know UCLM CARES" />
         </LandingReveal>

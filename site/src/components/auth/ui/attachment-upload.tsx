@@ -1,10 +1,11 @@
-import { FileText, Paperclip, X } from 'lucide-react'
+import { CloudUpload, FileText, Paperclip, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import {
   REQUEST_ACCESS_ACCEPT_ATTR,
   REQUEST_ACCESS_MAX_FILES,
 } from '../../../constants/request-access'
 import { formatFileSize } from '../../../constants/formatting'
+import { RequestFieldLabel } from './request-field-label'
 
 interface AttachmentUploadProps {
   files: File[]
@@ -30,9 +31,7 @@ export function AttachmentUpload({
 
   return (
     <div>
-      <label className="mb-0.5 block text-xs font-medium text-gray-700">
-        Attachments (ID verification)
-      </label>
+      <RequestFieldLabel icon={Paperclip}>Attachments (ID verification)</RequestFieldLabel>
       <p className="mb-1.5 text-[10px] leading-tight text-[var(--cares-muted)]">
         PDF, JPG, PNG, WebP, or DOC/DOCX · max {REQUEST_ACCESS_MAX_FILES} files · 5 MB each · no
         GIF/video/archive
@@ -52,16 +51,14 @@ export function AttachmentUpload({
         }}
         onDragLeave={() => setDragging(false)}
         className={[
-          'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-2 transition-colors',
+          'flex cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 border-dashed px-3 py-4 transition-colors',
           dragging
-            ? 'border-[var(--cares-primary)] bg-[var(--cares-tag-volunteer-bg)]'
-            : 'border-[var(--cares-border)] bg-[var(--cares-bg)] hover:border-[var(--cares-primary)]',
+            ? 'border-[var(--cares-primary)] bg-emerald-100/80'
+            : 'border-emerald-600/35 bg-emerald-50/70 hover:border-emerald-600/70 hover:bg-emerald-50',
         ].join(' ')}
       >
-        <Paperclip className="h-3.5 w-3.5 shrink-0 text-[var(--cares-primary)]" />
-        <span className="text-[11px] text-[var(--cares-muted)]">
-          Click or drag files here
-        </span>
+        <CloudUpload className="h-5 w-5 shrink-0 text-[var(--cares-primary)]" strokeWidth={2} />
+        <span className="text-xs font-semibold text-gray-800">Click or drag files here</span>
         <input
           ref={inputRef}
           type="file"

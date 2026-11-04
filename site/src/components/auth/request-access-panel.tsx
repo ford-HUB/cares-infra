@@ -1,12 +1,19 @@
-import { ArrowLeft, Send } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { LOGIN_PATH } from '../../config/auth-redirect'
+import { FileText, Mail, Send, User } from 'lucide-react'
 import { useRequestAccessForm } from '../../hooks/use-request-access-form'
-import { RegistrationGuidelines } from './registration-guidelines'
 import { AttachmentUpload } from './ui/attachment-upload'
+import { AuthModalHeader } from './ui/auth-modal-header'
+import { cn } from '@/lib/utils'
 import { MessageBodyField } from './ui/message-body-field'
+import { modalReveal } from './ui/modal-reveal'
+import { REQUEST_FIELD_INPUT, RequestFieldLabel } from './ui/request-field-label'
 
-export function RequestAccessPanel() {
+interface RequestAccessPanelProps {
+  /** Switches the modal to sign-in; also runs once a request is sent. */
+  onSignIn: () => void
+}
+
+/** Request-access card body; it sits inside the auth modal over the landing page. */
+export function RequestAccessPanel({ onSignIn }: RequestAccessPanelProps) {
   const {
     form,
     onSubmit,
@@ -16,7 +23,7 @@ export function RequestAccessPanel() {
     addAttachments,
     removeAttachment,
     toEmail,
-  } = useRequestAccessForm()
+  } = useRequestAccessForm(onSignIn)
 
   const {
     register,
@@ -24,112 +31,98 @@ export function RequestAccessPanel() {
   } = form
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[var(--cares-bg)] p-4 sm:p-6">
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[var(--cares-primary)] opacity-10" />
-      <div className="pointer-events-none absolute right-0 bottom-0 h-64 w-64 rounded-full bg-[var(--cares-primary-hover)] opacity-15" />
+    <div className="px-5 py-6">
+      <AuthModalHeader
+        title="Request Administrator Access"
+        description="Please complete the form to submit your request for administrator review."
+        dividerLabel="Access request"
+      />
 
-      <Link
-        to={LOGIN_PATH}
-        className="absolute top-4 left-4 z-20 inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap text-[var(--cares-primary)] hover:underline sm:top-6 sm:left-6"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to login
-      </Link>
+      <form onSubmit={onSubmit} className="flex flex-col gap-2.5">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <div {...modalReveal(3)}>
+            <RequestFieldLabel icon={User} htmlFor="to-email">
+              To
+            </RequestFieldLabel>
+            <input
+              id="to-email"
+              type="email"
+              readOnly
+              value={toEmail}
+              className={`${REQUEST_FIELD_INPUT} cursor-not-allowed text-gray-700`}
+            />
+          </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <header className="mb-5 text-center">
-          <img
-            src="/transparent-logo.png"
-            alt="CARES"
-            className="mx-auto mb-3 h-10 w-10 object-contain"
-          />
-          <h1 className="text-lg font-bold text-[var(--cares-heading)]">
-            Request administrator access
-          </h1>
-          <p className="mt-1 text-xs text-[var(--cares-muted)]">
-            Complete the form — your request will be reviewed by an administrator.
-          </p>
-        </header>
-
-        <div className="relative">
-          <main className="rounded-lg border border-[var(--cares-border)] bg-white p-4 shadow-sm">
-            <form onSubmit={onSubmit} className="flex flex-col gap-2.5">
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="to-email" className="mb-0.5 block text-xs font-medium text-gray-700">
-                    To
-                  </label>
-                  <input
-                    id="to-email"
-                    type="email"
-                    readOnly
-                    value={toEmail}
-                    className="w-full cursor-not-allowed rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-600"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="from-email"
-                    className="mb-0.5 block text-xs font-medium text-gray-700"
-                  >
-                    Active email
-                  </label>
-                  <input
-                    id="from-email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@uclm.edu.ph"
-                    className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[var(--cares-primary)] focus:outline-none"
-                    {...register('fromEmail')}
-                  />
-                  {errors.fromEmail && (
-                    <p className="mt-0.5 text-[10px] text-red-600">{errors.fromEmail.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="mb-0.5 block text-xs font-medium text-gray-700">
-                  Subject
-                </label>
-                <input
-                  id="subject"
-                  type="text"
-                  className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-[var(--cares-primary)] focus:outline-none"
-                  {...register('subject')}
-                />
-                {errors.subject && (
-                  <p className="mt-0.5 text-[10px] text-red-600">{errors.subject.message}</p>
-                )}
-              </div>
-
-              <MessageBodyField
-                registration={register('body')}
-                error={errors.body?.message}
-              />
-
-              <AttachmentUpload
-                files={attachments}
-                error={attachmentError}
-                onAdd={addAttachments}
-                onRemove={removeAttachment}
-              />
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex w-full items-center justify-center gap-1.5 rounded-md bg-[var(--cares-primary)] py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--cares-primary-hover)] disabled:opacity-60"
-              >
-                <Send className="h-3.5 w-3.5" />
-                {submitting ? 'Submitting...' : 'Submit access request'}
-              </button>
-            </form>
-          </main>
-
-          <RegistrationGuidelines />
+          <div {...modalReveal(4)}>
+            <RequestFieldLabel icon={Mail} htmlFor="from-email">
+              Active email
+            </RequestFieldLabel>
+            <input
+              id="from-email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@uclm.edu.ph"
+              className={REQUEST_FIELD_INPUT}
+              {...register('fromEmail')}
+            />
+            {errors.fromEmail && (
+              <p className="mt-0.5 text-[10px] text-red-600">{errors.fromEmail.message}</p>
+            )}
+          </div>
         </div>
-      </div>
+
+        <div {...modalReveal(5)}>
+          <RequestFieldLabel icon={FileText} htmlFor="subject">
+            Subject
+          </RequestFieldLabel>
+          <input
+            id="subject"
+            type="text"
+            className={REQUEST_FIELD_INPUT}
+            {...register('subject')}
+          />
+          {errors.subject && (
+            <p className="mt-0.5 text-[10px] text-red-600">{errors.subject.message}</p>
+          )}
+        </div>
+
+        <div {...modalReveal(6)}>
+          <MessageBodyField registration={register('body')} error={errors.body?.message} />
+        </div>
+
+        <div {...modalReveal(7)}>
+          <AttachmentUpload
+            files={attachments}
+            error={attachmentError}
+            onAdd={addAttachments}
+            onRemove={removeAttachment}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          style={modalReveal(8).style}
+          className={cn(modalReveal(8).className, 'mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-gradient-to-b from-green-700 to-[var(--cares-primary)] py-3 text-sm font-bold text-white shadow-[0_10px_22px_-10px_rgba(20,83,45,0.7),inset_0_1px_0_rgba(255,255,255,0.25)] transition-[filter,box-shadow] duration-300 hover:brightness-110 disabled:opacity-60')}
+        >
+          <Send className="h-4 w-4" />
+          {submitting ? 'Submitting...' : 'Submit access request'}
+        </button>
+      </form>
+
+      <p
+        className={cn('mt-4 text-center text-xs text-[var(--cares-muted)]', modalReveal(9).className)}
+        style={modalReveal(9).style}
+      >
+        Already approved?{' '}
+        <button
+          type="button"
+          onClick={onSignIn}
+          className="font-semibold text-[var(--cares-primary)] hover:underline"
+        >
+          Sign in
+        </button>
+      </p>
     </div>
   )
 }

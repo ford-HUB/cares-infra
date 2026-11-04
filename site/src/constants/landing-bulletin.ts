@@ -1,7 +1,18 @@
-import { BookOpen, Droplets, GraduationCap, HeartHandshake, type LucideIcon } from 'lucide-react'
-import { ABOUT_PATH, HIGHLIGHTS_PATH, HOME_PATH, PROGRAMS_PATH, STAFF_PORTAL_PATH } from './routes'
+import {
+  BookOpen,
+  Droplet,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
+import { HOME_PATH } from './routes'
 import alsCulmination from '../assets/landing_page/photos/als-culmination.jpg'
 import alsFunRun from '../assets/landing_page/photos/als-fun-run.jpg'
+import cteCleanUpDrive from '../assets/landing_page/photos/cte-clean-up-drive.jpg'
+import bogoReliefTeam from '../assets/landing_page/photos/bogo-relief-team.jpg'
+import maritimeCaresVdrc from '../assets/landing_page/photos/maritime-cares-vdrc.jpg'
+import caresBannerVdrc from '../assets/landing_page/photos/cares-banner-vdrc.jpg'
+import waterReliefDistribution from '../assets/landing_page/photos/water-relief-distribution.jpg'
+import lnkLeadershipAssembly from '../assets/landing_page/photos/lnk-leadership-assembly.jpg'
 import basicEdTutorial from '../assets/landing_page/photos/basic-ed-tutorial.jpg'
 import computerLiteracy from '../assets/landing_page/photos/computer-literacy.jpg'
 import heroBackground from '../assets/landing_page/photos/hero-background.jpg'
@@ -16,97 +27,177 @@ import tutorialProgram from '../assets/landing_page/photos/tutorial-program.jpg'
 /** Serif display face echoing the bulletin's headings (loaded in index.css). */
 export const LANDING_SERIF = "font-['Libre_Baskerville',_Georgia,_serif]"
 
-/** In-page anchors that remain once the landing site is split into pages. */
+/** Condensed sans for poster-style uppercase headlines. */
+export const LANDING_CONDENSED = "font-['Oswald',_'Arial_Narrow',_sans-serif]"
+
+/** Bold book serif for the section banners, whose last words take a gold italic. */
+export const LANDING_BANNER_SERIF = "font-['Lora',_Georgia,_serif]"
+
+/** Soft, heavy display serif for headings set over a lime brush stroke. */
+export const LANDING_BRUSH_SERIF = "font-['Fraunces',_Georgia,_serif]"
+
+/** Heavy slab serif for section headings with an italic accent word. */
+export const LANDING_SLAB = "font-['Bitter',_Georgia,_serif]"
+
+/** Formal display serif for short, emphasised statements. */
+export const LANDING_DISPLAY_SERIF = "font-['Playfair_Display',_Georgia,_serif]"
+
+/** Hero headline: a heavy geometric sans, with a handwritten accent line beneath. */
+export const LANDING_DISPLAY = "font-['Montserrat',_ui-sans-serif,_sans-serif]"
+export const LANDING_SCRIPT = "font-['Dancing_Script',_cursive]"
+
+/** Shared content width for every landing section: wide, with even edge gaps
+ *  (about 80px each side on a desktop browser) so text lines up with the header. */
+export const LANDING_CONTAINER = 'mx-auto w-full max-w-[96rem] px-5 sm:px-8 lg:px-12 xl:px-20'
+
+/** The pale-green icon chip from the Home page's partners. */
+export const LANDING_MINT_CHIP = 'bg-[#d8f1db] text-[var(--cares-primary)]'
+
+/** In-page anchors. Home through Highlights are the sections of the one-page public site. */
 export const LANDING_SECTION_IDS = {
+  home: 'home',
+  about: 'about',
+  programs: 'programs',
+  highlights: 'highlights',
   homeStats: 'at-a-glance',
-  goals: 'goals',
+  objectives: 'objectives',
   organization: 'organization',
 } as const
+
+export const landingSectionPath = (sectionId: string) => `${HOME_PATH}#${sectionId}`
+
+/** A thin line 30% down the viewport: the section crossing it is the one being read. */
+export const LANDING_ACTIVE_SECTION_ROOT_MARGIN = '-30% 0px -69% 0px'
 
 /** Landing-page motion timings. Every animation also honours prefers-reduced-motion. */
 export const LANDING_MOTION = {
   revealMs: 700,
   staggerMs: 70,
+  /** Org chart: a gentler cascade between its cards on entry. */
+  orgStaggerMs: 80,
+  /** Highlights: the beat between stories as each row fades up. */
+  highlightStaggerMs: 110,
+  /** About cards: the beat between cards on entry, the poster tilt cap and hover lift. */
+  aboutStaggerMs: 120,
+  /** "Watch CARES in Action": wait before the first word bounces in, then the gap between words. */
+  wordBounceStartMs: 150,
+  wordBounceStepMs: 110,
+  /** Letter-by-letter heading reveal: the gap between one letter and the next. */
+  letterStepMs: 50,
+  /** Section banner titles: the gap between white words rising, then the pauses before
+   *  the gold words, the underline, the description, and the shimmer (after the gold). */
+  bannerWordStepMs: 80,
+  bannerAccentGapMs: 150,
+  bannerLineAfterAccentMs: 200,
+  bannerTextAfterAccentMs: 350,
+  bannerShimmerAfterAccentMs: 500,
+  /** Director's scroll: how long it takes to unroll (matching the 900ms in index.css),
+   *  when its contents start fading up, and the beat between them. */
+  unfurlMs: 900,
+  unfurlContentStartMs: 250,
+  unfurlContentStepMs: 90,
+  aboutTiltDeg: 2,
+  aboutLiftPx: 4,
+  /** Core Processes cards lift a little further on hover. */
+  processLiftPx: 5,
   countUpMs: 1600,
   heroStepMs: 120,
   headerShadowOffsetPx: 8,
   /** Hero background: how long each photo holds, and how long the crossfade takes. */
-  heroSlideMs: 6500,
-  heroFadeMs: 1500,
+  heroSlideMs: 3000,
+  heroFadeMs: 1000,
   /** Hero background fade-in from the solid colour when the page first loads. */
   heroIntroFadeMs: 1400,
 } as const
+
+/** Hero headline, one line per phrase, and the script line beneath it. */
+export const LANDING_HERO_HEADLINE: readonly string[] = [
+  'One Mission,',
+  'One Community,',
+  'One Purpose.',
+] as const
+export const LANDING_HERO_TAGLINE = 'Together, UCLM CARES.'
+/** Warm cream for the key word of each headline phrase ("Mission", "Community", "Purpose"). */
+export const LANDING_HERO_ACCENT = 'text-[#f3e5bf]'
+/** The same cream as a fill, for the tagline ribbon's first trailing stripe. */
+export const LANDING_HERO_ACCENT_BG = 'bg-[#f3e5bf]'
 
 /** Photos the hero background crossfades between, under the CARES tint. */
 export const LANDING_HERO_BACKGROUNDS: readonly string[] = [
   caresMembers,
   heroBackground,
+  cteCleanUpDrive,
   computerLiteracy,
+  bogoReliefTeam,
   basicEdTutorial,
+  maritimeCaresVdrc,
   alsFunRun,
+  waterReliefDistribution,
+  caresBannerVdrc,
+  lnkLeadershipAssembly,
 ] as const
 
-/** Public site navigation — one page per entry. `end` keeps Home from matching
- *  every child path. */
-export const LANDING_NAV_LINKS: readonly { label: string; to: string; end?: boolean }[] = [
-  { label: 'Home', to: HOME_PATH, end: true },
-  { label: 'About', to: ABOUT_PATH },
-  { label: 'Programs', to: PROGRAMS_PATH },
-  { label: 'Highlights', to: HIGHLIGHTS_PATH },
-  { label: 'Portal', to: STAFF_PORTAL_PATH },
+/** Public site navigation — one section of the single page per entry. */
+export const LANDING_NAV_LINKS: readonly { label: string; to: string; sectionId: string }[] = [
+  { label: 'Home', to: HOME_PATH, sectionId: LANDING_SECTION_IDS.home },
+  {
+    label: 'About',
+    to: landingSectionPath(LANDING_SECTION_IDS.about),
+    sectionId: LANDING_SECTION_IDS.about,
+  },
+  {
+    label: 'Programs',
+    to: landingSectionPath(LANDING_SECTION_IDS.programs),
+    sectionId: LANDING_SECTION_IDS.programs,
+  },
+  {
+    label: 'Highlights',
+    to: landingSectionPath(LANDING_SECTION_IDS.highlights),
+    sectionId: LANDING_SECTION_IDS.highlights,
+  },
 ] as const
 
 export const LANDING_BULLETIN = {
   // volume: 'Vol. 2, No. 1, 2025',
   // issn: 'ISSN 3082-5504',
-  // schoolYear: 'School Year 2024–2025',
+  schoolYear: 'School Year 2024–2025',
 } as const
 
-export interface LandingHexPhoto {
+/** Shapes in the hero's leaf collage (see landing-leaf-collage). */
+export type LandingCollageSlot = 'feature' | 'top' | 'middle' | 'bottom' | 'corner'
+
+export interface LandingCollagePhoto {
   src: string
   alt: string
-  /** Honeycomb slot: x in hex widths, y in rows (see landing-hex-mosaic). */
-  x: number
-  y: number
+  slot: LandingCollageSlot
 }
 
-/** Seven-cell honeycomb, centre cell (x 1, y 1) holds the CARES seal. */
-export const LANDING_HEX_PHOTOS: readonly LandingHexPhoto[] = [
+/** One large feature leaf on the left, four smaller ones clustered to its right. */
+export const LANDING_COLLAGE_PHOTOS: readonly LandingCollagePhoto[] = [
   {
     src: loocReads,
     alt: 'A volunteer reading with a pupil during Looc READS',
-    x: 0.5,
-    y: 0,
+    slot: 'feature',
   },
   {
     src: alsFunRun,
     alt: 'ALS learners at the walkathon and fun run',
-    x: 1.5,
-    y: 0,
+    slot: 'top',
   },
   {
-    src: basicEdTutorial,
-    alt: 'Basic Education tutorial program volunteers and pupils',
-    x: 0,
-    y: 1,
+    src: caresMembers,
+    alt: 'CARES coordinators and volunteers gathered together',
+    slot: 'middle',
   },
   {
     src: computerLiteracy,
     alt: 'Computer Literacy Program orientation in the auditorium',
-    x: 2,
-    y: 1,
+    slot: 'bottom',
   },
   {
     src: tutorialProgram,
     alt: 'Student volunteers tutoring children from Barangay Looc',
-    x: 0.5,
-    y: 2,
-  },
-  {
-    src: alsCulmination,
-    alt: 'ALS mentors and learners at the culmination program',
-    x: 1.5,
-    y: 2,
+    slot: 'corner',
   },
 ] as const
 
@@ -119,33 +210,33 @@ export interface LandingImpactStat {
   icon: LucideIcon
 }
 
-// export const LANDING_IMPACT: readonly LandingImpactStat[] = [
-//   {
-//     count: 4,
-//     label: 'adopted barangays',
-//     source: 'Looc, Opao, Umapad and Paknaan',
-//     icon: HeartHandshake,
-//   },
-//   {
-//     count: 123,
-//     label: 'blood bags collected',
-//     source: 'Bloodletting with VSMMC, March 2025',
-//     icon: Droplets,
-//   },
-//   {
-//     count: 500,
-//     label: 'books donated',
-//     source: 'Lusong Elementary School, July 2024',
-//     icon: BookOpen,
-//   },
-//   {
-//     count: 150,
-//     suffix: '+',
-//     label: 'ALS learners reached',
-//     source: 'CTE walkathon & fun run, May 2025',
-//     icon: GraduationCap,
-//   },
-// ] as const
+export const LANDING_IMPACT: readonly LandingImpactStat[] = [
+  {
+    count: 4,
+    label: 'adopted barangays',
+    source: 'Looc, Opao, Umapad and Paknaan',
+    icon: Users,
+  },
+  {
+    count: 123,
+    label: 'blood bags collected',
+    source: 'Bloodletting with VSMMC, March 2025',
+    icon: Droplet,
+  },
+  {
+    count: 500,
+    label: 'books donated',
+    source: 'Lusong Elementary School, July 2024',
+    icon: BookOpen,
+  },
+  {
+    count: 150,
+    suffix: '+',
+    label: 'ALS learners reached',
+    source: 'CTE walkathon & fun run, May 2025',
+    icon: Users,
+  },
+] as const
 
 export const LANDING_VISION =
   'Fosters a visible community extension program that gives hope and transforms lives.'
@@ -153,99 +244,46 @@ export const LANDING_VISION =
 export const LANDING_MISSION =
   'Carry out integrated and sustainable extension programs responsive to social, economic and environmental needs.'
 
-/** The bulletin calls these its objectives; the public site presents them as goals. */
-export const LANDING_GOALS: readonly string[] = [
+/** A core-process card on the About page: an icon above its title. */
+/** Which solid icon a core process shows (drawn in landing-process-glyphs.tsx). */
+export type LandingProcessGlyph = 'people' | 'handshake' | 'sprout'
+
+export interface LandingAboutCard {
+  title: string
+  glyph: LandingProcessGlyph
+}
+
+/** A poster-style statement: a condensed headline above its text. */
+export interface LandingStatement {
+  title: string
+  text: string
+}
+
+export const LANDING_STATEMENTS: readonly LandingStatement[] = [
+  { title: 'Our Vision', text: LANDING_VISION },
+  { title: 'Our Mission', text: LANDING_MISSION },
+] as const
+
+export const LANDING_CORE_PROCESSES: readonly LandingAboutCard[] = [
+  { title: 'Community Awareness', glyph: 'people' },
+  { title: 'Community Relations', glyph: 'handshake' },
+  { title: 'Community Extension Services', glyph: 'sprout' },
+] as const
+
+/** The text card that opens the Objectives grid; `highlight` gets a marker underlay. */
+export const LANDING_OBJECTIVES: readonly string[] = [
   'Maintain harmonious relations with the partner and wider communities.',
   'Enhance instruction through research-based extension programs.',
-  'Promote coherence of extension programs among the campuses, sectors of the school and partner communities through the mobilization and sharing of resources.',
+  'Promote coherence of extension programs among the different campuses and sectors of the school and those of the partner communities through appropriate mobilization and sharing of resources.',
 ] as const
+
+/** The fourth objective, which the source breaks into lettered points. */
+export const LANDING_OPPORTUNITIES_OBJECTIVE = 'Create opportunities in the service programs for:'
 
 export const LANDING_OPPORTUNITIES: readonly string[] = [
   'Involvement of the faculty, students, support staff and alumni.',
-  'Empowerment of people to act on social, economic and environmental issues.',
-  "Collaboration in community development and the promotion of people's welfare.",
-] as const
-
-export interface LandingProgram {
-  acronym: string
-  name: string
-  department: string
-  activities: readonly string[]
-}
-
-export const LANDING_PROGRAMS: readonly LandingProgram[] = [
-  {
-    acronym: 'GATE',
-    name: 'Greening and Academic Tutorial Enrichment',
-    department: 'Basic Education',
-    activities: ['Seedling giveaways', 'School gardening', 'Academic tutorial for literacy'],
-  },
-  {
-    acronym: 'Youth SMILE',
-    name: 'Supporting Mental-health and Improving Literacy for Empowerment',
-    department: 'Senior High School',
-    activities: ['Peer academic tutorial', 'Youth empowerment webinars', 'Be Job Ready workshop'],
-  },
-  {
-    acronym: 'Adopt a Learner',
-    name: 'CTE CARES literacy and ALS assistance',
-    department: 'Teacher Education',
-    activities: ['Looc READS reading tutorial', 'ALS assistance, Lapu-Lapu & Mandaue'],
-  },
-  {
-    acronym: 'BUILD',
-    name: 'Business Upliftment through Innovation, Literacy and Development',
-    department: 'Business and Accountancy',
-    activities: ['Basic business seminar', 'Bookkeeping', 'Product costing'],
-  },
-  {
-    acronym: 'GLOBE',
-    name: 'Guiding Local Opportunities into Business Expansion',
-    department: 'Customs Administration',
-    activities: ['SME seminars', 'Awareness campaigns'],
-  },
-  {
-    acronym: 'CLiP',
-    name: 'Computer Literacy Program',
-    department: 'Computer Studies',
-    activities: ['MS Office applications', 'Google productivity tools', 'Graphic design'],
-  },
-  {
-    acronym: 'SELF CARE',
-    name: 'Social Empowerment and Lawful Fulfillment through Community Awareness, Resilience and Engagement',
-    department: 'Criminology',
-    activities: ['Barangay Public Safety Officer training', 'Seminars', 'Awareness'],
-  },
-  {
-    acronym: 'LIGHT',
-    name: 'Learning Innovation through Guided Hands-on Training',
-    department: 'Engineering',
-    activities: ['Welding', 'Computer maintenance & repair', 'Electrical installation'],
-  },
-  {
-    acronym: 'SALT',
-    name: 'Skills and Livelihood Training Program',
-    department: 'Hospitality & Tourism Management',
-    activities: ['Housekeeping NC II', 'Cookery NC II', 'Food & beverage services'],
-  },
-  {
-    acronym: 'HELP',
-    name: 'Health Education and Literacy Program',
-    department: 'Nursing',
-    activities: ['Diabetes & hypertension societies', 'Disaster nursing', 'Mental health society'],
-  },
-  {
-    acronym: 'SAILOR',
-    name: 'Seafarers Alternate Information, Learning and Providing Opportunities through sharing of Resources',
-    department: 'Marine Engineering & Transportation',
-    activities: ['Pump boat engine literacy', 'Basic seamanship', 'Coastal clean-up & mangroves'],
-  },
-  {
-    acronym: 'Stewardship',
-    name: 'Environmental Stewardship Program',
-    department: 'Non-teaching staff',
-    activities: ['Tree in a Pot', 'Donation drives', 'Butuanon River water quality'],
-  },
+  'Empowerment of people to take action on social, economic and environmental issues.',
+  "Collaboration in community development programs and the promotion of people's welfare agenda.",
 ] as const
 
 export interface LandingStory {
@@ -354,24 +392,6 @@ export const LANDING_UPDATES: readonly LandingUpdate[] = [
     title: 'Recognised by VSMMC',
     detail: 'For outstanding contribution to mobile blood donation drives.',
   },
-] as const
-
-export const LANDING_BARANGAYS: readonly { name: string; city: string }[] = [
-  { name: 'Looc', city: 'Mandaue City' },
-  { name: 'Opao', city: 'Mandaue City' },
-  { name: 'Umapad', city: 'Mandaue City' },
-  { name: 'Paknaan', city: 'Mandaue City' },
-] as const
-
-export const LANDING_PARTNERS: readonly string[] = [
-  'Vicente Sotto Memorial Medical Center',
-  'Pilipinas Shell Foundation',
-  'A-PAD Philippines',
-  'Bidlisiw Foundation',
-  'Caritas Germany–Cambodia',
-  'Department of Agriculture',
-  'Waterfront Hotels & Casino',
-  'Dugong Alay, Dugtong Buhay',
 ] as const
 
 export const LANDING_CONTACT = {

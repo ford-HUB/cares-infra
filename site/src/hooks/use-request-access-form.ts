@@ -1,13 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   ADMIN_REQUEST_EMAIL,
   REQUEST_ACCESS_EMAIL_BODY,
 } from '../constants/request-access'
-import { LOGIN_PATH } from '../constants/routes'
 import { submitRequestAccess } from '../services/request-access-service'
 import { validateRequestAccessFiles } from '../utils/request-access-files'
 import {
@@ -16,8 +14,8 @@ import {
   type RequestAccessFormValues,
 } from '../validators/request-access-schema'
 
-export function useRequestAccessForm() {
-  const navigate = useNavigate()
+/** `onSubmitted` runs after the request is sent, e.g. to switch the modal back to sign-in. */
+export function useRequestAccessForm(onSubmitted: () => void) {
   const [attachments, setAttachments] = useState<File[]>([])
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -66,7 +64,7 @@ export function useRequestAccessForm() {
 
     if (res.success) {
       toast.success(res.message)
-      navigate(LOGIN_PATH)
+      onSubmitted()
       return
     }
 

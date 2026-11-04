@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+ngrok.yml
 
 # Dependencies
 node_modules/

@@ -1,5 +1,12 @@
 import { BookOpenText, CalendarHeart, Network, type LucideIcon } from 'lucide-react'
 import { ABOUT_PATH, HIGHLIGHTS_PATH, PROGRAMS_PATH } from './routes'
+import caresAssembly from '../assets/landing_page/photos/cares-assembly.jpg'
+import caresLeadersFormal from '../assets/landing_page/photos/cares-leaders-formal.jpg'
+import partnershipAwards from '../assets/landing_page/photos/partnership-awards.jpg'
+import ccsGiftGiving from '../assets/landing_page/photos/ccs-gift-giving.jpg'
+import programAppreciation from '../assets/landing_page/photos/program-appreciation.jpg'
+import heroBackground from '../assets/landing_page/photos/hero-background.jpg'
+import visayasDisasterCenter from '../assets/landing_page/photos/visayas-disaster-center.jpg'
 
 /** Home-page "at a glance" figures.
  *
@@ -48,6 +55,60 @@ export const LANDING_BENEFICIARY_GROUPS: readonly LandingBeneficiaryGroup[] = [
   },
 ] as const
 
+/** Home-page video. Leave `src` empty to show the "coming soon" frame; set it to a
+ *  video URL (served from the public S3 bucket) to show the player. */
+export const LANDING_VIDEO = {
+  src: 'https://amzn-s3-cares-storage-dev.s3.ap-southeast-2.amazonaws.com/videos/UCLM+CARES+AVP.mp4',
+  poster: heroBackground,
+  title: 'UCLM CARES video',
+  /** Share of the video that must be on screen before it plays. */
+  visibleRatio: 0.5,
+  heading: { before: 'Watch', accent: 'CARES', after: 'in Action' },
+  description: 'Discover stories, programs, and real moments of impact from our communities.',
+  placeholder: 'Video coming soon',
+} as const
+
+/** Home-page partners. Logos are cleaned, transparent copies of the originals in
+ *  `public/partners/`, kept in its `logos/` folder. */
+export interface LandingPartner {
+  name: string
+  logo: string
+}
+
+export const LANDING_PARTNERS_COPY = {
+  eyebrow: 'Partners',
+  title: { before: 'Our', accent: 'Partners' },
+  description: 'Working with communities and organizations to create meaningful impact.',
+  /** Names the partner grid for screen readers, now that it has no visible group titles. */
+  listLabel: 'Partner barangays and organizations',
+} as const
+
+export const LANDING_PARTNER_BARANGAYS: readonly LandingPartner[] = [
+  { name: 'Barangay Looc', logo: '/partners/logos/barangay-looc.png' },
+  { name: 'Barangay Opao', logo: '/partners/logos/barangay-opao.png' },
+  { name: 'Barangay Umapad', logo: '/partners/logos/barangay-umapad.png' },
+  { name: 'Barangay Paknaan', logo: '/partners/logos/barangay-paknaan.png' },
+] as const
+
+export const LANDING_PARTNER_ORGANIZATIONS: readonly LandingPartner[] = [
+  { name: 'Bidlisiw Foundation Inc.', logo: '/partners/logos/bidlisiw-foundation.png' },
+  { name: 'Waku Work', logo: '/partners/logos/waku-work.png' },
+  {
+    name: 'Asia Pacific Alliance for Disaster Management Philippines',
+    logo: '/partners/logos/apad-philippines.png',
+  },
+  {
+    name: 'Technical Education and Skills Development Authority',
+    logo: '/partners/logos/tesda.png',
+  },
+  { name: 'Department of Education', logo: '/partners/logos/deped.png' },
+  { name: 'Mandaue City Jail', logo: '/partners/logos/mandaue-city-jail.png' },
+  {
+    name: 'Department of Environment and Natural Resources',
+    logo: '/partners/logos/denr.png',
+  },
+] as const
+
 export interface LandingExploreLink {
   title: string
   description: string
@@ -58,44 +119,54 @@ export interface LandingExploreLink {
 export const LANDING_EXPLORE_LINKS: readonly LandingExploreLink[] = [
   {
     title: 'About CARES',
-    description: 'Our vision, mission and goals, and the people who run the office.',
+    description: 'Our vision, mission and objectives, and the people who run the office.',
     to: ABOUT_PATH,
     icon: Network,
   },
   {
     title: 'Departmental programs',
-    description: 'Twelve extension programs, one for every college and unit.',
+    description: 'Twelve colleges and units, and the extension work each one documented.',
     to: PROGRAMS_PATH,
     icon: BookOpenText,
   },
   {
     title: 'Highlights',
-    description: 'Stories and updates from the 2024–2025 CARES Bulletin.',
+    description: 'Our achievements, year by year, from the CARES Bulletin.',
     to: HIGHLIGHTS_PATH,
     icon: CalendarHeart,
   },
 ] as const
 
-/** Banner copy for each inner page. */
+/** Banner copy for each section after Home. The title reads `title accent`, with the
+ *  accent in gold italic. */
 export const LANDING_PAGE_HEADERS = {
   about: {
-    title: 'Community Awareness, Relations and Extension Services',
+    title: 'Community Awareness, Relations and',
+    accent: 'Extension Services',
     description:
-      'The extension office of the University of Cebu Lapu-Lapu and Mandaue — what we stand for and who carries the work.',
+      'Discover the vision, mission, and dedicated people behind UCLM CARES and its commitment to meaningful community service.',
+    photos: { left: caresAssembly, right: visayasDisasterCenter },
   },
   programs: {
-    title: 'Departmental programs',
-    description:
-      'Every college and unit runs its own extension program in the partner communities.',
+    title: 'Departmental',
+    accent: 'Programs',
+    description: 'Community awareness, relations and extension services across UCLM.',
+    photos: { left: programAppreciation, right: ccsGiftGiving },
+    /** The programs grid sits on mint, so the hills end in mint. */
+    waveFill: 'mint',
   },
   highlights: {
-    title: 'Highlights of School Year 2024–2025',
-    description: 'Stories and updates reported in the UCLM CARES',
-  },
-  portal: {
-    title: 'The portal behind every program',
-    description:
-      'Directors, coordinators and administrators share one sign-in to plan events, deploy volunteers and issue certificates.',
+    title: 'Our Achievements,',
+    accent: 'Year by Year',
+    description: 'A journey through the years of meaningful programs, community service, and achievements.',
+    photos: {
+      left: caresLeadersFormal,
+      right: partnershipAwards,
+      /** Crop the portrait from higher up so all three faces stay in the strip. */
+      leftPosition: '50% 22%',
+    },
+    /** The year list below sits on white, so the hills end in white. */
+    waveFill: 'white',
   },
 } as const
 

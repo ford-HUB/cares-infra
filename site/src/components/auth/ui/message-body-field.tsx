@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from 'react'
 import type { UseFormRegisterReturn } from 'react-hook-form'
+import { MessageSquareText } from 'lucide-react'
 
 import { REQUEST_ACCESS_MESSAGE_COLLAPSED_ROWS } from '../../../constants/request-access'
+import { RequestFieldLabel } from './request-field-label'
 
 interface MessageBodyFieldProps {
   registration: UseFormRegisterReturn
@@ -34,14 +36,14 @@ export function MessageBodyField({ registration, error }: MessageBodyFieldProps)
 
   return (
     <div>
-      <label htmlFor="body" className="mb-1 block text-xs font-medium text-gray-700">
+      <RequestFieldLabel icon={MessageSquareText} htmlFor="body">
         Message
-      </label>
+      </RequestFieldLabel>
       <textarea
         id="body"
         rows={REQUEST_ACCESS_MESSAGE_COLLAPSED_ROWS}
         className={[
-          'w-full resize-none rounded-md border border-gray-300 px-2.5 py-1.5 font-mono text-[11px] leading-snug transition-[height] duration-200 ease-out focus:ring-1 focus:ring-[var(--cares-primary)] focus:outline-none',
+          'w-full resize-none rounded-lg border border-emerald-900/15 bg-white px-3 py-2 font-mono text-[11px] leading-snug shadow-sm transition-[height] duration-200 ease-out focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/25 focus:outline-none',
           expanded ? 'overflow-hidden' : 'overflow-y-auto',
         ].join(' ')}
         ref={(element) => {

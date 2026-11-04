@@ -5,25 +5,24 @@ import { getPostLoginPath } from '../../config/auth-redirect'
 import { useAdminLoginForm } from '../../hooks/use-admin-login-form'
 import { useAuthStore } from '../../store/auth-store'
 
-export function Login() {
-  const { user, initialized, checkAuth } = useAuthStore()
+interface LoginProps {
+  onRequestAccess: () => void
+}
+
+/** Sign-in modal body: a signed-in visitor is sent straight on to the portal. */
+export function Login({ onRequestAccess }: LoginProps) {
+  const user = useAuthStore((s) => s.user)
+  const initialized = useAuthStore((s) => s.initialized)
+  const checkAuth = useAuthStore((s) => s.checkAuth)
   const props = useAdminLoginForm()
 
   useEffect(() => {
-    void checkAuth()
-  }, [checkAuth])
+    if (!initialized) void checkAuth()
+  }, [initialized, checkAuth])
 
-  if (!initialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--cares-bg)]">
-        <p className="text-sm text-[var(--cares-muted)]">Loading...</p>
-      </div>
-    )
-  }
-
-  if (user) {
+  if (initialized && user) {
     return <Navigate to={getPostLoginPath(user.role)} replace />
   }
 
-  return <AdminLoginForm {...props} />
+  return <AdminLoginForm {...props} checking={!initialized} onRequestAccess={onRequestAccess} />
 }
