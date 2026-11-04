@@ -49,7 +49,7 @@ export function AuthModal({
           aria-describedby={undefined}
           onInteractOutside={preventOutsideClose ? (event) => event.preventDefault() : undefined}
           className={cn(
-            'fixed top-1/2 left-1/2 z-[51] max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/60 bg-white/70 shadow-2xl ring-1 ring-black/5 outline-none backdrop-blur-xl backdrop-saturate-150',
+            'fixed top-1/2 left-1/2 z-[51] max-h-[calc(100dvh/var(--landing-zoom,1)-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/60 bg-white/70 shadow-2xl ring-1 ring-black/5 outline-none backdrop-blur-xl backdrop-saturate-150',
             'data-[state=closed]:animate-auth-modal-out data-[state=open]:animate-auth-modal-in motion-reduce:animate-none',
             className,
           )}

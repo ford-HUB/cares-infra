@@ -113,7 +113,7 @@ export function LandingProgramDialog({ program, onClose }: LandingProgramDialogP
             onCloseAutoFocus={() => openerRef.current?.focus()}
             // No tagline means no DialogDescription; opt out so Radix doesn't warn.
             {...(program.tagline ? {} : { 'aria-describedby': undefined })}
-            className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(89vh,950px)] w-[min(930px,calc(100%-2.5rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 max-sm:h-dvh max-sm:max-h-dvh max-sm:w-full max-sm:rounded-none"
+            className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(89vh/var(--landing-zoom,1),950px)] w-[min(930px,calc(100%-2.5rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 max-sm:h-dvh max-sm:max-h-dvh max-sm:w-full max-sm:rounded-none"
           >
             <header className="relative shrink-0 bg-gradient-to-r from-[var(--cares-primary)] to-emerald-800 px-5 py-5 text-white sm:px-8 sm:py-6">
               <p className="text-[11px] font-extrabold tracking-wider text-emerald-300 uppercase">

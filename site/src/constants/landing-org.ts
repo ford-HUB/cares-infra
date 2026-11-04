@@ -78,14 +78,14 @@ export const LANDING_ORG_UNITS: readonly LandingOrgUnit[] = [
     department: 'Grade School',
     members: [
       { name: 'Ms. Lalaine B. Abing', title: COORDINATOR, photo: profilePhoto(13) },
-      { title: ASSISTANT, photo: gradeSchoolAsst, assistant: true },
+      { name: 'Ms. Maricar B. Gabutana', title: ASSISTANT, photo: gradeSchoolAsst, assistant: true },
     ],
   },
   {
     department: 'Junior High School',
     members: [
       { name: 'Ms. Janine Caseylyn D. Cantago', title: COORDINATOR, photo: profilePhoto(4) },
-      { title: ASSISTANT, photo: juniorHighAsst, assistant: true },
+      { name: 'Mr. Noeh Loyd Espinosa', title: ASSISTANT, photo: juniorHighAsst, assistant: true },
     ],
   },
   {

@@ -44,6 +44,50 @@ function BouncingHeading() {
   )
 }
 
+/** Rule, outlined play badge, rule. On first view the frame falls from above and lands
+ *  with a squash, the play triangle drops into it, and the rules spread outward from the
+ *  badge. Under reduced motion it is simply shown. */
+function DroppingPlayBadge() {
+  const { ref, visible } = useReveal<HTMLDivElement>(0.6)
+  const hidden = 'motion-safe:opacity-0'
+  const rulesStyle = { animationDelay: `${LANDING_MOTION.badgeRulesGrowMs}ms` }
+  const rule = 'h-0.5 w-20 rounded-full via-green-700 to-[var(--cares-primary)] sm:w-32'
+  const ruleGrow = visible ? 'motion-safe:animate-landing-line-grow' : hidden
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className="flex items-center justify-center gap-4 text-[var(--cares-primary)]"
+    >
+      <span
+        style={rulesStyle}
+        className={cn(rule, 'origin-right bg-gradient-to-r from-transparent', ruleGrow)}
+      />
+      <span
+        className={cn(
+          'flex h-8 w-10 origin-bottom items-center justify-center rounded-md border-2 border-current',
+          visible ? 'motion-safe:animate-landing-badge-drop' : hidden,
+        )}
+      >
+        <span
+          style={{ animationDelay: `${LANDING_MOTION.badgeIconDropMs}ms` }}
+          className={cn(
+            'flex origin-bottom',
+            visible ? 'motion-safe:animate-landing-badge-icon-drop' : hidden,
+          )}
+        >
+          <Play className="h-3.5 w-3.5 translate-x-px" fill="currentColor" />
+        </span>
+      </span>
+      <span
+        style={rulesStyle}
+        className={cn(rule, 'origin-left bg-gradient-to-l from-transparent', ruleGrow)}
+      />
+    </div>
+  )
+}
+
 /** Home-page video: the heading on top, then the video at full width, edge to edge
  *  with no outer margin. The video keeps its own height. Shows a poster until
  *  `LANDING_VIDEO.src` is set. */
@@ -54,14 +98,7 @@ export function LandingVideo() {
   return (
     <section className="w-full overflow-clip bg-emerald-50 pb-10 sm:pb-12">
       <LandingReveal className="mx-auto max-w-2xl px-6 py-16 text-center sm:py-20">
-        {/* Rule, outlined play badge, rule. */}
-        <div aria-hidden className="flex items-center justify-center gap-4 text-[var(--cares-primary)]">
-          <span className="h-0.5 w-20 rounded-full bg-gradient-to-r from-transparent via-green-700 to-[var(--cares-primary)] sm:w-32" />
-          <span className="flex h-8 w-10 items-center justify-center rounded-md border-2 border-current">
-            <Play className="h-3.5 w-3.5 translate-x-px" fill="currentColor" />
-          </span>
-          <span className="h-0.5 w-20 rounded-full bg-gradient-to-l from-transparent via-green-700 to-[var(--cares-primary)] sm:w-32" />
-        </div>
+        <DroppingPlayBadge />
         <BouncingHeading />
         <p
           className={`${LANDING_DISPLAY} mt-3 text-[14px] leading-relaxed font-medium text-pretty text-neutral-700 sm:text-[15px]`}

@@ -19,7 +19,8 @@ export function useScrollUnfurl<TSheet extends HTMLElement>() {
     const node = sheetRef.current
     if (!node) return
     const observer = new ResizeObserver(([entry]) => {
-      if (entry) setSheetHeight(entry.target.getBoundingClientRect().height)
+      // offsetHeight, not getBoundingClientRect: the rect is scaled by the landing zoom.
+      if (entry) setSheetHeight((entry.target as HTMLElement).offsetHeight)
     })
     observer.observe(node)
     return () => observer.disconnect()
