@@ -50,6 +50,16 @@ export const LANDING_SCRIPT = "font-['Dancing_Script',_cursive]"
  *  (about 80px each side on a desktop browser) so text lines up with the header. */
 export const LANDING_CONTAINER = 'mx-auto w-full max-w-[96rem] px-5 sm:px-8 lg:px-12 xl:px-20'
 
+/** Desktop scale for the public site. The layout is designed at `baseWidthPx` of CSS
+ *  width; wider windows zoom it up (up to `max`, i.e. 125%) so a 1920px screen at 100%
+ *  browser zoom looks like the 1536px-wide design. Narrower windows stay at 1 and fall
+ *  back to the normal responsive breakpoints. */
+export const LANDING_ZOOM = {
+  baseWidthPx: 1536,
+  max: 1.25,
+  cssVar: '--landing-zoom',
+} as const
+
 /** The pale-green icon chip from the Home page's partners. */
 export const LANDING_MINT_CHIP = 'bg-[#d8f1db] text-[var(--cares-primary)]'
 
@@ -79,8 +89,13 @@ export const LANDING_MOTION = {
   highlightStaggerMs: 110,
   /** About cards: the beat between cards on entry, the poster tilt cap and hover lift. */
   aboutStaggerMs: 120,
-  /** "Watch CARES in Action": wait before the first word bounces in, then the gap between words. */
-  wordBounceStartMs: 150,
+  /** "Watch CARES in Action" play badge: after the frame starts falling, when the play
+   *  triangle drops in and when the side rules start spreading out from it. */
+  badgeIconDropMs: 340,
+  badgeRulesGrowMs: 380,
+  /** "Watch CARES in Action": wait before the first word bounces in (after the badge
+   *  above it has assembled), then the gap between words. */
+  wordBounceStartMs: 750,
   wordBounceStepMs: 110,
   /** Letter-by-letter heading reveal: the gap between one letter and the next. */
   letterStepMs: 50,

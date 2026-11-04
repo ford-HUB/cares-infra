@@ -92,7 +92,7 @@ export const LANDING_PARTNER_BARANGAYS: readonly LandingPartner[] = [
 
 export const LANDING_PARTNER_ORGANIZATIONS: readonly LandingPartner[] = [
   { name: 'Bidlisiw Foundation Inc.', logo: '/partners/logos/bidlisiw-foundation.png' },
-  { name: 'Waku Work', logo: '/partners/logos/waku-work.png' },
+  { name: 'Waku Work Foundation', logo: '/partners/logos/waku-work.png' },
   {
     name: 'Asia Pacific Alliance for Disaster Management Philippines',
     logo: '/partners/logos/apad-philippines.png',

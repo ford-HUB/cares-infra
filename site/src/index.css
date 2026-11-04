@@ -91,6 +91,30 @@
     100% { transform: translateY(0); }
   }
 
+  /* "Watch CARES in Action" play badge, assembled once on first view:
+     - badge-drop: the outlined frame falls from above with a slight tilt, squashes on
+       landing, rebounds once and settles;
+     - badge-icon-drop: the play triangle then falls into the frame and pops into place.
+     The side rules reuse line-grow, spreading outward once the frame has landed. */
+  --animate-landing-badge-drop: landing-badge-drop 900ms backwards;
+  --animate-landing-badge-icon-drop: landing-badge-icon-drop 650ms backwards;
+
+  @keyframes landing-badge-drop {
+    0% { opacity: 0; transform: translateY(-72px) rotate(-12deg); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+    40% { opacity: 1; transform: translateY(0) rotate(0) scale(1, 1); animation-timing-function: ease-out; }
+    52% { transform: translateY(0) scale(1.14, 0.8); animation-timing-function: ease-out; }
+    68% { transform: translateY(-9px) scale(0.95, 1.06); animation-timing-function: ease-in; }
+    82% { transform: translateY(0) scale(1.04, 0.95); animation-timing-function: ease-out; }
+    100% { transform: translateY(0) scale(1, 1); }
+  }
+
+  @keyframes landing-badge-icon-drop {
+    0% { opacity: 0; transform: translateY(-44px) scale(0.6); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+    50% { opacity: 1; transform: translateY(0) scale(1.3, 0.72); animation-timing-function: ease-out; }
+    72% { transform: translateY(-2px) scale(0.88, 1.12); animation-timing-function: ease-in-out; }
+    100% { transform: translateY(0) scale(1, 1); }
+  }
+
   /* About headings: each letter fades up 8px into place, once, one after another (the
      delay is set inline per letter). */
   --animate-landing-letter-rise: landing-letter-rise 450ms ease-out backwards;
@@ -203,6 +227,12 @@
     from { opacity: 1; }
     to { opacity: 0; }
   }
+}
+
+/* Desktop scale for the public site (see LANDING_ZOOM / use-landing-zoom). Set on <html>
+   so the header, page and portalled dialogs scale together, like browser zoom does. */
+html:has(.cares-landing) {
+  zoom: var(--landing-zoom, 1);
 }
 
 /* In-page anchor jumps glide on the landing page, unless motion is reduced. */

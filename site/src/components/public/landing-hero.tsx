@@ -29,7 +29,7 @@ export function LandingHero() {
   return (
     // Fills the screen below the sticky header (h-14 plus its 1px border), with the copy
     // centred top to bottom, so no page shows beneath it on first load.
-    <section className="relative flex min-h-[calc(100svh-3.5rem-1px)] flex-col justify-center overflow-hidden bg-gradient-to-r from-[var(--cares-primary)] to-[var(--cares-primary-hover)] text-white">
+    <section className="relative flex min-h-[calc(100svh/var(--landing-zoom,1)-3.5rem-1px)] flex-col justify-center overflow-hidden bg-gradient-to-r from-[var(--cares-primary)] to-[var(--cares-primary-hover)] text-white">
       {/* Photos crossfade underneath, tinted CARES green so the copy stays legible:
           solid behind the text on the left, thinning toward the right. */}
       {/* The wrapper fades the photos in from the solid colour on first load; the
