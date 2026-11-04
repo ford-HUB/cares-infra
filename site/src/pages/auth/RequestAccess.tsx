@@ -1,5 +1,9 @@
 import { RequestAccessPanel } from '../../components/auth/request-access-panel'
 
-export function RequestAccess() {
-  return <RequestAccessPanel />
+interface RequestAccessProps {
+  onSignIn: () => void
+}
+
+export function RequestAccess({ onSignIn }: RequestAccessProps) {
+  return <RequestAccessPanel onSignIn={onSignIn} />
 }

@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
@@ -8,6 +7,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordValues,
 } from '../../../validators/forgot-password-schema'
+import { AuthModal, AuthModalTitle } from './auth-modal'
 
 interface ForgotPasswordModalProps {
   open: boolean
@@ -26,8 +26,6 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
     defaultValues: { email: '' },
   })
 
-  if (!open) return null
-
   const onSubmit = handleSubmit(async (values) => {
     const res = await requestPortalPasswordReset(values.email)
     if (res.success) {
@@ -45,30 +43,15 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div
-        className="w-full max-w-sm rounded-xl border border-[var(--cares-border)] bg-white p-5 shadow-xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="forgot-password-title"
-      >
-        <div className="mb-4 flex items-start justify-between">
-          <div>
-            <h2 id="forgot-password-title" className="text-lg font-bold text-[var(--cares-heading)]">
-              Forgot password
-            </h2>
-            <p className="mt-1 text-xs text-[var(--cares-muted)]">
-              Enter your registered email. We will email you a new temporary password if an account exists.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-lg p-1 text-gray-500 hover:bg-gray-100"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
+    <AuthModal open={open} onClose={handleClose}>
+      <div className="p-5">
+        <div className="mb-4 pr-6">
+          <AuthModalTitle className="text-lg font-bold text-[var(--cares-heading)]">
+            Forgot password
+          </AuthModalTitle>
+          <p className="mt-1 text-xs text-[var(--cares-muted)]">
+            Enter your registered email. We will email you a new temporary password if an account exists.
+          </p>
         </div>
 
         {sentTo ? (
@@ -95,7 +78,7 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
                 id="reset-email"
                 type="email"
                 autoComplete="email"
-                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 bg-white/80 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
                 {...register('email')}
               />
               {errors.email && (
@@ -112,6 +95,6 @@ export function ForgotPasswordModal({ open, onClose }: ForgotPasswordModalProps)
           </form>
         )}
       </div>
-    </div>
+    </AuthModal>
   )
 }

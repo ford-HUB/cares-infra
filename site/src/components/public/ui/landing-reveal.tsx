@@ -8,12 +8,20 @@ interface LandingRevealProps {
   className?: string
   /** Position in a staggered group; each step adds LANDING_MOTION.staggerMs. */
   index?: number
+  /** Delay between steps; defaults to LANDING_MOTION.staggerMs. */
+  staggerMs?: number
   as?: 'div' | 'li'
 }
 
 /** Fades and lifts its children in the first time they scroll into view. Under
  *  reduced motion the content is simply shown. */
-export function LandingReveal({ children, className, index = 0, as = 'div' }: LandingRevealProps) {
+export function LandingReveal({
+  children,
+  className,
+  index = 0,
+  staggerMs = LANDING_MOTION.staggerMs,
+  as = 'div',
+}: LandingRevealProps) {
   const { ref, visible } = useReveal<HTMLDivElement & HTMLLIElement>()
   const Tag = as
 
@@ -21,11 +29,11 @@ export function LandingReveal({ children, className, index = 0, as = 'div' }: La
     <Tag
       ref={ref}
       style={{
-        transitionDelay: visible ? `${index * LANDING_MOTION.staggerMs}ms` : undefined,
+        transitionDelay: visible ? `${index * staggerMs}ms` : undefined,
         transitionDuration: `${LANDING_MOTION.revealMs}ms`,
       }}
       className={cn(
-        'motion-safe:transition-[opacity,transform] motion-safe:ease-out',
+        'motion-safe:transition-[opacity,translate] motion-safe:ease-out',
         visible ? 'opacity-100 translate-y-0' : 'motion-safe:translate-y-6 motion-safe:opacity-0',
         className,
       )}

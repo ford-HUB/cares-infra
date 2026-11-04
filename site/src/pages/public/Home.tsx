@@ -1,15 +1,19 @@
-import { LandingExplore } from '../../components/public/landing-explore'
-import { LandingHero } from '../../components/public/landing-hero'
-import { LandingHomeStats } from '../../components/public/landing-home-stats'
-import { LandingImpact } from '../../components/public/landing-impact'
+import { LandingAboutSection } from '../../components/public/landing-about-section'
+import { LandingHighlightsSection } from '../../components/public/landing-highlights-section'
+import { LandingHomeSection } from '../../components/public/landing-home-section'
+import { LandingProgramsSection } from '../../components/public/landing-programs-section'
+import { AuthModalHost } from '../auth/auth-modal-host'
 
+/** The whole public site, one section after another on a single scrolling page. It stays
+ *  mounted under /login and /request-access, whose forms float over it as modals. */
 export default function Home() {
   return (
     <>
-      <LandingHero />
-      <LandingImpact />
-      <LandingHomeStats />
-      <LandingExplore />
+      <LandingHomeSection />
+      <LandingAboutSection />
+      <LandingProgramsSection />
+      <LandingHighlightsSection />
+      <AuthModalHost />
     </>
   )
 }

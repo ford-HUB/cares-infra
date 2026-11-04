@@ -1,7 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+/* Condensed headline face for the About page's Vision and Mission poster. */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400..700&display=swap');
+/* Bold serif with a true bold italic for the section banners' titles. */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600..700;1,600..700&display=swap');
+/* Soft heavy serif for the About headings that sit on a lime brush stroke. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700..900&display=swap');
+/* Slab serif for the Home page's "Watch CARES in Action" heading. */
+@import url('https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,700..900;1,700..900&display=swap');
 /* Certificate faces — the director picks one per sheet or per block; see
    constants/certificate-fonts.ts. */
-@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Great+Vibes&family=Pinyon+Script&family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400&family=Lato:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Great+Vibes&family=Pinyon+Script&family=Dancing+Script:wght@400;700&family=Montserrat:ital,wght@0,400;0,700;1,400&family=Lato:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -37,10 +45,8 @@
     100% { transform: translateX(400%); }
   }
 
-  /* Public landing page only: a slow sheen across the hero's accent words and a
-     gentle bob on the CARES seal. Both are suppressed under reduced motion. */
-  --animate-landing-shimmer: landing-shimmer 6s ease-in-out infinite;
-  --animate-landing-float: landing-float 6s ease-in-out infinite;
+  /* Public landing page only: a slow zoom on the hero's background photos,
+     suppressed under reduced motion. */
   --animate-landing-kenburns: landing-kenburns 24s ease-in-out infinite alternate;
 
   @keyframes landing-kenburns {
@@ -48,14 +54,154 @@
     to { transform: scale(1.08); }
   }
 
-  @keyframes landing-shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+  /* Highlights category pills: the pill rises 12px up from below as it fades in, its
+     label fades in right behind it, then the same band of light the hover uses sweeps
+     across once. Each plays once; `backwards` holds the start state through the delay
+     and lets go at the end, so hover can still lift the pill and replay the sweep. The
+     sweep animates `translate` (not `transform`) so the band keeps its skew. */
+  --animate-landing-pill-in: landing-pill-in 380ms cubic-bezier(0.22, 1, 0.36, 1) 100ms backwards;
+  --animate-landing-pill-text-in: landing-pill-text-in 220ms ease-out 180ms backwards;
+  --animate-landing-pill-sweep: landing-pill-sweep 700ms ease-out 420ms;
+
+  @keyframes landing-pill-sweep {
+    from { translate: 0 0; }
+    to { translate: 400% 0; }
   }
 
-  @keyframes landing-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+  @keyframes landing-pill-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes landing-pill-text-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* "Watch CARES in Action": each word drops in, then settles with two shrinking
+     bounces. Plays once per word; the delay is set inline so the words follow in turn. */
+  --animate-landing-word-bounce: landing-word-bounce 950ms ease-out backwards;
+
+  @keyframes landing-word-bounce {
+    0% { opacity: 0; transform: translateY(-28px); }
+    45% { opacity: 1; transform: translateY(0); }
+    62% { transform: translateY(-10px); }
+    78% { transform: translateY(0); }
+    90% { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* About headings: each letter fades up 8px into place, once, one after another (the
+     delay is set inline per letter). */
+  --animate-landing-letter-rise: landing-letter-rise 450ms ease-out backwards;
+
+  @keyframes landing-letter-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Highlights year headings: the numerals rise out of a mask from below while they
+     sharpen from a blur. Plays once; `backwards` holds the start through any delay. */
+  --animate-landing-year-rise: landing-year-rise 800ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+
+  @keyframes landing-year-rise {
+    from { opacity: 0; transform: translateY(100%); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+
+  /* Section banner titles, a staged entrance (each delay is set inline, and `backwards`
+     or `both` holds the start state through it):
+     - mask-rise: a white word slides up from behind its own clipping edge;
+     - soft-rise: the gold words, then the description, fade up 12px;
+     - shimmer: a soft band of light crosses the gold words once;
+     - line-grow: the underline spreads out from its centre. */
+  --animate-landing-mask-rise: landing-mask-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-landing-soft-rise: landing-soft-rise 700ms ease-out backwards;
+  --animate-landing-shimmer: landing-shimmer 800ms ease-out both;
+  --animate-landing-line-grow: landing-line-grow 600ms ease-out backwards;
+  /* The director's scroll: one slow reflection crossing the glass once it has unrolled. */
+  --animate-landing-glass-sweep: landing-shimmer 900ms ease-out both;
+
+  @keyframes landing-mask-rise {
+    from { transform: translateY(105%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes landing-soft-rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes landing-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: 0% 0; }
+  }
+
+  @keyframes landing-line-grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  /* Core Processes icons, played once each time a card is hovered: the people swell
+     gently and settle; the hands give a small shake. (The sprout's grow is a transition.) */
+  --animate-process-pulse: process-pulse 500ms ease-out;
+  --animate-process-shake: process-shake 600ms ease-in-out;
+
+  @keyframes process-pulse {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes process-shake {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    25% { transform: translateY(-2.5px) rotate(-3deg); }
+    50% { transform: translateY(1.5px) rotate(2deg); }
+    75% { transform: translateY(-1px) rotate(-1deg); }
+  }
+
+  /* Sign-in and request-access modals over the landing page: the card springs past its
+     resting place on the way in (ease-out-back) and pulls back before dropping away on
+     the way out (ease-in-back). The blurred backdrop fades in step. */
+  --animate-auth-modal-in: auth-modal-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-auth-modal-out: auth-modal-out 300ms cubic-bezier(0.36, 0, 0.66, -0.56) both;
+  --animate-auth-backdrop-in: auth-backdrop-in 300ms ease-out both;
+  --animate-auth-backdrop-out: auth-backdrop-out 300ms ease-in both;
+
+  /* Auth modal content: text and labels fade up into place one after another as the
+     card opens; headings also clear from a soft blur. `backwards` holds the start state
+     through each delay, then lets go. */
+  --animate-auth-text-in: auth-text-in 400ms ease-out backwards;
+  --animate-auth-heading-in: auth-heading-in 500ms ease-out backwards;
+
+  @keyframes auth-text-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes auth-heading-in {
+    from { opacity: 0; transform: translateY(8px); filter: blur(6px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+
+  @keyframes auth-modal-in {
+    from { opacity: 0; transform: translateY(24px) scale(0.92); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes auth-modal-out {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(24px) scale(0.92); }
+  }
+
+  @keyframes auth-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes auth-backdrop-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
   }
 }
 
@@ -86,6 +232,16 @@
   --cares-primary: #1b4332;
   --cares-primary-hover: #2d6a4f;
   --cares-radius: 10px;
+  /* Public About page: cream cards with a sage border on a pale page. */
+  --cares-about-bg: #f5f8f1;
+  --cares-about-card: #fdfaf3;
+  --cares-about-border: #7d9984;
+  --cares-about-sage: #a3c4a1;
+  --cares-about-sage-soft: #d1e0c3;
+  --cares-about-sage-deep: #77966a;
+  /* Vision and Mission posters: dark card, mint statement. */
+  --cares-about-poster: #15362a;
+  --cares-about-mint: #9ed9bf;
 
   /* shadcn/ui tokens — aliases onto the CARES palette above, never independent
      colours. Restyle CARES by editing the --cares-* values, not these. */

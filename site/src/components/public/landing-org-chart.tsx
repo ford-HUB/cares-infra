@@ -1,87 +1,101 @@
-import { LANDING_SECTION_IDS } from '../../constants/landing-bulletin'
+import {
+  LANDING_CONTAINER,
+  LANDING_DISPLAY,
+  LANDING_MOTION,
+  LANDING_SECTION_IDS,
+} from '../../constants/landing-bulletin'
 import {
   LANDING_ORG_CAMPUS_DIRECTOR,
   LANDING_ORG_CARES_DIRECTOR,
   LANDING_ORG_CARES_STAFF,
-  LANDING_ORG_COORDINATORS,
   LANDING_ORG_GROUPS,
-  LANDING_ORG_SOURCE,
+  LANDING_ORG_UNITS,
 } from '../../constants/landing-org'
+import { LandingHillsBackdrop } from './ui/landing-about-botanicals'
 import { LandingReveal } from './ui/landing-reveal'
 import { LandingSectionHeading } from './ui/landing-section-heading'
 import {
   LandingOrgConnector,
   LandingOrgGroupNode,
   LandingOrgPersonNode,
+  LandingOrgUnitCard,
 } from './ui/landing-org-node'
+
+/** Every card in the chart cascades in at the same gentle step. */
+const STAGGER = LANDING_MOTION.orgStaggerMs
 
 export function LandingOrgChart() {
   return (
     <section
       id={LANDING_SECTION_IDS.organization}
-      className="scroll-mt-28 border-y border-[var(--cares-border)] bg-white"
+      className="relative scroll-mt-28 overflow-clip"
     >
-      <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      {/* Tint only: the director's message below carries it on and closes on the hills. */}
+      <LandingHillsBackdrop hills={false} />
+      <div className={`${LANDING_CONTAINER} relative pt-4 pb-16 sm:pb-20`}>
         <LandingReveal>
           <LandingSectionHeading
-            title="UCLM CARES organizational chart"
+            title="UCLM CARES"
+            accent="Organizational Chart"
+            slab
             description="The office that coordinates extension work across every department, and the coordinators who carry it into each college."
           />
         </LandingReveal>
 
-        <LandingReveal className="flex flex-col items-center">
+        <LandingReveal index={0} staggerMs={STAGGER} className="flex flex-col items-center">
           <LandingOrgPersonNode person={LANDING_ORG_CAMPUS_DIRECTOR} />
         </LandingReveal>
         <LandingOrgConnector />
 
-        <LandingReveal className="flex flex-col items-center">
+        <LandingReveal index={1} staggerMs={STAGGER} className="flex flex-col items-center">
           <LandingOrgPersonNode person={LANDING_ORG_CARES_DIRECTOR} emphasis />
         </LandingReveal>
         <LandingOrgConnector />
 
-        <LandingReveal className="flex flex-col items-center">
+        <LandingReveal index={2} staggerMs={STAGGER} className="flex flex-col items-center">
           <LandingOrgPersonNode person={LANDING_ORG_CARES_STAFF} />
         </LandingReveal>
         <LandingOrgConnector />
 
-        <div className="rounded-2xl bg-[var(--cares-bg)] p-4 ring-1 ring-[var(--cares-border)] sm:p-6">
-          <p className="mb-4 text-center text-[11px] font-semibold tracking-[0.2em] text-[var(--cares-primary-hover)] uppercase">
-            Departmental CARES coordinators
-          </p>
+        {/* No padding around the coordinators, so the connector above meets the label
+            and the one below leaves straight from the cards. */}
+        <div>
+          {/* Frosted white glass label, shaded a little darker toward its foot: a bright top
+              edge, a sheen over its upper half and a soft shadow, in bold Montserrat capitals. */}
+          <div className="flex justify-center">
+            <p
+              className={`${LANDING_DISPLAY} relative isolate overflow-hidden rounded-full border border-white/90 bg-gradient-to-b from-white/95 via-gray-100/90 to-gray-200/80 px-6 py-2 text-center text-[13px] font-bold tracking-[0.06em] text-[var(--cares-primary)] uppercase shadow-[0_8px_20px_-10px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,1)] ring-1 ring-black/10 backdrop-blur-md sm:px-8 sm:text-[15px]`}
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 bg-gradient-to-b from-white/70 to-transparent"
+              />
+              Departmental CARES coordinators
+            </p>
+          </div>
+          <LandingOrgConnector className="h-5" />
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {LANDING_ORG_COORDINATORS.map((coordinator, index) => (
-              <LandingReveal key={coordinator.name} as="li" index={index % 5}>
-                <div className="group flex h-full flex-col items-center rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-gray-200 transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                  <span className="h-16 w-16 overflow-hidden rounded-full ring-2 ring-emerald-100 transition-[box-shadow] duration-300 group-hover:ring-emerald-400">
-                    <img
-                      src={coordinator.photo}
-                      alt={coordinator.name}
-                      loading="lazy"
-                      className="h-full w-full scale-110 object-cover object-top transition-transform duration-500 group-hover:scale-125"
-                    />
-                  </span>
-                  <p className="mt-2.5 text-[13px] leading-snug font-semibold text-balance text-gray-900">
-                    {coordinator.name}
-                  </p>
-                  <p className="mt-1 text-[11px] leading-snug tracking-wide text-balance text-gray-500 uppercase">
-                    {coordinator.role}
-                  </p>
-                </div>
+            {LANDING_ORG_UNITS.map((unit, index) => (
+              <LandingReveal
+                key={unit.department}
+                as="li"
+                index={index % 5}
+                staggerMs={STAGGER}
+              >
+                <LandingOrgUnitCard unit={unit} />
               </LandingReveal>
             ))}
           </ul>
         </div>
 
         <LandingOrgConnector />
-        <LandingReveal className="flex justify-center">
+        <LandingReveal index={0} staggerMs={STAGGER} className="flex justify-center">
           <LandingOrgGroupNode label={LANDING_ORG_GROUPS.faculty} />
         </LandingReveal>
         <LandingOrgConnector />
-        <LandingReveal className="flex justify-center">
+        <LandingReveal index={1} staggerMs={STAGGER} className="flex justify-center">
           <LandingOrgGroupNode label={LANDING_ORG_GROUPS.students} />
         </LandingReveal>
-
-        <p className="mt-8 text-center text-[11px] text-gray-400">{LANDING_ORG_SOURCE}</p>
       </div>
     </section>
   )
