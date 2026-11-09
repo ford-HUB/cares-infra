@@ -483,9 +483,13 @@ List<_Block> _parseBlocks(String markdown) {
       continue;
     }
 
-    // A wrapped line continues the list item above it.
+    // A wrapped line continues the list item above it — indented, or (as on
+    // GitHub) any line straight after the item with no blank line between.
     final last = blocks.isEmpty ? null : blocks.last;
-    if (paragraph.isEmpty && last is _ListItem && line.startsWith(' ')) {
+    final followsItem = i > 0 && lines[i - 1].trim().isNotEmpty;
+    if (paragraph.isEmpty &&
+        last is _ListItem &&
+        (line.startsWith(' ') || followsItem)) {
       last.text = '${last.text} $trimmed';
       continue;
     }
