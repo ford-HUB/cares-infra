@@ -36,7 +36,7 @@ class RegistrationProgressHeader extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.accent,
+                color: AppColors.textSecondary,
               ),
             ),
           ],

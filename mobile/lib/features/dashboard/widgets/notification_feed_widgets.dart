@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/session/app_role.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/models/notification_models.dart';
+import 'package:mobile/shared/widgets/ground_card.dart';
 
 /// "Showing Volunteer updates" plus, when other sides of the account have
 /// unread news, one line per side with a button to switch over to it.
@@ -140,102 +141,102 @@ class NotificationTile extends StatelessWidget {
     final accent = notification.attention
         ? AppColors.accentOrange
         : AppColors.primary;
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppColors.cardRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppColors.cardRadius),
-        child: Ink(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppColors.cardRadius),
-            border: Border.all(
-              color: notification.isUnread
-                  ? AppColors.primary.withValues(alpha: 0.25)
-                  : AppColors.borderLight,
+    return GroundCard(
+      wave: true,
+      onTap: onTap,
+      padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: AppDecorations.iconTile(tint: accent),
+            child: Icon(
+              iconForNotificationType(notification.type),
+              size: 28,
+              color: accent,
             ),
-            color: notification.isUnread
-                ? AppColors.primary.withValues(alpha: 0.04)
-                : AppColors.surface,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  iconForNotificationType(notification.type),
-                  size: 20,
-                  color: accent,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            notification.title,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: notification.isUnread
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        if (notification.isUnread)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.only(left: 8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.accentBright,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      notification.message,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${notification.type.label} · ${notification.timeAgo}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textMuted.withValues(alpha: 0.8),
-              ),
-            ],
+          Container(
+            width: 1.5,
+            height: 50,
+            margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
+            color: AppColors.primary.withValues(alpha: 0.35),
           ),
-        ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  notification.title,
+                  style: TextStyle(
+                    fontSize: 17.5,
+                    height: 1.25,
+                    fontWeight: notification.isUnread
+                        ? FontWeight.w800
+                        : FontWeight.w700,
+                    color: AppColors.deepHeaderTop,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  notification.message,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(AppColors.pillRadius),
+                  ),
+                  child: Text(
+                    '${notification.type.label} · ${notification.timeAgo}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (notification.isUnread)
+                  Container(
+                    width: 10,
+                    height: 10,
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF3E9B2E),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 28,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

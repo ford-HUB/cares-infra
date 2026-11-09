@@ -48,7 +48,7 @@ class RegisterFormField extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondary.withValues(alpha: 0.95),
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 6),
@@ -72,16 +72,12 @@ class RegisterFormField extends StatelessWidget {
             suffixIcon:
                 suffixIcon ??
                 (readOnly
-                    ? Icon(
-                        Icons.lock_outline,
-                        size: 18,
-                        color: AppColors.secondary.withValues(alpha: 0.55),
+                    ? const Icon(
+                        Icons.lock_outline_rounded,
+                        size: 22,
+                        color: AppColors.primary,
                       )
                     : null),
-            filled: readOnly,
-            fillColor: readOnly
-                ? AppColors.fieldFill.withValues(alpha: 0.65)
-                : null,
           ),
         ),
       ],

@@ -59,15 +59,12 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: widget.isExpanded
-              ? widget.accentColor
-              : const Color(0xFFE6EFE3),
+          color: widget.isExpanded ? widget.accentColor : AppColors.cardBorder,
           width: widget.isExpanded ? 1.5 : 1,
         ),
-        // The page behind these cards is white, so they need their own lift.
         boxShadow: [
           BoxShadow(
             color: widget.isExpanded
@@ -87,7 +84,7 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
             child: InkWell(
               onTap: _handleTap,
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 22, 18, 22),
                 child: Row(
                   children: [
                     _RoleIconTile(
@@ -95,7 +92,7 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
                       accentColor: widget.accentColor,
                       isActive: widget.isExpanded,
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 18),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,20 +100,18 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
                           Text(
                             widget.roleType.title,
                             style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                               color: AppColors.primaryDark,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
                             widget.roleType.subtitle,
-                            style: TextStyle(
-                              fontSize: 13,
+                            style: const TextStyle(
+                              fontSize: 15,
                               height: 1.35,
-                              color: AppColors.secondary.withValues(
-                                alpha: 0.95,
-                              ),
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -127,11 +122,11 @@ class _RegistrationRoleOptionCardState extends State<RegistrationRoleOptionCard>
                     Icon(
                       widget.isExpanded
                           ? Icons.keyboard_arrow_up_rounded
-                          : Icons.arrow_forward_ios_rounded,
-                      size: widget.isExpanded ? 24 : 16,
+                          : Icons.chevron_right_rounded,
+                      size: widget.isExpanded ? 26 : 28,
                       color: widget.isExpanded
                           ? widget.accentColor
-                          : AppColors.textMuted,
+                          : AppColors.primary,
                     ),
                   ],
                 ),
@@ -177,8 +172,8 @@ class _RoleIconTile extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
-      width: 54,
-      height: 54,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -190,7 +185,7 @@ class _RoleIconTile extends StatelessWidget {
                   accentColor.withValues(alpha: 0.07),
                 ],
         ),
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isActive
               ? Colors.transparent

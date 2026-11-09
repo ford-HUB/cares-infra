@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/shared/widgets/empty_illustration.dart';
+import 'package:mobile/shared/widgets/ground_card.dart';
 
 class DashboardEmptyState extends StatelessWidget {
   const DashboardEmptyState({
@@ -15,35 +17,28 @@ class DashboardEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.fieldBorder),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 36,
-            color: AppColors.secondary.withValues(alpha: 0.75),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.35,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+      child: GroundCard(
+        wave: true,
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            EmptyIllustration(icon: icon, size: 72),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

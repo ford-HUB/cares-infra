@@ -89,7 +89,7 @@ class _SwitchRoleScreenState extends State<SwitchRoleScreen> {
             style: TextStyle(
               fontSize: 13,
               height: 1.45,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 18),
@@ -125,7 +125,7 @@ class _SwitchRoleScreenState extends State<SwitchRoleScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       height: 1.45,
-                      color: AppColors.secondary.withValues(alpha: 0.95),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -223,7 +223,7 @@ class _RoleCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.4,
-                        color: AppColors.secondary.withValues(alpha: 0.95),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -313,7 +313,7 @@ class _SwitchRoleConfirmDialog extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
-                color: AppColors.secondary.withValues(alpha: 0.95),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 16),
@@ -473,7 +473,7 @@ class _RoleBadge extends StatelessWidget {
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondary.withValues(alpha: 0.9),
+            color: AppColors.textSecondary,
           ),
         ),
       ],

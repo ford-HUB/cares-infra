@@ -783,7 +783,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondary.withValues(alpha: 0.95),
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 6),

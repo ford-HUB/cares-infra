@@ -258,7 +258,7 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
           style: TextStyle(
             fontSize: 14,
             height: 1.45,
-            color: AppColors.secondary.withValues(alpha: 0.9),
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -643,7 +643,7 @@ class _CardFace extends StatelessWidget {
                     isFront ? 'Upload front of ID' : 'Upload back of ID',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.secondary.withValues(alpha: 0.85),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   if (canFlipHint && isFront) ...[
@@ -853,7 +853,7 @@ class _PreviewPanel extends StatelessWidget {
                             'Not uploaded',
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.secondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],

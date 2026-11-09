@@ -111,10 +111,7 @@ class LeadingStoryState extends State<LeadingStory> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    LeadingProgress(
-                      count: leadingSlides.length,
-                      index: _index,
-                    ),
+                    LeadingProgress(count: leadingSlides.length, index: _index),
                     const SizedBox(height: 6),
                     _TopBar(
                       showBack: _index > 0,

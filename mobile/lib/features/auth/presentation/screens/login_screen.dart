@@ -1,12 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:mobile/core/constants/app_assets.dart';
-import 'package:mobile/core/constants/app_copy.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/auth_login_service.dart';
 import 'package:mobile/features/auth/data/auth_registration_service.dart';
 import 'package:mobile/features/auth/data/donor_auth_service.dart';
@@ -17,10 +13,14 @@ import 'package:mobile/features/auth/presentation/screens/register_donor_screen.
 import 'package:mobile/features/auth/presentation/screens/register_type_selection_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/registration_under_review_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:mobile/features/auth/presentation/widgets/app_version_badge.dart';
 import 'package:mobile/features/auth/presentation/widgets/donor_only_sign_in_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/forgot_password_dialog.dart';
+import 'package:mobile/features/auth/presentation/widgets/login/login_form_card.dart';
+import 'package:mobile/features/auth/presentation/widgets/login/login_hero_header.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
-import 'package:mobile/features/auth/presentation/widgets/weather_panel.dart';
+import 'package:mobile/shared/widgets/brand_wave.dart';
+import 'package:mobile/shared/widgets/staggered_reveal.dart';
 
 /// Sign-in screen — shown after the entry splash completes.
 class LoginScreen extends StatefulWidget {
@@ -78,12 +78,6 @@ class _LoginScreenState extends State<LoginScreen>
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  double _interval(double t, double start, double end) {
-    if (t <= start) return 0;
-    if (t >= end) return 1;
-    return Curves.easeOutCubic.transform((t - start) / (end - start));
   }
 
   void _showMessage(String message) {
@@ -323,400 +317,117 @@ class _LoginScreenState extends State<LoginScreen>
     });
   }
 
+  void _openRegister() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const RegisterTypeSelectionScreen(),
+      ),
+    );
+  }
+
+  /// How far the card rides up over the hero's wave.
+  static const double _cardOverlap = 40;
+  static const double _footerWaveHeight = 92;
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _introController,
-      builder: (context, _) {
-        final t = _introController.value;
-
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildPullableHeader(t),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
-                  child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: AnimatedBuilder(
+          animation: _introController,
+          builder: (context, _) {
+            final t = _introController.value;
+            return LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Stack(
                     children: [
-                      _buildForm(t),
-                      const SizedBox(height: 18),
-                      _field(t, 0.58, 0.76, _registerRow()),
-                      const SizedBox(height: 24),
-                      _buildFooter(t),
+                      const Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: BrandWave.footer(height: _footerWaveHeight),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          LoginHeroHeader(
+                            progress: t,
+                            onPullStart: widget.onHeaderPullStart,
+                            onPullUpdate: widget.onHeaderPullUpdate,
+                            onPullEnd: widget.onHeaderPullEnd,
+                          ),
+                          Transform.translate(
+                            offset: const Offset(0, -_cardOverlap),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: _buildBody(t),
+                            ),
+                          ),
+                          // Keeps the register prompt clear of the footer wave.
+                          const SizedBox(height: _footerWaveHeight - 30),
+                        ],
+                      ),
+                      // Release version on the footer band; opens the notes.
+                      Positioned(
+                        right: 4,
+                        bottom: 2 + MediaQuery.viewPaddingOf(context).bottom,
+                        child: StaggeredReveal(
+                          progress: t,
+                          start: 0.7,
+                          end: 1,
+                          lift: 10,
+                          child: const AppVersionBadge(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// The header doubles as the grip for pulling the leading story back down:
-  /// a drag here wins over the page scroll, and a small handle with a hint
-  /// sits in the status-bar gap to say so.
-  Widget _buildPullableHeader(double t) {
-    if (widget.onHeaderPullUpdate == null) return _buildHeader(t);
-
-    final topInset = MediaQuery.paddingOf(context).top;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onVerticalDragStart: widget.onHeaderPullStart,
-      onVerticalDragUpdate: widget.onHeaderPullUpdate,
-      onVerticalDragEnd: widget.onHeaderPullEnd,
-      child: Stack(
-        children: [
-          // Extra headroom so the hint clears the weather panel.
-          _buildHeader(t, extraTop: 14),
-          Positioned(
-            top: topInset + 6,
-            left: 0,
-            right: 0,
-            child: Opacity(
-              opacity: _interval(t, 0.5, 0.9),
-              child: Column(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppCopy.leadingPullHint,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.2,
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Green band carrying the wordmark and the live weather. The rest of the
-  /// page stays white so the sign-in card is the thing you look at.
-  Widget _buildHeader(double t, {double extraTop = 0}) {
-    final topInset = MediaQuery.paddingOf(context).top;
-    final titleOpacity = _interval(t, 0.1, 0.4);
-    final subtitleOpacity = _interval(t, 0.2, 0.5);
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-        color: AppColors.primaryDark,
-        // The outreach photo carries the texture. BlendMode.color keeps its
-        // light and shade but repaints every hue in the palette green, so the
-        // band still reads as one green header rather than a photo.
-        image: const DecorationImage(
-          image: AssetImage(AppAssets.loginEntryBanner),
-          fit: BoxFit.cover,
-          alignment: Alignment.center,
-          colorFilter: ColorFilter.mode(AppColors.primary, BlendMode.color),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x331F5F28),
-            blurRadius: 24,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      // Scrim: the band's original gradient, now translucent so the photo
-      // shows through — opaque at the top-left to hold the wordmark, thinner
-      // toward the bottom-right behind the sun panel.
-      child: Container(
-        padding: EdgeInsets.fromLTRB(24, topInset + 20 + extraTop, 24, 32),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(
-            bottom: Radius.circular(32),
-          ),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primaryDark.withValues(alpha: 0.92),
-              AppColors.primary.withValues(alpha: 0.82),
-              AppColors.secondary.withValues(alpha: 0.70),
-            ],
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // No fixed height here: the panel sizes itself from `width`, and
-            // clamping it would clip the weather animation.
-            Align(
-              alignment: Alignment.centerRight,
-              child: WeatherPanel(
-                width: math.min(MediaQuery.sizeOf(context).width * 0.46, 190),
-                progress: t,
-              ),
-            ),
-            Opacity(
-              opacity: titleOpacity,
-              child: Transform.translate(
-                offset: Offset(0, (1 - titleOpacity) * 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'WELCOME BACK',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.4,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      AppCopy.appName,
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 2,
-                        height: 1.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Opacity(
-              opacity: subtitleOpacity,
-              child: Transform.translate(
-                offset: Offset(0, (1 - subtitleOpacity) * 14),
-                child: const Text(
-                  AppCopy.fullName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: Color(0xFFE3F2E4),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildForm(double t) {
-    return _field(
-      t,
-      0.3,
-      0.6,
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: AppDecorations.surfaceCard().copyWith(
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x121F5F28),
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Sign in to your account',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.primaryDark,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Use the email and password you registered with, or the '
-              'Google / Facebook account you signed up through.',
-              style: TextStyle(
-                fontSize: 12.5,
-                height: 1.35,
-                color: AppColors.secondary.withValues(alpha: 0.9),
-              ),
-            ),
-            const SizedBox(height: 18),
-            _emailField(),
-            const SizedBox(height: 14),
-            _passwordField(),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _isBusy ? null : _forgotPassword,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  minimumSize: const Size(0, 32),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Forgot password?',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _isBusy ? null : _signIn,
-              child: _isSigningIn
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Sign In'),
-            ),
-            const SizedBox(height: 20),
-            // Donors who signed up through Google / Facebook have no password to
-            // type, so the same providers sign them in here.
-            SocialAuthButtons(
-              compact: true,
-              dividerLabel: 'donors continue with',
-              enabled: !_isBusy,
-              pendingProvider: _pendingProvider,
-              onProviderTap: _signInWithProvider,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _emailField() {
-    return TextField(
-      controller: _emailController,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.next,
-      decoration: const InputDecoration(
-        hintText: 'Email address',
-        prefixIcon: Icon(Icons.mail_outline_rounded),
-        // A soft tint keeps the fields legible inside the white card.
-        fillColor: AppColors.background,
-      ),
-    );
-  }
-
-  Widget _passwordField() {
-    return TextField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      textInputAction: TextInputAction.done,
-      decoration: InputDecoration(
-        hintText: 'Password',
-        fillColor: AppColors.background,
-        prefixIcon: const Icon(Icons.lock_outline_rounded),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword
-                ? Icons.visibility_outlined
-                : Icons.visibility_off_outlined,
-          ),
-          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-        ),
-      ),
-    );
-  }
-
-  Widget _registerRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "Don't have an account? ",
-          style: TextStyle(
-            color: AppColors.secondary.withValues(alpha: 0.9),
-            fontSize: 14,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const RegisterTypeSelectionScreen(),
               ),
             );
           },
-          child: const Text(
-            'Register',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(double t) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        StaggeredReveal(
+          progress: t,
+          start: 0.3,
+          end: 0.6,
+          child: LoginFormCard(
+            emailController: _emailController,
+            passwordController: _passwordController,
+            obscurePassword: _obscurePassword,
+            onToggleObscure: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
+            isSigningIn: _isSigningIn,
+            isBusy: _isBusy,
+            pendingProvider: _pendingProvider,
+            onSignIn: _signIn,
+            onForgotPassword: _forgotPassword,
+            onProviderTap: _signInWithProvider,
           ),
         ),
+        const SizedBox(height: 12),
+        StaggeredReveal(
+          progress: t,
+          start: 0.58,
+          end: 0.8,
+          child: LoginRegisterPrompt(onRegister: _openRegister),
+        ),
       ],
-    );
-  }
-
-  Widget _field(double t, double start, double end, Widget child) {
-    final opacity = _interval(t, start, end);
-    return Opacity(
-      opacity: opacity,
-      child: Transform.translate(
-        offset: Offset(0, (1 - opacity) * 28),
-        child: child,
-      ),
-    );
-  }
-
-  Widget _buildFooter(double t) {
-    final opacity = _interval(t, 0.72, 0.95);
-    return Opacity(
-      opacity: opacity,
-      child: Column(
-        children: [
-          Text(
-            AppCopy.slogan,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondary.withValues(alpha: 0.85),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            AppCopy.visionSnippet,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              height: 1.35,
-              color: AppColors.textMuted.withValues(alpha: 0.95),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -21,13 +21,13 @@ class EventTimeFilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 38,
+      height: 46,
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: gutter),
         clipBehavior: Clip.none,
         scrollDirection: Axis.horizontal,
         itemCount: EventTimeRange.values.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final range = EventTimeRange.values[index];
           final isSelected = range == selected;
@@ -38,23 +38,24 @@ class EventTimeFilterChips extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppColors.pillRadius),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 22),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  color: isSelected ? AppColors.primaryDark : Colors.white,
                   borderRadius: BorderRadius.circular(AppColors.pillRadius),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.borderCard,
+                        ? AppColors.primaryDark
+                        : AppColors.cardBorder,
+                    width: 1.4,
                   ),
                 ),
                 child: Text(
                   range.label,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? Colors.white : AppColors.primaryDark,
                   ),
                 ),
               ),

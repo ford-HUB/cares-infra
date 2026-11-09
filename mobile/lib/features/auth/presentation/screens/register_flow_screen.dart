@@ -29,6 +29,8 @@ import 'package:mobile/features/auth/presentation/screens/email_verification_scr
 import 'package:mobile/features/auth/presentation/screens/registration_under_review_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_id_upload_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_review_step.dart';
+import 'package:mobile/shared/widgets/gradient_button.dart';
+import 'package:mobile/shared/widgets/header_band.dart';
 
 /// Registration steps. Beneficiaries do not present an ID and are not face
 /// scanned, so their flow omits [_RegisterStep.idUpload] and
@@ -417,8 +419,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
               if (_isBeneficiary) {
                 Navigator.of(otpContext).pushAndRemoveUntil(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        RegistrationUnderReviewScreen(email: email),
+                    builder: (_) => RegistrationUnderReviewScreen(email: email),
                   ),
                   (route) => route.isFirst,
                 );
@@ -622,16 +623,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
                   20,
                   12 + MediaQuery.paddingOf(context).bottom,
                 ),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Color(0xFFE6EFE3))),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _canContinue ? () => unawaited(_next()) : null,
-                    child: Text(_continueLabel),
-                  ),
+                child: GradientButton(
+                  label: _continueLabel,
+                  onPressed: _canContinue ? () => unawaited(_next()) : null,
                 ),
               ),
           ],
@@ -809,90 +803,69 @@ class _FlowHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(12, topInset + 6, 20, 20),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primaryDark,
-            AppColors.primary,
-            AppColors.secondary,
-          ],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x2E1F5F28),
-            blurRadius: 22,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
+    return HeaderBand(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              IconButton(
-                onPressed: onBack,
-                icon: const Icon(Icons.arrow_back_rounded),
-                color: Colors.white,
-                disabledColor: Colors.white54,
-                tooltip: 'Back',
+              Semantics(
+                button: true,
+                label: 'Back',
+                child: InkWell(
+                  onTap: onBack,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 8, 14, 8),
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      size: 26,
+                      color: onBack == null ? Colors.white54 : Colors.white,
+                    ),
+                  ),
+                ),
               ),
               Text(
-                'STEP ${stepIndex + 1} OF $stepCount',
+                'Step ${stepIndex + 1} of $stepCount',
                 style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                  color: Colors.white.withValues(alpha: 0.85),
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.95),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  stepLabel,
-                  style: const TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.2,
+          const SizedBox(height: 14),
+          Text(
+            stepLabel,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              height: 1.15,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              for (var index = 0; index < stepCount; index++) ...[
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: index <= stepIndex
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    for (var index = 0; index < stepCount; index++) ...[
-                      Expanded(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: index <= stepIndex
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.28),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      if (index < stepCount - 1) const SizedBox(width: 6),
-                    ],
-                  ],
-                ),
+                if (index < stepCount - 1) const SizedBox(width: 8),
               ],
-            ),
+            ],
           ),
         ],
       ),

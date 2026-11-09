@@ -79,7 +79,7 @@ class _TermsAgreementCheckboxState extends State<TermsAgreementCheckbox> {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
-                  color: AppColors.secondary.withValues(alpha: 0.95),
+                  color: AppColors.textSecondary,
                 ),
                 children: [
                   const TextSpan(text: 'I agree to the '),

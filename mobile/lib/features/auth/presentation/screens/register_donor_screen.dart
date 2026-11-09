@@ -492,7 +492,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.3,
-              color: AppColors.secondary.withValues(alpha: 0.9),
+              color: AppColors.textSecondary,
             ),
           ),
         ),
@@ -901,7 +901,7 @@ class _LinkedAccountCard extends StatelessWidget {
                       account.email,
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: AppColors.secondary.withValues(alpha: 0.95),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -927,7 +927,7 @@ class _LinkedAccountCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.secondary,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -999,7 +999,7 @@ class _FormCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.5,
                         height: 1.35,
-                        color: AppColors.secondary.withValues(alpha: 0.9),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],

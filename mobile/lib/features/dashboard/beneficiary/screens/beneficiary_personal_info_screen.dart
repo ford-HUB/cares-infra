@@ -425,7 +425,7 @@ class _PhotoSection extends StatelessWidget {
                   photoLabel ?? 'No photo uploaded yet',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.secondary.withValues(alpha: 0.95),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -481,7 +481,7 @@ class _SectionCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               height: 1.35,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),

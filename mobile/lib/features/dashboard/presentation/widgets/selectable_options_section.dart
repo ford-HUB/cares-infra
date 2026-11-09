@@ -47,17 +47,14 @@ class SelectableOptionsSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               height: 1.35,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 14),
           if (options.isEmpty)
             Text(
               emptyMessage ?? 'No options available right now.',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.secondary.withValues(alpha: 0.9),
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             )
           else
             ...options.map((option) {

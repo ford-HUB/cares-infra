@@ -183,7 +183,7 @@ class _UpdateEmailScreenState extends State<UpdateEmailScreen> {
                   style: TextStyle(
                     fontSize: 12.5,
                     height: 1.4,
-                    color: AppColors.textSecondary.withValues(alpha: 0.95),
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],

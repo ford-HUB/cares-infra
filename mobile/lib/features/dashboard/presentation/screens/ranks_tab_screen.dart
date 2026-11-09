@@ -51,7 +51,7 @@ class RanksTabScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.secondary.withValues(alpha: 0.95),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -107,7 +107,7 @@ class RanksTabScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.secondary.withValues(alpha: 0.9),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],

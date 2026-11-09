@@ -174,7 +174,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 Text(
                   _error!,
                   style: const TextStyle(
-                    color: AppColors.secondary,
+                    color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
                   textAlign: TextAlign.center,

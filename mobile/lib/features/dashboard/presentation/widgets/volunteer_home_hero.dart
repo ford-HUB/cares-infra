@@ -50,13 +50,13 @@ class VolunteerHomeHero extends ConsumerWidget {
   final HeroStanding? standing;
 
   /// Deep forest ground the whole header sits on.
-  static const Color ink = Color(0xFF12291A);
+  static const Color ink = AppColors.deepHeaderTop;
 
   static const double gutter = 20;
   static const double _topPad = 12;
-  static const double _avatarSize = 48;
-  static const double _rowGap = 18;
-  static const double _searchHeight = 50;
+  static const double _avatarSize = 58;
+  static const double _rowGap = 20;
+  static const double _searchHeight = 54;
   static const double _bottomPad = 6;
 
   /// Full height including the status-bar inset.
@@ -110,7 +110,12 @@ class VolunteerHomeHero extends ConsumerWidget {
                     ),
                     const SizedBox(width: 14),
                     Expanded(child: _Welcome(name: displayName)),
-                    const SizedBox(width: 8),
+                    Container(
+                      width: 1.2,
+                      height: 40,
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      color: Colors.white.withValues(alpha: 0.28),
+                    ),
                     _RankBlock(rank: rank, tier: tier),
                     const _NotificationBell(),
                   ],
@@ -150,11 +155,11 @@ class _Welcome extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Hi Welcome 👋',
+          'Welcome',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.7),
+            color: Colors.white.withValues(alpha: 0.92),
           ),
         ),
         const SizedBox(height: 2),
@@ -163,10 +168,11 @@ class _Welcome extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 24,
             fontWeight: FontWeight.w800,
             color: Colors.white,
             letterSpacing: -0.2,
+            height: 1.1,
           ),
         ),
       ],
@@ -236,9 +242,9 @@ class _RankBlock extends StatelessWidget {
         Text(
           tier == null ? 'Your rank' : '${tier!.label} · rank',
           style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withValues(alpha: 0.92),
           ),
         ),
         const SizedBox(height: 2),
@@ -248,16 +254,16 @@ class _RankBlock extends StatelessWidget {
             Text(
               rank == null ? '—' : '#$rank',
               style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 3),
+            const SizedBox(width: 4),
             const Icon(
               Icons.emoji_events_rounded,
-              size: 14,
-              color: AppColors.accentOrange,
+              size: 18,
+              color: Color(0xFFFFC233),
             ),
           ],
         ),
@@ -285,7 +291,7 @@ class _NotificationBell extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () => DashboardNotificationsScreen.open(context),
-          icon: const Icon(Icons.notifications_none_rounded),
+          icon: const Icon(Icons.notifications_none_rounded, size: 28),
           color: Colors.white,
           tooltip: 'Notifications',
           visualDensity: VisualDensity.compact,
@@ -320,14 +326,14 @@ class _SearchPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.1),
+      color: AppColors.onHeaderField,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.28)),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
           child: Row(
@@ -342,9 +348,9 @@ class _SearchPill extends StatelessWidget {
                 child: Text(
                   'Find amazing events',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: Colors.white.withValues(alpha: 0.88),
                   ),
                 ),
               ),
@@ -365,18 +371,18 @@ class _FilterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.1),
+      color: AppColors.onHeaderField,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         side: BorderSide(
           color: active
               ? AppColors.accentOrange
-              : Colors.white.withValues(alpha: 0.12),
+              : Colors.white.withValues(alpha: 0.28),
         ),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         child: SizedBox(
           width: VolunteerHomeHero._searchHeight,
           height: VolunteerHomeHero._searchHeight,
@@ -384,7 +390,7 @@ class _FilterButton extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
               const Center(
-                child: Icon(Icons.tune_rounded, size: 22, color: Colors.white),
+                child: Icon(Icons.tune_rounded, size: 26, color: Colors.white),
               ),
               if (active)
                 Positioned(

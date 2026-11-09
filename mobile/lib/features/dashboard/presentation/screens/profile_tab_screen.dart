@@ -1936,7 +1936,7 @@ class _EmptySectionHint extends StatelessWidget {
 
         height: 1.35,
 
-        color: AppColors.secondary.withValues(alpha: 0.95),
+        color: AppColors.textSecondary,
       ),
     );
 
@@ -2086,7 +2086,7 @@ class _InfoRow extends StatelessWidget {
 
                     fontWeight: FontWeight.w500,
 
-                    color: AppColors.secondary.withValues(alpha: 0.9),
+                    color: AppColors.textSecondary,
                   ),
                 ),
 

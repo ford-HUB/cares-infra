@@ -91,6 +91,17 @@ abstract final class AppCopy {
   static const String leadingBackCta = 'Back';
   static const String leadingPullHint = 'Pull down for our story';
 
+  static const String loginTitle = 'Welcome!';
+  static const String loginSubtitle =
+      'Volunteers and Beneficiaries can sign in using their email and password.';
+  static const String loginEmailHint = 'Email address';
+  static const String loginPasswordHint = 'Password';
+  static const String loginForgotPassword = 'Forgot password?';
+  static const String loginSignIn = 'Sign In';
+  static const String loginDonorDivider = 'Donors continue with';
+  static const String loginNoAccount = "Don't have an account? ";
+  static const String loginRegister = 'Register';
+
   /// Leading story told between the splash and login — one beat per photo in
   /// assets/images/leadings/, ordered from first light to the Christmas team.
   static const List<LeadingSlideCopy> leadingSlides = [
@@ -130,6 +141,50 @@ abstract final class AppCopy {
           'work alongside fellow volunteers, and help build stronger, more empowered communities. $slogan',
     ),
   ];
+
+  // --- App update (splash) ---------------------------------------------------
+  static const String updateTitle = 'Update available';
+  static const String updateRequiredTitle = 'Update required';
+  static String updateBody(String version) =>
+      'CARES $version is ready to install.';
+  static const String updateRequiredBody =
+      'This version of CARES is no longer supported. Install the update to continue.';
+  static const String updateNow = 'Update now';
+  static const String updateLater = 'Later';
+  static const String updateRetry = 'Try again';
+  static const String updateDownloading = 'Downloading update';
+  static const String updateInstalling =
+      'Finish the update in the Android installer.';
+  static const String updateInstallerHint =
+      "Didn't see the installer? Tap Try again.";
+  static const String updateWhatsNew = "What's new";
+  static const String updateInstallBlocked =
+      'Allow CARES to install apps, then try again.';
+  static const String updateChecksumFailed =
+      'The download was damaged. Please try again.';
+  static const String updateDownloadFailed =
+      'The update could not be downloaded. Check your connection and try again.';
+
+  // --- Release notes (login version badge) -----------------------------------
+  static const String releaseNotesTitle = 'Release notes';
+  static String releaseNotesInstalledBody(String version) =>
+      "You're on CARES v$version.";
+  static String releaseNotesUpdateBody(String installed, String latest) =>
+      "You're on v$installed. v$latest is ready to install.";
+  static String releaseNotesUpdateTo(String version) => 'Update to v$version';
+  static const String releaseNotesLatest = 'Latest';
+  static const String releaseNotesInstalled = 'Installed';
+  static const String releaseNotesRequired = 'Required';
+  static const String releaseNotesNoNotes = 'No notes for this release.';
+  static const String releaseNotesEmpty =
+      'No releases have been published yet.';
+  static const String releaseNotesUnavailable =
+      'Release notes are not available in this build.';
+  static const String releaseNotesLoadFailed =
+      "Couldn't load the release notes. Check your connection and try again.";
+  static const String releaseNotesViewOnGitHub = 'View on GitHub';
+  static const String releaseNotesAllOnGitHub = 'All releases on GitHub';
+  static const String releaseNotesOpenFailed = "Couldn't open GitHub.";
 }
 
 /// One beat of the leading story: a short label, a headline, and a line of body.

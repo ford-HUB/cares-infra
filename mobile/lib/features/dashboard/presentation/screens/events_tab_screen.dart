@@ -17,6 +17,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/home_section_head
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/events_page_widgets.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
+import 'package:mobile/shared/widgets/header_band.dart';
 
 /// Browse and search events: a centred "For You" title, a search pill, quick
 /// date chips (Today / Tomorrow / This Week / This Month), then the "Events"
@@ -173,42 +174,47 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
       child: ColoredBox(
         color: AppColors.background,
         child: SafeArea(
+          top: false,
           bottom: false,
           child: CustomScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             slivers: [
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(_gutter, 12, _gutter, 0),
-                  child: DiscoverHeader(
-                    title: 'For You',
-                    subtitle: _subtitle(
-                      events.length,
-                      loading: catalog.isLoading,
-                    ),
+                child: HeaderBand.deep(
+                  padding: const EdgeInsets.fromLTRB(_gutter, 16, _gutter, 26),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      DiscoverHeader(
+                        title: 'For You',
+                        onDark: true,
+                        subtitle: _subtitle(
+                          events.length,
+                          loading: catalog.isLoading,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      SmartEventSearchBar(
+                        onDark: true,
+                        hintText: 'Search events',
+                        radius: AppColors.pillRadius,
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        query: _query,
+                        onQueryChanged: (value) =>
+                            setState(() => _query = value),
+                        onSuggestionTap: _applySuggestion,
+                        onClear: _clearSearch,
+                        showSuggestions: showSuggestions,
+                        suggestions: _suggestions,
+                      ),
+                    ],
                   ),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(_gutter, 16, _gutter, 0),
-                  child: SmartEventSearchBar(
-                    hintText: 'Search events',
-                    radius: AppColors.pillRadius,
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    query: _query,
-                    onQueryChanged: (value) => setState(() => _query = value),
-                    onSuggestionTap: _applySuggestion,
-                    onClear: _clearSearch,
-                    showSuggestions: showSuggestions,
-                    suggestions: _suggestions,
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 14),
+                  padding: const EdgeInsets.only(top: 18),
                   child: EventTimeFilterChips(
                     selected: _range,
                     gutter: _gutter,
@@ -353,7 +359,7 @@ class _NoInterestsState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary.withValues(alpha: 0.9),
+                color: AppColors.textSecondary,
                 height: 1.45,
               ),
             ),

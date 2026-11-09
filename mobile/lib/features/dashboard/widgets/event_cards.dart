@@ -76,7 +76,7 @@ class _FeaturedEventsCarouselState extends State<FeaturedEventsCarousel> {
                   'Swipe to explore',
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary.withValues(alpha: 0.9),
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],

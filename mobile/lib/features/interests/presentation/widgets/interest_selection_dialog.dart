@@ -134,13 +134,12 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
                 child: GridView.builder(
                   shrinkWrap: true,
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.86,
-                      ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.86,
+                  ),
                   itemCount: _options.length,
                   itemBuilder: (_, index) {
                     final interest = _options[index];
@@ -211,7 +210,7 @@ class _DialogHeader extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             height: 1.45,
-            color: AppColors.secondary.withValues(alpha: 0.95),
+            color: AppColors.textSecondary,
           ),
         ),
       ],

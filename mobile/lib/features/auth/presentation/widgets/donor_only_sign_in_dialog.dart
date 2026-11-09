@@ -58,10 +58,7 @@ class DonorOnlySignInDialog extends StatelessWidget {
                 color: AppColors.textPrimary,
               ),
             ),
-            if (email.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _emailChip(),
-            ],
+            if (email.isNotEmpty) ...[const SizedBox(height: 12), _emailChip()],
             const SizedBox(height: 12),
             _note(),
             const SizedBox(height: 18),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/presentation/providers/app_update_provider.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/app_entry_intro.dart';
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_slides.dart';
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_story.dart';
+import 'package:mobile/features/auth/presentation/widgets/splash_update_panel.dart';
 
 /// Root flow: entry splash → leading story → login.
 ///
@@ -16,14 +19,19 @@ import 'package:mobile/features/auth/presentation/widgets/leading/leading_story.
 ///
 /// Once on login, dragging its header down pulls the story back over it from
 /// the top, opened on its last beat so it can be rolled back to the first.
-class AppFlow extends StatefulWidget {
+///
+/// The splash also checks GitHub Releases for a newer build while it plays.
+/// When one exists the curtain stays down and shows [SplashUpdatePanel]
+/// instead of handing off, until the person updates or picks "Later".
+class AppFlow extends ConsumerStatefulWidget {
   const AppFlow({super.key});
 
   @override
-  State<AppFlow> createState() => _AppFlowState();
+  ConsumerState<AppFlow> createState() => _AppFlowState();
 }
 
-class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
+class _AppFlowState extends ConsumerState<AppFlow>
+    with TickerProviderStateMixin {
   /// Drives the intro itself.
   late final AnimationController _introController;
 
@@ -44,6 +52,11 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
   bool _showLogin = false;
   bool _introDone = false;
   bool _assetsWarmed = false;
+
+  /// The intro animation has played out; the curtain may leave once the
+  /// update check lets it.
+  bool _introFinished = false;
+  bool _handoffStarted = false;
 
   static const Duration _slideDuration = Duration(milliseconds: 850);
 
@@ -74,12 +87,8 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
 
     _introController.addStatusListener((status) {
       if (status != AnimationStatus.completed || !mounted) return;
-      // Build the story first and let it lay out for one frame, so the cost of
-      // its first paint lands before the curtain starts moving.
-      setState(() => _showLeading = true);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _handoffController.forward();
-      });
+      _introFinished = true;
+      _maybeHandOff();
     });
 
     _handoffController.addStatusListener((status) {
@@ -90,6 +99,25 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
     });
 
     _introController.forward();
+    // Runs alongside the intro; deferred a microtask because a provider may
+    // not change state while the tree is building.
+    Future.microtask(() {
+      if (mounted) ref.read(appUpdateProvider.notifier).check();
+    });
+  }
+
+  /// Slide the curtain away once the intro has played and no update is
+  /// being offered (or the check is still out — it times out in seconds).
+  void _maybeHandOff() {
+    if (!mounted || !_introFinished || _handoffStarted) return;
+    if (ref.read(appUpdateProvider).holdsSplash) return;
+    _handoffStarted = true;
+    // Build the story first and let it lay out for one frame, so the cost of
+    // its first paint lands before the curtain starts moving.
+    setState(() => _showLeading = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _handoffController.forward();
+    });
   }
 
   @override
@@ -177,6 +205,10 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(appUpdateProvider, (_, next) {
+      if (!next.holdsSplash) _maybeHandOff();
+    });
+
     return PopScope(
       canPop: !_showLeading,
       onPopInvokedWithResult: _onSystemBack,
@@ -234,6 +266,50 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
     );
   }
 
+  /// The intro, its wordmark easing up into the top of the screen while the
+  /// update panel covers the foot.
+  Widget _buildIntro() {
+    final shows = ref.watch(appUpdateProvider.select((s) => s.showsPanel));
+    final lift = shows ? MediaQuery.sizeOf(context).height * 0.45 : 0.0;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: lift),
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.easeOutCubic,
+      builder: (context, inset, _) => AnimatedBuilder(
+        animation: _introController,
+        builder: (context, _) => AppEntryIntro(
+          progress: _introController.value,
+          contentBottomInset: inset,
+        ),
+      ),
+    );
+  }
+
+  /// Rises from the foot of the splash when an update is on offer.
+  Widget _buildUpdatePanel() {
+    final shows = ref.watch(appUpdateProvider.select((s) => s.showsPanel));
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: AnimatedSlide(
+          offset: shows ? Offset.zero : const Offset(0, 1.2),
+          duration: const Duration(milliseconds: 520),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            opacity: shows ? 1 : 0,
+            duration: const Duration(milliseconds: 320),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: shows
+                  ? const SplashUpdatePanel()
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCurtain() {
     return SlideTransition(
       position: Tween<Offset>(
@@ -255,10 +331,9 @@ class _AppFlowState extends State<AppFlow> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            child: AnimatedBuilder(
-              animation: _introController,
-              builder: (context, _) =>
-                  AppEntryIntro(progress: _introController.value),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [_buildIntro(), _buildUpdatePanel()],
             ),
           ),
         ),
