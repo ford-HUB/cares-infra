@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/shared/widgets/gradient_button.dart';
+import 'package:mobile/shared/widgets/ground_card.dart';
 
 /// Which sign-up the notice is being shown for — the copy differs per role.
 enum CaresTermsAudience {
@@ -318,13 +320,12 @@ class _CaresTermsDialogState extends State<_CaresTermsDialog> {
     final media = MediaQuery.of(context);
 
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppColors.cardRadius),
-      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 40),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: media.size.height * 0.82),
+        constraints: BoxConstraints(maxHeight: media.size.height * 0.84),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -339,47 +340,51 @@ class _CaresTermsDialogState extends State<_CaresTermsDialog> {
 
   Widget _header() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 12, 16),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      padding: const EdgeInsets.fromLTRB(22, 22, 10, 16),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.cardBorder)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
+      child: CustomPaint(
+        painter: const CardWavePainter(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${widget.audience.label} terms & privacy notice',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: IconTileHeading(
+                    icon: Icons.policy_outlined,
+                    title: '${widget.audience.label} Terms & Privacy Notice',
+                    titleSize: 21,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Scroll to the end to agree.',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    color: AppColors.textSecondary,
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 26),
+                  color: AppColors.primary,
+                  tooltip: 'Close',
+                  onPressed: () => Navigator.of(context).pop(_reachedEnd),
                 ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close_rounded, size: 20),
-            color: AppColors.textSecondary,
-            onPressed: () => Navigator.of(context).pop(_reachedEnd),
-          ),
-        ],
+            const SizedBox(height: 10),
+            const Text(
+              'Please read the following terms and privacy notice carefully '
+              'and scroll to the end to agree.',
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.4,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _body() {
+    final sections = widget.audience._sections;
     return Stack(
       children: [
         Scrollbar(
@@ -390,34 +395,51 @@ class _CaresTermsDialogState extends State<_CaresTermsDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Last updated 10 September 2026',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textMuted,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppColors.pillRadius),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.calendar_month_outlined,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Last Updated: 10 September 2026',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                for (final section in widget.audience._sections) ...[
-                  Text(
-                    section.title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                const SizedBox(height: 18),
+                for (var i = 0; i < sections.length; i++) ...[
+                  _SectionPill(number: i + 1, title: sections[i].title),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      sections[i].body,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    section.body,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.55,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 20),
                 ],
               ],
             ),
@@ -435,10 +457,7 @@ class _CaresTermsDialogState extends State<_CaresTermsDialog> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.surface.withValues(alpha: 0),
-                      AppColors.surface,
-                    ],
+                    colors: [Colors.white.withValues(alpha: 0), Colors.white],
                   ),
                 ),
               ),
@@ -450,20 +469,71 @@ class _CaresTermsDialogState extends State<_CaresTermsDialog> {
 
   Widget _footer() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderLight)),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.cardBorder)),
       ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 48,
-        child: ElevatedButton(
-          onPressed: _reachedEnd ? () => Navigator.of(context).pop(true) : null,
-          child: Text(
-            _reachedEnd ? 'Done' : 'Scroll to the end to agree',
-            style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+      child: GradientButton(
+        label: _reachedEnd ? 'Done' : 'Scroll to the end to agree',
+        onPressed: _reachedEnd ? () => Navigator.of(context).pop(true) : null,
+      ),
+    );
+  }
+}
+
+/// Numbered section heading: green number disc, thin rule, bold title, all
+/// on a pale green pill.
+class _SectionPill extends StatelessWidget {
+  const _SectionPill({required this.number, required this.title});
+
+  final int number;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+      decoration: BoxDecoration(
+        color: AppColors.secondary.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppColors.pillRadius),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryDark,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '$number',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
+          Container(
+            width: 1.5,
+            height: 24,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            color: AppColors.primaryDark.withValues(alpha: 0.5),
+          ),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16.5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.deepHeaderTop,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

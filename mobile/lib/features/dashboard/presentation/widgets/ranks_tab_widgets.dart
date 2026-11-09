@@ -373,7 +373,7 @@ class LeaderboardRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.secondary.withValues(alpha: 0.9),
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -393,7 +393,7 @@ class LeaderboardRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.secondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -456,10 +456,7 @@ class RanksError extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             message,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.secondary.withValues(alpha: 0.9),
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 10),
           TextButton.icon(
@@ -491,7 +488,7 @@ class RanksEmpty extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: AppColors.secondary.withValues(alpha: 0.95),
+          color: AppColors.textSecondary,
           height: 1.4,
         ),
       ),

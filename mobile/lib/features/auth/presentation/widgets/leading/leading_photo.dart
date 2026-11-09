@@ -19,8 +19,10 @@ class _LeadingPhotoState extends State<LeadingPhoto>
     duration: const Duration(seconds: 12),
   )..repeat(reverse: true);
 
-  late final Animation<double> _scale = Tween<double>(begin: 1.0, end: 1.08)
-      .animate(CurvedAnimation(parent: _drift, curve: Curves.easeInOutSine));
+  late final Animation<double> _scale = Tween<double>(
+    begin: 1.0,
+    end: 1.08,
+  ).animate(CurvedAnimation(parent: _drift, curve: Curves.easeInOutSine));
 
   @override
   void dispose() {

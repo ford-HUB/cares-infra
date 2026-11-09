@@ -73,7 +73,9 @@ class IdImagePreValidator {
           );
     return IdImageCheckResult(
       side: side,
-      issues: missing.isEmpty ? const [] : const [IdImageIssue.missingIdDetails],
+      issues: missing.isEmpty
+          ? const []
+          : const [IdImageIssue.missingIdDetails],
       recognizedText: text,
       missingFields: missing,
     );

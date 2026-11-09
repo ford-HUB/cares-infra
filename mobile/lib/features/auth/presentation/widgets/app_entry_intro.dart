@@ -19,10 +19,18 @@ import 'package:mobile/features/auth/presentation/widgets/dot_matrix_text.dart';
 ///   0.62-0.82  dot-matrix motto fades up beneath
 ///   0.00-1.00  wind streaks and particles cross behind everything
 class AppEntryIntro extends StatelessWidget {
-  const AppEntryIntro({super.key, required this.progress});
+  const AppEntryIntro({
+    super.key,
+    required this.progress,
+    this.contentBottomInset = 0,
+  });
 
   /// Master animation value in [0, 1].
   final double progress;
+
+  /// Lifts the wordmark and motto (and hides the loader) to clear a panel
+  /// covering the foot of the splash. The texture keeps the full field.
+  final double contentBottomInset;
 
   /// Eased slice of [progress] between [start] and [end].
   static double _seg(
@@ -58,43 +66,46 @@ class AppEntryIntro extends StatelessWidget {
         CustomPaint(painter: _WindStreakPainter(progress: progress)),
         CustomPaint(painter: _WindParticlePainter(progress: progress)),
 
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _Wordmark(progress: progress),
-              const SizedBox(height: 18),
-              // Rule draws outward from the centre, then the motto reads.
-              SizedBox(
-                height: 1,
-                width: 150 * ruleT,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withValues(alpha: 0),
-                        Colors.white.withValues(alpha: 0.55),
-                        Colors.white.withValues(alpha: 0),
-                      ],
+        Padding(
+          padding: EdgeInsets.only(bottom: contentBottomInset),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _Wordmark(progress: progress),
+                const SizedBox(height: 18),
+                // Rule draws outward from the centre, then the motto reads.
+                SizedBox(
+                  height: 1,
+                  width: 150 * ruleT,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0),
+                          Colors.white.withValues(alpha: 0.55),
+                          Colors.white.withValues(alpha: 0),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Opacity(
-                opacity: mottoT,
-                child: Transform.translate(
-                  offset: Offset(0, 8 * (1 - mottoT)),
-                  child: DotMatrixText(
-                    text: AppCopy.ringMotto,
-                    color: Colors.white.withValues(alpha: 0.9),
-                    dotSize: dot,
-                    gap: dot * 0.45,
-                    charGap: dot,
+                const SizedBox(height: 16),
+                Opacity(
+                  opacity: mottoT,
+                  child: Transform.translate(
+                    offset: Offset(0, 8 * (1 - mottoT)),
+                    child: DotMatrixText(
+                      text: AppCopy.ringMotto,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      dotSize: dot,
+                      gap: dot * 0.45,
+                      charGap: dot,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
@@ -104,7 +115,7 @@ class AppEntryIntro extends StatelessWidget {
           right: 0,
           bottom: 64,
           child: Opacity(
-            opacity: _seg(progress, 0.2, 0.38),
+            opacity: contentBottomInset > 0 ? 0 : _seg(progress, 0.2, 0.38),
             child: Center(
               child: SizedBox(
                 width: 64,

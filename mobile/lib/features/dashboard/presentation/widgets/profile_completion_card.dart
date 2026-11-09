@@ -63,7 +63,7 @@ class ProfileCompletionCard extends StatelessWidget {
                         fontSize: 12,
                         height: 1.35,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.secondary.withValues(alpha: 0.95),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],

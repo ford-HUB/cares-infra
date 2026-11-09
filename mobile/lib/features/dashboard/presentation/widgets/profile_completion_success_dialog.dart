@@ -48,7 +48,7 @@ Future<void> showProfileCompletionSuccessDialog(
             style: TextStyle(
               fontSize: 14,
               height: 1.45,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
         ],

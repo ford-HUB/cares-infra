@@ -85,10 +85,7 @@ class ActivitySection extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 12.5,
-            color: AppColors.secondary.withValues(alpha: 0.95),
-          ),
+          style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 12),
         ...children,
@@ -195,7 +192,7 @@ class ActivityEmptyState extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -304,7 +301,7 @@ class ActivityEntryCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.secondary.withValues(alpha: 0.95),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -326,7 +323,7 @@ class ActivityEntryCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.secondary.withValues(alpha: 0.95),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ),

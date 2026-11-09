@@ -50,7 +50,7 @@ class RegisterRolePlaceholderScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.5,
-                  color: AppColors.secondary.withValues(alpha: 0.95),
+                  color: AppColors.textSecondary,
                 ),
               ),
               const Spacer(),

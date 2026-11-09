@@ -7,6 +7,9 @@ import 'package:mobile/features/auth/presentation/screens/register_donor_screen.
 import 'package:mobile/features/auth/presentation/screens/register_flow_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/register_role_placeholder_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_role_option_card.dart';
+import 'package:mobile/shared/widgets/gradient_button.dart';
+import 'package:mobile/shared/widgets/header_back_control.dart';
+import 'package:mobile/shared/widgets/header_band.dart';
 
 /// First step of registration — pick volunteer, donor, or beneficiary.
 class RegisterTypeSelectionScreen extends StatefulWidget {
@@ -81,10 +84,10 @@ class _RegisterTypeSelectionScreenState
           Text(
             'TYPE OF VOLUNTEER',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w800,
-              letterSpacing: 1,
-              color: AppColors.secondary.withValues(alpha: 0.9),
+              letterSpacing: 0.8,
+              color: AppColors.primary,
             ),
           ),
           const SizedBox(height: 10),
@@ -108,20 +111,14 @@ class _RegisterTypeSelectionScreenState
             style: TextStyle(
               fontSize: 12.5,
               height: 1.35,
-              color: AppColors.secondary.withValues(alpha: 0.85),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
+          GradientButton(
+            label: 'Continue to ID upload',
+            icon: Icons.badge_outlined,
             onPressed: _startVolunteerRegistration,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Continue to ID upload'),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded, size: 18),
-              ],
-            ),
           ),
         ],
       ),
@@ -140,7 +137,6 @@ class _RegisterTypeSelectionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Column(
         children: [
           const _RegisterHeader(),
@@ -152,18 +148,18 @@ class _RegisterTypeSelectionScreenState
                 children: [
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         'CHOOSE YOUR ROLE',
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 14,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 1.1,
-                          color: AppColors.secondary.withValues(alpha: 0.9),
+                          letterSpacing: 0.8,
+                          color: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       const Expanded(
-                        child: Divider(height: 1, color: Color(0xFFE6EFE3)),
+                        child: Divider(height: 1, color: AppColors.cardBorder),
                       ),
                     ],
                   ),
@@ -210,56 +206,18 @@ class _RegisterHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, topInset + 6, 20, 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primaryDark,
-            AppColors.primary,
-            AppColors.secondary,
-          ],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x2E1F5F28),
-            blurRadius: 22,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
+    return const HeaderBand(
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: _BackControl(onTap: () => Navigator.of(context).maybePop()),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'How are you joining CARES?',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              height: 1.25,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Each role has its own registration process. '
-            'Choose the one that fits you.',
-            style: TextStyle(
-              fontSize: 13.5,
-              height: 1.45,
-              color: Color(0xFFE3F2E4),
-            ),
+          Align(alignment: Alignment.centerLeft, child: HeaderBackControl()),
+          SizedBox(height: 18),
+          HeaderBandTitle(
+            title: 'How are you joining CARES?',
+            subtitle:
+                'Each role has its own registration process. '
+                'Choose the one that fits you.',
           ),
         ],
       ),
@@ -267,53 +225,6 @@ class _RegisterHeader extends StatelessWidget {
   }
 }
 
-/// iOS-style back affordance: a chevron with a short label, sitting flush with
-/// the header's content edge instead of inside an [IconButton]'s padding, so it
-/// lines up with the title and body copy below it.
-class _BackControl extends StatelessWidget {
-  const _BackControl({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Back',
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: const Padding(
-          // Only vertical + trailing padding: the chevron itself stays on the
-          // 20pt content margin the way a UINavigationBar back button does.
-          padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 17,
-                color: Colors.white,
-              ),
-              SizedBox(width: 5),
-              Text(
-                'Back',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// One of the three volunteer sub-types, as a tappable pill.
 class _VolunteerTypeChip extends StatelessWidget {
   const _VolunteerTypeChip({
     required this.label,

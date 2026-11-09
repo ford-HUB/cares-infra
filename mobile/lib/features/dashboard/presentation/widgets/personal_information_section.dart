@@ -56,7 +56,7 @@ class PersonalInformationSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               height: 1.35,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -129,7 +129,7 @@ class _FieldLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppColors.secondary.withValues(alpha: 0.95),
+        color: AppColors.textSecondary,
       ),
     );
   }
@@ -223,10 +223,7 @@ class _ProfileTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        hintStyle: TextStyle(
-          color: AppColors.secondary.withValues(alpha: 0.75),
-          fontSize: 14,
-        ),
+        hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
       ),
     );
   }

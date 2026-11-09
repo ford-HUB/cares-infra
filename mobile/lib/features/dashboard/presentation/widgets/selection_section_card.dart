@@ -44,7 +44,7 @@ class SelectionSectionCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               height: 1.35,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 14),

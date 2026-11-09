@@ -307,7 +307,7 @@ class ProfileHouseholdSizeCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondary.withValues(alpha: 0.95),
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -466,7 +466,7 @@ class ProfileResidencyAddressCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.secondary.withValues(alpha: 0.95),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
@@ -621,7 +621,7 @@ class _ResidencyDocumentTile extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.35,
-                        color: AppColors.secondary.withValues(alpha: 0.95),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -863,7 +863,7 @@ Future<void> showResidencyDocumentPreview(
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.secondary.withValues(alpha: 0.95),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 6),
@@ -908,7 +908,7 @@ class _LockedField extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondary.withValues(alpha: 0.95),
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 6),

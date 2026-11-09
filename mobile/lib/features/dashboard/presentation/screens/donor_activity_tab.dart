@@ -46,7 +46,7 @@ class DonorActivityTab extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.secondary.withValues(alpha: 0.95),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -190,7 +190,7 @@ class _SummaryChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: AppColors.secondary.withValues(alpha: 0.95),
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -341,7 +341,7 @@ class _DonationActivityCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.secondary.withValues(alpha: 0.95),
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -407,7 +407,7 @@ class _EmptyActivityState extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: AppColors.secondary.withValues(alpha: 0.7),
+              color: AppColors.textSecondary,
             ),
           ),
         ],

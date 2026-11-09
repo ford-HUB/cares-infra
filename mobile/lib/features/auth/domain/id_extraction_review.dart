@@ -108,9 +108,7 @@ class IdExtractionReview {
       final deviceAge = device?.age ?? 0;
       if (deviceAge > 0) {
         data = data.copyWith(age: deviceAge);
-        flags.add(
-          const IdFieldFlag('Age', IdFieldFlagReason.filledFromDevice),
-        );
+        flags.add(const IdFieldFlag('Age', IdFieldFlagReason.filledFromDevice));
       } else {
         flags.add(const IdFieldFlag('Age', IdFieldFlagReason.missing));
       }

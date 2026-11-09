@@ -85,7 +85,7 @@ class SocialAuthButtons extends StatelessWidget {
   }
 }
 
-/// A single provider button — white card, brand glyph, subtle press feedback.
+/// A single provider button — pale green soft-fill tile with the brand glyph.
 class SocialAuthButton extends StatelessWidget {
   const SocialAuthButton({
     super.key,
@@ -114,41 +114,35 @@ class SocialAuthButton extends StatelessWidget {
             ),
           )
         : provider == SocialAuthProvider.google
-        ? const GoogleGlyph(size: 22)
-        : const FacebookGlyph(size: 22);
+        ? const GoogleGlyph(size: 24)
+        : const FacebookGlyph(size: 24);
 
+    const radius = BorderRadius.all(Radius.circular(12));
     return Opacity(
       opacity: enabled ? 1 : 0.55,
       child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.softFieldFill,
+        borderRadius: radius,
         child: InkWell(
           onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: radius,
           child: Ink(
             height: 54,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.borderCard),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x0F1F5F28),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
+              borderRadius: radius,
+              border: Border.all(color: AppColors.softFieldBorder),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 glyph,
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Text(
                   compact ? provider.label : 'Continue with ${provider.label}',
                   style: const TextStyle(
-                    fontSize: 14.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: AppColors.ink,
                   ),
                 ),
               ],
@@ -168,7 +162,10 @@ class _DividerLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final line = Expanded(
-      child: Container(height: 1, color: AppColors.borderLight),
+      child: Container(
+        height: 1.2,
+        color: AppColors.primary.withValues(alpha: 0.55),
+      ),
     );
 
     return Row(
@@ -178,11 +175,10 @@ class _DividerLabel extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4,
-              color: AppColors.secondary.withValues(alpha: 0.9),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primaryDark,
             ),
           ),
         ),

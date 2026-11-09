@@ -367,10 +367,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             Text(
               'Reading your ID card. This may take up to a minute.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.secondary.withValues(alpha: 0.85),
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -400,10 +397,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 widget.extractErrorMessage ??
                     'ID extraction failed. Please try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.secondary.withValues(alpha: 0.85),
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
             ),
             const SizedBox(height: 24),
@@ -644,7 +638,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.secondary.withValues(alpha: 0.95),
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 6),

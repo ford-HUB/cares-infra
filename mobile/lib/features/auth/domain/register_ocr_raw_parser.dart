@@ -133,7 +133,9 @@ class RegisterOcrRawParser {
 
   static String _cleanName(String value) {
     var cleaned = value.replaceAll(RegExp(r'\s+'), ' ').trim();
-    cleaned = _stripLeadingJunk(cleaned).replaceFirst(RegExp(r'^[_\-—–\s]+'), '');
+    cleaned = _stripLeadingJunk(
+      cleaned,
+    ).replaceFirst(RegExp(r'^[_\-—–\s]+'), '');
     cleaned = cleaned
         .split(
           RegExp(

@@ -158,8 +158,7 @@ class _EventParticipantsScreenState extends State<EventParticipantsScreen> {
               itemBuilder: (_, i) => _ParticipantTile(
                 participant: rows[i],
                 color:
-                    AppColors.communityRing[i %
-                        AppColors.communityRing.length],
+                    AppColors.communityRing[i % AppColors.communityRing.length],
               ),
             ),
     );

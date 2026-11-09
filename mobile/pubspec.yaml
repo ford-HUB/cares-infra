@@ -82,6 +82,10 @@ dependencies:
   # exposure and readable text before the next upload stage unlocks.
   google_mlkit_text_recognition: ^0.15.1
   image: ^4.5.4
+  # Self-update from GitHub Releases: the splash compares the installed version
+  # with the latest release and downloads + installs its APK.
+  package_info_plus: ^9.0.1
+  ota_update: ^7.1.0
 
 dev_dependencies:
   flutter_test:

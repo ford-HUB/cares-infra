@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/popular_event_deck.dart';
+import 'package:mobile/shared/widgets/empty_illustration.dart';
+import 'package:mobile/shared/widgets/ground_card.dart';
 
 /// "Popular Events 🔥 ......... VIEW ALL" — fixed height so the home tab can
 /// size its dark ground without measuring.
@@ -19,40 +22,42 @@ class HomeSectionTitle extends StatelessWidget {
   final bool onDark;
   final double gutter;
 
-  static const double height = 56;
+  static const double height = 64;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 14),
+        padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 14),
         child: Row(
           children: [
             Expanded(
               child: Text(
-                '$title $emoji',
+                title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 23,
                   fontWeight: FontWeight.w800,
-                  color: onDark ? Colors.white : const Color(0xFF1B1F24),
-                  letterSpacing: -0.2,
+                  color: onDark ? Colors.white : AppColors.deepHeaderTop,
+                  letterSpacing: -0.3,
                 ),
               ),
             ),
             TextButton(
               onPressed: onViewAll,
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.accentOrange,
+                foregroundColor: onDark
+                    ? AppColors.navActive
+                    : const Color(0xFF4C9A2A),
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 visualDensity: VisualDensity.compact,
               ),
               child: const Text(
                 'VIEW ALL',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.4,
                 ),
@@ -100,8 +105,8 @@ class HomeStateCard extends StatelessWidget {
        onAction = onChoose;
 
   const HomeStateCard.noMatches({super.key})
-    : icon = Icons.event_busy_rounded,
-      title = 'Nothing matches yet',
+    : icon = Icons.event_busy_outlined,
+      title = 'Nothing Matches Yet',
       message =
           'No open events match your interests right now. Check back soon or browse all events.',
       actionLabel = null,
@@ -117,79 +122,82 @@ class HomeStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
+    return GroundCard(
+      wave: true,
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          IconTileHeading(icon: icon, title: title, body: message),
+          if (onAction != null) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.only(left: 82),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  onPressed: onAction,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    textStyle: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  icon: Icon(actionIcon, size: 18),
+                  label: Text(actionLabel!),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.accentOrange.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 20, color: AppColors.accentOrange),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1B1F24),
-                  ),
+    );
+  }
+}
+
+/// Fills the popular-deck slot on the home tabs when there is no deck to
+/// show — the same height as a deck card, so the dark ground still lines up.
+class HomeDeckPlaceholder extends StatelessWidget {
+  const HomeDeckPlaceholder({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.gutter = 20,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final double gutter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: gutter),
+      child: SizedBox(
+        height: PopularEventDeck.cardHeight,
+        child: GroundCard(
+          wave: true,
+          radius: 26,
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                width: 300,
+                child: EmptyStateBlock(
+                  icon: icon,
+                  title: title,
+                  message: message,
+                  illustrationSize: 96,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  message,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    color: Color(0xFF6B7280),
-                    height: 1.4,
-                  ),
-                ),
-                if (onAction != null) ...[
-                  const SizedBox(height: 12),
-                  FilledButton.icon(
-                    onPressed: onAction,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.accentOrange,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(0, 36),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    icon: Icon(actionIcon, size: 16),
-                    label: Text(actionLabel!),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

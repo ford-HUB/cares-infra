@@ -120,7 +120,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
-                  color: AppColors.secondary.withValues(alpha: 0.9),
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 24),

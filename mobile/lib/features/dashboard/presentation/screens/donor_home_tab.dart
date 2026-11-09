@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/session/role_account_store.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/models/donation_campaign_models.dart';
 import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/donor_campaign_cards.dart';
@@ -14,6 +13,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.d
 import 'package:mobile/features/dashboard/presentation/widgets/popular_event_deck.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/volunteer_home_hero.dart';
 import 'package:mobile/features/dashboard/screens/donation_details_screen.dart';
+import 'package:mobile/shared/widgets/header_band.dart';
 
 /// Donor home — the volunteer home's layout with campaigns in place of
 /// events: a dark hero (welcome, rank, search) that runs on down behind the
@@ -108,10 +108,7 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
               left: 0,
               right: 0,
               height: inkHeight,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(color: VolunteerHomeHero.ink),
-                child: HomeHeroParticles(),
-              ),
+              child: const DeepGround(child: HomeHeroParticles()),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -251,16 +248,19 @@ class _PopularSlot extends StatelessWidget {
 
     return campaigns.when(
       loading: () => const PopularEventDeckSkeleton(gutter: gutter),
-      error: (_, _) => const _DeckPlaceholder(
+      error: (_, _) => const HomeDeckPlaceholder(
         icon: Icons.wifi_off_rounded,
-        message: 'Campaigns are unavailable right now',
+        title: 'Campaigns Unavailable',
+        message:
+            'We could not load campaigns right now. Pull down to try again.',
       ),
       data: (all) {
         final popular = _popular(all);
         if (popular.isEmpty) {
-          return const _DeckPlaceholder(
+          return const HomeDeckPlaceholder(
             icon: Icons.volunteer_activism_outlined,
-            message: 'No events are open for donations yet',
+            title: 'No Open Campaigns Yet',
+            message: 'No events are open for donations yet. Check back soon.',
           );
         }
         return DonorCampaignDeck(
@@ -269,50 +269,6 @@ class _PopularSlot extends StatelessWidget {
           onOpen: onOpen,
         );
       },
-    );
-  }
-}
-
-class _DeckPlaceholder extends StatelessWidget {
-  const _DeckPlaceholder({required this.icon, required this.message});
-
-  final IconData icon;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: VolunteerHomeHero.gutter),
-      child: Container(
-        height: DonorCampaignDeck.cardHeight,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 36, color: AppColors.textMuted),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

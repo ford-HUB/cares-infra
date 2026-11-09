@@ -6,11 +6,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 /// sliding in from the side the story is moving toward — so the eye reads
 /// top to bottom instead of taking in a block at once.
 class LeadingCaption extends StatefulWidget {
-  const LeadingCaption({
-    super.key,
-    required this.copy,
-    required this.forward,
-  });
+  const LeadingCaption({super.key, required this.copy, required this.forward});
 
   final LeadingSlideCopy copy;
 

@@ -3,6 +3,7 @@ import '../../../core/theme/app_theme.dart';
 import '../data/event_category_colors.dart';
 import '../domain/cares_event.dart';
 import 'event_image_carousel.dart';
+import 'package:mobile/shared/widgets/empty_illustration.dart';
 
 class EventsPageHeader extends StatelessWidget {
   const EventsPageHeader({super.key, required this.subtitle});
@@ -52,7 +53,11 @@ class SmartEventSearchBar extends StatelessWidget {
     required this.suggestions,
     this.hintText = 'Search by title, tag, or location',
     this.radius = AppColors.cardRadius,
+    this.onDark = false,
   });
+
+  /// Glassy white-on-green field for a deep [HeaderBand].
+  final bool onDark;
 
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -75,10 +80,14 @@ class SmartEventSearchBar extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: onDark ? AppColors.onHeaderField : AppColors.surface,
             borderRadius: BorderRadius.circular(radius),
             border: Border.all(
-              color: focusNode.hasFocus
+              color: onDark
+                  ? Colors.white.withValues(
+                      alpha: focusNode.hasFocus ? 0.6 : 0.3,
+                    )
+                  : focusNode.hasFocus
                   ? AppColors.primary.withValues(alpha: 0.35)
                   : AppColors.borderLight,
             ),
@@ -88,22 +97,32 @@ class SmartEventSearchBar extends StatelessWidget {
             focusNode: focusNode,
             onChanged: onQueryChanged,
             textInputAction: TextInputAction.search,
-            style: const TextStyle(
-              fontSize: 15,
+            cursorColor: onDark ? Colors.white : AppColors.primary,
+            style: TextStyle(
+              fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+              color: onDark ? Colors.white : AppColors.ink,
             ),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: TextStyle(
-                color: AppColors.textMuted.withValues(alpha: 0.9),
+                fontSize: 16,
+                color: onDark
+                    ? Colors.white.withValues(alpha: 0.85)
+                    : AppColors.inkMuted,
                 fontWeight: FontWeight.w400,
               ),
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                color: focusNode.hasFocus
-                    ? AppColors.primary
-                    : AppColors.textMuted,
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Icon(
+                  Icons.search_rounded,
+                  size: 26,
+                  color: onDark
+                      ? Colors.white
+                      : focusNode.hasFocus
+                      ? AppColors.primary
+                      : AppColors.textMuted,
+                ),
               ),
               suffixIcon: query.isNotEmpty
                   ? IconButton(
@@ -120,7 +139,7 @@ class SmartEventSearchBar extends StatelessWidget {
                   : null,
               filled: true,
               fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(vertical: 17),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
@@ -554,50 +573,19 @@ class EventsEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.inputFill,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.event_busy_rounded,
-                size: 36,
-                color: AppColors.textMuted.withValues(alpha: 0.8),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              query.trim().isNotEmpty
+            EmptyStateBlock(
+              title: query.trim().isNotEmpty
                   ? 'No matches for "$query"'
                   : title ?? 'No events found',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              hasActiveFilters
+              message: hasActiveFilters
                   ? 'Try a different search term or filter.'
                   : message ?? 'Try a different search term or filter.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary.withValues(alpha: 0.9),
-                height: 1.45,
-              ),
             ),
             if (hasActiveFilters) ...[
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: onClearFilters,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,

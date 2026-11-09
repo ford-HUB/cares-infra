@@ -195,7 +195,7 @@ class _UpdateEmailOtpScreenState extends State<UpdateEmailOtpScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.secondary.withValues(alpha: 0.95),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -228,7 +228,7 @@ class _UpdateEmailOtpScreenState extends State<UpdateEmailOtpScreen> {
                     style: TextStyle(
                       fontSize: 12.5,
                       height: 1.4,
-                      color: AppColors.textSecondary.withValues(alpha: 0.95),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],

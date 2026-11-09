@@ -7,10 +7,14 @@ class DiscoverHeader extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
+    this.onDark = false,
   });
 
   final String title;
   final String subtitle;
+
+  /// White type for a deep green [HeaderBand].
+  final bool onDark;
 
   @override
   Widget build(BuildContext context) {
@@ -19,20 +23,22 @@ class DiscoverHeader extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 20,
+          style: TextStyle(
+            fontSize: onDark ? 28 : 20,
             fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
+            color: onDark ? Colors.white : AppColors.textPrimary,
             letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            fontSize: onDark ? 16 : 13,
+            color: onDark
+                ? Colors.white.withValues(alpha: 0.9)
+                : AppColors.textSecondary,
             height: 1.3,
           ),
         ),

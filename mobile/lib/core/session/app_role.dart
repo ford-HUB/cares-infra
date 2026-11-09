@@ -15,8 +15,7 @@ extension AppRoleX on AppRole {
   String get description => switch (this) {
     AppRole.volunteer =>
       'Join events, log service hours, and track your volunteer ranks.',
-    AppRole.beneficiary =>
-      'File assistance requests and follow their status.',
+    AppRole.beneficiary => 'File assistance requests and follow their status.',
     AppRole.donor =>
       'Give to campaigns and follow the impact of your donations.',
   };

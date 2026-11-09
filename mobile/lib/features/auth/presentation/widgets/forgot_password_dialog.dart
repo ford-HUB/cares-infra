@@ -258,7 +258,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 style: TextStyle(
                   fontSize: 12.5,
                   height: 1.35,
-                  color: AppColors.secondary.withValues(alpha: 0.9),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],

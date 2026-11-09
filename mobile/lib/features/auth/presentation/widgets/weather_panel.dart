@@ -41,7 +41,12 @@ class WeatherPanel extends ConsumerWidget {
               discomfort: discomfort,
             ),
           ),
-          _TemperaturePill(label: tempLabel, mood: mood),
+          // Scale the reading down rather than overflow when the panel is
+          // narrow (small phones, or a longer label like "-12°C").
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: _TemperaturePill(label: tempLabel, mood: mood),
+          ),
         ],
       ),
     );

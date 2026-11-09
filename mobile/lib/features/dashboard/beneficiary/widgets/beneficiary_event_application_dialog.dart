@@ -154,7 +154,7 @@ class _BeneficiaryEventApplicationDialogState
               style: TextStyle(
                 fontSize: 12.5,
                 height: 1.4,
-                color: AppColors.secondary.withValues(alpha: 0.95),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 12),

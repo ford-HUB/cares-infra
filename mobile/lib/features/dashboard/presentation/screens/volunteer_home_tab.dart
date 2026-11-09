@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/session/static_user_session.dart';
-import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/skeleton.dart';
 import 'package:mobile/features/dashboard/data/event_registration_store.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
@@ -17,6 +16,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/popular_event_dec
 import 'package:mobile/features/dashboard/presentation/widgets/volunteer_home_hero.dart';
 import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
+import 'package:mobile/shared/widgets/header_band.dart';
 
 /// Volunteer home: a dark hero (welcome, location, search) that runs on
 /// down behind the top of the "Popular Events" deck, then the category chip
@@ -160,10 +160,7 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
               left: 0,
               right: 0,
               height: inkHeight,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(color: VolunteerHomeHero.ink),
-                child: HomeHeroParticles(),
-              ),
+              child: const DeepGround(child: HomeHeroParticles()),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -309,22 +306,27 @@ class _PopularSlot extends StatelessWidget {
 
     return page.when(
       loading: () => const PopularEventDeckSkeleton(gutter: gutter),
-      error: (_, _) => const _DeckPlaceholder(
+      error: (_, _) => const HomeDeckPlaceholder(
         icon: Icons.wifi_off_rounded,
-        message: 'Events are unavailable right now',
+        title: 'Events Unavailable',
+        message: 'We could not load events right now. Pull down to try again.',
       ),
       data: (data) {
         final popular = _popular(filter(data.events));
         if (!data.hasInterests) {
-          return const _DeckPlaceholder(
-            icon: Icons.auto_awesome_rounded,
-            message: 'Pick your interests to see popular events',
+          return const HomeDeckPlaceholder(
+            icon: Icons.auto_awesome_outlined,
+            title: 'Pick Your Interests',
+            message:
+                'Choose a few interests and popular events will show here.',
           );
         }
         if (popular.isEmpty) {
-          return const _DeckPlaceholder(
-            icon: Icons.event_busy_rounded,
-            message: 'No open events match your interests yet',
+          return const HomeDeckPlaceholder(
+            icon: Icons.event_busy_outlined,
+            title: 'No Open Events Yet',
+            message:
+                'There are no open events that match your interests at the moment.',
           );
         }
         return PopularEventDeck(
@@ -333,50 +335,6 @@ class _PopularSlot extends StatelessWidget {
           onOpen: onOpen,
         );
       },
-    );
-  }
-}
-
-class _DeckPlaceholder extends StatelessWidget {
-  const _DeckPlaceholder({required this.icon, required this.message});
-
-  final IconData icon;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: VolunteerHomeHero.gutter),
-      child: Container(
-        height: PopularEventDeck.cardHeight,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 36, color: AppColors.textMuted),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

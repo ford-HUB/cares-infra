@@ -1,0 +1,153 @@
+name: Mobile release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to (re)build and attach the APK to, e.g. v1.2.0
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mobile-release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: 3.41.6
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
+    steps:
+      - name: Resolve version from the release tag
+        id: version
+        working-directory: .
+        run: |
+          version="${TAG#mobile-}"
+          version="${version#v}"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$TAG' is not a version. Use v<major>.<minor>.<patch>, e.g. v1.2.0."
+            exit 1
+          fi
+          build_number="${{ github.run_number }}"
+          echo "name=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build_number" >> "$GITHUB_OUTPUT"
+          echo "apk=cares-$version.apk" >> "$GITHUB_OUTPUT"
+          echo "### CARES $version (build $build_number)" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Write mobile/.env and the signing config
+        env:
+          MOBILE_ENV: ${{ secrets.MOBILE_ENV }}
+          # The four ANDROID_* values can be their own secrets or lines inside
+          # MOBILE_ENV; a separate secret wins when both exist.
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$MOBILE_ENV" ]; then
+            echo "::error::Secret MOBILE_ENV is not set (the contents of mobile/.env)."
+            exit 1
+          fi
+          printf '%s\n' "$MOBILE_ENV" | tr -d '\r' > .env
+
+          from_env() {
+            local value
+            value="$(grep -E "^$1=" .env | tail -n1 | cut -d= -f2- | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+            value="${value%\"}"; value="${value#\"}"
+            printf '%s' "$value"
+          }
+
+          signing="ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD"
+          for name in $signing; do
+            if [ -z "${!name}" ]; then
+              printf -v "$name" '%s' "$(from_env "$name")"
+              echo "::add-mask::${!name}"
+            fi
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is missing. Add it as a secret or as a line in MOBILE_ENV. Releases must be signed with the upload keystore."
+              exit 1
+            fi
+          done
+
+          # .env is bundled inside the public APK as an asset, so anyone can
+          # unzip it: signing material and GitHub tokens must never stay in it.
+          sed -i -E '/^(ANDROID_KEYSTORE_BASE64|ANDROID_KEYSTORE_PASSWORD|ANDROID_KEY_ALIAS|ANDROID_KEY_PASSWORD)=/d' .env
+          if grep -Eq '^(GITHUB_TOKEN|GH_TOKEN|GITHUB_PAT)=' .env; then
+            echo "::warning::Removed a GitHub token from MOBILE_ENV; it would have been readable in the public APK."
+            sed -i -E '/^(GITHUB_TOKEN|GH_TOKEN|GITHUB_PAT)=/d' .env
+          fi
+
+          set_env() {
+            if grep -q "^$1=" .env; then
+              sed -i "s|^$1=.*|$1=$2|" .env
+            else
+              printf '%s=%s\n' "$1" "$2" >> .env
+            fi
+          }
+          set_env APP_ENV production
+          set_env UPDATE_RELEASES_REPO "$GITHUB_REPOSITORY"
+
+          if ! grep -Eq '^PRODUCTION_ORIGIN=.+' .env; then
+            echo "::error::PRODUCTION_ORIGIN is empty in MOBILE_ENV."
+            exit 1
+          fi
+
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/app/upload-keystore.jks
+          if ! keytool -list -keystore android/app/upload-keystore.jks \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" > /dev/null; then
+            echo "::error::The keystore did not open with ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS. Check the base64 and the values."
+            exit 1
+          fi
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=$ANDROID_KEY_ALIAS"
+            echo "keyPassword=$ANDROID_KEY_PASSWORD"
+          } > android/key.properties
+
+      - run: flutter pub get
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number "${{ steps.version.outputs.build }}"
+          mv build/app/outputs/flutter-apk/app-release.apk "${{ steps.version.outputs.apk }}"
+          sha256sum "${{ steps.version.outputs.apk }}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach the APK to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" "${{ steps.version.outputs.apk }}" --clobber --repo "$GITHUB_REPOSITORY"
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/app/upload-keystore.jks android/key.properties .env

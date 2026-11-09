@@ -280,7 +280,7 @@ class _EmailVerificationScreenState
                       style: TextStyle(
                         fontSize: 14,
                         height: 1.45,
-                        color: AppColors.secondary.withValues(alpha: 0.9),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -305,7 +305,7 @@ class _EmailVerificationScreenState
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.secondary.withValues(alpha: 0.9),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],

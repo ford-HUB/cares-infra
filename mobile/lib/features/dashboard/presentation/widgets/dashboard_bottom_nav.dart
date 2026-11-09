@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/theme/app_theme.dart';
 
-/// Bottom navigation palette — dark bar with lime-green labels/icons.
+/// Bottom navigation palette — deep green bar, white items, lime active pill.
 abstract final class DashboardNavColors {
-  static const Color barBackground = Color(0xFF555752);
-  static const Color itemColor = Color(0xFF76A33E);
+  static const Color barBackground = AppColors.navBar;
+  static const Color itemColor = Colors.white;
+  static const Color activeColor = AppColors.navActive;
+  static const Color activeFill = AppColors.navActiveFill;
 }
 
 enum DashboardTab {
@@ -44,13 +47,24 @@ class DashboardBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: DashboardNavColors.barBackground,
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: DashboardNavColors.barBackground,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x330B3A1A),
+            blurRadius: 18,
+            offset: Offset(0, -4),
+          ),
+        ],
+      ),
       child: SafeArea(
         top: false,
         minimum: EdgeInsets.zero,
-        child: SizedBox(
-          height: 52,
+        child: Container(
+          height: 76,
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
           child: Row(
             children: [
               for (var i = 0; i < DashboardTab.values.length; i++)
@@ -93,26 +107,45 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Icon(icon, size: 22, color: DashboardNavColors.itemColor),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: DashboardNavColors.itemColor,
-                height: 1,
-              ),
+    final color = selected
+        ? DashboardNavColors.activeColor
+        : DashboardNavColors.itemColor;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            decoration: BoxDecoration(
+              color: selected
+                  ? DashboardNavColors.activeFill
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
             ),
-          ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 25, color: color),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    color: color,
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

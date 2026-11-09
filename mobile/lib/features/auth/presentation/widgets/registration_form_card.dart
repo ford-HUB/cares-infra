@@ -143,33 +143,22 @@ class RegistrationFormCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: AppDecorations.surfaceCard().copyWith(
-        // Keeps the card readable on a white page as well as the green one.
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x121F5F28),
-            blurRadius: 14,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+      decoration: AppDecorations.groundCard(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 50,
+                height: 50,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.accentLight.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 18, color: AppColors.primaryDark),
+                decoration: AppDecorations.iconTile(),
+                child: Icon(icon, size: 25, color: AppColors.primaryDark),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,18 +166,19 @@ class RegistrationFormCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryDark,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.35,
-                        color: AppColors.secondary.withValues(alpha: 0.9),
+                      style: const TextStyle(
+                        fontSize: 14.5,
+                        height: 1.4,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -196,7 +186,7 @@ class RegistrationFormCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ...children,
         ],
       ),
@@ -204,8 +194,6 @@ class RegistrationFormCard extends StatelessWidget {
   }
 }
 
-/// Compact selectable tile — used where a form needs an inline either/or
-/// choice (individual vs organization) without leaving the card.
 class RegistrationChoiceTile extends StatelessWidget {
   const RegistrationChoiceTile({
     super.key,
@@ -277,7 +265,7 @@ class RegistrationChoiceTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12.5,
                       height: 1.35,
-                      color: AppColors.secondary.withValues(alpha: 0.9),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
