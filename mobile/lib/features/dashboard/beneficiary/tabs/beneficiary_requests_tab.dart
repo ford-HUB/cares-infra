@@ -85,7 +85,7 @@ class _BeneficiaryRequestsTabState extends State<BeneficiaryRequestsTab> {
                       const Text(
                         'Request',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 28,
                           fontWeight: FontWeight.w800,
                           color: AppColors.primaryDark,
                         ),

@@ -176,7 +176,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RegisterFormField(
-            label: 'New password',
+            label: 'New Password',
             controller: _passwordController,
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.next,
@@ -198,7 +198,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           PasswordRuleChips(password: _password),
           const SizedBox(height: 14),
           RegisterFormField(
-            label: 'Confirm new password',
+            label: 'Confirm New Password',
             controller: _confirmController,
             obscureText: _obscureConfirm,
             textInputAction: TextInputAction.done,
@@ -230,7 +230,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('Update password'),
+                : const Text('Update Password'),
           ),
         ],
       ),

@@ -110,10 +110,10 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   int _indexOf(_RegisterStep step) => _steps.indexOf(step);
 
   static String _labelFor(_RegisterStep step) => switch (step) {
-    _RegisterStep.idUpload => 'Upload your ID',
-    _RegisterStep.faceScan => 'Face scan',
-    _RegisterStep.details => 'Your details',
-    _RegisterStep.account => 'Create account',
+    _RegisterStep.idUpload => 'Upload Your ID',
+    _RegisterStep.faceScan => 'Face Scan',
+    _RegisterStep.details => 'Your Details',
+    _RegisterStep.account => 'Create Account',
   };
 
   @override

@@ -191,7 +191,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
               children: [
                 SignInEmailCard(email: _email),
                 const SizedBox(height: 24),
-                const SecuritySectionTitle(title: 'Sign-in details'),
+                const SecuritySectionTitle(title: 'Sign-In Details'),
                 const SizedBox(height: 8),
                 if (social) ...[
                   SecurityInfoNote(
@@ -204,7 +204,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                 ],
                 SecurityActionTile(
                   icon: Icons.alternate_email_rounded,
-                  label: 'Update email',
+                  label: 'Update Email',
                   hint: social
                       ? 'Managed by $provider.'
                       : 'We\'ll verify your current email with a code first.',
@@ -212,7 +212,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                 ),
                 SecurityActionTile(
                   icon: Icons.password_rounded,
-                  label: 'Change password',
+                  label: 'Change Password',
                   hint: social
                       ? 'This account has no CARES password.'
                       : 'Requires your current password.',

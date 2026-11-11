@@ -101,7 +101,7 @@ class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
           children: [
             ProfileEditHeader(
               onBack: () => Navigator.of(context).pop(_devices),
-              title: 'Connected devices',
+              title: 'Connected Devices',
               subtitle:
                   '${_devices.length} device${_devices.length == 1 ? '' : 's'} '
                   'signed in to your account. Sign out any you don\'t '
@@ -112,14 +112,14 @@ class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                 children: [
                   if (current != null) ...[
-                    const _GroupTitle(title: 'This device'),
+                    const _GroupTitle(title: 'This Device'),
                     const SizedBox(height: 8),
                     ConnectedDeviceTile(device: current, onSignOut: null),
                     const SizedBox(height: 20),
                   ],
                   Row(
                     children: [
-                      _GroupTitle(title: 'Other devices (${others.length})'),
+                      _GroupTitle(title: 'Other Devices (${others.length})'),
                       const Spacer(),
                       if (others.isNotEmpty)
                         TextButton(
@@ -133,7 +133,7 @@ class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          child: const Text('Sign out all'),
+                          child: const Text('Sign Out All'),
                         ),
                     ],
                   ),

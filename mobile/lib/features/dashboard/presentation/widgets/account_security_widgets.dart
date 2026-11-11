@@ -204,7 +204,7 @@ class PasswordVisibilityToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: onToggle,
-      tooltip: obscured ? 'Show password' : 'Hide password',
+      tooltip: obscured ? 'Show Password' : 'Hide Password',
       icon: Icon(
         obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
         size: 20,
@@ -248,7 +248,7 @@ class SignInEmailCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Sign-in email',
+                  'Sign-In Email',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -314,7 +314,7 @@ class DevicesSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SecuritySectionTitle(title: 'Connected devices'),
+        const SecuritySectionTitle(title: 'Connected Devices'),
         const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

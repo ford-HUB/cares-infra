@@ -422,7 +422,7 @@ class _ProfileTabBody extends StatelessWidget {
                     _InfoRow(
                       icon: Icons.badge_outlined,
 
-                      label: 'Full name',
+                      label: 'Full Name',
 
                       value: (server?.fullName.isNotEmpty ?? false)
                           ? server!.fullName
@@ -434,7 +434,7 @@ class _ProfileTabBody extends StatelessWidget {
                     _InfoRow(
                       icon: Icons.call_outlined,
 
-                      label: 'Contact number',
+                      label: 'Contact Number',
 
                       value: _orNotSet(server?.phoneNumber),
                     ),
@@ -454,7 +454,7 @@ class _ProfileTabBody extends StatelessWidget {
 
                       _InfoRow(
                         icon: Icons.login_rounded,
-                        label: 'Sign-in method',
+                        label: 'Sign-In Method',
                         value: donorServer.signInLabel,
                       ),
                     ],
@@ -475,7 +475,7 @@ class _ProfileTabBody extends StatelessWidget {
 
                         _InfoRow(
                           icon: Icons.badge_outlined,
-                          label: 'ID number',
+                          label: 'ID Number',
                           value: _orNotSet(volunteerServer.school?.idNumber),
                         ),
 
@@ -493,7 +493,7 @@ class _ProfileTabBody extends StatelessWidget {
                           icon: Icons.menu_book_outlined,
                           label: 'Program',
                           value: volunteerServer.school == null
-                              ? 'Not set'
+                              ? 'Not Set'
                               : '${volunteerServer.school!.major} · '
                                     '${volunteerServer.school!.yearLevel}',
                         ),
@@ -507,7 +507,7 @@ class _ProfileTabBody extends StatelessWidget {
 
                       _InfoRow(
                         icon: Icons.call_outlined,
-                        label: 'Contact number',
+                        label: 'Contact Number',
                         value: _orNotSet(server?.phoneNumber),
                       ),
 
@@ -523,7 +523,7 @@ class _ProfileTabBody extends StatelessWidget {
                         message:
                             'Add your interests to get better event matches.',
                         trailing: _AddChip(
-                          tooltip: 'Add interests',
+                          tooltip: 'Add Interests',
                           onTap: () => _editInterests(
                             context,
                             profile.selectedInterests,
@@ -543,7 +543,7 @@ class _ProfileTabBody extends StatelessWidget {
                             _ChipTag(label: interest),
 
                           _AddChip(
-                            tooltip: 'Update interests',
+                            tooltip: 'Update Interests',
                             onTap: () => _editInterests(
                               context,
                               profile.selectedInterests,
@@ -651,7 +651,7 @@ class _ProfileTabBody extends StatelessWidget {
                   _MenuTile(
                     icon: Icons.help_outline,
 
-                    label: 'Help & support',
+                    label: 'Help & Support',
 
                     onTap: () => HelpSupportScreen.open(context),
                   ),
@@ -659,7 +659,7 @@ class _ProfileTabBody extends StatelessWidget {
                   _MenuTile(
                     icon: Icons.logout,
 
-                    label: 'Sign out',
+                    label: 'Sign Out',
 
                     destructive: true,
 
@@ -1807,7 +1807,7 @@ class _CompletionBanner extends StatelessWidget {
             children: [
               const Expanded(
                 child: Text(
-                  'Profile completion',
+                  'Profile Completion',
 
                   style: TextStyle(
                     fontSize: 13,

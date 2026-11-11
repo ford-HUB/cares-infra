@@ -251,12 +251,12 @@ class ProfileCompletion {
 
   /// Human label for a `missing` key, for the "what's left" hint.
   static String labelFor(String key) => switch (key) {
-    'personal_details' => 'Personal details',
-    'school_record' => 'School information',
-    'id_verification' => 'ID verification',
+    'personal_details' => 'Personal Details',
+    'school_record' => 'School Information',
+    'id_verification' => 'ID Verification',
     'interests' => 'Interests',
-    'sign_in_method' => 'Sign-in method',
-    'household_size' => 'Household size',
+    'sign_in_method' => 'Sign-In Method',
+    'household_size' => 'Household Size',
     _ => key,
   };
 }
@@ -402,9 +402,9 @@ class DonorServerProfile {
       for (final p in signInProviders)
         if (p.isNotEmpty)
           '${p[0].toUpperCase()}${p.substring(1).toLowerCase()}',
-      if (hasPassword) 'Email & password',
+      if (hasPassword) 'Email & Password',
     ];
-    return parts.isEmpty ? 'Not set' : parts.join(' · ');
+    return parts.isEmpty ? 'Not Set' : parts.join(' · ');
   }
 }
 

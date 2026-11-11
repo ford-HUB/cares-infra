@@ -214,7 +214,7 @@ class _RegisterHeader extends StatelessWidget {
           Align(alignment: Alignment.centerLeft, child: HeaderBackControl()),
           SizedBox(height: 18),
           HeaderBandTitle(
-            title: 'How are you joining CARES?',
+            title: 'How Are You Joining CARES?',
             subtitle:
                 'Each role has its own registration process. '
                 'Choose the one that fits you.',

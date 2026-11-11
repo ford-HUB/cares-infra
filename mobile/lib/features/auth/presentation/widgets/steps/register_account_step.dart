@@ -82,11 +82,11 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
 
     return RegistrationFormCard(
       icon: Icons.lock_outline_rounded,
-      title: 'Sign-in details',
+      title: 'Sign-In Details',
       subtitle: 'Used every time you sign in to CARES.',
       children: [
         RegisterFormField(
-          label: 'Email address',
+          label: 'Email Address',
           controller: _email,
           focusNode: _emailFocus,
           errorText: widget.emailError,
@@ -117,7 +117,7 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
         PasswordRuleChips(password: widget.password),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Confirm password',
+          label: 'Confirm Password',
           controller: _confirm,
           obscureText: _obscureConfirm,
           textInputAction: TextInputAction.done,

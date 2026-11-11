@@ -278,7 +278,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
       textInputAction: TextInputAction.done,
       onSubmitted: (_) => _sendCode(),
       decoration: const InputDecoration(
-        hintText: 'Email address',
+        hintText: 'Email Address',
         prefixIcon: Icon(Icons.mail_outline_rounded),
         fillColor: AppColors.background,
       ),
@@ -321,7 +321,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 minimumSize: const Size(0, 32),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Resend code'),
+              child: const Text('Resend Code'),
             ),
           ],
         ),
@@ -375,7 +375,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 color: Colors.white,
               ),
             )
-          : Text(isEmailStage ? 'Send code' : 'Verify code'),
+          : Text(isEmailStage ? 'Send Code' : 'Verify Code'),
     );
   }
 }
