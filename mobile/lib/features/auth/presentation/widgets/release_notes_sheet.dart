@@ -10,12 +10,26 @@ import 'package:mobile/shared/widgets/gradient_button.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Share of the screen the sheet rises to.
-const double _sheetHeightFactor = 0.7;
+/// Share of the screen the sheet opens at.
+const double _sheetInitialSize = 0.7;
+
+/// Share of the screen the sheet expands to — the whole screen.
+const double _sheetMaxSize = 1.0;
+
+/// Dragged down to this share, the modal closes.
+const double _sheetMinSize = 0.4;
+
+/// Released below this share (from the header), the sheet closes instead of
+/// settling back at [_sheetInitialSize].
+const double _sheetCloseBelow = 0.55;
+
+/// Corner radius of the sheet while it is not full screen.
+const double _sheetRadius = 26;
 
 /// Opens the release history read from GitHub Releases, newest first. The
-/// sheet slides up to 70% of the screen and is dragged down by its header to
-/// close; its notes scroll inside it.
+/// sheet slides up to 70% of the screen. Scrolling the notes (or dragging the
+/// header up) expands it to full screen; scrolling back to the top and
+/// pulling down shrinks it again, and pulling past 70% closes it.
 Future<void> showReleaseNotesSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -30,11 +44,72 @@ Future<void> showReleaseNotesSheet(BuildContext context) {
   );
 }
 
-class _ReleaseNotesSheet extends ConsumerWidget {
+class _ReleaseNotesSheet extends ConsumerStatefulWidget {
   const _ReleaseNotesSheet();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ReleaseNotesSheet> createState() => _ReleaseNotesSheetState();
+}
+
+class _ReleaseNotesSheetState extends ConsumerState<_ReleaseNotesSheet> {
+  final _sheet = DraggableScrollableController();
+
+  /// Current sheet size as a share of the screen, driving the status-bar
+  /// inset and corner radius as the sheet reaches the top.
+  final _extent = ValueNotifier<double>(_sheetInitialSize);
+
+  @override
+  void dispose() {
+    _sheet.dispose();
+    _extent.dispose();
+    super.dispose();
+  }
+
+  void _onHeaderDrag(DragUpdateDetails d, double screenHeight) {
+    if (!_sheet.isAttached) return;
+    final next = (_sheet.size - d.primaryDelta! / screenHeight).clamp(
+      _sheetMinSize,
+      _sheetMaxSize,
+    );
+    _sheet.jumpTo(next);
+  }
+
+  void _onHeaderDragEnd(DragEndDetails d) {
+    if (!_sheet.isAttached) return;
+    final size = _sheet.size;
+    final velocity = d.primaryVelocity ?? 0;
+
+    final bool close;
+    final double target;
+    if (velocity > 700) {
+      // Flung down: one step down from where it is.
+      close = size <= _sheetInitialSize + 0.02;
+      target = _sheetInitialSize;
+    } else if (velocity < -700) {
+      close = false;
+      target = _sheetMaxSize;
+    } else {
+      close = size < _sheetCloseBelow;
+      target = size > (_sheetInitialSize + _sheetMaxSize) / 2
+          ? _sheetMaxSize
+          : _sheetInitialSize;
+    }
+
+    if (close) {
+      // The modal may already have closed itself on reaching the min size.
+      final route = ModalRoute.of(context);
+      if (route != null && route.isCurrent) Navigator.of(context).pop();
+      return;
+    }
+    _sheet.animateTo(
+      target,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final installed = ref.watch(installedVersionProvider).valueOrNull;
     final history = ref.watch(releaseHistoryProvider);
     final entries = history.valueOrNull ?? const <AppReleaseEntry>[];
@@ -51,6 +126,8 @@ class _ReleaseNotesSheet extends ConsumerWidget {
 
     final media = MediaQuery.of(context);
     final bottomInset = media.viewPadding.bottom;
+    final topInset = media.viewPadding.top;
+    final screenHeight = media.size.height;
 
     final Widget content = history.when(
       skipLoadingOnRefresh: false,
@@ -108,78 +185,124 @@ class _ReleaseNotesSheet extends ConsumerWidget {
       },
     );
 
-    return SizedBox(
-      height: media.size.height * _sheetHeightFactor,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x33000000),
-              blurRadius: 24,
-              offset: Offset(0, -4),
-            ),
-          ],
-        ),
+    // Pinned header — dragging it moves the sheet: up to full screen, down
+    // to 70% and then closed.
+    final header = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragUpdate: (d) => _onHeaderDrag(d, screenHeight),
+      onVerticalDragEnd: _onHeaderDragEnd,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Pinned header — dragging it pulls the sheet down to close.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const _Handle(),
-                  const SizedBox(height: 14),
-                  IconTileHeading(
-                    icon: Icons.new_releases_rounded,
-                    title: AppCopy.releaseNotesTitle,
-                    body: installed == null
-                        ? null
-                        : update == null
-                        ? AppCopy.releaseNotesInstalledBody(installed)
-                        : AppCopy.releaseNotesUpdateBody(
-                            installed,
-                            update.version,
-                          ),
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: update == null
-                        ? const SizedBox(width: double.infinity)
-                        : Padding(
-                            padding: const EdgeInsets.only(top: 14),
-                            child: _UpdateAction(release: update),
-                          ),
-                  ),
-                ],
-              ),
+            const _Handle(),
+            const SizedBox(height: 14),
+            IconTileHeading(
+              icon: Icons.new_releases_rounded,
+              title: AppCopy.releaseNotesTitle,
+              body: installed == null
+                  ? null
+                  : update == null
+                  ? AppCopy.releaseNotesInstalledBody(installed)
+                  : AppCopy.releaseNotesUpdateBody(installed, update.version),
             ),
-            const Divider(height: 1, thickness: 1, color: AppColors.cardBorder),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + bottomInset),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 280),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  layoutBuilder: (current, previous) => Stack(
-                    alignment: Alignment.topCenter,
-                    children: [...previous, ?current],
-                  ),
-                  child: content,
-                ),
-              ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: update == null
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: _UpdateAction(release: update),
+                    ),
             ),
           ],
         ),
+      ),
+    );
+
+    return NotificationListener<DraggableScrollableNotification>(
+      onNotification: (n) {
+        _extent.value = n.extent;
+        return false; // Let the modal see it so it can close at min size.
+      },
+      child: DraggableScrollableSheet(
+        controller: _sheet,
+        expand: false,
+        initialChildSize: _sheetInitialSize,
+        minChildSize: _sheetMinSize,
+        maxChildSize: _sheetMaxSize,
+        snap: true,
+        snapSizes: const [_sheetInitialSize],
+        builder: (context, scrollController) {
+          final body = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              header,
+              const Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.cardBorder,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  // Always scrollable so a short list (loading, empty)
+                  // still drives the sheet up and down.
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + bottomInset),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 280),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    layoutBuilder: (current, previous) => Stack(
+                      alignment: Alignment.topCenter,
+                      children: [...previous, ?current],
+                    ),
+                    child: content,
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          return ValueListenableBuilder<double>(
+            valueListenable: _extent,
+            child: body,
+            builder: (context, extent, child) {
+              // How far the sheet's top has slid under the status bar:
+              // 0 while clear of it, 1 once full screen.
+              final gap = screenHeight * (1 - extent);
+              final under = topInset <= 0
+                  ? (extent >= _sheetMaxSize ? 1.0 : 0.0)
+                  : ((topInset - gap) / topInset).clamp(0.0, 1.0);
+              final radius = _sheetRadius * (1 - under);
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(radius),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 24,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(top: topInset * under),
+                  child: child,
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

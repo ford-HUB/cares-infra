@@ -169,7 +169,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                     const Text(
                       'Activity',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryDark,
                       ),

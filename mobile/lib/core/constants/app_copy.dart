@@ -94,9 +94,9 @@ abstract final class AppCopy {
   static const String loginTitle = 'Welcome!';
   static const String loginSubtitle =
       'Volunteers and Beneficiaries can sign in using their email and password.';
-  static const String loginEmailHint = 'Email address';
+  static const String loginEmailHint = 'Email Address';
   static const String loginPasswordHint = 'Password';
-  static const String loginForgotPassword = 'Forgot password?';
+  static const String loginForgotPassword = 'Forgot Password?';
   static const String loginSignIn = 'Sign In';
   static const String loginDonorDivider = 'Donors continue with';
   static const String loginNoAccount = "Don't have an account? ";

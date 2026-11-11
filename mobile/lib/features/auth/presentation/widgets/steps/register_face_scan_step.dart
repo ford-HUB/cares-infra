@@ -408,7 +408,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Face verification',
+          'Face Verification',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
             color: AppColors.primaryDark,

@@ -504,7 +504,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   Widget _nameSection() {
     return _FormCard(
       icon: Icons.badge_outlined,
-      title: 'Your name',
+      title: 'Your Name',
       subtitle: 'This is how campaigns will thank you.',
       children: [
         RegisterFormField(
@@ -535,7 +535,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   Widget _contactSection() {
     return _FormCard(
       icon: Icons.place_outlined,
-      title: 'Contact details',
+      title: 'Contact Details',
       subtitle: 'Where we reach you about your donations.',
       children: [
         RegisterFormField(
@@ -559,7 +559,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   Widget _addressSection() {
     return _FormCard(
       icon: Icons.home_outlined,
-      title: 'Home address',
+      title: 'Home Address',
       subtitle:
           'Start typing your barangay and pick it from the list — '
           'we fill in the city for you. Receipts are addressed here.',
@@ -578,7 +578,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
 
     return _FormCard(
       icon: Icons.lock_outline_rounded,
-      title: 'Sign-in details',
+      title: 'Sign-In Details',
       subtitle: _isSocialSignUp
           ? 'Managed by ${_linkedAccount!.provider.label} — no password needed.'
           : 'Used every time you sign in to CARES.',
@@ -988,7 +988,7 @@ class _FormCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 19,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryDark,
                       ),
@@ -997,7 +997,7 @@ class _FormCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 14.5,
                         height: 1.35,
                         color: AppColors.textSecondary,
                       ),

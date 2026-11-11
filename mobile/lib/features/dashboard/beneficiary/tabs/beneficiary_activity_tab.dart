@@ -92,7 +92,7 @@ class _BeneficiaryActivityTabState
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
-                    title: 'Registered events',
+                    title: 'Registered Events',
                     subtitle: (upcoming.valueOrNull ?? const []).isEmpty
                         ? 'Events you apply for will show up here.'
                         : 'Tap an event to see the details.',
@@ -129,7 +129,7 @@ class _BeneficiaryActivityTabState
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
-                    title: 'Completed events',
+                    title: 'Completed Events',
                     subtitle: 'Events you applied for that have already run.',
                     children: [
                       _Body(
@@ -174,7 +174,7 @@ class _Header extends StatelessWidget {
         const Text(
           'Activity',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 28,
             fontWeight: FontWeight.w800,
             color: AppColors.primaryDark,
           ),

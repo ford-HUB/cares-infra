@@ -147,7 +147,7 @@ class RegistrationUnderReviewScreen extends StatelessWidget {
                 const Spacer(flex: 2),
                 ElevatedButton(
                   onPressed: () => _backToSignIn(context),
-                  child: const Text('Back to sign in'),
+                  child: const Text('Back to Sign In'),
                 ),
               ],
             ),

@@ -452,18 +452,18 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         const SizedBox(height: 16),
         RegistrationFormCard(
           icon: Icons.person_outline_rounded,
-          title: 'Personal information',
+          title: 'Personal Information',
           subtitle: 'Read off the front of your ID.',
           children: [
             RegisterFormField(
-              label: 'First name',
+              label: 'First Name',
               controller: _firstname,
               textInputAction: TextInputAction.next,
               onChanged: (_) => _notifyParent(),
             ),
             const SizedBox(height: 14),
             RegisterFormField(
-              label: 'Middle name',
+              label: 'Middle Name',
               hint: 'Optional',
               controller: _middleName,
               textInputAction: TextInputAction.next,
@@ -471,7 +471,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ),
             const SizedBox(height: 14),
             RegisterFormField(
-              label: 'Last name',
+              label: 'Last Name',
               controller: _lastname,
               textInputAction: TextInputAction.next,
               onChanged: (_) => _notifyParent(),
@@ -483,7 +483,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                   ? _gender
                   : null,
               items: _genders,
-              hint: 'Select gender',
+              hint: 'Select Gender',
               onChanged: (v) {
                 setState(() => _gender = v!);
                 _notifyParent();
@@ -500,7 +500,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ),
             const SizedBox(height: 14),
             RegisterFormField(
-              label: 'Phone number',
+              label: 'Phone Number',
               hint: '+639XXXXXXXXX',
               controller: _phone,
               focusNode: _phoneFocus,
@@ -514,7 +514,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         const SizedBox(height: 16),
         RegistrationFormCard(
           icon: Icons.home_outlined,
-          title: 'Home address',
+          title: 'Home Address',
           subtitle:
               'Filled in from your ID where we could read it. Check it, and '
               'pick your barangay from the list — we fill in the city.',
@@ -536,7 +536,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           subtitle: 'Ties your account to your UC record.',
           children: [
             RegisterFormField(
-              label: 'ID number',
+              label: 'ID Number',
               controller: _idNumber,
               focusNode: _idNumberFocus,
               errorText: widget.idNumberError,
@@ -545,7 +545,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             ),
             const SizedBox(height: 14),
             RegisterFormField(
-              label: 'Type of volunteer',
+              label: 'Type of Volunteer',
               controller: _volunteerTypeLabel,
               readOnly: true,
             ),
@@ -554,7 +554,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
               label: 'Department',
               value: _selectedDepartment,
               items: UclmDepartments.names,
-              hint: 'Select your department',
+              hint: 'Select Your Department',
               isExpanded: true,
               onChanged: _onDepartmentChanged,
             ),
@@ -565,8 +565,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                 value: _selectedCourse,
                 items: _courseOptions,
                 hint: _selectedDepartment == null
-                    ? 'Select a department first'
-                    : 'Select your ${_usesGradeLevels ? 'program' : 'course'}',
+                    ? 'Select a Department First'
+                    : 'Select Your ${_usesGradeLevels ? 'Program' : 'Course'}',
                 isExpanded: true,
                 enabled:
                     _selectedDepartment != null && _courseOptions.isNotEmpty,
@@ -576,10 +576,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             if (_isStudent && !_isNonTeaching) ...[
               const SizedBox(height: 14),
               _dropdown(
-                label: _usesGradeLevels ? 'Grade level' : 'Year level',
+                label: _usesGradeLevels ? 'Grade Level' : 'Year Level',
                 value: _selectedYearLevel,
                 hint:
-                    'Select your ${_usesGradeLevels ? 'grade level' : 'year level'}',
+                    'Select Your ${_usesGradeLevels ? 'Grade Level' : 'Year Level'}',
                 items: _yearLevelOptions,
                 onChanged: _onYearLevelChanged,
               ),
@@ -587,7 +587,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             if (_isAlumni && !_isNonTeaching) ...[
               const SizedBox(height: 14),
               RegisterFormField(
-                label: 'Graduated year',
+                label: 'Graduated Year',
                 controller: _gradYear,
                 focusNode: _gradYearFocus,
                 errorText: _gradYearError,
@@ -599,7 +599,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             if (_isStudent && !_isNonTeaching) ...[
               const SizedBox(height: 14),
               RegisterFormField(
-                label: 'Expected graduation year',
+                label: 'Expected Graduation Year',
                 hint: 'YYYY',
                 controller: _gradYear,
                 focusNode: _gradYearFocus,

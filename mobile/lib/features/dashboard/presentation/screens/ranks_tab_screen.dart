@@ -40,14 +40,14 @@ class RanksTabScreen extends ConsumerWidget {
                   const Text(
                     'Ranks',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Leaderboard and volunteer tiers',
+                    'Leaderboard and Volunteer tiers',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,

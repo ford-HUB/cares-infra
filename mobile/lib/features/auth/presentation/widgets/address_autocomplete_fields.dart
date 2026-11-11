@@ -174,7 +174,7 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
       children: [
         _AutocompleteField<PhBarangay>(
           label: 'Barangay',
-          hint: 'Start typing, e.g. Looc',
+          hint: 'Start Typing, e.g. Looc',
           controller: _barangay,
           focusNode: _barangayFocus,
           errorText: _barangayError,
@@ -194,7 +194,7 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
         const SizedBox(height: 14),
         _AutocompleteField<PhLocality>(
           label: 'City/Municipality',
-          hint: 'Filled in when you pick a barangay',
+          hint: 'Filled in When You Pick a Barangay',
           controller: _city,
           focusNode: _cityFocus,
           errorText: _cityError,
@@ -209,7 +209,7 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
         const SizedBox(height: 14),
         _AutocompleteField<String>(
           label: 'Street',
-          hint: 'House no., street / sitio',
+          hint: 'House No., Street / Sitio',
           controller: _street,
           focusNode: _streetFocus,
           errorText: _streetError,

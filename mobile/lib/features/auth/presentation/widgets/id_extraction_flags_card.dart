@@ -31,9 +31,9 @@ class IdExtractionFlagsCard extends StatelessWidget {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Check these fields before continuing',
+                  'Check These Fields Before Continuing',
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 14.5,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primaryDark,
                   ),

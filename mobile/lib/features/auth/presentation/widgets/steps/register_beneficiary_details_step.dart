@@ -225,7 +225,7 @@ class _RegisterBeneficiaryDetailsStepState
     final document = widget.document;
     return RegistrationFormCard(
       icon: Icons.attach_file_rounded,
-      title: 'Supporting document',
+      title: 'Supporting Document',
       subtitle:
           'Attach a file that supports your registration — a barangay '
           'certificate, valid ID, or similar. Any file type, up to '
@@ -318,18 +318,18 @@ class _RegisterBeneficiaryDetailsStepState
   Widget _nameCard() {
     return RegistrationFormCard(
       icon: Icons.badge_outlined,
-      title: 'Your name',
+      title: 'Your Name',
       subtitle: 'Use the name that appears on your valid ID.',
       children: [
         RegisterFormField(
-          label: 'First name',
+          label: 'First Name',
           controller: _firstname,
           textInputAction: TextInputAction.next,
           onChanged: _onFieldChanged,
         ),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Middle name',
+          label: 'Middle Name',
           hint: 'Optional',
           controller: _middleName,
           textInputAction: TextInputAction.next,
@@ -337,7 +337,7 @@ class _RegisterBeneficiaryDetailsStepState
         ),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Last name',
+          label: 'Last Name',
           controller: _lastname,
           textInputAction: TextInputAction.next,
           onChanged: _onFieldChanged,
@@ -349,7 +349,7 @@ class _RegisterBeneficiaryDetailsStepState
   Widget _kindCard() {
     return RegistrationFormCard(
       icon: Icons.people_outline_rounded,
-      title: 'Who are you registering as?',
+      title: 'Who Are You Registering As?',
       subtitle: 'Pick one — an organization adds a few extra details.',
       children: [
         RegistrationChoiceTile(
@@ -381,11 +381,11 @@ class _RegisterBeneficiaryDetailsStepState
   Widget _organizationCard() {
     return RegistrationFormCard(
       icon: Icons.apartment_outlined,
-      title: 'Organization details',
+      title: 'Organization Details',
       subtitle: 'Tell us about the group you are registering for.',
       children: [
         RegisterFormField(
-          label: 'Organization name',
+          label: 'Organization Name',
           hint: 'e.g. Barangay Malinis Women’s Association',
           controller: _organizationName,
           textInputAction: TextInputAction.next,
@@ -393,8 +393,8 @@ class _RegisterBeneficiaryDetailsStepState
         ),
         const SizedBox(height: 14),
         _dropdown(
-          label: 'Organization type',
-          hint: 'Select organization type',
+          label: 'Organization Type',
+          hint: 'Select Organization Type',
           value: _profile.organizationType,
           items: BeneficiaryProfile.organizationTypes,
           onChanged: (value) {
@@ -404,7 +404,7 @@ class _RegisterBeneficiaryDetailsStepState
         ),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Your role in the organization',
+          label: 'Your Role in the Organization',
           hint: 'e.g. President, Secretary, Member',
           controller: _organizationRole,
           textInputAction: TextInputAction.next,
@@ -412,8 +412,8 @@ class _RegisterBeneficiaryDetailsStepState
         ),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Organization address',
-          hint: 'Where the organization operates',
+          label: 'Organization Address',
+          hint: 'Where the Organization Operates',
           controller: _organizationAddress,
           maxLines: 2,
           onChanged: _onOrganizationFieldChanged,
@@ -425,12 +425,12 @@ class _RegisterBeneficiaryDetailsStepState
   Widget _personalCard() {
     return RegistrationFormCard(
       icon: Icons.person_outline_rounded,
-      title: 'Personal information',
+      title: 'Personal Information',
       subtitle: 'How the CARES team reaches and identifies you.',
       children: [
         _dropdown(
           label: 'Gender',
-          hint: 'Select gender',
+          hint: 'Select Gender',
           value: _genders.contains(_gender) ? _gender : null,
           items: _genders,
           onChanged: (value) {
@@ -452,7 +452,7 @@ class _RegisterBeneficiaryDetailsStepState
         ),
         const SizedBox(height: 14),
         RegisterFormField(
-          label: 'Phone number',
+          label: 'Phone Number',
           hint: '+639XXXXXXXXX',
           controller: _phone,
           focusNode: _phoneFocus,
@@ -469,7 +469,7 @@ class _RegisterBeneficiaryDetailsStepState
   Widget _addressCard() {
     return RegistrationFormCard(
       icon: Icons.home_outlined,
-      title: 'Home address',
+      title: 'Home Address',
       subtitle:
           'Start typing your barangay and pick it from the list — '
           'we fill in the city for you.',

@@ -419,7 +419,7 @@ class _UploadProgressChip extends StatelessWidget {
         ),
       ),
       child: Text(
-        '$uploaded / $total sides uploaded',
+        '$uploaded / $total Sides Uploaded',
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,

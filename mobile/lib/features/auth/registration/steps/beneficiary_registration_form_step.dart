@@ -194,7 +194,7 @@ class _BeneficiaryRegistrationFormStepState
   Widget _typeSection() {
     return RegistrationFormCard(
       icon: Icons.people_outline_rounded,
-      title: 'Who are you registering as?',
+      title: 'Who Are You Registering As?',
       subtitle: 'Pick one — an organization adds a few extra details.',
       children: [
         RegistrationChoiceTile(
