@@ -180,7 +180,7 @@ class ActivityEmptyState extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
             ),

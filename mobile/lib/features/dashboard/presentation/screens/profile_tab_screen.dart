@@ -305,7 +305,7 @@ class _ProfileTabBody extends StatelessWidget {
                     'Profile',
 
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
 
                       fontWeight: FontWeight.w800,
 

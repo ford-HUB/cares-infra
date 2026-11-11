@@ -201,7 +201,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
-                    title: 'Registered events',
+                    title: 'Registered Events',
                     subtitle: registered.isEmpty
                         ? 'Events you join will show up here.'
                         : 'Tap an event to see details or cancel.',
@@ -238,7 +238,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
-                    title: 'Completed events',
+                    title: 'Completed Events',
                     subtitle: completedEvents.isEmpty
                         ? 'Events you attended will show up here.'
                         : 'Submit feedback to unlock your certificate.',

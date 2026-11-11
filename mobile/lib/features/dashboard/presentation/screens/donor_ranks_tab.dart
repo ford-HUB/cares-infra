@@ -42,7 +42,7 @@ class DonorRanksTab extends ConsumerWidget {
                   const Text(
                     'Ranks',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primaryDark,
                     ),

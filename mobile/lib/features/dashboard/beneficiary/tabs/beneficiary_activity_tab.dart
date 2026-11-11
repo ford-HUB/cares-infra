@@ -256,7 +256,7 @@ class _ErrorState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          TextButton(onPressed: onRetry, child: const Text('Try again')),
+          TextButton(onPressed: onRetry, child: const Text('Try Again')),
         ],
       ),
     );
