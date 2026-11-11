@@ -707,7 +707,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
                     Text(
                       _isSocialSignUp
                           ? 'Continue as ${_linkedAccount!.firstName}'
-                          : 'Create donor account',
+                          : 'Create Donor Account',
                       style: const TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w700,
