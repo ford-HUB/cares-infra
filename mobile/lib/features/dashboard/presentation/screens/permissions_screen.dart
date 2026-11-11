@@ -49,7 +49,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     AppPermissionItem(
       permission: Permission.photos,
       icon: Icons.perm_media_outlined,
-      label: 'Photos & media',
+      label: 'Photos & Media',
       description:
           'Choosing your profile photo and ID or proof-of-residency files.',
     ),
@@ -61,7 +61,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     AppPermissionItem(
       permission: Permission.locationAlways,
       icon: Icons.my_location_outlined,
-      label: 'Background location',
+      label: 'Background Location',
       description:
           'Keeps recording your attendance coordinates while CARES is closed '
           'or your screen is off, for the whole event.',
@@ -77,7 +77,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     AppPermissionItem(
       permission: Permission.ignoreBatteryOptimizations,
       icon: Icons.battery_saver_outlined,
-      label: 'Unrestricted battery',
+      label: 'Unrestricted Battery',
       description:
           'Stops your phone from pausing the recorder to save battery, so no '
           'coordinates are missed.',
@@ -222,7 +222,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                     children: [
                       const Text(
-                        'Device access',
+                        'Device Access',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -242,7 +242,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                       if (_showBackground) ...[
                         const SizedBox(height: 24),
                         const Text(
-                          'Background recording',
+                          'Background Recording',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

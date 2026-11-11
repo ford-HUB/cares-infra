@@ -298,7 +298,7 @@ enum BeneficiaryAssessmentState { notCompleted, completed, needsUpdate }
 extension BeneficiaryAssessmentStateX on BeneficiaryAssessmentState {
   String get label => switch (this) {
     BeneficiaryAssessmentState.notCompleted => 'Not completed yet',
-    BeneficiaryAssessmentState.completed => 'Assessment completed',
+    BeneficiaryAssessmentState.completed => 'Assessment Completed',
     BeneficiaryAssessmentState.needsUpdate => 'Update your assessment',
   };
 

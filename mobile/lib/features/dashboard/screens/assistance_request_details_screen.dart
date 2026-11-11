@@ -181,7 +181,7 @@ class _AssistanceRequestDetailsScreenState
             ),
           ),
           const SizedBox(height: 20),
-          const _SectionTitle('Request information'),
+          const _SectionTitle('Request Information'),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
@@ -200,7 +200,7 @@ class _AssistanceRequestDetailsScreenState
                 ),
                 _DetailRow(
                   icon: Icons.groups_outlined,
-                  label: 'Household size',
+                  label: 'Household Size',
                   value: '${request.householdSize} members',
                 ),
                 _DetailRow(
@@ -222,7 +222,7 @@ class _AssistanceRequestDetailsScreenState
             ),
           ),
           const SizedBox(height: 20),
-          const _SectionTitle('Needs assessment'),
+          const _SectionTitle('Needs Assessment'),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
@@ -259,7 +259,7 @@ class _AssistanceRequestDetailsScreenState
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        'Assessment date: ${request.assessmentDateLabel}',
+                        'Assessment Date: ${request.assessmentDateLabel}',
                         style: const TextStyle(
                           fontSize: 12.5,
                           color: AppColors.textSecondary,
@@ -337,7 +337,7 @@ class _AssistanceRequestDetailsScreenState
           ],
           if (request.attachments.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const _SectionTitle('Proof documents'),
+            const _SectionTitle('Proof Documents'),
             const SizedBox(height: 10),
             Container(
               width: double.infinity,
@@ -389,7 +389,7 @@ class _AssistanceRequestDetailsScreenState
             ),
           ],
           const SizedBox(height: 20),
-          const _SectionTitle('Request progress'),
+          const _SectionTitle('Request Progress'),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
@@ -533,7 +533,7 @@ class _CancelRequestSheetState extends State<_CancelRequestSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Cancel this request?',
+              'Cancel This Request?',
               style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.w800,
@@ -589,7 +589,7 @@ class _CancelRequestSheetState extends State<_CancelRequestSheet> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text('Yes, cancel request'),
+              child: const Text('Yes, Cancel Request'),
             ),
             const SizedBox(height: 6),
             TextButton(
@@ -598,7 +598,7 @@ class _CancelRequestSheetState extends State<_CancelRequestSheet> {
                 foregroundColor: AppColors.textSecondary,
                 minimumSize: const Size.fromHeight(46),
               ),
-              child: const Text('Keep request'),
+              child: const Text('Keep Request'),
             ),
           ],
         ),

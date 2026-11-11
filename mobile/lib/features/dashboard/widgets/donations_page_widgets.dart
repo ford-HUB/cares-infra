@@ -25,7 +25,7 @@ class DonationsPageHeader extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 30,
+              fontSize: 28,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
             ),
