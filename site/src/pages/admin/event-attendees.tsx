@@ -11,6 +11,7 @@ import {
   type AttendeeStatusFilter,
   isManuallyMarkable,
 } from '../../constants/attendees'
+import { usePageSearch } from '../../hooks/use-page-search'
 import { useAttendeeStore } from '../../store/attendee-store'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
@@ -25,7 +26,7 @@ export function EventAttendeesPage() {
   const error = useAttendeeStore((s) => s.error)
   const fetchAttendees = useAttendeeStore((s) => s.fetchAttendees)
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = usePageSearch()
   const [eventFilter, setEventFilter] = useState<string>(ATTENDEE_EVENT_FILTER_ALL)
   const [statusFilter, setStatusFilter] = useState<AttendeeStatusFilter>(
     ATTENDEE_STATUS_FILTER_ALL,

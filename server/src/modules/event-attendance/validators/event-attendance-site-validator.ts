@@ -3,6 +3,8 @@ import {
   AttendanceStatus,
   GeoValidationMethod,
 } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 export const AttendeeEventIdQuerySchema = z
   .union([z.string(), z.number()])
@@ -59,21 +61,26 @@ export const MANUAL_ATTENDANCE_REASON_MAX = 300;
  * The fallback when the geofence could not rule: mark these attendance rows present.
  * The reason is optional but lands in the row's remarks and the audit trail.
  */
-export const ManualAttendanceSchema = z
-  .object({
-    event_attendance_ids: z
-      .array(z.string().uuid())
-      .min(1, 'Select at least one participant')
-      .max(MANUAL_ATTENDANCE_MAX_ROWS)
-      .transform((ids) => [...new Set(ids)]),
-    reason: z
-      .string()
-      .trim()
-      .max(MANUAL_ATTENDANCE_REASON_MAX)
-      .optional()
-      .transform((value) => (value ? value : undefined)),
-  })
-  .strict();
+export const ManualAttendanceSchema = withoutPrototypeKeys(
+  z
+    .object({
+      event_attendance_ids: z
+        .array(z.string().uuid())
+        .min(1, 'Select at least one participant')
+        .max(MANUAL_ATTENDANCE_MAX_ROWS)
+        .transform((ids) => [...new Set(ids)]),
+      reason: z
+        .string()
+        .trim()
+        .max(MANUAL_ATTENDANCE_REASON_MAX)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Reason cannot contain control characters',
+        })
+        .optional()
+        .transform((value) => (value ? value : undefined)),
+    })
+    .strict(),
+);
 
 export const ManualAttendanceResponseSchema = z.object({
   /** The rows now COMPLETED by this ruling, in the roster shape. */

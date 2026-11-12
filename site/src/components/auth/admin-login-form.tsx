@@ -1,5 +1,5 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { Lock, ShieldCheck, User } from 'lucide-react'
+import { Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react'
 import { useState } from 'react'
 import type { AdminLoginFormValues } from '../../validators/admin-login-schema'
 import { cn } from '@/lib/utils'
@@ -37,6 +37,7 @@ export function AdminLoginForm({
   onRequestAccess,
 }: AdminLoginFormProps) {
   const [forgotOpen, setForgotOpen] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const {
     register,
     formState: { errors },
@@ -83,11 +84,27 @@ export function AdminLoginForm({
               <Lock aria-hidden className={INPUT_ICON_CLASS} />
               <input
                 id="admin-password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
-                className={INPUT_CLASS}
+                className={cn(INPUT_CLASS, 'pr-10')}
                 {...register('password')}
               />
+              {/* Shows what was typed, so a mistyped password can be caught before
+                  it counts toward the lockout. The field keeps focus and its value. */}
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                aria-controls="admin-password"
+                className="absolute top-1/2 right-1.5 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[var(--cares-muted)] transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff aria-hidden className="h-4 w-4" />
+                ) : (
+                  <Eye aria-hidden className="h-4 w-4" />
+                )}
+              </button>
             </div>
             {errors.password && (
               <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>

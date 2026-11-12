@@ -13,6 +13,7 @@ import type { EventSortKey } from '../../constants/manage-events'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
 import { ContentShell } from '../portal/ui/content-shell'
 import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
+import { usePageSearch } from '../../hooks/use-page-search'
 import { useEventStore } from '../../store/event-store'
 import { useProfileStore } from '../../store/profile-store'
 import type { EventTableRow } from '../../types/event'
@@ -58,7 +59,7 @@ export function ManageEvents() {
     if (isCoordinator) void ensureProfile()
   }, [ensureProfile, isCoordinator])
 
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = usePageSearch()
   const [selectedType, setSelectedType] = useState('')
   const [timeFilter, setTimeFilter] = useState<EventTimeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<EventStatusFilter>('all')

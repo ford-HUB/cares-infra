@@ -5,6 +5,8 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { PORTAL_ROLE_TYPES } from '../../../shared/constants/portal-role-types';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 export const ACCESS_LIST_DEFAULT_PAGE_SIZE = 25;
 export const ACCESS_LIST_MAX_PAGE_SIZE = 100;
@@ -55,19 +57,26 @@ export const UpdateRolePermissionsSchema = z
   })
   .strict();
 
-export const SuspendActionsSchema = z
-  .object({
-    permissions: z
-      .array(z.enum(PermissionKey))
-      .min(1, 'Select at least one action to suspend'),
-    reason: z
-      .string()
-      .trim()
-      .min(1, 'A reason is required for a suspension')
-      .max(500),
-    expires_at: z.iso.datetime().optional(),
-  })
-  .strict();
+export const SuspendActionsSchema = withoutPrototypeKeys(
+  z
+    .object({
+      permissions: z
+        .array(z.enum(PermissionKey))
+        .min(1, 'Select at least one action to suspend')
+        .max(Object.keys(PermissionKey).length),
+      /** Same minimum as the portal's form (site/src/validators/suspend-actions-schema.ts). */
+      reason: z
+        .string()
+        .trim()
+        .min(10, 'Describe the violation in at least 10 characters')
+        .max(500)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Reason cannot contain control characters',
+        }),
+      expires_at: z.iso.datetime().optional(),
+    })
+    .strict(),
+);
 
 export const PermissionDescriptorSchema = z.object({
   key: z.enum(PermissionKey),

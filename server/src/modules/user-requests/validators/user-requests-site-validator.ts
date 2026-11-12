@@ -5,6 +5,8 @@ import {
   UserRequestKind,
   UserRequestStatus,
 } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 /**
  * The portal groups the queue by day and works it client-side, so the list is
@@ -31,18 +33,23 @@ export const ListUserRequestsQuerySchema = z
 export const REJECTION_REASON_MAX_LENGTH = 500;
 
 /** The director must say why — the requester reads this in the app. */
-export const RejectUserRequestSchema = z
-  .object({
-    reason: z
-      .string()
-      .trim()
-      .min(1, 'Enter a reason for the rejection')
-      .max(
-        REJECTION_REASON_MAX_LENGTH,
-        `Keep the reason under ${REJECTION_REASON_MAX_LENGTH} characters`,
-      ),
-  })
-  .strict();
+export const RejectUserRequestSchema = withoutPrototypeKeys(
+  z
+    .object({
+      reason: z
+        .string()
+        .trim()
+        .min(1, 'Enter a reason for the rejection')
+        .max(
+          REJECTION_REASON_MAX_LENGTH,
+          `Keep the reason under ${REJECTION_REASON_MAX_LENGTH} characters`,
+        )
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Reason cannot contain control characters',
+        }),
+    })
+    .strict(),
+);
 
 /** Which stored proof file a `GET :id/attachments/:kind` streams back. */
 export const UserRequestAttachmentKindSchema = z.enum([

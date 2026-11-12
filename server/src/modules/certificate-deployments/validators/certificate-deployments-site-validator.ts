@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 import {
   CERTIFICATE_CATEGORIES,
   CERTIFICATE_ORIENTATIONS,
@@ -23,12 +24,21 @@ export const SETTABLE_DEPLOYMENT_STATUSES = [
   'completed',
 ] as const;
 
-export const DeployCertificateSchema = z
-  .object({
-    certificate_template_id: z.uuid('Pick a certificate template'),
-    event_id: z.coerce.number().int().positive('Pick an event'),
-  })
-  .strict();
+/** The largest value the `Int` column behind an event id can hold. */
+const EVENT_ID_MAX = 2147483647;
+
+export const DeployCertificateSchema = withoutPrototypeKeys(
+  z
+    .object({
+      certificate_template_id: z.uuid('Pick a certificate template'),
+      // Not `z.coerce`: that reads `true` as event 1 and `0x10` as event 16, which
+      // would deploy to a real event nobody picked.
+      event_id: z
+        .union([z.number(), z.string().regex(/^\d+$/).transform(Number)])
+        .pipe(z.number().int().positive('Pick an event').max(EVENT_ID_MAX)),
+    })
+    .strict(),
+);
 
 export const UpdateDeploymentStatusSchema = z
   .object({

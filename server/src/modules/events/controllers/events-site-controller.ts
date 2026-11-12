@@ -37,6 +37,7 @@ import { EventsSiteService } from '../services/events-site-service';
 import {
   CreateEventSchema,
   DeleteEventResponseSchema,
+  EVENT_MAX_IMAGE_BYTES,
   EVENT_MAX_IMAGE_COUNT,
   EventIdParamSchema,
   EventImageIndexParamSchema,
@@ -45,6 +46,13 @@ import {
   UpdateDonationsSchema,
   UpdateEventSchema,
 } from '../validators/events-site-validator';
+
+/** Uploads are buffered in memory, so the cap has to apply while the file is read. */
+const EVENT_IMAGES_INTERCEPTOR = FilesInterceptor(
+  'event_images',
+  EVENT_MAX_IMAGE_COUNT,
+  { limits: { fileSize: EVENT_MAX_IMAGE_BYTES } },
+);
 
 @Controller('v1/events')
 @Roles(...PORTAL_ROLE_TYPES)
@@ -92,7 +100,7 @@ export class EventsSiteController {
   @RequirePermission(PermissionKey.EVENTS_CREATE)
   @ResponseMessage('Event created')
   @ZSerialize(EventResponseSchema)
-  @UseInterceptors(FilesInterceptor('event_images', EVENT_MAX_IMAGE_COUNT))
+  @UseInterceptors(EVENT_IMAGES_INTERCEPTOR)
   async createEvent(
     @CurrentUser() caller: JwtPayload,
     @ZBody(CreateEventSchema) data: CreateEventDto,
@@ -106,7 +114,7 @@ export class EventsSiteController {
   @RequirePermission(PermissionKey.EVENTS_UPDATE)
   @ResponseMessage('Event updated')
   @ZSerialize(EventResponseSchema)
-  @UseInterceptors(FilesInterceptor('event_images', EVENT_MAX_IMAGE_COUNT))
+  @UseInterceptors(EVENT_IMAGES_INTERCEPTOR)
   async updateEvent(
     @CurrentUser() caller: JwtPayload,
     @ZParam('id', EventIdParamSchema) id: number,

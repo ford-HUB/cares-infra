@@ -299,8 +299,13 @@ export class PaymentsSiteService {
   ): Promise<PaymentSettingsDto> {
     const row = await this.paymentsRepository.findSettings();
     const config = await this.paymentSettings.getConfig();
-    const secretKey = body.secret_key?.trim() || config.credentials?.secretKey;
-    const apiUrl = body.api_url?.trim() || (config.credentials?.apiUrl ?? null);
+    const triedKey = body.secret_key?.trim();
+    const secretKey = triedKey || config.credentials?.secretKey;
+    // A URL from the request only ever travels with a key from the request: the saved
+    // key goes to the saved host, or this endpoint would hand it to any address.
+    const apiUrl =
+      (triedKey && body.api_url?.trim()) ||
+      (config.credentials?.apiUrl ?? null);
 
     let failure: string | null = null;
     if (!secretKey) {

@@ -3,6 +3,7 @@ import {
   CREDENTIAL_LIFETIME_OPTIONS,
   PROVISIONABLE_DEPARTMENTS,
   PROVISIONABLE_ROLES,
+  REGULAR_USER_TYPES,
 } from '../../../constants/manage-users'
 import type {
   RecipientEmailCheck,
@@ -14,6 +15,8 @@ type ProvisionUserFieldsProps = Pick<
   ReturnType<typeof useProvisionUserForm>,
   | 'form'
   | 'mode'
+  | 'isRegularUser'
+  | 'showDepartment'
   | 'submitting'
   | 'catalog'
   | 'catalogLoading'
@@ -42,6 +45,10 @@ const MODE_OPTIONS = [
     hint: 'Use the address on the request.',
   },
 ] as const
+
+/** Volunteer sub-types sit under one heading; the rest are top-level choices. */
+const VOLUNTEER_TYPES = REGULAR_USER_TYPES.filter((option) => option.group === 'Volunteer')
+const OTHER_REGULAR_TYPES = REGULAR_USER_TYPES.filter((option) => option.group === null)
 
 const fieldClass =
   'h-9 w-full rounded-lg border border-gray-300 px-3 text-[13px] text-gray-800 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
@@ -72,6 +79,8 @@ function RecipientCheckIndicator({ check }: { check: RecipientEmailCheck }) {
 export function ProvisionUserFields({
   form,
   mode,
+  isRegularUser,
+  showDepartment,
   submitting,
   catalog,
   catalogLoading,
@@ -192,25 +201,62 @@ export function ProvisionUserFields({
           </select>
         </div>
 
-        <div>
-          <label className={labelClass} htmlFor="provision-department">
-            Department <span className="text-gray-400">(optional)</span>
-          </label>
-          <select
-            id="provision-department"
-            className={fieldClass}
-            {...form.register('department')}
-          >
-            <option value="">No department</option>
-            {PROVISIONABLE_DEPARTMENTS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {errors.department && <p className={errorClass}>{errors.department.message}</p>}
-        </div>
+        {isRegularUser && (
+          <div>
+            <label className={labelClass} htmlFor="provision-user-type">
+              User type
+            </label>
+            <select
+              id="provision-user-type"
+              className={fieldClass}
+              {...form.register('regularUserType')}
+            >
+              <optgroup label="Volunteer">
+                {VOLUNTEER_TYPES.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+              {OTHER_REGULAR_TYPES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.regularUserType && (
+              <p className={errorClass}>{errors.regularUserType.message}</p>
+            )}
+          </div>
+        )}
+
+        {showDepartment && (
+          <div className={isRegularUser ? 'col-span-2' : undefined}>
+            <label className={labelClass} htmlFor="provision-department">
+              Department <span className="text-gray-400">(optional)</span>
+            </label>
+            <select
+              id="provision-department"
+              className={fieldClass}
+              {...form.register('department')}
+            >
+              <option value="">No department</option>
+              {PROVISIONABLE_DEPARTMENTS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.department && <p className={errorClass}>{errors.department.message}</p>}
+          </div>
+        )}
       </div>
+
+      {isRegularUser && (
+        <p className="-mt-2 text-[12px] text-gray-500">
+          Regular users sign in through the CARES mobile app and get no portal access.
+        </p>
+      )}
 
       <div>
         <label className={labelClass} htmlFor="provision-expiry">
@@ -232,46 +278,48 @@ export function ProvisionUserFields({
         )}
       </div>
 
-      <div className="rounded-lg border border-gray-200">
-        <button
-          type="button"
-          onClick={() => onScopeOpenChange(!scopeOpen)}
-          aria-expanded={scopeOpen}
-          className="flex w-full items-center justify-between px-3 py-2.5 text-left"
-        >
-          <span>
-            <span className="block text-[13px] font-medium text-gray-800">
-              Access scope
+      {!isRegularUser && (
+        <div className="rounded-lg border border-gray-200">
+          <button
+            type="button"
+            onClick={() => onScopeOpenChange(!scopeOpen)}
+            aria-expanded={scopeOpen}
+            className="flex w-full items-center justify-between px-3 py-2.5 text-left"
+          >
+            <span>
+              <span className="block text-[13px] font-medium text-gray-800">
+                Access scope
+              </span>
+              <span className="mt-0.5 block text-[12px] text-gray-500">
+                {scopeCustomised
+                  ? `${selected.size} actions — changed from the role default`
+                  : 'Follows the role default'}
+              </span>
             </span>
-            <span className="mt-0.5 block text-[12px] text-gray-500">
-              {scopeCustomised
-                ? `${selected.size} actions — changed from the role default`
-                : 'Follows the role default'}
-            </span>
-          </span>
-          {scopeOpen ? (
-            <ChevronDown className="h-4 w-4 text-gray-400" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-          )}
-        </button>
+            {scopeOpen ? (
+              <ChevronDown className="h-4 w-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            )}
+          </button>
 
-        {scopeOpen && (
-          <div className="border-t border-gray-100 p-3">
-            <PermissionScopePicker
-              catalog={catalog}
-              loading={catalogLoading}
-              selected={selected}
-              baseline={[...baseline]}
-              customised={scopeCustomised}
-              disabled={submitting}
-              onToggle={togglePermission}
-              onToggleAll={togglePermissions}
-              onReset={resetScope}
-            />
-          </div>
-        )}
-      </div>
+          {scopeOpen && (
+            <div className="border-t border-gray-100 p-3">
+              <PermissionScopePicker
+                catalog={catalog}
+                loading={catalogLoading}
+                selected={selected}
+                baseline={[...baseline]}
+                customised={scopeCustomised}
+                disabled={submitting}
+                onToggle={togglePermission}
+                onToggleAll={togglePermissions}
+                onReset={resetScope}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </>
   )
 }

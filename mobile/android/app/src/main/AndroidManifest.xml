@@ -138,6 +138,11 @@
         <intent>
             <action android:name="android.intent.action.GET_CONTENT"/>
         </intent>
+        <!-- Login footer's support link: hands a pre-filled mailto: to the mail app -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO"/>
+            <data android:scheme="mailto"/>
+        </intent>
         <intent>
             <action android:name="android.intent.action.PICK"/>
             <data android:mimeType="image/*"/>

@@ -13,6 +13,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Portal dark mode — variable overrides under html.dark only; see the files. */
+@import "./styles/portal-dark.css";
+@import "./styles/portal-dark-hues.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -248,7 +251,14 @@ html:has(.cares-landing) {
   --cares-sidebar-text: #ffffff;
   --cares-sidebar-muted: rgba(255, 255, 255, 0.72);
   --cares-bg: #f1f5f0;
+  /* Behind every portal screen: a soft sage wash with two faint glows (see
+     .cares-portal-canvas), so the white cards sit on something greener than gray. */
+  --cares-portal-bg: #ebf3ed;
+  --cares-portal-glow: rgba(116, 198, 157, 0.22);
+  --cares-portal-glow-soft: rgba(64, 145, 108, 0.08);
   --cares-card: #ffffff;
+  /* The edge of every shadcn Card (components/ui/card.tsx) — the brand's dark green. */
+  --cares-card-ring: #1b4332;
   --cares-border: #e0e0e0;
   --cares-heading: #1a1c19;
   --cares-body: #444746;
@@ -393,10 +403,50 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* The portal is light-only: there is no theme toggle and no `dark` class is ever
-   set on <html>. shadcn's init writes a neutral `.dark { ... }` palette here; it was
-   removed rather than left to drift out of sync with the CARES tokens. Add it back
-   (aliased onto --cares-* values) only when dark mode becomes a real feature. */
+/* Dark mode is a portal-only choice (the switch in the header's account menu). While
+   it is on, use-portal-theme sets `dark` on <html>, and styles/portal-dark*.css
+   redefine the --cares-* tokens and Tailwind's colour variables. Components never
+   need `dark:` classes — style with the palette and the variables do the rest. */
+
+/* Theme switch (hooks/use-theme-switch.ts). The browser's default cross-fade is
+   replaced by the circular reveal the hook animates on the new snapshot, so both
+   snapshots sit still and unblended underneath it. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* While the theme flips, every other transition is paused so colours change in one
+   step inside the reveal — except the toggle's own sun/moon turn. */
+html.theme-switching *:not([data-theme-icon]),
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+/* Text the header search carried into a module ("bea" in "Bea Cruz"): only the
+   matched characters are painted — see use-portal-find-highlight. The chip that
+   reports the matches shows its term in the same marker colour. */
+::highlight(portal-find),
+.portal-find-term {
+  background-color: #fde68a;
+  color: #1a1c19;
+}
+html.dark ::highlight(portal-find),
+html.dark .portal-find-term {
+  background-color: #b45309;
+  color: #fffbeb;
+}
+
+/* The portal's scrolling canvas. On an overflow container the background stays put
+   while content scrolls, so the glows hold their corners of the viewport. */
+.cares-portal-canvas {
+  background:
+    radial-gradient(1100px 520px at 100% 0%, var(--cares-portal-glow), transparent 62%),
+    radial-gradient(900px 480px at 0% 100%, var(--cares-portal-glow-soft), transparent 60%),
+    var(--cares-portal-bg);
+}
 
 @layer base {
   * {

@@ -18,6 +18,7 @@ import {
   type TicketStatusFilter,
   type TicketTypeFilter,
 } from '../../constants/support-tickets'
+import { usePageSearch } from '../../hooks/use-page-search'
 import { useAuthStore } from '../../store/auth-store'
 import { useSupportTicketStore } from '../../store/support-ticket-store'
 import type {
@@ -38,7 +39,7 @@ export function SupportTicketsPage() {
 
   const user = useAuthStore((s) => s.user)
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = usePageSearch()
   const [statusFilter, setStatusFilter] = useState<TicketStatusFilter>(
     TICKET_STATUS_FILTER_ALL,
   )

@@ -1,0 +1,129 @@
+/* Portal dark theme, neutral layer. Active while the portal shell is mounted and the
+   viewer has chosen dark mode: use-portal-theme puts `dark` on <html> and takes it
+   off again on the way out, so the public site and sign-in never see it.
+
+   Like the hue layer (portal-dark-hues.css, generated), this only redefines
+   variables. The ~2,900 gray utilities and ~240 bg-white surfaces across the
+   modules therefore follow without a single `dark:` class in a component.
+
+   The surfaces are a plain neutral charcoal — no green tint. Green stays where it
+   means something: the brand's primary action colour and the emerald status hues. */
+
+html.dark {
+  color-scheme: dark;
+
+  /* CARES palette — the shadcn tokens alias onto these, so they follow too. */
+  --cares-sidebar: #131316;
+  --cares-sidebar-active: #27272a;
+  --cares-sidebar-muted: rgba(255, 255, 255, 0.64);
+  --cares-bg: #0e0e10;
+  --cares-portal-bg: #0e0e10;
+  /* No coloured glow in dark mode — the canvas is flat charcoal. */
+  --cares-portal-glow: transparent;
+  --cares-portal-glow-soft: transparent;
+  --cares-card: #18181b;
+  /* Card edges stay neutral in dark mode — no green tint here (see the note above). */
+  --cares-card-ring: #2f2f35;
+  --cares-border: #2f2f35;
+  --cares-heading: #ececef;
+  --cares-body: #c4c4ca;
+  --cares-muted: #8b8b93;
+  --cares-tag-volunteer-bg: rgba(82, 183, 136, 0.16);
+  --cares-tag-volunteer-text: #8fd9b0;
+  --cares-tag-reminder-bg: rgba(251, 140, 0, 0.16);
+  --cares-tag-reminder-text: #ffb870;
+  --cares-tag-system-bg: rgba(161, 161, 170, 0.16);
+  --cares-tag-system-text: #c4c4ca;
+  /* The brand's action colour, lifted from #1b4332 so it reads both as a button
+     fill under white text and as an accent/focus colour on a charcoal card. */
+  --cares-primary: #3d8b63;
+  --cares-primary-hover: #52b788;
+
+  --secondary: #26262b;
+  --muted: #1f1f23;
+  --accent: #26262b;
+  --accent-foreground: #ececef;
+  --destructive: #e5484d;
+  --input: #3f3f46;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --chart-1: #52b788;
+  --chart-2: #40916c;
+  --chart-3: #74c69d;
+  --chart-4: #2d6a4f;
+  --chart-5: #b7e4c7;
+
+  /* Gray, inverted onto a neutral charcoal ramp: 50/100 become raised surfaces and
+     hover fills, 200/300 hairlines, 500-950 text from meta up to headings. Slate and
+     neutral (a handful of uses) ride the same ramp. */
+  --color-gray-50: #1f1f23;
+  --color-gray-100: #26262b;
+  --color-gray-200: #2f2f35;
+  --color-gray-300: #3f3f46;
+  --color-gray-400: #63636b;
+  --color-gray-500: #8b8b93;
+  --color-gray-600: #a8a8b0;
+  --color-gray-700: #c4c4ca;
+  --color-gray-800: #dcdce0;
+  --color-gray-900: #ececef;
+  --color-gray-950: #f6f6f7;
+  --color-slate-50: #1f1f23;
+  --color-slate-100: #26262b;
+  --color-slate-200: #2f2f35;
+  --color-slate-300: #3f3f46;
+  --color-slate-400: #63636b;
+  --color-slate-500: #8b8b93;
+  --color-slate-600: #a8a8b0;
+  --color-slate-700: #c4c4ca;
+  --color-slate-800: #dcdce0;
+  --color-slate-900: #ececef;
+  --color-neutral-50: #1f1f23;
+  --color-neutral-100: #26262b;
+  --color-neutral-200: #2f2f35;
+  --color-neutral-300: #3f3f46;
+  --color-neutral-400: #63636b;
+  --color-neutral-500: #8b8b93;
+  --color-neutral-600: #a8a8b0;
+  --color-neutral-700: #c4c4ca;
+  --color-neutral-800: #dcdce0;
+  --color-neutral-900: #ececef;
+
+  /* `white` is the portal's card surface (bg-white, and ring-white / border-white
+     cut-outs around badges and avatars), so it becomes the dark card colour... */
+  --color-white: var(--cares-card);
+}
+
+/* ...except where it is genuinely text on a filled control or banner. Matched by
+   class-token prefix so `text-white/90` counts but `hover:text-white` does not
+   (that one only applies on hover, below). Descendants inherit real white too,
+   which keeps translucent bg-white/10 washes inside the sidebar and banners light. */
+html.dark :is([class^='text-white'], [class*=' text-white']),
+html.dark .hover\:text-white:hover,
+html.dark .group:hover .group-hover\:text-white {
+  --color-white: #ffffff;
+}
+
+/* The few near-black fills (an active filter pill, the editor's size readout) would
+   invert to near-white under the gray ramp; keep them as inverted pills with dark text. */
+html.dark .bg-gray-900:is([class^='text-white'], [class*=' text-white']) {
+  --color-white: var(--cares-bg);
+}
+
+/* Light islands — a certificate sheet is a printed artefact and keeps its paper
+   colours. Tailwind's variables are restored for it in portal-dark-hues.css. */
+html.dark .cares-light-surface {
+  --cares-card: #ffffff;
+  --cares-card-ring: #1b4332;
+  --cares-border: #e0e0e0;
+  --cares-heading: #1a1c19;
+  --cares-body: #444746;
+  --cares-muted: #747775;
+  --cares-primary: #1b4332;
+  --cares-primary-hover: #2d6a4f;
+}
+
+/* A gray-900 scrim must stay dark, not turn into a white fog. */
+html.dark .bg-gray-900\/70,
+html.dark .bg-gray-900\/50,
+html.dark .bg-gray-900\/60 {
+  --color-gray-900: #050506;
+}

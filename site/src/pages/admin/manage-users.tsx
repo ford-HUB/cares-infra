@@ -16,6 +16,7 @@ import {
 } from '../../constants/manage-users'
 import { useProvisionUserForm } from '../../hooks/use-provision-user-form'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePageSearch } from '../../hooks/use-page-search'
 import { usePermission, usePortalRole, useSuspension } from '../../store/auth-store'
 import { useManageUsersStore } from '../../store/manage-users-store'
 import { getManagedUserDetail } from '../../services/manage-user-service'
@@ -42,7 +43,7 @@ export function ManageUsersPage() {
     reissueCredentials,
   } = useManageUsersStore()
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = usePageSearch()
   const [roleFilter, setRoleFilter] = useState<string>(USER_ROLE_FILTER_ALL)
   const [statusFilter, setStatusFilter] =
     useState<UserStatusFilter>(USER_STATUS_FILTER_ALL)

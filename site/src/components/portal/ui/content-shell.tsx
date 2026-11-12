@@ -20,6 +20,7 @@ export function ContentShell({
     )
 
   return (
-    <div className={`min-h-full bg-gray-50 p-5 text-sm ${className}`}>{inner}</div>
+    // Transparent so the portal canvas (set on <main>) shows through.
+    <div className={`min-h-full p-5 text-sm ${className}`}>{inner}</div>
   )
 }

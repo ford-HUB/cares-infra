@@ -340,6 +340,7 @@ export async function provisionManagedUser(
       ...(payload.email ? { email: payload.email } : {}),
       recipient_email: payload.recipientEmail,
       role_type: payload.role,
+      ...(payload.volunteerType ? { volunteer_type: payload.volunteerType } : {}),
       ...(payload.department ? { department: payload.department } : {}),
       ...(payload.permissions ? { permissions: payload.permissions } : {}),
       expires_in_hours: payload.expiresInHours,

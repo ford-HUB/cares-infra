@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 export const MAILBOX_DEFAULT_PAGE_SIZE = 25;
 export const MAILBOX_MAX_PAGE_SIZE = 50;
@@ -30,22 +32,58 @@ export const ListMailQuerySchema = z
 
 const EmailAddressSchema = z.email('A valid email address is required');
 
-export const SendMailSchema = z
-  .object({
-    to: z
-      .array(EmailAddressSchema)
-      .min(1, 'At least one recipient is required')
-      .max(50),
-    cc: z.array(EmailAddressSchema).max(50).optional(),
-    bcc: z.array(EmailAddressSchema).max(50).optional(),
-    subject: z.string().trim().max(500).default(''),
-    body: z.string().max(100_000).default(''),
-    /** Set when replying — keeps the message inside the original Gmail thread. */
-    thread_id: z.string().trim().max(200).optional(),
-    /** The original message's `Message-ID` header, so mail clients thread the reply. */
-    in_reply_to: z.string().trim().max(500).optional(),
-  })
-  .strict();
+const LINE_BREAK_PATTERN = /[\r\n]/;
+
+/** Gmail thread ids are hexadecimal strings. */
+const GMAIL_THREAD_ID_PATTERN = /^[0-9a-f]+$/i;
+
+/**
+ * `<id@domain>` in printable ASCII, without spaces or nested angle brackets.
+ * The value is written raw into the In-Reply-To and References headers.
+ */
+const MESSAGE_ID_PATTERN = /^<[!-;=?-~]+@[!-;=?-~]+>$/;
+
+export const SendMailSchema = withoutPrototypeKeys(
+  z
+    .object({
+      to: z
+        .array(EmailAddressSchema)
+        .min(1, 'At least one recipient is required')
+        .max(50),
+      cc: z.array(EmailAddressSchema).max(50).optional(),
+      bcc: z.array(EmailAddressSchema).max(50).optional(),
+      /** Written into the Subject header, so it must stay on one line. */
+      subject: z
+        .string()
+        .trim()
+        .max(500)
+        .refine(
+          (value) =>
+            !LINE_BREAK_PATTERN.test(value) &&
+            !CONTROL_CHARACTER_PATTERN.test(value),
+          {
+            message: 'Subject cannot contain line breaks or control characters',
+          },
+        )
+        .default(''),
+      body: z.string().max(100_000).default(''),
+      /** Set when replying — keeps the message inside the original Gmail thread. */
+      thread_id: z
+        .string()
+        .trim()
+        .max(200)
+        .regex(GMAIL_THREAD_ID_PATTERN, 'A valid thread id is required')
+        .optional(),
+      /** The original message's `Message-ID` header, so mail clients thread the reply. */
+      in_reply_to: z
+        .string()
+        .trim()
+        .max(500)
+        .regex(MESSAGE_ID_PATTERN, 'A valid Message-ID is required')
+        .optional(),
+    })
+    .strict(),
+);
 
 export const MarkMailReadSchema = z
   .object({

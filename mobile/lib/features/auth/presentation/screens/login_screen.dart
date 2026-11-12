@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
+import 'package:mobile/core/services/session_storage.dart';
 import 'package:mobile/features/auth/data/auth_login_service.dart';
 import 'package:mobile/features/auth/data/auth_registration_service.dart';
 import 'package:mobile/features/auth/data/donor_auth_service.dart';
@@ -18,6 +19,7 @@ import 'package:mobile/features/auth/presentation/widgets/donor_only_sign_in_dia
 import 'package:mobile/features/auth/presentation/widgets/forgot_password_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/login/login_form_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/login/login_hero_header.dart';
+import 'package:mobile/features/auth/presentation/widgets/login/login_support_email.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 import 'package:mobile/shared/widgets/brand_wave.dart';
 import 'package:mobile/shared/widgets/staggered_reveal.dart';
@@ -133,7 +135,15 @@ class _LoginScreenState extends State<LoginScreen>
     );
     if (!navContext.mounted) return;
 
-    AuthSession.setAccessToken(loginResult.accessToken);
+    AuthSession.start(
+      StoredSession(
+        accessToken: loginResult.accessToken,
+        roleType: loginResult.roleType,
+        email: loginResult.email,
+        firstName: loginResult.firstName,
+        hasInterests: loginResult.hasInterests,
+      ),
+    );
 
     DashboardRouter.navigateToRoleDashboard(
       navContext,
@@ -235,7 +245,15 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (result.isSignedIn) {
         final session = result.session!;
-        AuthSession.setAccessToken(session.accessToken);
+        AuthSession.start(
+          StoredSession(
+            accessToken: session.accessToken,
+            roleType: session.roleType,
+            email: session.email,
+            firstName: session.firstName,
+            hasInterests: session.hasInterests,
+          ),
+        );
 
         DashboardRouter.navigateToRoleDashboard(
           context,
@@ -374,6 +392,27 @@ class _LoginScreenState extends State<LoginScreen>
                           // Keeps the register prompt clear of the footer wave.
                           const SizedBox(height: _footerWaveHeight - 30),
                         ],
+                      ),
+                      // Support inbox, centred on the footer band; opens a
+                      // pre-filled email.
+                      // The side insets keep it clear of the version badge;
+                      // on a narrow phone it scales down rather than overlap.
+                      Positioned(
+                        left: 48,
+                        right: 48,
+                        bottom: 2 + MediaQuery.viewPaddingOf(context).bottom,
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: StaggeredReveal(
+                              progress: t,
+                              start: 0.7,
+                              end: 1,
+                              lift: 10,
+                              child: const LoginSupportEmail(),
+                            ),
+                          ),
+                        ),
                       ),
                       // Release version on the footer band; opens the notes.
                       Positioned(

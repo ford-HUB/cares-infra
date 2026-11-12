@@ -101,6 +101,9 @@ abstract final class AppCopy {
   static const String loginDonorDivider = 'Donors continue with';
   static const String loginNoAccount = "Don't have an account? ";
   static const String loginRegister = 'Register';
+  static const String loginSupportPrompt = 'Need help? ';
+  static const String loginSupportOpenFailed =
+      "Couldn't open your email app. Write to careeesadmin@gmail.com.";
 
   /// Leading story told between the splash and login — one beat per photo in
   /// assets/images/leadings/, ordered from first light to the Christmas team.

@@ -93,9 +93,10 @@ class _UpdateEmailScreenState extends State<UpdateEmailScreen> {
         newEmail: _value,
       );
       // The old token still carries the old address; swap before anything
-      // else on the stack makes a call.
+      // else on the stack makes a call. The saved session takes the new
+      // token too, or the next launch would restore the retired one.
       if (result.accessToken.isNotEmpty) {
-        AuthSession.setAccessToken(result.accessToken);
+        AuthSession.replaceAccessToken(result.accessToken, email: result.email);
       }
       RoleAccountStore.instance.updateEmailEverywhere(result.email);
       if (!mounted) return;
