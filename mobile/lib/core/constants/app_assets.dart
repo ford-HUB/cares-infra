@@ -9,6 +9,9 @@ abstract final class AppAssets {
       'assets/images/onboarding_discover.png';
   static const String onboardingImpact = 'assets/images/onboarding_impact.png';
 
+  /// Entry splash poster: outreach photos, the CARES seal and wordmark.
+  static const String entrySplash = 'assets/images/entry-splash.jpg';
+
   static const String campaignPhoto = 'assets/images/intro-img-3.jpg';
 
   /// Outreach photo sitting behind the green login header band.
