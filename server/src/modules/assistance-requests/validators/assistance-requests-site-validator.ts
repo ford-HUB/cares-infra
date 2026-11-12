@@ -5,6 +5,8 @@ import {
   AssistanceRequestStatus,
   AssistanceUrgency,
 } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 export const AssistanceRequestIdParamSchema = z.uuid(
   'A valid assistance request id is required',
@@ -15,26 +17,36 @@ export const AssistanceAttachmentIdParamSchema = z.uuid(
 );
 
 /** Approving may carry a note the beneficiary reads under the status. */
-export const ApproveAssistanceRequestSchema = z
-  .object({
-    note: z
-      .string()
-      .trim()
-      .max(500, 'Keep the note under 500 characters')
-      .nullish(),
-  })
-  .strict();
+export const ApproveAssistanceRequestSchema = withoutPrototypeKeys(
+  z
+    .object({
+      note: z
+        .string()
+        .trim()
+        .max(500, 'Keep the note under 500 characters')
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Note cannot contain control characters',
+        })
+        .nullish(),
+    })
+    .strict(),
+);
 
 /** A decline must say why — the beneficiary reads it in the app. */
-export const DeclineAssistanceRequestSchema = z
-  .object({
-    reason: z
-      .string()
-      .trim()
-      .min(1, 'Say why the request is declined')
-      .max(500, 'Keep the reason under 500 characters'),
-  })
-  .strict();
+export const DeclineAssistanceRequestSchema = withoutPrototypeKeys(
+  z
+    .object({
+      reason: z
+        .string()
+        .trim()
+        .min(1, 'Say why the request is declined')
+        .max(500, 'Keep the reason under 500 characters')
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Reason cannot contain control characters',
+        }),
+    })
+    .strict(),
+);
 
 export const SiteAssistanceAttachmentSchema = z.object({
   assistance_request_attachment_id: z.string(),

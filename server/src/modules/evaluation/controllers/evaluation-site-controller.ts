@@ -8,7 +8,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { ZBody, ZParam, ZQuery, ZSerialize } from 'nest-zod';
-import { PORTAL_ROLE_TYPES } from 'src/shared/constants/portal-role-types';
+import { RoleType } from 'src/infastructures/prisma/common/client';
 import { CurrentUser } from 'src/shared/decorators/current-user-decorator';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Roles } from 'src/shared/decorators/roles-decorator';
@@ -43,10 +43,12 @@ import {
 
 /**
  * The Director Portal's Evaluation area: the questionnaire builder, the Forms list
- * that points each event at one, and the answers that come back.
+ * that points each event at one, and the answers that come back. All of it is the
+ * director's programme feedback, as the portal's own route says; holding it here too
+ * keeps another role from reaching the answers by calling the API directly.
  */
 @Controller('v1/evaluation')
-@Roles(...PORTAL_ROLE_TYPES)
+@Roles(RoleType.DIRECTOR)
 export class EvaluationSiteController {
   constructor(private readonly evaluationSiteService: EvaluationSiteService) {}
 

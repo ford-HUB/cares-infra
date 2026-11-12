@@ -57,6 +57,7 @@ import {
   type UserDetailRow,
 } from '../repositories/users-repository';
 import { portalUrl as resolvePortalUrl } from '../../../shared/utils/environment-utils';
+import { isPortalRole } from '../../../shared/constants/portal-role-types';
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
@@ -498,6 +499,11 @@ export class UsersSiteService {
       provisionedByUserId: caller.sub,
     });
 
+    // Portal roles sign in to the portal; volunteers, donors and beneficiaries are
+    // "Regular User" accounts that only the mobile app lets in.
+    const portalAccount = isPortalRole(data.role_type);
+    const roleLabel = provisionedRoleLabel(data.role_type, data.volunteer_type);
+
     const scopeChanges = await this.applyScope(
       caller,
       created.user_id,
@@ -509,7 +515,8 @@ export class UsersSiteService {
       recipientEmail,
       signInEmail: email,
       password,
-      roleType: data.role_type,
+      roleLabel,
+      portalAccount,
       department,
       expiresAt,
       expiresInHours: data.expires_in_hours,
@@ -517,11 +524,12 @@ export class UsersSiteService {
 
     await this.auditLogRecorder.record({
       action: 'user.provisioned',
-      description: `Created a ${data.role_type.toLowerCase()} account for ${recipientEmail}`,
+      description: `Created a ${roleLabel} account for ${recipientEmail}`,
       category: 'USER_MANAGEMENT',
       // A new account with portal rights is the heaviest thing this screen creates —
-      // it is reviewed on the same footing as handing out a restriction.
-      severity: 'WARNING',
+      // it is reviewed on the same footing as handing out a restriction. An app
+      // account carries no portal rights, so it is logged a step lower.
+      severity: portalAccount ? 'WARNING' : 'NOTICE',
       actor: caller,
       targetType: 'user',
       targetLabel: email,
@@ -541,6 +549,8 @@ export class UsersSiteService {
         // Whether the address was typed from the request or minted by the server
         // changes what the entry means on review.
         email_source: data.mode,
+        account_kind: portalAccount ? 'portal' : 'app',
+        volunteer_type: data.volunteer_type ?? 'none',
         department: department ?? 'none',
         recipient_email: recipientEmail,
         credentials_mailed: String(sent),
@@ -550,7 +560,7 @@ export class UsersSiteService {
     });
 
     await this.notificationScheduler.publish({
-      title: `${data.role_type.toLowerCase()} account issued to ${recipientEmail}`,
+      title: `${roleLabel} account issued to ${recipientEmail}`,
       description: `Signs in as ${email}${department ? ` · ${department}` : ''}. Credentials ${
         sent ? 'were emailed and' : 'were NOT emailed —'
       } expire ${formatNoticeDate(expiresAt)}.`,
@@ -612,7 +622,10 @@ export class UsersSiteService {
     recipientEmail: string;
     signInEmail: string;
     password: string;
-    roleType: RoleType;
+    /** e.g. `coordinator`, `student volunteer`, `donor`. */
+    roleLabel: string;
+    /** False for Regular User accounts, which sign in through the mobile app only. */
+    portalAccount: boolean;
     department: string | null;
     expiresAt: Date;
     expiresInHours: number;
@@ -629,7 +642,8 @@ export class UsersSiteService {
           recipientEmail: input.recipientEmail,
           signInEmail: input.signInEmail,
           password: input.password,
-          role: input.roleType.toLowerCase(),
+          role: input.roleLabel,
+          portalAccount: input.portalAccount,
           department: input.department,
           expiresAt: formatNoticeDate(input.expiresAt),
           expiresInHours: input.expiresInHours,
@@ -640,7 +654,9 @@ export class UsersSiteService {
 
       await this.nodemailerService.sendEmail(
         input.recipientEmail,
-        'Your temporary CARES portal account',
+        input.portalAccount
+          ? 'Your temporary CARES portal account'
+          : 'Your temporary CARES app account',
         html,
         { replyTo: supportEmail },
       );
@@ -1003,6 +1019,15 @@ function pad(value: number): string {
 function toInterestLabels(selected: unknown): string[] {
   if (!Array.isArray(selected)) return [];
   return selected.filter((value): value is string => typeof value === 'string');
+}
+
+/** How a provisioned account is named in its mail, audit entry and notice. */
+function provisionedRoleLabel(
+  roleType: RoleType,
+  volunteerType?: ProvisionUserDto['volunteer_type'],
+): string {
+  const role = roleType.toLowerCase();
+  return volunteerType ? `${volunteerType.toLowerCase()} ${role}` : role;
 }
 
 function expiryFromNow(hours: number): Date {

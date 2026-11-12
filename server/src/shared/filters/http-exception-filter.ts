@@ -41,7 +41,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse();
 
-    if (exception instanceof HttpException) {
+    // A 500 is the server's own fault (nest-zod's "Serialization failed" among them), so
+    // its detail goes to the log below. A deliberate 502 or 503 still tells the client why.
+    if (
+      exception instanceof HttpException &&
+      exception.getStatus() !== Number(HttpStatus.INTERNAL_SERVER_ERROR)
+    ) {
       const status = exception.getStatus();
       const payload = exception.getResponse();
 
@@ -79,6 +84,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         '[HttpExceptionFilter]',
         exception.message,
         exception.stack,
+        ...(zodIssues(exception) ?? []),
       );
     } else {
       console.error('[HttpExceptionFilter]', exception);

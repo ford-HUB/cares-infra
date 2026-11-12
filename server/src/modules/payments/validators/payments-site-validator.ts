@@ -6,6 +6,8 @@ import {
   PaymentMethodVerification,
 } from '../../../infastructures/prisma/common/client';
 import { PAYMENT_CHANNEL_CODES } from '../../../shared/constants/payment-methods';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 import {
   DONATION_MAX_AMOUNT,
   DONATION_MIN_AMOUNT,
@@ -39,6 +41,28 @@ const optionalText = (max: number) =>
     .transform((value) => (value.length ? value : null))
     .nullable()
     .optional();
+
+/** A key or token is one line, so unlike free text its line breaks are refused too. */
+const credential = (min: number, minMessage?: string) =>
+  z
+    .string()
+    .trim()
+    .min(min, minMessage)
+    .max(SECRET_KEY_MAX)
+    .refine(
+      (value) =>
+        !CONTROL_CHARACTER_PATTERN.test(value) && !/[\r\n]/.test(value),
+      { error: 'Cannot contain control characters' },
+    );
+
+/**
+ * Where the gateway key is sent, so plain http and every other scheme are refused.
+ * "" means the default host; a local mock over http goes in `XENDIT_API_URL`.
+ */
+const gatewayUrl = z.union([
+  z.literal(''),
+  z.url({ protocol: /^https$/, error: 'Enter a full https:// URL' }),
+]);
 
 /**
  * One channel as the director configures it. `min_amount` / `max_amount` are 0 when
@@ -81,22 +105,14 @@ export const UpdatePaymentSettingsSchema = z
   .object({
     mode: z.enum(PaymentGatewayMode),
     enabled: z.boolean(),
-    secret_key: z
-      .string()
-      .trim()
-      .min(SECRET_KEY_MIN, 'That does not look like a Xendit secret key')
-      .max(SECRET_KEY_MAX)
+    secret_key: credential(
+      SECRET_KEY_MIN,
+      'That does not look like a Xendit secret key',
+    )
       .nullable()
       .optional(),
-    webhook_token: z
-      .string()
-      .trim()
-      .min(8)
-      .max(SECRET_KEY_MAX)
-      .nullable()
-      .optional(),
-    api_url: z
-      .union([z.literal(''), z.url('Enter a full https:// URL')])
+    webhook_token: credential(8).nullable().optional(),
+    api_url: gatewayUrl
       .transform((value) => (value.length ? value : null))
       .nullable()
       .optional(),
@@ -120,17 +136,14 @@ export const UpdatePaymentSettingsSchema = z
  * "Test connection" before saving: the key being tried is sent in the body so the
  * director can check a key that is not stored yet. With no key, the saved one is used.
  */
-export const TestPaymentGatewaySchema = z
-  .object({
-    secret_key: z
-      .string()
-      .trim()
-      .min(SECRET_KEY_MIN)
-      .max(SECRET_KEY_MAX)
-      .optional(),
-    api_url: z.union([z.literal(''), z.url()]).optional(),
-  })
-  .strict();
+export const TestPaymentGatewaySchema = withoutPrototypeKeys(
+  z
+    .object({
+      secret_key: credential(SECRET_KEY_MIN).optional(),
+      api_url: gatewayUrl.optional(),
+    })
+    .strict(),
+);
 
 const PaymentMethodResponseSchema = z.object({
   method: z.enum(DonationPaymentMethod),
@@ -172,15 +185,17 @@ const PaymentMethodResponseSchema = z.object({
 });
 
 /** What the director reports arrived, in whole pesos. */
-export const ConfirmAccountProofSchema = z
-  .object({
-    amount: z
-      .number()
-      .int('Enter the amount in whole pesos')
-      .min(1)
-      .max(1000, 'That is far more than CARES would ever send'),
-  })
-  .strict();
+export const ConfirmAccountProofSchema = withoutPrototypeKeys(
+  z
+    .object({
+      amount: z
+        .number()
+        .int('Enter the amount in whole pesos')
+        .min(1)
+        .max(1000, 'That is far more than CARES would ever send'),
+    })
+    .strict(),
+);
 
 /** `:method` on the activation endpoint. */
 export const PaymentMethodParamSchema = z.enum(

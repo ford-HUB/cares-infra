@@ -3,6 +3,12 @@ import {
   EvaluationFormStatus,
   EvaluationResponseStatus,
 } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { plainLabel } from '../../../shared/validators/plain-label-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
+
+/** The largest value the `Int` column behind an event id can hold. */
+const EVENT_ID_MAX = 2147483647;
 
 /** Mirrors the portal builder's question palette. */
 export const EvaluationQuestionTypeSchema = z.enum([
@@ -117,12 +123,23 @@ export const EvaluationFormResponseSchema = z.object({
 export const EvaluationFormListSchema = z.array(EvaluationFormResponseSchema);
 
 /** A new questionnaire starts empty; the builder fills it and saves through PUT. */
-export const CreateEvaluationFormSchema = z
-  .object({
-    title: z.string().trim().min(1, 'Title is required').max(200),
-    description: z.string().max(2000).default(''),
-  })
-  .strict();
+export const CreateEvaluationFormSchema = withoutPrototypeKeys(
+  z
+    .object({
+      title: plainLabel(
+        z.string().trim().min(1, 'Title is required').max(200),
+        'Title',
+      ),
+      description: z
+        .string()
+        .max(2000)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Description cannot contain control characters',
+        })
+        .default(''),
+    })
+    .strict(),
+);
 
 export const EvaluationResponseIdParamSchema = z.uuid(
   'A valid response id is required',
@@ -170,12 +187,18 @@ export const EvaluationAssignmentListSchema = z.array(
   EvaluationAssignmentSchema,
 );
 
-export const AssignEvaluationFormSchema = z
-  .object({
-    form_id: z.string().min(1, 'Questionnaire is required').max(64),
-    event_id: z.number().int().positive('Event is required'),
-  })
-  .strict();
+export const AssignEvaluationFormSchema = withoutPrototypeKeys(
+  z
+    .object({
+      form_id: z.uuid('Questionnaire is required'),
+      event_id: z
+        .number()
+        .int()
+        .positive('Event is required')
+        .max(EVENT_ID_MAX),
+    })
+    .strict(),
+);
 
 /** An event the picker offers, plus the questionnaire it already carries. */
 export const AssignableEventSchema = z.object({

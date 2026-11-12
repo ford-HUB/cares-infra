@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { plainLabel } from '../../../shared/validators/plain-label-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 /**
  * Every signature line carries this placeholder. The print job swaps it for the
@@ -287,15 +290,27 @@ export const SaveCertificateTemplateSchema = TemplateDetailsSchema.extend({
 /**
  * A new template starts from the customizer's own defaults, so creation takes a name
  * and category and nothing else — the director then customises it.
+ *
+ * The name also becomes the printed title, which the response checks for broken
+ * placeholders, so plain wording here is what keeps a saved template servable.
  */
-export const CreateCertificateTemplateSchema = z
-  .object({
-    name: z.string().trim().min(3).max(80),
-    description: z.string().trim().min(10).max(160),
-    category: z.enum(CERTIFICATE_CATEGORIES),
-    orientation: z.enum(CERTIFICATE_ORIENTATIONS).default('landscape'),
-  })
-  .strict();
+export const CreateCertificateTemplateSchema = withoutPrototypeKeys(
+  z
+    .object({
+      name: plainLabel(z.string().trim().min(3).max(80), 'Template name'),
+      description: z
+        .string()
+        .trim()
+        .min(10)
+        .max(160)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Description cannot contain control characters',
+        }),
+      category: z.enum(CERTIFICATE_CATEGORIES),
+      orientation: z.enum(CERTIFICATE_ORIENTATIONS).default('landscape'),
+    })
+    .strict(),
+);
 
 export const CertificateTemplateIdParamSchema = z.uuid(
   'A valid template id is required',

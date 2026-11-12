@@ -11,6 +11,7 @@ import type { PermissionKey } from '../types/access-control'
 import {
   provisionUserDefaultValues,
   provisionUserSchema,
+  resolveProvisionRole,
   type ProvisionUserFormValues,
 } from '../validators/provision-user-schema'
 
@@ -53,7 +54,10 @@ export function useProvisionUserForm(onCreated?: () => void) {
 
   const mode = form.watch('mode')
   const role = form.watch('role')
+  const regularUserType = form.watch('regularUserType')
   const recipientEmail = form.watch('recipientEmail')
+  const resolvedRole = resolveProvisionRole({ role, regularUserType })
+  const { roleType, isPortalRole } = resolvedRole
 
   useEffect(() => {
     void fetchCatalog()
@@ -115,9 +119,9 @@ export function useProvisionUserForm(onCreated?: () => void) {
   }, [form])
 
   const baseline = useMemo(() => {
-    const entry = catalog?.roles.find((item) => item.role === role.toLowerCase())
+    const entry = catalog?.roles.find((item) => item.role === roleType.toLowerCase())
     return entry?.permissions ?? []
-  }, [catalog, role])
+  }, [catalog, roleType])
 
   // A different role means a different baseline, so an untouched selection follows it.
   // A customised one is left alone rather than silently discarding the choices made.
@@ -176,13 +180,20 @@ export function useProvisionUserForm(onCreated?: () => void) {
       return
     }
 
+    const submitted = resolveProvisionRole(values)
     const result = await provisionUser({
       mode: values.mode,
       ...(values.mode === 'manual' ? { email: values.email } : {}),
       recipientEmail: verdict.email,
-      role: values.role,
-      department: values.department || undefined,
-      permissions: scopeCustomised ? [...selected] : undefined,
+      role: submitted.roleType,
+      volunteerType: submitted.volunteerType ?? undefined,
+      // Donors and beneficiaries are not tied to a department.
+      department:
+        submitted.isPortalRole || submitted.volunteerType
+          ? values.department || undefined
+          : undefined,
+      // App accounts carry no portal rights, so there is no scope to send.
+      permissions: submitted.isPortalRole && scopeCustomised ? [...selected] : undefined,
       expiresInHours: values.expiresInHours,
     })
 
@@ -205,6 +216,8 @@ export function useProvisionUserForm(onCreated?: () => void) {
   return {
     form,
     mode,
+    isRegularUser: !isPortalRole,
+    showDepartment: isPortalRole || resolvedRole.volunteerType !== null,
     onSubmit,
     submitting: form.formState.isSubmitting,
     catalog,

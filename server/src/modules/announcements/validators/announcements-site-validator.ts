@@ -5,6 +5,9 @@ import {
   AnnouncementState,
   AnnouncementTone,
 } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { plainLabel } from '../../../shared/validators/plain-label-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 /**
  * The board filters and sorts client-side, so the list is fetched whole rather than
@@ -27,38 +30,59 @@ export const ListAnnouncementsQuerySchema = z
   })
   .strict();
 
+/** Hyphen-separated letters and digits (`win-db-migration`, or a uuid), never a hex literal. */
+const WINDOW_ID_PATTERN = /^(?!0x)[a-z0-9]+(?:-[a-z0-9]+)*$/i;
+
 /**
  * The full draft, as the dialog submits it. Only `draft` and `scheduled` can be chosen
  * from the editor — publishing and taking down go through the state endpoint so the
  * publish timestamp and reach are set by the server, not the client.
  */
-export const SaveAnnouncementSchema = z
-  .object({
-    title: z.string().trim().min(1, 'Title is required').max(200),
-    body: z.string().trim().min(1, 'Message is required').max(4000),
-    tone: z.enum(AnnouncementTone),
-    audiences: z
-      .array(z.enum(AnnouncementAudience))
-      .min(1, 'Pick at least one audience'),
-    channels: z
-      .array(z.enum(AnnouncementChannel))
-      .min(1, 'Pick at least one channel'),
-    state: z.enum([AnnouncementState.DRAFT, AnnouncementState.SCHEDULED]),
-    publish_at: z.iso.datetime(),
-    expires_at: z.iso.datetime().nullable(),
-    pinned: z.boolean(),
-    window_id: z.string().max(100).nullable(),
-  })
-  .strict()
-  .refine(
-    (value) =>
-      value.expires_at === null ||
-      new Date(value.expires_at) > new Date(value.publish_at),
-    {
-      message: 'Expiry must come after the publish time',
-      path: ['expires_at'],
-    },
-  );
+export const SaveAnnouncementSchema = withoutPrototypeKeys(
+  z
+    .object({
+      title: plainLabel(
+        z.string().trim().min(1, 'Title is required').max(200),
+        'Title',
+      ),
+      body: z
+        .string()
+        .trim()
+        .min(1, 'Message is required')
+        .max(4000)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Message cannot contain control characters',
+        }),
+      tone: z.enum(AnnouncementTone),
+      audiences: z
+        .array(z.enum(AnnouncementAudience))
+        .min(1, 'Pick at least one audience')
+        .max(Object.keys(AnnouncementAudience).length),
+      channels: z
+        .array(z.enum(AnnouncementChannel))
+        .min(1, 'Pick at least one channel')
+        .max(Object.keys(AnnouncementChannel).length),
+      state: z.enum([AnnouncementState.DRAFT, AnnouncementState.SCHEDULED]),
+      publish_at: z.iso.datetime(),
+      expires_at: z.iso.datetime().nullable(),
+      pinned: z.boolean(),
+      window_id: z
+        .string()
+        .max(100)
+        .regex(WINDOW_ID_PATTERN, 'A valid maintenance window id is required')
+        .nullable(),
+    })
+    .strict()
+    .refine(
+      (value) =>
+        value.expires_at === null ||
+        new Date(value.expires_at) > new Date(value.publish_at),
+      {
+        message: 'Expiry must come after the publish time',
+        path: ['expires_at'],
+      },
+    ),
+);
 
 /** Publish now, or pull a published notice back down. */
 export const SetAnnouncementStateSchema = z

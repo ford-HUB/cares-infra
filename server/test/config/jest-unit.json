@@ -1,0 +1,28 @@
+{
+  "moduleFileExtensions": ["js", "mjs", "json", "ts"],
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "verbose": false,
+  "reporters": ["<rootDir>/config/unit-case-reporter.js", "summary"],
+  "testRegex": "-unit-spec\\.ts$",
+  "testPathIgnorePatterns": ["/node_modules/", "/integration/"],
+  "transform": {
+    "^.+\\.(t|j|mj)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "moduleResolution": "node10",
+          "allowJs": true,
+          "isolatedModules": true
+        },
+        "diagnostics": false
+      }
+    ]
+  },
+  "transformIgnorePatterns": ["node_modules/(?!\\.pnpm/|nest-zod/|@nestjs/bull|htmlparser2/|domelementtype/|domhandler/|domutils/|dom-serializer/|entities/)"],
+  "moduleNameMapper": {
+    "(^|/)common/client$": "<rootDir>/config/prisma-client-shim.ts",
+    "^src/(.*)$": "<rootDir>/../src/$1"
+  }
+}

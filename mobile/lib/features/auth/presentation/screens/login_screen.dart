@@ -18,6 +18,7 @@ import 'package:mobile/features/auth/presentation/widgets/donor_only_sign_in_dia
 import 'package:mobile/features/auth/presentation/widgets/forgot_password_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/login/login_form_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/login/login_hero_header.dart';
+import 'package:mobile/features/auth/presentation/widgets/login/login_support_email.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 import 'package:mobile/shared/widgets/brand_wave.dart';
 import 'package:mobile/shared/widgets/staggered_reveal.dart';
@@ -374,6 +375,27 @@ class _LoginScreenState extends State<LoginScreen>
                           // Keeps the register prompt clear of the footer wave.
                           const SizedBox(height: _footerWaveHeight - 30),
                         ],
+                      ),
+                      // Support inbox, centred on the footer band; opens a
+                      // pre-filled email.
+                      // The side insets keep it clear of the version badge;
+                      // on a narrow phone it scales down rather than overlap.
+                      Positioned(
+                        left: 48,
+                        right: 48,
+                        bottom: 2 + MediaQuery.viewPaddingOf(context).bottom,
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: StaggeredReveal(
+                              progress: t,
+                              start: 0.7,
+                              end: 1,
+                              lift: 10,
+                              child: const LoginSupportEmail(),
+                            ),
+                          ),
+                        ),
                       ),
                       // Release version on the footer band; opens the notes.
                       Positioned(

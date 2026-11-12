@@ -10,7 +10,10 @@ import {
   NotificationTone,
   RoleType,
 } from '../../../infastructures/prisma/common/client';
-import { resolveImageMimeType } from '../../../shared/utils/image-mime';
+import {
+  resolveImageMimeType,
+  sniffImageMimeType,
+} from '../../../shared/utils/image-mime';
 import { S3Service } from '../../../infastructures/s3/s3-service';
 import type { RequestContextDto } from '../../../shared/decorators/request-context-decorator';
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
@@ -490,8 +493,14 @@ export class EventsSiteService {
         );
       }
 
-      const mime = resolveImageMimeType(file.mimetype, file.originalname);
-      if (!(EVENT_ALLOWED_IMAGE_MIMES as readonly string[]).includes(mime)) {
+      // What the browser declares is only a claim, and an unknown type resolves to
+      // JPEG, so the file's own bytes decide what is stored and how it is served.
+      const declared = resolveImageMimeType(file.mimetype, file.originalname);
+      const mime = sniffImageMimeType(file.buffer);
+      if (
+        !mime ||
+        !(EVENT_ALLOWED_IMAGE_MIMES as readonly string[]).includes(declared)
+      ) {
         throw new BadRequestException(
           'Only JPG, PNG, or WebP images are allowed',
         );

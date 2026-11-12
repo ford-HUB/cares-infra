@@ -21,12 +21,65 @@ export const USER_STATUS_FILTERS: { value: UserStatusFilter; label: string }[] =
   { value: 'expired', label: 'Expired' },
 ]
 
-/** Roles an administrator can provision from the portal — volunteers sign up in the app. */
+/** The role select's value for an app-side account; the actual role comes from its type. */
+export const REGULAR_USER_ROLE = 'REGULAR'
+
+/**
+ * Roles an administrator can provision from the portal. The portal roles map straight to
+ * a role type; "Regular User" is an app account whose role is picked from
+ * `REGULAR_USER_TYPES`.
+ */
 export const PROVISIONABLE_ROLES = [
   { value: 'ADMIN', label: 'Admin' },
   { value: 'DIRECTOR', label: 'Director' },
   { value: 'COORDINATOR', label: 'Coordinator' },
+  { value: REGULAR_USER_ROLE, label: 'Regular User' },
 ] as const
+
+/**
+ * The kinds of app account a Regular User can be. Student, staff and alumni are all the
+ * `VOLUNTEER` role, told apart by `volunteerType` (the same STUDENT / STAFF / ALUMNI
+ * values the mobile app's `VolunteerType` sends).
+ */
+export const REGULAR_USER_TYPES = [
+  {
+    value: 'VOLUNTEER_STUDENT',
+    label: 'Student',
+    group: 'Volunteer',
+    roleType: 'VOLUNTEER',
+    volunteerType: 'STUDENT',
+  },
+  {
+    value: 'VOLUNTEER_STAFF',
+    label: 'Staff',
+    group: 'Volunteer',
+    roleType: 'VOLUNTEER',
+    volunteerType: 'STAFF',
+  },
+  {
+    value: 'VOLUNTEER_ALUMNI',
+    label: 'Alumni',
+    group: 'Volunteer',
+    roleType: 'VOLUNTEER',
+    volunteerType: 'ALUMNI',
+  },
+  {
+    value: 'DONOR',
+    label: 'Donor',
+    group: null,
+    roleType: 'DONOR',
+    volunteerType: null,
+  },
+  {
+    value: 'BENEFICIARY',
+    label: 'Beneficiary',
+    group: null,
+    roleType: 'BENEFICIARY',
+    volunteerType: null,
+  },
+] as const
+
+export type RegularUserType = (typeof REGULAR_USER_TYPES)[number]['value']
 
 /**
  * Departments an account can be provisioned into. Mirrors `UclmDepartments.names` in the

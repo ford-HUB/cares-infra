@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { RoleType } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 export const CHAT_MESSAGE_MAX_LENGTH = 2000;
 export const CHAT_ATTACHMENT_MAX_COUNT = 5;
@@ -25,11 +27,20 @@ export const CHAT_ALLOWED_ATTACHMENT_MIMES = [
  * Sent as multipart so files ride along with the text, which is why `body` is a
  * plain string field rather than JSON.
  */
-export const SendChatMessageSchema = z
-  .object({
-    body: z.string().trim().max(CHAT_MESSAGE_MAX_LENGTH).default(''),
-  })
-  .strict();
+export const SendChatMessageSchema = withoutPrototypeKeys(
+  z
+    .object({
+      body: z
+        .string()
+        .trim()
+        .max(CHAT_MESSAGE_MAX_LENGTH)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Message cannot contain control characters',
+        })
+        .default(''),
+    })
+    .strict(),
+);
 
 export const ChatContactSchema = z.object({
   user_id: z.string(),

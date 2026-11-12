@@ -6,6 +6,8 @@ import {
   SupportTicketStatus,
   SupportTicketType,
 } from '../../../infastructures/prisma/common/client';
+import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
+import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
 /**
  * The portal filters and sorts the loaded set client-side, so the list is fetched
@@ -52,9 +54,20 @@ export const UpdateSupportTicketSchema = z
     { message: 'Nothing to update' },
   );
 
-export const ReplyToSupportTicketSchema = z
-  .object({ body: z.string().trim().min(1).max(2000) })
-  .strict();
+export const ReplyToSupportTicketSchema = withoutPrototypeKeys(
+  z
+    .object({
+      body: z
+        .string()
+        .trim()
+        .min(1)
+        .max(2000)
+        .refine((value) => !CONTROL_CHARACTER_PATTERN.test(value), {
+          message: 'Reply cannot contain control characters',
+        }),
+    })
+    .strict(),
+);
 
 export const SupportTicketReplySchema = z.object({
   support_ticket_reply_id: z.string(),

@@ -20,10 +20,11 @@ import {
   UpdateServiceScheduleSchema,
 } from '../validators/system-services-site-validator';
 
-/** Scheduler ids are catalogue slugs, not uuids. */
+/** Scheduler ids are catalogue slugs, not uuids: lower-case words joined by single hyphens. */
 const ServiceIdParamSchema = z
   .string()
-  .regex(/^[a-z0-9-]+$/, 'A valid service id is required');
+  .max(100, 'A valid service id is required')
+  .regex(/^(?!0x)[a-z0-9]+(?:-[a-z0-9]+)*$/, 'A valid service id is required');
 
 /**
  * The scheduler control board. Reading and writing share one right — "Manage
