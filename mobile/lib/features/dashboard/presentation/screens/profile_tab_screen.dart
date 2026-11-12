@@ -4,16 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
-import 'package:mobile/core/services/local_notifications.dart';
 import 'package:mobile/core/session/role_account_store.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
 
+import 'package:mobile/features/auth/data/sign_out_service.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 
 import 'package:mobile/features/dashboard/data/donation_format.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
-import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/data/user_request_service.dart';
 import 'package:mobile/features/dashboard/presentation/providers/beneficiary_request_counts_provider.dart';
@@ -231,11 +230,11 @@ class _ProfileTabBody extends StatelessWidget {
     onRetrySync();
   }
 
-  void _signOut(BuildContext context) {
-    AuthSession.clear();
-    RoleAccountStore.instance.clear();
-    NotificationSync.instance.clear();
-    LocalNotifications.instance.cancelAll();
+  /// Revokes this device's session on the server and wipes the saved one, so
+  /// reopening the app asks for credentials again.
+  Future<void> _signOut(BuildContext context) async {
+    await SignOutService().signOut();
+    if (!context.mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => const LoginScreen()),

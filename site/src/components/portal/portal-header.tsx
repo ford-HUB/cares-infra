@@ -1,5 +1,5 @@
-import { AlignLeft, AlignRight, Bell, ChevronDown, LogOut, Search, Settings } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { AlignLeft, AlignRight, Bell, ChevronDown, LogOut, Settings } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthenticatedProfileImage } from '../profile/ui/authenticated-profile-image'
 import { useAuthStore } from '../../store/auth-store'
@@ -10,19 +10,25 @@ import {
   ADMIN_NOTIFICATIONS_PATH,
   ADMIN_SETTINGS_PATH,
 } from '../../constants/routes'
+import type { PortalNavConfig } from '../../types/nav'
+import { PortalSearch } from './portal-search'
+import { ModeToggle } from './ui/mode-toggle'
 
 interface PortalHeaderProps {
+  nav: PortalNavConfig
   onToggleSidebar: () => void
   onToggleMobileSidebar: () => void
   isMobile: boolean
 }
 
 export function PortalHeader({
+  nav,
   onToggleSidebar,
   onToggleMobileSidebar,
   isMobile,
 }: PortalHeaderProps) {
-  const { user, logout } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
   const profile = useProfileStore((s) => s.profile)
   const unreadCount = useNotificationStore((s) => s.feed?.summary.unread ?? 0)
   const loadNotifications = useNotificationStore((s) => s.load)
@@ -53,10 +59,10 @@ export function PortalHeader({
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await logout()
     navigate(LOGIN_PATH)
-  }
+  }, [logout, navigate])
 
   const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`
   /** Header shows the given name only — a full "first middle last" overflows the bar. */
@@ -79,20 +85,11 @@ export function PortalHeader({
             {isMobile ? <AlignRight className="h-5 w-5" /> : <AlignLeft className="h-5 w-5" />}
           </button>
 
-          <div className="relative hidden max-w-md flex-1 sm:block">
-            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--cares-muted)]" />
-            <input
-              type="search"
-              placeholder="Search or type command..."
-              className="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-400">
-              Ctrl K
-            </span>
-          </div>
+          <PortalSearch nav={nav} onSignOut={() => void handleLogout()} />
         </div>
 
         <div className="relative flex items-center gap-3" ref={menuRef}>
+          <ModeToggle />
           <button
             type="button"
             onClick={() => navigate(ADMIN_NOTIFICATIONS_PATH)}
@@ -121,7 +118,7 @@ export function PortalHeader({
             onClick={() => setMenuOpen((v) => !v)}
             className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-100"
           >
-            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-blue-600 text-xs font-semibold text-white">
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[var(--cares-primary)] text-xs font-semibold text-white">
               {profile?.hasProfileImage ? (
                 <AuthenticatedProfileImage
                   asset="avatar"

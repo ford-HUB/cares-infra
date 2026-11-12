@@ -457,7 +457,7 @@ export function CertificateLayoutEditor({
             ref={sheetRef}
             className={cn(
               // A ratio, not the page's fixed 24px — see `CertificateCanvas`.
-              'relative @container h-full w-auto max-w-full overflow-hidden bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
+              'relative @container h-full w-auto max-w-full overflow-hidden cares-light-surface bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
               !uploaded && preset.sheet,
               !uploaded && accent.frame,
               portrait ? 'aspect-[3/4]' : 'aspect-[4/3]',

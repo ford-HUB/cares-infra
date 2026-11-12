@@ -52,7 +52,7 @@ export function CertificateCanvas({
       <span
         aria-hidden
         className={cn(
-          'relative flex h-9 w-11 shrink-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-md border bg-white bg-contain bg-center bg-no-repeat',
+          'relative flex h-9 w-11 shrink-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-md border cares-light-surface bg-white bg-contain bg-center bg-no-repeat',
           accent.frame,
           portrait && 'w-8',
         )}
@@ -80,7 +80,7 @@ export function CertificateCanvas({
             // `leading-normal` is a ratio: the page's own line-height is a fixed 24px,
             // which would make every block's height depend on how large the sheet is
             // drawn. The app sets the same 1.5.
-            'relative @container max-h-full w-full overflow-hidden rounded-xl bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
+            'relative @container max-h-full w-full overflow-hidden rounded-xl cares-light-surface bg-white bg-contain bg-center bg-no-repeat text-center leading-normal shadow-sm',
             !uploaded && preset.sheet,
             !uploaded && accent.frame,
             portrait ? 'aspect-[3/4] max-w-2xl' : 'aspect-[4/3] max-w-4xl',
@@ -141,7 +141,7 @@ export function CertificateCanvas({
     >
       <div
         className={cn(
-          'relative flex w-auto flex-col items-center justify-center overflow-hidden rounded-lg bg-white bg-contain bg-center bg-no-repeat text-center shadow-sm',
+          'relative flex w-auto flex-col items-center justify-center overflow-hidden rounded-lg cares-light-surface bg-white bg-contain bg-center bg-no-repeat text-center shadow-sm',
           !uploaded && preset.sheet,
           !uploaded && accent.frame,
           // The royal panel eats the left edge, so the card copy clears it too.

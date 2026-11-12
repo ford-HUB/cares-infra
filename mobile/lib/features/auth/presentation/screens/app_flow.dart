@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/constants/app_assets.dart';
+import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/data/session_restore_service.dart';
 import 'package:mobile/features/auth/presentation/providers/app_update_provider.dart';
+import 'package:mobile/features/auth/presentation/providers/session_restore_provider.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/app_entry_intro.dart';
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_slides.dart';
@@ -23,6 +26,10 @@ import 'package:mobile/features/auth/presentation/widgets/splash_update_panel.da
 /// The splash also checks GitHub Releases for a newer build while it plays.
 /// When one exists the curtain stays down and shows [SplashUpdatePanel]
 /// instead of handing off, until the person updates or picks "Later".
+///
+/// It also restores the last signed-in session ([sessionRestoreProvider]):
+/// a live one skips straight to the dashboard, an expired one skips the story
+/// and lands on login with the reason, and none plays the flow as usual.
 class AppFlow extends ConsumerStatefulWidget {
   const AppFlow({super.key});
 
@@ -102,22 +109,70 @@ class _AppFlowState extends ConsumerState<AppFlow>
     // Runs alongside the intro; deferred a microtask because a provider may
     // not change state while the tree is building.
     Future.microtask(() {
-      if (mounted) ref.read(appUpdateProvider.notifier).check();
+      if (!mounted) return;
+      ref.read(appUpdateProvider.notifier).check();
+      // Reading the saved session and confirming it with the server overlaps
+      // the intro, so a returning person rarely waits on it.
+      ref.read(sessionRestoreProvider);
     });
   }
 
-  /// Slide the curtain away once the intro has played and no update is
-  /// being offered (or the check is still out — it times out in seconds).
+  /// Leave the splash once the intro has played, no update is being offered
+  /// (or the check is still out — it times out in seconds), and the saved
+  /// session has been resolved.
   void _maybeHandOff() {
     if (!mounted || !_introFinished || _handoffStarted) return;
     if (ref.read(appUpdateProvider).holdsSplash) return;
+
+    final restore = ref.read(sessionRestoreProvider);
+    if (restore.isLoading) return;
     _handoffStarted = true;
-    // Build the story first and let it lay out for one frame, so the cost of
-    // its first paint lands before the curtain starts moving.
-    setState(() => _showLeading = true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _handoffController.forward();
-    });
+
+    // A failed restore is treated as nothing saved: the person signs in.
+    final result = restore.valueOrNull;
+    switch (result?.status) {
+      case SessionRestoreStatus.restored:
+        final session = result!.session!;
+        DashboardRouter.navigateToRoleDashboard(
+          context,
+          roleType: session.roleType,
+          email: session.email,
+          firstName: session.firstName,
+          lastName: session.lastName,
+          profileComplete: session.hasInterests,
+          hasInterests: session.hasInterests,
+        );
+        return;
+
+      case SessionRestoreStatus.expired:
+        // Straight to login — this person has seen the story before.
+        setState(() => _showLogin = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _handoffController.forward();
+          ScaffoldMessenger.of(context)
+            ..clearSnackBars()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(
+                  result!.message ?? SessionRestoreService.expiredMessage,
+                ),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 6),
+              ),
+            );
+        });
+        return;
+
+      case SessionRestoreStatus.none:
+      case null:
+        // Build the story first and let it lay out for one frame, so the cost
+        // of its first paint lands before the curtain starts moving.
+        setState(() => _showLeading = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _handoffController.forward();
+        });
+    }
   }
 
   @override
@@ -207,6 +262,9 @@ class _AppFlowState extends ConsumerState<AppFlow>
   Widget build(BuildContext context) {
     ref.listen(appUpdateProvider, (_, next) {
       if (!next.holdsSplash) _maybeHandOff();
+    });
+    ref.listen(sessionRestoreProvider, (_, next) {
+      if (!next.isLoading) _maybeHandOff();
     });
 
     return PopScope(

@@ -9,6 +9,7 @@ import {
   type DonationStatusFilter,
 } from '../../constants/internal-donation'
 import { PORTAL_PERMISSION } from '../../constants/portal-permissions'
+import { usePageSearch } from '../../hooks/use-page-search'
 import { useAuthStore, usePermission, useSuspension } from '../../store/auth-store'
 import { useInternalDonationStore } from '../../store/internal-donation-store'
 import type { DonationStatus } from '../../types/internal-donation'
@@ -31,7 +32,7 @@ export function InternalDonationTrackingPage() {
   const [statusFilter, setStatusFilter] = useState<DonationStatusFilter>(
     DONATION_STATUS_FILTER_ALL,
   )
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = usePageSearch()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 

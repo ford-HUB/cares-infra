@@ -3,15 +3,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/services/camera_bootstrap.dart';
-import 'package:mobile/core/session/donor_session.dart';
-import 'package:mobile/core/session/role_account_store.dart';
-import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/data/sign_out_service.dart';
 import 'package:mobile/features/auth/presentation/screens/app_flow.dart';
 import 'package:mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:mobile/features/dashboard/data/event_location_tracker.dart';
 import 'package:mobile/core/services/local_notifications.dart';
-import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
 /// Root navigator, reachable from outside the widget tree so a session that
 /// dies mid-request can still be bounced to the login screen.
@@ -40,11 +37,8 @@ Future<void> main() async {
 /// person why — the message is the server's own, e.g. "Session ended — please
 /// sign in again".
 void _handleSessionEnded(String? message) {
-  StaticUserSession.instance.signOut();
-  DonorSession.instance.signOut();
-  RoleAccountStore.instance.clear();
-  NotificationSync.instance.clear();
-  LocalNotifications.instance.cancelAll();
+  // Also wipes the saved session, so a restart does not try the dead token.
+  SignOutService.clearLocalSession();
 
   final navigator = rootNavigatorKey.currentState;
   if (navigator == null) return;

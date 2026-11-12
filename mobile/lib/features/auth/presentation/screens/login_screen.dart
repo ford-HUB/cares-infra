@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
+import 'package:mobile/core/services/session_storage.dart';
 import 'package:mobile/features/auth/data/auth_login_service.dart';
 import 'package:mobile/features/auth/data/auth_registration_service.dart';
 import 'package:mobile/features/auth/data/donor_auth_service.dart';
@@ -134,7 +135,15 @@ class _LoginScreenState extends State<LoginScreen>
     );
     if (!navContext.mounted) return;
 
-    AuthSession.setAccessToken(loginResult.accessToken);
+    AuthSession.start(
+      StoredSession(
+        accessToken: loginResult.accessToken,
+        roleType: loginResult.roleType,
+        email: loginResult.email,
+        firstName: loginResult.firstName,
+        hasInterests: loginResult.hasInterests,
+      ),
+    );
 
     DashboardRouter.navigateToRoleDashboard(
       navContext,
@@ -236,7 +245,15 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (result.isSignedIn) {
         final session = result.session!;
-        AuthSession.setAccessToken(session.accessToken);
+        AuthSession.start(
+          StoredSession(
+            accessToken: session.accessToken,
+            roleType: session.roleType,
+            email: session.email,
+            firstName: session.firstName,
+            hasInterests: session.hasInterests,
+          ),
+        );
 
         DashboardRouter.navigateToRoleDashboard(
           context,

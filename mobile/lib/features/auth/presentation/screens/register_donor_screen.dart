@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_session.dart';
+import 'package:mobile/core/services/session_storage.dart';
 import 'package:mobile/core/session/donor_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
@@ -387,7 +388,16 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     required String address,
     BuildContext? navigatorContext,
   }) {
-    AuthSession.setAccessToken(session.accessToken);
+    AuthSession.start(
+      StoredSession(
+        accessToken: session.accessToken,
+        roleType: session.roleType,
+        email: session.email,
+        firstName: session.firstName,
+        lastName: lastName,
+        hasInterests: session.hasInterests,
+      ),
+    );
 
     final donor = DonorSessionUser(
       userId: session.userId,
