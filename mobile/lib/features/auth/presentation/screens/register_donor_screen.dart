@@ -17,6 +17,7 @@ import 'package:mobile/features/auth/data/social_auth_client.dart';
 import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 import 'package:mobile/features/auth/presentation/providers/register_flow_provider.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
+import 'package:mobile/features/auth/presentation/screens/registration_success_screen.dart';
 import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:mobile/features/auth/presentation/widgets/account_exists_dialog.dart';
 import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
@@ -311,7 +312,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   /// Runs on the OTP screen once the code is accepted. Errors are left to propagate:
   /// the verification screen shows them and clears the code for another try.
   Future<void> _createEmailDonor(BuildContext otpContext) async {
-    final session = await _donorAuthService.registerDonorWithEmail(
+    await _donorAuthService.registerDonorWithEmail(
       email: _emailController.text,
       password: _passwordController.text,
       firstName: _firstNameController.text,
@@ -322,13 +323,26 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     );
 
     if (!otpContext.mounted) return;
-    _enterDashboard(
-      session,
-      middleName: _middleNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
-      address: _address.formatted,
-      navigatorContext: otpContext,
+    _showAccountCreated(
+      otpContext,
+      email: _emailController.text.trim(),
+    );
+  }
+
+  /// Sign-up does not sign the donor in: confirm the account was created, then
+  /// send them back to the sign-in screen. [navigatorContext] is whichever
+  /// screen is on top — this form, or the OTP screen pushed above it.
+  void _showAccountCreated(
+    BuildContext navigatorContext, {
+    required String email,
+    String? signInHint,
+  }) {
+    Navigator.of(navigatorContext).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            RegistrationSuccessScreen(email: email, signInHint: signInHint),
+      ),
+      (route) => route.isFirst,
     );
   }
 
@@ -352,12 +366,14 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       );
 
       if (!mounted) return;
-      _enterDashboard(
-        session,
-        middleName: _middleNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
-        address: _address.formatted,
+      final providerLabel = _linkedAccount?.provider.label;
+      _showAccountCreated(
+        context,
+        email: session.email,
+        signInHint: providerLabel == null
+            ? null
+            : 'Sign in with the "Continue with $providerLabel" button on the '
+                  'sign-in screen.',
       );
     } on ApiException catch (error) {
       if (!mounted) return;
