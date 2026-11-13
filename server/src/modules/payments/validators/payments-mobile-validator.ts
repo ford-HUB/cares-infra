@@ -1,11 +1,12 @@
 import { z } from 'zod';
-import {
-  DonationPaymentMethod,
-  RoleType,
-} from '../../../infastructures/prisma/common/client';
+import { DonationPaymentMethod } from '../../../infastructures/prisma/common/client';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 
-/** Only donors are offered a checkout, so only they may ask what it accepts. */
-export const PAYMENTS_MOBILE_ROLE_TYPES = [RoleType.DONOR] as const;
+/**
+ * Whoever can open a checkout may ask what it accepts — the same accounts as
+ * the donation routes (see `DONATIONS_MOBILE_ROLE_TYPES`).
+ */
+export const PAYMENTS_MOBILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
 /**
  * One channel as a donor sees it: the label and copy the director settled on, the

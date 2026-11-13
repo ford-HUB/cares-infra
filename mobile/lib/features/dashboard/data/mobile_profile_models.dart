@@ -18,6 +18,7 @@ class MobileProfile {
     required this.address,
     required this.householdSize,
     required this.residencyDocuments,
+    this.residencyReview,
     required this.hasProfileImage,
     required this.signInProviders,
     required this.hasPassword,
@@ -56,6 +57,11 @@ class MobileProfile {
               .whereType<Map<String, dynamic>>()
               .map(ResidencyDocument.fromJson)
               .toList(),
+      residencyReview: json['residency_review'] is Map<String, dynamic>
+          ? ResidencyReview.fromJson(
+              json['residency_review'] as Map<String, dynamic>,
+            )
+          : null,
       hasProfileImage: json['has_profile_image'] as bool? ?? false,
       signInProviders: (json['sign_in_providers'] as List<dynamic>? ?? const [])
           .whereType<String>()
@@ -103,6 +109,10 @@ class MobileProfile {
 
   /// Proof-of-residency uploads, newest first.
   final List<ResidencyDocument> residencyDocuments;
+
+  /// Where the latest proof of residency stands with the administrator; null
+  /// when none was ever uploaded from the profile.
+  final ResidencyReview? residencyReview;
   final bool hasProfileImage;
 
   /// `GOOGLE` / `FACEBOOK` identities attached to the account, for any role.
@@ -228,6 +238,7 @@ class ProfileCompletion {
     required this.completedSteps,
     required this.totalSteps,
     required this.missing,
+    this.pendingReview = const [],
   });
 
   factory ProfileCompletion.fromJson(Map<String, dynamic> json) {
@@ -240,6 +251,9 @@ class ProfileCompletion {
       completedSteps: (json['completed_steps'] as num?)?.toInt() ?? 0,
       totalSteps: (json['total_steps'] as num?)?.toInt() ?? 0,
       missing: missing,
+      pendingReview: (json['pending_review'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
     );
   }
 
@@ -249,6 +263,27 @@ class ProfileCompletion {
   final int totalSteps;
   final List<String> missing;
 
+  /// Steps the person has done their part on that an administrator still has
+  /// to approve (they are in [missing] too, so [complete] stays false).
+  final List<String> pendingReview;
+
+  /// The proof of residency is uploaded and waiting on an administrator —
+  /// the profile shows "under review" instead of a percentage.
+  bool get residencyUnderReview => pendingReview.contains(residencyDocumentStep);
+
+  /// Everything still missing is only waiting on an administrator; there is
+  /// nothing left for the person to fill in.
+  bool get onlyAwaitingReview =>
+      !complete &&
+      pendingReview.isNotEmpty &&
+      missing.every(pendingReview.contains);
+
+  /// Missing steps the person still has to do themselves.
+  List<String> get actionable =>
+      missing.where((m) => !pendingReview.contains(m)).toList();
+
+  static const residencyDocumentStep = 'residency_document';
+
   /// Human label for a `missing` key, for the "what's left" hint.
   static String labelFor(String key) => switch (key) {
     'personal_details' => 'Personal Details',
@@ -257,6 +292,7 @@ class ProfileCompletion {
     'interests' => 'Interests',
     'sign_in_method' => 'Sign-In Method',
     'household_size' => 'Household Size',
+    'residency_document' => 'Proof of Residency',
     _ => key,
   };
 }
@@ -480,4 +516,40 @@ class ResidencyDocument {
     ];
     return '${uploadedAt.day} ${months[uploadedAt.month - 1]} ${uploadedAt.year}';
   }
+}
+
+/// `residency_review` on the profile — the director's ruling on the latest
+/// proof of residency uploaded from the profile.
+class ResidencyReview {
+  const ResidencyReview({
+    required this.status,
+    required this.submittedAt,
+    this.rejectionReason,
+    this.decidedAt,
+  });
+
+  factory ResidencyReview.fromJson(Map<String, dynamic> json) {
+    return ResidencyReview(
+      status: json['status'] as String? ?? '',
+      rejectionReason: json['rejection_reason'] as String?,
+      submittedAt:
+          DateTime.tryParse(json['submitted_at'] as String? ?? '')?.toLocal() ??
+          DateTime.now(),
+      decidedAt: DateTime.tryParse(
+        json['decided_at'] as String? ?? '',
+      )?.toLocal(),
+    );
+  }
+
+  /// `PENDING`, `ACCEPTED`, `REJECTED` or `DELETED`.
+  final String status;
+  final String? rejectionReason;
+  final DateTime submittedAt;
+  final DateTime? decidedAt;
+
+  bool get isPending => status == 'PENDING';
+  bool get isApproved => status == 'ACCEPTED';
+
+  /// Rejected, or dropped from the queue — either way a new upload is needed.
+  bool get needsNewUpload => status == 'REJECTED' || status == 'DELETED';
 }

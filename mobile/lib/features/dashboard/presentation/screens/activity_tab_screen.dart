@@ -153,54 +153,26 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
     final registered = _registered;
     final completedEvents = _completed;
 
-    return SafeArea(
-      bottom: false,
+    return ColoredBox(
+      color: AppColors.background,
       child: RefreshIndicator(
         onRefresh: () => ref.refresh(registeredEventsProvider.future),
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Activity',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Your volunteer history and registrations',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: ActivityGroupPanel(
-                  selected: _group,
-                  onSelected: (g) => setState(() => _group = g),
-                ),
+              child: ActivityHeader(
+                subtitle: 'Your volunteer history and registrations.',
+                selected: _group,
+                onSelected: (g) => setState(() => _group = g),
               ),
             ),
             if (_showing(ActivityGroup.registered))
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
+                    icon: Icons.event_available_outlined,
                     title: 'Registered Events',
                     subtitle: registered.isEmpty
                         ? 'Events you join will show up here.'
@@ -211,9 +183,9 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                       else if (registered.isEmpty)
                         const ActivityEmptyState(
                           icon: Icons.event_available_outlined,
-                          title: 'No registered events yet',
+                          title: 'No Registered Events Yet',
                           message:
-                              'Hit "Join now" on an event and it moves here.',
+                              'Hit \u201CJoin Now\u201D on an event and it moves here.',
                         )
                       else
                         for (var i = 0; i < registered.length; i++) ...[
@@ -235,9 +207,10 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
               ),
             if (_showing(ActivityGroup.completed))
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 26, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
+                    icon: Icons.check_circle_outline_rounded,
                     title: 'Completed Events',
                     subtitle: completedEvents.isEmpty
                         ? 'Events you attended will show up here.'
@@ -247,8 +220,9 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                         const ActivityLoadingState()
                       else if (completedEvents.isEmpty)
                         const ActivityEmptyState(
-                          icon: Icons.task_alt_rounded,
-                          title: 'No completed events yet',
+                          icon: Icons.check_circle_outline_rounded,
+                          backdrop: ActivityEmptyBackdrop.tile,
+                          title: 'No Completed Events Yet',
                           message:
                               'Once an event you joined wraps up, it lands here.',
                         )
@@ -272,7 +246,7 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
                   ),
                 ),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),

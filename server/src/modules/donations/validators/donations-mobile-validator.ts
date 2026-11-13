@@ -4,12 +4,17 @@ import {
   DonationPaymentMethod,
   DonationPaymentStatus,
   DonationStatus,
-  RoleType,
 } from '../../../infastructures/prisma/common/client';
 import { GOODS_TYPE_IDS } from '../../../shared/constants/goods-types';
+import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 
-/** Only the donor side of the app pays for campaigns. */
-export const DONATIONS_MOBILE_ROLE_TYPES = [RoleType.DONOR] as const;
+/**
+ * Accounts that can open the donor side of the app. The role switcher is local
+ * (the donor side unlocks with no check), so a volunteer or beneficiary giving
+ * from the donor side still carries the token they registered with. Portal
+ * staff only ever get the volunteer side, so they stay out.
+ */
+export const DONATIONS_MOBILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
 /** Xendit enforces PHP 1 minimum on every channel; the cap keeps a typo from becoming a ₱1M charge. */
 export const DONATION_MIN_AMOUNT = 1;

@@ -6,6 +6,7 @@ import {
   MobileProfileResponseSchema,
   MobileProfileRoleQuerySchema,
   ResidencyDocumentSchema,
+  ResidencyReviewSchema,
   UpdateMobileProfileSchema,
   ApplySchoolRecordSchema,
   VolunteerProfileSectionSchema,
@@ -26,6 +27,7 @@ export type MobileProfileRoleQueryDto = z.infer<
 >;
 export type ApplySchoolRecordDto = z.infer<typeof ApplySchoolRecordSchema>;
 export type ResidencyDocumentDto = z.infer<typeof ResidencyDocumentSchema>;
+export type ResidencyReviewDto = z.infer<typeof ResidencyReviewSchema>;
 
 /** What the OCR service reads off a proof-of-residency upload. */
 export interface ResidencyOcrResultDto {

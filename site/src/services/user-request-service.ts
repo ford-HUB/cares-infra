@@ -22,7 +22,12 @@ interface UserRequestTrailApiResponse {
 interface UserRequestApiResponse {
   user_request_id: string
   reference_number: number
-  kind: 'ROLE_ACCESS' | 'EVENT_JOIN' | 'BENEFICIARY_REGISTRATION' | 'EVENT_ROLE'
+  kind:
+    | 'ROLE_ACCESS'
+    | 'EVENT_JOIN'
+    | 'BENEFICIARY_REGISTRATION'
+    | 'EVENT_ROLE'
+    | 'RESIDENCY_VERIFICATION'
   status: 'PENDING' | 'ACCEPTED' | 'DELETED' | 'REJECTED'
   requester_id: string
   requester_firstname: string
@@ -65,6 +70,7 @@ const KIND_MAP: Record<UserRequestApiResponse['kind'], UserRequestKind> = {
   EVENT_JOIN: 'event_join',
   BENEFICIARY_REGISTRATION: 'beneficiary_registration',
   EVENT_ROLE: 'event_role',
+  RESIDENCY_VERIFICATION: 'residency_verification',
 }
 
 function titleCase(value: string): string {

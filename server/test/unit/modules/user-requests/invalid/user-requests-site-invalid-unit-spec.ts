@@ -56,7 +56,7 @@ import {
     {
       title: 'reject · 400 for a kind that takes no reason',
       endpoint: REJECT_ENDPOINT,
-      error: new BadRequestException('Only event applications, event roles and beneficiary registrations can be rejected with a reason'),
+      error: new BadRequestException('Only event applications, event roles, residency proofs and beneficiary registrations can be rejected with a reason'),
     },
     { title: 'remove · 404 for an unknown request', endpoint: REMOVE_ENDPOINT, error: NOT_FOUND },
     { title: 'remove · 400 for a decided request', endpoint: REMOVE_ENDPOINT, error: new BadRequestException('Only pending requests can be removed') },

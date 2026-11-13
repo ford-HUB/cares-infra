@@ -67,6 +67,10 @@ class _BeneficiaryDashboardScreenState
   /// size — never something computed on the device.
   bool get _profileComplete => _serverProfile?.completion.complete ?? false;
 
+  /// The proof of residency is uploaded and waiting on an administrator.
+  bool get _awaitingDocumentReview =>
+      _serverProfile?.completion.residencyUnderReview ?? false;
+
   @override
   void initState() {
     super.initState();
@@ -188,6 +192,7 @@ class _BeneficiaryDashboardScreenState
                       onCompleteProfile: _openProfileSetup,
                       actionsLocked:
                           _serverProfile != null && !_profileComplete,
+                      awaitingDocumentReview: _awaitingDocumentReview,
                     ),
                     const EventsTabScreen(forBeneficiary: true),
                     const BeneficiaryActivityTab(),

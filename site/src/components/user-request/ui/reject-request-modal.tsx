@@ -18,6 +18,7 @@ interface RejectRequestModalProps {
 export function RejectRequestModal({ request, busy, onConfirm, onClose }: RejectRequestModalProps) {
   const registration = request.kind === 'beneficiary_registration'
   const eventRole = request.kind === 'event_role'
+  const residency = request.kind === 'residency_verification'
   const [reason, setReason] = useState('')
   const [touched, setTouched] = useState(false)
 
@@ -68,7 +69,9 @@ export function RejectRequestModal({ request, busy, onConfirm, onClose }: Reject
               ? 'The account stays closed. This reason is emailed to the registrant and shown when they try to sign in.'
               : eventRole
                 ? 'The volunteer sees this in the app. They stay registered for the event as a regular volunteer.'
-                : 'The beneficiary sees this in the app and can apply again with a corrected document.'}
+                : residency
+                  ? 'The beneficiary sees this in the app. Their profile stays incomplete until they upload a document you approve.'
+                  : 'The beneficiary sees this in the app and can apply again with a corrected document.'}
           </p>
           <textarea
             id="rejection-reason"
@@ -83,7 +86,9 @@ export function RejectRequestModal({ request, busy, onConfirm, onClose }: Reject
                 ? 'e.g. The supporting document does not show your name or address. Visit the CARES office with your barangay certificate.'
                 : eventRole
                   ? 'e.g. The speaker line-up for this event is already complete.'
-                  : 'e.g. The proof of residency is unreadable — please upload a clearer scan of your barangay certificate.'
+                  : residency
+                    ? 'e.g. The document does not show your name — please upload a barangay certificate issued to you.'
+                    : 'e.g. The proof of residency is unreadable — please upload a clearer scan of your barangay certificate.'
             }
             aria-invalid={touched && missing}
             aria-describedby="rejection-reason-hint"

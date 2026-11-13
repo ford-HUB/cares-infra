@@ -56,7 +56,7 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
       return '$count result${count == 1 ? '' : 's'} found';
     }
     return widget.isDonorMode
-        ? '$count campaigns available'
+        ? '$count drives available'
         : '$count events available';
   }
 

@@ -17,7 +17,7 @@ extension AppRoleX on AppRole {
       'Join events, log service hours, and track your volunteer ranks.',
     AppRole.beneficiary => 'File assistance requests and follow their status.',
     AppRole.donor =>
-      'Give to campaigns and follow the impact of your donations.',
+      'Give to drives and follow the impact of your donations.',
   };
 
   IconData get icon => switch (this) {

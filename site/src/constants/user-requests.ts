@@ -13,6 +13,7 @@ export const REQUEST_KIND_LABELS: Record<UserRequestKind, string> = {
   event_join: 'Event Join',
   beneficiary_registration: 'Beneficiary Registration',
   event_role: 'Event Role',
+  residency_verification: 'Proof of Residency',
 }
 
 /**
@@ -24,6 +25,7 @@ export const REQUEST_KIND_STYLES: Record<UserRequestKind, { chip: string; dot: s
   event_join: { chip: 'bg-sky-50 text-sky-700', dot: 'bg-sky-500' },
   beneficiary_registration: { chip: 'bg-violet-50 text-violet-700', dot: 'bg-violet-500' },
   event_role: { chip: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
+  residency_verification: { chip: 'bg-teal-50 text-teal-700', dot: 'bg-teal-500' },
 }
 
 export const REQUEST_STATUS_LABELS: Record<UserRequestStatus, string> = {

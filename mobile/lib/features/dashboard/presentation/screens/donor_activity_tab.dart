@@ -134,7 +134,7 @@ class DonorSummaryRow extends StatelessWidget {
             icon: Icons.campaign_outlined,
             color: DonorAccents.campaigns,
             value: '${summary.campaigns}',
-            label: 'Campaigns',
+            label: 'Drives',
           ),
         ),
       ],
@@ -402,7 +402,7 @@ class _EmptyActivityState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Donate to a campaign to track it here.',
+            'Donate to a drive to track it here.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,

@@ -372,7 +372,7 @@ class DonationsEmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               query.trim().isEmpty
-                  ? 'No donation campaigns found'
+                  ? 'No donation drives found'
                   : 'No matches for "$query"',
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -442,7 +442,7 @@ class DonationSmartSearchBar extends StatelessWidget {
       onClear: onClear,
       showSuggestions: showSuggestions,
       suggestions: suggestions,
-      hintText: 'Search campaigns, causes, or organizations',
+      hintText: 'Search drives, causes, or organizations',
     );
   }
 }

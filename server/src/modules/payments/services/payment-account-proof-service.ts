@@ -36,6 +36,34 @@ const PAYOUT_CHANNELS: Partial<Record<DonationPaymentMethod, string>> = {
   [DonationPaymentMethod.QRPH]: 'PH_GCASH',
 };
 
+/**
+ * A bank account is saved under its collection code (`DD_BPI`, what the invoice
+ * offers donors), but `/v2/payouts` only takes payout codes (`PH_BPI`). Sending the
+ * collection code is refused outright, so the bank's own payout code is looked up.
+ *
+ * `PH_BPI` and `PH_UBP` are confirmed on Xendit's Philippines payout coverage page.
+ * `PH_RCBC` and `PH_CBC` follow the same naming but are not confirmed there; a wrong
+ * code is refused by Xendit and the reason is shown on the card — no money moves.
+ */
+const BANK_PAYOUT_CHANNELS: Record<string, string> = {
+  DD_BPI: 'PH_BPI',
+  DD_UBP: 'PH_UBP',
+  DD_RCBC: 'PH_RCBC',
+  DD_CHINABANK: 'PH_CBC',
+};
+
+function payoutChannelFor(
+  method: DonationPaymentMethod,
+  channelCodes: readonly string[],
+): string | undefined {
+  const fixed = PAYOUT_CHANNELS[method];
+  if (fixed) return fixed;
+  if (method !== DonationPaymentMethod.BANK_TRANSFER) return undefined;
+  return channelCodes
+    .map((code) => BANK_PAYOUT_CHANNELS[code])
+    .find((code): code is string => Boolean(code));
+}
+
 @Injectable()
 export class PaymentAccountProofService {
   private readonly logger = new Logger(PaymentAccountProofService.name);
@@ -64,7 +92,7 @@ export class PaymentAccountProofService {
       throw new BadRequestException(check.reason);
     }
 
-    const channelCode = PAYOUT_CHANNELS[method] ?? account.channelCodes[0];
+    const channelCode = payoutChannelFor(method, account.channelCodes);
     if (!channelCode) {
       throw new BadRequestException(
         `CARES cannot send a test payout to a ${descriptor.label} account.`,

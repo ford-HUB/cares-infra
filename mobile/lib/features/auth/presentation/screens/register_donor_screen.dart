@@ -515,7 +515,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     return _FormCard(
       icon: Icons.badge_outlined,
       title: 'Your Name',
-      subtitle: 'This is how campaigns will thank you.',
+      subtitle: 'This is how drives will thank you.',
       children: [
         RegisterFormField(
           label: 'First Name',
@@ -738,7 +738,7 @@ class _DonorHeroPanel extends StatelessWidget {
   const _DonorHeroPanel();
 
   static const _perks = [
-    (Icons.volunteer_activism_outlined, 'Back campaigns you care about'),
+    (Icons.volunteer_activism_outlined, 'Back drives you care about'),
     (Icons.insights_outlined, 'Track the impact of every peso'),
     (Icons.receipt_long_outlined, 'Keep your donation receipts'),
   ];

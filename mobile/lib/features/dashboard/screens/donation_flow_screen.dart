@@ -640,7 +640,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _CancelSummaryLine('Item', d.goodsLabel),
-                  _CancelSummaryLine('Campaign', d.eventTitle),
+                  _CancelSummaryLine('Drive', d.eventTitle),
                   _CancelSummaryLine(
                     'Delivery date',
                     d.deliveryDateLabel ?? '—',
@@ -805,7 +805,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       content: [
         const DonationStepHeader(
           title: 'How would you like to help?',
-          subtitle: 'Choose how you want to support this campaign.',
+          subtitle: 'Choose how you want to support this drive.',
         ),
         const SizedBox(height: 16),
         if (_acceptsMoney) ...[
@@ -1071,7 +1071,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
         const SizedBox(height: 16),
         DonationSummaryCard(
           rows: [
-            DonationSummaryRow('Campaign', _campaignTitle),
+            DonationSummaryRow('Drive', _campaignTitle),
             const DonationSummaryRow('Donation Type', 'Money'),
             DonationSummaryRow(
               'Amount',
@@ -1172,7 +1172,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Back to campaign'),
+                child: const Text('Back to drive'),
               ),
             ],
           ),
@@ -1300,7 +1300,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
                       const SizedBox(height: 16),
                       DonationSummaryCard(
                         rows: [
-                          DonationSummaryRow('Campaign', donation.eventTitle),
+                          DonationSummaryRow('Drive', donation.eventTitle),
                           const DonationSummaryRow('Donation Type', 'Money'),
                           DonationSummaryRow(
                             'Amount',
@@ -1525,7 +1525,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
         const SizedBox(height: 16),
         DonationSummaryCard(
           rows: [
-            DonationSummaryRow('Campaign', _campaignTitle),
+            DonationSummaryRow('Drive', _campaignTitle),
             const DonationSummaryRow('Donation Type', 'Goods'),
             DonationSummaryRow('Item', item ?? '—', emphasize: true),
             DonationSummaryRow('Quantity', '$_quantity'),
@@ -1649,7 +1649,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
                       const SizedBox(height: 16),
                       DonationSummaryCard(
                         rows: [
-                          DonationSummaryRow('Campaign', donation.eventTitle),
+                          DonationSummaryRow('Drive', donation.eventTitle),
                           const DonationSummaryRow('Donation Type', 'Goods'),
                           DonationSummaryRow('Item', donation.goodsLabel),
                           DonationSummaryRow(

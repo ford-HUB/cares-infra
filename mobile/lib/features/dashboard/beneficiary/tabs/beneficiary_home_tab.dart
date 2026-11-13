@@ -31,6 +31,7 @@ class BeneficiaryHomeTab extends ConsumerStatefulWidget {
     this.showProfileCompletionCard = false,
     this.onCompleteProfile,
     this.actionsLocked = false,
+    this.awaitingDocumentReview = false,
   });
 
   final String firstName;
@@ -42,6 +43,11 @@ class BeneficiaryHomeTab extends ConsumerStatefulWidget {
   /// The profile is incomplete, so assistance actions show as locked (the
   /// tap still goes through and explains what is missing).
   final bool actionsLocked;
+
+  /// The proof of residency is uploaded and waiting on an administrator, so
+  /// the completion card and the lock say "under review" instead of asking
+  /// for more details.
+  final bool awaitingDocumentReview;
 
   @override
   ConsumerState<BeneficiaryHomeTab> createState() => _BeneficiaryHomeTabState();
@@ -187,18 +193,27 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
             ),
             if (widget.showProfileCompletionCard) ...[
               const SizedBox(height: 16),
-              ProfileCompletionCard(
-                onTap: widget.onCompleteProfile,
-                title: 'Complete Your Profile',
-                subtitle:
-                    'Add your contact details & household size to speed up assistance',
-                icon: Icons.assignment_ind_outlined,
-              ),
+              widget.awaitingDocumentReview
+                  ? ProfileCompletionCard(
+                      onTap: widget.onCompleteProfile,
+                      title: 'Document Under Review',
+                      subtitle:
+                          'Your proof of residency is waiting for the administrator\'s approval',
+                      icon: Icons.hourglass_top_rounded,
+                    )
+                  : ProfileCompletionCard(
+                      onTap: widget.onCompleteProfile,
+                      title: 'Complete Your Profile',
+                      subtitle:
+                          'Add your contact details & household size to speed up assistance',
+                      icon: Icons.assignment_ind_outlined,
+                    ),
             ],
             const SizedBox(height: 16),
             _RequestAssistanceCard(
               onTap: widget.onRequestAssistance,
               locked: widget.actionsLocked,
+              awaitingReview: widget.awaitingDocumentReview,
             ),
             const SizedBox(height: 16),
             NeedsAssessmentCard(
@@ -258,10 +273,15 @@ class _BeneficiaryHomeTabState extends ConsumerState<BeneficiaryHomeTab> {
 
 /// Primary action card — mirrors the volunteer profile-completion card.
 class _RequestAssistanceCard extends StatelessWidget {
-  const _RequestAssistanceCard({this.onTap, this.locked = false});
+  const _RequestAssistanceCard({
+    this.onTap,
+    this.locked = false,
+    this.awaitingReview = false,
+  });
 
   final VoidCallback? onTap;
   final bool locked;
+  final bool awaitingReview;
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +327,9 @@ class _RequestAssistanceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      locked
+                      locked && awaitingReview
+                          ? 'Unlocks once the administrator approves your proof of residency'
+                          : locked
                           ? 'Complete your profile to unlock assistance requests'
                           : 'Tell CARES what your household needs and track it here',
                       style: TextStyle(

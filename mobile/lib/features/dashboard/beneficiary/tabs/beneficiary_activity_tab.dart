@@ -67,31 +67,26 @@ class _BeneficiaryActivityTabState
     final upcoming = _applied(ref.watch(beneficiaryEventsProvider));
     final completed = _applied(ref.watch(beneficiaryCompletedEventsProvider));
 
-    return SafeArea(
-      bottom: false,
+    return ColoredBox(
+      color: AppColors.background,
       child: RefreshIndicator(
         onRefresh: _refresh,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
-              sliver: SliverToBoxAdapter(child: _Header()),
-            ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: ActivityGroupPanel(
-                  selected: _group,
-                  onSelected: (g) => setState(() => _group = g),
-                ),
+              child: ActivityHeader(
+                subtitle: 'Events you applied for, ahead and completed.',
+                selected: _group,
+                onSelected: (g) => setState(() => _group = g),
               ),
             ),
             if (_showing(ActivityGroup.registered))
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
+                    icon: Icons.event_available_outlined,
                     title: 'Registered Events',
                     subtitle: (upcoming.valueOrNull ?? const []).isEmpty
                         ? 'Events you apply for will show up here.'
@@ -103,7 +98,7 @@ class _BeneficiaryActivityTabState
                             ref.invalidate(beneficiaryEventsProvider),
                         empty: const ActivityEmptyState(
                           icon: Icons.event_available_outlined,
-                          title: 'No registered events yet',
+                          title: 'No Registered Events Yet',
                           message:
                               'Apply for an event from Home or Events and it lands here.',
                         ),
@@ -126,9 +121,10 @@ class _BeneficiaryActivityTabState
               ),
             if (_showing(ActivityGroup.completed))
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 26, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: ActivitySection(
+                    icon: Icons.check_circle_outline_rounded,
                     title: 'Completed Events',
                     subtitle: 'Events you applied for that have already run.',
                     children: [
@@ -137,8 +133,9 @@ class _BeneficiaryActivityTabState
                         onRetry: () =>
                             ref.invalidate(beneficiaryCompletedEventsProvider),
                         empty: const ActivityEmptyState(
-                          icon: Icons.task_alt_rounded,
-                          title: 'No completed events yet',
+                          icon: Icons.check_circle_outline_rounded,
+                          backdrop: ActivityEmptyBackdrop.tile,
+                          title: 'No Completed Events Yet',
                           message:
                               'Once an event you applied for wraps up, it lands here.',
                         ),
@@ -155,40 +152,10 @@ class _BeneficiaryActivityTabState
                   ),
                 ),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Activity',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: AppColors.primaryDark,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Events you applied for, ahead and completed',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -238,12 +205,9 @@ class _ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.fieldBorder),
-      ),
+      decoration: AppDecorations.groundCard(radius: 20),
       child: Column(
         children: [
           Text(

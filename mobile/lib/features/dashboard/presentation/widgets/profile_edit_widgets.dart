@@ -412,12 +412,16 @@ class ProfileResidencyAddressCard extends StatelessWidget {
     required this.address,
     this.structured = PhAddress.empty,
     required this.documents,
+    this.review,
     required this.uploading,
     required this.onTapLocked,
     required this.onOpenDocument,
   });
 
   final String address;
+
+  /// The administrator's ruling on the latest upload; null when none.
+  final ResidencyReview? review;
 
   /// [address] already resolved against [PhAddressDirectory]. When it isn't
   /// complete the card splits [address] itself with [PhAddress.lenient].
@@ -482,6 +486,10 @@ class ProfileResidencyAddressCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
+        if (review != null && !uploading && !review!.isApproved) ...[
+          _ResidencyReviewNotice(review: review!),
+          const SizedBox(height: 8),
+        ],
         if (uploading) const _ResidencyPendingRow(),
         if (documents.isEmpty && !uploading)
           Container(
@@ -510,6 +518,57 @@ class ProfileResidencyAddressCard extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Where the latest upload stands with the administrator: waiting, or
+/// turned down with the reason (a new upload files a fresh review).
+class _ResidencyReviewNotice extends StatelessWidget {
+  const _ResidencyReviewNotice({required this.review});
+
+  final ResidencyReview review;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = review.isPending;
+    final tint = pending ? AppColors.primary : AppColors.error;
+    final reason = review.rejectionReason?.trim() ?? '';
+    final message = pending
+        ? 'Under review — your latest document is waiting for the '
+              'administrator\'s approval. Your profile is complete once it '
+              'is approved.'
+        : 'Not approved${reason.isEmpty ? '.' : ': $reason'} '
+              'Upload a new document to try again.';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tint.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            pending ? Icons.hourglass_top_rounded : Icons.error_outline_rounded,
+            size: 18,
+            color: tint,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

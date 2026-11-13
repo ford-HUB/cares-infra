@@ -51,7 +51,7 @@ class _DonorCampaignsTabState extends ConsumerState<DonorCampaignsTab> {
     if (_query.trim().isNotEmpty) {
       return '$count result${count == 1 ? '' : 's'} found';
     }
-    return '$count event${count == 1 ? '' : 's'} accepting donations';
+    return '$count drive${count == 1 ? '' : 's'} accepting donations';
   }
 
   void _applySuggestion(String suggestion) {
@@ -93,9 +93,9 @@ class _DonorCampaignsTabState extends ConsumerState<DonorCampaignsTab> {
             slivers: [
               SliverToBoxAdapter(
                 child: DonationsPageHeader(
-                  title: 'Campaigns',
+                  title: 'Drives',
                   subtitle: page.isLoading
-                      ? 'Loading events accepting donations…'
+                      ? 'Loading drives accepting donations…'
                       : _subtitle(campaigns.length),
                 ),
               ),
@@ -145,7 +145,7 @@ class _DonorCampaignsTabState extends ConsumerState<DonorCampaignsTab> {
                       child: HomeStateCard.error(
                         message: error is ApiException
                             ? error.message
-                            : 'Could not load campaigns right now.',
+                            : 'Could not load drives right now.',
                         onRetry: () =>
                             ref.invalidate(donationCampaignsProvider),
                       ),

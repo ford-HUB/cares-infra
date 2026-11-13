@@ -328,6 +328,9 @@ class _ProfileTabBody extends StatelessWidget {
                     _CompletionBanner(
                       percent: completedPercent,
                       missing: serverCompletion?.missing ?? const [],
+                      pendingReview:
+                          serverCompletion?.pendingReview ?? const [],
+                      residencyReview: server?.residencyReview,
                     ),
                   ],
 
@@ -359,7 +362,7 @@ class _ProfileTabBody extends StatelessWidget {
                             StatsRowItem(
                               icon: Icons.campaign_outlined,
                               value: '${summary.campaigns}',
-                              label: 'Campaigns',
+                              label: 'Drives',
                             ),
                           ],
                         );
@@ -1778,15 +1781,40 @@ class _RoleAvatar extends StatelessWidget {
 }
 
 class _CompletionBanner extends StatelessWidget {
-  const _CompletionBanner({required this.percent, this.missing = const []});
+  const _CompletionBanner({
+    required this.percent,
+    this.missing = const [],
+    this.pendingReview = const [],
+    this.residencyReview,
+  });
 
   final int percent;
 
   /// Server keys for the steps still outstanding, newest read wins.
   final List<String> missing;
 
+  /// Steps waiting on an administrator — shown as "under review", never as
+  /// progress.
+  final List<String> pendingReview;
+
+  /// The latest proof-of-residency ruling, for the rejection reason.
+  final ResidencyReview? residencyReview;
+
   @override
   Widget build(BuildContext context) {
+    final actionable = missing
+        .where((m) => !pendingReview.contains(m))
+        .toList();
+    final rejectionReason = residencyReview?.needsNewUpload == true
+        ? residencyReview?.rejectionReason
+        : null;
+
+    // The document is with the administrator: the profile is not complete,
+    // but there is no percentage to chase — it is waiting on approval.
+    if (pendingReview.contains(ProfileCompletion.residencyDocumentStep)) {
+      return _UnderReviewBanner(stillNeeded: actionable);
+    }
+
     return Container(
       padding: const EdgeInsets.all(14),
 
@@ -1848,12 +1876,12 @@ class _CompletionBanner extends StatelessWidget {
             ),
           ),
 
-          if (missing.isNotEmpty) ...[
+          if (actionable.isNotEmpty) ...[
             const SizedBox(height: 8),
 
             Text(
               'Still needed: '
-              '${missing.map(ProfileCompletion.labelFor).join(', ')}',
+              '${actionable.map(ProfileCompletion.labelFor).join(', ')}',
 
               style: const TextStyle(
                 fontSize: 12,
@@ -1862,6 +1890,97 @@ class _CompletionBanner extends StatelessWidget {
               ),
             ),
           ],
+
+          if (rejectionReason != null && rejectionReason.isNotEmpty) ...[
+            const SizedBox(height: 6),
+
+            Text(
+              'Your last proof of residency was not approved: '
+              '$rejectionReason Please upload a new one.',
+
+              style: const TextStyle(
+                fontSize: 12,
+
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Replaces the progress bar while the proof of residency waits on an
+/// administrator: the upload is done, the approval is not.
+class _UnderReviewBanner extends StatelessWidget {
+  const _UnderReviewBanner({this.stillNeeded = const []});
+
+  /// Anything the person still has to fill in themselves.
+  final List<String> stillNeeded;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.light.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryDark.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.hourglass_top_rounded,
+              size: 20,
+              color: AppColors.primaryDark,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Document under review',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Your proof of residency is waiting for the administrator\'s '
+                  'approval. Your profile will be complete once it is approved.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (stillNeeded.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Still needed: '
+                    '${stillNeeded.map(ProfileCompletion.labelFor).join(', ')}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );

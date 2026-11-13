@@ -43,7 +43,7 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Campaign Details'),
+        title: const Text('Drive Details'),
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
@@ -195,7 +195,7 @@ class _DonationDetailsScreenState extends State<DonationDetailsScreen> {
             const SizedBox(height: 24),
           ],
           const Text(
-            'About this campaign',
+            'About this drive',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
