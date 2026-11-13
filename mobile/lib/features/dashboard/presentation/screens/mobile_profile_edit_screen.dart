@@ -479,7 +479,10 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
         _address = _structuredAddress(refreshed.address);
         _uploadingResidency = false;
       });
-      _showMessage('Address updated to "${refreshed.address.display}".');
+      _showMessage(
+        'Address updated to "${refreshed.address.display}". Your document '
+        'was sent to the administrator for approval.',
+      );
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _uploadingResidency = false);
@@ -728,6 +731,7 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
             address: profile.address.display,
             structured: _structuredAddress(profile.address),
             documents: profile.residencyDocuments,
+            review: profile.residencyReview,
             uploading: _uploadingResidency,
             onTapLocked: _onAddressTapped,
             onOpenDocument: _openResidencyDocument,

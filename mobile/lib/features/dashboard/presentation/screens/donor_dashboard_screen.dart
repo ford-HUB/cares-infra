@@ -95,7 +95,7 @@ class _DonorDashboardScreenState extends ConsumerState<DonorDashboardScreen> {
             DashboardBottomNav(
               currentIndex: _currentTab,
               onTap: (index) => setState(() => _currentTab = index),
-              eventsTabLabel: 'Campaigns',
+              eventsTabLabel: 'Drives',
             ),
           ],
         ),

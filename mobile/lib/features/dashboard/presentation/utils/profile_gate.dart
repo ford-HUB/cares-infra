@@ -33,9 +33,10 @@ class ProfileGate {
   ) async {
     if (!AuthSession.isSignedIn) return true;
 
-    // No read yet (still loading, or the first fetch failed) — try once so a
-    // complete profile is not locked out by a slow dashboard load.
-    if (completionFor(roleType) == null) {
+    // No read yet (still loading, or the first fetch failed), or the last read
+    // was incomplete — read again so a slow dashboard load or an approval the
+    // administrator gave since the last read never locks a complete profile.
+    if (!(completionFor(roleType)?.complete ?? false)) {
       try {
         await ProfileService().syncRoleAccount(roleType: roleType);
       } catch (_) {
@@ -47,9 +48,17 @@ class ProfileGate {
     final completion = completionFor(roleType);
     if (completion?.complete ?? false) return true;
 
+    // Nothing left to fill in — only the administrator's approval of the
+    // uploaded document. Opening the form would not help, so just say so.
+    if (completion != null && completion.onlyAwaitingReview) {
+      await _showUnderReviewDialog(context);
+      return false;
+    }
+
     final goToProfile = await _showProfileRequiredDialog(
       context,
-      missing: completion?.missing ?? const [],
+      missing: completion?.actionable ?? const [],
+      documentUnderReview: completion?.residencyUnderReview ?? false,
     );
     if (!goToProfile || !context.mounted) return false;
 
@@ -60,6 +69,7 @@ class ProfileGate {
   static Future<bool> _showProfileRequiredDialog(
     BuildContext context, {
     required List<String> missing,
+    bool documentUnderReview = false,
   }) async {
     final result = await showDialog<bool>(
       context: context,
@@ -96,11 +106,15 @@ class ProfileGate {
             ),
             const SizedBox(height: 10),
             Text(
-              missing.isEmpty
-                  ? 'This action unlocks once your profile is complete.'
-                  : 'This action unlocks once your profile is complete. '
-                        'Still missing: '
-                        '${missing.map(ProfileCompletion.labelFor).join(', ')}.',
+              [
+                'This action unlocks once your profile is complete.',
+                if (missing.isNotEmpty)
+                  'Still missing: '
+                      '${missing.map(ProfileCompletion.labelFor).join(', ')}.',
+                if (documentUnderReview)
+                  'Your proof of residency is also waiting for the '
+                      'administrator\'s approval.',
+              ].join(' '),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -137,5 +151,74 @@ class ProfileGate {
       ),
     );
     return result ?? false;
+  }
+
+  static Future<void> _showUnderReviewDialog(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 8),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.hourglass_top_rounded,
+                color: AppColors.primary,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Document under review',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primaryDark,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Your proof of residency is waiting for the administrator\'s '
+              'approval. Your profile will be complete — and this action '
+              'unlocked — once it is approved.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('OK'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -17,7 +17,7 @@ import 'package:mobile/shared/widgets/header_band.dart';
 
 /// Donor home — the volunteer home's layout with campaigns in place of
 /// events: a dark hero (welcome, rank, search) that runs on down behind the
-/// top of the "Popular Campaigns" deck, then the category chip row and the
+/// top of the "Popular Drives" deck, then the category chip row and the
 /// list it filters.
 ///
 /// Both sections read `GET /events/donations` through
@@ -122,7 +122,7 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
                   filterActive: _category != 'All',
                 ),
                 HomeSectionTitle(
-                  title: 'Popular Campaigns',
+                  title: 'Popular Drives',
                   emoji: '🔥',
                   onDark: true,
                   onViewAll: seeAll,
@@ -162,7 +162,7 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
           child: HomeStateCard.error(
             message: error is ApiException
                 ? error.message
-                : 'Could not load campaigns right now.',
+                : 'Could not load drives right now.',
             onRetry: () => ref.invalidate(donationCampaignsProvider),
           ),
         ),
@@ -174,7 +174,7 @@ class _DonorHomeTabState extends ConsumerState<DonorHomeTab> {
               padding: inset,
               child: HomeStateCard(
                 icon: Icons.volunteer_activism_outlined,
-                title: 'No campaigns open right now',
+                title: 'No drives open right now',
                 message:
                     'Events that accept money or goods donations will show up '
                     'here as soon as a director opens one.',
@@ -250,16 +250,16 @@ class _PopularSlot extends StatelessWidget {
       loading: () => const PopularEventDeckSkeleton(gutter: gutter),
       error: (_, _) => const HomeDeckPlaceholder(
         icon: Icons.wifi_off_rounded,
-        title: 'Campaigns Unavailable',
+        title: 'Drives Unavailable',
         message:
-            'We could not load campaigns right now. Pull down to try again.',
+            'We could not load drives right now. Pull down to try again.',
       ),
       data: (all) {
         final popular = _popular(all);
         if (popular.isEmpty) {
           return const HomeDeckPlaceholder(
             icon: Icons.volunteer_activism_outlined,
-            title: 'No Open Campaigns Yet',
+            title: 'No Open Drives Yet',
             message: 'No events are open for donations yet. Check back soon.',
           );
         }

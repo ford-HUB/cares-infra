@@ -9,12 +9,16 @@
  * - `event_role` — a volunteer registered for an event as Organizer, Facilitator
  *   or Speaker. No proof is attached: the reviewer decides on what they know of
  *   the volunteer. Rejecting keeps the registration; they take part as Regular.
+ * - `residency_verification` — a proof of residency a beneficiary uploaded from their
+ *   profile. Their profile stays incomplete (no event applications or assistance
+ *   requests) until it is accepted; a rejection asks them to upload a new one.
  */
 export type UserRequestKind =
   | 'role_access'
   | 'event_join'
   | 'beneficiary_registration'
   | 'event_role'
+  | 'residency_verification'
 
 /**
  * `deleted` is a recycle bin, not a hard delete — the director can restore a request

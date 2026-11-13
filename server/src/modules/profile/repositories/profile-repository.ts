@@ -116,17 +116,32 @@ export class ProfileRepository {
         user_interest: {
           select: { selected: true },
         },
-        // A donor / beneficiary whose Volunteer side was opened by a director
-        // (ID + face verified through a role-access request) — they hold no
-        // school record, and the app hides that section for them.
+        // Two kinds of request shape the profile: an accepted role-access
+        // request (a donor / beneficiary whose Volunteer side a director
+        // opened — they hold no school record, and the app hides that
+        // section), and residency verifications (a proof of residency the
+        // beneficiary profile waits on until a director accepts it).
         user_requests: {
           where: {
-            kind: 'ROLE_ACCESS',
-            requested_role: 'VOLUNTEER',
-            status: 'ACCEPTED',
+            OR: [
+              {
+                kind: 'ROLE_ACCESS',
+                requested_role: 'VOLUNTEER',
+                status: 'ACCEPTED',
+              },
+              { kind: 'RESIDENCY_VERIFICATION' },
+            ],
           },
-          select: { user_request_id: true },
-          take: 1,
+          select: {
+            user_request_id: true,
+            kind: true,
+            status: true,
+            rejection_reason: true,
+            decided_at: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
         },
         oauth_identities: {
           select: { provider: true },
@@ -234,6 +249,13 @@ export class ProfileRepository {
    * OCR read off it. The portal's split address columns are cleared so the
    * new free-text address is what every reader shows, not the stale split.
    */
+  /**
+   * Stores the document, moves the address to what OCR read, and puts the
+   * file in front of a director as a RESIDENCY_VERIFICATION request — all in
+   * one transaction. A person keeps at most one such request pending: a
+   * re-upload replaces the file on the open request instead of queueing a
+   * second one.
+   */
   async applyResidencyDocument(
     userId: string,
     data: {
@@ -243,13 +265,14 @@ export class ProfileRepository {
       size_bytes: number;
       extracted_address: string;
     },
+    review: { summary: string; actorName: string },
   ) {
-    return this.prisma.$transaction([
-      this.prisma.residencyDocument.create({
+    return this.prisma.$transaction(async (tx) => {
+      const document = await tx.residencyDocument.create({
         data: { ...data, user_id: userId },
         select: { residency_document_id: true },
-      }),
-      this.prisma.user.update({
+      });
+      await tx.user.update({
         where: { user_id: userId },
         data: {
           current_address: data.extracted_address,
@@ -259,8 +282,55 @@ export class ProfileRepository {
           address_province: null,
         },
         select: { user_id: true },
-      }),
-    ]);
+      });
+
+      const proof = {
+        residency_proof_url: data.file_url,
+        residency_proof_name: data.file_name,
+        residency_proof_mime: data.mime_type,
+        summary: review.summary,
+      };
+      const open = await tx.userRequest.findFirst({
+        where: {
+          user_id: userId,
+          kind: 'RESIDENCY_VERIFICATION',
+          status: 'PENDING',
+        },
+        select: { user_request_id: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (open) {
+        await tx.userRequest.update({
+          where: { user_request_id: open.user_request_id },
+          data: {
+            ...proof,
+            trail: {
+              create: {
+                label: 'A newer proof of residency replaced the earlier file',
+                actor_name: review.actorName,
+              },
+            },
+          },
+          select: { user_request_id: true },
+        });
+      } else {
+        await tx.userRequest.create({
+          data: {
+            ...proof,
+            kind: 'RESIDENCY_VERIFICATION',
+            user_id: userId,
+            trail: {
+              create: {
+                label: 'Request submitted from the mobile app',
+                actor_name: review.actorName,
+              },
+            },
+          },
+          select: { user_request_id: true },
+        });
+      }
+      return document;
+    });
   }
 
   async findResidencyDocument(userId: string, documentId: string) {

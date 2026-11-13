@@ -8,6 +8,8 @@ import {
 import {
   InterestCode,
   RoleType,
+  UserRequestKind,
+  UserRequestStatus,
 } from '../../../infastructures/prisma/common/client';
 import {
   OcrServiceClient,
@@ -31,6 +33,7 @@ import type {
   MobileProfileDto,
   ProfileCompletionDto,
   ResidencyDocumentDto,
+  ResidencyReviewDto,
   UpdateMobileProfileDto,
   VolunteerProfileSectionDto,
 } from '../dto/profile-mobile-dto';
@@ -142,6 +145,7 @@ export class ProfileMobileService {
       residency_documents: row.residency_documents.map((doc) =>
         this.buildResidencyDocument(doc),
       ),
+      residency_review: this.buildResidencyReview(row),
       has_profile_image: Boolean(this.roleAvatarUrl(row, profilingRole)),
       sign_in_providers: row.oauth_identities.map((i) => i.provider),
       has_password: Boolean(account?.password),
@@ -427,13 +431,25 @@ export class ProfileMobileService {
     const key = `mobile-profiles/${userId}/residency-${Date.now()}-${safeName}`;
     const fileUrl = await this.s3Service.uploadToS3(key, file.buffer, mime);
 
-    await this.profileRepository.applyResidencyDocument(userId, {
-      file_url: fileUrl,
-      file_name: file.originalname,
-      mime_type: mime,
-      size_bytes: file.size,
-      extracted_address: address,
-    });
+    // The new address shows at once, but the beneficiary profile only reads
+    // as complete once a director accepts the document (see buildCompletion).
+    const actorName =
+      `${existing.firstname ?? ''} ${existing.lastname ?? ''}`.trim() ||
+      'Requester';
+    await this.profileRepository.applyResidencyDocument(
+      userId,
+      {
+        file_url: fileUrl,
+        file_name: file.originalname,
+        mime_type: mime,
+        size_bytes: file.size,
+        extracted_address: address,
+      },
+      {
+        summary: `Uploaded a proof of residency — address read as "${address}".`,
+        actorName,
+      },
+    );
 
     await this.profileCacheService.invalidateProfile(userId);
 
@@ -558,6 +574,7 @@ export class ProfileMobileService {
     const steps: Record<string, boolean> = {
       personal_details: personalDetails,
     };
+    const pendingReview: string[] = [];
 
     if (roleType === RoleType.VOLUNTEER) {
       // Directors and coordinators sign in with their portal account: they were
@@ -573,6 +590,16 @@ export class ProfileMobileService {
       steps.interests = hasInterests;
     } else if (roleType === RoleType.BENEFICIARY) {
       steps.household_size = row.household_size != null;
+      // A proof of residency uploaded from the profile must be accepted by a
+      // director before the profile counts as complete. Accounts that never
+      // uploaded one (address from the approved sign-up) have no such step.
+      const review = this.latestResidencyReview(row);
+      if (review && review.status !== UserRequestStatus.ACCEPTED) {
+        steps.residency_document = false;
+        if (review.status === UserRequestStatus.PENDING) {
+          pendingReview.push('residency_document');
+        }
+      }
     } else {
       steps.sign_in_method = Boolean(
         row.accounts[0]?.password || row.oauth_identities.length > 0,
@@ -589,6 +616,34 @@ export class ProfileMobileService {
       completed_steps: completedSteps,
       total_steps: entries.length,
       missing,
+      pending_review: pendingReview,
+    };
+  }
+
+  /** The newest RESIDENCY_VERIFICATION request, whatever its status. */
+  private latestResidencyReview(row: MobileProfileRow) {
+    return (
+      row.user_requests.find(
+        (r) => r.kind === UserRequestKind.RESIDENCY_VERIFICATION,
+      ) ?? null
+    );
+  }
+
+  private buildResidencyReview(
+    row: MobileProfileRow,
+  ): ResidencyReviewDto | null {
+    const review = this.latestResidencyReview(row);
+    if (!review) return null;
+    return {
+      status: review.status,
+      rejection_reason: review.rejection_reason,
+      // A re-upload replaces the file on the open request, so the latest
+      // touch is when the file under review arrived.
+      submitted_at: (review.status === UserRequestStatus.PENDING
+        ? review.updatedAt
+        : review.createdAt
+      ).toISOString(),
+      decided_at: review.decided_at?.toISOString() ?? null,
     };
   }
 
@@ -623,7 +678,10 @@ export class ProfileMobileService {
 
   /** Registered as donor / beneficiary, Volunteer side opened by an accepted role-access request. */
   private isDirectorGrantedVolunteer(row: MobileProfileRow): boolean {
-    return row.role.type !== RoleType.VOLUNTEER && row.user_requests.length > 0;
+    return (
+      row.role.type !== RoleType.VOLUNTEER &&
+      row.user_requests.some((r) => r.kind === UserRequestKind.ROLE_ACCESS)
+    );
   }
 
   private buildDonor(row: MobileProfileRow): DonorProfileSectionDto {

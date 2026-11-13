@@ -4,6 +4,7 @@ import {
   EventRoleApproval,
   EventStatus,
   Prisma,
+  RoleType,
   UserRequestKind,
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
@@ -28,15 +29,64 @@ export class EventsRepository {
   }
 
   /**
+   * The department on the user's school record, newest record first. Null for
+   * accounts without one (beneficiaries, donors, or a volunteer who skipped it).
+   */
+  async findUserDepartment(userId: string): Promise<string | null> {
+    const row = await this.prisma.userSchoolInfo.findFirst({
+      where: { user_id: userId },
+      select: { department: { select: { name: true } } },
+      orderBy: { updatedAt: 'desc' },
+    });
+    return row?.department.name ?? null;
+  }
+
+  /**
+   * Unrestricted accounts holding [role] whose school record names one of the
+   * department's spellings — who a department-scoped event is announced to.
+   */
+  async findDepartmentMemberIds(
+    role: RoleType,
+    departmentAliases: string[],
+  ): Promise<string[]> {
+    if (departmentAliases.length === 0) return [];
+    const accounts = await this.prisma.account.findMany({
+      where: {
+        is_restricted: false,
+        user: {
+          role: { type: role },
+          user_school_info: {
+            some: {
+              department: {
+                OR: departmentAliases.map((alias) => ({
+                  name: { equals: alias, mode: 'insensitive' as const },
+                })),
+              },
+            },
+          },
+        },
+      },
+      select: { user_id: true },
+      distinct: ['user_id'],
+    });
+    return accounts.map((account) => account.user_id);
+  }
+
+  /**
    * Events a volunteer can still join, soonest first — the pool the recommender
    * ranks. Carries the live attendance count and whether this volunteer already
-   * has a row, so the app can show real slots and the joined state.
+   * has a row, so the app can show real slots and the joined state. [audience]
+   * keeps department-scoped School events to that department's members.
    */
-  async findOpenForVolunteers(userId: string) {
+  async findOpenForVolunteers(
+    userId: string,
+    audience: Prisma.EventWhereInput,
+  ) {
     return this.prisma.event.findMany({
       where: {
         status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
         event_ended: { gte: new Date() },
+        AND: [audience],
       },
       include: {
         _count: { select: { attendances: true } },
@@ -59,12 +109,16 @@ export class EventsRepository {
    * shape as the volunteer pool so one DTO serves both feeds; beneficiaries do
    * not hold attendance rows, so the per-user slice comes back empty.
    */
-  async findOpenForBeneficiaries(userId: string) {
+  async findOpenForBeneficiaries(
+    userId: string,
+    audience: Prisma.EventWhereInput,
+  ) {
     return this.prisma.event.findMany({
       where: {
         status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
         event_ended: { gte: new Date() },
         beneficiary_applicable: true,
+        AND: [audience],
       },
       include: {
         _count: { select: { attendances: true } },
@@ -87,12 +141,13 @@ export class EventsRepository {
    * soonest first — the donor app's campaign feed. Same row shape as the
    * volunteer pool; donors hold no attendance rows, so that slice is empty.
    */
-  async findOpenForDonors(userId: string) {
+  async findOpenForDonors(userId: string, audience: Prisma.EventWhereInput) {
     return this.prisma.event.findMany({
       where: {
         status: { in: [EventStatus.Upcoming, EventStatus.Ongoing] },
         event_ended: { gte: new Date() },
         OR: [{ funds_donation: true }, { goods_donation: true }],
+        AND: [audience],
       },
       include: {
         _count: { select: { attendances: true } },
@@ -114,7 +169,10 @@ export class EventsRepository {
    * Events flagged for beneficiaries that have run their course — marked
    * completed, or past their end time — latest first. Cancelled ones stay out.
    */
-  async findCompletedForBeneficiaries(userId: string) {
+  async findCompletedForBeneficiaries(
+    userId: string,
+    audience: Prisma.EventWhereInput,
+  ) {
     return this.prisma.event.findMany({
       where: {
         beneficiary_applicable: true,
@@ -123,6 +181,7 @@ export class EventsRepository {
           { status: EventStatus.Completed },
           { event_ended: { lt: new Date() } },
         ],
+        AND: [audience],
       },
       include: {
         _count: { select: { attendances: true } },

@@ -71,7 +71,7 @@ const List<_TermsSection> _donorTermsSections = [
     title: '6. Communications',
     body:
         'We send transactional messages — receipts, verification codes and updates on '
-        'drives you supported. Newsletters and campaign invitations are optional and can '
+        'drives you supported. Newsletters and drive invitations are optional and can '
         'be switched off from your profile at any time without affecting your account.',
   ),
   _TermsSection(

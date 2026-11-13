@@ -87,7 +87,7 @@ const kHelpArticles = <HelpArticle>[
     topic: HelpTopic.donations,
     question: 'How do I make a donation?',
     answer:
-        'Open the Donate tab, choose a campaign or the CARES general fund, tap '
+        'Open the Donate tab, choose a drive or the CARES general fund, tap '
         'Donate, then enter an amount and confirm. Your gift is recorded '
         'instantly and appears in your donation history.',
   ),
@@ -106,7 +106,7 @@ const kHelpArticles = <HelpArticle>[
     question: 'Can I donate anonymously?',
     answer:
         'Yes. Toggle "Give anonymously" on the confirmation screen and your '
-        'name will be hidden from public donor lists and the campaign '
+        'name will be hidden from public donor lists and the drive '
         'organizer. Your receipt is still issued to your account.',
   ),
   HelpArticle(
@@ -115,7 +115,7 @@ const kHelpArticles = <HelpArticle>[
     question: 'Can I cancel or request a refund?',
     answer:
         'Donations can be cancelled within 24 hours if the funds have not yet '
-        'been released to the campaign. Go to Donation history, open the '
+        'been released to the drive. Go to Donation history, open the '
         'donation, and tap Request refund. Approved refunds return to your '
         'original payment method within 5–10 business days.',
   ),
@@ -125,8 +125,8 @@ const kHelpArticles = <HelpArticle>[
     question: 'Where can I see my donation history?',
     answer:
         'Go to Profile → Donation history (or the History card on your '
-        'dashboard). Each entry shows the campaign, amount, date, and receipt '
-        'status. You can filter by month or campaign.',
+        'dashboard). Each entry shows the drive, amount, date, and receipt '
+        'status. You can filter by month or drive.',
   ),
   HelpArticle(
     id: 'don-receipt',
@@ -637,7 +637,7 @@ enum ReportReason {
 
 extension ReportReasonMeta on ReportReason {
   String get label => switch (this) {
-    ReportReason.donationCampaign => 'Report a donation campaign',
+    ReportReason.donationCampaign => 'Report a donation drive',
     ReportReason.event => 'Report an event',
     ReportReason.user => 'Report a user',
     ReportReason.inappropriateContent => 'Report inappropriate content',
@@ -646,7 +646,7 @@ extension ReportReasonMeta on ReportReason {
 
   String get hint => switch (this) {
     ReportReason.donationCampaign =>
-      'Campaign name or link, and what looks wrong about it',
+      'Drive name or link, and what looks wrong about it',
     ReportReason.event => 'Event name or link, and what looks wrong about it',
     ReportReason.user => 'Username or profile link, and what they did',
     ReportReason.inappropriateContent =>

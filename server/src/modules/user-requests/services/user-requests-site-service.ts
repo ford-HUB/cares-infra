@@ -102,7 +102,9 @@ export class UserRequestsSiteService {
               label:
                 row.kind === 'BENEFICIARY_REGISTRATION'
                   ? 'Registration approved — the account can now sign in'
-                  : 'Request accepted — beneficiary approved for the event',
+                  : row.kind === 'RESIDENCY_VERIFICATION'
+                    ? 'Proof of residency approved — the beneficiary profile is complete'
+                    : 'Request accepted — beneficiary approved for the event',
               actorName,
             },
           });
@@ -126,7 +128,7 @@ export class UserRequestsSiteService {
     const row = await this.requirePending(id);
     if (row.kind === 'ROLE_ACCESS') {
       throw new BadRequestException(
-        'Only event applications, event roles and beneficiary registrations can be rejected with a reason',
+        'Only event applications, event roles, residency proofs and beneficiary registrations can be rejected with a reason',
       );
     }
     const actorName = await this.callerName(callerId);
@@ -155,7 +157,9 @@ export class UserRequestsSiteService {
         label:
           row.kind === 'BENEFICIARY_REGISTRATION'
             ? `Registration rejected — ${body.reason}`
-            : `Request rejected — ${body.reason}`,
+            : row.kind === 'RESIDENCY_VERIFICATION'
+              ? `Proof of residency rejected — ${body.reason}`
+              : `Request rejected — ${body.reason}`,
         actorName,
       },
     });
@@ -318,6 +322,33 @@ export class UserRequestsSiteService {
           },
           PENDING: {
             title: `Your ${role} role request for ${event} is back under review`,
+            description: `${reference} was returned to the review queue.`,
+            tone: NotificationTone.INFO,
+          },
+        }[status],
+      };
+    } else if (row.kind === 'RESIDENCY_VERIFICATION') {
+      notice = {
+        ...base,
+        audienceRole: RoleType.BENEFICIARY,
+        ...{
+          ACCEPTED: {
+            title: 'Your proof of residency is approved',
+            description: `${reference} was approved — your beneficiary profile is complete. You can now apply for events and request assistance.`,
+            tone: NotificationTone.INFO,
+          },
+          REJECTED: {
+            title: 'Your proof of residency was not approved',
+            description: `${reference}: ${row.rejection_reason ?? 'No reason was given.'} Upload a new document from your profile.`,
+            tone: NotificationTone.ATTENTION,
+          },
+          DELETED: {
+            title: 'Your proof of residency review was closed',
+            description: `${reference} was removed from the review queue. Upload a new document from your profile.`,
+            tone: NotificationTone.ATTENTION,
+          },
+          PENDING: {
+            title: 'Your proof of residency is back under review',
             description: `${reference} was returned to the review queue.`,
             tone: NotificationTone.INFO,
           },

@@ -161,6 +161,13 @@ export const VERIFICATION_BADGE_STYLES: Record<PaymentMethodVerification, string
   FAILED: 'bg-red-50 text-red-700',
 }
 
+/**
+ * PENDING also covers a channel held back only by its own receiving account: the
+ * test payout has not been confirmed yet. That is the director's next step, not
+ * Xendit's, so the badge says so instead of "Waiting for Xendit".
+ */
+export const ACCOUNT_UNPROVEN_LABEL = 'Verify the account'
+
 export const VERIFICATION_DOT_STYLES: Record<PaymentMethodVerification, string> = {
   NOT_VERIFIED: 'bg-gray-300',
   PENDING: 'bg-amber-500',

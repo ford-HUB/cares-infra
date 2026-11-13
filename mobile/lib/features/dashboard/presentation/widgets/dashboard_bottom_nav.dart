@@ -41,7 +41,7 @@ class DashboardBottomNav extends StatelessWidget {
   final IconData? ranksTabIcon;
 
   /// Overrides the label of [DashboardTab.events] without changing the
-  /// shared layout, icons, or navigation order (e.g. 'Campaigns' for the
+  /// shared layout, icons, or navigation order (e.g. 'Drives' for the
   /// donor dashboard vs the default 'Events' for volunteers).
   final String? eventsTabLabel;
 

@@ -11,6 +11,10 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 import {
+  departmentAliases,
+  isDepartmentScoped,
+} from '../../../shared/utils/event-audience';
+import {
   resolveImageMimeType,
   sniffImageMimeType,
 } from '../../../shared/utils/image-mime';
@@ -192,14 +196,18 @@ export class EventsSiteService {
     const opened =
       (!existing.funds_donation && updated.funds_donation) ||
       (!existing.goods_donation && updated.goods_donation);
-    if (opened && isOpenEvent(updated)) {
+    const donors =
+      opened && isOpenEvent(updated)
+        ? await this.audience(updated, RoleType.DONOR)
+        : null;
+    if (donors) {
       await this.notificationScheduler.publish({
         title: `${updated.title} now accepts donations`,
         description: `${donationKinds(updated)} can now be given toward this event. Starts ${formatEventStart(updated.event_started)}.`,
         category: NotificationCategory.DONATION,
         tone: NotificationTone.INFO,
         href: `/events/${updated.event_id}`,
-        roles: [RoleType.DONOR],
+        ...donors,
         audienceRole: RoleType.DONOR,
         dedupeKey: `event-donations-open:${updated.event_id}:${updated.funds_donation}:${updated.goods_donation}`,
       });
@@ -367,40 +375,67 @@ export class EventsSiteService {
     if (!isOpenEvent(event)) return;
     const when = `Starts ${formatEventStart(event.event_started)} · ${event.location}`;
 
-    await this.notificationScheduler.publish({
-      title: `New event: ${event.title}`,
-      description: `${when}. Registration is open.`,
-      category: NotificationCategory.EVENT,
-      tone: NotificationTone.INFO,
-      href: `/events/${event.event_id}`,
-      roles: [RoleType.VOLUNTEER],
-      audienceRole: RoleType.VOLUNTEER,
-      dedupeKey: `event-new:${event.event_id}`,
-    });
-    if (event.beneficiary_applicable) {
+    const volunteers = await this.audience(event, RoleType.VOLUNTEER);
+    if (volunteers) {
+      await this.notificationScheduler.publish({
+        title: `New event: ${event.title}`,
+        description: `${when}. Registration is open.`,
+        category: NotificationCategory.EVENT,
+        tone: NotificationTone.INFO,
+        href: `/events/${event.event_id}`,
+        ...volunteers,
+        audienceRole: RoleType.VOLUNTEER,
+        dedupeKey: `event-new:${event.event_id}`,
+      });
+    }
+    const beneficiaries = event.beneficiary_applicable
+      ? await this.audience(event, RoleType.BENEFICIARY)
+      : null;
+    if (beneficiaries) {
       await this.notificationScheduler.publish({
         title: `New event open to beneficiaries: ${event.title}`,
         description: `${when}. Apply from the Events tab to reserve a place.`,
         category: NotificationCategory.EVENT,
         tone: NotificationTone.INFO,
         href: `/events/${event.event_id}`,
-        roles: [RoleType.BENEFICIARY],
+        ...beneficiaries,
         audienceRole: RoleType.BENEFICIARY,
         dedupeKey: `event-new:${event.event_id}`,
       });
     }
-    if (event.funds_donation || event.goods_donation) {
+    const donors =
+      event.funds_donation || event.goods_donation
+        ? await this.audience(event, RoleType.DONOR)
+        : null;
+    if (donors) {
       await this.notificationScheduler.publish({
         title: `New campaign: ${event.title}`,
         description: `${donationKinds(event)} can be given toward this event. ${when}.`,
         category: NotificationCategory.DONATION,
         tone: NotificationTone.INFO,
         href: `/events/${event.event_id}`,
-        roles: [RoleType.DONOR],
+        ...donors,
         audienceRole: RoleType.DONOR,
         dedupeKey: `event-new:${event.event_id}`,
       });
     }
+  }
+
+  /**
+   * Who an event notice for [role] goes to: every holder of the role, or — for a
+   * School event scoped to one department — only that department's members.
+   * Null when a scoped event has nobody in its department to tell.
+   */
+  private async audience(
+    event: StoredEvent,
+    role: RoleType,
+  ): Promise<{ roles: RoleType[] } | { userIds: string[] } | null> {
+    if (!isDepartmentScoped(event)) return { roles: [role] };
+    const userIds = await this.eventsRepository.findDepartmentMemberIds(
+      role,
+      departmentAliases(event.department),
+    );
+    return userIds.length > 0 ? { userIds } : null;
   }
 
   /**

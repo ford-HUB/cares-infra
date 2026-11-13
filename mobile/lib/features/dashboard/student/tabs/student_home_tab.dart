@@ -84,7 +84,7 @@ class StudentHomeTab extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
           child: Text(
-            'Donation Campaigns',
+            'Donation Drives',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.w800,

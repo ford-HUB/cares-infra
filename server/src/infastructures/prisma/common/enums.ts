@@ -455,7 +455,8 @@ export const UserRequestKind = {
   ROLE_ACCESS: 'ROLE_ACCESS',
   EVENT_JOIN: 'EVENT_JOIN',
   BENEFICIARY_REGISTRATION: 'BENEFICIARY_REGISTRATION',
-  EVENT_ROLE: 'EVENT_ROLE'
+  EVENT_ROLE: 'EVENT_ROLE',
+  RESIDENCY_VERIFICATION: 'RESIDENCY_VERIFICATION'
 } as const
 
 export type UserRequestKind = (typeof UserRequestKind)[keyof typeof UserRequestKind]

@@ -9,6 +9,7 @@ import {
   GenderType,
   InterestCode,
   RoleType,
+  UserRequestStatus,
 } from '../../../infastructures/prisma/common/client';
 
 /** Roles the Flutter app signs in as — the only callers of the mobile profile. */
@@ -106,6 +107,26 @@ export const ProfileCompletionSchema = z.object({
   completed_steps: z.number(),
   total_steps: z.number(),
   missing: z.array(z.string()),
+  /**
+   * Steps the person has done their part on but an administrator still has to
+   * approve (e.g. `residency_document`). They also appear in `missing`, so
+   * `complete` stays false; the app shows them as "under review", not as
+   * something left to fill in.
+   */
+  pending_review: z.array(z.string()),
+});
+
+/**
+ * Where the latest proof of residency stands in the director's review queue.
+ * Null when the person never uploaded one from the profile.
+ */
+export const ResidencyReviewSchema = z.object({
+  status: z.enum(UserRequestStatus),
+  /** Set when a director rejected the document — what the person must fix. */
+  rejection_reason: z.string().nullable(),
+  /** ISO timestamp of the upload that is under (or was last given) review. */
+  submitted_at: z.string(),
+  decided_at: z.string().nullable(),
 });
 
 export const MobileProfileResponseSchema = z.object({
@@ -134,6 +155,7 @@ export const MobileProfileResponseSchema = z.object({
   household_size: z.number().int().nullable(),
   /** Proof-of-residency uploads, newest first. Empty for accounts that never changed address this way. */
   residency_documents: z.array(ResidencyDocumentSchema),
+  residency_review: ResidencyReviewSchema.nullable(),
   has_profile_image: z.boolean(),
   /**
    * How the account signs in, for every role. The app disables the email and

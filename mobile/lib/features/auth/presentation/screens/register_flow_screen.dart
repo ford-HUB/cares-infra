@@ -24,8 +24,8 @@ import 'package:mobile/features/auth/presentation/widgets/account_exists_dialog.
 import 'package:mobile/features/auth/presentation/widgets/steps/register_account_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_beneficiary_details_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_face_scan_step.dart';
-import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/features/auth/presentation/screens/email_verification_screen.dart';
+import 'package:mobile/features/auth/presentation/screens/registration_success_screen.dart';
 import 'package:mobile/features/auth/presentation/screens/registration_under_review_screen.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_id_upload_step.dart';
 import 'package:mobile/features/auth/presentation/widgets/steps/register_ocr_review_step.dart';
@@ -426,14 +426,13 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
                 return;
               }
 
-              // Land on the dashboard for the role registered under — a
-              // beneficiary must never end up on the volunteer dashboard.
-              DashboardRouter.navigateToRoleDashboard(
-                otpContext,
-                roleType: widget.roleType.apiValue,
-                email: email,
-                firstName: ocrData.firstname,
-                lastName: ocrData.lastname,
+              // Sign-up does not sign the person in: confirm the account was
+              // created, then send them back to the sign-in screen.
+              Navigator.of(otpContext).pushAndRemoveUntil(
+                MaterialPageRoute<void>(
+                  builder: (_) => RegistrationSuccessScreen(email: email),
+                ),
+                (route) => route.isFirst,
               );
             },
           ),

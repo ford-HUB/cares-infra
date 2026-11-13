@@ -136,12 +136,15 @@ export class XenditService {
       const code = entry.channel_code ?? entry.channelCode ?? entry.code;
       if (typeof code !== 'string') return [];
 
-      // Some generations report activation as `is_activated`, others as a status
-      // string. Anything we cannot read is treated as inactive, not as a pass.
+      // Some generations report activation as `is_activated`, the legacy
+      // `GET /payment_channels` as `is_enabled`, others as a status string.
+      // Anything we cannot read is treated as inactive, not as a pass.
       const status = entry.status ?? entry.channel_status;
       const activated =
         entry.is_activated === true ||
         entry.isActivated === true ||
+        entry.is_enabled === true ||
+        entry.isEnabled === true ||
         (typeof status === 'string' && status.toUpperCase() === 'ACTIVE');
 
       return [{ channelCode: code, activated }];

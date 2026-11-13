@@ -1625,11 +1625,14 @@ enum EvaluationResponseStatus {
 /// opened; EVENT_JOIN is a beneficiary asking to attend an event;
 /// BENEFICIARY_REGISTRATION is a new beneficiary account waiting for a
 /// director's approval — the account cannot sign in until it is accepted.
+/// RESIDENCY_VERIFICATION is a proof of residency uploaded from the profile:
+/// the beneficiary profile reads as complete only once it is accepted.
 enum UserRequestKind {
   ROLE_ACCESS
   EVENT_JOIN
   BENEFICIARY_REGISTRATION
   EVENT_ROLE
+  RESIDENCY_VERIFICATION
 }
 
 /// DELETED is a recycle bin, not a hard delete — the director can restore a

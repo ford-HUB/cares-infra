@@ -56,7 +56,7 @@ const List<OnboardingIntroPageData> kOnboardingIntroPages = [
   OnboardingIntroPageData(
     headline: 'Together we lift each other up.',
     description:
-        'Connect with drives, campaigns, and causes that align with your values.',
+        'Connect with drives and causes that align with your values.',
     illustrationType: OnboardingIllustrationType.community,
   ),
 ];

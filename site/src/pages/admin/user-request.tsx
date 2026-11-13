@@ -86,7 +86,9 @@ export function UserRequestPage() {
       () => accept(request.id),
       request.kind === 'beneficiary_registration'
         ? `${request.reference} approved — the account can now sign in`
-        : `${request.reference} accepted`,
+        : request.kind === 'residency_verification'
+          ? `${request.reference} approved — the beneficiary profile is now complete`
+          : `${request.reference} accepted`,
     )
 
   // The modal stays open until the call settles, so a failed rejection keeps the
@@ -124,7 +126,7 @@ export function UserRequestPage() {
     <ContentShell>
       <InlinePageHeader
         title="User Request"
-        description="Volunteer access requests, beneficiary event-join requests, new beneficiary registrations, and beneficiaries' assistance requests, submitted from the mobile app."
+        description="Volunteer access requests, beneficiary event-join requests, proof-of-residency reviews, new beneficiary registrations, and beneficiaries' assistance requests, submitted from the mobile app."
         action={
           // The bin belongs to the access queue; assistance requests are never deleted.
           tab === 'access' && (

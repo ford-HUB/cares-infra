@@ -1,6 +1,8 @@
 import { Loader2, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
+  ACCOUNT_UNPROVEN_LABEL,
+  PAYMENT_METHOD_COLLECTS_ACCOUNT,
   VERIFICATION_BADGE_STYLES,
   VERIFICATION_DOT_STYLES,
   VERIFICATION_LABELS,
@@ -24,6 +26,12 @@ export function MethodActivationStatus({
   onCheckAgain,
 }: MethodActivationStatusProps) {
   const state = meta?.verification ?? 'NOT_VERIFIED'
+  const awaitingAccountProof =
+    state === 'PENDING' &&
+    !!meta &&
+    PAYMENT_METHOD_COLLECTS_ACCOUNT[meta.method] &&
+    meta.accountProof !== 'VERIFIED'
+  const label = awaitingAccountProof ? ACCOUNT_UNPROVEN_LABEL : VERIFICATION_LABELS[state]
 
   return (
     <div className="rounded-lg bg-gray-50 px-3 py-2">
@@ -37,7 +45,7 @@ export function MethodActivationStatus({
           <span
             className={cn('h-1.5 w-1.5 rounded-full', VERIFICATION_DOT_STYLES[state])}
           />
-          {VERIFICATION_LABELS[state]}
+          {label}
         </span>
 
         <button

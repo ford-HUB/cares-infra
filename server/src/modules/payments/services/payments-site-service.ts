@@ -132,6 +132,14 @@ export class PaymentsSiteService {
         actor.sub,
       ));
 
+    return this.toDto(await this.recheckMethod(row, method));
+  }
+
+  /** Runs the activation check for one channel and records the verdict on it. */
+  private async recheckMethod(
+    row: PaymentSettingsRow,
+    method: DonationPaymentMethod,
+  ): Promise<PaymentSettingsRow> {
     const config = await this.paymentSettings.getConfig();
     const saved = row.methods.find((entry) => entry.method === method);
     const verdict = await this.activation.verify(
@@ -146,12 +154,10 @@ export class PaymentsSiteService {
       },
     );
 
-    return this.toDto(
-      await this.paymentsRepository.recordMethodVerification(
-        row.payment_gateway_settings_id,
-        method,
-        verdict,
-      ),
+    return this.paymentsRepository.recordMethodVerification(
+      row.payment_gateway_settings_id,
+      method,
+      verdict,
     );
   }
 
@@ -200,20 +206,25 @@ export class PaymentsSiteService {
       proof,
     );
 
-    if (proof.account_proof === PaymentAccountProof.VERIFIED) {
-      await this.auditLogRecorder.record({
-        action: 'payment-settings.account-verified',
-        description: `Verified the ${method} receiving account with a test payout`,
-        category: 'SYSTEM',
-        severity: 'NOTICE',
-        actor,
-        targetType: 'system',
-        targetLabel: 'Donation payment settings',
-        targetId: row.payment_gateway_settings_id,
-      });
+    if (proof.account_proof !== PaymentAccountProof.VERIFIED) {
+      return this.toDto(updated);
     }
 
-    return this.toDto(updated);
+    await this.auditLogRecorder.record({
+      action: 'payment-settings.account-verified',
+      description: `Verified the ${method} receiving account with a test payout`,
+      category: 'SYSTEM',
+      severity: 'NOTICE',
+      actor,
+      targetType: 'system',
+      targetLabel: 'Donation payment settings',
+      targetId: row.payment_gateway_settings_id,
+    });
+
+    // The proof was the only thing holding the channel at PENDING, so the activation
+    // check runs now — otherwise the badge keeps saying "waiting" until the director
+    // happens to press "Check again".
+    return this.toDto(await this.recheckMethod(updated, method));
   }
 
   /** The settings row and this channel's row, creating them if this is the first touch. */

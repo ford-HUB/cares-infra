@@ -98,7 +98,7 @@ class DonationReceiptScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   DonationSummaryCard(
                     rows: [
-                      DonationSummaryRow('Campaign', donation.eventTitle),
+                      DonationSummaryRow('Drive', donation.eventTitle),
                       DonationSummaryRow('Donation type', donation.kind.label),
                       if (isMoney) ...[
                         DonationSummaryRow(

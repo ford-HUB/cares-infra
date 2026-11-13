@@ -11,7 +11,7 @@ import { DonationsWebhookModule } from './donations-webhook-module';
  * registration order — so the site module goes first: its literal `site/…`
  * paths must be registered before the mobile module's `:id` routes, or
  * `GET /donations/site` is swallowed by `GET /donations/:id` and the portal
- * gets a 403 from the donor-only role check.
+ * gets a 403 from the mobile-only role check.
  */
 @Module({
   imports: [DonationsSiteModule, DonationsMobileModule, DonationsWebhookModule],
