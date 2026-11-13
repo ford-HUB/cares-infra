@@ -22,6 +22,7 @@ import 'package:mobile/features/dashboard/data/certificate_data.dart';
 import 'package:mobile/features/dashboard/domain/mock_profile.dart';
 import 'package:mobile/features/dashboard/screens/help_support_screen.dart';
 import 'package:mobile/features/dashboard/screens/profile_screens.dart';
+import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 
@@ -33,6 +34,7 @@ import 'package:mobile/features/dashboard/presentation/screens/location_records_
 import 'package:mobile/features/dashboard/presentation/screens/permissions_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/mobile_profile_edit_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/role_unlock_screen.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/avatar_completion_ring.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_tab_skeleton.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/stats_row.dart';
 
@@ -287,50 +289,49 @@ class _ProfileTabBody extends StatelessWidget {
     final volunteerServer = server?.volunteer;
     final donorServer = server?.donor;
 
-    return SafeArea(
-      bottom: false,
-
+    return ColoredBox(
+      color: AppColors.background,
       child: CustomScrollView(
         slivers: [
+          // Same deep band as Activity / Requests: the title, then the
+          // person's identity row sitting on the band where the chips go.
+          SliverToBoxAdapter(
+            child: DeepTabHeader(
+              title: 'Profile',
+              bottom: _ProfileHeader(
+                profile: profile,
+                roleType: _roleType,
+                // Completion lives on the avatar ring; none once complete.
+                completionPercent: isProfileComplete ? null : completedPercent,
+                underReview: serverCompletion?.residencyUnderReview ?? false,
+              ),
+            ),
+          ),
+
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            // Every block below opens with its own 16pt gap, so the band's
+            // edge to the first card reads 18pt like the Activity tab.
+            padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
 
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
 
                 children: [
-                  const Text(
-                    'Profile',
-
-                    style: TextStyle(
-                      fontSize: 28,
-
-                      fontWeight: FontWeight.w800,
-
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _ProfileHeader(profile: profile, roleType: _roleType),
-
                   if (syncError != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
                     _SyncErrorBanner(message: syncError!, onRetry: onRetrySync),
                   ],
 
-                  if (!isProfileComplete) ...[
+                  if (!isProfileComplete &&
+                      server?.residencyReview?.needsNewUpload == true &&
+                      (server?.residencyReview?.rejectionReason ?? '')
+                          .isNotEmpty) ...[
                     const SizedBox(height: 16),
 
-                    _CompletionBanner(
-                      percent: completedPercent,
-                      missing: serverCompletion?.missing ?? const [],
-                      pendingReview:
-                          serverCompletion?.pendingReview ?? const [],
-                      residencyReview: server?.residencyReview,
+                    _ResidencyRejectedNotice(
+                      reason: server!.residencyReview!.rejectionReason!,
                     ),
                   ],
 
@@ -351,8 +352,6 @@ class _ProfileTabBody extends StatelessWidget {
                                 summary.confirmedAmount,
                               ),
                               label: 'Confirmed',
-                              iconBackground: const Color(0xFFFFE0B2),
-                              iconColor: const Color(0xFFE65100),
                             ),
                             StatsRowItem(
                               icon: Icons.card_giftcard_rounded,
@@ -832,9 +831,20 @@ class _ResolvedProfile {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.profile, required this.roleType});
+  const _ProfileHeader({
+    required this.profile,
+    required this.roleType,
+    this.completionPercent,
+    this.underReview = false,
+  });
 
   final _ResolvedProfile profile;
+
+  /// Shown as a ring around the avatar; null once the profile is complete.
+  final int? completionPercent;
+
+  /// Residency document waiting on an administrator — ring turns amber.
+  final bool underReview;
 
   /// Which role account the edit badge opens.
   final String roleType;
@@ -894,17 +904,32 @@ class _ProfileHeader extends StatelessWidget {
         ? AssetImage(avatarAsset)
         : null;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final muted = Colors.white.withValues(alpha: 0.82);
 
+    final photo = CircleAvatar(
+      backgroundColor: AppColors.primary,
+      backgroundImage: avatarImage,
+      onBackgroundImageError: avatarImage == null ? null : (_, _) {},
+      child: avatarImage != null ? null : initialText,
+    );
+
+    // Complete profile: the plain white frame. Otherwise the completion ring
+    // takes the frame's place, so the box grows a little to keep the photo
+    // the same size.
+    final framedAvatar = Container(
+      padding: const EdgeInsets.all(2.5),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-
-        borderRadius: BorderRadius.circular(16),
-
-        border: Border.all(color: AppColors.fieldBorder),
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: 0.9),
       ),
+      child: photo,
+    );
+    final double avatarBox = completionPercent == null ? 68 : 76;
 
+    // Sits straight on the [DeepTabHeader] band — no card of its own, so the
+    // header reads as one green block instead of a card inside a band.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
           // Avatar + edit badge. Tapping either opens the edit screen; the
@@ -917,29 +942,27 @@ class _ProfileHeader extends StatelessWidget {
               onTap: () => _edit(context),
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 64,
-                height: 64,
+                width: avatarBox,
+                height: avatarBox,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     Positioned.fill(
-                      child: CircleAvatar(
-                        radius: 32,
-
-                        backgroundColor: AppColors.primaryDark,
-
-                        backgroundImage: avatarImage,
-
-                        onBackgroundImageError: avatarImage == null
-                            ? null
-                            : (_, _) {},
-
-                        child: avatarImage != null ? null : initialText,
-                      ),
+                      child: completionPercent == null
+                          ? framedAvatar
+                          : AvatarCompletionRing(
+                              percent: completionPercent!,
+                              underReview: underReview,
+                              size: avatarBox,
+                              child: photo,
+                            ),
                     ),
                     Positioned(
+                      // Bottom edge belongs to the percentage pill while
+                      // the ring shows, so the badge moves to the top.
                       right: -2,
-                      bottom: -2,
+                      top: completionPercent == null ? null : -2,
+                      bottom: completionPercent == null ? -2 : null,
                       child: Container(
                         width: 26,
                         height: 26,
@@ -947,7 +970,7 @@ class _ProfileHeader extends StatelessWidget {
                           shape: BoxShape.circle,
                           color: Colors.white,
                           border: Border.all(
-                            color: AppColors.primary,
+                            color: AppColors.deepHeaderBottom,
                             width: 2,
                           ),
                         ),
@@ -969,102 +992,60 @@ class _ProfileHeader extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 Text(
                   displayName,
-
                   maxLines: 1,
-
                   overflow: TextOverflow.ellipsis,
-
                   style: const TextStyle(
                     fontSize: 18,
-
                     fontWeight: FontWeight.w800,
-
                     color: Colors.white,
+                    height: 1.2,
                   ),
                 ),
-
                 const SizedBox(height: 2),
-
                 Text(
                   email,
-
                   maxLines: 1,
-
                   overflow: TextOverflow.ellipsis,
-
-                  style: TextStyle(
-                    fontSize: 12,
-
-                    fontWeight: FontWeight.w500,
-
-                    color: const Color.fromARGB(
-                      255,
-                      206,
-                      226,
-                      207,
-                    ).withValues(alpha: 1),
-                  ),
+                  style: TextStyle(fontSize: 13, color: muted),
                 ),
-
                 const SizedBox(height: 8),
-
-                Wrap(
-                  spacing: 8,
-
-                  runSpacing: 4,
-
-                  crossAxisAlignment: WrapCrossAlignment.center,
-
+                Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
-
                         vertical: 4,
                       ),
-
-                      decoration: BoxDecoration(
+                      decoration: const ShapeDecoration(
                         color: Colors.white,
-
-                        borderRadius: BorderRadius.circular(8),
+                        shape: StadiumBorder(),
                       ),
-
                       child: Text(
                         profile.roleLabel,
-
                         style: const TextStyle(
-                          fontSize: 11,
-
-                          fontWeight: FontWeight.w700,
-
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
                           color: AppColors.primaryDark,
                         ),
                       ),
                     ),
-
+                    const SizedBox(width: 6),
                     _RoleSwitchButton(currentRoleLabel: profile.roleLabel),
-
-                    Text(
-                      'Member since $memberSince',
-
-                      style: TextStyle(
-                        fontSize: 11,
-
-                        fontWeight: FontWeight.w500,
-
-                        color: const Color.fromARGB(
-                          255,
-                          206,
-                          226,
-                          207,
-                        ).withValues(alpha: 1),
-                      ),
-                    ),
                   ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Member since $memberSince',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: muted,
+                  ),
                 ),
               ],
             ),
@@ -1167,12 +1148,20 @@ class _RoleSwitchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: 'Switch role',
-      child: InkWell(
-        onTap: () => _showSwitcher(context),
-        borderRadius: BorderRadius.circular(8),
-        child: const Padding(
-          padding: EdgeInsets.all(4),
-          child: Icon(Icons.swap_horiz_rounded, size: 18, color: Colors.white),
+      child: Material(
+        color: AppColors.onHeaderField,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: () => _showSwitcher(context),
+          customBorder: const CircleBorder(),
+          child: const Padding(
+            padding: EdgeInsets.all(4),
+            child: Icon(
+              Icons.swap_horiz_rounded,
+              size: 17,
+              color: Colors.white,
+            ),
+          ),
         ),
       ),
     );
@@ -1780,205 +1769,41 @@ class _RoleAvatar extends StatelessWidget {
   }
 }
 
-class _CompletionBanner extends StatelessWidget {
-  const _CompletionBanner({
-    required this.percent,
-    this.missing = const [],
-    this.pendingReview = const [],
-    this.residencyReview,
-  });
+/// The only completion message left below the header now that progress sits
+/// on the avatar ring: a rejected proof of residency needs a new upload, and
+/// the person has to see why.
+class _ResidencyRejectedNotice extends StatelessWidget {
+  const _ResidencyRejectedNotice({required this.reason});
 
-  final int percent;
-
-  /// Server keys for the steps still outstanding, newest read wins.
-  final List<String> missing;
-
-  /// Steps waiting on an administrator — shown as "under review", never as
-  /// progress.
-  final List<String> pendingReview;
-
-  /// The latest proof-of-residency ruling, for the rejection reason.
-  final ResidencyReview? residencyReview;
-
-  @override
-  Widget build(BuildContext context) {
-    final actionable = missing
-        .where((m) => !pendingReview.contains(m))
-        .toList();
-    final rejectionReason = residencyReview?.needsNewUpload == true
-        ? residencyReview?.rejectionReason
-        : null;
-
-    // The document is with the administrator: the profile is not complete,
-    // but there is no percentage to chase — it is waiting on approval.
-    if (pendingReview.contains(ProfileCompletion.residencyDocumentStep)) {
-      return _UnderReviewBanner(stillNeeded: actionable);
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-
-      decoration: BoxDecoration(
-        color: AppColors.light.withValues(alpha: 0.28),
-
-        borderRadius: BorderRadius.circular(12),
-
-        border: Border.all(color: AppColors.primaryDark.withValues(alpha: 0.5)),
-      ),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Profile Completion',
-
-                  style: TextStyle(
-                    fontSize: 13,
-
-                    fontWeight: FontWeight.w700,
-
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-              ),
-
-              Text(
-                '$percent%',
-
-                style: const TextStyle(
-                  fontSize: 13,
-
-                  fontWeight: FontWeight.w800,
-
-                  color: AppColors.primaryDark,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-
-            child: LinearProgressIndicator(
-              value: percent / 100,
-
-              minHeight: 8,
-
-              backgroundColor: Colors.white,
-
-              color: AppColors.primary,
-            ),
-          ),
-
-          if (actionable.isNotEmpty) ...[
-            const SizedBox(height: 8),
-
-            Text(
-              'Still needed: '
-              '${actionable.map(ProfileCompletion.labelFor).join(', ')}',
-
-              style: const TextStyle(
-                fontSize: 12,
-
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-
-          if (rejectionReason != null && rejectionReason.isNotEmpty) ...[
-            const SizedBox(height: 6),
-
-            Text(
-              'Your last proof of residency was not approved: '
-              '$rejectionReason Please upload a new one.',
-
-              style: const TextStyle(
-                fontSize: 12,
-
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Replaces the progress bar while the proof of residency waits on an
-/// administrator: the upload is done, the approval is not.
-class _UnderReviewBanner extends StatelessWidget {
-  const _UnderReviewBanner({this.stillNeeded = const []});
-
-  /// Anything the person still has to fill in themselves.
-  final List<String> stillNeeded;
+  final String reason;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.light.withValues(alpha: 0.28),
+        color: AppColors.warning.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryDark.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.55)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.14),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.hourglass_top_rounded,
-              size: 20,
-              color: AppColors.primaryDark,
-            ),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 20,
+            color: AppColors.accentOrange,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Document under review',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Your proof of residency is waiting for the administrator\'s '
-                  'approval. Your profile will be complete once it is approved.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.4,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                if (stillNeeded.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    'Still needed: '
-                    '${stillNeeded.map(ProfileCompletion.labelFor).join(', ')}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
+            child: Text(
+              'Your last proof of residency was not approved: '
+              '$reason Please upload a new one.',
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.4,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ],

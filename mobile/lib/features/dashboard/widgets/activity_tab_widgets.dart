@@ -51,21 +51,23 @@ class ActivityLoadingState extends StatelessWidget {
   }
 }
 
-/// Deep green header band of the Activity tab: white title + subtitle over
-/// the All / Registered / Completed chip row.
-class ActivityHeader extends StatelessWidget {
-  const ActivityHeader({
+/// Deep green header band of every dashboard tab (Activity, Requests,
+/// Ranks, Drives, Profile): white title + subtitle over an optional
+/// [bottom] — a row of [HeaderFilterChip]s, a search field, or the
+/// profile's identity row.
+class DeepTabHeader extends StatelessWidget {
+  const DeepTabHeader({
     super.key,
-    required this.subtitle,
-    required this.selected,
-    required this.onSelected,
-    this.title = 'Activity',
+    required this.title,
+    this.subtitle,
+    this.bottom,
   });
 
   final String title;
-  final String subtitle;
-  final ActivityGroup selected;
-  final ValueChanged<ActivityGroup> onSelected;
+
+  /// Optional line under the title; omitted, the band shows the title alone.
+  final String? subtitle;
+  final Widget? bottom;
 
   @override
   Widget build(BuildContext context) {
@@ -90,22 +92,49 @@ class ActivityHeader extends StatelessWidget {
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    height: 1.35,
-                    color: Colors.white.withValues(alpha: 0.92),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      height: 1.35,
+                      color: Colors.white.withValues(alpha: 0.92),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          ActivityGroupPanel(selected: selected, onSelected: onSelected),
+          if (bottom != null) ...[const SizedBox(height: 16), bottom!],
         ],
       ),
+    );
+  }
+}
+
+/// The Activity tab's header: [DeepTabHeader] over the All / Registered /
+/// Completed chip row.
+class ActivityHeader extends StatelessWidget {
+  const ActivityHeader({
+    super.key,
+    this.subtitle,
+    required this.selected,
+    required this.onSelected,
+    this.title = 'Activity',
+  });
+
+  final String title;
+  final String? subtitle;
+  final ActivityGroup selected;
+  final ValueChanged<ActivityGroup> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return DeepTabHeader(
+      title: title,
+      subtitle: subtitle,
+      bottom: ActivityGroupPanel(selected: selected, onSelected: onSelected),
     );
   }
 }
@@ -119,12 +148,16 @@ class ActivitySection extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.children,
+    this.trailing,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final List<Widget> children;
+
+  /// Optional action at the heading's right edge, e.g. a "See all" link.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +200,7 @@ class ActivitySection extends StatelessWidget {
                   ],
                 ),
               ),
+              ?trailing,
             ],
           ),
         ),
@@ -196,8 +230,9 @@ class ActivityGroupPanel extends StatelessWidget {
   final ActivityGroup selected;
   final ValueChanged<ActivityGroup> onSelected;
 
-  Widget _chip(ActivityGroup group) => _GroupChip(
-    group: group,
+  Widget _chip(ActivityGroup group) => HeaderFilterChip(
+    label: group.label,
+    icon: group.icon,
     selected: group == selected,
     onTap: () => onSelected(group),
   );
@@ -216,16 +251,24 @@ class ActivityGroupPanel extends StatelessWidget {
   }
 }
 
-class _GroupChip extends StatelessWidget {
-  const _GroupChip({
-    required this.group,
+/// White pill chip on a deep header band — tinted icon + label; the
+/// selected one is a deeper green pill with a white hairline. A non-null
+/// [count] shows as a small badge after the label.
+class HeaderFilterChip extends StatelessWidget {
+  const HeaderFilterChip({
+    super.key,
+    required this.label,
+    required this.icon,
     required this.selected,
     required this.onTap,
+    this.count,
   });
 
-  final ActivityGroup group;
+  final String label;
+  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final int? count;
 
   @override
   Widget build(BuildContext context) {
@@ -243,7 +286,7 @@ class _GroupChip extends StatelessWidget {
               shape: BoxShape.circle,
             ),
       child: Icon(
-        group.icon,
+        icon,
         size: 16,
         color: selected ? Colors.white : AppColors.primary,
       ),
@@ -270,25 +313,67 @@ class _GroupChip extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 16, 0),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  iconBox,
-                  const SizedBox(width: 10),
-                  Text(
-                    group.label,
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                      color: selected ? Colors.white : AppColors.primaryDark,
+            // Center loosens the chip's fixed height so an unflexed chip
+            // hugs its label instead of the FittedBox stretching to the
+            // 42pt height's aspect ratio.
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    iconBox,
+                    const SizedBox(width: 10),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: selected ? Colors.white : AppColors.primaryDark,
+                      ),
                     ),
-                  ),
-                ],
+                    if (count != null) ...[
+                      const SizedBox(width: 8),
+                      _CountBadge(count: count!, onSelected: selected),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Count pill inside a [HeaderFilterChip]: deep green on a white chip,
+/// white on the selected green chip.
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, required this.onSelected});
+
+  final int count;
+  final bool onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      constraints: const BoxConstraints(minWidth: 22),
+      height: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: onSelected ? Colors.white : AppColors.primaryDark,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          height: 1,
+          color: onSelected ? AppColors.primaryDark : Colors.white,
         ),
       ),
     );

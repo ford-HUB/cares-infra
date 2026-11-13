@@ -12,6 +12,7 @@ import '../../../core/constants/cares_office.dart';
 import '../../../core/constants/goods_types.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/phone_number_format.dart';
 import '../data/donation_format.dart';
 import '../data/donation_payment_service.dart';
 import '../data/donation_service.dart';
@@ -87,6 +88,10 @@ class DonationFlowScreen extends ConsumerStatefulWidget {
 
 class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   static const _presets = [100, 250, 500, 1000];
+
+  /// Mirrors the server's `DONATION_MIN_AMOUNT` / `DONATION_MAX_AMOUNT`.
+  static const _minAmount = 1;
+  static const _maxAmount = 500000;
 
   /// How long to wait for the webhook to open the ledger row after the
   /// gateway reports the checkout paid.
@@ -272,17 +277,40 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     goodsType: _goodsTypeId!,
     goodsItem: _goodsDetail,
     quantity: _quantity,
-    contactNumber: _contactNumberController.text.trim(),
+    contactNumber: normalizePhilippinePhone(_contactNumberController.text),
     deliveryDate: _deliveryDate!,
   );
 
   bool get _deliveryComplete =>
-      _contactNumberController.text.trim().isNotEmpty && _deliveryDate != null;
+      isValidPhilippinePhone(_contactNumberController.text) &&
+      _deliveryDate != null;
 
+  /// What the donor typed in the custom field, otherwise the selected preset.
+  /// Null when there is nothing valid to charge — a `0` or out-of-range custom
+  /// entry never silently falls back to the preset behind it.
   int? get _effectiveAmount {
-    final custom = int.tryParse(_customAmountController.text.trim());
-    if (custom != null && custom > 0) return custom;
-    return _presetAmount;
+    final text = _customAmountController.text.trim();
+    if (text.isEmpty) return _presetAmount;
+    final custom = int.tryParse(text);
+    if (custom == null || custom < _minAmount || custom > _maxAmount) {
+      return null;
+    }
+    return custom;
+  }
+
+  /// Inline message under the custom amount field; null while it is empty or valid.
+  String? get _customAmountError {
+    final text = _customAmountController.text.trim();
+    if (text.isEmpty) return null;
+    final custom = int.tryParse(text) ?? 0;
+    if (custom < _minAmount) {
+      return 'Enter an amount of at least ${DonationFormat.pesoFull(_minAmount)}';
+    }
+    if (custom > _maxAmount) {
+      return 'The most you can give at once is '
+          '${DonationFormat.pesoFull(_maxAmount)}';
+    }
+    return null;
   }
 
   // ------------------------------------------------------------- navigation
@@ -577,7 +605,9 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     }
     _otherGoodController.text = d.goodsItem ?? '';
     _quantity = d.goodsQuantity ?? 1;
-    _contactNumberController.text = d.contactNumber ?? '';
+    _contactNumberController.text = normalizePhilippinePhone(
+      d.contactNumber ?? '',
+    );
     _deliveryDate = d.deliveryDate;
     setState(() {
       _editing = true;
@@ -761,6 +791,21 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     _Stage.goodsStatus => _goodsStatusStage(),
   };
 
+  /// Compact secondary "Back" beside a review step's main action — sized to its
+  /// label so it never wraps to "Bac / k" on narrow phones.
+  Widget _footerBackButton(VoidCallback onPressed) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 52),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        foregroundColor: AppColors.textPrimary,
+        side: const BorderSide(color: AppColors.borderCard),
+      ),
+      child: const Text('Back', maxLines: 1, softWrap: false),
+    );
+  }
+
   /// Standard step layout: scrolling content over a pinned footer.
   Widget _stepScaffold({
     int? step,
@@ -843,8 +888,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   // ------------------------------------------------------- Step 2: amount
   Widget _enterAmountStage() {
     final amount = _effectiveAmount;
-    final usingCustom =
-        int.tryParse(_customAmountController.text.trim()) != null;
+    final usingCustom = _customAmountController.text.trim().isNotEmpty;
 
     return _stepScaffold(
       step: 2,
@@ -892,9 +936,10 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
             LengthLimitingTextInputFormatter(7),
           ],
           onChanged: (_) => setState(_resetCheckout),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             prefixText: '₱ ',
             hintText: 'Enter amount',
+            errorText: _customAmountError,
           ),
         ),
         const SizedBox(height: 16),
@@ -1101,20 +1146,11 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       ],
       footer: Row(
         children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => setState(() => _stage = _Stage.choosePayment),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.borderCard),
-              ),
-              child: const Text('Back'),
-            ),
+          _footerBackButton(
+            () => setState(() => _stage = _Stage.choosePayment),
           ),
           const SizedBox(width: 12),
           Expanded(
-            flex: 3,
             child: FilledButton(
               onPressed: _startPayment,
               child: const Text('Proceed to Payment'),
@@ -1471,12 +1507,12 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
         TextField(
           controller: _contactNumberController,
           keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
-            LengthLimitingTextInputFormatter(11),
-          ],
+          inputFormatters: const [PhilippinePhoneFormatter()],
           onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(hintText: '09XX XXX XXXX'),
+          decoration: InputDecoration(
+            hintText: '09XXXXXXXXX',
+            errorText: philippinePhoneError(_contactNumberController.text),
+          ),
         ),
         const SizedBox(height: 14),
         _FieldLabel('Delivery date'),
@@ -1544,20 +1580,11 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       ],
       footer: Row(
         children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => setState(() => _stage = _Stage.goodsDelivery),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.borderCard),
-              ),
-              child: const Text('Back'),
-            ),
+          _footerBackButton(
+            () => setState(() => _stage = _Stage.goodsDelivery),
           ),
           const SizedBox(width: 12),
           Expanded(
-            flex: 3,
             child: FilledButton(
               onPressed: _saving ? null : (_editing ? _saveEdit : _pledgeGoods),
               child: _saving

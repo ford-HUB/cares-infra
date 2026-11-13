@@ -7,19 +7,26 @@ import 'package:mobile/features/dashboard/presentation/widgets/event_joined_coun
 import 'package:mobile/features/dashboard/presentation/widgets/home_event_image.dart';
 
 /// Horizontal deck of white poster cards: hero photo, then title, date,
-/// place, and the joined count beside an ink "JOIN NOW" pill. Bleeds to the
-/// screen edge; the first card lines up with [gutter].
+/// place, and the joined count beside an ink "JOIN NOW" pill — or a green
+/// "JOINED" pill once the volunteer has joined that event (it stays in the
+/// deck either way). Bleeds to the screen edge; the first card lines up
+/// with [gutter].
 class PopularEventDeck extends StatelessWidget {
   const PopularEventDeck({
     super.key,
     required this.events,
     required this.gutter,
     required this.onOpen,
+    this.isJoined,
   });
 
   final List<RecommendedEvent> events;
   final double gutter;
   final ValueChanged<RecommendedEvent> onOpen;
+
+  /// Whether the volunteer already joined an event; null treats none as
+  /// joined.
+  final bool Function(RecommendedEvent event)? isJoined;
 
   static const double cardWidth = 236;
   static const double cardHeight = 292;
@@ -38,6 +45,7 @@ class PopularEventDeck extends StatelessWidget {
           width: cardWidth,
           child: PopularEventCard(
             event: events[index],
+            joined: isJoined?.call(events[index]) ?? false,
             onOpen: () => onOpen(events[index]),
           ),
         ),
@@ -85,10 +93,14 @@ class PopularEventCard extends StatelessWidget {
     super.key,
     required this.event,
     required this.onOpen,
+    this.joined = false,
   });
 
   final RecommendedEvent event;
   final VoidCallback onOpen;
+
+  /// Swaps "JOIN NOW" for a green "JOINED" pill.
+  final bool joined;
 
   static const _radius = 22.0;
 
@@ -171,7 +183,7 @@ class PopularEventCard extends StatelessWidget {
                             capacity: event.maxParticipants,
                           ),
                         ),
-                        _JoinPill(onPressed: onOpen),
+                        _JoinPill(onPressed: onOpen, joined: joined),
                       ],
                     ),
                   ],
@@ -247,16 +259,17 @@ class _Meta extends StatelessWidget {
 }
 
 class _JoinPill extends StatelessWidget {
-  const _JoinPill({required this.onPressed});
+  const _JoinPill({required this.onPressed, this.joined = false});
 
   final VoidCallback onPressed;
+  final bool joined;
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF1B1F24),
+        backgroundColor: joined ? AppColors.primary : const Color(0xFF1B1F24),
         foregroundColor: Colors.white,
         minimumSize: const Size(0, 30),
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -268,7 +281,16 @@ class _JoinPill extends StatelessWidget {
           letterSpacing: 0.3,
         ),
       ),
-      child: const Text('JOIN NOW'),
+      child: joined
+          ? const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_rounded, size: 13),
+                SizedBox(width: 4),
+                Text('JOINED'),
+              ],
+            )
+          : const Text('JOIN NOW'),
     );
   }
 }

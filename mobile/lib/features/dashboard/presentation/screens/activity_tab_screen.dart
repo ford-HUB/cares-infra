@@ -162,7 +162,6 @@ class _ActivityTabScreenState extends ConsumerState<ActivityTabScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: ActivityHeader(
-                subtitle: 'Your volunteer history and registrations.',
                 selected: _group,
                 onSelected: (g) => setState(() => _group = g),
               ),

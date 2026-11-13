@@ -420,6 +420,7 @@ class DonationSmartSearchBar extends StatelessWidget {
     required this.onClear,
     required this.showSuggestions,
     required this.suggestions,
+    this.onDark = false,
   });
 
   final TextEditingController controller;
@@ -431,9 +432,14 @@ class DonationSmartSearchBar extends StatelessWidget {
   final bool showSuggestions;
   final List<String> suggestions;
 
+  /// Sitting on a deep header band — translucent field, white text.
+  final bool onDark;
+
   @override
   Widget build(BuildContext context) {
     return SmartEventSearchBar(
+      onDark: onDark,
+      radius: onDark ? AppColors.pillRadius : AppColors.cardRadius,
       controller: controller,
       focusNode: focusNode,
       query: query,

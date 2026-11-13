@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/theme/app_theme.dart';
 
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/models/user_request_models.dart';
@@ -26,7 +27,6 @@ class RoleAccount {
     required this.roleType,
     required this.displayName,
     required this.email,
-    required this.avatarColor,
     required this.status,
     required this.requirement,
     required this.memberSince,
@@ -42,7 +42,12 @@ class RoleAccount {
 
   final String email;
 
-  final Color avatarColor;
+  /// Initial-avatar colour before a picture is uploaded: the brand green
+  /// for every role, so it matches the Profile header avatar everywhere
+  /// (home hero, role switcher, unlock screen). A getter rather than a
+  /// stored field, so an account created under an older colour can't keep
+  /// it (e.g. the donor side's former orange surviving a hot reload).
+  Color get avatarColor => AppColors.primary;
 
   /// Optional local asset for this role's own profile picture.
   final String? avatarAssetPath;
@@ -95,7 +100,6 @@ class RoleAccount {
   RoleAccount copyWith({
     String? displayName,
     String? email,
-    Color? avatarColor,
     String? avatarAssetPath,
     String? avatarUrl,
     RoleAccountStatus? status,
@@ -108,7 +112,6 @@ class RoleAccount {
       roleType: roleType,
       displayName: displayName ?? this.displayName,
       email: email ?? this.email,
-      avatarColor: avatarColor ?? this.avatarColor,
       avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
       avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
       status: status ?? this.status,
@@ -153,14 +156,6 @@ class RoleAccountStore extends ChangeNotifier {
     donor => 'Donor',
     beneficiary => 'Beneficiary',
     _ => 'Volunteer',
-  };
-
-  /// Avatar colour per role so each side has its own look even before a
-  /// picture is uploaded.
-  static Color avatarColorFor(String roleType) => switch (normalize(roleType)) {
-    donor => const Color(0xFFE65100),
-    beneficiary => const Color(0xFF1565C0),
-    _ => const Color(0xFF1F5F28),
   };
 
   /// Only volunteers register with an ID + face match, so unlocking that side
@@ -255,7 +250,6 @@ class RoleAccountStore extends ChangeNotifier {
           roleType: other,
           displayName: name,
           email: email.trim(),
-          avatarColor: avatarColorFor(other),
           status: RoleAccountStatus.locked,
           requirement: requirementFor(other),
           memberSince: _memberSinceNow(),

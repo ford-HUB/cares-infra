@@ -78,6 +78,31 @@ class AppNotification {
   /// `/support/<id>`, or a portal path the app cannot open.
   final String? href;
 
+  /// An event the person is no longer going to: they cancelled their own
+  /// registration, or the organizer called the event off. The feed draws
+  /// these as a red card with the title only — the server's follow-up line
+  /// ("Your slot was released…") is not shown.
+  bool get isCancellation =>
+      type == NotificationType.event &&
+      (title.startsWith('Registration cancelled for ') ||
+          title.endsWith(' was cancelled'));
+
+  /// Whether the row was created on the device's current calendar day.
+  bool get isToday {
+    final now = DateTime.now();
+    return createdAt.year == now.year &&
+        createdAt.month == now.month &&
+        createdAt.day == now.day;
+  }
+
+  /// Whether the row was created since the start of this week (Monday).
+  bool get isThisWeek {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monday = today.subtract(Duration(days: now.weekday - 1));
+    return !createdAt.isBefore(monday);
+  }
+
   /// Whether the row belongs on [role]'s feed.
   bool isFor(AppRole role) => audienceRole == null || audienceRole == role;
 
@@ -112,6 +137,21 @@ class AppNotification {
     'SUPPORT' => NotificationType.support,
     'ACCESS' || 'SECURITY' => NotificationType.account,
     _ => NotificationType.system,
+  };
+}
+
+/// Time window chips on the feed, applied on top of the kind filter.
+enum NotificationPeriod { today, thisWeek }
+
+extension NotificationPeriodX on NotificationPeriod {
+  String get label => switch (this) {
+    NotificationPeriod.today => 'Today',
+    NotificationPeriod.thisWeek => 'This week',
+  };
+
+  bool includes(AppNotification item) => switch (this) {
+    NotificationPeriod.today => item.isToday,
+    NotificationPeriod.thisWeek => item.isThisWeek,
   };
 }
 

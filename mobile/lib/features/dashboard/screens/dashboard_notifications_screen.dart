@@ -37,6 +37,9 @@ class _DashboardNotificationsScreenState
   /// Null shows every kind.
   NotificationType? _filter;
 
+  /// Null shows every date.
+  NotificationPeriod? _period;
+
   @override
   void initState() {
     super.initState();
@@ -77,20 +80,18 @@ class _DashboardNotificationsScreenState
     final types = _typesIn(feed);
     // A filter whose last row was cleared away falls back to All.
     final filter = types.contains(_filter) ? _filter : null;
-    final visible = filter == null
-        ? feed
-        : feed.where((item) => item.type == filter).toList();
+    final period = _period;
+    final visible = feed
+        .where((item) => filter == null || item.type == filter)
+        .where((item) => period == null || period.includes(item))
+        .toList();
     final otherSides = _sync.unreadOnOtherSides;
 
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _NotificationsHeader(
-            sideLabel: _sync.activeRole?.label,
-            canMarkAll: _sync.unread > 0,
-            onMarkAll: _sync.markAllRead,
-          ),
+          _NotificationsHeader(sideLabel: _sync.activeRole?.label),
           const SizedBox(height: 14),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
@@ -104,11 +105,21 @@ class _DashboardNotificationsScreenState
               ),
             ),
           ),
-          if (types.length > 1)
+          if (feed.isNotEmpty)
             NotificationFilterChips(
               types: types,
               selected: filter,
               onSelected: (type) => setState(() => _filter = type),
+              period: period,
+              onPeriodSelected: (value) => setState(() => _period = value),
+            ),
+          if (_sync.unread > 0)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 2, 14, 0),
+                child: _MarkAllReadLink(onTap: _sync.markAllRead),
+              ),
             ),
           Expanded(
             child: RefreshIndicator(
@@ -116,13 +127,22 @@ class _DashboardNotificationsScreenState
               child: visible.isEmpty
                   ? ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
-                      children: const [
-                        SizedBox(height: 90),
+                      children: [
+                        const SizedBox(height: 90),
                         EmptyStateBlock(
                           icon: Icons.notifications_off_outlined,
-                          title: 'No Notifications Yet',
-                          message:
-                              'Event news, reminders and updates will show up here.',
+                          title: feed.isEmpty
+                              ? 'No Notifications Yet'
+                              : 'Nothing Here',
+                          message: feed.isEmpty
+                              ? 'Event news, reminders and updates will show up here.'
+                              : switch (period) {
+                                  NotificationPeriod.today =>
+                                    'No notifications match this filter today.',
+                                  NotificationPeriod.thisWeek =>
+                                    'No notifications match this filter this week.',
+                                  null => 'No notifications match this filter.',
+                                },
                         ),
                       ],
                     )
@@ -147,18 +167,36 @@ class _DashboardNotificationsScreenState
   }
 }
 
-/// Deep green band: back arrow, title, "Mark All as Read" pill, and which
-/// side of the account the feed is showing.
+/// Small text link over the feed that clears every unread dot.
+class _MarkAllReadLink extends StatelessWidget {
+  const _MarkAllReadLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primaryDark,
+        minimumSize: const Size(0, 30),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+      ),
+      icon: const Icon(Icons.done_all_rounded, size: 16),
+      label: const Text('Mark All Read'),
+    );
+  }
+}
+
+/// Deep green band: back arrow, title, and which side of the account the
+/// feed is showing.
 class _NotificationsHeader extends StatelessWidget {
-  const _NotificationsHeader({
-    required this.sideLabel,
-    required this.canMarkAll,
-    required this.onMarkAll,
-  });
+  const _NotificationsHeader({required this.sideLabel});
 
   final String? sideLabel;
-  final bool canMarkAll;
-  final VoidCallback onMarkAll;
 
   @override
   Widget build(BuildContext context) {
@@ -189,22 +227,6 @@ class _NotificationsHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (canMarkAll)
-                FilledButton.icon(
-                  onPressed: onMarkAll,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF3E8E2E),
-                    minimumSize: const Size(0, 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    shape: const StadiumBorder(),
-                    textStyle: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  icon: const Icon(Icons.check_rounded, size: 20),
-                  label: const Text('Mark All as Read'),
-                ),
             ],
           ),
           if (sideLabel != null) ...[

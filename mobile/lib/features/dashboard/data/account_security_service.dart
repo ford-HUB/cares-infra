@@ -53,6 +53,9 @@ class AccountSecurityService {
     final response = await _api.putJson(
       '/account/mobile/password',
       body: {'current_password': currentPassword, 'new_password': newPassword},
+      // The server answers a wrong current password with 401; keep that on
+      // the form instead of signing the person out.
+      endSessionOnUnauthorized: false,
     );
     return ChangePasswordResponse.fromJson(
       response['data'] as Map<String, dynamic>,

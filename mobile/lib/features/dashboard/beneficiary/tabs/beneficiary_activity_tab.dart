@@ -76,7 +76,6 @@ class _BeneficiaryActivityTabState
           slivers: [
             SliverToBoxAdapter(
               child: ActivityHeader(
-                subtitle: 'Events you applied for, ahead and completed.',
                 selected: _group,
                 onSelected: (g) => setState(() => _group = g),
               ),

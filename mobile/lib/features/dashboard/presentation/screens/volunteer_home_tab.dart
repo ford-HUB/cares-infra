@@ -29,7 +29,9 @@ import 'package:mobile/shared/widgets/header_band.dart';
 /// pull-to-refresh and an interest change both do that.
 ///
 /// Events the volunteer has already joined (per [EventRegistrationStore])
-/// drop out of both sections — they live on the Activity tab instead.
+/// stay in the Popular deck with a "JOINED" pill, so it never empties out;
+/// they drop out of the category list, which lives on the Activity tab
+/// instead.
 class VolunteerHomeTab extends ConsumerStatefulWidget {
   const VolunteerHomeTab({
     super.key,
@@ -94,12 +96,11 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
 
   /// Everything the server sent minus the events this volunteer already
   /// joined. The store keys on the details screen's `event-<id>` form.
-  List<RecommendedEvent> _unjoined(List<RecommendedEvent> events) {
-    final email = _participantEmail;
-    return events
-        .where((e) => !_registrations.isRegistered('event-${e.id}', email))
-        .toList();
-  }
+  List<RecommendedEvent> _unjoined(List<RecommendedEvent> events) =>
+      events.where((e) => !_isJoined(e)).toList();
+
+  bool _isJoined(RecommendedEvent event) =>
+      _registrations.isRegistered('event-${event.id}', _participantEmail);
 
   void _open(RecommendedEvent event) =>
       EventDetailsScreen.open(context, event.toCaresEvent());
@@ -180,7 +181,7 @@ class _VolunteerHomeTabState extends ConsumerState<VolunteerHomeTab> {
                 _PopularSlot(
                   page: page,
                   count: widget.popularCount,
-                  filter: _unjoined,
+                  isJoined: _isJoined,
                   onOpen: _open,
                 ),
                 const SizedBox(height: 8),
@@ -281,15 +282,15 @@ class _PopularSlot extends StatelessWidget {
   const _PopularSlot({
     required this.page,
     required this.count,
-    required this.filter,
+    required this.isJoined,
     required this.onOpen,
   });
 
   final AsyncValue<RecommendedEventsPage> page;
   final int count;
 
-  /// Drops events that should not be offered (already joined).
-  final List<RecommendedEvent> Function(List<RecommendedEvent>) filter;
+  /// Joined events stay in the deck; this only flips their pill to JOINED.
+  final bool Function(RecommendedEvent) isJoined;
   final ValueChanged<RecommendedEvent> onOpen;
 
   /// Fullest first — the closest thing to "popular" the server exposes.
@@ -312,7 +313,7 @@ class _PopularSlot extends StatelessWidget {
         message: 'We could not load events right now. Pull down to try again.',
       ),
       data: (data) {
-        final popular = _popular(filter(data.events));
+        final popular = _popular(data.events);
         if (!data.hasInterests) {
           return const HomeDeckPlaceholder(
             icon: Icons.auto_awesome_outlined,
@@ -333,6 +334,7 @@ class _PopularSlot extends StatelessWidget {
           events: popular,
           gutter: gutter,
           onOpen: onOpen,
+          isJoined: isJoined,
         );
       },
     );

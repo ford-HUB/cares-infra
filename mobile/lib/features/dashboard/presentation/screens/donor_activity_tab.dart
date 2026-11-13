@@ -7,64 +7,55 @@ import 'package:mobile/features/dashboard/data/donation_format.dart';
 import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/donor/data/donor_accent_colors.dart';
 import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
+import 'package:mobile/features/dashboard/presentation/widgets/donor_summary_chips.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.dart';
 import 'package:mobile/features/dashboard/screens/donation_flow_screen.dart';
+import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
 /// The donor's donation tracking — every money and goods donation they made,
-/// from `GET /donations/me`, with where each one stands on its ladder. A
-/// tap opens the status view; the Director's moves on the portal show up
+/// from `GET /donations/me`, with where each one stands on its ladder. The
+/// header's Confirmed / Donations / Drives chips filter the list. A tap on a
+/// card opens the status view; the Director's moves on the portal show up
 /// here on the next fetch.
-class DonorActivityTab extends ConsumerWidget {
+class DonorActivityTab extends ConsumerStatefulWidget {
   const DonorActivityTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DonorActivityTab> createState() => _DonorActivityTabState();
+}
+
+class _DonorActivityTabState extends ConsumerState<DonorActivityTab> {
+  DonorActivityView _view = DonorActivityView.donations;
+
+  @override
+  Widget build(BuildContext context) {
     final donations = ref.watch(myDonationsProvider);
     final summary = DonorSummary.of(donations.asData?.value ?? const []);
 
-    return SafeArea(
-      bottom: false,
+    return ColoredBox(
+      color: AppColors.background,
       child: CustomScrollView(
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Activity',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Your donations and where each one stands',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  DonorSummaryRow(summary: summary),
-                ],
+          SliverToBoxAdapter(
+            child: DeepTabHeader(
+              title: 'Activity',
+              bottom: DonorSummaryRow(
+                summary: summary,
+                selected: _view,
+                onSelected: (view) => setState(() => _view = view),
               ),
             ),
           ),
           ...donations.when(
             loading: () => const [
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 24),
                 sliver: SliverToBoxAdapter(child: _ActivitySkeleton()),
               ),
             ],
             error: (error, _) => [
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                 sliver: SliverToBoxAdapter(
                   child: HomeStateCard.error(
                     message: error is ApiException
@@ -75,122 +66,110 @@ class DonorActivityTab extends ConsumerWidget {
                 ),
               ),
             ],
-            data: (items) => [
-              if (items.isEmpty)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyActivityState(),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                  sliver: SliverList.separated(
-                    itemCount: items.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) =>
-                        _DonationActivityCard(donation: items[index]),
+            data: (items) {
+              final rows = _rowsFor(items);
+              if (rows.isEmpty) {
+                return [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _EmptyActivityState(view: _view),
                   ),
+                ];
+              }
+              return [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  sliver: SliverList.list(children: rows),
                 ),
-            ],
+              ];
+            },
           ),
         ],
       ),
     );
   }
-}
 
-/// Confirmed total, donations on the ladder, and events supported — shared
-/// with the profile tab so both tell the same story.
-class DonorSummaryRow extends StatelessWidget {
-  const DonorSummaryRow({super.key, required this.summary});
-
-  final DonorSummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryChip(
-            icon: Icons.volunteer_activism_outlined,
-            color: DonorAccents.donated,
-            value: DonationFormat.peso(summary.confirmedAmount),
-            label: 'Confirmed',
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryChip(
-            icon: Icons.favorite_outline,
-            color: DonorAccents.donations,
-            value: '${summary.donations}',
-            label: 'Donations',
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _SummaryChip(
-            icon: Icons.campaign_outlined,
-            color: DonorAccents.campaigns,
-            value: '${summary.campaigns}',
-            label: 'Drives',
-          ),
-        ),
-      ],
+  /// The list under the header for the selected chip: cards with 12pt gaps,
+  /// and on Drives a heading above each drive's donations.
+  List<Widget> _rowsFor(List<Donation> items) {
+    Widget card(Donation d) => Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _DonationActivityCard(donation: d),
     );
+
+    switch (_view) {
+      case DonorActivityView.donations:
+        return [for (final d in items) card(d)];
+      case DonorActivityView.confirmed:
+        return [for (final d in items.where((d) => d.isComplete)) card(d)];
+      case DonorActivityView.drives:
+        // Same drives the chip counts: cancelled / declined are left out.
+        final byDrive = <int, List<Donation>>{};
+        for (final d in items.where((d) => !d.isCancelled && !d.isDeclined)) {
+          byDrive.putIfAbsent(d.eventId, () => []).add(d);
+        }
+        return [
+          for (final group in byDrive.values) ...[
+            _DriveHeading(
+              title: group.first.eventTitle,
+              count: group.length,
+              confirmed: group
+                  .where((d) => d.isComplete)
+                  .fold(0, (sum, d) => sum + d.amount),
+            ),
+            for (final d in group) card(d),
+            const SizedBox(height: 8),
+          ],
+        ];
+    }
   }
 }
 
-class _SummaryChip extends StatelessWidget {
-  const _SummaryChip({
-    required this.icon,
-    required this.color,
-    required this.value,
-    required this.label,
+/// Heading above one drive's donations on the Drives view.
+class _DriveHeading extends StatelessWidget {
+  const _DriveHeading({
+    required this.title,
+    required this.count,
+    required this.confirmed,
   });
 
-  final IconData icon;
-  final Color color;
-  final String value;
-  final String label;
+  final String title;
+  final int count;
+  final int confirmed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.fieldBorder),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+      child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 20, color: color),
+          const Icon(
+            Icons.campaign_outlined,
+            size: 18,
+            color: AppColors.primary,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Text(
-            value,
+            confirmed > 0
+                ? '${DonationFormat.peso(confirmed)} · $count'
+                : '$count donation${count == 1 ? '' : 's'}',
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primaryDark,
-            ),
-          ),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: AppColors.inkMuted,
             ),
           ),
         ],
@@ -377,12 +356,30 @@ class _ActivitySkeleton extends StatelessWidget {
 }
 
 class _EmptyActivityState extends StatelessWidget {
-  const _EmptyActivityState();
+  const _EmptyActivityState({required this.view});
+
+  final DonorActivityView view;
 
   @override
   Widget build(BuildContext context) {
+    final (title, message) = switch (view) {
+      DonorActivityView.confirmed => (
+        'No confirmed donations yet',
+        'A donation shows here once a director confirms it.',
+      ),
+      DonorActivityView.drives => (
+        'No drives supported yet',
+        'Donate to a drive to see it here.',
+      ),
+      DonorActivityView.donations => (
+        'No donations yet',
+        'Donate to a drive to track it here.',
+      ),
+    };
+    // Top padding keeps the empty state clear of the header band's
+    // rounded bottom edge instead of centring it right against it.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.fromLTRB(32, 56, 32, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -393,7 +390,7 @@ class _EmptyActivityState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'No donations yet',
+            title,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -402,7 +399,7 @@ class _EmptyActivityState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Donate to a drive to track it here.',
+            message,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,

@@ -11,11 +11,8 @@ import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 import 'package:mobile/features/dashboard/data/profile_service.dart';
 import 'package:mobile/features/dashboard/presentation/screens/events_tab_screen.dart';
-import 'package:mobile/features/dashboard/presentation/screens/mobile_profile_edit_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/profile_tab_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
-import 'package:mobile/features/dashboard/presentation/widgets/profile_completion_success_dialog.dart';
-import 'package:mobile/features/dashboard/screens/assistance_request_form_screen.dart';
 import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
 /// Beneficiary shell — same structure, layout, and styling as the volunteer
@@ -55,7 +52,6 @@ class _BeneficiaryDashboardScreenState
   int _currentTab = 0;
   // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
   int _refreshVersion = 0;
-  bool _isLoadingProfile = false;
 
   /// The server's read of the record, mirrored onto the beneficiary role
   /// account by [ProfileService]. Null until the first fetch lands (or on the
@@ -66,10 +62,6 @@ class _BeneficiaryDashboardScreenState
   /// Completion is the server's verdict — personal details plus household
   /// size — never something computed on the device.
   bool get _profileComplete => _serverProfile?.completion.complete ?? false;
-
-  /// The proof of residency is uploaded and waiting on an administrator.
-  bool get _awaitingDocumentReview =>
-      _serverProfile?.completion.residencyUnderReview ?? false;
 
   @override
   void initState() {
@@ -92,19 +84,16 @@ class _BeneficiaryDashboardScreenState
 
   Future<void> _loadProfile() async {
     if (!AuthSession.isSignedIn) return;
-    setState(() => _isLoadingProfile = true);
     try {
       await _profileService.syncRoleAccount(
         roleType: RoleAccountStore.beneficiary,
       );
     } on ApiException {
-      // The Profile tab surfaces the error with a retry; the home card just
-      // stays hidden until a read succeeds.
+      // The Profile tab surfaces the error with a retry.
     } catch (_) {
       // Same as above.
-    } finally {
-      if (mounted) setState(() => _isLoadingProfile = false);
     }
+    if (mounted) setState(() {});
   }
 
   /// Pull-to-refresh: refetch the profile and the feed, then remount every
@@ -113,29 +102,6 @@ class _BeneficiaryDashboardScreenState
     await Future.wait([_loadProfile(), NotificationSync.instance.refresh()]);
     if (!mounted) return;
     setState(() => _refreshVersion++);
-  }
-
-  /// "Complete your profile" opens the same server-backed edit form the
-  /// Profile tab uses; the server re-reads completion on save.
-  Future<void> _openProfileSetup() async {
-    final wasIncomplete = !_profileComplete;
-
-    final saved = await MobileProfileEditScreen.open(
-      context,
-      RoleAccountStore.beneficiary,
-    );
-
-    if (!mounted || saved == null) return;
-    setState(() {});
-
-    if (wasIncomplete && saved.completion.complete) {
-      await showProfileCompletionSuccessDialog(
-        context,
-        message:
-            'Your beneficiary profile has been completed successfully. '
-            'CARES can now match your household with the right assistance.',
-      );
-    }
   }
 
   /// Personal information is edited separately from assistance details.
@@ -153,12 +119,6 @@ class _BeneficiaryDashboardScreenState
   }
 
   void _openRequestsTab() => setState(() => _currentTab = _requestTabIndex);
-
-  Future<void> _requestAssistance() async {
-    final request = await AssistanceRequestFormScreen.open(context);
-    if (!mounted) return;
-    if (request != null) _openRequestsTab();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,18 +141,7 @@ class _BeneficiaryDashboardScreenState
                   children: [
                     BeneficiaryHomeTab(
                       firstName: _firstName,
-                      onRequestAssistance: _requestAssistance,
                       onViewRequests: _openRequestsTab,
-                      // Hidden until the server has answered so the card never
-                      // flashes on a profile that is actually complete.
-                      showProfileCompletionCard:
-                          !_isLoadingProfile &&
-                          _serverProfile != null &&
-                          !_profileComplete,
-                      onCompleteProfile: _openProfileSetup,
-                      actionsLocked:
-                          _serverProfile != null && !_profileComplete,
-                      awaitingDocumentReview: _awaitingDocumentReview,
                     ),
                     const EventsTabScreen(forBeneficiary: true),
                     const BeneficiaryActivityTab(),

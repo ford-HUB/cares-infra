@@ -306,7 +306,7 @@ class _NotificationBell extends StatelessWidget {
               width: 8,
               height: 8,
               decoration: const BoxDecoration(
-                color: AppColors.accentOrange,
+                color: AppColors.navActive,
                 shape: BoxShape.circle,
               ),
             ),
