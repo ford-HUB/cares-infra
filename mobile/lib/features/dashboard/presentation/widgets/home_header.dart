@@ -99,7 +99,7 @@ class HomeHeader extends StatelessWidget {
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(
-                            color: AppColors.accentBright,
+                            color: AppColors.navActive,
                             shape: BoxShape.circle,
                           ),
                         )

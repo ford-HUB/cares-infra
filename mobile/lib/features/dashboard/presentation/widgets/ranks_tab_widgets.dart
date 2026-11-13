@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.dart';
+import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
 /// Period selector for the Ranks tab.
 class RankPeriodChips extends StatelessWidget {
@@ -16,35 +17,30 @@ class RankPeriodChips extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onSelected;
 
+  static IconData _iconFor(String value) => switch (value) {
+    'month' => Icons.calendar_today_outlined,
+    'quarter' => Icons.date_range_outlined,
+    'year' => Icons.event_note_outlined,
+    _ => Icons.all_inclusive_rounded,
+  };
+
+  /// The period pills, styled like the Activity tab's group chips so they
+  /// sit in a [DeepTabHeader]. Scrolls sideways on narrow screens.
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
       child: Row(
         children: [
-          for (final period in periods) ...[
-            ChoiceChip(
-              label: Text(period.label),
-              selected: period.value == selected,
-              onSelected: (_) => onSelected(period.value),
-              selectedColor: AppColors.primaryDark,
-              backgroundColor: Colors.white,
-              labelStyle: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: period.value == selected
-                    ? Colors.white
-                    : AppColors.primaryDark,
-              ),
-              side: BorderSide(
-                color: period.value == selected
-                    ? AppColors.primaryDark
-                    : AppColors.fieldBorder,
-              ),
-              showCheckmark: false,
-              visualDensity: VisualDensity.compact,
+          for (var i = 0; i < periods.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            HeaderFilterChip(
+              label: periods[i].label,
+              icon: _iconFor(periods[i].value),
+              selected: periods[i].value == selected,
+              onTap: () => onSelected(periods[i].value),
             ),
-            const SizedBox(width: 8),
           ],
         ],
       ),

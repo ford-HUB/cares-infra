@@ -8,6 +8,7 @@ import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 import 'package:mobile/features/dashboard/beneficiary/domain/beneficiary_profile.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
+import 'package:mobile/shared/widgets/header_band.dart';
 
 /// Green band with the iOS-style back control; the heading below carries the
 /// screen title, so nothing sits beside the chevron.
@@ -27,83 +28,68 @@ class ProfileEditHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, topInset + 6, 20, 22),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primaryDark,
-            AppColors.primary,
-            AppColors.secondary,
-          ],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x2E1F5F28),
-            blurRadius: 22,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
+    // Same deep band, radius and type scale as the dashboard tabs'
+    // [DeepTabHeader]; the back control sits on the 20pt content margin.
+    return HeaderBand.deep(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+      radius: 26,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Semantics(
-            button: true,
-            label: 'Back',
-            child: InkWell(
-              onTap: onBack,
-              borderRadius: BorderRadius.circular(20),
-              child: const Padding(
-                // Only vertical + trailing padding: the chevron itself stays
-                // on the 20pt content margin like a UINavigationBar back button.
-                padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 17,
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 5),
-                    Text(
-                      'Back',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Semantics(
+              button: true,
+              label: 'Back',
+              child: InkWell(
+                onTap: onBack,
+                borderRadius: BorderRadius.circular(20),
+                child: const Padding(
+                  // Only vertical + trailing padding: the chevron itself stays
+                  // on the 20pt content margin like a UINavigationBar back button.
+                  padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 17,
                         color: Colors.white,
-                        letterSpacing: -0.2,
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 5),
+                      Text(
+                        'Back',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           Text(
             title,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Colors.white,
-              height: 1.2,
+              height: 1.15,
+              letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 14.5,
               height: 1.35,
-              color: Colors.white.withValues(alpha: 0.85),
+              color: Colors.white.withValues(alpha: 0.92),
             ),
           ),
         ],

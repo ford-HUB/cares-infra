@@ -82,11 +82,15 @@ class ApiClient {
     }, path);
   }
 
+  /// [endSessionOnUnauthorized] — pass false when a 401 from this endpoint
+  /// means "wrong credential in the body" (e.g. the current password on a
+  /// password change) rather than "session dropped", so the screen keeps it.
   Future<Map<String, dynamic>> putJson(
     String path, {
     required Map<String, dynamic> body,
     Duration timeout = const Duration(seconds: 30),
     bool authenticate = true,
+    bool endSessionOnUnauthorized = true,
   }) async {
     return _guard(() async {
       final response = await _client
@@ -96,7 +100,11 @@ class ApiClient {
             body: jsonEncode(body),
           )
           .timeout(timeout);
-      return _parseResponse(response, authenticated: authenticate);
+      return _parseResponse(
+        response,
+        authenticated: authenticate,
+        endSessionOnUnauthorized: endSessionOnUnauthorized,
+      );
     }, path);
   }
 
@@ -210,6 +218,7 @@ class ApiClient {
   Map<String, dynamic> _parseResponse(
     http.Response response, {
     bool authenticated = false,
+    bool endSessionOnUnauthorized = true,
   }) {
     Map<String, dynamic>? body;
     if (response.body.isNotEmpty) {
@@ -228,6 +237,7 @@ class ApiClient {
       // itself is a wrong password and stays with the form.
       if (response.statusCode == 401 &&
           authenticated &&
+          endSessionOnUnauthorized &&
           AuthSession.isSignedIn) {
         AuthSession.notifySessionEnded(message);
       }

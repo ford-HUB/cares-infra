@@ -6,6 +6,7 @@ import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
 import 'package:mobile/features/dashboard/presentation/providers/donor_providers.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/ranks_tab_widgets.dart';
+import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
 /// The donor leaderboard. Scored on the server from confirmed donations —
 /// one point per the portal's pesos-per-point rate, goods credited at the
@@ -29,44 +30,28 @@ class DonorRanksTab extends ConsumerWidget {
     final selected = ref.watch(donorLeaderboardPeriodProvider);
     final period = selected ?? board.asData?.value.period ?? 'month';
 
-    return SafeArea(
-      bottom: false,
+    return ColoredBox(
+      color: AppColors.background,
       child: CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: DeepTabHeader(
+              title: 'Ranks',
+              bottom: RankPeriodChips(
+                periods: _periods,
+                selected: period,
+                onSelected: (value) =>
+                    ref.read(donorLeaderboardPeriodProvider.notifier).state =
+                        value,
+              ),
+            ),
+          ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Ranks',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Leaderboard and donor tiers',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  RankPeriodChips(
-                    periods: _periods,
-                    selected: period,
-                    onSelected: (value) =>
-                        ref
-                                .read(donorLeaderboardPeriodProvider.notifier)
-                                .state =
-                            value,
-                  ),
-                  const SizedBox(height: 14),
                   board.when(
                     loading: () => const YourRankSkeleton(),
                     error: (error, _) => RanksError(

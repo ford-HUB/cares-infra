@@ -73,6 +73,9 @@ class AppColors {
   /// Glassy search field / icon button sitting on a deep header band.
   static const Color onHeaderField = Color(0x33FFFFFF);
 
+  /// Warm amber that still reads on a deep band (pending status, trophies).
+  static const Color amberOnDark = Color(0xFFFFC233);
+
   static const double cardRadius = 18;
   static const double pillRadius = 999;
 

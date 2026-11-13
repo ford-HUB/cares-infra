@@ -7,6 +7,7 @@ import {
 } from '../../../infastructures/prisma/common/client';
 import { GOODS_TYPE_IDS } from '../../../shared/constants/goods-types';
 import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
+import { PhoneNumberSchema } from '../../../shared/validators/phone-number-validator';
 
 /**
  * Accounts that can open the donor side of the app. The role switcher is local
@@ -78,7 +79,6 @@ export const DonationIdSchema = z.uuid('A valid donation id is required');
 
 export const GOODS_ITEM_MAX = 120;
 export const GOODS_QUANTITY_MAX = 10_000;
-export const DONOR_CONTACT_MAX = 20;
 
 /**
  * What a goods pledge carries, and what an edit may change. Goods are handed in
@@ -97,11 +97,8 @@ const GoodsDonationFieldsSchema = z.object({
     .int('Quantity must be a whole number')
     .min(1, 'Quantity must be at least 1')
     .max(GOODS_QUANTITY_MAX),
-  contactNumber: z
-    .string()
-    .trim()
-    .min(1, 'Contact number is required')
-    .max(DONOR_CONTACT_MAX),
+  /** PH mobile in the canonical `+639XXXXXXXXX` shape the app normalises to. */
+  contactNumber: PhoneNumberSchema,
   /** Calendar day, `YYYY-MM-DD`, when the donor plans to deliver the goods. */
   deliveryDate: z.iso.date('Delivery date is required'),
 });

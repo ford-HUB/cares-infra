@@ -4,6 +4,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/models/notification_models.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 
+import 'package:mobile/features/dashboard/widgets/cancelled_notification_tile.dart';
+
 /// "Showing Volunteer updates" plus, when other sides of the account have
 /// unread news, one line per side with a button to switch over to it.
 class NotificationSideBanner extends StatelessWidget {
@@ -75,18 +77,24 @@ class NotificationSideBanner extends StatelessWidget {
   }
 }
 
-/// One chip per kind of notification the open side actually has, plus All.
+/// All, then the time windows (Today, This week), then one chip per kind of
+/// notification the open side actually has. A window and a kind can both be
+/// on at once; tapping a selected chip turns it off, and All clears both.
 class NotificationFilterChips extends StatelessWidget {
   const NotificationFilterChips({
     super.key,
     required this.types,
     required this.selected,
     required this.onSelected,
+    required this.period,
+    required this.onPeriodSelected,
   });
 
   final List<NotificationType> types;
   final NotificationType? selected;
   final ValueChanged<NotificationType?> onSelected;
+  final NotificationPeriod? period;
+  final ValueChanged<NotificationPeriod?> onPeriodSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -96,9 +104,29 @@ class NotificationFilterChips extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          _chip('All', selected == null, () => onSelected(null)),
-          for (final type in types)
-            _chip(type.label, selected == type, () => onSelected(type)),
+          _chip('All', selected == null && period == null, () {
+            onSelected(null);
+            onPeriodSelected(null);
+          }),
+          for (final option in NotificationPeriod.values)
+            _chip(
+              option.label,
+              period == option,
+              () => onPeriodSelected(period == option ? null : option),
+            ),
+          if (types.length > 1) ...[
+            Container(
+              width: 1,
+              margin: const EdgeInsets.fromLTRB(2, 10, 10, 10),
+              color: AppColors.borderLight,
+            ),
+            for (final type in types)
+              _chip(
+                type.label,
+                selected == type,
+                () => onSelected(selected == type ? null : type),
+              ),
+          ],
         ],
       ),
     );
@@ -138,6 +166,12 @@ class NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (notification.isCancellation) {
+      return CancelledEventNotificationTile(
+        notification: notification,
+        onTap: onTap,
+      );
+    }
     final accent = notification.attention
         ? AppColors.accentOrange
         : AppColors.primary;
@@ -249,6 +283,9 @@ class NotificationDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tint = notification.isCancellation
+        ? AppColors.error
+        : AppColors.primary;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -272,12 +309,14 @@ class NotificationDetailSheet extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: tint.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              iconForNotificationType(notification.type),
-              color: AppColors.primary,
+              notification.isCancellation
+                  ? Icons.event_busy_rounded
+                  : iconForNotificationType(notification.type),
+              color: tint,
               size: 28,
             ),
           ),
@@ -296,16 +335,18 @@ class NotificationDetailSheet extends StatelessWidget {
             '${notification.type.label} · ${notification.timeAgo}',
             style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
-          const SizedBox(height: 16),
-          Text(
-            notification.message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              color: AppColors.textSecondary,
-              height: 1.55,
+          if (!notification.isCancellation) ...[
+            const SizedBox(height: 16),
+            Text(
+              notification.message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                color: AppColors.textSecondary,
+                height: 1.55,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,

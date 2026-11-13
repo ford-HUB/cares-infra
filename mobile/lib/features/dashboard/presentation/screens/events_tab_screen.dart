@@ -94,21 +94,6 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
   bool get _hasActiveFilters =>
       _query.trim().isNotEmpty || _range != EventTimeRange.all;
 
-  String _subtitle(int count, {bool loading = false}) {
-    if (loading) {
-      return widget.forBeneficiary
-          ? 'Finding events open to beneficiaries…'
-          : 'Finding events that match your interests…';
-    }
-    if (_query.trim().isNotEmpty) {
-      return '$count result${count == 1 ? '' : 's'} found';
-    }
-    if (widget.forBeneficiary) {
-      return '$count event${count == 1 ? '' : 's'} open to beneficiaries';
-    }
-    return '$count event${count == 1 ? '' : 's'} matched your interests';
-  }
-
   void _applySuggestion(String suggestion) {
     _searchController.text = suggestion;
     _searchController.selection = TextSelection.collapsed(
@@ -185,14 +170,7 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DiscoverHeader(
-                        title: 'For You',
-                        onDark: true,
-                        subtitle: _subtitle(
-                          events.length,
-                          loading: catalog.isLoading,
-                        ),
-                      ),
+                      const DiscoverHeader(title: 'For You', onDark: true),
                       const SizedBox(height: 18),
                       SmartEventSearchBar(
                         onDark: true,

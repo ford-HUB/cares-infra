@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Top of the events tab: centred title with the match-count line under it.
+/// Top of the events tab: centred title, with an optional line under it.
 class DiscoverHeader extends StatelessWidget {
   const DiscoverHeader({
     super.key,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     this.onDark = false,
   });
 
   final String title;
-  final String subtitle;
+  final String? subtitle;
 
   /// White type for a deep green [HeaderBand].
   final bool onDark;
@@ -30,18 +30,20 @@ class DiscoverHeader extends StatelessWidget {
             letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: onDark ? 16 : 13,
-            color: onDark
-                ? Colors.white.withValues(alpha: 0.9)
-                : AppColors.textSecondary,
-            height: 1.3,
+        if (subtitle != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            subtitle!,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: onDark ? 16 : 13,
+              color: onDark
+                  ? Colors.white.withValues(alpha: 0.9)
+                  : AppColors.textSecondary,
+              height: 1.3,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

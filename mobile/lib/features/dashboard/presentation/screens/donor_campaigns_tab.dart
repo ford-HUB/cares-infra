@@ -7,6 +7,7 @@ import 'package:mobile/features/dashboard/presentation/providers/donor_providers
 import 'package:mobile/features/dashboard/presentation/widgets/donor_campaign_cards.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.dart';
 import 'package:mobile/features/dashboard/screens/donation_details_screen.dart';
+import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 import 'package:mobile/features/dashboard/widgets/donations_page_widgets.dart';
 
 /// Browse and search every open event accepting donations — the same
@@ -47,13 +48,6 @@ class _DonorCampaignsTabState extends ConsumerState<DonorCampaignsTab> {
   bool get _hasActiveFilters =>
       _query.trim().isNotEmpty || _selectedCategory != 'All';
 
-  String _subtitle(int count) {
-    if (_query.trim().isNotEmpty) {
-      return '$count result${count == 1 ? '' : 's'} found';
-    }
-    return '$count drive${count == 1 ? '' : 's'} accepting donations';
-  }
-
   void _applySuggestion(String suggestion) {
     _searchController.text = suggestion;
     _searchController.selection = TextSelection.collapsed(
@@ -86,100 +80,89 @@ class _DonorCampaignsTabState extends ConsumerState<DonorCampaignsTab> {
       onTap: () => _searchFocusNode.unfocus(),
       child: ColoredBox(
         color: AppColors.background,
-        child: SafeArea(
-          bottom: false,
-          child: CustomScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            slivers: [
-              SliverToBoxAdapter(
-                child: DonationsPageHeader(
-                  title: 'Drives',
-                  subtitle: page.isLoading
-                      ? 'Loading drives accepting donations…'
-                      : _subtitle(campaigns.length),
+        child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(
+              child: DeepTabHeader(
+                title: 'Drives',
+                bottom: DonationSmartSearchBar(
+                  onDark: true,
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  query: _query,
+                  onQueryChanged: (value) => setState(() => _query = value),
+                  onSuggestionTap: _applySuggestion,
+                  onClear: _clearSearch,
+                  showSuggestions: showSuggestions,
+                  suggestions: suggestions,
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: DonationSmartSearchBar(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    query: _query,
-                    onQueryChanged: (value) => setState(() => _query = value),
-                    onSuggestionTap: _applySuggestion,
-                    onClear: _clearSearch,
-                    showSuggestions: showSuggestions,
-                    suggestions: suggestions,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                child: DonationCategoryFilters(
+                  categories: categories,
+                  selected: categories.contains(_selectedCategory)
+                      ? _selectedCategory
+                      : 'All',
+                  onSelected: (category) {
+                    setState(() => _selectedCategory = category);
+                    _searchFocusNode.unfocus();
+                  },
+                ),
+              ),
+            ),
+            ...page.when(
+              loading: () => const [
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  sliver: SliverToBoxAdapter(
+                    child: DonorCampaignListSkeleton(),
                   ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  child: DonationCategoryFilters(
-                    categories: categories,
-                    selected: categories.contains(_selectedCategory)
-                        ? _selectedCategory
-                        : 'All',
-                    onSelected: (category) {
-                      setState(() => _selectedCategory = category);
-                      _searchFocusNode.unfocus();
-                    },
-                  ),
-                ),
-              ),
-              ...page.when(
-                loading: () => const [
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    sliver: SliverToBoxAdapter(
-                      child: DonorCampaignListSkeleton(),
+              ],
+              error: (error, _) => [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  sliver: SliverToBoxAdapter(
+                    child: HomeStateCard.error(
+                      message: error is ApiException
+                          ? error.message
+                          : 'Could not load drives right now.',
+                      onRetry: () => ref.invalidate(donationCampaignsProvider),
                     ),
                   ),
-                ],
-                error: (error, _) => [
+                ),
+              ],
+              data: (_) => [
+                if (campaigns.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: DonationsEmptyState(
+                      query: _query,
+                      hasActiveFilters: _hasActiveFilters,
+                      onClearFilters: _clearFilters,
+                    ),
+                  )
+                else
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    sliver: SliverToBoxAdapter(
-                      child: HomeStateCard.error(
-                        message: error is ApiException
-                            ? error.message
-                            : 'Could not load drives right now.',
-                        onRetry: () =>
-                            ref.invalidate(donationCampaignsProvider),
-                      ),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final campaign = campaigns[index];
+                        return DonationCatalogCard(
+                          donation: campaign,
+                          onTap: () =>
+                              DonationDetailsScreen.open(context, campaign),
+                        );
+                      }, childCount: campaigns.length),
                     ),
                   ),
-                ],
-                data: (_) => [
-                  if (campaigns.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: DonationsEmptyState(
-                        query: _query,
-                        hasActiveFilters: _hasActiveFilters,
-                        onClearFilters: _clearFilters,
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final campaign = campaigns[index];
-                          return DonationCatalogCard(
-                            donation: campaign,
-                            onTap: () =>
-                                DonationDetailsScreen.open(context, campaign),
-                          );
-                        }, childCount: campaigns.length),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
