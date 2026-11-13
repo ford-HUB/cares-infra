@@ -1,9 +1,11 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { isEventVisibleTo } from '../../../shared/utils/event-audience';
 import {
   EventStatus,
   NotificationCategory,
@@ -141,9 +143,21 @@ export class UserRequestsMobileService {
         status: true,
         event_ended: true,
         beneficiary_applicable: true,
+        category: true,
+        department: true,
       },
     });
     if (!event) throw new NotFoundException('Event not found');
+    const schoolInfo = await this.prisma.userSchoolInfo.findFirst({
+      where: { user_id: userId },
+      select: { department: { select: { name: true } } },
+      orderBy: { updatedAt: 'desc' },
+    });
+    if (!isEventVisibleTo(event, schoolInfo?.department.name)) {
+      throw new ForbiddenException(
+        `This event is only open to ${event.department}`,
+      );
+    }
     if (!event.beneficiary_applicable) {
       throw new BadRequestException('This event is not open to beneficiaries');
     }

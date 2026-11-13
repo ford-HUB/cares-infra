@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -25,6 +26,10 @@ import {
 } from '../../../infastructures/microservices/nlp-service-client';
 import { RedisService } from '../../../infastructures/redis/redis-service';
 import { DurationUtils } from '../../../shared/utils/duration-utils';
+import {
+  eventAudienceWhere,
+  isEventVisibleTo,
+} from '../../../shared/utils/event-audience';
 import { geofenceRings } from '../../../shared/utils/geofence-utils';
 import { DonationsRepository } from '../../donations/repositories/donations-repository';
 import { InterestsRepository } from '../../interests/repositories/interests-repository';
@@ -80,7 +85,9 @@ export class EventsMobileService {
 
     const [catalog, events] = await Promise.all([
       this.interestsRepository.listActiveInterests(),
-      this.eventsRepository.findOpenForVolunteers(userId),
+      this.audienceFor(userId).then((audience) =>
+        this.eventsRepository.findOpenForVolunteers(userId, audience),
+      ),
     ]);
     if (events.length === 0) {
       return { has_interests: true, events: [] };
@@ -124,7 +131,10 @@ export class EventsMobileService {
   async listForBeneficiaries(
     userId: string,
   ): Promise<RegisteredEventsResponseDto> {
-    const events = await this.eventsRepository.findOpenForBeneficiaries(userId);
+    const events = await this.eventsRepository.findOpenForBeneficiaries(
+      userId,
+      await this.audienceFor(userId),
+    );
     return { events: await this.withApplications(userId, events) };
   }
 
@@ -133,7 +143,10 @@ export class EventsMobileService {
    * carries what has been raised so far so the cards can show progress.
    */
   async listForDonors(userId: string): Promise<DonationEventsResponseDto> {
-    const events = await this.eventsRepository.findOpenForDonors(userId);
+    const events = await this.eventsRepository.findOpenForDonors(
+      userId,
+      await this.audienceFor(userId),
+    );
     const totals = await this.donationsRepository.totalsByEvent(
       events.map((event) => event.event_id),
     );
@@ -148,8 +161,10 @@ export class EventsMobileService {
   async listCompletedForBeneficiaries(
     userId: string,
   ): Promise<RegisteredEventsResponseDto> {
-    const events =
-      await this.eventsRepository.findCompletedForBeneficiaries(userId);
+    const events = await this.eventsRepository.findCompletedForBeneficiaries(
+      userId,
+      await this.audienceFor(userId),
+    );
     return { events: await this.withApplications(userId, events) };
   }
 
@@ -211,6 +226,12 @@ export class EventsMobileService {
     if (!event) throw new NotFoundException('Event not found');
 
     const rows = await this.eventsRepository.findParticipants(eventId);
+    // Someone already holding a slot keeps seeing who else is going, even if the
+    // event was narrowed to another department after they joined.
+    const joined = rows.some((row) => row.user_id === userId);
+    if (!joined && !(await this.canSee(userId, event))) {
+      throw new NotFoundException('Event not found');
+    }
     return {
       event_id: eventId,
       participants: rows.map((row) => ({
@@ -237,6 +258,11 @@ export class EventsMobileService {
     role: EventParticipationRole = EventParticipationRole.REGULAR,
   ): Promise<EventRegistrationResponseDto> {
     const event = await this.assertOpen(eventId);
+    if (!(await this.canSee(userId, event))) {
+      throw new ForbiddenException(
+        `This event is only open to ${event.department}`,
+      );
+    }
 
     const counts = await this.withSerializationRetry(() =>
       this.eventsRepository.register(eventId, userId, role),
@@ -301,6 +327,24 @@ export class EventsMobileService {
       });
     }
     return this.toRegistrationDto(eventId, counts, null);
+  }
+
+  /** Query filter that hides School events scoped to another department. */
+  private async audienceFor(userId: string) {
+    return eventAudienceWhere(
+      await this.eventsRepository.findUserDepartment(userId),
+    );
+  }
+
+  /** Whether the user's department lets them see and join [event]. */
+  private async canSee(
+    userId: string,
+    event: { category: string; department: string | null },
+  ): Promise<boolean> {
+    return isEventVisibleTo(
+      event,
+      await this.eventsRepository.findUserDepartment(userId),
+    );
   }
 
   /** Registration only makes sense while the event is still ahead and accepting. */
