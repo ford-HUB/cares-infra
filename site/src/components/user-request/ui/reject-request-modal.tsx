@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Loader2, X, XCircle } from 'lucide-react'
 import { REJECTION_REASON_MAX_LENGTH } from '../../../constants/user-requests'
-import type { UserRequest } from '../../../types/user-request'
+import { isRegistrationRequest, type UserRequest } from '../../../types/user-request'
 
 interface RejectRequestModalProps {
   request: UserRequest
@@ -16,7 +16,10 @@ interface RejectRequestModalProps {
  * the app, and it is what tells them what to fix before they apply again.
  */
 export function RejectRequestModal({ request, busy, onConfirm, onClose }: RejectRequestModalProps) {
-  const registration = request.kind === 'beneficiary_registration'
+  const registration = isRegistrationRequest(request.kind)
+  const alumni = request.kind === 'alumni_registration'
+  const partnerBarangay = request.kind === 'partner_barangay_registration'
+  const manual = request.kind === 'manual_registration'
   const eventRole = request.kind === 'event_role'
   const residency = request.kind === 'residency_verification'
   const [reason, setReason] = useState('')
@@ -82,7 +85,13 @@ export function RejectRequestModal({ request, busy, onConfirm, onClose }: Reject
             rows={4}
             autoFocus
             placeholder={
-              registration
+              manual
+                ? 'e.g. The uploaded ID is unreadable, or its name and ID number do not match the details you entered. Please register again with a clearer photo of your ID.'
+                : alumni
+                ? 'e.g. The alumni ID is unreadable, or its name does not match the details you entered. Please register again with a clearer photo.'
+                : partnerBarangay
+                ? 'e.g. The supporting document does not show that you volunteer with the partner barangay you picked. Please register again with a barangay certification.'
+                : registration
                 ? 'e.g. The supporting document does not show your name or address. Visit the CARES office with your barangay certificate.'
                 : eventRole
                   ? 'e.g. The speaker line-up for this event is already complete.'

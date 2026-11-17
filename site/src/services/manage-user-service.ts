@@ -342,6 +342,7 @@ export async function provisionManagedUser(
       role_type: payload.role,
       ...(payload.volunteerType ? { volunteer_type: payload.volunteerType } : {}),
       ...(payload.department ? { department: payload.department } : {}),
+      ...(payload.partnerBarangay ? { partner_barangay: payload.partnerBarangay } : {}),
       ...(payload.permissions ? { permissions: payload.permissions } : {}),
       expires_in_hours: payload.expiresInHours,
     })

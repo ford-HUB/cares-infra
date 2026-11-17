@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -112,19 +113,21 @@ export class AccountSettingsAdminService {
     // so reaching here with null means something upstream let the wrong account through.
     hashedPassword: string | null,
   ): Promise<void> {
+    // 400, not 401: the caller is signed in, only the typed password is wrong. The
+    // site treats every 401 as an ended session and signs the user out.
     if (!hashedPassword) {
-      throw new UnauthorizedException('Current password is incorrect');
+      throw new BadRequestException('Current password is incorrect');
     }
 
     let matches = false;
     try {
       matches = await bcrypt.compare(plainPassword, hashedPassword);
     } catch {
-      throw new UnauthorizedException('Current password is incorrect');
+      throw new BadRequestException('Current password is incorrect');
     }
 
     if (!matches) {
-      throw new UnauthorizedException('Current password is incorrect');
+      throw new BadRequestException('Current password is incorrect');
     }
   }
 }

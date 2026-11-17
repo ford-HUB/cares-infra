@@ -2,7 +2,7 @@ export type RequestTab = 'access' | 'registration' | 'assistance'
 
 const TABS: { value: RequestTab; label: string }[] = [
   { value: 'access', label: 'Access & event requests' },
-  { value: 'registration', label: 'Beneficiary registrations' },
+  { value: 'registration', label: 'Registrations' },
   { value: 'assistance', label: 'Assistance requests' },
 ]
 

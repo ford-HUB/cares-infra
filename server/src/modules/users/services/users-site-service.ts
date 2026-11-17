@@ -485,12 +485,17 @@ export class UsersSiteService {
     const expiresAt = expiryFromNow(data.expires_in_hours);
     const role = await this.usersRepository.findOrCreateRole(data.role_type);
     const department = data.department?.trim() || null;
+    const partnerBarangay = data.partner_barangay ?? null;
+    // Where the account belongs — a UCLM department, or the partner barangay a
+    // community volunteer comes from. Used wherever the mail and notice name it.
+    const affiliation = department ?? partnerBarangay;
 
     const created = await this.usersRepository.createProvisionedUser({
       firstname,
       lastname,
       roleId: role.role_id,
       department,
+      partnerBarangay,
       // `User.phone_number` is unique and required; nobody's real number is known here.
       phoneNumber: generatePlaceholderPhone(),
       email,
@@ -517,7 +522,7 @@ export class UsersSiteService {
       password,
       roleLabel,
       portalAccount,
-      department,
+      department: affiliation,
       expiresAt,
       expiresInHours: data.expires_in_hours,
     });
@@ -552,6 +557,7 @@ export class UsersSiteService {
         account_kind: portalAccount ? 'portal' : 'app',
         volunteer_type: data.volunteer_type ?? 'none',
         department: department ?? 'none',
+        partner_barangay: partnerBarangay ?? 'none',
         recipient_email: recipientEmail,
         credentials_mailed: String(sent),
         granted: String(scopeChanges.granted),
@@ -561,7 +567,7 @@ export class UsersSiteService {
 
     await this.notificationScheduler.publish({
       title: `${roleLabel} account issued to ${recipientEmail}`,
-      description: `Signs in as ${email}${department ? ` · ${department}` : ''}. Credentials ${
+      description: `Signs in as ${email}${affiliation ? ` · ${affiliation}` : ''}. Credentials ${
         sent ? 'were emailed and' : 'were NOT emailed —'
       } expire ${formatNoticeDate(expiresAt)}.`,
       category: NotificationCategory.USER_REQUEST,
@@ -1027,7 +1033,10 @@ function provisionedRoleLabel(
   volunteerType?: ProvisionUserDto['volunteer_type'],
 ): string {
   const role = roleType.toLowerCase();
-  return volunteerType ? `${volunteerType.toLowerCase()} ${role}` : role;
+  // `PARTNER_BARANGAY` reads as "partner barangay volunteer", not "partner_barangay".
+  return volunteerType
+    ? `${volunteerType.toLowerCase().replace(/_/g, ' ')} ${role}`
+    : role;
 }
 
 function expiryFromNow(hours: number): Date {
@@ -1051,10 +1060,12 @@ function toManagedUser(row: ManagedUserRow): ManagedUserDto {
     email: account?.email ?? '',
     role_type: row.role.type,
     // Staff are provisioned into a portal department; volunteers and
-    // beneficiaries registered with a college on their school record.
+    // beneficiaries registered with a college on their school record; partner
+    // barangay volunteers belong to their barangay instead.
     department:
       row.portal_department?.trim() ||
       row.user_school_info[0]?.department.name ||
+      row.partner_barangay ||
       null,
     status: account?.is_restricted
       ? 'restricted'

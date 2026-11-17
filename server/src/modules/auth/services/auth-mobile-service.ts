@@ -1,10 +1,11 @@
 import {
   AuthRepository,
   registrationConflict,
-  type BeneficiaryRegistrationRequestInput,
+  type RegistrationReviewRequestInput,
 } from '../repositories/auth-repository';
 import {
   CreateUserDto,
+  NewUserAccountDto,
   ExtractIdResponseDto,
   IdOcrResultDto,
   LoginDto,
@@ -18,6 +19,7 @@ import {
   ResetPasswordResponseDto,
   VerifyResetOtpResponseDto,
   RegistrationSessionDto,
+  type ManualRegistrationVolunteerType,
   StartSessionResponseDto,
   UploadIdResponseDto,
   VerifyFaceResponseDto,
@@ -26,6 +28,7 @@ import {
   EmbeddingType,
   PermissionKey,
   RoleType,
+  UserRequestKind,
 } from '../../../infastructures/prisma/common/client';
 import {
   BadGatewayException,
@@ -55,7 +58,7 @@ import { AccessControlSiteService } from 'src/modules/access-control/services/ac
 import { isStaffVolunteerRole } from 'src/shared/constants/mobile-role-types';
 import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
 import { REGISTRATION_DOCUMENT_MAX_BYTES } from '../validators/auth-mobile-validator';
-import { BeneficiaryApprovalGate } from './beneficiary-approval-gate';
+import { RegistrationApprovalGate } from './registration-approval-gate';
 
 /** Wrong codes tolerated before the reset code is thrown away. */
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
@@ -79,7 +82,7 @@ export class AuthMobileService {
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
     private readonly auditLogRecorder: AuditLogRecorder,
     private readonly accessControlSiteService: AccessControlSiteService,
-    private readonly beneficiaryApprovalGate: BeneficiaryApprovalGate,
+    private readonly registrationApprovalGate: RegistrationApprovalGate,
   ) {}
 
   /**
@@ -105,8 +108,8 @@ export class AuthMobileService {
   }
 
   private async createAccount(
-    data: CreateUserDto,
-    registrationRequest?: BeneficiaryRegistrationRequestInput,
+    data: NewUserAccountDto,
+    registrationRequest?: RegistrationReviewRequestInput,
   ) {
     await this.loginPolicyEnforcer.assertPasswordMeetsPolicy(
       data.account.password,
@@ -263,9 +266,9 @@ export class AuthMobileService {
       await this.clearOtpState(email);
     }
 
-    // A self-registered beneficiary stays shut out until a director accepts the
-    // sign-up; the app turns this 403 into its "under review" screen.
-    await this.beneficiaryApprovalGate.assertApproved(
+    // A self-registered beneficiary or alumnus stays shut out until a director
+    // accepts the sign-up; the app turns this 403 into its "under review" screen.
+    await this.registrationApprovalGate.assertApproved(
       account.user.user_id,
       attempt,
     );
@@ -421,6 +424,110 @@ export class AuthMobileService {
   }
 
   /**
+   * Opens an alumni registration. An alumni ID is not a UCLM student ID, so it is
+   * not run through the student-ID classifier, the face matcher or OCR: the
+   * alumnus types their details in, and a director checks them against this ID
+   * before the account opens (an ALUMNI_REGISTRATION request).
+   */
+  async uploadAlumniID(
+    front: Express.Multer.File,
+    back: Express.Multer.File,
+  ): Promise<UploadIdResponseDto> {
+    return this.uploadReviewedID(front, back, 'alumni');
+  }
+
+  /**
+   * Opens a partner-barangay volunteer registration. The volunteer presents a
+   * valid ID (a barangay ID or another accepted ID) — not a UCLM school ID — so,
+   * as with an alumni ID, it skips the student-ID classifier, the face matcher and
+   * OCR. They type their details in, pick their partner barangay, and a director
+   * checks them before the account opens (a PARTNER_BARANGAY_REGISTRATION request).
+   */
+  async uploadPartnerBarangayID(
+    front: Express.Multer.File,
+    back: Express.Multer.File,
+  ): Promise<UploadIdResponseDto> {
+    return this.uploadReviewedID(front, back, 'partner_barangay');
+  }
+
+  /**
+   * Opens a manual registration for a staff or alumni volunteer whose ID photo
+   * the app could not recognize (blurry, unclear, or read with low accuracy).
+   * The registrant chose to register manually, so the ID is exempt from the
+   * automatic ID validation: it is not run through the ID classifier, the face
+   * matcher or OCR. The details are typed in, and a director verifies them
+   * against this ID before the account opens (a MANUAL_REGISTRATION request).
+   */
+  async uploadManualID(
+    front: Express.Multer.File,
+    back: Express.Multer.File,
+    volunteerType: ManualRegistrationVolunteerType,
+  ): Promise<UploadIdResponseDto> {
+    return this.uploadReviewedID(front, back, 'manual', volunteerType);
+  }
+
+  /** Stores the two sides of an ID a director reviews and opens its session. */
+  private async uploadReviewedID(
+    front: Express.Multer.File,
+    back: Express.Multer.File,
+    idKind: 'alumni' | 'partner_barangay' | 'manual',
+    manualVolunteerType?: ManualRegistrationVolunteerType,
+  ): Promise<UploadIdResponseDto> {
+    const idLabel = idKind === 'alumni' ? 'alumni ID' : 'ID';
+    const sides = [
+      ['front', front],
+      ['back', back],
+    ] as const;
+    for (const [label, file] of sides) {
+      if (!file.buffer?.length) {
+        throw new BadRequestException(
+          `The ${label} of the ${idLabel} is empty`,
+        );
+      }
+      if (file.mimetype && !file.mimetype.startsWith('image/')) {
+        throw new BadRequestException(
+          `The ${label} of the ${idLabel} must be a photo`,
+        );
+      }
+    }
+
+    const registrationId = randomUUID();
+    const safeName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const keyPrefix =
+      idKind === 'alumni'
+        ? 'alumni-id'
+        : idKind === 'manual'
+          ? 'manual-id'
+          : 'partner-barangay-id';
+    const idFrontImageUrl = await this.s3Service.uploadToS3(
+      `${registrationId}/${keyPrefix}-front-${safeName(front.originalname)}`,
+      front.buffer,
+    );
+    const idBackImageUrl = await this.s3Service.uploadToS3(
+      `${registrationId}/${keyPrefix}-back-${safeName(back.originalname)}`,
+      back.buffer,
+    );
+
+    await this.saveSession(registrationId, {
+      idFrontImageUrl,
+      idBackImageUrl,
+      roleType: RoleType.VOLUNTEER,
+      idKind,
+      ...(idKind === 'manual' ? { manualVolunteerType } : {}),
+      selfieUrl: null,
+      faceMatch: null,
+      faceSimilarity: null,
+      selfieEmbedding: null,
+      ocrData: null,
+      supportingDocument: null,
+      step: 'id_uploaded',
+      createdAt: Date.now(),
+    });
+
+    return { registrationId };
+  }
+
+  /**
    * Starts an ID-less registration session. Beneficiaries do not present a
    * school ID and do not scan a face; their details are typed in instead of
    * being read off an ID by OCR, and the email OTP is what vouches for them.
@@ -452,34 +559,47 @@ export class AuthMobileService {
   }
 
   /**
-   * Stores the supporting document a beneficiary attaches to their sign-up. Any file
-   * type is accepted — the director opens it while reviewing the registration. A
-   * second upload replaces the first, so the form can swap the file before submitting.
+   * Stores the document attached to a sign-up a director reviews: a beneficiary's
+   * supporting document, or an alumnus's Certificate of Graduation. Any file type is
+   * accepted — the director opens it while reviewing the registration. A second
+   * upload replaces the first, so the form can swap the file before submitting.
    */
   async uploadRegistrationDocument(
     registrationId: string,
     file: Express.Multer.File,
   ): Promise<RegistrationDocumentResponseDto> {
     const session = await this.requireSession(registrationId);
-    if (session.roleType !== RoleType.BENEFICIARY || session.idFrontImageUrl) {
+    // A manual alumni sign-up still files the alumni's Certificate of
+    // Graduation; a manual staff sign-up may attach a supporting document.
+    const isManual = session.idKind === 'manual';
+    const isAlumni =
+      session.idKind === 'alumni' ||
+      (isManual && session.manualVolunteerType === 'ALUMNI');
+    const isPartnerBarangay = session.idKind === 'partner_barangay';
+    const isBeneficiary =
+      session.roleType === RoleType.BENEFICIARY && !session.idFrontImageUrl;
+    if (!isAlumni && !isPartnerBarangay && !isBeneficiary && !isManual) {
       throw new BadRequestException(
-        'Supporting documents are only attached to beneficiary registrations',
+        'Documents are only attached to beneficiary, alumni, partner barangay and manual registrations',
       );
     }
+    const documentLabel = isAlumni
+      ? 'Certificate of Graduation'
+      : 'supporting document';
     if (!file.buffer?.length) {
       throw new BadRequestException('The attached file is empty');
     }
     if (file.size > REGISTRATION_DOCUMENT_MAX_BYTES) {
       const limitMb = REGISTRATION_DOCUMENT_MAX_BYTES / (1024 * 1024);
       throw new BadRequestException(
-        `The supporting document must be ${limitMb} MB or smaller`,
+        `The ${documentLabel} must be ${limitMb} MB or smaller`,
       );
     }
 
     const mime = file.mimetype || 'application/octet-stream';
     const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     const url = await this.s3Service.uploadToS3(
-      `${registrationId}/supporting-${Date.now()}-${safeName}`,
+      `${registrationId}/${isAlumni ? 'graduation-certificate' : 'supporting'}-${Date.now()}-${safeName}`,
       file.buffer,
       mime,
     );
@@ -511,6 +631,23 @@ export class AuthMobileService {
     if (!session.idFrontImageUrl) {
       throw new BadRequestException(
         'Face verification is only required for ID-backed registrations',
+      );
+    }
+    // An alumni, partner-barangay or manually registered ID is checked by a
+    // director, not matched against a face.
+    if (
+      session.idKind === 'alumni' ||
+      session.idKind === 'partner_barangay' ||
+      session.idKind === 'manual'
+    ) {
+      const who =
+        session.idKind === 'alumni'
+          ? 'Alumni'
+          : session.idKind === 'manual'
+            ? 'Manual'
+            : 'Partner barangay';
+      throw new BadRequestException(
+        `${who} registrations are reviewed by a director instead of face verification`,
       );
     }
 
@@ -596,6 +733,19 @@ export class AuthMobileService {
         'This registration has no uploaded ID to extract details from',
       );
     }
+    if (
+      session.idKind === 'alumni' ||
+      session.idKind === 'partner_barangay' ||
+      session.idKind === 'manual'
+    ) {
+      throw new BadRequestException(
+        session.idKind === 'alumni'
+          ? 'Alumni details are typed in, not read off the alumni ID'
+          : session.idKind === 'manual'
+            ? 'Manual registration details are typed in, not read off the ID'
+            : 'Partner barangay details are typed in, not read off the ID',
+      );
+    }
 
     if (session.step !== 'face_verified' || !session.faceMatch) {
       throw new BadRequestException(
@@ -665,27 +815,84 @@ export class AuthMobileService {
       );
     }
 
-    // The supporting document is what the director reviews before the account
-    // opens, so a beneficiary sign-up cannot be filed without one.
+    // An alumni session is locked to the Volunteer role it was opened for, and
+    // goes to a director instead of being face verified.
+    const isAlumni = session.idKind === 'alumni';
+    if (isAlumni && data.role_type !== RoleType.VOLUNTEER) {
+      throw new BadRequestException(
+        'An alumni registration can only create a volunteer account',
+      );
+    }
+
+    // A partner-barangay session is locked to the Volunteer role too, and must
+    // name the partner barangay the volunteer signs up through.
+    const isPartnerBarangay = session.idKind === 'partner_barangay';
+    if (isPartnerBarangay && data.role_type !== RoleType.VOLUNTEER) {
+      throw new BadRequestException(
+        'A partner barangay registration can only create a volunteer account',
+      );
+    }
+    if (isPartnerBarangay && !data.partner_barangay) {
+      throw new BadRequestException(
+        'Pick the partner barangay you are registering through',
+      );
+    }
+    // A manual registration (staff or alumni whose ID photo the app could not
+    // recognize) is locked to the Volunteer role too; its ID skipped the
+    // automatic checks and the face scan, so a director verifies it by hand.
+    const isManual = session.idKind === 'manual';
+    if (isManual && data.role_type !== RoleType.VOLUNTEER) {
+      throw new BadRequestException(
+        'A manual registration can only create a volunteer account',
+      );
+    }
+    const isManualAlumni = isManual && session.manualVolunteerType === 'ALUMNI';
+    const isDirectorReviewedId = isAlumni || isPartnerBarangay || isManual;
+    const requiresApproval = isIdLess || isDirectorReviewedId;
+
+    // The attached document is what the director reviews before the account
+    // opens — a beneficiary's or partner-barangay volunteer's supporting
+    // document, an alumnus's Certificate of Graduation — so none of these
+    // sign-ups can be filed without one.
     const supportingDocument = session.supportingDocument ?? null;
     if (isIdLess && !supportingDocument) {
       throw new BadRequestException(
         'Attach a supporting document before submitting your registration',
       );
     }
+    if ((isAlumni || isManualAlumni) && !supportingDocument) {
+      throw new BadRequestException(
+        'Attach your Certificate of Graduation before submitting your registration',
+      );
+    }
+    if (isPartnerBarangay && !supportingDocument) {
+      throw new BadRequestException(
+        'Attach a supporting document before submitting your registration',
+      );
+    }
 
-    if (!isIdLess && session.step !== 'ocr_completed') {
+    if (
+      !isIdLess &&
+      !isDirectorReviewedId &&
+      session.step !== 'ocr_completed'
+    ) {
       throw new BadRequestException(
         'OCR extraction must complete before registration',
       );
     }
 
     // Beneficiaries present no ID and enrol no face — their details are typed in
-    // and the email OTP is what vouches for them. Every ID-backed role still needs
-    // the face that was matched against the ID.
+    // and the email OTP is what vouches for them. Alumni present an alumni ID but
+    // enrol no face; a director checks the ID instead — and so do partner-barangay
+    // volunteers. Every other ID-backed role still needs the face that was
+    // matched against the ID.
     let biometric: CreateUserDto['biometric'];
     let schoolIdUrl: string | undefined;
-    if (session.idFrontImageUrl) {
+    if (session.idFrontImageUrl && isDirectorReviewedId) {
+      schoolIdUrl = this.s3Service.buildObjectUrl(
+        this.s3Service.resolveObjectKey(session.idFrontImageUrl),
+      );
+    } else if (session.idFrontImageUrl) {
       if (
         !session.faceMatch ||
         !session.selfieUrl ||
@@ -720,6 +927,48 @@ export class AuthMobileService {
     });
 
     const fullName = `${data.firstname} ${data.lastname}`.trim();
+    const actorName = fullName || 'Registrant';
+    let registrationRequest: RegistrationReviewRequestInput | undefined;
+    if (isManual) {
+      registrationRequest = {
+        kind: UserRequestKind.MANUAL_REGISTRATION,
+        summary: `Registered ${
+          isManualAlumni ? 'an alumni' : 'a staff'
+        } volunteer account manually — the app could not recognize the uploaded ID, so it skipped the automatic ID check and face scan. Verify the ID before approving.`,
+        actorName,
+        idFrontUrl: session.idFrontImageUrl ?? undefined,
+        idBackUrl: session.idBackImageUrl ?? undefined,
+        document: supportingDocument ?? undefined,
+      };
+    } else if (isAlumni) {
+      registrationRequest = {
+        kind: UserRequestKind.ALUMNI_REGISTRATION,
+        summary:
+          'Registered an alumni volunteer account and is waiting for approval to sign in.',
+        actorName,
+        idFrontUrl: session.idFrontImageUrl ?? undefined,
+        idBackUrl: session.idBackImageUrl ?? undefined,
+        document: supportingDocument ?? undefined,
+      };
+    } else if (isPartnerBarangay) {
+      registrationRequest = {
+        kind: UserRequestKind.PARTNER_BARANGAY_REGISTRATION,
+        summary: `Registered a volunteer account through ${data.partner_barangay} and is waiting for approval to sign in.`,
+        actorName,
+        idFrontUrl: session.idFrontImageUrl ?? undefined,
+        idBackUrl: session.idBackImageUrl ?? undefined,
+        document: supportingDocument ?? undefined,
+      };
+    } else if (supportingDocument) {
+      registrationRequest = {
+        kind: UserRequestKind.BENEFICIARY_REGISTRATION,
+        summary:
+          'Registered a beneficiary account and is waiting for approval to sign in.',
+        actorName,
+        document: supportingDocument,
+      };
+    }
+
     const user = await this.createAccount(
       {
         firstname: data.firstname,
@@ -734,17 +983,12 @@ export class AuthMobileService {
         account: data.account,
         school_info: { ...data.school_info, school_id_url: schoolIdUrl },
         biometric,
+        // Only a partner-barangay session keeps the barangay it was given.
+        partner_barangay: isPartnerBarangay ? data.partner_barangay : undefined,
       },
       // Filed in the same transaction as the account, so it can never sign in
       // without a review on record.
-      supportingDocument
-        ? {
-            summary:
-              'Registered a beneficiary account and is waiting for approval to sign in.',
-            actorName: fullName || 'Registrant',
-            document: supportingDocument,
-          }
-        : undefined,
+      registrationRequest,
     );
 
     const normalizedEmail = data.account.email.trim().toLowerCase();
@@ -755,7 +999,13 @@ export class AuthMobileService {
       action: 'auth.mobile.registered',
       description: isIdLess
         ? 'Account created with email verification; awaiting director approval'
-        : 'Account created with ID upload and face verification',
+        : isManual
+          ? `${isManualAlumni ? 'Alumni' : 'Staff'} account created through manual registration; awaiting director approval`
+          : isAlumni
+            ? 'Alumni account created with alumni ID upload; awaiting director approval'
+            : isPartnerBarangay
+              ? 'Partner barangay volunteer account created with ID upload; awaiting director approval'
+              : 'Account created with ID upload and face verification',
       category: 'AUTHENTICATION',
       actor: {
         sub: user.user_id,
@@ -768,10 +1018,18 @@ export class AuthMobileService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
       source: 'MOBILE',
-      metadata: { role: data.role_type },
+      metadata: {
+        role: data.role_type,
+        ...(isManual
+          ? {
+              manual_registration: 'true',
+              volunteer_type: session.manualVolunteerType ?? 'STAFF',
+            }
+          : {}),
+      },
     });
 
-    return { ...user, requires_approval: isIdLess };
+    return { ...user, requires_approval: requiresApproval };
   }
 
   async getRegistrationSession(

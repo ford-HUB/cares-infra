@@ -27,6 +27,7 @@ import {
   VerifyResetOtpSchema,
   LoginResponseSchema,
   LoginSchema,
+  ManualVolunteerTypeSchema,
   RegisterFromSessionSchema,
   RegisterUserResponseSchema,
   REGISTRATION_DOCUMENT_MAX_BYTES,
@@ -150,6 +151,126 @@ export class AuthMobileController {
     return await this.authMobileService.uploadID(front, back);
   }
 
+  /**
+   * An alumni ID (front and back). Not checked by the student-ID classifier or face
+   * matched — the director reviews it with the registration.
+   */
+  @Post('upload-alumni-id')
+  @Public()
+  @ResponseMessage('Alumni ID uploaded')
+  @ZSerialize(UploadIdResponseSchema)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'front', maxCount: 1 },
+        { name: 'back', maxCount: 1 },
+      ],
+      { limits: { fileSize: REGISTRATION_DOCUMENT_MAX_BYTES } },
+    ),
+  )
+  async uploadAlumniID(
+    @UploadedFiles()
+    files: {
+      front?: Express.Multer.File[];
+      back?: Express.Multer.File[];
+    },
+  ): Promise<UploadIdResponseDto> {
+    const front = files.front?.[0];
+    const back = files.back?.[0];
+
+    if (!front || !back) {
+      throw new BadRequestException(
+        'Front and back alumni ID images are required',
+      );
+    }
+
+    return await this.authMobileService.uploadAlumniID(front, back);
+  }
+
+  /**
+   * The valid ID (front and back) of a partner-barangay volunteer. Like an alumni
+   * ID it is not checked by the student-ID classifier or face matched — the
+   * director reviews it with the registration.
+   */
+  @Post('upload-partner-barangay-id')
+  @Public()
+  @ResponseMessage('Partner barangay ID uploaded')
+  @ZSerialize(UploadIdResponseSchema)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'front', maxCount: 1 },
+        { name: 'back', maxCount: 1 },
+      ],
+      { limits: { fileSize: REGISTRATION_DOCUMENT_MAX_BYTES } },
+    ),
+  )
+  async uploadPartnerBarangayID(
+    @UploadedFiles()
+    files: {
+      front?: Express.Multer.File[];
+      back?: Express.Multer.File[];
+    },
+  ): Promise<UploadIdResponseDto> {
+    const front = files.front?.[0];
+    const back = files.back?.[0];
+
+    if (!front || !back) {
+      throw new BadRequestException('Front and back ID images are required');
+    }
+
+    return await this.authMobileService.uploadPartnerBarangayID(front, back);
+  }
+
+  /**
+   * The ID (front and back) of a staff or alumni volunteer who chose manual
+   * registration after the app could not recognize their ID photo. It is exempt
+   * from the automatic ID validation and the face scan — the director verifies
+   * it by hand when reviewing the MANUAL_REGISTRATION request.
+   */
+  @Post('upload-manual-id')
+  @Public()
+  @ResponseMessage('ID uploaded for manual registration')
+  @ZSerialize(UploadIdResponseSchema)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'front', maxCount: 1 },
+        { name: 'back', maxCount: 1 },
+      ],
+      { limits: { fileSize: REGISTRATION_DOCUMENT_MAX_BYTES } },
+    ),
+  )
+  async uploadManualID(
+    @Body('volunteerType') volunteerType: string,
+    @UploadedFiles()
+    files: {
+      front?: Express.Multer.File[];
+      back?: Express.Multer.File[];
+    },
+  ): Promise<UploadIdResponseDto> {
+    const parsedType = ManualVolunteerTypeSchema.safeParse(
+      volunteerType?.trim().toUpperCase(),
+    );
+    if (!parsedType.success) {
+      throw new BadRequestException(
+        'Manual registration is only available to staff and alumni volunteers',
+      );
+    }
+
+    const front = files.front?.[0];
+    const back = files.back?.[0];
+    if (!front || !back) {
+      throw new BadRequestException('Front and back ID images are required');
+    }
+
+    return await this.authMobileService.uploadManualID(
+      front,
+      back,
+      parsedType.data,
+    );
+  }
+
   @Post('verify-face')
   @Public()
   @ResponseMessage('Face verification complete')
@@ -177,7 +298,8 @@ export class AuthMobileController {
   }
 
   /**
-   * The supporting document on a beneficiary sign-up. Multipart: `registrationId`
+   * The document on a sign-up a director reviews — a beneficiary's supporting
+   * document or an alumnus's Certificate of Graduation. Multipart: `registrationId`
    * beside a `document` file of any type; it rides on the registration session until
    * `register-from-session` files it with the director's review request.
    */

@@ -91,20 +91,36 @@ class _RegisterTypeSelectionScreenState
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              for (final type in VolunteerType.values) ...[
-                Expanded(
-                  child: _VolunteerTypeChip(
-                    label: type.label,
-                    isSelected: _selectedVolunteerType == type,
-                    onTap: () => setState(() => _selectedVolunteerType = type),
+          // Two chips per row, so a longer label like "Partner Barangay" fits.
+          for (
+            var start = 0;
+            start < VolunteerType.values.length;
+            start += 2
+          ) ...[
+            if (start > 0) const SizedBox(height: 8),
+            Row(
+              children: [
+                for (final type
+                    in VolunteerType.values.skip(start).take(2)) ...[
+                  if (type != VolunteerType.values[start])
+                    const SizedBox(width: 8),
+                  Expanded(
+                    child: _VolunteerTypeChip(
+                      label: type.label,
+                      isSelected: _selectedVolunteerType == type,
+                      onTap: () =>
+                          setState(() => _selectedVolunteerType = type),
+                    ),
                   ),
-                ),
-                if (type != VolunteerType.values.last) const SizedBox(width: 8),
+                ],
+                // Keeps a lone last chip half-width instead of stretching it.
+                if (start + 1 >= VolunteerType.values.length) ...[
+                  const SizedBox(width: 8),
+                  const Spacer(),
+                ],
               ],
-            ],
-          ),
+            ),
+          ],
           const SizedBox(height: 10),
           Text(
             _volunteerTypeHint,
@@ -132,6 +148,9 @@ class _RegisterTypeSelectionScreenState
       'You will upload your school ID and confirm your department.',
     VolunteerType.alumni =>
       'You will upload your school ID and confirm your course and graduation year.',
+    VolunteerType.partnerBarangay =>
+      'You will upload a valid ID and pick the partner barangay you volunteer '
+          'with. A CARES director reviews your sign-up before your account opens.',
   };
 
   @override

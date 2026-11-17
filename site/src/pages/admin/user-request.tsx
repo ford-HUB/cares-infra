@@ -11,7 +11,7 @@ import { RejectRequestModal } from '../../components/user-request/ui/reject-requ
 import { UserRequestTimelineSkeleton } from '../../components/user-request/ui/user-request-timeline-skeleton'
 import { useAssistanceRequestReview } from '../../hooks/use-assistance-request-review'
 import { useUserRequestStore } from '../../store/user-request-store'
-import type { UserRequest } from '../../types/user-request'
+import { isRegistrationRequest, type UserRequest } from '../../types/user-request'
 
 export function UserRequestPage() {
   const requests = useUserRequestStore((s) => s.requests)
@@ -32,11 +32,13 @@ export function UserRequestPage() {
   const assistance = useAssistanceRequestReview()
   // Sign-up reviews get their own tab; the access tab keeps role and event requests.
   const accessRequests = useMemo(
-    () => requests.filter((request) => request.kind !== 'beneficiary_registration'),
+    () => requests.filter((request) => !isRegistrationRequest(request.kind)),
     [requests],
   )
+  // Beneficiary and alumni sign-ups share one queue: both keep the account shut
+  // until a director approves it.
   const registrations = useMemo(
-    () => requests.filter((request) => request.kind === 'beneficiary_registration'),
+    () => requests.filter((request) => isRegistrationRequest(request.kind)),
     [requests],
   )
   const pendingAccess = useMemo(
@@ -84,7 +86,7 @@ export function UserRequestPage() {
     void runDecision(
       request,
       () => accept(request.id),
-      request.kind === 'beneficiary_registration'
+      isRegistrationRequest(request.kind)
         ? `${request.reference} approved — the account can now sign in`
         : request.kind === 'residency_verification'
           ? `${request.reference} approved — the beneficiary profile is now complete`
@@ -126,7 +128,7 @@ export function UserRequestPage() {
     <ContentShell>
       <InlinePageHeader
         title="User Request"
-        description="Volunteer access requests, beneficiary event-join requests, proof-of-residency reviews, new beneficiary registrations, and beneficiaries' assistance requests, submitted from the mobile app."
+        description="Volunteer access requests, beneficiary event-join requests, proof-of-residency reviews, new beneficiary and alumni registrations, and beneficiaries' assistance requests, submitted from the mobile app."
         action={
           // The bin belongs to the access queue; assistance requests are never deleted.
           tab === 'access' && (
@@ -187,7 +189,7 @@ export function UserRequestPage() {
               onDelete={handleDelete}
               emptyMessage={
                 tab === 'registration'
-                  ? 'No beneficiary registrations yet.'
+                  ? 'No beneficiary or alumni registrations yet.'
                   : 'No requests are waiting for review.'
               }
             />

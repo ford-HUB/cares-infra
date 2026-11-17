@@ -129,7 +129,7 @@ describe('Login — invalid inputs', () => {
     it('layer 2 — api refuses and records "No account matches this email"', async () => {
       await expectNotSignedIn({ ...VALID_LOGIN, email: 'nobody@cares.ph' }, 401, INVALID_CREDENTIALS);
       expect(ctx.activity.record).toHaveBeenCalledWith(
-        expect.objectContaining({ outcome: 'INVALID_CREDENTIALS', failureReason: 'Invalid email or password' }),
+        expect.objectContaining({ outcome: 'INVALID_CREDENTIALS', failureReason: 'No account matches this email' }),
       );
     });
   });

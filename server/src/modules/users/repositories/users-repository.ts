@@ -21,6 +21,7 @@ const managedUserSelect = {
   firstname: true,
   lastname: true,
   portal_department: true,
+  partner_barangay: true,
   createdAt: true,
   accounts: {
     select: {
@@ -56,6 +57,8 @@ export interface CreateProvisionedUserInput {
   lastname: string;
   roleId: string;
   department: string | null;
+  /** Partner-barangay volunteers only — the barangay stands in for a department. */
+  partnerBarangay: string | null;
   phoneNumber: string;
   email: string;
   passwordHash: string;
@@ -242,6 +245,7 @@ export class UsersRepository {
         current_address: '',
         phone_number: input.phoneNumber,
         portal_department: input.department,
+        partner_barangay: input.partnerBarangay,
         role_id: input.roleId,
         accounts: {
           create: {

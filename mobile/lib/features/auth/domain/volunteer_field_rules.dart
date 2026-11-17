@@ -40,6 +40,7 @@ abstract final class VolunteerFieldRules {
           return 'Enter a year from $earliestAlumniYear to $currentYear';
         }
       case VolunteerType.staff:
+      case VolunteerType.partnerBarangay:
         break;
     }
     return null;

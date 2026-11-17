@@ -9,6 +9,7 @@ import { useManageUsersStore } from '../store/manage-users-store'
 import type { CredentialDelivery, IssuedCredentials } from '../types/manage-users'
 import type { PermissionKey } from '../types/access-control'
 import {
+  isPartnerBarangayVolunteer,
   provisionUserDefaultValues,
   provisionUserSchema,
   resolveProvisionRole,
@@ -58,6 +59,7 @@ export function useProvisionUserForm(onCreated?: () => void) {
   const recipientEmail = form.watch('recipientEmail')
   const resolvedRole = resolveProvisionRole({ role, regularUserType })
   const { roleType, isPortalRole } = resolvedRole
+  const isPartnerBarangay = isPartnerBarangayVolunteer({ role, regularUserType })
 
   useEffect(() => {
     void fetchCatalog()
@@ -181,17 +183,20 @@ export function useProvisionUserForm(onCreated?: () => void) {
     }
 
     const submitted = resolveProvisionRole(values)
+    const partnerBarangay = isPartnerBarangayVolunteer(values)
     const result = await provisionUser({
       mode: values.mode,
       ...(values.mode === 'manual' ? { email: values.email } : {}),
       recipientEmail: verdict.email,
       role: submitted.roleType,
       volunteerType: submitted.volunteerType ?? undefined,
-      // Donors and beneficiaries are not tied to a department.
+      // Donors and beneficiaries are not tied to a department, and a partner-barangay
+      // volunteer belongs to their barangay instead.
       department:
-        submitted.isPortalRole || submitted.volunteerType
+        !partnerBarangay && (submitted.isPortalRole || submitted.volunteerType)
           ? values.department || undefined
           : undefined,
+      partnerBarangay: partnerBarangay ? values.partnerBarangay || undefined : undefined,
       // App accounts carry no portal rights, so there is no scope to send.
       permissions: submitted.isPortalRole && scopeCustomised ? [...selected] : undefined,
       expiresInHours: values.expiresInHours,
@@ -217,7 +222,9 @@ export function useProvisionUserForm(onCreated?: () => void) {
     form,
     mode,
     isRegularUser: !isPortalRole,
-    showDepartment: isPortalRole || resolvedRole.volunteerType !== null,
+    showDepartment:
+      !isPartnerBarangay && (isPortalRole || resolvedRole.volunteerType !== null),
+    showPartnerBarangay: isPartnerBarangay,
     onSubmit,
     submitting: form.formState.isSubmitting,
     catalog,

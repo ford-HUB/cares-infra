@@ -49,7 +49,7 @@ import { SendChatMessageSchema } from '../../../../../src/modules/chat/validator
     describe('POST /api/v1/chat/conversations/:contactId/messages', () => {
       const send = () =>
         runApiLayer(ctx.app, { method: 'post', path: sendPath(VALID_CONTACT_ID), body: VALID_MESSAGE });
-
+        
       asCase('invalid', 'The service fails with an unexpected internal or database error').it('masks an unexpected service error as a 500 without leaking detail', async () => {
         ctx.service.sendMessage.mockRejectedValueOnce(new Error('syntax error at or near "OR"'));
         const outcome = await send();
@@ -86,13 +86,15 @@ import { SendChatMessageSchema } from '../../../../../src/modules/chat/validator
         expect(outcome.body).toEqual({ ok: false, message: 'Internal server error' });
       });
 
-      asCase('invalid', 'Request made when there is no conversation yet', 'Request fails with 404; status and message are kept in the { ok: false } envelope').it('keeps the 404 when there is no conversation yet', async () => {
+      asCase('invalid', 'Request made when there is no conversation yet',
+         'Request fails with 404; status and message are kept in the { ok: false } envelope').it('keeps the 404 when there is no conversation yet',
+           async () => {
         ctx.service.markRead.mockRejectedValueOnce(new NotFoundException('No conversation with that contact yet'));
         const outcome = await read();
         expect(outcome.status).toBe(404);
         expectSafeErrorEnvelope(outcome);
         expect(outcome.body.message).toBe('No conversation with that contact yet');
-      });
+      }); 
     });
   });
 }

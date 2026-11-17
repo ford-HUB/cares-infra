@@ -163,7 +163,7 @@ class _BeneficiaryRegistrationFormStepState
   Widget _nameSection() {
     return RegistrationFormCard(
       icon: Icons.badge_outlined,
-      title: 'Your name',
+      title: 'Personal Information',
       subtitle: 'Use the name that appears on your valid ID.',
       children: [
         RegisterFormField(
@@ -296,7 +296,7 @@ class _BeneficiaryRegistrationFormStepState
 
     return RegistrationFormCard(
       icon: Icons.lock_outline_rounded,
-      title: 'Sign-in details',
+      title: 'Account Information',
       subtitle: 'Used every time you sign in to CARES.',
       children: [
         RegisterFormField(

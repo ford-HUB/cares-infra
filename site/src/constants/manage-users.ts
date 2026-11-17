@@ -1,4 +1,5 @@
 import type { ManagedUser, ManagedUserVerificationStatus } from '../types/manage-users'
+import { LANDING_PARTNER_BARANGAYS } from './landing-home'
 
 /** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const USER_ROW_HEIGHT_PX = 44
@@ -36,10 +37,13 @@ export const PROVISIONABLE_ROLES = [
   { value: REGULAR_USER_ROLE, label: 'Regular User' },
 ] as const
 
+/** The Regular User type for a volunteer from one of the adopted partner barangays. */
+export const PARTNER_BARANGAY_USER_TYPE = 'VOLUNTEER_PARTNER_BARANGAY'
+
 /**
- * The kinds of app account a Regular User can be. Student, staff and alumni are all the
- * `VOLUNTEER` role, told apart by `volunteerType` (the same STUDENT / STAFF / ALUMNI
- * values the mobile app's `VolunteerType` sends).
+ * The kinds of app account a Regular User can be. Student, staff, alumni and partner
+ * barangay are all the `VOLUNTEER` role, told apart by `volunteerType` (the same STUDENT /
+ * STAFF / ALUMNI / PARTNER_BARANGAY values the mobile app's `VolunteerType` sends).
  */
 export const REGULAR_USER_TYPES = [
   {
@@ -62,6 +66,13 @@ export const REGULAR_USER_TYPES = [
     group: 'Volunteer',
     roleType: 'VOLUNTEER',
     volunteerType: 'ALUMNI',
+  },
+  {
+    value: PARTNER_BARANGAY_USER_TYPE,
+    label: 'Partner Barangay',
+    group: 'Volunteer',
+    roleType: 'VOLUNTEER',
+    volunteerType: 'PARTNER_BARANGAY',
   },
   {
     value: 'DONOR',
@@ -104,6 +115,15 @@ export const PROVISIONABLE_DEPARTMENTS = [
   'Basic Education (Elementary)',
   'Non-Teaching Personnel',
 ].map((name) => ({ value: name, label: name }))
+
+/**
+ * The partner barangays a partner-barangay volunteer can belong to. Taken from the
+ * landing page's partner list, which mirrors `PARTNER_BARANGAYS` on the server and
+ * `PartnerBarangays.names` in the mobile app — the server accepts only these names.
+ */
+export const PROVISIONABLE_PARTNER_BARANGAYS = LANDING_PARTNER_BARANGAYS.map(
+  (partner) => ({ value: partner.name, label: partner.name }),
+)
 
 /** Mirrors CREDENTIAL_MIN_HOURS/MAX_HOURS on the server — a stricter range is a 400. */
 export const CREDENTIAL_MIN_HOURS = 1

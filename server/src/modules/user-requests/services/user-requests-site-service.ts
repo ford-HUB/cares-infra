@@ -13,6 +13,7 @@ import {
   NotificationCategory,
   NotificationTone,
   RoleType,
+  UserRequestKind,
 } from '../../../infastructures/prisma/common/client';
 import type { PublishNotificationInput } from '../../notifications/dto/notifications-site-dto';
 import { NotificationScheduler } from '../../../schedulers/jobs/notification-scheduler';
@@ -99,12 +100,11 @@ export class UserRequestsSiteService {
             status: 'ACCEPTED',
             decidedByUserId: callerId,
             trail: {
-              label:
-                row.kind === 'BENEFICIARY_REGISTRATION'
-                  ? 'Registration approved — the account can now sign in'
-                  : row.kind === 'RESIDENCY_VERIFICATION'
-                    ? 'Proof of residency approved — the beneficiary profile is complete'
-                    : 'Request accepted — beneficiary approved for the event',
+              label: isRegistrationReview(row.kind)
+                ? 'Registration approved — the account can now sign in'
+                : row.kind === 'RESIDENCY_VERIFICATION'
+                  ? 'Proof of residency approved — the beneficiary profile is complete'
+                  : 'Request accepted — beneficiary approved for the event',
               actorName,
             },
           });
@@ -154,12 +154,11 @@ export class UserRequestsSiteService {
       decidedByUserId: callerId,
       rejectionReason: body.reason,
       trail: {
-        label:
-          row.kind === 'BENEFICIARY_REGISTRATION'
-            ? `Registration rejected — ${body.reason}`
-            : row.kind === 'RESIDENCY_VERIFICATION'
-              ? `Proof of residency rejected — ${body.reason}`
-              : `Request rejected — ${body.reason}`,
+        label: isRegistrationReview(row.kind)
+          ? `Registration rejected — ${body.reason}`
+          : row.kind === 'RESIDENCY_VERIFICATION'
+            ? `Proof of residency rejected — ${body.reason}`
+            : `Request rejected — ${body.reason}`,
         actorName,
       },
     });
@@ -171,9 +170,9 @@ export class UserRequestsSiteService {
     const row = await this.requireRow(id);
     // A removed registration would leave the account shut with no decision on
     // record — it is approved or rejected, never binned.
-    if (row.kind === 'BENEFICIARY_REGISTRATION') {
+    if (isRegistrationReview(row.kind)) {
       throw new BadRequestException(
-        'Approve or reject a beneficiary registration instead of removing it',
+        'Approve or reject a registration instead of removing it',
       );
     }
     if (row.status !== 'PENDING') {
@@ -291,7 +290,7 @@ export class UserRequestsSiteService {
       dedupeKey: `user-request:${row.user_request_id}:${status}:${row.trail.length}`,
     };
 
-    if (row.kind === 'BENEFICIARY_REGISTRATION') {
+    if (isRegistrationReview(row.kind)) {
       await this.notifyRegistrant(row, status, reference);
       return;
     }
@@ -425,16 +424,36 @@ export class UserRequestsSiteService {
   ): Promise<void> {
     if (status !== 'ACCEPTED' && status !== 'REJECTED') return;
     const approved = status === 'ACCEPTED';
+    const alumni = row.kind === 'ALUMNI_REGISTRATION';
+    const partnerBarangay = row.kind === 'PARTNER_BARANGAY_REGISTRATION';
+    // A manual registration is a staff or alumni sign-up whose ID the app
+    // could not recognize.
+    const manual = row.kind === 'MANUAL_REGISTRATION';
+    // Alumni, partner-barangay and manual sign-ups all open a volunteer account.
+    const volunteer = alumni || partnerBarangay || manual;
+    const registrationLabel = alumni
+      ? 'alumni'
+      : partnerBarangay
+        ? 'partner barangay'
+        : manual
+          ? 'manual'
+          : 'beneficiary';
 
     if (approved) {
       await this.notificationScheduler.publish({
-        title: 'Your beneficiary account is approved',
-        description: `${reference} was approved. Welcome to CARES — you can now apply for events and request assistance.`,
+        title: manual
+          ? 'Your volunteer account is approved'
+          : volunteer
+            ? `Your ${registrationLabel} volunteer account is approved`
+            : 'Your beneficiary account is approved',
+        description: volunteer
+          ? `${reference} was approved. Welcome to CARES — you can now join events as a volunteer.`
+          : `${reference} was approved. Welcome to CARES — you can now apply for events and request assistance.`,
         category: NotificationCategory.USER_REQUEST,
         tone: NotificationTone.INFO,
         href: `/requests/${row.user_request_id}`,
         userIds: [row.user_id],
-        audienceRole: RoleType.BENEFICIARY,
+        audienceRole: volunteer ? RoleType.VOLUNTEER : RoleType.BENEFICIARY,
         dedupeKey: `user-request:${row.user_request_id}:${status}:${row.trail.length}`,
       });
     }
@@ -452,6 +471,14 @@ export class UserRequestsSiteService {
           username: row.user.firstname || email,
           reference,
           approved,
+          registrationLabel,
+          accountLabel: alumni
+            ? 'an alumni volunteer'
+            : partnerBarangay
+              ? 'a partner barangay volunteer'
+              : manual
+                ? 'a volunteer'
+                : 'a beneficiary',
           reason: row.rejection_reason ?? 'No reason was given.',
         },
       );
@@ -505,6 +532,19 @@ export class UserRequestsSiteService {
     const name = await this.userRequestsRepository.findUserName(callerId);
     return name ? `${name.firstname} ${name.lastname}`.trim() : 'Portal staff';
   }
+}
+
+/**
+ * A sign-up review (beneficiary, alumni, partner barangay or manual): approving it is what lets the
+ * account sign in, so it is never binned and the decision goes out by email.
+ */
+function isRegistrationReview(kind: UserRequestKind): boolean {
+  return (
+    kind === UserRequestKind.BENEFICIARY_REGISTRATION ||
+    kind === UserRequestKind.ALUMNI_REGISTRATION ||
+    kind === UserRequestKind.PARTNER_BARANGAY_REGISTRATION ||
+    kind === UserRequestKind.MANUAL_REGISTRATION
+  );
 }
 
 function roleLabel(role: RoleType): string {

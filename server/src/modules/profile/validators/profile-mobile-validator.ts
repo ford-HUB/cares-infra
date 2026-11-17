@@ -59,6 +59,12 @@ export const VolunteerProfileSectionSchema = z.object({
    * uploaded a school record, so the app hides that section.
    */
   access_granted_by_director: z.boolean(),
+  /**
+   * The partner barangay a community volunteer signed up through, or null for a
+   * school volunteer. Such accounts have no school record, so the app hides that
+   * section.
+   */
+  partner_barangay: z.string().nullable(),
   service_hours: z.number(),
   activities_completed: z.number(),
   activities_registered: z.number(),

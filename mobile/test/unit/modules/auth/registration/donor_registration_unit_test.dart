@@ -75,8 +75,7 @@ class _Recorder {
 
   List<String> get paths => requests.map((r) => r.url.path).toList();
 
-  http.Request to(String path) =>
-      requests.lastWhere((r) => r.url.path == path);
+  http.Request to(String path) => requests.lastWhere((r) => r.url.path == path);
 
   Map<String, dynamic> jsonOf(http.Request request) =>
       jsonDecode(request.body) as Map<String, dynamic>;
@@ -96,10 +95,9 @@ http.Response _ok(Map<String, dynamic> data) =>
 http.Response _fail(int status, String message, [List<Object>? errors]) =>
     _json(status, {'ok': false, 'message': message, 'errors': ?errors});
 
-http.Response _conflict(String path, String message) =>
-    _fail(409, message, [
-      {'path': path, 'message': message},
-    ]);
+http.Response _conflict(String path, String message) => _fail(409, message, [
+  {'path': path, 'message': message},
+]);
 
 /// The session `/donor/register*` and a known donor's `/donor/oauth` return.
 Map<String, dynamic> _donorSession({String email = _email}) => {
@@ -216,11 +214,13 @@ void main() {
     DonorSession.instance.signOut();
   });
 
-  test('the fixture address is complete and formats as the server stores it',
-      () {
-    expect(_address().isComplete, isTrue);
-    expect(_address().formatted, _formattedAddress);
-  });
+  test(
+    'the fixture address is complete and formats as the server stores it',
+    () {
+      expect(_address().isComplete, isTrue);
+      expect(_address().formatted, _formattedAddress);
+    },
+  );
 
   // -------------------------------------------------------------------------
   // Email + password route
@@ -240,31 +240,33 @@ void main() {
       expect(rec.last.headers.containsKey('Authorization'), isFalse);
     });
 
-    test('trims the details, normalises the phone, keeps the password',
-        () async {
-      final rec = _Recorder();
+    test(
+      'trims the details, normalises the phone, keeps the password',
+      () async {
+        final rec = _Recorder();
 
-      await _registerWithEmail(
-        rec.donor(),
-        email: '  $_email ',
-        password: ' Donate#2026 ',
-        firstName: ' Ana ',
-        middleName: ' M. ',
-        lastName: ' Reyes ',
-        phoneNumber: '0918 765 4321',
-        address: '  $_formattedAddress ',
-      );
+        await _registerWithEmail(
+          rec.donor(),
+          email: '  $_email ',
+          password: ' Donate#2026 ',
+          firstName: ' Ana ',
+          middleName: ' M. ',
+          lastName: ' Reyes ',
+          phoneNumber: '0918 765 4321',
+          address: '  $_formattedAddress ',
+        );
 
-      expect(rec.body, {
-        'email': _email,
-        'password': ' Donate#2026 ',
-        'firstname': 'Ana',
-        'middle_name': 'M.',
-        'lastname': 'Reyes',
-        'phone_number': '+639187654321',
-        'current_address': _formattedAddress,
-      });
-    });
+        expect(rec.body, {
+          'email': _email,
+          'password': ' Donate#2026 ',
+          'firstname': 'Ana',
+          'middle_name': 'M.',
+          'lastname': 'Reyes',
+          'phone_number': '+639187654321',
+          'current_address': _formattedAddress,
+        });
+      },
+    );
 
     test('an empty middle name is sent as "" rather than left out', () async {
       final rec = _Recorder();
@@ -306,24 +308,26 @@ void main() {
       );
     });
 
-    test('a taken phone number is a phone conflict the form can focus',
-        () async {
-      final rec = _Recorder(
-        (_) async => _conflict(
-          'phone_number',
-          'This phone number is already registered',
-        ),
-      );
+    test(
+      'a taken phone number is a phone conflict the form can focus',
+      () async {
+        final rec = _Recorder(
+          (_) async => _conflict(
+            'phone_number',
+            'This phone number is already registered',
+          ),
+        );
 
-      try {
-        await _registerWithEmail(rec.donor());
-        fail('expected ApiException');
-      } on ApiException catch (e) {
-        final conflict = RegistrationConflict.fromException(e);
-        expect(conflict?.field, RegistrationConflictField.phoneNumber);
-        expect(conflict?.message, 'This phone number is already registered');
-      }
-    });
+        try {
+          await _registerWithEmail(rec.donor());
+          fail('expected ApiException');
+        } on ApiException catch (e) {
+          final conflict = RegistrationConflict.fromException(e);
+          expect(conflict?.field, RegistrationConflictField.phoneNumber);
+          expect(conflict?.message, 'This phone number is already registered');
+        }
+      },
+    );
 
     test('a weak password surfaces the Zod message and errors', () async {
       final rec = _Recorder(
@@ -350,27 +354,29 @@ void main() {
       );
     });
 
-    test('a network failure is wrapped in a "Cannot reach API" ApiException',
-        () async {
-      final service = DonorAuthService(
-        apiClient: ApiClient(
-          client: MockClient(
-            (_) async => throw const SocketException('Connection refused'),
+    test(
+      'a network failure is wrapped in a "Cannot reach API" ApiException',
+      () async {
+        final service = DonorAuthService(
+          apiClient: ApiClient(
+            client: MockClient(
+              (_) async => throw const SocketException('Connection refused'),
+            ),
           ),
-        ),
-      );
+        );
 
-      await expectLater(
-        _registerWithEmail(service),
-        throwsA(
-          isA<ApiException>().having(
-            (e) => e.message,
-            'message',
-            contains('Cannot reach API at $_origin$_registerEmailPath'),
+        await expectLater(
+          _registerWithEmail(service),
+          throwsA(
+            isA<ApiException>().having(
+              (e) => e.message,
+              'message',
+              contains('Cannot reach API at $_origin$_registerEmailPath'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -378,34 +384,36 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('POST /auth/donor/oauth (new donor)', () {
-    test('a new provider account comes back with a profile and a ticket',
-        () async {
-      final rec = _Recorder();
+    test(
+      'a new provider account comes back with a profile and a ticket',
+      () async {
+        final rec = _Recorder();
 
-      final result = await rec.donor().exchangeProviderToken(
-        const SocialAuthToken(
-          provider: SocialAuthProvider.google,
-          token: 'google.id.token',
-        ),
-      );
+        final result = await rec.donor().exchangeProviderToken(
+          const SocialAuthToken(
+            provider: SocialAuthProvider.google,
+            token: 'google.id.token',
+          ),
+        );
 
-      expect(rec.body, {'provider': 'GOOGLE', 'token': 'google.id.token'});
-      expect(rec.last.headers.containsKey('Authorization'), isFalse);
+        expect(rec.body, {'provider': 'GOOGLE', 'token': 'google.id.token'});
+        expect(rec.last.headers.containsKey('Authorization'), isFalse);
 
-      expect(result.needsRegistration, isTrue);
-      expect(result.isSignedIn, isFalse);
-      expect(result.session, isNull);
-      expect(result.oauthTicket, _ticket);
-      expect(result.profile!.provider, SocialAuthProvider.google);
-      expect(result.profile!.email, 'ana.g@gmail.com');
-      expect(result.profile!.firstName, 'Ana');
-      expect(result.profile!.middleName, 'M.');
-      expect(result.profile!.lastName, 'Reyes');
-      expect(
-        result.profile!.avatarUrl,
-        'https://lh3.googleusercontent.com/a/ana',
-      );
-    });
+        expect(result.needsRegistration, isTrue);
+        expect(result.isSignedIn, isFalse);
+        expect(result.session, isNull);
+        expect(result.oauthTicket, _ticket);
+        expect(result.profile!.provider, SocialAuthProvider.google);
+        expect(result.profile!.email, 'ana.g@gmail.com');
+        expect(result.profile!.firstName, 'Ana');
+        expect(result.profile!.middleName, 'M.');
+        expect(result.profile!.lastName, 'Reyes');
+        expect(
+          result.profile!.avatarUrl,
+          'https://lh3.googleusercontent.com/a/ana',
+        );
+      },
+    );
 
     test('a known donor is signed in instead of registered', () async {
       final rec = _Recorder(
@@ -425,8 +433,7 @@ void main() {
       expect(result.session!.roleType, 'DONOR');
     });
 
-    test('registration_required without a ticket cannot be finished',
-        () async {
+    test('registration_required without a ticket cannot be finished', () async {
       final rec = _Recorder(
         (_) async => _ok({
           'status': 'registration_required',
@@ -486,15 +493,17 @@ void main() {
       });
     });
 
-    test('never sends an email or password — the ticket carries the identity',
-        () async {
-      final rec = _Recorder();
+    test(
+      'never sends an email or password — the ticket carries the identity',
+      () async {
+        final rec = _Recorder();
 
-      await _registerWithTicket(rec.donor());
+        await _registerWithTicket(rec.donor());
 
-      expect(rec.body.containsKey('email'), isFalse);
-      expect(rec.body.containsKey('password'), isFalse);
-    });
+        expect(rec.body.containsKey('email'), isFalse);
+        expect(rec.body.containsKey('password'), isFalse);
+      },
+    );
 
     test('returns the session for the provider-verified email', () async {
       final rec = _Recorder();
@@ -508,10 +517,8 @@ void main() {
 
     test('a spent or expired ticket is a 401 the screen resets on', () async {
       final rec = _Recorder(
-        (_) async => _fail(
-          401,
-          'That sign-in expired. Tap the provider button again.',
-        ),
+        (_) async =>
+            _fail(401, 'That sign-in expired. Tap the provider button again.'),
       );
 
       await expectLater(
@@ -602,110 +609,118 @@ void main() {
       expect(session.roleType, 'DONOR');
     });
 
-    test('email route: a wrong code stops before the account is created',
-        () async {
-      final rec = _Recorder((request) async {
-        if (request.url.path == _verifyOtpPath) {
-          return _fail(400, 'Invalid or expired verification code');
-        }
-        return _defaultReply(request);
-      });
-      final registration = rec.registration();
+    test(
+      'email route: a wrong code stops before the account is created',
+      () async {
+        final rec = _Recorder((request) async {
+          if (request.url.path == _verifyOtpPath) {
+            return _fail(400, 'Invalid or expired verification code');
+          }
+          return _defaultReply(request);
+        });
+        final registration = rec.registration();
 
-      await registration.sendVerificationCode(
-        email: _email,
-        phoneNumber: '09187654321',
-      );
-      await expectLater(
-        registration.verifyOtp(email: _email, otp: '000000'),
-        throwsA(
-          isA<ApiException>().having(
-            (e) => e.message,
-            'message',
-            'Invalid or expired verification code',
-          ),
-        ),
-      );
-
-      expect(rec.paths, [_sendPath, _verifyOtpPath]);
-      expect(rec.paths, isNot(contains(_registerEmailPath)));
-    });
-
-    test('email route: a taken email is caught before any code is mailed',
-        () async {
-      final rec = _Recorder(
-        (_) async => _conflict('email', 'This email is already registered'),
-      );
-
-      try {
-        await rec.registration().sendVerificationCode(
+        await registration.sendVerificationCode(
           email: _email,
           phoneNumber: '09187654321',
         );
-        fail('expected ApiException');
-      } on ApiException catch (e) {
-        expect(
-          RegistrationConflict.fromException(e)?.field,
-          RegistrationConflictField.email,
+        await expectLater(
+          registration.verifyOtp(email: _email, otp: '000000'),
+          throwsA(
+            isA<ApiException>().having(
+              (e) => e.message,
+              'message',
+              'Invalid or expired verification code',
+            ),
+          ),
         );
-      }
-      expect(rec.paths, [_sendPath]);
-    });
 
-    test('social route: provider → ticket → create with the edited form',
-        () async {
-      final rec = _Recorder();
-      final donor = rec.donor();
+        expect(rec.paths, [_sendPath, _verifyOtpPath]);
+        expect(rec.paths, isNot(contains(_registerEmailPath)));
+      },
+    );
 
-      final linked = await donor.exchangeProviderToken(
-        const SocialAuthToken(
-          provider: SocialAuthProvider.google,
-          token: 'google.id.token',
-        ),
-      );
-      expect(linked.needsRegistration, isTrue);
+    test(
+      'email route: a taken email is caught before any code is mailed',
+      () async {
+        final rec = _Recorder(
+          (_) async => _conflict('email', 'This email is already registered'),
+        );
 
-      // The profile seeds the form; the donor fixes their middle name and adds
-      // the contact details the provider does not know.
-      final profile = linked.profile!;
-      final session = await _registerWithTicket(
-        donor,
-        ticket: linked.oauthTicket!,
-        firstName: profile.firstName,
-        middleName: 'Magdalena',
-        lastName: profile.lastName,
-        phoneNumber: '09187654321',
-      );
+        try {
+          await rec.registration().sendVerificationCode(
+            email: _email,
+            phoneNumber: '09187654321',
+          );
+          fail('expected ApiException');
+        } on ApiException catch (e) {
+          expect(
+            RegistrationConflict.fromException(e)?.field,
+            RegistrationConflictField.email,
+          );
+        }
+        expect(rec.paths, [_sendPath]);
+      },
+    );
 
-      expect(rec.paths, [_oauthPath, _registerPath]);
-      // No OTP on this route — the provider already vouched for the email.
-      expect(rec.paths, isNot(contains(_sendPath)));
-      expect(rec.paths, isNot(contains(_verifyOtpPath)));
+    test(
+      'social route: provider → ticket → create with the edited form',
+      () async {
+        final rec = _Recorder();
+        final donor = rec.donor();
 
-      final created = rec.jsonOf(rec.to(_registerPath));
-      expect(created['oauth_ticket'], _ticket);
-      expect(created['firstname'], 'Ana');
-      expect(created['middle_name'], 'Magdalena');
-      expect(created['lastname'], 'Reyes');
-      expect(session.email, 'ana.g@gmail.com');
-    });
+        final linked = await donor.exchangeProviderToken(
+          const SocialAuthToken(
+            provider: SocialAuthProvider.google,
+            token: 'google.id.token',
+          ),
+        );
+        expect(linked.needsRegistration, isTrue);
 
-    test('social route: a known donor never reaches the register call',
-        () async {
-      final rec = _Recorder(
-        (_) async => _ok({'status': 'signed_in', 'session': _donorSession()}),
-      );
+        // The profile seeds the form; the donor fixes their middle name and adds
+        // the contact details the provider does not know.
+        final profile = linked.profile!;
+        final session = await _registerWithTicket(
+          donor,
+          ticket: linked.oauthTicket!,
+          firstName: profile.firstName,
+          middleName: 'Magdalena',
+          lastName: profile.lastName,
+          phoneNumber: '09187654321',
+        );
 
-      final result = await rec.donor().exchangeProviderToken(
-        const SocialAuthToken(
-          provider: SocialAuthProvider.google,
-          token: 'google.id.token',
-        ),
-      );
+        expect(rec.paths, [_oauthPath, _registerPath]);
+        // No OTP on this route — the provider already vouched for the email.
+        expect(rec.paths, isNot(contains(_sendPath)));
+        expect(rec.paths, isNot(contains(_verifyOtpPath)));
 
-      expect(result.isSignedIn, isTrue);
-      expect(rec.paths, [_oauthPath]);
-    });
+        final created = rec.jsonOf(rec.to(_registerPath));
+        expect(created['oauth_ticket'], _ticket);
+        expect(created['firstname'], 'Ana');
+        expect(created['middle_name'], 'Magdalena');
+        expect(created['lastname'], 'Reyes');
+        expect(session.email, 'ana.g@gmail.com');
+      },
+    );
+
+    test(
+      'social route: a known donor never reaches the register call',
+      () async {
+        final rec = _Recorder(
+          (_) async => _ok({'status': 'signed_in', 'session': _donorSession()}),
+        );
+
+        final result = await rec.donor().exchangeProviderToken(
+          const SocialAuthToken(
+            provider: SocialAuthProvider.google,
+            token: 'google.id.token',
+          ),
+        );
+
+        expect(result.isSignedIn, isTrue);
+        expect(rec.paths, [_oauthPath]);
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -713,21 +728,23 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('donor models', () {
-    test('DonorOAuthProfile maps FACEBOOK and treats anything else as Google',
-        () {
-      expect(
-        DonorOAuthProfile.fromJson({'provider': 'facebook'}).provider,
-        SocialAuthProvider.facebook,
-      );
-      expect(
-        DonorOAuthProfile.fromJson({'provider': 'GOOGLE'}).provider,
-        SocialAuthProvider.google,
-      );
-      expect(
-        DonorOAuthProfile.fromJson({}).provider,
-        SocialAuthProvider.google,
-      );
-    });
+    test(
+      'DonorOAuthProfile maps FACEBOOK and treats anything else as Google',
+      () {
+        expect(
+          DonorOAuthProfile.fromJson({'provider': 'facebook'}).provider,
+          SocialAuthProvider.facebook,
+        );
+        expect(
+          DonorOAuthProfile.fromJson({'provider': 'GOOGLE'}).provider,
+          SocialAuthProvider.google,
+        );
+        expect(
+          DonorOAuthProfile.fromJson({}).provider,
+          SocialAuthProvider.google,
+        );
+      },
+    );
 
     test('DonorOAuthProfile builds the full name and initials', () {
       final profile = DonorOAuthProfile.fromJson(_oauthProfile());
@@ -768,13 +785,17 @@ void main() {
 
     test('SocialAuthToken names the provider the way the API expects', () {
       expect(
-        const SocialAuthToken(provider: SocialAuthProvider.google, token: 't')
-            .apiProvider,
+        const SocialAuthToken(
+          provider: SocialAuthProvider.google,
+          token: 't',
+        ).apiProvider,
         'GOOGLE',
       );
       expect(
-        const SocialAuthToken(provider: SocialAuthProvider.facebook, token: 't')
-            .apiProvider,
+        const SocialAuthToken(
+          provider: SocialAuthProvider.facebook,
+          token: 't',
+        ).apiProvider,
         'FACEBOOK',
       );
     });

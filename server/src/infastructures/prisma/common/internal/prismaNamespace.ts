@@ -4735,7 +4735,8 @@ export const UserScalarFieldEnum = {
   address_barangay: 'address_barangay',
   address_city: 'address_city',
   address_province: 'address_province',
-  household_size: 'household_size'
+  household_size: 'household_size',
+  partner_barangay: 'partner_barangay'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]

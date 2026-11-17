@@ -28,6 +28,9 @@ interface UserRequestApiResponse {
     | 'BENEFICIARY_REGISTRATION'
     | 'EVENT_ROLE'
     | 'RESIDENCY_VERIFICATION'
+    | 'ALUMNI_REGISTRATION'
+    | 'PARTNER_BARANGAY_REGISTRATION'
+    | 'MANUAL_REGISTRATION'
   status: 'PENDING' | 'ACCEPTED' | 'DELETED' | 'REJECTED'
   requester_id: string
   requester_firstname: string
@@ -71,6 +74,9 @@ const KIND_MAP: Record<UserRequestApiResponse['kind'], UserRequestKind> = {
   BENEFICIARY_REGISTRATION: 'beneficiary_registration',
   EVENT_ROLE: 'event_role',
   RESIDENCY_VERIFICATION: 'residency_verification',
+  ALUMNI_REGISTRATION: 'alumni_registration',
+  PARTNER_BARANGAY_REGISTRATION: 'partner_barangay_registration',
+  MANUAL_REGISTRATION: 'manual_registration',
 }
 
 function titleCase(value: string): string {

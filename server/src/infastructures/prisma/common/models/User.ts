@@ -55,6 +55,7 @@ export type UserMinAggregateOutputType = {
   address_city: string | null
   address_province: string | null
   household_size: number | null
+  partner_barangay: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -76,6 +77,7 @@ export type UserMaxAggregateOutputType = {
   address_city: string | null
   address_province: string | null
   household_size: number | null
+  partner_barangay: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -97,6 +99,7 @@ export type UserCountAggregateOutputType = {
   address_city: number
   address_province: number
   household_size: number
+  partner_barangay: number
   _all: number
 }
 
@@ -130,6 +133,7 @@ export type UserMinAggregateInputType = {
   address_city?: true
   address_province?: true
   household_size?: true
+  partner_barangay?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -151,6 +155,7 @@ export type UserMaxAggregateInputType = {
   address_city?: true
   address_province?: true
   household_size?: true
+  partner_barangay?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -172,6 +177,7 @@ export type UserCountAggregateInputType = {
   address_city?: true
   address_province?: true
   household_size?: true
+  partner_barangay?: true
   _all?: true
 }
 
@@ -280,6 +286,7 @@ export type UserGroupByOutputType = {
   address_city: string | null
   address_province: string | null
   household_size: number | null
+  partner_barangay: string | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -324,6 +331,7 @@ export type UserWhereInput = {
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
   household_size?: Prisma.IntNullableFilter<"User"> | number | null
+  partner_barangay?: Prisma.StringNullableFilter<"User"> | string | null
   accounts?: Prisma.AccountListRelationFilter
   assistance_requests?: Prisma.AssistanceRequestListRelationFilter
   needs_assessment?: Prisma.XOR<Prisma.NeedsAssessmentNullableScalarRelationFilter, Prisma.NeedsAssessmentWhereInput> | null
@@ -384,6 +392,7 @@ export type UserOrderByWithRelationInput = {
   address_city?: Prisma.SortOrderInput | Prisma.SortOrder
   address_province?: Prisma.SortOrderInput | Prisma.SortOrder
   household_size?: Prisma.SortOrderInput | Prisma.SortOrder
+  partner_barangay?: Prisma.SortOrderInput | Prisma.SortOrder
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   assistance_requests?: Prisma.AssistanceRequestOrderByRelationAggregateInput
   needs_assessment?: Prisma.NeedsAssessmentOrderByWithRelationInput
@@ -447,6 +456,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
   household_size?: Prisma.IntNullableFilter<"User"> | number | null
+  partner_barangay?: Prisma.StringNullableFilter<"User"> | string | null
   accounts?: Prisma.AccountListRelationFilter
   assistance_requests?: Prisma.AssistanceRequestListRelationFilter
   needs_assessment?: Prisma.XOR<Prisma.NeedsAssessmentNullableScalarRelationFilter, Prisma.NeedsAssessmentWhereInput> | null
@@ -507,6 +517,7 @@ export type UserOrderByWithAggregationInput = {
   address_city?: Prisma.SortOrderInput | Prisma.SortOrder
   address_province?: Prisma.SortOrderInput | Prisma.SortOrder
   household_size?: Prisma.SortOrderInput | Prisma.SortOrder
+  partner_barangay?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -536,6 +547,7 @@ export type UserScalarWhereWithAggregatesInput = {
   address_city?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   address_province?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   household_size?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
+  partner_barangay?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
 }
 
 export type UserCreateInput = {
@@ -556,6 +568,7 @@ export type UserCreateInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -616,6 +629,7 @@ export type UserUncheckedCreateInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -674,6 +688,7 @@ export type UserUpdateInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -734,6 +749,7 @@ export type UserUncheckedUpdateInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -793,6 +809,7 @@ export type UserCreateManyInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -813,6 +830,7 @@ export type UserUpdateManyMutationInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -834,6 +852,7 @@ export type UserUncheckedUpdateManyInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -855,6 +874,7 @@ export type UserCountOrderByAggregateInput = {
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  partner_barangay?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -881,6 +901,7 @@ export type UserMaxOrderByAggregateInput = {
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  partner_barangay?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -902,6 +923,7 @@ export type UserMinOrderByAggregateInput = {
   address_city?: Prisma.SortOrder
   address_province?: Prisma.SortOrder
   household_size?: Prisma.SortOrder
+  partner_barangay?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -1581,6 +1603,7 @@ export type UserCreateWithoutResidency_documentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -1640,6 +1663,7 @@ export type UserUncheckedCreateWithoutResidency_documentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -1713,6 +1737,7 @@ export type UserUpdateWithoutResidency_documentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -1772,6 +1797,7 @@ export type UserUncheckedUpdateWithoutResidency_documentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -1829,6 +1855,7 @@ export type UserCreateWithoutRole_avatarsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -1888,6 +1915,7 @@ export type UserUncheckedCreateWithoutRole_avatarsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -1961,6 +1989,7 @@ export type UserUpdateWithoutRole_avatarsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -2020,6 +2049,7 @@ export type UserUncheckedUpdateWithoutRole_avatarsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -2077,6 +2107,7 @@ export type UserCreateWithoutUser_school_infoInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -2136,6 +2167,7 @@ export type UserUncheckedCreateWithoutUser_school_infoInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -2209,6 +2241,7 @@ export type UserUpdateWithoutUser_school_infoInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -2268,6 +2301,7 @@ export type UserUncheckedUpdateWithoutUser_school_infoInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -2325,6 +2359,7 @@ export type UserCreateWithoutUser_verificationsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -2384,6 +2419,7 @@ export type UserUncheckedCreateWithoutUser_verificationsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -2457,6 +2493,7 @@ export type UserUpdateWithoutUser_verificationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -2516,6 +2553,7 @@ export type UserUncheckedUpdateWithoutUser_verificationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -2573,6 +2611,7 @@ export type UserCreateWithoutRoleInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -2631,6 +2670,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -2719,6 +2759,7 @@ export type UserScalarWhereInput = {
   address_city?: Prisma.StringNullableFilter<"User"> | string | null
   address_province?: Prisma.StringNullableFilter<"User"> | string | null
   household_size?: Prisma.IntNullableFilter<"User"> | number | null
+  partner_barangay?: Prisma.StringNullableFilter<"User"> | string | null
 }
 
 export type UserCreateWithoutPermission_overridesInput = {
@@ -2739,6 +2780,7 @@ export type UserCreateWithoutPermission_overridesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -2798,6 +2840,7 @@ export type UserUncheckedCreateWithoutPermission_overridesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -2871,6 +2914,7 @@ export type UserUpdateWithoutPermission_overridesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -2930,6 +2974,7 @@ export type UserUncheckedUpdateWithoutPermission_overridesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -2987,6 +3032,7 @@ export type UserCreateWithoutAction_suspensionsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -3046,6 +3092,7 @@ export type UserUncheckedCreateWithoutAction_suspensionsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -3119,6 +3166,7 @@ export type UserUpdateWithoutAction_suspensionsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -3178,6 +3226,7 @@ export type UserUncheckedUpdateWithoutAction_suspensionsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -3235,6 +3284,7 @@ export type UserCreateWithoutBlocked_ipsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -3294,6 +3344,7 @@ export type UserUncheckedCreateWithoutBlocked_ipsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -3367,6 +3418,7 @@ export type UserUpdateWithoutBlocked_ipsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -3426,6 +3478,7 @@ export type UserUncheckedUpdateWithoutBlocked_ipsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -3483,6 +3536,7 @@ export type UserCreateWithoutLogin_activitiesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -3542,6 +3596,7 @@ export type UserUncheckedCreateWithoutLogin_activitiesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -3615,6 +3670,7 @@ export type UserUpdateWithoutLogin_activitiesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -3674,6 +3730,7 @@ export type UserUncheckedUpdateWithoutLogin_activitiesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -3731,6 +3788,7 @@ export type UserCreateWithoutOauth_identitiesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -3790,6 +3848,7 @@ export type UserUncheckedCreateWithoutOauth_identitiesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -3863,6 +3922,7 @@ export type UserUpdateWithoutOauth_identitiesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -3922,6 +3982,7 @@ export type UserUncheckedUpdateWithoutOauth_identitiesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -3979,6 +4040,7 @@ export type UserCreateWithoutGmail_connectionInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -4038,6 +4100,7 @@ export type UserUncheckedCreateWithoutGmail_connectionInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -4111,6 +4174,7 @@ export type UserUpdateWithoutGmail_connectionInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -4170,6 +4234,7 @@ export type UserUncheckedUpdateWithoutGmail_connectionInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -4227,6 +4292,7 @@ export type UserCreateWithoutUser_interestInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -4286,6 +4352,7 @@ export type UserUncheckedCreateWithoutUser_interestInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -4359,6 +4426,7 @@ export type UserUpdateWithoutUser_interestInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -4418,6 +4486,7 @@ export type UserUncheckedUpdateWithoutUser_interestInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -4475,6 +4544,7 @@ export type UserCreateWithoutEvent_attendancesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -4534,6 +4604,7 @@ export type UserUncheckedCreateWithoutEvent_attendancesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -4607,6 +4678,7 @@ export type UserUpdateWithoutEvent_attendancesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -4666,6 +4738,7 @@ export type UserUncheckedUpdateWithoutEvent_attendancesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -4723,6 +4796,7 @@ export type UserCreateWithoutLocation_pingsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -4782,6 +4856,7 @@ export type UserUncheckedCreateWithoutLocation_pingsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -4855,6 +4930,7 @@ export type UserUpdateWithoutLocation_pingsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -4914,6 +4990,7 @@ export type UserUncheckedUpdateWithoutLocation_pingsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -4971,6 +5048,7 @@ export type UserCreateWithoutChat_participantsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -5030,6 +5108,7 @@ export type UserUncheckedCreateWithoutChat_participantsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -5103,6 +5182,7 @@ export type UserUpdateWithoutChat_participantsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -5162,6 +5242,7 @@ export type UserUncheckedUpdateWithoutChat_participantsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -5219,6 +5300,7 @@ export type UserCreateWithoutChat_messagesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -5278,6 +5360,7 @@ export type UserUncheckedCreateWithoutChat_messagesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -5351,6 +5434,7 @@ export type UserUpdateWithoutChat_messagesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -5410,6 +5494,7 @@ export type UserUncheckedUpdateWithoutChat_messagesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -5467,6 +5552,7 @@ export type UserCreateWithoutAssigned_support_ticketsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -5526,6 +5612,7 @@ export type UserUncheckedCreateWithoutAssigned_support_ticketsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -5588,6 +5675,7 @@ export type UserCreateWithoutSupport_ticketsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -5647,6 +5735,7 @@ export type UserUncheckedCreateWithoutSupport_ticketsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -5720,6 +5809,7 @@ export type UserUpdateWithoutAssigned_support_ticketsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -5779,6 +5869,7 @@ export type UserUncheckedUpdateWithoutAssigned_support_ticketsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -5847,6 +5938,7 @@ export type UserUpdateWithoutSupport_ticketsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -5906,6 +5998,7 @@ export type UserUncheckedUpdateWithoutSupport_ticketsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -5963,6 +6056,7 @@ export type UserCreateWithoutSupport_ticket_repliesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -6022,6 +6116,7 @@ export type UserUncheckedCreateWithoutSupport_ticket_repliesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -6095,6 +6190,7 @@ export type UserUpdateWithoutSupport_ticket_repliesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -6154,6 +6250,7 @@ export type UserUncheckedUpdateWithoutSupport_ticket_repliesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -6211,6 +6308,7 @@ export type UserCreateWithoutEdited_certificate_templatesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -6270,6 +6368,7 @@ export type UserUncheckedCreateWithoutEdited_certificate_templatesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -6343,6 +6442,7 @@ export type UserUpdateWithoutEdited_certificate_templatesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -6402,6 +6502,7 @@ export type UserUncheckedUpdateWithoutEdited_certificate_templatesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -6459,6 +6560,7 @@ export type UserCreateWithoutCertificate_signatory_linesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -6518,6 +6620,7 @@ export type UserUncheckedCreateWithoutCertificate_signatory_linesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -6591,6 +6694,7 @@ export type UserUpdateWithoutCertificate_signatory_linesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -6650,6 +6754,7 @@ export type UserUncheckedUpdateWithoutCertificate_signatory_linesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -6707,6 +6812,7 @@ export type UserCreateWithoutCertificate_deploymentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -6766,6 +6872,7 @@ export type UserUncheckedCreateWithoutCertificate_deploymentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -6839,6 +6946,7 @@ export type UserUpdateWithoutCertificate_deploymentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -6898,6 +7006,7 @@ export type UserUncheckedUpdateWithoutCertificate_deploymentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -6955,6 +7064,7 @@ export type UserCreateWithoutIssued_certificatesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -7014,6 +7124,7 @@ export type UserUncheckedCreateWithoutIssued_certificatesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -7087,6 +7198,7 @@ export type UserUpdateWithoutIssued_certificatesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -7146,6 +7258,7 @@ export type UserUncheckedUpdateWithoutIssued_certificatesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -7203,6 +7316,7 @@ export type UserCreateWithoutMonthly_report_foldersInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -7262,6 +7376,7 @@ export type UserUncheckedCreateWithoutMonthly_report_foldersInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -7335,6 +7450,7 @@ export type UserUpdateWithoutMonthly_report_foldersInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -7394,6 +7510,7 @@ export type UserUncheckedUpdateWithoutMonthly_report_foldersInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -7451,6 +7568,7 @@ export type UserCreateWithoutReviewed_monthly_reportsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -7510,6 +7628,7 @@ export type UserUncheckedCreateWithoutReviewed_monthly_reportsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -7572,6 +7691,7 @@ export type UserCreateWithoutSubmitted_monthly_reportsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -7631,6 +7751,7 @@ export type UserUncheckedCreateWithoutSubmitted_monthly_reportsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -7704,6 +7825,7 @@ export type UserUpdateWithoutReviewed_monthly_reportsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -7763,6 +7885,7 @@ export type UserUncheckedUpdateWithoutReviewed_monthly_reportsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -7831,6 +7954,7 @@ export type UserUpdateWithoutSubmitted_monthly_reportsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -7890,6 +8014,7 @@ export type UserUncheckedUpdateWithoutSubmitted_monthly_reportsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -7947,6 +8072,7 @@ export type UserCreateWithoutAuthored_announcementsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -8006,6 +8132,7 @@ export type UserUncheckedCreateWithoutAuthored_announcementsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -8079,6 +8206,7 @@ export type UserUpdateWithoutAuthored_announcementsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -8138,6 +8266,7 @@ export type UserUncheckedUpdateWithoutAuthored_announcementsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -8195,6 +8324,7 @@ export type UserCreateWithoutNotificationsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -8254,6 +8384,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -8327,6 +8458,7 @@ export type UserUpdateWithoutNotificationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -8386,6 +8518,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -8443,6 +8576,7 @@ export type UserCreateWithoutEvaluation_assignmentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -8502,6 +8636,7 @@ export type UserUncheckedCreateWithoutEvaluation_assignmentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -8575,6 +8710,7 @@ export type UserUpdateWithoutEvaluation_assignmentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -8634,6 +8770,7 @@ export type UserUncheckedUpdateWithoutEvaluation_assignmentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -8691,6 +8828,7 @@ export type UserCreateWithoutEvaluation_responsesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -8750,6 +8888,7 @@ export type UserUncheckedCreateWithoutEvaluation_responsesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -8823,6 +8962,7 @@ export type UserUpdateWithoutEvaluation_responsesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -8882,6 +9022,7 @@ export type UserUncheckedUpdateWithoutEvaluation_responsesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -8939,6 +9080,7 @@ export type UserCreateWithoutDecided_user_requestsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -8998,6 +9140,7 @@ export type UserUncheckedCreateWithoutDecided_user_requestsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -9060,6 +9203,7 @@ export type UserCreateWithoutUser_requestsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -9119,6 +9263,7 @@ export type UserUncheckedCreateWithoutUser_requestsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -9192,6 +9337,7 @@ export type UserUpdateWithoutDecided_user_requestsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -9251,6 +9397,7 @@ export type UserUncheckedUpdateWithoutDecided_user_requestsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -9319,6 +9466,7 @@ export type UserUpdateWithoutUser_requestsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -9378,6 +9526,7 @@ export type UserUncheckedUpdateWithoutUser_requestsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -9435,6 +9584,7 @@ export type UserCreateWithoutNeeds_assessmentInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
@@ -9494,6 +9644,7 @@ export type UserUncheckedCreateWithoutNeeds_assessmentInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
@@ -9567,6 +9718,7 @@ export type UserUpdateWithoutNeeds_assessmentInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
@@ -9626,6 +9778,7 @@ export type UserUncheckedUpdateWithoutNeeds_assessmentInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
@@ -9683,6 +9836,7 @@ export type UserCreateWithoutAssistance_requestsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
@@ -9742,6 +9896,7 @@ export type UserUncheckedCreateWithoutAssistance_requestsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
@@ -9815,6 +9970,7 @@ export type UserUpdateWithoutAssistance_requestsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
@@ -9874,6 +10030,7 @@ export type UserUncheckedUpdateWithoutAssistance_requestsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
@@ -9931,6 +10088,7 @@ export type UserCreateWithoutDonationsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -9990,6 +10148,7 @@ export type UserUncheckedCreateWithoutDonationsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -10063,6 +10222,7 @@ export type UserUpdateWithoutDonationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -10122,6 +10282,7 @@ export type UserUncheckedUpdateWithoutDonationsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -10179,6 +10340,7 @@ export type UserCreateWithoutDonation_trail_entriesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -10238,6 +10400,7 @@ export type UserUncheckedCreateWithoutDonation_trail_entriesInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -10311,6 +10474,7 @@ export type UserUpdateWithoutDonation_trail_entriesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -10370,6 +10534,7 @@ export type UserUncheckedUpdateWithoutDonation_trail_entriesInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -10427,6 +10592,7 @@ export type UserCreateWithoutAudit_logsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -10486,6 +10652,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -10559,6 +10726,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -10618,6 +10786,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -10675,6 +10844,7 @@ export type UserCreateWithoutAccountsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
   authored_announcements?: Prisma.AnnouncementCreateNestedManyWithoutAuthorInput
@@ -10734,6 +10904,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
   authored_announcements?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutAuthorInput
@@ -10807,6 +10978,7 @@ export type UserUpdateWithoutAccountsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
   authored_announcements?: Prisma.AnnouncementUpdateManyWithoutAuthorNestedInput
@@ -10866,6 +11038,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
   authored_announcements?: Prisma.AnnouncementUncheckedUpdateManyWithoutAuthorNestedInput
@@ -10923,6 +11096,7 @@ export type UserCreateWithoutDonation_paymentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentCreateNestedOneWithoutUserInput
@@ -10982,6 +11156,7 @@ export type UserUncheckedCreateWithoutDonation_paymentsInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedCreateNestedManyWithoutUserInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedCreateNestedOneWithoutUserInput
@@ -11055,6 +11230,7 @@ export type UserUpdateWithoutDonation_paymentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -11114,6 +11290,7 @@ export type UserUncheckedUpdateWithoutDonation_paymentsInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -11171,6 +11348,7 @@ export type UserCreateManyRoleInput = {
   address_city?: string | null
   address_province?: string | null
   household_size?: number | null
+  partner_barangay?: string | null
 }
 
 export type UserUpdateWithoutRoleInput = {
@@ -11191,6 +11369,7 @@ export type UserUpdateWithoutRoleInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUpdateOneWithoutUserNestedInput
@@ -11249,6 +11428,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   assistance_requests?: Prisma.AssistanceRequestUncheckedUpdateManyWithoutUserNestedInput
   needs_assessment?: Prisma.NeedsAssessmentUncheckedUpdateOneWithoutUserNestedInput
@@ -11307,6 +11487,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   address_city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address_province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   household_size?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  partner_barangay?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -11665,6 +11846,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   address_city?: boolean
   address_province?: boolean
   household_size?: boolean
+  partner_barangay?: boolean
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   assistance_requests?: boolean | Prisma.User$assistance_requestsArgs<ExtArgs>
   needs_assessment?: boolean | Prisma.User$needs_assessmentArgs<ExtArgs>
@@ -11726,6 +11908,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address_city?: boolean
   address_province?: boolean
   household_size?: boolean
+  partner_barangay?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -11748,6 +11931,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address_city?: boolean
   address_province?: boolean
   household_size?: boolean
+  partner_barangay?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -11770,9 +11954,10 @@ export type UserSelectScalar = {
   address_city?: boolean
   address_province?: boolean
   household_size?: boolean
+  partner_barangay?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "role_id" | "createdAt" | "updatedAt" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "household_size", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_id" | "firstname" | "lastname" | "middle_name" | "gender" | "age" | "current_address" | "phone_number" | "avatar" | "role_id" | "createdAt" | "updatedAt" | "portal_department" | "address_street" | "address_barangay" | "address_city" | "address_province" | "household_size" | "partner_barangay", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   assistance_requests?: boolean | Prisma.User$assistance_requestsArgs<ExtArgs>
@@ -11887,6 +12072,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Beneficiaries only — how many people the assistance has to cover.
      */
     household_size: number | null
+    /**
+     * Partner-barangay volunteers only — the partner barangay they signed up
+     * through (one of PARTNER_BARANGAYS in the auth module).
+     */
+    partner_barangay: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -12367,6 +12557,7 @@ export interface UserFieldRefs {
   readonly address_city: Prisma.FieldRef<"User", 'String'>
   readonly address_province: Prisma.FieldRef<"User", 'String'>
   readonly household_size: Prisma.FieldRef<"User", 'Int'>
+  readonly partner_barangay: Prisma.FieldRef<"User", 'String'>
 }
     
 

@@ -18,6 +18,7 @@ class RegisterOcrSample {
     required this.graduationMonth,
     required this.graduationDay,
     required this.volunteerType,
+    this.partnerBarangay = '',
     this.rawTextFront = '',
     this.rawTextBack = '',
   });
@@ -37,6 +38,10 @@ class RegisterOcrSample {
   final int graduationMonth;
   final int graduationDay;
   final String volunteerType;
+
+  /// The partner barangay a [VolunteerType.partnerBarangay] volunteer signs up
+  /// through, picked from `PartnerBarangays.names`. Empty for every other type.
+  final String partnerBarangay;
   final String rawTextFront;
   final String rawTextBack;
 
@@ -56,6 +61,7 @@ class RegisterOcrSample {
     int? graduationMonth,
     int? graduationDay,
     String? volunteerType,
+    String? partnerBarangay,
     String? rawTextFront,
     String? rawTextBack,
   }) {
@@ -75,6 +81,7 @@ class RegisterOcrSample {
       graduationMonth: graduationMonth ?? this.graduationMonth,
       graduationDay: graduationDay ?? this.graduationDay,
       volunteerType: volunteerType ?? this.volunteerType,
+      partnerBarangay: partnerBarangay ?? this.partnerBarangay,
       rawTextFront: rawTextFront ?? this.rawTextFront,
       rawTextBack: rawTextBack ?? this.rawTextBack,
     );

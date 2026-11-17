@@ -11,6 +11,7 @@ import {
 } from '../../../shared/constants/portal-role-types';
 import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
 import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
+import { PARTNER_BARANGAYS } from '../../auth/validators/auth-mobile-validator';
 
 export const USER_LIST_DEFAULT_PAGE_SIZE = 25;
 export const USER_LIST_MAX_PAGE_SIZE = 100;
@@ -46,7 +47,14 @@ export const ProvisionVolunteerTypeSchema = z.enum([
   'STUDENT',
   'STAFF',
   'ALUMNI',
+  'PARTNER_BARANGAY',
 ]);
+
+/**
+ * A partner-barangay volunteer comes from one of the adopted communities, not a UCLM
+ * college — so the barangay stands in for the department.
+ */
+export const PARTNER_BARANGAY_VOLUNTEER_TYPE = 'PARTNER_BARANGAY';
 
 /** One hour to 90 days. Beyond that it stops being a hand-over credential. */
 export const CREDENTIAL_MIN_HOURS = 1;
@@ -104,6 +112,8 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
         .trim()
         .pipe(z.enum(PROVISIONABLE_DEPARTMENTS))
         .optional(),
+      /** Required for, and only for, a `PARTNER_BARANGAY` volunteer. */
+      partner_barangay: z.enum(PARTNER_BARANGAYS).optional(),
       /**
        * The complete set of actions the account should hold. Omit it to leave the
        * account on its role's baseline; the server stores only the departures.
@@ -128,7 +138,8 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
         ctx.addIssue({
           code: 'custom',
           path: ['volunteer_type'],
-          message: 'Choose whether the volunteer is a student, staff or alumni',
+          message:
+            'Choose whether the volunteer is a student, staff, alumni or partner barangay',
         });
       }
       if (data.role_type !== RoleType.VOLUNTEER && data.volunteer_type) {
@@ -136,6 +147,32 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
           code: 'custom',
           path: ['volunteer_type'],
           message: 'A volunteer type only applies to volunteer accounts',
+        });
+      }
+
+      const isPartnerBarangay =
+        data.volunteer_type === PARTNER_BARANGAY_VOLUNTEER_TYPE;
+      if (isPartnerBarangay && !data.partner_barangay) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['partner_barangay'],
+          message: 'Choose the partner barangay the volunteer belongs to',
+        });
+      }
+      if (!isPartnerBarangay && data.partner_barangay) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['partner_barangay'],
+          message:
+            'A partner barangay only applies to partner barangay volunteers',
+        });
+      }
+      // The barangay is their affiliation — a UCLM department does not apply.
+      if (isPartnerBarangay && data.department) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['department'],
+          message: 'A partner barangay volunteer is not part of a department',
         });
       }
 

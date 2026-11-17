@@ -580,8 +580,13 @@ export class ProfileMobileService {
       // Directors and coordinators sign in with their portal account: they were
       // vetted as staff, never registered with a school ID or a face match.
       const staff = isStaffVolunteerRole(row.role.type);
-      // A director-approved volunteer side has no school record to fill in.
-      if (!staff && !this.isDirectorGrantedVolunteer(row)) {
+      // A director-approved volunteer side, and a partner-barangay volunteer from
+      // outside the school, have no school record to fill in.
+      if (
+        !staff &&
+        !this.isDirectorGrantedVolunteer(row) &&
+        !row.partner_barangay
+      ) {
         steps.school_record = row.user_school_info.length > 0;
       }
       if (!staff) {
@@ -669,6 +674,7 @@ export class ProfileMobileService {
         : null,
       interests: Array.isArray(selected) ? (selected as InterestCode[]) : [],
       access_granted_by_director: this.isDirectorGrantedVolunteer(row),
+      partner_barangay: row.partner_barangay ?? null,
       service_hours: attendance.hours,
       activities_completed: attendance.completed,
       activities_registered: attendance.registered,

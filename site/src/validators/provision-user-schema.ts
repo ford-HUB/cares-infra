@@ -3,12 +3,15 @@ import {
   CREDENTIAL_DEFAULT_HOURS,
   CREDENTIAL_MAX_HOURS,
   CREDENTIAL_MIN_HOURS,
+  PARTNER_BARANGAY_USER_TYPE,
   PROVISIONABLE_DEPARTMENTS,
+  PROVISIONABLE_PARTNER_BARANGAYS,
   REGULAR_USER_ROLE,
   REGULAR_USER_TYPES,
 } from '../constants/manage-users'
 
 const departmentNames = PROVISIONABLE_DEPARTMENTS.map((option) => option.value)
+const partnerBarangayNames = PROVISIONABLE_PARTNER_BARANGAYS.map((option) => option.value)
 const regularUserTypes = REGULAR_USER_TYPES.map((option) => option.value) as [
   (typeof REGULAR_USER_TYPES)[number]['value'],
   ...(typeof REGULAR_USER_TYPES)[number]['value'][],
@@ -37,6 +40,8 @@ export const provisionUserSchema = z
     regularUserType: z.enum(regularUserTypes),
     // '' is the "no department" option — an admin or director usually has none.
     department: z.enum(['', ...departmentNames]),
+    // Only read for a partner-barangay volunteer, where it replaces the department.
+    partnerBarangay: z.enum(['', ...partnerBarangayNames]),
     // The select stores a number (`valueAsNumber` on the field), so no coercion here —
     // `z.coerce` would widen the form's input type to `unknown`.
     expiresInHours: z
@@ -46,6 +51,14 @@ export const provisionUserSchema = z
       .max(CREDENTIAL_MAX_HOURS, 'A credential cannot outlive 90 days'),
   })
   .superRefine((values, ctx) => {
+    if (isPartnerBarangayVolunteer(values) && !values.partnerBarangay) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['partnerBarangay'],
+        message: 'Choose the partner barangay the volunteer belongs to',
+      })
+    }
+
     if (values.mode !== 'manual') return
 
     if (!values.email) {
@@ -67,6 +80,17 @@ export const provisionUserSchema = z
   })
 
 export type ProvisionUserFormValues = z.infer<typeof provisionUserSchema>
+
+/** A Regular User provisioned as a volunteer from one of the partner barangays. */
+export function isPartnerBarangayVolunteer(values: {
+  role: string
+  regularUserType: string
+}): boolean {
+  return (
+    values.role === REGULAR_USER_ROLE &&
+    values.regularUserType === PARTNER_BARANGAY_USER_TYPE
+  )
+}
 
 /**
  * The role type the server should create, plus the volunteer sub-type when there is one.
@@ -96,5 +120,6 @@ export const provisionUserDefaultValues: ProvisionUserFormValues = {
   role: 'COORDINATOR',
   regularUserType: 'VOLUNTEER_STUDENT',
   department: '',
+  partnerBarangay: '',
   expiresInHours: CREDENTIAL_DEFAULT_HOURS,
 }

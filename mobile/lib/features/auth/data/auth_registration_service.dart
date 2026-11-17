@@ -59,6 +59,74 @@ class AuthRegistrationService {
     return UploadIdResponse.fromJson(response['data'] as Map<String, dynamic>);
   }
 
+  /// Opens an alumni registration with the alumni ID's two sides. The server does
+  /// not run it through the student-ID check, a face scan or OCR — a director
+  /// reviews it with the registration instead.
+  Future<UploadIdResponse> uploadAlumniId({
+    required XFile front,
+    required XFile back,
+  }) => _uploadReviewedId('/auth/upload-alumni-id', front: front, back: back);
+
+  /// Opens a partner-barangay volunteer registration with the two sides of the
+  /// ID they present (a barangay ID or other valid ID). Like an alumni ID it is
+  /// not face matched or read by OCR — a director reviews it with the sign-up.
+  Future<UploadIdResponse> uploadPartnerBarangayId({
+    required XFile front,
+    required XFile back,
+  }) => _uploadReviewedId(
+    '/auth/upload-partner-barangay-id',
+    front: front,
+    back: back,
+  );
+
+  /// Opens a manual registration for a staff or alumni volunteer whose ID the
+  /// app could not recognize. The ID is exempt from the automatic ID checks and
+  /// the face scan; the details are typed in, and a director reviews the ID
+  /// through the Request module before the account opens.
+  ///
+  /// [volunteerType] is the API value — `STAFF` or `ALUMNI`.
+  Future<UploadIdResponse> uploadManualId({
+    required XFile front,
+    required XFile back,
+    required String volunteerType,
+  }) => _uploadReviewedId(
+    '/auth/upload-manual-id',
+    front: front,
+    back: back,
+    fields: {'volunteerType': volunteerType},
+  );
+
+  Future<UploadIdResponse> _uploadReviewedId(
+    String path, {
+    required XFile front,
+    required XFile back,
+    Map<String, String> fields = const {},
+  }) async {
+    final frontBytes = await front.readAsBytes();
+    final backBytes = await back.readAsBytes();
+
+    final response = await _api.postMultipart(
+      path,
+      fields: fields,
+      files: [
+        http.MultipartFile.fromBytes(
+          'front',
+          frontBytes,
+          filename: front.name,
+          contentType: _imageContentType(front),
+        ),
+        http.MultipartFile.fromBytes(
+          'back',
+          backBytes,
+          filename: back.name,
+          contentType: _imageContentType(back),
+        ),
+      ],
+    );
+
+    return UploadIdResponse.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
   /// Attaches the beneficiary's supporting document (any file type) to the
   /// registration session; a second call replaces the first file.
   Future<RegistrationDocumentResponse> uploadRegistrationDocument({

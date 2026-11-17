@@ -26,9 +26,11 @@ export interface ProvisionUserPayload {
   /** The inbox the issued credentials are mailed to. */
   recipientEmail: string
   role: string
-  /** `STUDENT`, `STAFF` or `ALUMNI` — sent only with the `VOLUNTEER` role. */
+  /** `STUDENT`, `STAFF`, `ALUMNI` or `PARTNER_BARANGAY` — sent only with the `VOLUNTEER` role. */
   volunteerType?: string
   department?: string
+  /** Sent only with the `PARTNER_BARANGAY` volunteer type, in place of a department. */
+  partnerBarangay?: string
   /** The complete set of actions the account should hold; omit to keep the role baseline. */
   permissions?: string[]
   expiresInHours: number

@@ -85,6 +85,8 @@ import {
     { name: 'role_type VOLUNTEER as staff', input: { ...VALID_GENERATE, role_type: RoleType.VOLUNTEER, volunteer_type: 'STAFF' }, expected: 'PASS' },
     { name: 'role_type VOLUNTEER as alumni', input: { ...VALID_GENERATE, role_type: RoleType.VOLUNTEER, volunteer_type: 'ALUMNI' }, expected: 'PASS' },
     { name: 'role_type VOLUNTEER with a department', input: { ...VALID_GENERATE, role_type: RoleType.VOLUNTEER, volunteer_type: 'STUDENT', department: 'College of Computer Studies' }, expected: 'PASS' },
+    { name: 'role_type VOLUNTEER as partner barangay', input: { ...VALID_GENERATE, role_type: RoleType.VOLUNTEER, volunteer_type: 'PARTNER_BARANGAY', partner_barangay: 'Barangay Looc' }, expected: 'PASS' },
+    { name: 'partner barangay volunteer from Barangay Paknaan', input: { ...VALID_MANUAL, role_type: RoleType.VOLUNTEER, volunteer_type: 'PARTNER_BARANGAY', partner_barangay: 'Barangay Paknaan' }, expected: 'PASS' },
     { name: 'role_type DONOR', input: { ...VALID_GENERATE, role_type: RoleType.DONOR }, expected: 'PASS' },
     { name: 'role_type BENEFICIARY', input: { ...VALID_GENERATE, role_type: RoleType.BENEFICIARY }, expected: 'PASS' },
 

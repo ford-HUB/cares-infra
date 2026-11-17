@@ -6,6 +6,18 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 
+/**
+ * The barangays UCLM CARES has adopted as partner communities — the only values a
+ * partner-barangay volunteer can sign up through. Kept in step with the mobile
+ * app's `PartnerBarangays.names` and the site's `LANDING_PARTNER_BARANGAYS`.
+ */
+export const PARTNER_BARANGAYS = [
+  'Barangay Looc',
+  'Barangay Opao',
+  'Barangay Umapad',
+  'Barangay Paknaan',
+] as const;
+
 export const CreateUserSchema = z
   .object({
     firstname: z.string().trim().min(1),
@@ -73,6 +85,9 @@ export const RegisterFromSessionSchema = CreateUserSchema.omit({
 })
   .extend({
     registrationId: z.uuid(),
+    // Partner-barangay sessions only: the partner barangay the volunteer picked.
+    // Only accepted here, on the reviewed sign-up — never on direct `register`.
+    partner_barangay: z.enum(PARTNER_BARANGAYS).optional(),
     // The ID scan is the one uploaded to the session, never a client-supplied URL.
     school_info: CreateUserSchema.shape.school_info.omit({
       school_id_url: true,
@@ -175,6 +190,9 @@ export const RegisterUserResponseSchema = z.object({
 
 /** The supporting document a beneficiary attaches; any file type is accepted. */
 export const REGISTRATION_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+/** The volunteer sign-ups that can fall back to manual registration. */
+export const ManualVolunteerTypeSchema = z.enum(['STAFF', 'ALUMNI']);
 
 export const RegistrationDocumentResponseSchema = z.object({
   registrationId: z.string(),
