@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile/core/constants/partner_barangays.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -35,8 +36,22 @@ import 'package:mobile/shared/widgets/header_band.dart';
 /// Registration steps. Beneficiaries do not present an ID and are not face
 /// scanned, so their flow omits [_RegisterStep.idUpload] and
 /// [_RegisterStep.faceScan] and types the details in instead of reading them
-/// off an ID with OCR.
-enum _RegisterStep { idUpload, faceScan, details, account }
+/// off an ID with OCR. Alumni upload an alumni ID (not a student ID) but are not
+/// face scanned either — they type their details in, and a director reviews the
+/// sign-up before the account opens. Partner-barangay volunteers follow the same
+/// flow with a valid ID, pick their partner barangay, and give no ID number.
+///
+/// Volunteers (student, staff, alumni, partner barangay) whose ID photo the
+/// app cannot properly recognize may switch to manual registration: the ID
+/// skips the automatic checks, the face scan is dropped, the details are typed
+/// in, and a director approves the resulting MANUAL_REGISTRATION request in the
+/// Request module.
+///
+/// An individual beneficiary who picks Student on [_RegisterStep.details]
+/// continues like a student volunteer — [_RegisterStep.idUpload],
+/// [_RegisterStep.faceScan], then the details read off the school ID on
+/// [_RegisterStep.review] — and needs no director approval.
+enum _RegisterStep { idUpload, faceScan, details, review, account }
 
 class RegisterFlowScreen extends ConsumerStatefulWidget {
   const RegisterFlowScreen({
@@ -73,13 +88,28 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   String? _ocrExtractError;
   bool _isSubmitting = false;
   bool _startingSession = false;
+
+  /// Set when a volunteer registrant picks Manual Registration after the app
+  /// could not recognize their ID.
+  bool _manualRegistration = false;
   String? _sessionError;
+
+  /// ID sides kept although the photo check said they are not clear (Continue
+  /// Anyway): the details read off them are open for correction.
+  final Set<IdCardSide> _unclearSides = {};
+
+  /// The ID-less session a beneficiary starts on entry. A student beneficiary's
+  /// ID upload opens a new session; switching back to Regular returns here.
+  String? _beneficiarySessionId;
 
   late RegisterOcrSample _ocrData;
   BeneficiaryProfile _beneficiaryProfile = const BeneficiaryProfile();
 
-  /// The beneficiary's supporting document, and the copy already attached to
-  /// the registration session — re-uploaded only when the pick changes.
+  /// The document a director reviews with the sign-up — a beneficiary's
+  /// or partner-barangay volunteer's supporting document, an alumnus's
+  /// Certificate of Graduation — and the copy
+  /// already attached to the registration session, re-uploaded only when the
+  /// pick changes.
   PlatformFile? _supportingDocument;
   PlatformFile? _uploadedDocument;
   String _email = '';
@@ -94,8 +124,67 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
 
-  List<_RegisterStep> get _steps => _isBeneficiary
+  /// Alumni present an alumni ID, which is reviewed by a director instead of
+  /// being face matched or read by OCR.
+  bool get _isAlumni => widget.volunteerType == VolunteerType.alumni;
+
+  /// Partner-barangay volunteers present a valid ID that a director reviews,
+  /// like alumni, but have no school record or ID number.
+  bool get _isPartnerBarangay =>
+      widget.volunteerType == VolunteerType.partnerBarangay;
+
+  /// Every volunteer sign-up can fall back to manual registration when the ID
+  /// can't be recognized.
+  bool get _supportsManualRegistration => widget.volunteerType != null;
+
+  /// An individual beneficiary registering as a UC student — the ID + face
+  /// scan path, with no director approval.
+  bool get _isStudentBeneficiary =>
+      _isBeneficiary && _beneficiaryProfile.isStudent;
+
+  /// A beneficiary who types everything in and waits for a director.
+  bool get _isRegularBeneficiary => _isBeneficiary && !_isStudentBeneficiary;
+
+  /// The volunteer type the school ID is read as — a student beneficiary's
+  /// is read like a student volunteer's.
+  VolunteerType? get _schoolVolunteerType =>
+      widget.volunteerType ??
+      (_isStudentBeneficiary ? VolunteerType.student : null);
+
+  /// The step where the details read off the ID are checked.
+  _RegisterStep get _detailsStep =>
+      _isStudentBeneficiary ? _RegisterStep.review : _RegisterStep.details;
+
+  /// Volunteer sign-ups whose ID a director reviews instead of it being face
+  /// matched and read by OCR: the details are typed in. A manual registration
+  /// is reviewed the same way.
+  bool get _isDirectorReviewed =>
+      _manualRegistration ||
+      (widget.volunteerType?.isDirectorReviewed ?? false);
+
+  /// Alumni close their details with a Certificate of Graduation and
+  /// partner-barangay volunteers with a supporting document.
+  bool get _collectsDocument => _isAlumni || _isPartnerBarangay;
+
+  /// Accounts that stay shut until a director approves the sign-up.
+  bool get _requiresApproval => _isRegularBeneficiary || _isDirectorReviewed;
+
+  List<_RegisterStep> get _steps => _isStudentBeneficiary
+      ? const [
+          _RegisterStep.details,
+          _RegisterStep.idUpload,
+          _RegisterStep.faceScan,
+          _RegisterStep.review,
+          _RegisterStep.account,
+        ]
+      : _isBeneficiary
       ? const [_RegisterStep.details, _RegisterStep.account]
+      : _isDirectorReviewed
+      ? const [
+          _RegisterStep.idUpload,
+          _RegisterStep.details,
+          _RegisterStep.account,
+        ]
       : const [
           _RegisterStep.idUpload,
           _RegisterStep.faceScan,
@@ -109,10 +198,17 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
   int _indexOf(_RegisterStep step) => _steps.indexOf(step);
 
-  static String _labelFor(_RegisterStep step) => switch (step) {
-    _RegisterStep.idUpload => 'Upload Your ID',
+  String _labelFor(_RegisterStep step) => switch (step) {
+    _RegisterStep.idUpload =>
+      _isAlumni
+          ? 'Upload Your Alumni ID'
+          : _isStudentBeneficiary
+          ? 'Upload Your School ID'
+          : 'Upload Your ID',
     _RegisterStep.faceScan => 'Face Scan',
-    _RegisterStep.details => 'Your Details',
+    _RegisterStep.details =>
+      _isStudentBeneficiary ? 'About You' : 'Your Details',
+    _RegisterStep.review => 'Your Details',
     _RegisterStep.account => 'Create Account',
   };
 
@@ -143,7 +239,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       if (!mounted) return;
 
       setState(() {
-        _registrationId = response.registrationId;
+        _beneficiarySessionId = response.registrationId;
+        // A student may have uploaded their ID while this was in flight.
+        if (!_isStudentBeneficiary || _registrationId == null) {
+          _registrationId = response.registrationId;
+        }
         _startingSession = false;
       });
     } catch (e) {
@@ -158,7 +258,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   }
 
   bool get _ocrDataValid {
-    if (_isBeneficiary) {
+    if (_isRegularBeneficiary) {
       // Beneficiaries register without an ID, so no ID number or school
       // information is collected on their details form.
       return _ocrData.firstname.trim().isNotEmpty &&
@@ -174,6 +274,24 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           _supportingDocument != null;
     }
 
+    // A partner-barangay volunteer has no school ID or school record: the
+    // director checks the uploaded ID, the barangay they picked and the
+    // supporting document that ties them to it.
+    if (_isPartnerBarangay) {
+      return _supportingDocument != null &&
+          _ocrData.firstname.trim().isNotEmpty &&
+          _ocrData.lastname.trim().isNotEmpty &&
+          _ocrData.gender.trim().isNotEmpty &&
+          VolunteerFieldRules.isValidAge(_ocrData.age) &&
+          _ocrData.currentAddress.trim().isNotEmpty &&
+          isValidPhilippinePhone(_ocrData.phoneNumber) &&
+          PartnerBarangays.names.contains(_ocrData.partnerBarangay);
+    }
+
+    // An alumni sign-up is filed with the Certificate of Graduation the director
+    // reviews, so it cannot continue without one.
+    if (_isAlumni && _supportingDocument == null) return false;
+
     final baseValid =
         _ocrData.firstname.trim().isNotEmpty &&
         _ocrData.lastname.trim().isNotEmpty &&
@@ -185,7 +303,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     final volunteerType =
         VolunteerTypeX.fromApiValue(_ocrData.volunteerType) ??
-        widget.volunteerType!;
+        _schoolVolunteerType!;
 
     // Non-teaching personnel have no year level or graduation year to check.
     if (UclmDepartments.isNonTeaching(_ocrData.departmentName)) {
@@ -204,7 +322,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
               _ocrData.graduationYear,
               VolunteerType.student,
             ),
-      VolunteerType.staff => baseValid,
+      VolunteerType.staff || VolunteerType.partnerBarangay => baseValid,
       VolunteerType.alumni =>
         baseValid &&
             _ocrData.majorName.trim().isNotEmpty &&
@@ -215,10 +333,13 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     };
   }
 
-  /// Beneficiary details are typed in, so there is no extraction to wait for.
+  /// Beneficiary, alumni and partner-barangay details are typed in, so there is
+  /// no extraction to wait for.
   bool get _detailsReady =>
-      _isBeneficiary ||
-      (!_ocrExtracting && !_ocrExtractFailed && _ocrExtractSucceeded);
+      _isRegularBeneficiary || _isDirectorReviewed || _extractionReady;
+
+  bool get _extractionReady =>
+      !_ocrExtracting && !_ocrExtractFailed && _ocrExtractSucceeded;
 
   bool get _accountValid {
     final emailOk = _email.contains('@') && _email.contains('.');
@@ -238,7 +359,13 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     return switch (_currentStep) {
       _RegisterStep.idUpload => _idFrontImage != null && _idBackImage != null,
       _RegisterStep.faceScan => false,
-      _RegisterStep.details => _detailsReady && _ocrDataValid,
+      // A student beneficiary only picks their path here; their details are
+      // read off the school ID on the review step.
+      _RegisterStep.details =>
+        _isStudentBeneficiary
+            ? _beneficiaryProfile.isComplete
+            : _detailsReady && _ocrDataValid,
+      _RegisterStep.review => _extractionReady && _ocrDataValid,
       _RegisterStep.account => _accountValid,
     };
   }
@@ -248,7 +375,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     return switch (_currentStep) {
       _RegisterStep.idUpload => 'Upload and continue',
-      _RegisterStep.details => 'Continue to account',
+      _RegisterStep.details =>
+        _isStudentBeneficiary ? 'Continue to school ID' : 'Continue to account',
+      _RegisterStep.review => 'Continue to account',
       _RegisterStep.account => 'Continue to verification',
       _RegisterStep.faceScan => 'Continue',
     };
@@ -266,7 +395,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     final step = switch (conflict.field) {
       RegistrationConflictField.email => _RegisterStep.account,
       RegistrationConflictField.phoneNumber ||
-      RegistrationConflictField.idNumber => _RegisterStep.details,
+      RegistrationConflictField.idNumber => _detailsStep,
     };
     setState(() {
       _conflict = conflict;
@@ -305,8 +434,18 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         await _uploadIdAndContinue();
       case _RegisterStep.faceScan:
         return;
+      case _RegisterStep.details when _isStudentBeneficiary:
+        setState(() => _stepIndex = _indexOf(_RegisterStep.idUpload));
+      case _RegisterStep.review:
+        setState(() => _stepIndex = _indexOf(_RegisterStep.account));
       case _RegisterStep.details:
-        if (_isBeneficiary && !await _attachSupportingDocument()) return;
+        // Only flows that collect a document have one to attach; each of
+        // them requires it before Continue unlocks.
+        if (_requiresApproval &&
+            _supportingDocument != null &&
+            !await _attachSupportingDocument()) {
+          return;
+        }
         if (!mounted) return;
         setState(() => _stepIndex = _indexOf(_RegisterStep.account));
       case _RegisterStep.account:
@@ -314,7 +453,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
     }
   }
 
-  /// Puts the picked supporting document on the registration session, so the
+  /// Puts the picked document on the registration session, so the
   /// director's review request is filed with it at sign-up. Skipped when that
   /// same file is already attached. Returns false when the upload failed.
   Future<bool> _attachSupportingDocument() async {
@@ -348,6 +487,8 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       _showError(
         e is ApiException
             ? e.message
+            : _isAlumni
+            ? 'Could not upload your Certificate of Graduation. Please try again.'
             : 'Could not upload your supporting document. Please try again.',
       );
       return false;
@@ -370,7 +511,9 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       final sendResult = await service.sendVerificationCode(
         email: _email.trim(),
         phoneNumber: _ocrData.phoneNumber,
-        idNumber: _isBeneficiary ? null : _ocrData.idNumber,
+        idNumber: _isRegularBeneficiary || _isPartnerBarangay
+            ? null
+            : (_isAlumni ? _ocrData.registrationIdNumber : _ocrData.idNumber),
       );
       if (!mounted) return;
 
@@ -392,6 +535,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       final email = _email.trim();
       final ocrData = _ocrData;
       final password = _password;
+      final studentBeneficiary = _isStudentBeneficiary;
 
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
@@ -405,18 +549,20 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
             // code finishes registration once it is fixed.
             onConflict: _returnToConflict,
             onVerified: (otpContext) async {
-              await service.registerFromSession(
+              final result = await service.registerFromSession(
                 registrationId: registrationId,
                 ocrData: ocrData,
                 roleType: widget.roleType.apiValue,
                 email: email,
                 password: password,
+                studentBeneficiary: studentBeneficiary,
               );
               if (!otpContext.mounted) return;
 
-              // A new beneficiary account waits for a director's approval, so
-              // the flow ends on the review screen rather than a dashboard.
-              if (_isBeneficiary) {
+              // A new beneficiary, alumni or partner-barangay account waits for a
+              // director's approval, so the flow ends on the review screen
+              // rather than the sign-in confirmation.
+              if (_requiresApproval || result['requires_approval'] == true) {
                 Navigator.of(otpContext).pushAndRemoveUntil(
                   MaterialPageRoute<void>(
                     builder: (_) => RegistrationUnderReviewScreen(email: email),
@@ -461,25 +607,95 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
 
     try {
       final service = ref.read(authRegistrationServiceProvider);
-      final response = await service.uploadId(
-        front: front,
-        back: back,
-        roleType: widget.roleType.apiValue,
-      );
+      // A manual registration, an alumni ID or a partner-barangay ID skips the
+      // student-ID check, the face scan and OCR: the volunteer goes straight
+      // to typing their details in.
+      final response = _manualRegistration
+          ? await service.uploadManualId(
+              front: front,
+              back: back,
+              volunteerType: widget.volunteerType!.apiValue,
+            )
+          : _isAlumni
+          ? await service.uploadAlumniId(front: front, back: back)
+          : _isPartnerBarangay
+          ? await service.uploadPartnerBarangayId(front: front, back: back)
+          : await service.uploadId(
+              front: front,
+              back: back,
+              roleType: widget.roleType.apiValue,
+            );
       if (!mounted) return;
 
       setState(() {
         _registrationId = response.registrationId;
-        _stepIndex = _indexOf(_RegisterStep.faceScan);
+        _stepIndex = _indexOf(
+          _isDirectorReviewed ? _RegisterStep.details : _RegisterStep.faceScan,
+        );
         _isSubmitting = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
+      // The server's ID check could not recognize a staff ID (alumni IDs never
+      // go through it): offer the same fallback as the on-device check,
+      // rather than a dead end.
+      if (_supportsManualRegistration &&
+          !_isDirectorReviewed &&
+          e is ApiException &&
+          (e.statusCode == 400 || e.statusCode == 422)) {
+        await _offerManualRegistration(e.message);
+        return;
+      }
       _showError(
         e is ApiException ? e.message : 'Failed to upload ID images: $e',
       );
     }
+  }
+
+  /// Turns on manual registration: the face scan step drops out, and the ID
+  /// goes up without the automatic checks for a director to review.
+  void _startManualRegistration() {
+    setState(() {
+      _manualRegistration = true;
+      _faceCaptures = const FaceCaptureSet();
+      _stepIndex = _indexOf(_RegisterStep.idUpload);
+    });
+  }
+
+  /// Shown when the server rejects an ID the registrant chose to proceed with.
+  /// They can retake the photos, or switch to manual registration and submit
+  /// these ones for a director to review.
+  Future<void> _offerManualRegistration(String reason) async {
+    final manual = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(
+          Icons.report_gmailerrorred_rounded,
+          color: AppColors.accentOrange,
+          size: 32,
+        ),
+        title: const Text('We couldn\'t verify your ID'),
+        content: Text(
+          '$reason\n\nRetake clearer photos of your ID, or continue with '
+          'Manual Registration — there is no face scan, you type your details '
+          'in, and a CARES director reviews your ID before your account opens.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Retake photos'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Manual Registration'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || manual != true) return;
+    _startManualRegistration();
+    await _uploadIdAndContinue();
   }
 
   Future<void> _onFaceVerified(
@@ -488,7 +704,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   ) async {
     setState(() {
       _faceCaptures = captures;
-      _stepIndex = _indexOf(_RegisterStep.details);
+      _stepIndex = _indexOf(_detailsStep);
     });
 
     setState(() {
@@ -526,7 +742,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
       if (!mounted) return;
 
       var ocrData = response.ocrData.enrichFromRawText();
-      final volunteerType = widget.volunteerType;
+      final volunteerType = _schoolVolunteerType;
       if (volunteerType != null) {
         ocrData = ocrData.copyWith(volunteerType: volunteerType.apiValue);
       } else if (_isBeneficiary) {
@@ -573,6 +789,7 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         _faceCaptures = const FaceCaptureSet();
       }
       if (_currentStep != _RegisterStep.details &&
+          _currentStep != _RegisterStep.review &&
           _currentStep != _RegisterStep.account) {
         _ocrExtracting = false;
         _ocrExtractFailed = false;
@@ -639,11 +856,21 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         return RegisterIdUploadStep(
           key: const ValueKey('id'),
           roleType: widget.roleType,
+          alumniId: _isAlumni,
+          partnerBarangayId: _isPartnerBarangay,
+          manualRegistration: _manualRegistration,
+          onManualRegistration: _supportsManualRegistration
+              ? _startManualRegistration
+              : null,
           frontImage: _idFrontImage,
           backImage: _idBackImage,
           onFrontPicked: (file) => setState(() => _idFrontImage = file),
           onBackPicked: (file) => setState(() => _idBackImage = file),
+          onAcceptedUnclear: (side) => setState(() => _unclearSides.add(side)),
           onSideValidated: (result) {
+            // A fresh photo of this side; [onAcceptedUnclear] follows when it
+            // was kept although unclear.
+            _unclearSides.remove(result.side);
             if (result.side == IdCardSide.front) {
               _idFrontText = result.recognizedText;
             } else {
@@ -676,7 +903,11 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
         if (_isBeneficiary) {
           if (registrationId == null) return _buildMissingSession();
           return RegisterBeneficiaryDetailsStep(
-            key: const ValueKey('beneficiary-details'),
+            // Rebuilt when Regular / Student flips, so its fields re-read the
+            // details the other path left behind.
+            key: ValueKey(
+              'beneficiary-details-${_beneficiaryProfile.isStudent}',
+            ),
             data: _ocrData,
             profile: _beneficiaryProfile,
             phoneError: _conflictMessageFor(
@@ -686,60 +917,102 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
               _clearConflictsChangedBy(data);
               _ocrData = data;
             }),
-            onProfileChanged: (profile) =>
-                setState(() => _beneficiaryProfile = profile),
+            onProfileChanged: _onBeneficiaryProfileChanged,
             document: _supportingDocument,
             onDocumentChanged: (document) =>
                 setState(() => _supportingDocument = document),
           );
         }
-        return RegisterOcrReviewStep(
-          key: const ValueKey('ocr-review'),
-          data: _ocrData,
-          roleType: widget.roleType,
-          volunteerType: widget.volunteerType,
-          isExtracting: _ocrExtracting,
-          extractFailed: _ocrExtractFailed,
-          extractErrorMessage: _ocrExtractError,
-          extractionFlags: _extractionFlags,
-          onRetry: () => unawaited(_runOcrExtract()),
-          phoneError: _conflictMessageFor(
-            RegistrationConflictField.phoneNumber,
-          ),
-          idNumberError: _conflictMessageFor(
-            RegistrationConflictField.idNumber,
-          ),
-          onChanged: (data) => setState(() {
-            _clearConflictsChangedBy(data);
-            _ocrData = data;
-          }),
-        );
+        return _buildReviewStep();
+      case _RegisterStep.review:
+        return _buildReviewStep();
       case _RegisterStep.account:
-        return RegisterAccountStep(
-          key: const ValueKey('account'),
-          email: _email,
-          password: _password,
-          confirmPassword: _confirmPassword,
-          emailError: _conflictMessageFor(RegistrationConflictField.email),
-          onEmailChanged: (v) => setState(() {
-            if (v.trim() != _email.trim()) {
-              _clearConflict(RegistrationConflictField.email);
-            }
-            _email = v;
-          }),
-          onPasswordChanged: (v) => setState(() => _password = v),
-          onConfirmPasswordChanged: (v) => setState(() => _confirmPassword = v),
-          termsAudience: _isBeneficiary
-              ? CaresTermsAudience.beneficiary
-              : CaresTermsAudience.volunteer,
-          acceptedTerms: _acceptedTerms,
-          onAcceptedTermsChanged: (v) => setState(() => _acceptedTerms = v),
-        );
+        return _buildAccountStep();
     }
   }
 
+  /// The details read off the ID (or typed in, for a director-reviewed
+  /// sign-up), for a volunteer or a student beneficiary.
+  Widget _buildReviewStep() {
+    return RegisterOcrReviewStep(
+      key: const ValueKey('ocr-review'),
+      data: _ocrData,
+      roleType: widget.roleType,
+      volunteerType: _schoolVolunteerType,
+      studentBeneficiary: _isStudentBeneficiary,
+      unclearIdPhoto: _unclearSides.isNotEmpty,
+      manualEntry: _isDirectorReviewed,
+      manualRegistration: _manualRegistration,
+      certificate: _collectsDocument ? _supportingDocument : null,
+      onCertificateChanged: _collectsDocument
+          ? (document) => setState(() => _supportingDocument = document)
+          : null,
+      isExtracting: _isDirectorReviewed ? false : _ocrExtracting,
+      extractFailed: _isDirectorReviewed ? false : _ocrExtractFailed,
+      extractErrorMessage: _ocrExtractError,
+      extractionFlags: _extractionFlags,
+      onRetry: () => unawaited(_runOcrExtract()),
+      phoneError: _conflictMessageFor(RegistrationConflictField.phoneNumber),
+      idNumberError: _conflictMessageFor(RegistrationConflictField.idNumber),
+      onChanged: (data) => setState(() {
+        _clearConflictsChangedBy(data);
+        _ocrData = data;
+      }),
+    );
+  }
+
+  Widget _buildAccountStep() {
+    return RegisterAccountStep(
+      key: const ValueKey('account'),
+      email: _email,
+      password: _password,
+      confirmPassword: _confirmPassword,
+      emailError: _conflictMessageFor(RegistrationConflictField.email),
+      onEmailChanged: (v) => setState(() {
+        if (v.trim() != _email.trim()) {
+          _clearConflict(RegistrationConflictField.email);
+        }
+        _email = v;
+      }),
+      onPasswordChanged: (v) => setState(() => _password = v),
+      onConfirmPasswordChanged: (v) => setState(() => _confirmPassword = v),
+      termsAudience: _isBeneficiary
+          ? CaresTermsAudience.beneficiary
+          : CaresTermsAudience.volunteer,
+      acceptedTerms: _acceptedTerms,
+      onAcceptedTermsChanged: (v) => setState(() => _acceptedTerms = v),
+    );
+  }
+
+  /// Regular ↔ Student changes the whole path, so whatever the other path
+  /// captured is dropped: a student's ID, face and scan, or a regular
+  /// beneficiary's school-free details being read as a student's.
+  void _onBeneficiaryProfileChanged(BeneficiaryProfile profile) {
+    final pathChanged = profile.isStudent != _beneficiaryProfile.isStudent;
+    setState(() {
+      _beneficiaryProfile = profile;
+      if (!pathChanged) return;
+      _idFrontImage = null;
+      _idBackImage = null;
+      _idFrontText = '';
+      _idBackText = '';
+      _unclearSides.clear();
+      _faceCaptures = const FaceCaptureSet();
+      _extractionFlags = const [];
+      _ocrExtracting = false;
+      _ocrExtractFailed = false;
+      _ocrExtractSucceeded = false;
+      _ocrExtractError = null;
+      // Back on the ID-less session; a student's upload opens its own.
+      _registrationId = _beneficiarySessionId;
+      if (!profile.isStudent) {
+        _ocrData = _ocrData.copyWith(volunteerType: '');
+      }
+    });
+  }
+
   Widget _buildMissingSession() {
-    if (!_isBeneficiary) {
+    if (!_isBeneficiary || _currentStep != _RegisterStep.details) {
       return const Center(
         key: ValueKey('face-missing-session'),
         child: Text(

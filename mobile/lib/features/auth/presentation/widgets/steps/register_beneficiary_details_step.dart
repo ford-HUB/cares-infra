@@ -9,16 +9,17 @@ import 'package:mobile/features/auth/domain/ph_address.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
 import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
+import 'package:mobile/features/auth/presentation/widgets/registration_document_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
-/// Largest supporting document the server accepts — kept in step with
-/// `REGISTRATION_DOCUMENT_MAX_BYTES`.
-const int kRegistrationDocumentMaxBytes = 10 * 1024 * 1024;
-
 /// Beneficiary details form — the donor sign-up pattern: hero panel, then one
-/// card per idea. Beneficiaries type everything in, so there is no OCR review
-/// and no ID or face capture behind this step. A supporting document (any file
-/// type) is attached here for the director who approves the account.
+/// card per idea. A regular beneficiary types everything in — no OCR review, no
+/// ID or face capture — and attaches a supporting document (any file type) for
+/// the director who approves the account.
+///
+/// An individual who picks Student goes the student volunteer's way instead:
+/// the rest of this form steps aside, and the flow continues to the school ID
+/// upload, the face scan and the details read off the ID.
 class RegisterBeneficiaryDetailsStep extends StatefulWidget {
   const RegisterBeneficiaryDetailsStep({
     super.key,
@@ -153,8 +154,14 @@ class _RegisterBeneficiaryDetailsStepState
       _organizationAddress.clear();
       widget.onProfileChanged(_profile.asIndividual());
     } else {
-      widget.onProfileChanged(_profile.copyWith(kind: kind));
+      widget.onProfileChanged(_profile.asOrganization());
     }
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {});
+  }
+
+  void _selectCategory(BeneficiaryCategory category) {
+    widget.onProfileChanged(_profile.copyWith(category: category));
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {});
   }
@@ -172,6 +179,20 @@ class _RegisterBeneficiaryDetailsStepState
 
   @override
   Widget build(BuildContext context) {
+    // A student's name, details and school record are read off their ID on
+    // the next steps, so only the choices stay on this one.
+    if (_profile.isStudent) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _kindCard(),
+          const SizedBox(height: 16),
+          _personalCard(),
+          const SizedBox(height: 8),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -193,132 +214,19 @@ class _RegisterBeneficiaryDetailsStepState
     );
   }
 
-  String? _documentError;
-
-  Future<void> _pickDocument() async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        withData: false,
-      );
-      final file = result?.files.single;
-      if (file == null || file.path == null || !mounted) return;
-
-      if (file.size > kRegistrationDocumentMaxBytes) {
-        setState(
-          () => _documentError =
-              'That file is over ${kRegistrationDocumentMaxBytes ~/ (1024 * 1024)} MB. '
-              'Pick a smaller one.',
-        );
-        return;
-      }
-      setState(() => _documentError = null);
-      widget.onDocumentChanged(file);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _documentError = 'Could not open that file. Try another.');
-    }
-  }
-
-  Widget _documentCard() {
-    final document = widget.document;
-    return RegistrationFormCard(
-      icon: Icons.attach_file_rounded,
-      title: 'Supporting Document',
-      subtitle:
-          'Attach a file that supports your registration — a barangay '
-          'certificate, valid ID, or similar. Any file type, up to '
-          '${kRegistrationDocumentMaxBytes ~/ (1024 * 1024)} MB.',
-      children: [
-        if (document == null)
-          OutlinedButton.icon(
-            onPressed: () => _pickDocument(),
-            icon: const Icon(Icons.upload_file_rounded),
-            label: const Text('Choose a file'),
-          )
-        else
-          Container(
-            padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.insert_drive_file_outlined,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        document.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _formatSize(document.size),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _pickDocument(),
-                  child: const Text('Replace'),
-                ),
-                IconButton(
-                  tooltip: 'Remove file',
-                  onPressed: () => widget.onDocumentChanged(null),
-                  icon: const Icon(Icons.close_rounded, size: 20),
-                  color: AppColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        if (_documentError != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            _documentError!,
-            style: const TextStyle(fontSize: 12, color: AppColors.error),
-          ),
-        ] else if (document == null) ...[
-          const SizedBox(height: 8),
-          const Text(
-            'Required — a director reviews it before your account opens.',
-            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-          ),
-        ],
-      ],
-    );
-  }
-
-  static String _formatSize(int bytes) {
-    if (bytes >= 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    }
-    if (bytes >= 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
-    return '$bytes B';
-  }
+  Widget _documentCard() => RegistrationDocumentCard(
+    title: 'Supporting Document',
+    description:
+        'Attach a file that supports your registration — a barangay '
+        'certificate, valid ID, or similar.',
+    document: widget.document,
+    onChanged: widget.onDocumentChanged,
+  );
 
   Widget _nameCard() {
     return RegistrationFormCard(
       icon: Icons.badge_outlined,
-      title: 'Your Name',
+      title: 'Personal Information',
       subtitle: 'Use the name that appears on your valid ID.',
       children: [
         RegisterFormField(
@@ -422,12 +330,96 @@ class _RegisterBeneficiaryDetailsStepState
     );
   }
 
+  /// Individuals pick Regular or Student first; a student's details then
+  /// come from their school ID.
+  List<Widget> _categoryChoice() {
+    return [
+      Text(
+        'Beneficiary Type',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
+        ),
+      ),
+      const SizedBox(height: 8),
+      RegistrationChoiceTile(
+        key: const ValueKey('beneficiary-category-regular'),
+        icon: Icons.person_outline_rounded,
+        title: 'Regular',
+        description:
+            'Fill in your details and attach a supporting document. '
+            'A CARES director approves your account.',
+        isSelected: _profile.category == BeneficiaryCategory.regular,
+        onTap: () => _selectCategory(BeneficiaryCategory.regular),
+      ),
+      const SizedBox(height: 12),
+      RegistrationChoiceTile(
+        key: const ValueKey('beneficiary-category-student'),
+        icon: Icons.school_outlined,
+        title: 'Student',
+        description:
+            'A UC student: upload your school ID and scan your '
+            'face, like a student volunteer. No approval wait.',
+        isSelected: _profile.category == BeneficiaryCategory.student,
+        onTap: () => _selectCategory(BeneficiaryCategory.student),
+      ),
+      if (_profile.category == null) ...[
+        const SizedBox(height: 10),
+        const Text(
+          'Select one to continue.',
+          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+        ),
+      ],
+    ];
+  }
+
+  Widget _studentNote() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.accentLight.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: const Text(
+        'Next, upload your UC school ID and scan your face. Your name, '
+        'department and course are read off the ID for you to check. As a '
+        'student beneficiary you also see your department\'s School events, '
+        'and your Volunteer side is unlocked too.',
+        style: TextStyle(
+          fontSize: 12.5,
+          height: 1.4,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primaryDark,
+        ),
+      ),
+    );
+  }
+
   Widget _personalCard() {
+    if (_profile.isStudent) {
+      return RegistrationFormCard(
+        icon: Icons.person_outline_rounded,
+        title: 'Personal Information',
+        subtitle: 'Tell us whether you are a regular beneficiary or a student.',
+        children: [
+          ..._categoryChoice(),
+          const SizedBox(height: 14),
+          _studentNote(),
+        ],
+      );
+    }
+
     return RegistrationFormCard(
       icon: Icons.person_outline_rounded,
       title: 'Personal Information',
       subtitle: 'How the CARES team reaches and identifies you.',
       children: [
+        if (_profile.isIndividual) ...[
+          ..._categoryChoice(),
+          const SizedBox(height: 16),
+        ],
         _dropdown(
           label: 'Gender',
           hint: 'Select Gender',

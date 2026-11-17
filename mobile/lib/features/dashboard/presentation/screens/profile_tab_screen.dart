@@ -467,8 +467,10 @@ class _ProfileTabBody extends StatelessWidget {
                       // A beneficiary/donor whose Volunteer side a director
                       // approved never uploaded a school record — only a
                       // registered volunteer has one to show. Neither has a
-                      // director or coordinator signed in from the portal.
+                      // director or coordinator signed in from the portal, nor
+                      // a partner-barangay volunteer from outside the school.
                       if (!volunteerServer.accessGrantedByDirector &&
+                          !volunteerServer.isPartnerBarangay &&
                           !RoleAccountStore.instance.isStaffAccount) ...[
                         _SectionTitle(title: 'School Information'),
 
@@ -504,6 +506,16 @@ class _ProfileTabBody extends StatelessWidget {
                         _SectionTitle(title: 'Contact'),
 
                         const SizedBox(height: 8),
+
+                        if (volunteerServer.isPartnerBarangay) ...[
+                          _InfoRow(
+                            icon: Icons.location_city_outlined,
+                            label: 'Partner Barangay',
+                            value: volunteerServer.partnerBarangay!,
+                          ),
+
+                          const SizedBox(height: 12),
+                        ],
                       ],
 
                       _InfoRow(

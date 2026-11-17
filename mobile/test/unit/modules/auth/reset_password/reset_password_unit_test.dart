@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -117,7 +118,7 @@ Future<_PopResult> _openResetScreen(
 Finder get _passwordField => find.byType(TextField).at(0);
 Finder get _confirmField => find.byType(TextField).at(1);
 Finder get _updateButton =>
-    find.widgetWithText(ElevatedButton, 'Update password');
+    find.widgetWithText(ElevatedButton, 'Update Password');
 
 Future<void> _fill(
   WidgetTester tester, {
@@ -144,6 +145,9 @@ void main() {
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );
+    // In-memory stand-in for the Keystore/Keychain plugin, which does not
+    // exist under `flutter test`.
+    FlutterSecureStorage.setMockInitialValues({});
     AuthSession.clear();
     AuthSession.onSessionEnded = null;
   });
@@ -163,8 +167,8 @@ void main() {
         expect(find.text('Set a new password'), findsOneWidget);
         expect(find.textContaining('You verified $_email.'), findsOneWidget);
         // Each label is also the field's hint.
-        expect(find.text('New password'), findsWidgets);
-        expect(find.text('Confirm new password'), findsWidgets);
+        expect(find.text('New Password'), findsWidgets);
+        expect(find.text('Confirm New Password'), findsWidgets);
 
         final fields = tester.widgetList<TextField>(find.byType(TextField));
         expect(fields.every((field) => field.obscureText), isTrue);
@@ -387,7 +391,7 @@ void main() {
         await _submit(tester);
 
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
-        expect(find.text('Update password'), findsNothing);
+        expect(find.text('Update Password'), findsNothing);
         final button = tester.widget<ElevatedButton>(
           find.byType(ElevatedButton),
         );

@@ -6,6 +6,7 @@ import {
   LoginDto,
   MeResponseDto,
   PortalForgotPasswordResponseDto,
+  RegistrationStatusResponseDto,
 } from '../dto/auth-site-dto';
 import {
   ACCESS_REQUEST_ALLOWED_MIME_TYPES,
@@ -44,8 +45,20 @@ import { AccessControlSiteService } from 'src/modules/access-control/services/ac
 import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
 import {
   RoleType,
+  UserRequestKind,
+  UserRequestStatus,
   type AuditSeverity,
 } from 'src/infastructures/prisma/common/client';
+import { RegistrationStatusTokens } from './registration-status-tokens';
+import type { RegistrationReviewKind } from '../repositories/auth-repository';
+
+/** What each reviewed sign-up registered, as the public status page names it. */
+const REGISTRATION_STATUS_LABELS: Record<RegistrationReviewKind, string> = {
+  [UserRequestKind.BENEFICIARY_REGISTRATION]: 'beneficiary',
+  [UserRequestKind.ALUMNI_REGISTRATION]: 'alumni volunteer',
+  [UserRequestKind.PARTNER_BARANGAY_REGISTRATION]: 'partner barangay volunteer',
+  [UserRequestKind.MANUAL_REGISTRATION]: 'manual volunteer',
+};
 import { portalUrl as resolvePortalUrl } from 'src/shared/utils/environment-utils';
 
 /** Minimum gap between two temporary-password mails for the same address. */
@@ -65,7 +78,48 @@ export class AuthSiteService {
     private readonly nodemailerService: NodemailerService,
     private readonly accessControlSiteService: AccessControlSiteService,
     private readonly securityPolicyService: SecurityPolicyService,
+    private readonly registrationStatusTokens: RegistrationStatusTokens,
   ) {}
+
+  /**
+   * The review behind a "Check status" link. A bad or expired link is a 400, never
+   * a 401 — the portal treats a 401 as its own session ending. A request moved to
+   * the recycle bin still reads as under review, as it does at sign-in.
+   */
+  async getRegistrationStatus(
+    token: string,
+  ): Promise<RegistrationStatusResponseDto> {
+    const userRequestId = this.registrationStatusTokens.verify(token);
+    if (!userRequestId) {
+      throw new BadRequestException(
+        'This status link is invalid or has expired',
+      );
+    }
+
+    const row = await this.authRepository.findRegistrationStatus(userRequestId);
+    if (!row) {
+      throw new NotFoundException('This registration could not be found');
+    }
+
+    const status =
+      row.status === UserRequestStatus.ACCEPTED
+        ? 'ACCEPTED'
+        : row.status === UserRequestStatus.REJECTED
+          ? 'REJECTED'
+          : 'PENDING';
+    return {
+      reference: `REQ-${String(row.reference_number).padStart(3, '0')}`,
+      registration_label:
+        REGISTRATION_STATUS_LABELS[row.kind as RegistrationReviewKind],
+      firstname: row.user.firstname,
+      status,
+      rejection_reason:
+        status === 'REJECTED' ? (row.rejection_reason ?? null) : null,
+      submitted_at: row.createdAt.toISOString(),
+      decided_at:
+        status === 'PENDING' ? null : (row.decided_at?.toISOString() ?? null),
+    };
+  }
 
   async adminLogin(
     data: LoginDto,

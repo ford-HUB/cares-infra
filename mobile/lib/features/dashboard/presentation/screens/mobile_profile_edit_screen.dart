@@ -669,7 +669,9 @@ class _MobileProfileEditScreenState extends State<MobileProfileEditScreen> {
             ),
           ],
         ),
-        if (_isVolunteer) ...[
+        // A partner-barangay volunteer is from outside the school and has no
+        // school record to show or re-verify.
+        if (_isVolunteer && !(profile.volunteer?.isPartnerBarangay ?? false)) ...[
           const SizedBox(height: 16),
           ProfileSchoolRecordCard(
             school: profile.volunteer?.school,

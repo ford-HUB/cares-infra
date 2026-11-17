@@ -76,8 +76,7 @@ class _Recorder {
 
   List<String> get paths => requests.map((r) => r.url.path).toList();
 
-  http.Request to(String path) =>
-      requests.lastWhere((r) => r.url.path == path);
+  http.Request to(String path) => requests.lastWhere((r) => r.url.path == path);
 
   Map<String, dynamic> jsonOf(http.Request request) =>
       jsonDecode(request.body) as Map<String, dynamic>;
@@ -95,11 +94,7 @@ http.Response _ok(Map<String, dynamic> data) =>
     _json(200, {'ok': true, 'message': 'OK', 'data': data});
 
 http.Response _fail(int status, String message, [List<Object>? errors]) =>
-    _json(status, {
-      'ok': false,
-      'message': message,
-      'errors': ?errors,
-    });
+    _json(status, {'ok': false, 'message': message, 'errors': ?errors});
 
 /// What the server's OCR service hands back for a UCLM student ID.
 Map<String, dynamic> _ocrData() => {
@@ -123,7 +118,10 @@ Map<String, dynamic> _ocrData() => {
 Future<http.Response> _defaultReply(http.Request request) async {
   switch (request.url.path) {
     case _startPath:
-      return _ok({'registrationId': _registrationId, 'step': 'session_started'});
+      return _ok({
+        'registrationId': _registrationId,
+        'step': 'session_started',
+      });
     case _uploadIdPath:
       return _ok({'registrationId': _registrationId, 'step': 'id_uploaded'});
     case _documentPath:
@@ -233,9 +231,8 @@ XFile _image(String name, {String? mimeType, String content = 'image-bytes'}) =>
     XFile(_file(name, content), mimeType: mimeType);
 
 /// The OCR result after the user has reviewed it on the details step.
-RegisterOcrSample _reviewedVolunteer() => RegisterOcrSampleApi.fromApiJson(
-  _ocrData(),
-);
+RegisterOcrSample _reviewedVolunteer() =>
+    RegisterOcrSampleApi.fromApiJson(_ocrData());
 
 void main() {
   setUpAll(() {
@@ -400,6 +397,46 @@ void main() {
     });
   });
 
+  group('POST /auth/upload-manual-id (staff / alumni manual registration)', () {
+    test('sends both ID sides and the volunteer type, nothing else', () async {
+      final rec = _Recorder(
+        (_) async =>
+            _ok({'registrationId': _registrationId, 'step': 'id_uploaded'}),
+      );
+
+      final result = await rec.service().uploadManualId(
+        front: _image('front.jpg', mimeType: 'image/jpeg', content: 'FRONT'),
+        back: _image('back.jpg', mimeType: 'image/jpeg', content: 'BACK'),
+        volunteerType: VolunteerType.staff.apiValue,
+      );
+
+      expect(rec.last.method, 'POST');
+      expect(rec.last.url.toString(), '$_origin/v1/auth/upload-manual-id');
+
+      final parts = _partsOf(rec.last);
+      expect(parts.keys, unorderedEquals(['volunteerType', 'front', 'back']));
+      expect(parts['volunteerType']!.content, 'STAFF');
+      expect(parts['front']!.content, 'FRONT');
+      expect(parts['back']!.content, 'BACK');
+      expect(result.registrationId, _registrationId);
+    });
+
+    test('an alumni manual registration names the ALUMNI type', () async {
+      final rec = _Recorder(
+        (_) async =>
+            _ok({'registrationId': _registrationId, 'step': 'id_uploaded'}),
+      );
+
+      await rec.service().uploadManualId(
+        front: _image('f.jpg'),
+        back: _image('b.jpg'),
+        volunteerType: VolunteerType.alumni.apiValue,
+      );
+
+      expect(_partsOf(rec.last)['volunteerType']!.content, 'ALUMNI');
+    });
+  });
+
   // -------------------------------------------------------------------------
   // Step 2 (beneficiary) — attach the supporting document
   // -------------------------------------------------------------------------
@@ -426,8 +463,7 @@ void main() {
       expect(result.sizeBytes, 48213);
     });
 
-    test('labels known document types so the portal can preview them',
-        () async {
+    test('labels known document types so the portal can preview them', () async {
       final cases = {
         'proof.JPEG': 'image/jpeg',
         'proof.png': 'image/png',
@@ -517,28 +553,30 @@ void main() {
       expect(result.message, 'Face matches the ID photo');
     });
 
-    test('a non-match is returned (not thrown) so the step can retry',
-        () async {
-      final rec = _Recorder(
-        (_) async => _ok({
-          'registrationId': _registrationId,
-          'match': false,
-          'similarity': 0.21,
-          'step': 'id_uploaded',
-        }),
-      );
+    test(
+      'a non-match is returned (not thrown) so the step can retry',
+      () async {
+        final rec = _Recorder(
+          (_) async => _ok({
+            'registrationId': _registrationId,
+            'match': false,
+            'similarity': 0.21,
+            'step': 'id_uploaded',
+          }),
+        );
 
-      final result = await rec.service().verifyFace(
-        registrationId: _registrationId,
-        selfie: _image('selfie.jpg'),
-      );
+        final result = await rec.service().verifyFace(
+          registrationId: _registrationId,
+          selfie: _image('selfie.jpg'),
+        );
 
-      expect(result.match, isFalse);
-      expect(result.step, 'id_uploaded');
-      // Defaults when the server leaves them out.
-      expect(result.threshold, closeTo(0.4, 1e-9));
-      expect(result.message, '');
-    });
+        expect(result.match, isFalse);
+        expect(result.step, 'id_uploaded');
+        // Defaults when the server leaves them out.
+        expect(result.threshold, closeTo(0.4, 1e-9));
+        expect(result.message, '');
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -626,44 +664,46 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('POST /auth/register-from-session', () {
-    test('sends the volunteer payload the server CreateUserSchema expects',
-        () async {
-      final rec = _Recorder();
+    test(
+      'sends the volunteer payload the server CreateUserSchema expects',
+      () async {
+        final rec = _Recorder();
 
-      await rec.service().registerFromSession(
-        registrationId: _registrationId,
-        ocrData: _reviewedVolunteer(),
-        roleType: 'VOLUNTEER',
-        email: _email,
-        password: _password,
-      );
+        await rec.service().registerFromSession(
+          registrationId: _registrationId,
+          ocrData: _reviewedVolunteer(),
+          roleType: 'VOLUNTEER',
+          email: _email,
+          password: _password,
+        );
 
-      expect(rec.last.method, 'POST');
-      expect(rec.last.url.path, _registerPath);
-      expect(rec.body, {
-        'registrationId': _registrationId,
-        'firstname': 'Maria',
-        'lastname': 'Santos',
-        'middle_name': 'L.',
-        'role_type': 'VOLUNTEER',
-        'gender': 'FEMALE',
-        'age': 20,
-        'current_address': 'Looc, Mandaue City, Cebu',
-        'phone_number': '+639171234567',
-        'account': {'email': _email, 'password': _password},
-        'school_info': {
-          'id_number': '24217447',
-          'graduation_year': 2027,
-          // Only the year is collected, so month/day fall back to 1.
-          'graduation_month': 1,
-          'graduation_day': 1,
-          'department': {'name': 'College of Teacher Education'},
-          // No major read off the card — the department stands in for it.
-          'major': {'name': 'College of Teacher Education'},
-          'year_level': {'name': '3rd Year'},
-        },
-      });
-    });
+        expect(rec.last.method, 'POST');
+        expect(rec.last.url.path, _registerPath);
+        expect(rec.body, {
+          'registrationId': _registrationId,
+          'firstname': 'Maria',
+          'lastname': 'Santos',
+          'middle_name': 'L.',
+          'role_type': 'VOLUNTEER',
+          'gender': 'FEMALE',
+          'age': 20,
+          'current_address': 'Looc, Mandaue City, Cebu',
+          'phone_number': '+639171234567',
+          'account': {'email': _email, 'password': _password},
+          'school_info': {
+            'id_number': '24217447',
+            'graduation_year': 2027,
+            // Only the year is collected, so month/day fall back to 1.
+            'graduation_month': 1,
+            'graduation_day': 1,
+            'department': {'name': 'College of Teacher Education'},
+            // No major read off the card — the department stands in for it.
+            'major': {'name': 'College of Teacher Education'},
+            'year_level': {'name': '3rd Year'},
+          },
+        });
+      },
+    );
 
     test('returns the created account ids', () async {
       final rec = _Recorder();
@@ -696,29 +736,34 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('a duplicate ID number is a conflict the flow can route back to',
-        () async {
-      final rec = _Recorder(
-        (_) async => _fail(409, 'This ID number is already registered', [
-          {'path': 'id_number', 'message': 'This ID number is already registered'},
-        ]),
-      );
-
-      try {
-        await rec.service().registerFromSession(
-          registrationId: _registrationId,
-          ocrData: _reviewedVolunteer(),
-          roleType: 'VOLUNTEER',
-          email: _email,
-          password: _password,
+    test(
+      'a duplicate ID number is a conflict the flow can route back to',
+      () async {
+        final rec = _Recorder(
+          (_) async => _fail(409, 'This ID number is already registered', [
+            {
+              'path': 'id_number',
+              'message': 'This ID number is already registered',
+            },
+          ]),
         );
-        fail('expected ApiException');
-      } on ApiException catch (e) {
-        final conflict = RegistrationConflict.fromException(e);
-        expect(conflict?.field, RegistrationConflictField.idNumber);
-        expect(conflict?.message, 'This ID number is already registered');
-      }
-    });
+
+        try {
+          await rec.service().registerFromSession(
+            registrationId: _registrationId,
+            ocrData: _reviewedVolunteer(),
+            roleType: 'VOLUNTEER',
+            email: _email,
+            password: _password,
+          );
+          fail('expected ApiException');
+        } on ApiException catch (e) {
+          final conflict = RegistrationConflict.fromException(e);
+          expect(conflict?.field, RegistrationConflictField.idNumber);
+          expect(conflict?.message, 'This ID number is already registered');
+        }
+      },
+    );
 
     test('an expired session is refused with the server message', () async {
       final rec = _Recorder(
@@ -757,11 +802,13 @@ void main() {
     Map<String, dynamic> payload(
       RegisterOcrSample sample, {
       String roleType = 'VOLUNTEER',
+      bool studentBeneficiary = false,
     }) => sample.toRegisterPayload(
       registrationId: _registrationId,
       roleType: roleType,
       email: _email,
       password: _password,
+      studentBeneficiary: studentBeneficiary,
     );
 
     test('maps every gender spelling to the server enum', () {
@@ -775,7 +822,9 @@ void main() {
       };
       for (final entry in cases.entries) {
         expect(
-          payload(RegisterOcrSample.sample.copyWith(gender: entry.key))['gender'],
+          payload(
+            RegisterOcrSample.sample.copyWith(gender: entry.key),
+          )['gender'],
           entry.value,
           reason: '"${entry.key}"',
         );
@@ -795,49 +844,116 @@ void main() {
       });
     });
 
-    test('staff with no graduation year or year level still send valid values',
-        () {
-      final staff = RegisterOcrSample.sample.copyWith(
-        graduationYear: 0,
-        graduationMonth: 13,
-        graduationDay: 40,
-        yearLevelName: '',
-        volunteerType: 'STAFF',
+    test(
+      'staff with no graduation year or year level still send valid values',
+      () {
+        final staff = RegisterOcrSample.sample.copyWith(
+          graduationYear: 0,
+          graduationMonth: 13,
+          graduationDay: 40,
+          yearLevelName: '',
+          volunteerType: 'STAFF',
+        );
+
+        final school = payload(staff)['school_info'] as Map<String, dynamic>;
+
+        expect(school['graduation_year'], 2000);
+        expect(school['graduation_month'], 1);
+        expect(school['graduation_day'], 1);
+        expect(school['year_level'], {'name': 'N/A'});
+      },
+    );
+
+    test(
+      'a beneficiary sends placeholder school info keyed to the session',
+      () {
+        final beneficiary = RegisterOcrSample.empty(volunteerType: 'STUDENT')
+            .copyWith(
+              firstname: 'Ana',
+              lastname: 'Reyes',
+              gender: 'female',
+              age: 54,
+              currentAddress: 'Pajo, Lapu-Lapu City, Cebu',
+              phoneNumber: '0918 765 4321',
+            );
+
+        final body = payload(beneficiary, roleType: 'BENEFICIARY');
+
+        expect(body['role_type'], 'BENEFICIARY');
+        expect(body['phone_number'], '+639187654321');
+        expect(body['school_info'], {
+          'id_number': 'BEN-$_registrationId',
+          'graduation_year': 2000,
+          'graduation_month': 1,
+          'graduation_day': 1,
+          'department': {'name': 'N/A'},
+          'major': {'name': 'N/A'},
+          'year_level': {'name': 'N/A'},
+        });
+      },
+    );
+
+    test(
+      'a student beneficiary sends the school record read off their UC ID',
+      () {
+        final student = RegisterOcrSample.sample.copyWith(
+          volunteerType: 'STUDENT',
+        );
+
+        final body = payload(
+          student,
+          roleType: 'BENEFICIARY',
+          studentBeneficiary: true,
+        );
+        final school = body['school_info'] as Map<String, dynamic>;
+
+        expect(body['role_type'], 'BENEFICIARY');
+        expect(school['id_number'], student.registrationIdNumber);
+        expect(school['id_number'], isNot(startsWith('BEN-')));
+        expect(school['department'], {'name': student.departmentName});
+        expect(school['department'], isNot({'name': 'N/A'}));
+      },
+    );
+
+    test(
+      'a partner-barangay volunteer sends their barangay and no ID number',
+      () {
+        final volunteer =
+            RegisterOcrSample.empty(volunteerType: 'PARTNER_BARANGAY').copyWith(
+              firstname: 'Leo',
+              lastname: 'Cabahug',
+              gender: 'male',
+              age: 34,
+              currentAddress: 'Looc, Mandaue City, Cebu',
+              phoneNumber: '0917 123 4567',
+              // Stray text in the ID number is never sent for this type.
+              idNumber: '12345',
+              partnerBarangay: 'Barangay Looc',
+            );
+
+        final body = payload(volunteer);
+
+        expect(volunteer.registrationIdNumber, isEmpty);
+        expect(body['role_type'], 'VOLUNTEER');
+        expect(body['partner_barangay'], 'Barangay Looc');
+        expect(body['school_info'], {
+          'id_number': 'BRGY-$_registrationId',
+          'graduation_year': 2000,
+          'graduation_month': 1,
+          'graduation_day': 1,
+          'department': {'name': 'N/A'},
+          'major': {'name': 'N/A'},
+          'year_level': {'name': 'N/A'},
+        });
+      },
+    );
+
+    test('other volunteer types never send a partner barangay', () {
+      final body = payload(
+        RegisterOcrSample.sample.copyWith(partnerBarangay: 'Barangay Looc'),
       );
 
-      final school = payload(staff)['school_info'] as Map<String, dynamic>;
-
-      expect(school['graduation_year'], 2000);
-      expect(school['graduation_month'], 1);
-      expect(school['graduation_day'], 1);
-      expect(school['year_level'], {'name': 'N/A'});
-    });
-
-    test('a beneficiary sends placeholder school info keyed to the session',
-        () {
-      final beneficiary = RegisterOcrSample.empty(volunteerType: 'STUDENT')
-          .copyWith(
-            firstname: 'Ana',
-            lastname: 'Reyes',
-            gender: 'female',
-            age: 54,
-            currentAddress: 'Pajo, Lapu-Lapu City, Cebu',
-            phoneNumber: '0918 765 4321',
-          );
-
-      final body = payload(beneficiary, roleType: 'BENEFICIARY');
-
-      expect(body['role_type'], 'BENEFICIARY');
-      expect(body['phone_number'], '+639187654321');
-      expect(body['school_info'], {
-        'id_number': 'BEN-$_registrationId',
-        'graduation_year': 2000,
-        'graduation_month': 1,
-        'graduation_day': 1,
-        'department': {'name': 'N/A'},
-        'major': {'name': 'N/A'},
-        'year_level': {'name': 'N/A'},
-      });
+      expect(body.containsKey('partner_barangay'), isFalse);
     });
 
     test('the password is sent exactly as typed', () {
@@ -857,170 +973,180 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('full registration process', () {
-    test('volunteer: ID → face → OCR → OTP → account, on one session',
-        () async {
-      final rec = _Recorder();
-      final service = rec.service();
+    test(
+      'volunteer: ID → face → OCR → OTP → account, on one session',
+      () async {
+        final rec = _Recorder();
+        final service = rec.service();
 
-      final upload = await service.uploadId(
-        front: _image('front.jpg', mimeType: 'image/jpeg'),
-        back: _image('back.jpg', mimeType: 'image/jpeg'),
-        roleType: RegistrationRoleType.volunteer.apiValue,
-      );
-      final face = await service.verifyFace(
-        registrationId: upload.registrationId,
-        selfie: _image('selfie.jpg', mimeType: 'image/jpeg'),
-      );
-      expect(face.match, isTrue);
-
-      final extracted = await service.extractId(
-        registrationId: upload.registrationId,
-      );
-      // The user fixes a misread field on the review step.
-      final reviewed = extracted.ocrData.copyWith(
-        currentAddress: 'Basak, Mandaue City, Cebu',
-      );
-
-      final sent = await service.sendVerificationCode(
-        email: _email,
-        phoneNumber: reviewed.phoneNumber,
-        idNumber: reviewed.idNumber,
-      );
-      expect(sent.sent, isTrue);
-
-      await service.verifyOtp(email: _email, otp: '123456');
-      final account = await service.registerFromSession(
-        registrationId: upload.registrationId,
-        ocrData: reviewed,
-        roleType: RegistrationRoleType.volunteer.apiValue,
-        email: _email,
-        password: _password,
-      );
-
-      expect(rec.paths, [
-        _uploadIdPath,
-        _verifyFacePath,
-        _extractPath,
-        _sendPath,
-        _verifyOtpPath,
-        _registerPath,
-      ]);
-
-      // Every step after the upload rides on the same session handle.
-      expect(_partsOf(rec.to(_verifyFacePath))['registrationId']!.content,
-          _registrationId);
-      expect(rec.jsonOf(rec.to(_extractPath))['registrationId'],
-          _registrationId);
-
-      // Clashes are checked before any code is mailed.
-      expect(rec.jsonOf(rec.to(_sendPath)), {
-        'email': _email,
-        'phone_number': '+639171234567',
-        'id_number': '24217447',
-        'purpose': 'registration',
-      });
-
-      final register = rec.jsonOf(rec.to(_registerPath));
-      expect(register['registrationId'], _registrationId);
-      expect(register['role_type'], 'VOLUNTEER');
-      // The reviewed value is what gets saved, not the raw OCR read.
-      expect(register['current_address'], 'Basak, Mandaue City, Cebu');
-      expect(account['user_id'], 'usr_123');
-    });
-
-    test('beneficiary: session → document → OTP → account, no ID number',
-        () async {
-      final rec = _Recorder();
-      final service = rec.service();
-
-      final session = await service.startSession(
-        roleType: RegistrationRoleType.beneficiary.apiValue,
-      );
-      await service.uploadRegistrationDocument(
-        registrationId: session.registrationId,
-        path: _file('barangay-certificate.pdf', '%PDF-1.7'),
-        name: 'barangay-certificate.pdf',
-      );
-
-      final details = RegisterOcrSample.empty(volunteerType: 'STUDENT')
-          .copyWith(
-            firstname: 'Ana',
-            lastname: 'Reyes',
-            gender: 'FEMALE',
-            age: 54,
-            currentAddress: 'Pajo, Lapu-Lapu City, Cebu',
-            phoneNumber: '09187654321',
-          );
-
-      // The flow never sends an ID number for a beneficiary.
-      await service.sendVerificationCode(
-        email: 'ana.reyes@example.com',
-        phoneNumber: details.phoneNumber,
-      );
-      await service.verifyOtp(email: 'ana.reyes@example.com', otp: '654321');
-      await service.registerFromSession(
-        registrationId: session.registrationId,
-        ocrData: details,
-        roleType: RegistrationRoleType.beneficiary.apiValue,
-        email: 'ana.reyes@example.com',
-        password: _password,
-      );
-
-      expect(rec.paths, [
-        _startPath,
-        _documentPath,
-        _sendPath,
-        _verifyOtpPath,
-        _registerPath,
-      ]);
-      expect(rec.paths, isNot(contains(_uploadIdPath)));
-      expect(rec.paths, isNot(contains(_verifyFacePath)));
-
-      expect(
-        _partsOf(rec.to(_documentPath))['registrationId']!.content,
-        _registrationId,
-      );
-      expect(rec.jsonOf(rec.to(_sendPath)).containsKey('id_number'), isFalse);
-
-      final register = rec.jsonOf(rec.to(_registerPath));
-      expect(register['role_type'], 'BENEFICIARY');
-      expect(
-        (register['school_info'] as Map)['id_number'],
-        'BEN-$_registrationId',
-      );
-    });
-
-    test('a failed step stops the process before the account is created',
-        () async {
-      final rec = _Recorder((request) async {
-        if (request.url.path == _verifyFacePath) {
-          return _fail(422, 'No face detected. Try again in better light.');
-        }
-        return _defaultReply(request);
-      });
-      final service = rec.service();
-
-      final upload = await service.uploadId(
-        front: _image('front.jpg'),
-        back: _image('back.jpg'),
-        roleType: 'VOLUNTEER',
-      );
-
-      await expectLater(
-        service.verifyFace(
+        final upload = await service.uploadId(
+          front: _image('front.jpg', mimeType: 'image/jpeg'),
+          back: _image('back.jpg', mimeType: 'image/jpeg'),
+          roleType: RegistrationRoleType.volunteer.apiValue,
+        );
+        final face = await service.verifyFace(
           registrationId: upload.registrationId,
-          selfie: _image('selfie.jpg'),
-        ),
-        throwsA(
-          isA<ApiException>().having(
-            (e) => e.message,
-            'message',
-            'No face detected. Try again in better light.',
+          selfie: _image('selfie.jpg', mimeType: 'image/jpeg'),
+        );
+        expect(face.match, isTrue);
+
+        final extracted = await service.extractId(
+          registrationId: upload.registrationId,
+        );
+        // The user fixes a misread field on the review step.
+        final reviewed = extracted.ocrData.copyWith(
+          currentAddress: 'Basak, Mandaue City, Cebu',
+        );
+
+        final sent = await service.sendVerificationCode(
+          email: _email,
+          phoneNumber: reviewed.phoneNumber,
+          idNumber: reviewed.idNumber,
+        );
+        expect(sent.sent, isTrue);
+
+        await service.verifyOtp(email: _email, otp: '123456');
+        final account = await service.registerFromSession(
+          registrationId: upload.registrationId,
+          ocrData: reviewed,
+          roleType: RegistrationRoleType.volunteer.apiValue,
+          email: _email,
+          password: _password,
+        );
+
+        expect(rec.paths, [
+          _uploadIdPath,
+          _verifyFacePath,
+          _extractPath,
+          _sendPath,
+          _verifyOtpPath,
+          _registerPath,
+        ]);
+
+        // Every step after the upload rides on the same session handle.
+        expect(
+          _partsOf(rec.to(_verifyFacePath))['registrationId']!.content,
+          _registrationId,
+        );
+        expect(
+          rec.jsonOf(rec.to(_extractPath))['registrationId'],
+          _registrationId,
+        );
+
+        // Clashes are checked before any code is mailed.
+        expect(rec.jsonOf(rec.to(_sendPath)), {
+          'email': _email,
+          'phone_number': '+639171234567',
+          'id_number': '24217447',
+          'purpose': 'registration',
+        });
+
+        final register = rec.jsonOf(rec.to(_registerPath));
+        expect(register['registrationId'], _registrationId);
+        expect(register['role_type'], 'VOLUNTEER');
+        // The reviewed value is what gets saved, not the raw OCR read.
+        expect(register['current_address'], 'Basak, Mandaue City, Cebu');
+        expect(account['user_id'], 'usr_123');
+      },
+    );
+
+    test(
+      'beneficiary: session → document → OTP → account, no ID number',
+      () async {
+        final rec = _Recorder();
+        final service = rec.service();
+
+        final session = await service.startSession(
+          roleType: RegistrationRoleType.beneficiary.apiValue,
+        );
+        await service.uploadRegistrationDocument(
+          registrationId: session.registrationId,
+          path: _file('barangay-certificate.pdf', '%PDF-1.7'),
+          name: 'barangay-certificate.pdf',
+        );
+
+        final details = RegisterOcrSample.empty(volunteerType: 'STUDENT')
+            .copyWith(
+              firstname: 'Ana',
+              lastname: 'Reyes',
+              gender: 'FEMALE',
+              age: 54,
+              currentAddress: 'Pajo, Lapu-Lapu City, Cebu',
+              phoneNumber: '09187654321',
+            );
+
+        // The flow never sends an ID number for a beneficiary.
+        await service.sendVerificationCode(
+          email: 'ana.reyes@example.com',
+          phoneNumber: details.phoneNumber,
+        );
+        await service.verifyOtp(email: 'ana.reyes@example.com', otp: '654321');
+        await service.registerFromSession(
+          registrationId: session.registrationId,
+          ocrData: details,
+          roleType: RegistrationRoleType.beneficiary.apiValue,
+          email: 'ana.reyes@example.com',
+          password: _password,
+        );
+
+        expect(rec.paths, [
+          _startPath,
+          _documentPath,
+          _sendPath,
+          _verifyOtpPath,
+          _registerPath,
+        ]);
+        expect(rec.paths, isNot(contains(_uploadIdPath)));
+        expect(rec.paths, isNot(contains(_verifyFacePath)));
+
+        expect(
+          _partsOf(rec.to(_documentPath))['registrationId']!.content,
+          _registrationId,
+        );
+        expect(rec.jsonOf(rec.to(_sendPath)).containsKey('id_number'), isFalse);
+
+        final register = rec.jsonOf(rec.to(_registerPath));
+        expect(register['role_type'], 'BENEFICIARY');
+        expect(
+          (register['school_info'] as Map)['id_number'],
+          'BEN-$_registrationId',
+        );
+      },
+    );
+
+    test(
+      'a failed step stops the process before the account is created',
+      () async {
+        final rec = _Recorder((request) async {
+          if (request.url.path == _verifyFacePath) {
+            return _fail(422, 'No face detected. Try again in better light.');
+          }
+          return _defaultReply(request);
+        });
+        final service = rec.service();
+
+        final upload = await service.uploadId(
+          front: _image('front.jpg'),
+          back: _image('back.jpg'),
+          roleType: 'VOLUNTEER',
+        );
+
+        await expectLater(
+          service.verifyFace(
+            registrationId: upload.registrationId,
+            selfie: _image('selfie.jpg'),
           ),
-        ),
-      );
-      expect(rec.paths, [_uploadIdPath, _verifyFacePath]);
-    });
+          throwsA(
+            isA<ApiException>().having(
+              (e) => e.message,
+              'message',
+              'No face detected. Try again in better light.',
+            ),
+          ),
+        );
+        expect(rec.paths, [_uploadIdPath, _verifyFacePath]);
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -1100,33 +1226,35 @@ void main() {
       );
     });
 
-    test('alumni graduated from 1950 up to this year; staff are not checked',
-        () {
-      final year = DateTime.now().year;
+    test(
+      'alumni graduated from 1950 up to this year; staff are not checked',
+      () {
+        final year = DateTime.now().year;
 
-      expect(
-        VolunteerFieldRules.graduationYearError('1949', VolunteerType.alumni),
-        'Enter a year from 1950 to $year',
-      );
-      expect(
-        VolunteerFieldRules.graduationYearError(
-          '${year + 1}',
-          VolunteerType.alumni,
-        ),
-        'Enter a year from 1950 to $year',
-      );
-      expect(
-        VolunteerFieldRules.graduationYearError('1950', VolunteerType.alumni),
-        isNull,
-      );
-      expect(
-        VolunteerFieldRules.graduationYearError('1800', VolunteerType.staff),
-        isNull,
-      );
-      expect(
-        VolunteerFieldRules.isValidGraduationYear(0, VolunteerType.student),
-        isFalse,
-      );
-    });
+        expect(
+          VolunteerFieldRules.graduationYearError('1949', VolunteerType.alumni),
+          'Enter a year from 1950 to $year',
+        );
+        expect(
+          VolunteerFieldRules.graduationYearError(
+            '${year + 1}',
+            VolunteerType.alumni,
+          ),
+          'Enter a year from 1950 to $year',
+        );
+        expect(
+          VolunteerFieldRules.graduationYearError('1950', VolunteerType.alumni),
+          isNull,
+        );
+        expect(
+          VolunteerFieldRules.graduationYearError('1800', VolunteerType.staff),
+          isNull,
+        );
+        expect(
+          VolunteerFieldRules.isValidGraduationYear(0, VolunteerType.student),
+          isFalse,
+        );
+      },
+    );
   });
 }

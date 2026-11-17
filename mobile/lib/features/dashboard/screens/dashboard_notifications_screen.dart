@@ -220,7 +220,7 @@ class _NotificationsHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     letterSpacing: -0.3,

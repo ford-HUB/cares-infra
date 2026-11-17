@@ -23,6 +23,7 @@ class MobileProfile {
     required this.signInProviders,
     required this.hasPassword,
     required this.memberSince,
+    this.unlockedRoles = const [],
     required this.completion,
     required this.volunteer,
     required this.donor,
@@ -73,6 +74,9 @@ class MobileProfile {
       memberSince:
           DateTime.tryParse(json['member_since'] as String? ?? '') ??
           DateTime.now(),
+      unlockedRoles: (json['unlocked_roles'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
       volunteer: volunteer is Map<String, dynamic>
           ? VolunteerServerProfile.fromJson(volunteer)
           : null,
@@ -123,6 +127,10 @@ class MobileProfile {
   /// email and password controls by mistake.
   final bool hasPassword;
   final DateTime memberSince;
+
+  /// Sides open besides [roleType] without a role-access request — a student
+  /// beneficiary's `VOLUNTEER` side.
+  final List<String> unlockedRoles;
 
   /// The identity lives with Google or Facebook, so the email and password
   /// cannot be changed from CARES — Account Security disables both controls.
@@ -367,6 +375,7 @@ class VolunteerServerProfile {
     required this.school,
     required this.interests,
     required this.accessGrantedByDirector,
+    this.partnerBarangay,
     required this.serviceHours,
     required this.activitiesCompleted,
     required this.activitiesRegistered,
@@ -386,6 +395,10 @@ class VolunteerServerProfile {
           .toSet(),
       accessGrantedByDirector:
           json['access_granted_by_director'] as bool? ?? false,
+      partnerBarangay: switch (json['partner_barangay']) {
+        final String name when name.trim().isNotEmpty => name,
+        _ => null,
+      },
       serviceHours: (json['service_hours'] as num?)?.toDouble() ?? 0,
       activitiesCompleted: (json['activities_completed'] as num?)?.toInt() ?? 0,
       activitiesRegistered:
@@ -400,6 +413,15 @@ class VolunteerServerProfile {
   /// This side was opened by a director approving a role-access request, not
   /// by registering as a volunteer — there is no school record to show.
   final bool accessGrantedByDirector;
+
+  /// The partner barangay a community volunteer signed up through; null for a
+  /// school volunteer.
+  final String? partnerBarangay;
+
+  /// A volunteer from one of the partner barangays — not part of the school,
+  /// so there is no school record to show.
+  bool get isPartnerBarangay => partnerBarangay != null;
+
   final double serviceHours;
   final int activitiesCompleted;
   final int activitiesRegistered;

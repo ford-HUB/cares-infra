@@ -21,7 +21,11 @@ import {
   formatRequestTime,
 } from '../../../constants/user-requests'
 import { formatRelativeTime } from '../../../constants/formatting'
-import type { UserRequest, UserRequestAttachment } from '../../../types/user-request'
+import {
+  isRegistrationRequest,
+  type UserRequest,
+  type UserRequestAttachment,
+} from '../../../types/user-request'
 import { RequestAttachmentPreview } from './request-attachment-preview'
 import { RequestKindChip, RequestStatusPill } from './request-type-chip'
 
@@ -46,7 +50,7 @@ export function RequestTimelineItem({
   onDelete,
 }: RequestTimelineItemProps) {
   const pending = request.status === 'pending'
-  const registration = request.kind === 'beneficiary_registration'
+  const registration = isRegistrationRequest(request.kind)
   const rejectable = pending && request.kind !== 'role_access'
   const [preview, setPreview] = useState<UserRequestAttachment | null>(null)
 

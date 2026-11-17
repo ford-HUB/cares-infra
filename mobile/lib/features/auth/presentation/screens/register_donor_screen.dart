@@ -323,10 +323,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     );
 
     if (!otpContext.mounted) return;
-    _showAccountCreated(
-      otpContext,
-      email: _emailController.text.trim(),
-    );
+    _showAccountCreated(otpContext, email: _emailController.text.trim());
   }
 
   /// Sign-up does not sign the donor in: confirm the account was created, then
@@ -530,8 +527,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   Widget _nameSection() {
     return _FormCard(
       icon: Icons.badge_outlined,
-      title: 'Your Name',
-      subtitle: 'This is how drives will thank you.',
+      title: 'Personal Information',
+      subtitle: '',
       children: [
         RegisterFormField(
           label: 'First Name',
@@ -561,8 +558,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   Widget _contactSection() {
     return _FormCard(
       icon: Icons.place_outlined,
-      title: 'Contact Details',
-      subtitle: 'Where we reach you about your donations.',
+      title: 'Contact Information',
+      subtitle: '',
       children: [
         RegisterFormField(
           label: 'Phone Number',
@@ -587,8 +584,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       icon: Icons.home_outlined,
       title: 'Home Address',
       subtitle:
-          'Start typing your barangay and pick it from the list — '
-          'we fill in the city for you. Receipts are addressed here.',
+          ''
+          '',
       children: [
         AddressAutocompleteFields(
           value: _address,
@@ -604,10 +601,10 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
 
     return _FormCard(
       icon: Icons.lock_outline_rounded,
-      title: 'Sign-In Details',
+      title: 'Account Information',
       subtitle: _isSocialSignUp
           ? 'Managed by ${_linkedAccount!.provider.label} — no password needed.'
-          : 'Used every time you sign in to CARES.',
+          : '',
       // The provider owns this address; the server reads it off the ticket, so editing
       // it here would change nothing but confuse the donor.
       children: [

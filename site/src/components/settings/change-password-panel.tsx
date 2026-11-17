@@ -1,4 +1,6 @@
-import type { UseFormReturn } from 'react-hook-form'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
+import type { UseFormRegisterReturn, UseFormReturn } from 'react-hook-form'
 import type { ChangePasswordFormValues } from '../../validators/change-password-schema'
 
 interface ChangePasswordPanelProps {
@@ -21,53 +23,29 @@ export function ChangePasswordPanel({ form, onSubmit, submitting }: ChangePasswo
       </p>
 
       <form onSubmit={onSubmit} className="mt-4 max-w-md space-y-3">
-        <div>
-          <label htmlFor="current-password" className="mb-0.5 block text-xs font-medium text-gray-700">
-            Current password
-          </label>
-          <input
-            id="current-password"
-            type="password"
-            autoComplete="current-password"
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
-            {...register('current_password')}
-          />
-          {errors.current_password && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.current_password.message}</p>
-          )}
-        </div>
+        <PasswordField
+          id="current-password"
+          label="Current password"
+          autoComplete="current-password"
+          registration={register('current_password')}
+          error={errors.current_password?.message}
+        />
 
-        <div>
-          <label htmlFor="new-password" className="mb-0.5 block text-xs font-medium text-gray-700">
-            New password
-          </label>
-          <input
-            id="new-password"
-            type="password"
-            autoComplete="new-password"
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
-            {...register('new_password')}
-          />
-          {errors.new_password && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.new_password.message}</p>
-          )}
-        </div>
+        <PasswordField
+          id="new-password"
+          label="New password"
+          autoComplete="new-password"
+          registration={register('new_password')}
+          error={errors.new_password?.message}
+        />
 
-        <div>
-          <label htmlFor="confirm-password" className="mb-0.5 block text-xs font-medium text-gray-700">
-            Confirm new password
-          </label>
-          <input
-            id="confirm-password"
-            type="password"
-            autoComplete="new-password"
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
-            {...register('confirm_password')}
-          />
-          {errors.confirm_password && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.confirm_password.message}</p>
-          )}
-        </div>
+        <PasswordField
+          id="confirm-password"
+          label="Confirm new password"
+          autoComplete="new-password"
+          registration={register('confirm_password')}
+          error={errors.confirm_password?.message}
+        />
 
         <button
           type="submit"
@@ -78,5 +56,46 @@ export function ChangePasswordPanel({ form, onSubmit, submitting }: ChangePasswo
         </button>
       </form>
     </section>
+  )
+}
+
+interface PasswordFieldProps {
+  id: string
+  label: string
+  autoComplete: string
+  registration: UseFormRegisterReturn
+  error?: string
+}
+
+function PasswordField({ id, label, autoComplete, registration, error }: PasswordFieldProps) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div>
+      <label htmlFor={id} className="mb-0.5 block text-xs font-medium text-gray-700">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          className="w-full rounded-lg border border-gray-300 py-1.5 pr-10 pl-2.5 text-sm focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none"
+          {...registration}
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-pressed={visible}
+          aria-controls={id}
+          className="absolute top-1/2 right-1.5 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[var(--cares-muted)] transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
+        >
+          {visible ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
+        </button>
+      </div>
+      {error && <p className="mt-0.5 text-xs text-red-600">{error}</p>}
+    </div>
   )
 }

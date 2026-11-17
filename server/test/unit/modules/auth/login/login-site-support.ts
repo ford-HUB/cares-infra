@@ -12,6 +12,7 @@ import { AccessControlSiteService } from '../../../../../src/modules/access-cont
 import { AuditLogRecorder } from '../../../../../src/modules/audit-logs/services/audit-log-recorder';
 import { AuthSiteController } from '../../../../../src/modules/auth/controllers/auth-site-controller';
 import { AuthRepository } from '../../../../../src/modules/auth/repositories/auth-repository';
+import { RegistrationStatusTokens } from '../../../../../src/modules/auth/services/registration-status-tokens';
 import { AuthSiteService } from '../../../../../src/modules/auth/services/auth-site-service';
 import {
   AccessRequestSchema,
@@ -143,6 +144,7 @@ export const useAuthSiteApp = () => {
       providers: [
         AuthSiteService,
         LoginPolicyEnforcer,
+        RegistrationStatusTokens,
         { provide: AuthRepository, useValue: ctx.repository },
         { provide: LoginActivityRecorder, useValue: ctx.activity },
         { provide: LoginActivityRepository, useValue: ctx.activityRepository },

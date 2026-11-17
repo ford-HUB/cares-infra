@@ -71,6 +71,9 @@ export class ProfileRepository {
         address_city: true,
         address_province: true,
         household_size: true,
+        // Partner-barangay volunteers only — they have no school record.
+        partner_barangay: true,
+        beneficiary_type: true,
         createdAt: true,
         residency_documents: {
           select: {

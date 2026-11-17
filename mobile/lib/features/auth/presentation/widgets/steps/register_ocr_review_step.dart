@@ -1,8 +1,12 @@
+import 'dart:async';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
 import 'package:mobile/features/auth/presentation/utils/conflict_focus.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile/core/constants/partner_barangays.dart';
 import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/domain/id_extraction_review.dart';
@@ -14,6 +18,7 @@ import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/address_autocomplete_fields.dart';
 import 'package:mobile/features/auth/presentation/widgets/id_extraction_flags_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/register_form_field.dart';
+import 'package:mobile/features/auth/presentation/widgets/registration_document_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
 class RegisterOcrReviewStep extends StatefulWidget {
@@ -30,6 +35,12 @@ class RegisterOcrReviewStep extends StatefulWidget {
     this.extractErrorMessage,
     this.extractionFlags = const [],
     this.onRetry,
+    this.manualEntry = false,
+    this.manualRegistration = false,
+    this.unclearIdPhoto = false,
+    this.studentBeneficiary = false,
+    this.certificate,
+    this.onCertificateChanged,
   }) : assert(
          roleType != RegistrationRoleType.volunteer || volunteerType != null,
          'volunteerType is required for volunteer registration',
@@ -46,6 +57,30 @@ class RegisterOcrReviewStep extends StatefulWidget {
   final List<IdFieldFlag> extractionFlags;
   final VoidCallback? onRetry;
   final ValueChanged<RegisterOcrSample> onChanged;
+
+  /// The details are typed in rather than read off the ID — an alumni or
+  /// partner-barangay ID is not scanned — so the copy asks for them instead of
+  /// asking to correct a scan.
+  final bool manualEntry;
+
+  /// A volunteer manual registration: the app could not recognize the ID, so
+  /// the details are typed in and a director checks them against it.
+  final bool manualRegistration;
+
+  /// The registrant continued with an ID photo the check said is not clear,
+  /// so whatever was read off it may be wrong: every field — the ID number
+  /// included — stays open, and a notice asks them to correct it.
+  final bool unclearIdPhoto;
+
+  /// A beneficiary who signed up as a student: their UC school ID was read
+  /// like a student volunteer's, so the school information is collected.
+  final bool studentBeneficiary;
+
+  /// The document a director reviews with the sign-up: an alumnus's Certificate
+  /// of Graduation, or a partner-barangay volunteer's supporting document. The
+  /// card is shown only when [onCertificateChanged] is set.
+  final PlatformFile? certificate;
+  final ValueChanged<PlatformFile?>? onCertificateChanged;
 
   /// Server-side conflicts on these inputs — shown inline and focused.
   final String? phoneError;
@@ -65,6 +100,23 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   static final _fourDigitInputFormatters = [
     FilteringTextInputFormatter.digitsOnly,
     LengthLimitingTextInputFormatter(4),
+  ];
+
+  /// Alumni ID numbers are at most 8 characters.
+  static const _alumniIdMaxLength = 8;
+  static final _alumniIdInputFormatters = [
+    LengthLimitingTextInputFormatter(_alumniIdMaxLength),
+  ];
+
+  /// In a manual registration a student ID is typed as 8 digits and a staff ID
+  /// as 6 — both are digits only when sent.
+  static final _manualStudentIdInputFormatters = [
+    FilteringTextInputFormatter.digitsOnly,
+    LengthLimitingTextInputFormatter(8),
+  ];
+  static final _manualStaffIdInputFormatters = [
+    FilteringTextInputFormatter.digitsOnly,
+    LengthLimitingTextInputFormatter(6),
   ];
 
   late final TextEditingController _firstname;
@@ -99,16 +151,43 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   String? _selectedDepartment;
   String? _selectedCourse;
   String? _selectedYearLevel;
+  String? _selectedPartnerBarangay;
 
   /// Set once the scan reads an ID number; the field is then locked so the
   /// number can only change by rescanning the ID.
   bool _idNumberVerified = false;
 
+  /// The "kindly correct the extracted information" pop-up is shown once.
+  bool _unclearNoticeShown = false;
+
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
   bool get _isStudent => widget.volunteerType == VolunteerType.student;
   bool get _isAlumni => widget.volunteerType == VolunteerType.alumni;
+
+  /// Partner-barangay volunteers have no school record or ID number; they pick
+  /// the partner barangay they volunteer with instead.
+  bool get _isPartnerBarangay =>
+      widget.volunteerType == VolunteerType.partnerBarangay;
+
+  /// Neither beneficiaries nor partner-barangay volunteers fill in school info
+  /// — except a student beneficiary, whose school ID was read.
+  bool get _skipsSchoolInfo =>
+      (_isBeneficiary && !widget.studentBeneficiary) || _isPartnerBarangay;
+
+  /// Details read off a photo the check flagged — not typed in from scratch.
+  bool get _correctsUnclearScan => widget.unclearIdPhoto && !widget.manualEntry;
   bool get _usesCourseField => _isStudent || _isAlumni;
+
+  List<TextInputFormatter>? get _idNumberInputFormatters {
+    if (_isAlumni) return _alumniIdInputFormatters;
+    if (!widget.manualEntry) return null;
+    return switch (widget.volunteerType) {
+      VolunteerType.student => _manualStudentIdInputFormatters,
+      VolunteerType.staff => _manualStaffIdInputFormatters,
+      _ => null,
+    };
+  }
   bool get _isNonTeaching => UclmDepartments.isNonTeaching(_selectedDepartment);
   List<String>? get _gradeLevels =>
       UclmDepartments.gradeLevelsFor(_selectedDepartment);
@@ -171,8 +250,45 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || widget.isExtracting || widget.extractFailed) return;
         _notifyParent();
+        if (_correctsUnclearScan && !_unclearNoticeShown) {
+          _unclearNoticeShown = true;
+          unawaited(_showUnclearNotice());
+        }
       });
     }
+  }
+
+  /// Asks the registrant to check what was read off their unclear ID photo.
+  Future<void> _showUnclearNotice() {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(
+          Icons.blur_on_rounded,
+          color: AppColors.accentOrange,
+          size: 34,
+        ),
+        title: const Text(
+          'Your ID photo is blurry',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        content: const Text(
+          'Because the picture of your ID isn\'t clear, some details may have '
+          'been read wrong. Kindly check every field against your ID and '
+          'correct the extracted information — all fields are open for '
+          'editing.',
+        ),
+        actions: [
+          FilledButton(
+            key: const ValueKey('unclear-id-notice-ok'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Review My Details'),
+          ),
+        ],
+      ),
+    );
   }
 
   RegisterOcrSample get _effectiveData => widget.data.enrichFromRawText();
@@ -195,11 +311,18 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _address = PhAddress.lenient(enriched.currentAddress);
     _addressRevision++;
     _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
-    _setControllerText(_idNumber, enriched.idNumber);
+    final idNumber = enriched.idNumber;
+    _setControllerText(
+      _idNumber,
+      _isAlumni && idNumber.length > _alumniIdMaxLength
+          ? idNumber.substring(0, _alumniIdMaxLength)
+          : idNumber,
+    );
     // Only lock a number both scans agree on. A flagged one (the scans
     // disagree, or only the on-device scan read it) may be misread digits, so
     // the user must be able to correct it against the card.
     _idNumberVerified =
+        !widget.unclearIdPhoto &&
         enriched.idNumber.trim().isNotEmpty &&
         !widget.extractionFlags.any((flag) => flag.label == 'ID number');
     _setControllerText(_yearLevel, enriched.yearLevelName);
@@ -208,6 +331,10 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       enriched.graduationYear > 0 ? '${enriched.graduationYear}' : '',
     );
     _volunteerTypeLabel.text = widget.volunteerType?.label ?? '';
+    _selectedPartnerBarangay =
+        PartnerBarangays.names.contains(enriched.partnerBarangay)
+        ? enriched.partnerBarangay
+        : null;
 
     if (enriched.gender.isNotEmpty && _genders.contains(enriched.gender)) {
       _gender = enriched.gender;
@@ -325,12 +452,14 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         // Never falls back to the raw scan: only a picked barangay + city count.
         currentAddress: _address.formatted,
         phoneNumber: fieldOrParsed(_phone.text, base.phoneNumber),
-        idNumber: fieldOrParsed(_idNumber.text, base.idNumber),
-        departmentName: _isBeneficiary
+        idNumber: _isPartnerBarangay
+            ? ''
+            : fieldOrParsed(_idNumber.text, base.idNumber),
+        departmentName: _skipsSchoolInfo
             ? ''
             : (_selectedDepartment ?? base.departmentName),
-        majorName: _isBeneficiary ? '' : (_selectedCourse ?? base.majorName),
-        yearLevelName: _isBeneficiary || _isNonTeaching
+        majorName: _skipsSchoolInfo ? '' : (_selectedCourse ?? base.majorName),
+        yearLevelName: _skipsSchoolInfo || _isNonTeaching
             ? ''
             : (_isStudent
                   ? fieldOrParsed(
@@ -339,8 +468,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                     )
                   : ''),
         // Only the year is collected; month/day are filled in at submit.
-        graduationYear: _isBeneficiary || _isNonTeaching ? 0 : gradYear,
+        graduationYear: _skipsSchoolInfo || _isNonTeaching ? 0 : gradYear,
         volunteerType: widget.volunteerType?.apiValue ?? base.volunteerType,
+        partnerBarangay: _isPartnerBarangay
+            ? (_selectedPartnerBarangay ?? '')
+            : '',
       ),
     );
   }
@@ -418,23 +550,53 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.accentLight.withValues(alpha: 0.35),
+            color: _correctsUnclearScan
+                ? AppColors.warning.withValues(alpha: 0.08)
+                : AppColors.accentLight.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.borderLight),
+            border: Border.all(
+              color: _correctsUnclearScan
+                  ? AppColors.warning.withValues(alpha: 0.45)
+                  : AppColors.borderLight,
+            ),
           ),
-          child: const Row(
+          child: Row(
             children: [
               Icon(
-                Icons.verified_outlined,
+                _correctsUnclearScan
+                    ? Icons.report_gmailerrorred_rounded
+                    : Icons.verified_outlined,
                 size: 20,
-                color: AppColors.primaryDark,
+                color: _correctsUnclearScan
+                    ? AppColors.accentOrange
+                    : AppColors.primaryDark,
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Correct anything the ID scan misread. Volunteer type is '
-                  'locked; pick your department and course from the lists.',
-                  style: TextStyle(
+                  _correctsUnclearScan
+                      ? 'Your ID photo was blurry, so these details may be '
+                            'misread. Check each one against your ID and correct '
+                            'anything that is wrong.'
+                      : _isPartnerBarangay
+                      ? 'Enter your details exactly as they appear on your ID, '
+                            'and pick your partner barangay — a director checks '
+                            'them before your account opens.'
+                      : widget.manualRegistration
+                      ? 'Manual registration: enter your details exactly as they '
+                            'appear on your ${_isAlumni ? 'alumni ID' : 'ID'} — a '
+                            'director checks them against it before your account '
+                            'opens.'
+                      : widget.manualEntry
+                      ? 'Enter your details exactly as they appear on your alumni '
+                            'ID — a director checks them against it before your '
+                            'account opens.'
+                      : widget.studentBeneficiary
+                      ? 'Correct anything the ID scan misread, and pick your '
+                            'department and course from the lists.'
+                      : 'Correct anything the ID scan misread. Volunteer type is '
+                            'locked; pick your department and course from the lists.',
+                  style: const TextStyle(
                     fontSize: 12.5,
                     height: 1.35,
                     fontWeight: FontWeight.w600,
@@ -453,7 +615,13 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         RegistrationFormCard(
           icon: Icons.person_outline_rounded,
           title: 'Personal Information',
-          subtitle: 'Read off the front of your ID.',
+          subtitle: _isPartnerBarangay
+              ? 'As shown on your ID.'
+              : widget.manualEntry
+              ? (_isAlumni
+                    ? 'As shown on your alumni ID.'
+                    : 'As shown on your ID.')
+              : 'Read off the front of your ID.',
           children: [
             RegisterFormField(
               label: 'First Name',
@@ -515,9 +683,11 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         RegistrationFormCard(
           icon: Icons.home_outlined,
           title: 'Home Address',
-          subtitle:
-              'Filled in from your ID where we could read it. Check it, and '
-              'pick your barangay from the list — we fill in the city.',
+          subtitle: widget.manualEntry
+              ? 'Type your street, and pick your barangay from the list — we '
+                    'fill in the city.'
+              : 'Filled in from your ID where we could read it. Check it, and '
+                    'pick your barangay from the list — we fill in the city.',
           children: [
             AddressAutocompleteFields(
               key: ValueKey(_addressRevision),
@@ -530,88 +700,138 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
           ],
         ),
         const SizedBox(height: 16),
-        RegistrationFormCard(
-          icon: Icons.school_outlined,
-          title: 'School information',
-          subtitle: 'Ties your account to your UC record.',
-          children: [
-            RegisterFormField(
-              label: 'ID Number',
-              controller: _idNumber,
-              focusNode: _idNumberFocus,
-              errorText: widget.idNumberError,
-              readOnly: _idNumberVerified,
-              onChanged: (_) => _notifyParent(),
-            ),
-            const SizedBox(height: 14),
-            RegisterFormField(
-              label: 'Type of Volunteer',
-              controller: _volunteerTypeLabel,
-              readOnly: true,
-            ),
-            const SizedBox(height: 14),
-            _dropdown(
-              label: 'Department',
-              value: _selectedDepartment,
-              items: UclmDepartments.names,
-              hint: 'Select Your Department',
-              isExpanded: true,
-              onChanged: _onDepartmentChanged,
-            ),
-            if (_usesCourseField) ...[
+        if (_isPartnerBarangay)
+          RegistrationFormCard(
+            icon: Icons.handshake_outlined,
+            title: 'Partner Barangay',
+            subtitle: 'The partner barangay you volunteer with.',
+            children: [
+              RegisterFormField(
+                label: 'Type of Volunteer',
+                controller: _volunteerTypeLabel,
+                readOnly: true,
+              ),
               const SizedBox(height: 14),
               _dropdown(
-                label: _usesGradeLevels ? 'Program' : 'Course',
-                value: _selectedCourse,
-                items: _courseOptions,
-                hint: _selectedDepartment == null
-                    ? 'Select a Department First'
-                    : 'Select Your ${_usesGradeLevels ? 'Program' : 'Course'}',
+                label: 'Partnered Barangay',
+                value: _selectedPartnerBarangay,
+                items: PartnerBarangays.names,
+                hint: 'Select Your Partner Barangay',
                 isExpanded: true,
-                enabled:
-                    _selectedDepartment != null && _courseOptions.isNotEmpty,
-                onChanged: _onCourseChanged,
+                onChanged: (value) {
+                  setState(() => _selectedPartnerBarangay = value);
+                  _notifyParent();
+                },
               ),
             ],
-            if (_isStudent && !_isNonTeaching) ...[
+          )
+        else
+          RegistrationFormCard(
+            icon: Icons.school_outlined,
+            title: 'School information',
+            subtitle: 'Ties your account to your UC record.',
+            children: [
+              RegisterFormField(
+                label: widget.manualEntry && _isAlumni
+                    ? 'Alumni ID Number'
+                    : 'ID Number',
+                controller: _idNumber,
+                focusNode: _idNumberFocus,
+                inputFormatters: _idNumberInputFormatters,
+                errorText: widget.idNumberError,
+                readOnly: _idNumberVerified,
+                onChanged: (_) => _notifyParent(),
+              ),
+              const SizedBox(height: 14),
+              RegisterFormField(
+                label: widget.studentBeneficiary
+                    ? 'Type of Beneficiary'
+                    : 'Type of Volunteer',
+                controller: _volunteerTypeLabel,
+                readOnly: true,
+              ),
               const SizedBox(height: 14),
               _dropdown(
-                label: _usesGradeLevels ? 'Grade Level' : 'Year Level',
-                value: _selectedYearLevel,
-                hint:
-                    'Select Your ${_usesGradeLevels ? 'Grade Level' : 'Year Level'}',
-                items: _yearLevelOptions,
-                onChanged: _onYearLevelChanged,
+                label: 'Department',
+                value: _selectedDepartment,
+                items: UclmDepartments.names,
+                hint: 'Select Your Department',
+                isExpanded: true,
+                onChanged: _onDepartmentChanged,
               ),
+              if (_usesCourseField) ...[
+                const SizedBox(height: 14),
+                _dropdown(
+                  label: _usesGradeLevels ? 'Program' : 'Course',
+                  value: _selectedCourse,
+                  items: _courseOptions,
+                  hint: _selectedDepartment == null
+                      ? 'Select a Department First'
+                      : 'Select Your ${_usesGradeLevels ? 'Program' : 'Course'}',
+                  isExpanded: true,
+                  enabled:
+                      _selectedDepartment != null && _courseOptions.isNotEmpty,
+                  onChanged: _onCourseChanged,
+                ),
+              ],
+              if (_isStudent && !_isNonTeaching) ...[
+                const SizedBox(height: 14),
+                _dropdown(
+                  label: _usesGradeLevels ? 'Grade Level' : 'Year Level',
+                  value: _selectedYearLevel,
+                  hint:
+                      'Select Your ${_usesGradeLevels ? 'Grade Level' : 'Year Level'}',
+                  items: _yearLevelOptions,
+                  onChanged: _onYearLevelChanged,
+                ),
+              ],
+              if (_isAlumni && !_isNonTeaching) ...[
+                const SizedBox(height: 14),
+                RegisterFormField(
+                  label: 'Graduated Year',
+                  controller: _gradYear,
+                  focusNode: _gradYearFocus,
+                  errorText: _gradYearError,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: _fourDigitInputFormatters,
+                  onChanged: _onGradYearChanged,
+                ),
+              ],
+              if (_isStudent && !_isNonTeaching) ...[
+                const SizedBox(height: 14),
+                RegisterFormField(
+                  label: 'Expected Graduation Year',
+                  hint: 'YYYY',
+                  controller: _gradYear,
+                  focusNode: _gradYearFocus,
+                  errorText: _gradYearError,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
+                  inputFormatters: _fourDigitInputFormatters,
+                  onChanged: _onGradYearChanged,
+                ),
+              ],
             ],
-            if (_isAlumni && !_isNonTeaching) ...[
-              const SizedBox(height: 14),
-              RegisterFormField(
-                label: 'Graduated Year',
-                controller: _gradYear,
-                focusNode: _gradYearFocus,
-                errorText: _gradYearError,
-                keyboardType: TextInputType.number,
-                inputFormatters: _fourDigitInputFormatters,
-                onChanged: _onGradYearChanged,
-              ),
-            ],
-            if (_isStudent && !_isNonTeaching) ...[
-              const SizedBox(height: 14),
-              RegisterFormField(
-                label: 'Expected Graduation Year',
-                hint: 'YYYY',
-                controller: _gradYear,
-                focusNode: _gradYearFocus,
-                errorText: _gradYearError,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                inputFormatters: _fourDigitInputFormatters,
-                onChanged: _onGradYearChanged,
-              ),
-            ],
-          ],
-        ),
+          ),
+        // Alumni close the form with their Certificate of Graduation, and
+        // partner-barangay volunteers with a supporting document — the proof,
+        // next to the uploaded ID, that the director reviews.
+        if (widget.onCertificateChanged != null) ...[
+          const SizedBox(height: 16),
+          RegistrationDocumentCard(
+            title: _isPartnerBarangay
+                ? 'Supporting Document'
+                : 'Certificate of Graduation',
+            description: _isPartnerBarangay
+                ? 'Attach a document that shows you volunteer with your partner '
+                      'barangay — e.g. a barangay certification, endorsement or '
+                      'clearance. A scan, photo, or PDF of it.'
+                : 'Attach your Certificate of Graduation from UC — a scan, '
+                      'photo, or PDF of it.',
+            document: widget.certificate,
+            onChanged: widget.onCertificateChanged!,
+          ),
+        ],
         const SizedBox(height: 8),
       ],
     );

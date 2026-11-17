@@ -2,6 +2,7 @@ import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Loader2 } from 'l
 import {
   CREDENTIAL_LIFETIME_OPTIONS,
   PROVISIONABLE_DEPARTMENTS,
+  PROVISIONABLE_PARTNER_BARANGAYS,
   PROVISIONABLE_ROLES,
   REGULAR_USER_TYPES,
 } from '../../../constants/manage-users'
@@ -17,6 +18,7 @@ type ProvisionUserFieldsProps = Pick<
   | 'mode'
   | 'isRegularUser'
   | 'showDepartment'
+  | 'showPartnerBarangay'
   | 'submitting'
   | 'catalog'
   | 'catalogLoading'
@@ -81,6 +83,7 @@ export function ProvisionUserFields({
   mode,
   isRegularUser,
   showDepartment,
+  showPartnerBarangay,
   submitting,
   catalog,
   catalogLoading,
@@ -248,6 +251,30 @@ export function ProvisionUserFields({
               ))}
             </select>
             {errors.department && <p className={errorClass}>{errors.department.message}</p>}
+          </div>
+        )}
+
+        {showPartnerBarangay && (
+          <div className="col-span-2">
+            <label className={labelClass} htmlFor="provision-partner-barangay">
+              Partner barangay
+            </label>
+            <select
+              id="provision-partner-barangay"
+              className={fieldClass}
+              aria-invalid={Boolean(errors.partnerBarangay)}
+              {...form.register('partnerBarangay')}
+            >
+              <option value="">Select a partner barangay</option>
+              {PROVISIONABLE_PARTNER_BARANGAYS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.partnerBarangay && (
+              <p className={errorClass}>{errors.partnerBarangay.message}</p>
+            )}
           </div>
         )}
       </div>

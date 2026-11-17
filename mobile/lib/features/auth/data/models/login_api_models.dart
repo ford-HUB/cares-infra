@@ -6,6 +6,7 @@ class LoginResponse {
     required this.firstName,
     required this.hasInterests,
     required this.accessToken,
+    this.unlockedRoles = const [],
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
@@ -16,6 +17,9 @@ class LoginResponse {
       firstName: json['firstname'] as String? ?? '',
       hasInterests: json['has_interests'] as bool? ?? false,
       accessToken: json['access_token'] as String? ?? '',
+      unlockedRoles: (json['unlocked_roles'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
     );
   }
 
@@ -25,6 +29,10 @@ class LoginResponse {
   final String firstName;
   final bool hasInterests;
   final String accessToken;
+
+  /// Sides open besides [roleType] from sign-up on — a student beneficiary's
+  /// `VOLUNTEER` side.
+  final List<String> unlockedRoles;
 
   bool get isVolunteer => roleType == 'VOLUNTEER';
 }

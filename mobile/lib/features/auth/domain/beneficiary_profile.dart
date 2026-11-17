@@ -10,6 +10,18 @@ extension BeneficiaryKindX on BeneficiaryKind {
   };
 }
 
+/// Whether an individual beneficiary signs up as a regular beneficiary or as a
+/// UC student. A student verifies their school ID and face like a student
+/// volunteer, so no director review is needed and their Volunteer side opens.
+enum BeneficiaryCategory { regular, student }
+
+extension BeneficiaryCategoryX on BeneficiaryCategory {
+  String get label => switch (this) {
+    BeneficiaryCategory.regular => 'Regular',
+    BeneficiaryCategory.student => 'Student',
+  };
+}
+
 /// Beneficiary-specific answers collected on the details step.
 ///
 /// The organization fields are presentation-only for now — the registration
@@ -17,6 +29,7 @@ extension BeneficiaryKindX on BeneficiaryKind {
 class BeneficiaryProfile {
   const BeneficiaryProfile({
     this.kind,
+    this.category,
     this.organizationName = '',
     this.organizationType,
     this.organizationRole = '',
@@ -25,6 +38,10 @@ class BeneficiaryProfile {
   });
 
   final BeneficiaryKind? kind;
+
+  /// Individuals only: regular or student. Null until picked, and always null
+  /// for an organization.
+  final BeneficiaryCategory? category;
   final String organizationName;
   final String? organizationType;
   final String organizationRole;
@@ -45,6 +62,11 @@ class BeneficiaryProfile {
 
   bool get isOrganization => kind == BeneficiaryKind.organization;
 
+  bool get isIndividual => kind == BeneficiaryKind.individual;
+
+  /// An individual signing up as a UC student — the ID + face scan path.
+  bool get isStudent => isIndividual && category == BeneficiaryCategory.student;
+
   bool get organizationDetailsComplete =>
       organizationName.trim().isNotEmpty &&
       (organizationType?.isNotEmpty ?? false) &&
@@ -53,11 +75,13 @@ class BeneficiaryProfile {
 
   bool get isComplete {
     if (kind == null) return false;
-    return !isOrganization || organizationDetailsComplete;
+    if (isIndividual) return category != null;
+    return organizationDetailsComplete;
   }
 
   BeneficiaryProfile copyWith({
     BeneficiaryKind? kind,
+    BeneficiaryCategory? category,
     String? organizationName,
     String? organizationType,
     String? organizationRole,
@@ -66,6 +90,7 @@ class BeneficiaryProfile {
   }) {
     return BeneficiaryProfile(
       kind: kind ?? this.kind,
+      category: category ?? this.category,
       organizationName: organizationName ?? this.organizationName,
       organizationType: organizationType ?? this.organizationType,
       organizationRole: organizationRole ?? this.organizationRole,
@@ -76,6 +101,19 @@ class BeneficiaryProfile {
 
   /// Clears the organization answers when the beneficiary switches back to
   /// registering as an individual. The home address is kept.
-  BeneficiaryProfile asIndividual() =>
-      BeneficiaryProfile(kind: BeneficiaryKind.individual, address: address);
+  BeneficiaryProfile asIndividual() => BeneficiaryProfile(
+    kind: BeneficiaryKind.individual,
+    category: category,
+    address: address,
+  );
+
+  /// Switching to an organization drops the regular / student answer.
+  BeneficiaryProfile asOrganization() => BeneficiaryProfile(
+    kind: BeneficiaryKind.organization,
+    organizationName: organizationName,
+    organizationType: organizationType,
+    organizationRole: organizationRole,
+    organizationAddress: organizationAddress,
+    address: address,
+  );
 }

@@ -99,10 +99,10 @@ class RegistrationUnderReviewScreen extends StatelessWidget {
                 Text(
                   _rejected
                       ? (message ??
-                            'A director did not approve your beneficiary registration.')
+                            'A director did not approve your registration.')
                       : 'Thanks for signing up. A CARES director will review your '
-                            'details and supporting document before your account '
-                            'opens.',
+                            'details and the document you attached before your '
+                            'account opens.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14.5,

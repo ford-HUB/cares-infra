@@ -66,7 +66,7 @@ export function LandingProgramCard({ program, onSelect }: LandingProgramCardProp
           <span
             className={`-ml-4 min-w-0 rounded-md border border-white/70 bg-white/55 py-1.5 pr-3 pl-6 text-[12.5px] leading-tight font-extrabold shadow-sm backdrop-blur-md backdrop-saturate-150 ${LANDING_PROGRAM_TONES[program.tone]}`}
           >
-            {program.program}
+            {program.department}
           </span>
         </div>
 
@@ -74,7 +74,7 @@ export function LandingProgramCard({ program, onSelect }: LandingProgramCardProp
           <h3
             className={`${LANDING_SERIF} text-[17px] leading-tight font-bold text-[var(--cares-heading)]`}
           >
-            {program.department}
+            {program.program}
           </h3>
           <span
             aria-hidden

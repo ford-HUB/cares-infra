@@ -177,19 +177,42 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
     ).enrichFromRawText();
   }
 
+  /// The ID number as it is sent and stored. A UCLM student ID is digits only, so
+  /// OCR noise is stripped; an alumni ID may carry letters or dashes, so it is
+  /// kept as typed (trimmed, upper-cased).
+  ///
+  /// A partner-barangay volunteer has no school ID, so there is no ID number.
+  String get registrationIdNumber => switch (_normalizedVolunteerType) {
+    'ALUMNI' => idNumber.trim().toUpperCase(),
+    'PARTNER_BARANGAY' => '',
+    _ => RegisterOcrRawParser.normalizeIdNumber(idNumber),
+  };
+
+  String get _normalizedVolunteerType => volunteerType.trim().toUpperCase();
+
+  bool get _isPartnerBarangay => _normalizedVolunteerType == 'PARTNER_BARANGAY';
+
   Map<String, dynamic> toRegisterPayload({
     required String registrationId,
     required String roleType,
     required String email,
     required String password,
+    bool studentBeneficiary = false,
   }) {
-    final normalizedId = RegisterOcrRawParser.normalizeIdNumber(idNumber);
+    final normalizedId = registrationIdNumber;
     final isBeneficiary = roleType == 'BENEFICIARY';
-    // Beneficiaries register without an ID, so there is no ID number to send.
-    // The registration id keeps the server's unique school-info key unique.
-    final beneficiaryId = normalizedId.isEmpty
-        ? 'BEN-$registrationId'
-        : normalizedId;
+    final isPartnerBarangay = !isBeneficiary && _isPartnerBarangay;
+    // A student beneficiary's UC school ID was read like a student
+    // volunteer's, so their real school record goes up.
+    final isStudentBeneficiary = isBeneficiary && studentBeneficiary;
+    final usesPlaceholderSchool =
+        (isBeneficiary && !isStudentBeneficiary) || isPartnerBarangay;
+    // Regular beneficiaries and partner-barangay volunteers have no school ID,
+    // so there is no ID number to send. The registration id keeps the
+    // server's unique school-info key unique.
+    final placeholderId = normalizedId.isNotEmpty
+        ? normalizedId
+        : '${isPartnerBarangay ? 'BRGY' : 'BEN'}-$registrationId';
 
     return {
       'registrationId': registrationId,
@@ -202,9 +225,10 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'current_address': currentAddress,
       'phone_number': normalizePhilippinePhone(phoneNumber),
       'account': {'email': email, 'password': password},
-      'school_info': isBeneficiary
+      if (isPartnerBarangay) 'partner_barangay': partnerBarangay.trim(),
+      'school_info': usesPlaceholderSchool
           ? {
-              'id_number': beneficiaryId,
+              'id_number': placeholderId,
               'graduation_year': 2000,
               'graduation_month': 1,
               'graduation_day': 1,

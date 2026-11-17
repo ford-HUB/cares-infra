@@ -106,10 +106,14 @@ class SessionRestoreService {
     if (data is! Map<String, dynamic>) return stored;
     String? nonEmpty(Object? value) =>
         value is String && value.trim().isNotEmpty ? value : null;
+    final unlocked = data['unlocked_roles'];
     return stored.copyWith(
       email: nonEmpty(data['email']),
       firstName: nonEmpty(data['firstname']),
       lastName: nonEmpty(data['lastname']),
+      unlockedRoles: unlocked is List
+          ? unlocked.whereType<String>().toList()
+          : null,
     );
   }
 }

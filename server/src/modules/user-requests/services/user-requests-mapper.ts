@@ -7,11 +7,19 @@ import type {
 
 /** Only the proof files actually on the row are listed. */
 export function attachmentsOf(row: UserRequestRow): UserRequestAttachmentDto[] {
+  const idLabel =
+    row.kind === 'ALUMNI_REGISTRATION'
+      ? 'Alumni ID'
+      : row.kind === 'PARTNER_BARANGAY_REGISTRATION'
+        ? 'Partner barangay ID'
+        : row.kind === 'MANUAL_REGISTRATION'
+          ? 'Unrecognized ID — verify manually'
+          : 'Valid ID';
   const attachments: UserRequestAttachmentDto[] = [];
   if (row.id_front_url)
     attachments.push({
       kind: 'id-front',
-      label: 'Valid ID (front)',
+      label: `${idLabel} (front)`,
       content_type: null,
       file_name: null,
       size_bytes: null,
@@ -19,7 +27,7 @@ export function attachmentsOf(row: UserRequestRow): UserRequestAttachmentDto[] {
   if (row.id_back_url)
     attachments.push({
       kind: 'id-back',
-      label: 'Valid ID (back)',
+      label: `${idLabel} (back)`,
       content_type: null,
       file_name: null,
       size_bytes: null,
@@ -43,7 +51,10 @@ export function attachmentsOf(row: UserRequestRow): UserRequestAttachmentDto[] {
   if (row.document_url)
     attachments.push({
       kind: 'supporting-document',
-      label: 'Supporting document',
+      label:
+        row.kind === 'ALUMNI_REGISTRATION'
+          ? 'Certificate of Graduation'
+          : 'Supporting document',
       content_type: row.document_mime,
       file_name: row.document_name,
       size_bytes: row.document_size_bytes,

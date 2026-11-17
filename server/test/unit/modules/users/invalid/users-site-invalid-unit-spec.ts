@@ -173,6 +173,16 @@ import {
     { name: 'volunteer_type wrong case', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'student' }, expected: 'FAIL', field: 'volunteer_type' },
     { name: 'volunteer_type on a portal role', input: { ...VALID_GENERATE, volunteer_type: 'STUDENT' }, expected: 'FAIL', field: 'volunteer_type' },
     { name: 'volunteer_type on a donor', input: { ...VALID_GENERATE, role_type: 'DONOR', volunteer_type: 'STAFF' }, expected: 'FAIL', field: 'volunteer_type' },
+    { name: 'volunteer_type PARTNER_BARANGAY on a beneficiary', input: { ...VALID_GENERATE, role_type: 'BENEFICIARY', volunteer_type: 'PARTNER_BARANGAY', partner_barangay: 'Barangay Looc' }, expected: 'FAIL', field: 'volunteer_type' },
+
+    // partner_barangay: required for, and only for, a partner-barangay volunteer
+    { name: 'partner barangay volunteer without partner_barangay', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'PARTNER_BARANGAY' }, expected: 'FAIL', field: 'partner_barangay' },
+    { name: 'partner_barangay not a partner', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'PARTNER_BARANGAY', partner_barangay: 'Barangay Lahug' }, expected: 'FAIL', field: 'partner_barangay' },
+    { name: 'partner_barangay wrong case', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'PARTNER_BARANGAY', partner_barangay: 'barangay looc' }, expected: 'FAIL', field: 'partner_barangay' },
+    { name: 'partner_barangay SQL injection', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'PARTNER_BARANGAY', partner_barangay: "Barangay Looc' OR '1'='1" }, expected: 'FAIL', field: 'partner_barangay' },
+    { name: 'partner_barangay on a student volunteer', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'STUDENT', partner_barangay: 'Barangay Opao' }, expected: 'FAIL', field: 'partner_barangay' },
+    { name: 'partner_barangay on a portal role', input: { ...VALID_GENERATE, partner_barangay: 'Barangay Opao' }, expected: 'FAIL', field: 'partner_barangay' },
+    { name: 'partner barangay volunteer with a department', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'PARTNER_BARANGAY', partner_barangay: 'Barangay Umapad', department: 'College of Nursing' }, expected: 'FAIL', field: 'department' },
 
     // An app account holds no portal rights, so a scope on one is refused.
     { name: 'permissions on a volunteer', input: { ...VALID_GENERATE, role_type: 'VOLUNTEER', volunteer_type: 'STUDENT', permissions: [] }, expected: 'FAIL', field: 'permissions' },

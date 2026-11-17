@@ -37,6 +37,11 @@ export function formatTimeOfDay(timestamp: string): string {
   return dayjs(timestamp).format('h:mm A')
 }
 
+/** `Nov 18, 2026, 3:04 PM` — a date with its time, for decision timestamps. */
+export function formatDateTime(timestamp: string): string {
+  return dayjs(timestamp).format('MMM D, YYYY, h:mm A')
+}
+
 export function formatDateShort(timestamp: string): string {
   return dayjs(timestamp).format('MMM D, YYYY')
 }

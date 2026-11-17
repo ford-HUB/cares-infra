@@ -82,7 +82,7 @@ class _RegisterAccountStepState extends State<RegisterAccountStep> {
 
     return RegistrationFormCard(
       icon: Icons.lock_outline_rounded,
-      title: 'Sign-In Details',
+      title: 'Account Information',
       subtitle: 'Used every time you sign in to CARES.',
       children: [
         RegisterFormField(

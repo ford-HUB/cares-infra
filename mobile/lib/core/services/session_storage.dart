@@ -17,6 +17,7 @@ class StoredSession {
     this.firstName = '',
     this.lastName = '',
     this.hasInterests = false,
+    this.unlockedRoles = const [],
   });
 
   factory StoredSession.fromJson(Map<String, dynamic> json) {
@@ -27,6 +28,9 @@ class StoredSession {
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
       hasInterests: json['has_interests'] as bool? ?? false,
+      unlockedRoles: (json['unlocked_roles'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
     );
   }
 
@@ -36,6 +40,10 @@ class StoredSession {
   final String firstName;
   final String lastName;
   final bool hasInterests;
+
+  /// Sides of the account open besides [roleType] — a student beneficiary's
+  /// Volunteer side — so a restored session reopens them too.
+  final List<String> unlockedRoles;
 
   /// Missing a token or a role there is nothing to restore onto.
   bool get isUsable => accessToken.isNotEmpty && roleType.isNotEmpty;
@@ -58,6 +66,7 @@ class StoredSession {
     String? firstName,
     String? lastName,
     bool? hasInterests,
+    List<String>? unlockedRoles,
   }) {
     return StoredSession(
       accessToken: accessToken ?? this.accessToken,
@@ -66,6 +75,7 @@ class StoredSession {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       hasInterests: hasInterests ?? this.hasInterests,
+      unlockedRoles: unlockedRoles ?? this.unlockedRoles,
     );
   }
 
@@ -76,6 +86,7 @@ class StoredSession {
     'first_name': firstName,
     'last_name': lastName,
     'has_interests': hasInterests,
+    'unlocked_roles': unlockedRoles,
   };
 }
 

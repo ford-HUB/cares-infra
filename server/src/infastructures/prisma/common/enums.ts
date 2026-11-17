@@ -456,10 +456,21 @@ export const UserRequestKind = {
   EVENT_JOIN: 'EVENT_JOIN',
   BENEFICIARY_REGISTRATION: 'BENEFICIARY_REGISTRATION',
   EVENT_ROLE: 'EVENT_ROLE',
-  RESIDENCY_VERIFICATION: 'RESIDENCY_VERIFICATION'
+  RESIDENCY_VERIFICATION: 'RESIDENCY_VERIFICATION',
+  ALUMNI_REGISTRATION: 'ALUMNI_REGISTRATION',
+  PARTNER_BARANGAY_REGISTRATION: 'PARTNER_BARANGAY_REGISTRATION',
+  MANUAL_REGISTRATION: 'MANUAL_REGISTRATION'
 } as const
 
 export type UserRequestKind = (typeof UserRequestKind)[keyof typeof UserRequestKind]
+
+
+export const BeneficiaryType = {
+  REGULAR: 'REGULAR',
+  STUDENT: 'STUDENT'
+} as const
+
+export type BeneficiaryType = (typeof BeneficiaryType)[keyof typeof BeneficiaryType]
 
 
 export const UserRequestStatus = {

@@ -12,7 +12,7 @@ import {
   VerificationStatus,
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
-import { CreateUserDto } from '../dto/auth-mobile-dto';
+import { NewUserAccountDto } from '../dto/auth-mobile-dto';
 
 interface DonorDetailsInput {
   firstname: string;
@@ -35,15 +35,30 @@ export interface CreateDonorWithPasswordInput extends DonorDetailsInput {
   hashedPassword: string;
 }
 
+/** The sign-up kinds that keep an account shut until a director approves it. */
+export const REGISTRATION_REVIEW_KINDS = [
+  UserRequestKind.BENEFICIARY_REGISTRATION,
+  UserRequestKind.ALUMNI_REGISTRATION,
+  UserRequestKind.PARTNER_BARANGAY_REGISTRATION,
+  UserRequestKind.MANUAL_REGISTRATION,
+] as const;
+
+export type RegistrationReviewKind = (typeof REGISTRATION_REVIEW_KINDS)[number];
+
 /**
- * The review request a self-registered beneficiary files with their sign-up — written
- * in the same transaction as the account, so the account never exists without it.
+ * The review request a self-registered beneficiary or alumnus files with their
+ * sign-up — written in the same transaction as the account, so the account never
+ * exists without it. A beneficiary attaches a supporting document; an alumnus
+ * attaches the alumni ID they uploaded instead of being face verified.
  */
-export interface BeneficiaryRegistrationRequestInput {
+export interface RegistrationReviewRequestInput {
+  kind: RegistrationReviewKind;
   summary: string;
   /** The first trail line's actor — the person who just registered. */
   actorName: string;
-  document: { url: string; name: string; mime: string; sizeBytes: number };
+  document?: { url: string; name: string; mime: string; sizeBytes: number };
+  idFrontUrl?: string;
+  idBackUrl?: string;
 }
 
 export type RegistrationConflictField = 'email' | 'phone_number' | 'id_number';
@@ -76,8 +91,8 @@ export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createUser(
-    data: CreateUserDto,
-    registrationRequest?: BeneficiaryRegistrationRequestInput,
+    data: NewUserAccountDto,
+    registrationRequest?: RegistrationReviewRequestInput,
   ) {
     try {
       return await this.createUserInTransaction(data, registrationRequest);
@@ -111,8 +126,8 @@ export class AuthRepository {
   }
 
   private async createUserInTransaction(
-    data: CreateUserDto,
-    registrationRequest?: BeneficiaryRegistrationRequestInput,
+    data: NewUserAccountDto,
+    registrationRequest?: RegistrationReviewRequestInput,
   ) {
     return await this.prisma.$transaction(async (tx) => {
       const department = await this.findOrCreateDepartment(
@@ -149,6 +164,8 @@ export class AuthRepository {
           age: data.age,
           current_address: data.current_address,
           phone_number: data.phone_number,
+          partner_barangay: data.partner_barangay ?? null,
+          beneficiary_type: data.beneficiary_type ?? null,
           role: {
             connect: {
               role_id: role.role_id,
@@ -223,16 +240,21 @@ export class AuthRepository {
         },
       });
 
+      let review: { user_request_id: string; reference_number: number } | null =
+        null;
       if (registrationRequest) {
-        await tx.userRequest.create({
+        review = await tx.userRequest.create({
           data: {
-            kind: UserRequestKind.BENEFICIARY_REGISTRATION,
+            kind: registrationRequest.kind,
             user_id: user.user_id,
             summary: registrationRequest.summary,
-            document_url: registrationRequest.document.url,
-            document_name: registrationRequest.document.name,
-            document_mime: registrationRequest.document.mime,
-            document_size_bytes: registrationRequest.document.sizeBytes,
+            id_front_url: registrationRequest.idFrontUrl ?? null,
+            id_back_url: registrationRequest.idBackUrl ?? null,
+            document_url: registrationRequest.document?.url ?? null,
+            document_name: registrationRequest.document?.name ?? null,
+            document_mime: registrationRequest.document?.mime ?? null,
+            document_size_bytes:
+              registrationRequest.document?.sizeBytes ?? null,
             trail: {
               create: {
                 label: 'Registration submitted from the mobile app',
@@ -240,6 +262,7 @@ export class AuthRepository {
               },
             },
           },
+          select: { user_request_id: true, reference_number: true },
         });
       }
 
@@ -248,6 +271,8 @@ export class AuthRepository {
         account_id: account.account_id,
         user_biometric_id:
           user.user_verifications[0]?.user_biometric_id ?? null,
+        /** The director's review filed with the sign-up, when it needs one. */
+        registration_review: review,
       };
     });
   }
@@ -417,6 +442,7 @@ export class AuthRepository {
       select: {
         user_id: true,
         firstname: true,
+        beneficiary_type: true,
         role: { select: { type: true } },
         user_interest: { select: { user_interest_id: true } },
         accounts: {
@@ -456,15 +482,40 @@ export class AuthRepository {
     });
   }
 
-  /** The latest sign-up review on the account, if it registered through one. */
-  async findBeneficiaryRegistration(userId: string) {
+  /**
+   * The latest sign-up review on the account (beneficiary or alumni), if it
+   * registered through one.
+   */
+  async findRegistrationReview(userId: string) {
     return this.prisma.userRequest.findFirst({
       where: {
         user_id: userId,
-        kind: UserRequestKind.BENEFICIARY_REGISTRATION,
+        kind: { in: [...REGISTRATION_REVIEW_KINDS] },
       },
       orderBy: { createdAt: 'desc' },
-      select: { status: true, rejection_reason: true },
+      select: { kind: true, status: true, rejection_reason: true },
+    });
+  }
+
+  /**
+   * A registration review as the public status page shows it — looked up by the
+   * id inside a signed status link, so nothing here is guessable from outside.
+   */
+  async findRegistrationStatus(userRequestId: string) {
+    return this.prisma.userRequest.findFirst({
+      where: {
+        user_request_id: userRequestId,
+        kind: { in: [...REGISTRATION_REVIEW_KINDS] },
+      },
+      select: {
+        kind: true,
+        status: true,
+        reference_number: true,
+        rejection_reason: true,
+        decided_at: true,
+        createdAt: true,
+        user: { select: { firstname: true } },
+      },
     });
   }
 
@@ -483,6 +534,7 @@ export class AuthRepository {
             user_id: true,
             firstname: true,
             lastname: true,
+            beneficiary_type: true,
             role: {
               select: { type: true },
             },

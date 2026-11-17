@@ -25,7 +25,8 @@ import type {
   RegisterDonorWithEmailDto,
 } from '../dto/auth-donor-dto';
 import type { LoginResponseDto } from '../dto/auth-mobile-dto';
-import { BeneficiaryApprovalGate } from './beneficiary-approval-gate';
+import { RegistrationApprovalGate } from './registration-approval-gate';
+import { unlockedRoles } from 'src/shared/utils/unlocked-roles';
 
 /** How long a verified profile stays claimable while the donor fills in the form. */
 const TICKET_TTL_SECONDS = DurationUtils.THIRTY_MINUTES;
@@ -59,7 +60,7 @@ export class AuthDonorService {
     private readonly sessionRegistry: SessionRegistry,
     private readonly loginActivityRecorder: LoginActivityRecorder,
     private readonly loginPolicyEnforcer: LoginPolicyEnforcer,
-    private readonly beneficiaryApprovalGate: BeneficiaryApprovalGate,
+    private readonly registrationApprovalGate: RegistrationApprovalGate,
   ) {}
 
   async signInWithProvider(
@@ -278,7 +279,7 @@ export class AuthDonorService {
 
     // A beneficiary still waiting on (or refused) a director's approval can't get
     // in by linking a social provider either.
-    await this.beneficiaryApprovalGate.assertApproved(userId, attempt);
+    await this.registrationApprovalGate.assertApproved(userId, attempt);
 
     const account = user.accounts[0];
     if (account?.is_restricted) {
@@ -321,6 +322,10 @@ export class AuthDonorService {
       email,
       firstname: user.firstname,
       has_interests: user.user_interest !== null,
+      unlocked_roles: unlockedRoles({
+        roleType: user.role.type,
+        beneficiaryType: user.beneficiary_type,
+      }),
       access_token: this.jwtService.sign({
         sub: userId,
         email,

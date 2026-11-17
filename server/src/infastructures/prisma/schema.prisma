@@ -27,6 +27,12 @@ model User {
   address_province             String?
   /// Beneficiaries only — how many people the assistance has to cover.
   household_size               Int?
+  /// Partner-barangay volunteers only — the partner barangay they signed up
+  /// through (one of PARTNER_BARANGAYS in the auth module).
+  partner_barangay             String?
+  /// Beneficiaries only: REGULAR signed up without an ID; STUDENT verified a UC
+  /// school ID with a face match, which also opens their Volunteer side.
+  beneficiary_type             BeneficiaryType?
   accounts                     Account[]
   assistance_requests          AssistanceRequest[]
   needs_assessment             NeedsAssessment?
@@ -982,6 +988,9 @@ model UserRequest {
   event_id             Int?
   /// EVENT_ROLE only — the event role the volunteer asked to take.
   participation_role   EventParticipationRole?
+  /// ROLE_ACCESS / ALUMNI_REGISTRATION / PARTNER_BARANGAY_REGISTRATION /
+  /// MANUAL_REGISTRATION — the ID
+  /// presented with the request.
   id_front_url         String?
   id_back_url          String?
   selfie_url           String?
@@ -1633,12 +1642,25 @@ enum UserRequestKind {
   BENEFICIARY_REGISTRATION
   EVENT_ROLE
   RESIDENCY_VERIFICATION
+  ALUMNI_REGISTRATION
+  PARTNER_BARANGAY_REGISTRATION
+  /// A staff or alumni sign-up whose ID photo the app could not recognize: the
+  /// registrant chose manual registration, so the ID skipped the automatic
+  /// checks and the face scan, and a director verifies it by hand.
+  MANUAL_REGISTRATION
 }
 
 /// DELETED is a recycle bin, not a hard delete — the director can restore a
 /// request to PENDING, which is why the trail is kept on a dropped row.
 /// REJECTED is a decision the requester sees, with the director's reason; the
 /// requester may file a fresh request for the same event afterwards.
+/// How a beneficiary signed up. A STUDENT presented a UC school ID and passed the
+/// face match, so their school record is real and their Volunteer side is open.
+enum BeneficiaryType {
+  REGULAR
+  STUDENT
+}
+
 enum UserRequestStatus {
   PENDING
   ACCEPTED

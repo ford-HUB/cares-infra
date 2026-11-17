@@ -59,6 +59,12 @@ export const VolunteerProfileSectionSchema = z.object({
    * uploaded a school record, so the app hides that section.
    */
   access_granted_by_director: z.boolean(),
+  /**
+   * The partner barangay a community volunteer signed up through, or null for a
+   * school volunteer. Such accounts have no school record, so the app hides that
+   * section.
+   */
+  partner_barangay: z.string().nullable(),
   service_hours: z.number(),
   activities_completed: z.number(),
   activities_registered: z.number(),
@@ -167,6 +173,11 @@ export const MobileProfileResponseSchema = z.object({
   has_password: z.boolean(),
   /** ISO timestamp of the account's creation — the "member since" date. */
   member_since: z.string(),
+  /**
+   * Sides open besides `role_type` without a role-access request — a student
+   * beneficiary's Volunteer side. The app unlocks them in its role switcher.
+   */
+  unlocked_roles: z.array(z.enum(RoleType)),
   profile_completion: ProfileCompletionSchema,
   volunteer: VolunteerProfileSectionSchema.nullable(),
   donor: DonorProfileSectionSchema.nullable(),

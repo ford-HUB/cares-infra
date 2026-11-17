@@ -141,3 +141,22 @@ export const PortalForgotPasswordResponseSchema = z.object({
   /** How long before another temporary password may be requested for this email. */
   retry_after_seconds: z.number(),
 });
+
+/** `GET /v1/auth/registration-status?token=` — the signed link from the "submitted" email. */
+export const RegistrationStatusQuerySchema = z
+  .object({
+    token: z.string().trim().min(1).max(2048),
+  })
+  .strict();
+
+/** A reviewed sign-up as the public status page shows it — nothing beyond the decision. */
+export const RegistrationStatusResponseSchema = z.object({
+  reference: z.string(),
+  /** What was registered, e.g. "beneficiary" or "manual volunteer". */
+  registration_label: z.string(),
+  firstname: z.string(),
+  status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']),
+  rejection_reason: z.string().nullable(),
+  submitted_at: z.string(),
+  decided_at: z.string().nullable(),
+});

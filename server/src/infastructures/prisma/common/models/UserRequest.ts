@@ -1963,6 +1963,11 @@ export type $UserRequestPayload<ExtArgs extends runtime.Types.Extensions.Interna
      * EVENT_ROLE only — the event role the volunteer asked to take.
      */
     participation_role: $Enums.EventParticipationRole | null
+    /**
+     * ROLE_ACCESS / ALUMNI_REGISTRATION / PARTNER_BARANGAY_REGISTRATION /
+     * MANUAL_REGISTRATION — the ID
+     * presented with the request.
+     */
     id_front_url: string | null
     id_back_url: string | null
     selfie_url: string | null

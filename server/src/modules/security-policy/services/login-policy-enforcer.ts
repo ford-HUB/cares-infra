@@ -165,8 +165,10 @@ export class LoginPolicyEnforcer {
     // fresh failure starts counting again.
     if (unlocksAt && unlocksAt.getTime() <= Date.now()) return;
 
+    // Remaining time, not a clock time: the server formats dates in its own timezone
+    // (UTC in production), which never matches the person reading the message.
     const message = unlocksAt
-      ? `Too many failed sign-in attempts. Try again after ${unlocksAt.toLocaleTimeString()}`
+      ? `Too many failed sign-in attempts. Try again in ${formatRemaining(unlocksAt.getTime() - Date.now())}`
       : 'This account is locked after too many failed sign-in attempts. Contact an administrator';
 
     await this.refuse(attempt, 'LOCKED_OUT', message);
@@ -215,6 +217,19 @@ function formatMinute(minuteOfDay: number): string {
   const hours = String(Math.floor(normalized / 60)).padStart(2, '0');
   const minutes = String(normalized % 60).padStart(2, '0');
   return `${hours}:${minutes}`;
+}
+
+/** "5 minutes", "1 minute", "1 hour 30 minutes" — rounded up so it never undersells the wait. */
+function formatRemaining(ms: number): string {
+  const totalMinutes = Math.max(1, Math.ceil(ms / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+  if (minutes > 0) {
+    parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  }
+  return parts.join(' ');
 }
 
 function listToSentence(items: string[]): string {

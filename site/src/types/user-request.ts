@@ -12,6 +12,16 @@
  * - `residency_verification` — a proof of residency a beneficiary uploaded from their
  *   profile. Their profile stays incomplete (no event applications or assistance
  *   requests) until it is accepted; a rejection asks them to upload a new one.
+ * - `alumni_registration` — a new alumni volunteer account that cannot sign in until a
+ *   director approves it. Alumni present an alumni ID instead of a student ID and are
+ *   not face verified, so the director checks the typed details against that ID.
+ * - `partner_barangay_registration` — a new volunteer account signed up through one of
+ *   the partner barangays, waiting for a director's approval. They present a valid ID
+ *   (no school ID number) and are not face verified; the summary names the barangay.
+ * - `manual_registration` — a staff or alumni volunteer whose ID photo the app could not
+ *   recognize (blurry, unclear or read with low accuracy) and who chose to register
+ *   manually. The ID skipped the automatic checks and the face scan, so the director
+ *   verifies the typed details against the uploaded ID before approving.
  */
 export type UserRequestKind =
   | 'role_access'
@@ -19,6 +29,19 @@ export type UserRequestKind =
   | 'beneficiary_registration'
   | 'event_role'
   | 'residency_verification'
+  | 'alumni_registration'
+  | 'partner_barangay_registration'
+  | 'manual_registration'
+
+/** Sign-up reviews: approving one is what lets a new account sign in. */
+export function isRegistrationRequest(kind: UserRequestKind): boolean {
+  return (
+    kind === 'beneficiary_registration' ||
+    kind === 'alumni_registration' ||
+    kind === 'partner_barangay_registration' ||
+    kind === 'manual_registration'
+  )
+}
 
 /**
  * `deleted` is a recycle bin, not a hard delete — the director can restore a request

@@ -71,6 +71,11 @@ export class JwtService implements OnModuleInit {
       }
 
       const payload = decoded as jwt.JwtPayload & Partial<JwtPayload>;
+      // Scoped tokens (see `signScoped`) carry an audience; none of them is a
+      // session, whatever else they hold.
+      if (payload.aud !== undefined) {
+        throw new UnauthorizedException('Invalid token');
+      }
       if (!payload.sub || !payload.email || !payload.role_type) {
         throw new UnauthorizedException('Invalid token payload');
       }
@@ -86,6 +91,30 @@ export class JwtService implements OnModuleInit {
         throw error;
       }
       throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+
+  /**
+   * A single-purpose token — e.g. the link in a "registration submitted" email —
+   * bound to [audience]. `verify` refuses any token with an audience, so one of
+   * these can never stand in for a session.
+   */
+  signScoped(
+    subject: string,
+    audience: string,
+    expiresIn: jwt.SignOptions['expiresIn'],
+  ): string {
+    return jwt.sign({}, this.secret, { subject, audience, expiresIn });
+  }
+
+  /** The subject of a token from `signScoped`, or null when it is not valid for [audience]. */
+  verifyScoped(token: string, audience: string): string | null {
+    try {
+      const decoded = jwt.verify(token, this.secret, { audience });
+      if (typeof decoded === 'string' || !decoded?.sub) return null;
+      return decoded.sub;
+    } catch {
+      return null;
     }
   }
 
