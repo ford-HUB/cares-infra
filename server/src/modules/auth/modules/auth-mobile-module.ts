@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { RegistrationStatusTokens } from '../services/registration-status-tokens';
 import { AuthMobileService } from '../services/auth-mobile-service';
 import { AuthMobileController } from '../controllers/auth-mobile-controller';
 import { AuthRepository } from '../repositories/auth-repository';
@@ -10,7 +11,12 @@ import { AccessControlSiteModule } from 'src/modules/access-control/modules/acce
 @Module({
   imports: [NodemailerModule, LoginActivityModule, AccessControlSiteModule],
   controllers: [AuthMobileController],
-  providers: [AuthMobileService, AuthRepository, RegistrationApprovalGate],
+  providers: [
+    AuthMobileService,
+    AuthRepository,
+    RegistrationApprovalGate,
+    RegistrationStatusTokens,
+  ],
   exports: [AuthMobileService],
 })
 export class AuthMobileModule {}

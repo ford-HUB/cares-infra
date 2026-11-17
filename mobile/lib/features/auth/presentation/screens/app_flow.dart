@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/navigation/dashboard_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/features/auth/data/leading_story_storage.dart';
 import 'package:mobile/features/auth/data/session_restore_service.dart';
 import 'package:mobile/features/auth/presentation/providers/app_update_provider.dart';
 import 'package:mobile/features/auth/presentation/providers/session_restore_provider.dart';
@@ -29,7 +30,10 @@ import 'package:mobile/features/auth/presentation/widgets/splash_update_panel.da
 ///
 /// It also restores the last signed-in session ([sessionRestoreProvider]):
 /// a live one skips straight to the dashboard, an expired one skips the story
-/// and lands on login with the reason, and none plays the flow as usual.
+/// and lands on login with the reason, and none plays the story — but only
+/// on a fresh install. Once the story has been left (Continue on its last
+/// beat, or Skip) [LeadingStoryStorage] remembers it and later launches go
+/// straight to login; it stays reachable by pulling login's header down.
 class AppFlow extends ConsumerStatefulWidget {
   const AppFlow({super.key});
 
@@ -64,6 +68,10 @@ class _AppFlowState extends ConsumerState<AppFlow>
   /// update check lets it.
   bool _introFinished = false;
   bool _handoffStarted = false;
+
+  /// Whether this install has been through the leading story before; null
+  /// until preferences have been read (well within the intro).
+  bool? _leadingSeen;
 
   static const Duration _slideDuration = Duration(milliseconds: 850);
 
@@ -106,6 +114,10 @@ class _AppFlowState extends ConsumerState<AppFlow>
     });
 
     _introController.forward();
+    LeadingStoryStorage.instance.hasSeen().then((seen) {
+      _leadingSeen = seen;
+      _maybeHandOff();
+    });
     // Runs alongside the intro; deferred a microtask because a provider may
     // not change state while the tree is building.
     Future.microtask(() {
@@ -122,6 +134,7 @@ class _AppFlowState extends ConsumerState<AppFlow>
   /// session has been resolved.
   void _maybeHandOff() {
     if (!mounted || !_introFinished || _handoffStarted) return;
+    if (_leadingSeen == null) return;
     if (ref.read(appUpdateProvider).holdsSplash) return;
 
     final restore = ref.read(sessionRestoreProvider);
@@ -141,31 +154,24 @@ class _AppFlowState extends ConsumerState<AppFlow>
           lastName: session.lastName,
           profileComplete: session.hasInterests,
           hasInterests: session.hasInterests,
+          unlockedRoles: session.unlockedRoles,
         );
         return;
 
       case SessionRestoreStatus.expired:
         // Straight to login — this person has seen the story before.
-        setState(() => _showLogin = true);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _handoffController.forward();
-          ScaffoldMessenger.of(context)
-            ..clearSnackBars()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(
-                  result!.message ?? SessionRestoreService.expiredMessage,
-                ),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 6),
-              ),
-            );
-        });
+        _handOffToLogin(
+          message: result!.message ?? SessionRestoreService.expiredMessage,
+        );
         return;
 
       case SessionRestoreStatus.none:
       case null:
+        if (_leadingSeen!) {
+          // Not a new install: the story played on an earlier launch.
+          _handOffToLogin();
+          return;
+        }
         // Build the story first and let it lay out for one frame, so the cost
         // of its first paint lands before the curtain starts moving.
         setState(() => _showLeading = true);
@@ -173,6 +179,25 @@ class _AppFlowState extends ConsumerState<AppFlow>
           if (mounted) _handoffController.forward();
         });
     }
+  }
+
+  /// Lift the curtain straight onto login, with [message] in a snackbar.
+  void _handOffToLogin({String? message}) {
+    setState(() => _showLogin = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _handoffController.forward();
+      if (message == null) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(message),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
+          ),
+        );
+    });
   }
 
   @override
@@ -196,6 +221,10 @@ class _AppFlowState extends ConsumerState<AppFlow>
 
   /// Continue on the last beat, or Skip: slide the story up and off.
   void _dismissLeading() {
+    if (_leadingSeen != true) {
+      _leadingSeen = true;
+      LeadingStoryStorage.instance.markSeen();
+    }
     if (!_showLogin) {
       // First hand-off: build login underneath and give it a frame to lay
       // out, same as the splash does for the story.

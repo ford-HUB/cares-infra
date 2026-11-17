@@ -177,6 +177,9 @@ class RoleAccountStore extends ChangeNotifier {
 
   bool _staffAccount = false;
 
+  /// Sides the server opened with the account itself (see [signIn]).
+  final Set<String> _grantedWithAccount = {};
+
   bool get isEmpty => _accounts.isEmpty;
 
   /// Roles in a stable order: volunteer, donor, beneficiary.
@@ -214,6 +217,8 @@ class RoleAccountStore extends ChangeNotifier {
     if (account == null || !account.isUnlocked) return false;
     final server = account.serverProfile?.volunteer;
     if (server != null) return server.accessGrantedByDirector;
+    // A student beneficiary's Volunteer side came with their school ID.
+    if (_grantedWithAccount.contains(volunteer)) return false;
     return _primaryRoleType != null && _primaryRoleType != volunteer;
   }
 
@@ -222,11 +227,16 @@ class RoleAccountStore extends ChangeNotifier {
   /// First sign-in for this email: the role becomes the unlocked primary and
   /// the other roles are seeded as locked. Later calls with the same email
   /// only make [roleType] active (and unlock it if a server login says so).
+  ///
+  /// [unlockedRoles] are sides the server says are open from sign-up on — a
+  /// student beneficiary's Volunteer side, since their school ID and face
+  /// were already verified — so they open without the unlock flow.
   void signIn({
     required String roleType,
     required String email,
     String firstName = '',
     String lastName = '',
+    Iterable<String> unlockedRoles = const [],
   }) {
     final type = normalize(roleType);
     final key = email.trim().toLowerCase();
@@ -237,6 +247,7 @@ class RoleAccountStore extends ChangeNotifier {
 
     if (_ownerEmail != key) {
       _accounts.clear();
+      _grantedWithAccount.clear();
       _ownerEmail = key;
       _primaryRoleType = type;
       _staffAccount = isStaffRole(roleType);
@@ -263,9 +274,23 @@ class RoleAccountStore extends ChangeNotifier {
       email: email.trim().isNotEmpty ? email.trim() : null,
       status: RoleAccountStatus.unlocked,
     );
+    _openGrantedRoles(unlockedRoles);
 
     _activeRoleType = type;
     notifyListeners();
+  }
+
+  /// Opens the sides the server granted with the account itself. Never
+  /// re-locks anything: a side opened another way stays open.
+  void _openGrantedRoles(Iterable<String> roleTypes) {
+    for (final roleType in roleTypes) {
+      final type = normalize(roleType);
+      final account = _accounts[type];
+      if (account == null) continue;
+      _grantedWithAccount.add(type);
+      if (account.isUnlocked) continue;
+      _accounts[type] = account.copyWith(status: RoleAccountStatus.unlocked);
+    }
   }
 
   /// Marks [roleType] usable. Optional [displayName] / [email] let the unlock
@@ -422,11 +447,13 @@ class RoleAccountStore extends ChangeNotifier {
       status: RoleAccountStatus.unlocked,
       serverProfile: profile,
     );
+    _openGrantedRoles(profile.unlockedRoles);
     notifyListeners();
   }
 
   void clear() {
     _accounts.clear();
+    _grantedWithAccount.clear();
     _ownerEmail = null;
     _activeRoleType = null;
     _primaryRoleType = null;

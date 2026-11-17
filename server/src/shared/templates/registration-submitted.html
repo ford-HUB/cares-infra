@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{{heading}}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f6f8fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #24292e; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f6f8fa;">
+    <tr>
+      <td align="center" style="padding: 32px 16px 48px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 544px;">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+                <img src="https://res.cloudinary.com/dhkp7er6i/image/upload/v1781425864/transparent-logo_ahvqrr.png" alt="CARES Logo" style="width: 50px; height: 50px;">
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.25; color: #24292e;">
+                {{heading}}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color: #ffffff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 32px 40px;">
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5; color: #24292e;">
+                Hi {{username}},
+              </p>
+
+              <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                Thanks for registering with CARES. Your {{registrationLabel}} registration (<strong>{{reference}}</strong>) was submitted and is now waiting for a CARES director to review it.
+              </p>
+
+              {{#if manual}}
+              <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                Because you registered manually, the director checks the ID you uploaded against the details you entered before approving your account.
+              </p>
+              {{/if}}
+
+              <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.5; color: #24292e;">
+                You can't sign in until your account is approved. Use the button below to check where your registration stands. We'll also email you as soon as a decision is made.
+              </p>
+
+              <!-- Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 24px;">
+                <tr>
+                  <td align="center" style="border-radius: 6px; background-color: #1f7a3a;">
+                    <a href="{{statusUrl}}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 24px; font-size: 14px; font-weight: 600; line-height: 1.25; color: #ffffff; text-decoration: none; border-radius: 6px;">
+                      Check status
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 24px; font-size: 12px; line-height: 1.5; color: #586069; word-break: break-all;">
+                If the button doesn't work, copy this link into your browser:<br>
+                <a href="{{statusUrl}}" target="_blank" rel="noopener" style="color: #1f7a3a;">{{statusUrl}}</a>
+              </p>
+
+              <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #24292e;">
+                Thanks,<br>
+                The CARES Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 24px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #586069; max-width: 480px;">
+                You're receiving this email because a CARES account was registered with this address on the CARES app. Keep this email: the link above shows your registration's status without signing in.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

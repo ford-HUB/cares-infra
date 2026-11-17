@@ -191,8 +191,16 @@ export const RegisterUserResponseSchema = z.object({
 /** The supporting document a beneficiary attaches; any file type is accepted. */
 export const REGISTRATION_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 
-/** The volunteer sign-ups that can fall back to manual registration. */
-export const ManualVolunteerTypeSchema = z.enum(['STAFF', 'ALUMNI']);
+/**
+ * The volunteer sign-ups that can fall back to manual registration — every one
+ * of them: a blurry or unreadable ID never has to be a dead end.
+ */
+export const ManualVolunteerTypeSchema = z.enum([
+  'STUDENT',
+  'STAFF',
+  'ALUMNI',
+  'PARTNER_BARANGAY',
+]);
 
 export const RegistrationDocumentResponseSchema = z.object({
   registrationId: z.string(),
@@ -210,6 +218,12 @@ export const LoginResponseSchema = z.object({
   firstname: z.string(),
   has_interests: z.boolean(),
   access_token: z.string(),
+  /**
+   * Sides of the account opened besides `role_type` without a role-access
+   * request — a student beneficiary's Volunteer side, since they already passed
+   * the school-ID and face check at sign-up.
+   */
+  unlocked_roles: z.array(z.enum(RoleType)),
 });
 
 export const UploadIdResponseSchema = z.object({

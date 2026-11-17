@@ -23,6 +23,7 @@ class MobileProfile {
     required this.signInProviders,
     required this.hasPassword,
     required this.memberSince,
+    this.unlockedRoles = const [],
     required this.completion,
     required this.volunteer,
     required this.donor,
@@ -73,6 +74,9 @@ class MobileProfile {
       memberSince:
           DateTime.tryParse(json['member_since'] as String? ?? '') ??
           DateTime.now(),
+      unlockedRoles: (json['unlocked_roles'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
       volunteer: volunteer is Map<String, dynamic>
           ? VolunteerServerProfile.fromJson(volunteer)
           : null,
@@ -123,6 +127,10 @@ class MobileProfile {
   /// email and password controls by mistake.
   final bool hasPassword;
   final DateTime memberSince;
+
+  /// Sides open besides [roleType] without a role-access request — a student
+  /// beneficiary's `VOLUNTEER` side.
+  final List<String> unlockedRoles;
 
   /// The identity lives with Google or Facebook, so the email and password
   /// cannot be changed from CARES — Account Security disables both controls.

@@ -13,8 +13,10 @@ extension IdCardSideX on IdCardSide {
 /// Why a photo of one side of an ID was rejected before upload.
 ///
 /// Image-quality issues can always be fixed by retaking the photo, so they
-/// always block. [missingIdDetails] depends on how the ID is laid out, so
-/// it can be overridden after repeated attempts ([overridable]).
+/// always block. [missingIdDetails] depends on how the ID is laid out, and
+/// the portrait checks depend on a face detector that can miss a small or
+/// printed photo, so those can be overridden after repeated attempts
+/// ([overridable]).
 enum IdImageIssue {
   unreadableFile,
   tooSmall,
@@ -24,9 +26,19 @@ enum IdImageIssue {
   blurry,
   lowContrast,
   noReadableText,
-  missingIdDetails;
+  missingIdDetails,
 
-  bool get overridable => this == IdImageIssue.missingIdDetails;
+  /// No face could be found on the front of the ID.
+  faceNotFound,
+
+  /// The ID's portrait is blurry, even if the rest of the card reads fine —
+  /// the face scan is matched against it.
+  faceBlurry;
+
+  bool get overridable =>
+      this == IdImageIssue.missingIdDetails ||
+      this == IdImageIssue.faceNotFound ||
+      this == IdImageIssue.faceBlurry;
 
   String get title => switch (this) {
     IdImageIssue.unreadableFile => 'The photo could not be opened',
@@ -38,6 +50,8 @@ enum IdImageIssue {
     IdImageIssue.lowContrast => 'The photo is washed out',
     IdImageIssue.noReadableText => 'The text on the ID can\'t be read',
     IdImageIssue.missingIdDetails => 'Key details couldn\'t be found',
+    IdImageIssue.faceNotFound => 'The photo on your ID can\'t be seen',
+    IdImageIssue.faceBlurry => 'The photo on your ID is blurry',
   };
 
   String get tip => switch (this) {
@@ -63,6 +77,9 @@ enum IdImageIssue {
           'your fingers.',
     IdImageIssue.missingIdDetails =>
       'Retake the photo straight on with every edge of the card visible.',
+    IdImageIssue.faceNotFound || IdImageIssue.faceBlurry =>
+      'Keep your portrait on the ID in focus and free of glare or fingers — '
+          'the face scan is matched against it.',
   };
 }
 
@@ -111,6 +128,15 @@ abstract final class IdImageQualityThresholds {
   static const maxGlareRatio = 0.06;
   static const minLumaStdDev = 22.0;
   static const minSharpness = 45.0;
+
+  /// The ID portrait is measured at this width, so its sharpness does not
+  /// depend on how large the card is in the photo.
+  static const faceAnalysisWidth = 160;
+
+  /// Variance of the Laplacian on the portrait at [faceAnalysisWidth]. A face
+  /// has fewer hard edges than printed text, so this sits well below
+  /// [minSharpness]. Tune against real IDs if blurry portraits slip through.
+  static const minFaceSharpness = 20.0;
 
   /// Alphanumeric characters / text lines ML Kit must read off a side.
   static const minFrontChars = 30;
@@ -177,6 +203,45 @@ abstract final class IdImageQualityRules {
       glareRatio: glare / count,
       sharpness: _laplacianVariance(luma, w, h),
     );
+  }
+
+  /// Sharpness of one region of the photo — the ID portrait — in the same
+  /// orientation-corrected pixel space ML Kit reports its face box in. Null
+  /// when the file is not an image or the region is empty. Run off the UI
+  /// isolate.
+  static double? measureRegionSharpness(
+    Uint8List bytes, {
+    required int left,
+    required int top,
+    required int width,
+    required int height,
+  }) {
+    img.Image? decoded;
+    try {
+      decoded = img.decodeImage(bytes);
+    } catch (_) {
+      return null;
+    }
+    if (decoded == null) return null;
+    final oriented = img.bakeOrientation(decoded);
+
+    final x = left.clamp(0, oriented.width - 1);
+    final y = top.clamp(0, oriented.height - 1);
+    final w = math.min(width, oriented.width - x);
+    final h = math.min(height, oriented.height - y);
+    if (w < 8 || h < 8) return null;
+
+    final crop = img.copyResize(
+      img.copyCrop(oriented, x: x, y: y, width: w, height: h),
+      width: IdImageQualityThresholds.faceAnalysisWidth,
+      interpolation: img.Interpolation.average,
+    );
+    final luma = Float64List(crop.width * crop.height);
+    var i = 0;
+    for (final pixel in crop) {
+      luma[i++] = 0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b;
+    }
+    return _laplacianVariance(luma, crop.width, crop.height);
   }
 
   static double _laplacianVariance(Float64List luma, int w, int h) {

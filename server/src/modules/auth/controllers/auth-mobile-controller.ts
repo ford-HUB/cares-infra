@@ -254,7 +254,7 @@ export class AuthMobileController {
     );
     if (!parsedType.success) {
       throw new BadRequestException(
-        'Manual registration is only available to staff and alumni volunteers',
+        'Manual registration is only available to student, staff, alumni and partner barangay volunteers',
       );
     }
 

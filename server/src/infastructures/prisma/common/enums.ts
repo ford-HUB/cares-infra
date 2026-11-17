@@ -465,6 +465,14 @@ export const UserRequestKind = {
 export type UserRequestKind = (typeof UserRequestKind)[keyof typeof UserRequestKind]
 
 
+export const BeneficiaryType = {
+  REGULAR: 'REGULAR',
+  STUDENT: 'STUDENT'
+} as const
+
+export type BeneficiaryType = (typeof BeneficiaryType)[keyof typeof BeneficiaryType]
+
+
 export const UserRequestStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',

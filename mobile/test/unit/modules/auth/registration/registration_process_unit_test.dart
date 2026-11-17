@@ -802,11 +802,13 @@ void main() {
     Map<String, dynamic> payload(
       RegisterOcrSample sample, {
       String roleType = 'VOLUNTEER',
+      bool studentBeneficiary = false,
     }) => sample.toRegisterPayload(
       registrationId: _registrationId,
       roleType: roleType,
       email: _email,
       password: _password,
+      studentBeneficiary: studentBeneficiary,
     );
 
     test('maps every gender spelling to the server enum', () {
@@ -888,6 +890,28 @@ void main() {
           'major': {'name': 'N/A'},
           'year_level': {'name': 'N/A'},
         });
+      },
+    );
+
+    test(
+      'a student beneficiary sends the school record read off their UC ID',
+      () {
+        final student = RegisterOcrSample.sample.copyWith(
+          volunteerType: 'STUDENT',
+        );
+
+        final body = payload(
+          student,
+          roleType: 'BENEFICIARY',
+          studentBeneficiary: true,
+        );
+        final school = body['school_info'] as Map<String, dynamic>;
+
+        expect(body['role_type'], 'BENEFICIARY');
+        expect(school['id_number'], student.registrationIdNumber);
+        expect(school['id_number'], isNot(startsWith('BEN-')));
+        expect(school['department'], {'name': student.departmentName});
+        expect(school['department'], isNot({'name': 'N/A'}));
       },
     );
 

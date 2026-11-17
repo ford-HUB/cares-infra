@@ -173,6 +173,11 @@ export const MobileProfileResponseSchema = z.object({
   has_password: z.boolean(),
   /** ISO timestamp of the account's creation — the "member since" date. */
   member_since: z.string(),
+  /**
+   * Sides open besides `role_type` without a role-access request — a student
+   * beneficiary's Volunteer side. The app unlocks them in its role switcher.
+   */
+  unlocked_roles: z.array(z.enum(RoleType)),
   profile_completion: ProfileCompletionSchema,
   volunteer: VolunteerProfileSectionSchema.nullable(),
   donor: DonorProfileSectionSchema.nullable(),

@@ -26,6 +26,7 @@ import type {
 } from '../dto/auth-donor-dto';
 import type { LoginResponseDto } from '../dto/auth-mobile-dto';
 import { RegistrationApprovalGate } from './registration-approval-gate';
+import { unlockedRoles } from 'src/shared/utils/unlocked-roles';
 
 /** How long a verified profile stays claimable while the donor fills in the form. */
 const TICKET_TTL_SECONDS = DurationUtils.THIRTY_MINUTES;
@@ -321,6 +322,10 @@ export class AuthDonorService {
       email,
       firstname: user.firstname,
       has_interests: user.user_interest !== null,
+      unlocked_roles: unlockedRoles({
+        roleType: user.role.type,
+        beneficiaryType: user.beneficiary_type,
+      }),
       access_token: this.jwtService.sign({
         sub: userId,
         email,

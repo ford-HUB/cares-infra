@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthSiteService } from '../services/auth-site-service';
 import { AuthSiteController } from '../controllers/auth-site-controller';
 import { AuthRepository } from '../repositories/auth-repository';
+import { RegistrationStatusTokens } from '../services/registration-status-tokens';
 import { LoginActivityModule } from 'src/modules/login-activity/modules/login-activity-module';
 import { NodemailerModule } from 'src/infastructures/nodemailer/nodemailer-module';
 import { AccessControlSiteModule } from 'src/modules/access-control/modules/access-control-site-module';
@@ -9,7 +10,7 @@ import { AccessControlSiteModule } from 'src/modules/access-control/modules/acce
 @Module({
   imports: [LoginActivityModule, NodemailerModule, AccessControlSiteModule],
   controllers: [AuthSiteController],
-  providers: [AuthSiteService, AuthRepository],
+  providers: [AuthSiteService, AuthRepository, RegistrationStatusTokens],
   exports: [AuthSiteService],
 })
 export class AuthSiteModule {}

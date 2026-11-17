@@ -98,7 +98,7 @@ export class ProfileMobileController {
    * the finished session here, and the school record is rewritten from OCR.
    */
   @Post('me/mobile/school-record')
-  @Roles(RoleType.VOLUNTEER)
+  @Roles(RoleType.VOLUNTEER, RoleType.BENEFICIARY)
   @ResponseMessage('School record updated')
   @ZSerialize(MobileProfileResponseSchema)
   async applySchoolRecord(

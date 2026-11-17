@@ -8,6 +8,8 @@ import {
   MeResponseSchema,
   PortalForgotPasswordResponseSchema,
   PortalForgotPasswordSchema,
+  RegistrationStatusQuerySchema,
+  RegistrationStatusResponseSchema,
 } from '../validators/auth-site-validator';
 
 export type LoginDto = z.infer<typeof LoginSchema>;
@@ -23,4 +25,10 @@ export type PortalForgotPasswordDto = z.infer<
 >;
 export type PortalForgotPasswordResponseDto = z.infer<
   typeof PortalForgotPasswordResponseSchema
+>;
+export type RegistrationStatusQueryDto = z.infer<
+  typeof RegistrationStatusQuerySchema
+>;
+export type RegistrationStatusResponseDto = z.infer<
+  typeof RegistrationStatusResponseSchema
 >;

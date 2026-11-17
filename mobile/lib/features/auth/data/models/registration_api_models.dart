@@ -197,13 +197,19 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
     required String roleType,
     required String email,
     required String password,
+    bool studentBeneficiary = false,
   }) {
     final normalizedId = registrationIdNumber;
     final isBeneficiary = roleType == 'BENEFICIARY';
     final isPartnerBarangay = !isBeneficiary && _isPartnerBarangay;
-    // Beneficiaries and partner-barangay volunteers have no school ID, so there
-    // is no ID number to send. The registration id keeps the server's unique
-    // school-info key unique.
+    // A student beneficiary's UC school ID was read like a student
+    // volunteer's, so their real school record goes up.
+    final isStudentBeneficiary = isBeneficiary && studentBeneficiary;
+    final usesPlaceholderSchool =
+        (isBeneficiary && !isStudentBeneficiary) || isPartnerBarangay;
+    // Regular beneficiaries and partner-barangay volunteers have no school ID,
+    // so there is no ID number to send. The registration id keeps the
+    // server's unique school-info key unique.
     final placeholderId = normalizedId.isNotEmpty
         ? normalizedId
         : '${isPartnerBarangay ? 'BRGY' : 'BEN'}-$registrationId';
@@ -220,7 +226,7 @@ extension RegisterOcrSampleApi on RegisterOcrSample {
       'phone_number': normalizePhilippinePhone(phoneNumber),
       'account': {'email': email, 'password': password},
       if (isPartnerBarangay) 'partner_barangay': partnerBarangay.trim(),
-      'school_info': isBeneficiary || isPartnerBarangay
+      'school_info': usesPlaceholderSchool
           ? {
               'id_number': placeholderId,
               'graduation_year': 2000,

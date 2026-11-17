@@ -48,14 +48,17 @@ class DashboardRouter {
     String lastName = '',
     bool profileComplete = false,
     bool hasInterests = false,
+    List<String> unlockedRoles = const [],
   }) {
     // Record the role on the person's account list: the first role seen for
-    // this email is the unlocked primary, the rest start locked.
+    // this email is the unlocked primary, the rest start locked — except the
+    // sides the server opened with the account ([unlockedRoles]).
     RoleAccountStore.instance.signIn(
       roleType: roleType,
       email: email,
       firstName: firstName,
       lastName: lastName,
+      unlockedRoles: unlockedRoles,
     );
 
     switch (roleType.trim().toUpperCase()) {
@@ -114,6 +117,7 @@ class DashboardRouter {
     String lastName = '',
     bool profileComplete = false,
     bool hasInterests = false,
+    List<String> unlockedRoles = const [],
   }) {
     // Resolve the screen before pushing: screenForRoleType() writes to the
     // session stores (notifyListeners), which must not run inside a route
@@ -126,6 +130,7 @@ class DashboardRouter {
       lastName: lastName,
       profileComplete: profileComplete,
       hasInterests: hasInterests,
+      unlockedRoles: unlockedRoles,
     );
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => NotificationHost(child: screen)),

@@ -142,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen>
         email: loginResult.email,
         firstName: loginResult.firstName,
         hasInterests: loginResult.hasInterests,
+        unlockedRoles: loginResult.unlockedRoles,
       ),
     );
 
@@ -152,6 +153,7 @@ class _LoginScreenState extends State<LoginScreen>
       firstName: loginResult.firstName,
       profileComplete: loginResult.hasInterests,
       hasInterests: loginResult.hasInterests,
+      unlockedRoles: loginResult.unlockedRoles,
     );
   }
 
@@ -252,6 +254,7 @@ class _LoginScreenState extends State<LoginScreen>
             email: session.email,
             firstName: session.firstName,
             hasInterests: session.hasInterests,
+            unlockedRoles: session.unlockedRoles,
           ),
         );
 
@@ -262,6 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
           firstName: session.firstName,
           profileComplete: session.hasInterests,
           hasInterests: session.hasInterests,
+          unlockedRoles: session.unlockedRoles,
         );
         return;
       }

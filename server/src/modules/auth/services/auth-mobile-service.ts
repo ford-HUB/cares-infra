@@ -25,6 +25,7 @@ import {
   VerifyFaceResponseDto,
 } from '../dto/auth-mobile-dto';
 import {
+  BeneficiaryType,
   EmbeddingType,
   PermissionKey,
   RoleType,
@@ -35,6 +36,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -59,6 +61,28 @@ import { isStaffVolunteerRole } from 'src/shared/constants/mobile-role-types';
 import type { RequestContextDto } from 'src/shared/decorators/request-context-decorator';
 import { REGISTRATION_DOCUMENT_MAX_BYTES } from '../validators/auth-mobile-validator';
 import { RegistrationApprovalGate } from './registration-approval-gate';
+import { unlockedRoles } from 'src/shared/utils/unlocked-roles';
+import { RegistrationStatusTokens } from './registration-status-tokens';
+
+/** How a manual registration's volunteer type reads in the audit log. */
+const MANUAL_VOLUNTEER_LABEL: Record<ManualRegistrationVolunteerType, string> =
+  {
+    STUDENT: 'Student',
+    STAFF: 'Staff',
+    ALUMNI: 'Alumni',
+    PARTNER_BARANGAY: 'Partner barangay',
+  };
+
+/** …and in the director's review summary ("Registered a staff volunteer …"). */
+const MANUAL_VOLUNTEER_ARTICLE_LABEL: Record<
+  ManualRegistrationVolunteerType,
+  string
+> = {
+  STUDENT: 'a student',
+  STAFF: 'a staff',
+  ALUMNI: 'an alumni',
+  PARTNER_BARANGAY: 'a partner barangay',
+};
 
 /** Wrong codes tolerated before the reset code is thrown away. */
 const PASSWORD_RESET_MAX_ATTEMPTS = 5;
@@ -68,6 +92,8 @@ const EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED';
 
 @Injectable()
 export class AuthMobileService {
+  private readonly logger = new Logger(AuthMobileService.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly s3Service: S3Service,
@@ -83,6 +109,7 @@ export class AuthMobileService {
     private readonly auditLogRecorder: AuditLogRecorder,
     private readonly accessControlSiteService: AccessControlSiteService,
     private readonly registrationApprovalGate: RegistrationApprovalGate,
+    private readonly registrationStatusTokens: RegistrationStatusTokens,
   ) {}
 
   /**
@@ -102,7 +129,8 @@ export class AuthMobileService {
     const normalizedEmail = data.account.email.trim().toLowerCase();
     await this.requireVerifiedEmail(normalizedEmail);
 
-    const user = await this.createAccount(data);
+    const { registration_review: _review, ...user } =
+      await this.createAccount(data);
     await this.clearOtpState(normalizedEmail);
     return { ...user, requires_approval: false };
   }
@@ -303,6 +331,10 @@ export class AuthMobileService {
       email: account.email,
       firstname: account.user.firstname,
       has_interests: account.user.user_interest !== null,
+      unlocked_roles: unlockedRoles({
+        roleType: account.user.role.type,
+        beneficiaryType: account.user.beneficiary_type,
+      }),
       access_token: this.jwtService.sign({
         sub: account.user.user_id,
         email: account.email,
@@ -451,7 +483,7 @@ export class AuthMobileService {
   }
 
   /**
-   * Opens a manual registration for a staff or alumni volunteer whose ID photo
+   * Opens a manual registration for a volunteer whose ID photo
    * the app could not recognize (blurry, unclear, or read with low accuracy).
    * The registrant chose to register manually, so the ID is exempt from the
    * automatic ID validation: it is not run through the ID classifier, the face
@@ -570,7 +602,8 @@ export class AuthMobileService {
   ): Promise<RegistrationDocumentResponseDto> {
     const session = await this.requireSession(registrationId);
     // A manual alumni sign-up still files the alumni's Certificate of
-    // Graduation; a manual staff sign-up may attach a supporting document.
+    // Graduation and a manual partner-barangay sign-up its supporting document;
+    // a manual student or staff sign-up may attach one.
     const isManual = session.idKind === 'manual';
     const isAlumni =
       session.idKind === 'alumni' ||
@@ -832,12 +865,7 @@ export class AuthMobileService {
         'A partner barangay registration can only create a volunteer account',
       );
     }
-    if (isPartnerBarangay && !data.partner_barangay) {
-      throw new BadRequestException(
-        'Pick the partner barangay you are registering through',
-      );
-    }
-    // A manual registration (staff or alumni whose ID photo the app could not
+    // A manual registration (a volunteer whose ID photo the app could not
     // recognize) is locked to the Volunteer role too; its ID skipped the
     // automatic checks and the face scan, so a director verifies it by hand.
     const isManual = session.idKind === 'manual';
@@ -846,9 +874,29 @@ export class AuthMobileService {
         'A manual registration can only create a volunteer account',
       );
     }
-    const isManualAlumni = isManual && session.manualVolunteerType === 'ALUMNI';
+    const manualVolunteerType = session.manualVolunteerType ?? 'STAFF';
+    const isManualAlumni = isManual && manualVolunteerType === 'ALUMNI';
+    const isManualPartnerBarangay =
+      isManual && manualVolunteerType === 'PARTNER_BARANGAY';
+    const keepsPartnerBarangay = isPartnerBarangay || isManualPartnerBarangay;
+    if (keepsPartnerBarangay && !data.partner_barangay) {
+      throw new BadRequestException(
+        'Pick the partner barangay you are registering through',
+      );
+    }
     const isDirectorReviewedId = isAlumni || isPartnerBarangay || isManual;
     const requiresApproval = isIdLess || isDirectorReviewedId;
+
+    // A beneficiary on an ID-backed session is a student: their UC school ID
+    // passed the ID check, the face matched it and OCR read it — the student
+    // volunteer path — so the account opens without a director's review.
+    const isStudentBeneficiary =
+      data.role_type === RoleType.BENEFICIARY && !isIdLess;
+    if (isStudentBeneficiary && isDirectorReviewedId) {
+      throw new BadRequestException(
+        'A student beneficiary registers with a UC school ID',
+      );
+    }
 
     // The attached document is what the director reviews before the account
     // opens — a beneficiary's or partner-barangay volunteer's supporting
@@ -865,7 +913,7 @@ export class AuthMobileService {
         'Attach your Certificate of Graduation before submitting your registration',
       );
     }
-    if (isPartnerBarangay && !supportingDocument) {
+    if (keepsPartnerBarangay && !supportingDocument) {
       throw new BadRequestException(
         'Attach a supporting document before submitting your registration',
       );
@@ -932,9 +980,9 @@ export class AuthMobileService {
     if (isManual) {
       registrationRequest = {
         kind: UserRequestKind.MANUAL_REGISTRATION,
-        summary: `Registered ${
-          isManualAlumni ? 'an alumni' : 'a staff'
-        } volunteer account manually — the app could not recognize the uploaded ID, so it skipped the automatic ID check and face scan. Verify the ID before approving.`,
+        summary: `Registered ${MANUAL_VOLUNTEER_ARTICLE_LABEL[manualVolunteerType]} volunteer account manually${
+          isManualPartnerBarangay ? ` through ${data.partner_barangay}` : ''
+        } — the app could not recognize the uploaded ID, so it skipped the automatic ID check and face scan. Verify the ID before approving.`,
         actorName,
         idFrontUrl: session.idFrontImageUrl ?? undefined,
         idBackUrl: session.idBackImageUrl ?? undefined,
@@ -969,7 +1017,7 @@ export class AuthMobileService {
       };
     }
 
-    const user = await this.createAccount(
+    const { registration_review: review, ...user } = await this.createAccount(
       {
         firstname: data.firstname,
         lastname: data.lastname,
@@ -984,7 +1032,15 @@ export class AuthMobileService {
         school_info: { ...data.school_info, school_id_url: schoolIdUrl },
         biometric,
         // Only a partner-barangay session keeps the barangay it was given.
-        partner_barangay: isPartnerBarangay ? data.partner_barangay : undefined,
+        partner_barangay: keepsPartnerBarangay
+          ? data.partner_barangay
+          : undefined,
+        beneficiary_type:
+          data.role_type === RoleType.BENEFICIARY
+            ? isStudentBeneficiary
+              ? BeneficiaryType.STUDENT
+              : BeneficiaryType.REGULAR
+            : undefined,
       },
       // Filed in the same transaction as the account, so it can never sign in
       // without a review on record.
@@ -995,17 +1051,35 @@ export class AuthMobileService {
     await this.clearOtpState(normalizedEmail);
     await this.redisService.delete(this.registrationKey(data.registrationId));
 
+    if (review) {
+      await this.sendRegistrationSubmittedEmail(normalizedEmail, {
+        firstname: data.firstname,
+        reference: `REQ-${String(review.reference_number).padStart(3, '0')}`,
+        userRequestId: review.user_request_id,
+        registrationLabel: isManual
+          ? 'manual volunteer'
+          : isAlumni
+            ? 'alumni volunteer'
+            : isPartnerBarangay
+              ? 'partner barangay volunteer'
+              : 'beneficiary',
+        manual: isManual,
+      });
+    }
+
     await this.auditLogRecorder.record({
       action: 'auth.mobile.registered',
       description: isIdLess
         ? 'Account created with email verification; awaiting director approval'
-        : isManual
-          ? `${isManualAlumni ? 'Alumni' : 'Staff'} account created through manual registration; awaiting director approval`
-          : isAlumni
-            ? 'Alumni account created with alumni ID upload; awaiting director approval'
-            : isPartnerBarangay
-              ? 'Partner barangay volunteer account created with ID upload; awaiting director approval'
-              : 'Account created with ID upload and face verification',
+        : isStudentBeneficiary
+          ? 'Student beneficiary account created with ID upload and face verification'
+          : isManual
+            ? `${MANUAL_VOLUNTEER_LABEL[manualVolunteerType]} account created through manual registration; awaiting director approval`
+            : isAlumni
+              ? 'Alumni account created with alumni ID upload; awaiting director approval'
+              : isPartnerBarangay
+                ? 'Partner barangay volunteer account created with ID upload; awaiting director approval'
+                : 'Account created with ID upload and face verification',
       category: 'AUTHENTICATION',
       actor: {
         sub: user.user_id,
@@ -1023,13 +1097,54 @@ export class AuthMobileService {
         ...(isManual
           ? {
               manual_registration: 'true',
-              volunteer_type: session.manualVolunteerType ?? 'STAFF',
+              volunteer_type: manualVolunteerType,
             }
           : {}),
       },
     });
 
     return { ...user, requires_approval: requiresApproval };
+  }
+
+  /**
+   * Confirms a reviewed sign-up was received. The registrant cannot sign in until
+   * a director approves it, so the email carries a link to the public status page
+   * instead. A failed email never undoes the registration — the account and its
+   * review are already on record, and the decision email still follows.
+   */
+  private async sendRegistrationSubmittedEmail(
+    email: string,
+    details: {
+      firstname: string;
+      reference: string;
+      userRequestId: string;
+      registrationLabel: string;
+      manual: boolean;
+    },
+  ): Promise<void> {
+    const heading = 'We received your CARES registration';
+    try {
+      const html = await TemplateUtils.compileTemplate(
+        'registration-submitted.html',
+        {
+          heading,
+          username: details.firstname.trim() || email,
+          reference: details.reference,
+          registrationLabel: details.registrationLabel,
+          manual: details.manual,
+          statusUrl: this.registrationStatusTokens.statusUrl(
+            details.userRequestId,
+          ),
+        },
+      );
+      await this.nodemailerService.sendEmail(email, heading, html);
+    } catch (error) {
+      this.logger.warn(
+        `Could not email the ${details.reference} submission notice to ${email}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   async getRegistrationSession(

@@ -4736,7 +4736,8 @@ export const UserScalarFieldEnum = {
   address_city: 'address_city',
   address_province: 'address_province',
   household_size: 'household_size',
-  partner_barangay: 'partner_barangay'
+  partner_barangay: 'partner_barangay',
+  beneficiary_type: 'beneficiary_type'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -5799,6 +5800,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'BeneficiaryType'
+ */
+export type EnumBeneficiaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BeneficiaryType'>
+    
+
+
+/**
+ * Reference to a field of type 'BeneficiaryType[]'
+ */
+export type ListEnumBeneficiaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BeneficiaryType[]'>
     
 
 

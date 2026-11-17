@@ -23,6 +23,13 @@ class IdRecognitionFallbackMessage extends StatelessWidget {
   final VoidCallback onProceedAnyway;
   final VoidCallback onManualRegistration;
 
+  // Both choices share one size and shape so they read as a matched pair.
+  static const double _actionHeight = 46;
+  static const _actionPadding = EdgeInsets.symmetric(horizontal: 12);
+  static final _actionShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(14),
+  );
+
   /// Issues that mean the photo is an ID the app just couldn't read well. A
   /// file that isn't an image at all has to be picked again.
   static bool offeredFor(IdImageCheckResult result) =>
@@ -114,9 +121,11 @@ class IdRecognitionFallbackMessage extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    minimumSize: const Size.fromHeight(_actionHeight),
+                    padding: _actionPadding,
+                    shape: _actionShape,
                   ),
-                  child: const Text('Proceed Anyway'),
+                  child: const _ActionLabel('Proceed Anyway'),
                 ),
               ),
               const SizedBox(width: 10),
@@ -126,9 +135,12 @@ class IdRecognitionFallbackMessage extends StatelessWidget {
                   onPressed: onManualRegistration,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(_actionHeight),
+                    padding: _actionPadding,
+                    shape: _actionShape,
                   ),
-                  child: const Text('Manual Registration'),
+                  child: const _ActionLabel('Manual Registration'),
                 ),
               ),
             ],
@@ -141,6 +153,27 @@ class IdRecognitionFallbackMessage extends StatelessWidget {
             style: TextStyle(fontSize: 11.5, height: 1.35, color: muted),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A centred, single-line button label that shrinks to fit a narrow screen
+/// instead of wrapping onto a second line.
+class _ActionLabel extends StatelessWidget {
+  const _ActionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        text,
+        maxLines: 1,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
       ),
     );
   }

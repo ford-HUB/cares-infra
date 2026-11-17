@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { RoleType } from '../../../infastructures/prisma/common/client';
+import {
+  BeneficiaryType,
+  RoleType,
+} from '../../../infastructures/prisma/common/client';
 import {
   CreateUserSchema,
   ForgotPasswordResponseSchema,
@@ -38,6 +41,8 @@ export type PartnerBarangay = (typeof PARTNER_BARANGAYS)[number];
  */
 export type NewUserAccountDto = CreateUserDto & {
   partner_barangay?: PartnerBarangay;
+  /** Beneficiaries only — set from the registration session, never the client. */
+  beneficiary_type?: BeneficiaryType;
 };
 export type CreateUserAccountDto = CreateUserDto['account'];
 export type UserSchoolInfoDto = CreateUserDto['school_info'];
@@ -104,7 +109,7 @@ export interface RegistrationSessionDto {
    * face verification and OCR, and the sign-up waits for a director's approval.
    * Absent for a UCLM school ID.
    *
-   * `manual` when a staff or alumni registrant chose manual registration because
+   * `manual` when a volunteer registrant chose manual registration because
    * the app could not recognize their ID photo: the ID skipped the automatic ID
    * checks, there is no face scan or OCR, the details are typed in, and the
    * sign-up waits for a director's approval (a MANUAL_REGISTRATION request).

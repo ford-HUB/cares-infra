@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   InterestCode,
+  BeneficiaryType,
   RoleType,
   UserRequestKind,
   UserRequestStatus,
@@ -53,6 +54,7 @@ import {
   type CachedProfileAsset,
 } from './profile-cache-service';
 import { RankingsBoardService } from '../../rankings/services/rankings-board-service';
+import { unlockedRoles } from '../../../shared/utils/unlocked-roles';
 
 /**
  * The side a profile read or write is scoped to: [viewRole] if the app named
@@ -150,6 +152,10 @@ export class ProfileMobileService {
       sign_in_providers: row.oauth_identities.map((i) => i.provider),
       has_password: Boolean(account?.password),
       member_since: row.createdAt.toISOString(),
+      unlocked_roles: unlockedRoles({
+        roleType: row.role.type,
+        beneficiaryType: row.beneficiary_type,
+      }),
       profile_completion: this.buildCompletion(row, profilingRole),
       volunteer,
       donor,
@@ -308,7 +314,11 @@ export class ProfileMobileService {
     if (!existing) {
       throw new NotFoundException('User not found');
     }
-    if (existing.role.type !== RoleType.VOLUNTEER) {
+    // A student beneficiary's Volunteer side stands on the same school record.
+    const isStudentBeneficiary =
+      existing.role.type === RoleType.BENEFICIARY &&
+      existing.beneficiary_type === BeneficiaryType.STUDENT;
+    if (existing.role.type !== RoleType.VOLUNTEER && !isStudentBeneficiary) {
       throw new ForbiddenException('Only volunteers carry a school record');
     }
 

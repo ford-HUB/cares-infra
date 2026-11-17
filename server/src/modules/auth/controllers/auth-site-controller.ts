@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ZBody, ZSerialize } from 'nest-zod';
+import { ZBody, ZQuery, ZSerialize } from 'nest-zod';
 import {
   ACCESS_REQUEST_MAX_FILES,
   AccessRequestResponseSchema,
@@ -20,6 +20,8 @@ import {
   MeResponseSchema,
   PortalForgotPasswordResponseSchema,
   PortalForgotPasswordSchema,
+  RegistrationStatusQuerySchema,
+  RegistrationStatusResponseSchema,
 } from '../validators/auth-site-validator';
 import type {
   AccessRequestDto,
@@ -29,6 +31,8 @@ import type {
   MeResponseDto,
   PortalForgotPasswordDto,
   PortalForgotPasswordResponseDto,
+  RegistrationStatusQueryDto,
+  RegistrationStatusResponseDto,
 } from '../dto/auth-site-dto';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Public } from 'src/shared/decorators/public-decorator';
@@ -92,6 +96,21 @@ export class AuthSiteController {
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<AccessRequestResponseDto> {
     return await this.authSiteService.submitAccessRequest(data, files);
+  }
+
+  /**
+   * The public status page behind the "Check status" button in the registration
+   * email. The signed token is the only key: a registrant cannot sign in while
+   * their sign-up is under review, so this is how they follow it.
+   */
+  @Get('registration-status')
+  @Public()
+  @ResponseMessage('Registration status')
+  @ZSerialize(RegistrationStatusResponseSchema)
+  async registrationStatus(
+    @ZQuery(RegistrationStatusQuerySchema) query: RegistrationStatusQueryDto,
+  ): Promise<RegistrationStatusResponseDto> {
+    return await this.authSiteService.getRegistrationStatus(query.token);
   }
 
   @Get('me')

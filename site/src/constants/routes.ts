@@ -5,6 +5,8 @@ export const PROGRAM_BULLETIN_PAGE_PATH = '/programs/bulletin/:page'
 export const HIGHLIGHTS_PATH = '/highlights'
 export const LOGIN_PATH = '/login'
 export const REQUEST_ACCESS_PATH = '/request-access'
+/** Public: the "Check status" link in the registration-submitted email lands here. */
+export const REGISTRATION_STATUS_PATH = '/registration-status'
 export const ADMIN_BASE_PATH = '/admin'
 export const ADMIN_OVERVIEW_PATH = '/admin/overview'
 export const ADMIN_PROFILE_PATH = '/admin/profile'

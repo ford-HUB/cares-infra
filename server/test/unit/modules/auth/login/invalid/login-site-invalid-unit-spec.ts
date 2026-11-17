@@ -220,7 +220,7 @@ describe('Login — invalid inputs', () => {
   );
   testCase(
     'Admin signs in after 5 failed attempts within 15 minutes',
-    'Login fails with "Too many failed sign-in attempts. Try again after …" (403), even with the correct password',
+    'Login fails with "Too many failed sign-in attempts. Try again in N minutes" (403), even with the correct password',
     () => {
       beforeEach(() =>
         ctx.activityRepository.summarizeRecentAttempts.mockResolvedValue({
@@ -231,7 +231,7 @@ describe('Login — invalid inputs', () => {
       it('layer 2 — api refuses and records LOCKED_OUT', async () => {
         const outcome = await post(ctx, LOGIN.path, VALID_LOGIN);
         expect(outcome.status).toBe(403);
-        expect(outcome.body.message).toMatch(/^Too many failed sign-in attempts\. Try again after /);
+        expect(outcome.body.message).toMatch(/^Too many failed sign-in attempts\. Try again in \d+ minutes?$/);
         expect(ctx.sessions.create).not.toHaveBeenCalled();
         expect(ctx.repository.findAccountForLogin).not.toHaveBeenCalled();
         expect(ctx.activity.record).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'LOCKED_OUT' }));

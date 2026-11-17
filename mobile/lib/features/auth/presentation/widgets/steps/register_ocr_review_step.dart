@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +37,8 @@ class RegisterOcrReviewStep extends StatefulWidget {
     this.onRetry,
     this.manualEntry = false,
     this.manualRegistration = false,
+    this.unclearIdPhoto = false,
+    this.studentBeneficiary = false,
     this.certificate,
     this.onCertificateChanged,
   }) : assert(
@@ -59,9 +63,18 @@ class RegisterOcrReviewStep extends StatefulWidget {
   /// asking to correct a scan.
   final bool manualEntry;
 
-  /// A staff or alumni manual registration: the app could not recognize the
-  /// ID, so the details are typed in and a director checks them against it.
+  /// A volunteer manual registration: the app could not recognize the ID, so
+  /// the details are typed in and a director checks them against it.
   final bool manualRegistration;
+
+  /// The registrant continued with an ID photo the check said is not clear,
+  /// so whatever was read off it may be wrong: every field — the ID number
+  /// included — stays open, and a notice asks them to correct it.
+  final bool unclearIdPhoto;
+
+  /// A beneficiary who signed up as a student: their UC school ID was read
+  /// like a student volunteer's, so the school information is collected.
+  final bool studentBeneficiary;
 
   /// The document a director reviews with the sign-up: an alumnus's Certificate
   /// of Graduation, or a partner-barangay volunteer's supporting document. The
@@ -87,6 +100,23 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   static final _fourDigitInputFormatters = [
     FilteringTextInputFormatter.digitsOnly,
     LengthLimitingTextInputFormatter(4),
+  ];
+
+  /// Alumni ID numbers are at most 8 characters.
+  static const _alumniIdMaxLength = 8;
+  static final _alumniIdInputFormatters = [
+    LengthLimitingTextInputFormatter(_alumniIdMaxLength),
+  ];
+
+  /// In a manual registration a student ID is typed as 8 digits and a staff ID
+  /// as 6 — both are digits only when sent.
+  static final _manualStudentIdInputFormatters = [
+    FilteringTextInputFormatter.digitsOnly,
+    LengthLimitingTextInputFormatter(8),
+  ];
+  static final _manualStaffIdInputFormatters = [
+    FilteringTextInputFormatter.digitsOnly,
+    LengthLimitingTextInputFormatter(6),
   ];
 
   late final TextEditingController _firstname;
@@ -127,6 +157,9 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   /// number can only change by rescanning the ID.
   bool _idNumberVerified = false;
 
+  /// The "kindly correct the extracted information" pop-up is shown once.
+  bool _unclearNoticeShown = false;
+
   bool get _isBeneficiary =>
       widget.roleType == RegistrationRoleType.beneficiary;
   bool get _isStudent => widget.volunteerType == VolunteerType.student;
@@ -137,9 +170,24 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   bool get _isPartnerBarangay =>
       widget.volunteerType == VolunteerType.partnerBarangay;
 
-  /// Neither beneficiaries nor partner-barangay volunteers fill in school info.
-  bool get _skipsSchoolInfo => _isBeneficiary || _isPartnerBarangay;
+  /// Neither beneficiaries nor partner-barangay volunteers fill in school info
+  /// — except a student beneficiary, whose school ID was read.
+  bool get _skipsSchoolInfo =>
+      (_isBeneficiary && !widget.studentBeneficiary) || _isPartnerBarangay;
+
+  /// Details read off a photo the check flagged — not typed in from scratch.
+  bool get _correctsUnclearScan => widget.unclearIdPhoto && !widget.manualEntry;
   bool get _usesCourseField => _isStudent || _isAlumni;
+
+  List<TextInputFormatter>? get _idNumberInputFormatters {
+    if (_isAlumni) return _alumniIdInputFormatters;
+    if (!widget.manualEntry) return null;
+    return switch (widget.volunteerType) {
+      VolunteerType.student => _manualStudentIdInputFormatters,
+      VolunteerType.staff => _manualStaffIdInputFormatters,
+      _ => null,
+    };
+  }
   bool get _isNonTeaching => UclmDepartments.isNonTeaching(_selectedDepartment);
   List<String>? get _gradeLevels =>
       UclmDepartments.gradeLevelsFor(_selectedDepartment);
@@ -202,8 +250,45 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || widget.isExtracting || widget.extractFailed) return;
         _notifyParent();
+        if (_correctsUnclearScan && !_unclearNoticeShown) {
+          _unclearNoticeShown = true;
+          unawaited(_showUnclearNotice());
+        }
       });
     }
+  }
+
+  /// Asks the registrant to check what was read off their unclear ID photo.
+  Future<void> _showUnclearNotice() {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(
+          Icons.blur_on_rounded,
+          color: AppColors.accentOrange,
+          size: 34,
+        ),
+        title: const Text(
+          'Your ID photo is blurry',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        content: const Text(
+          'Because the picture of your ID isn\'t clear, some details may have '
+          'been read wrong. Kindly check every field against your ID and '
+          'correct the extracted information — all fields are open for '
+          'editing.',
+        ),
+        actions: [
+          FilledButton(
+            key: const ValueKey('unclear-id-notice-ok'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Review My Details'),
+          ),
+        ],
+      ),
+    );
   }
 
   RegisterOcrSample get _effectiveData => widget.data.enrichFromRawText();
@@ -226,11 +311,18 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     _address = PhAddress.lenient(enriched.currentAddress);
     _addressRevision++;
     _setControllerText(_phone, normalizePhilippinePhone(enriched.phoneNumber));
-    _setControllerText(_idNumber, enriched.idNumber);
+    final idNumber = enriched.idNumber;
+    _setControllerText(
+      _idNumber,
+      _isAlumni && idNumber.length > _alumniIdMaxLength
+          ? idNumber.substring(0, _alumniIdMaxLength)
+          : idNumber,
+    );
     // Only lock a number both scans agree on. A flagged one (the scans
     // disagree, or only the on-device scan read it) may be misread digits, so
     // the user must be able to correct it against the card.
     _idNumberVerified =
+        !widget.unclearIdPhoto &&
         enriched.idNumber.trim().isNotEmpty &&
         !widget.extractionFlags.any((flag) => flag.label == 'ID number');
     _setControllerText(_yearLevel, enriched.yearLevelName);
@@ -458,21 +550,35 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.accentLight.withValues(alpha: 0.35),
+            color: _correctsUnclearScan
+                ? AppColors.warning.withValues(alpha: 0.08)
+                : AppColors.accentLight.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.borderLight),
+            border: Border.all(
+              color: _correctsUnclearScan
+                  ? AppColors.warning.withValues(alpha: 0.45)
+                  : AppColors.borderLight,
+            ),
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.verified_outlined,
+              Icon(
+                _correctsUnclearScan
+                    ? Icons.report_gmailerrorred_rounded
+                    : Icons.verified_outlined,
                 size: 20,
-                color: AppColors.primaryDark,
+                color: _correctsUnclearScan
+                    ? AppColors.accentOrange
+                    : AppColors.primaryDark,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  _isPartnerBarangay
+                  _correctsUnclearScan
+                      ? 'Your ID photo was blurry, so these details may be '
+                            'misread. Check each one against your ID and correct '
+                            'anything that is wrong.'
+                      : _isPartnerBarangay
                       ? 'Enter your details exactly as they appear on your ID, '
                             'and pick your partner barangay — a director checks '
                             'them before your account opens.'
@@ -485,6 +591,9 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                       ? 'Enter your details exactly as they appear on your alumni '
                             'ID — a director checks them against it before your '
                             'account opens.'
+                      : widget.studentBeneficiary
+                      ? 'Correct anything the ID scan misread, and pick your '
+                            'department and course from the lists.'
                       : 'Correct anything the ID scan misread. Volunteer type is '
                             'locked; pick your department and course from the lists.',
                   style: const TextStyle(
@@ -628,13 +737,16 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
                     : 'ID Number',
                 controller: _idNumber,
                 focusNode: _idNumberFocus,
+                inputFormatters: _idNumberInputFormatters,
                 errorText: widget.idNumberError,
                 readOnly: _idNumberVerified,
                 onChanged: (_) => _notifyParent(),
               ),
               const SizedBox(height: 14),
               RegisterFormField(
-                label: 'Type of Volunteer',
+                label: widget.studentBeneficiary
+                    ? 'Type of Beneficiary'
+                    : 'Type of Volunteer',
                 controller: _volunteerTypeLabel,
                 readOnly: true,
               ),

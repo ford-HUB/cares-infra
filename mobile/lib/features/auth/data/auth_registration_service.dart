@@ -192,6 +192,7 @@ class AuthRegistrationService {
     required String roleType,
     required String email,
     required String password,
+    bool studentBeneficiary = false,
   }) async {
     final response = await _api.postJson(
       '/auth/register-from-session',
@@ -200,6 +201,7 @@ class AuthRegistrationService {
         roleType: roleType,
         email: email,
         password: password,
+        studentBeneficiary: studentBeneficiary,
       ),
     );
 

@@ -1,5 +1,7 @@
 import 'dart:isolate';
+import 'dart:typed_data';
 
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/features/auth/domain/id_image_quality.dart';
@@ -32,8 +34,15 @@ class IdImageCheckResult {
 
 /// Checks an ID photo on-device: pixel quality first (blur, exposure, glare,
 /// size), then whether its text is readable and the identifying details can be
-/// found. Nothing is uploaded here.
+/// found, and — on the front — whether the portrait can be found and is sharp.
+/// Nothing is uploaded here.
 class IdImagePreValidator {
+  IdImagePreValidator({this.checkPortrait = true});
+
+  /// Look for the ID portrait on the front. A blurry face fails the face scan
+  /// later even when the text reads fine, so it is caught here.
+  final bool checkPortrait;
+
   /// [frontText] is the front's recognised text; pass it when checking the
   /// back so the name / ID number can be looked for across both sides.
   Future<IdImageCheckResult> check(
@@ -71,14 +80,57 @@ class IdImagePreValidator {
             frontText: frontText ?? '',
             backText: text,
           );
+    final portraitIssue = side == IdCardSide.front && checkPortrait
+        ? await _portraitIssue(file, bytes)
+        : null;
     return IdImageCheckResult(
       side: side,
-      issues: missing.isEmpty
-          ? const []
-          : const [IdImageIssue.missingIdDetails],
+      issues: [
+        if (missing.isNotEmpty) IdImageIssue.missingIdDetails,
+        ?portraitIssue,
+      ],
       recognizedText: text,
       missingFields: missing,
     );
+  }
+
+  /// Finds the largest face on the front of the ID and measures how sharp it
+  /// is. A detector failure is not held against the photo.
+  Future<IdImageIssue?> _portraitIssue(XFile file, Uint8List bytes) async {
+    final detector = FaceDetector(
+      options: FaceDetectorOptions(
+        performanceMode: FaceDetectorMode.accurate,
+        // An ID portrait is a small part of the card.
+        minFaceSize: 0.05,
+      ),
+    );
+    try {
+      final faces = await detector.processImage(
+        InputImage.fromFilePath(file.path),
+      );
+      if (faces.isEmpty) return IdImageIssue.faceNotFound;
+
+      final box = faces
+          .map((face) => face.boundingBox)
+          .reduce((a, b) => a.width * a.height >= b.width * b.height ? a : b);
+      final sharpness = await Isolate.run(
+        () => IdImageQualityRules.measureRegionSharpness(
+          bytes,
+          left: box.left.round(),
+          top: box.top.round(),
+          width: box.width.round(),
+          height: box.height.round(),
+        ),
+      );
+      if (sharpness == null) return null;
+      return sharpness < IdImageQualityThresholds.minFaceSharpness
+          ? IdImageIssue.faceBlurry
+          : null;
+    } catch (_) {
+      return null;
+    } finally {
+      await detector.close();
+    }
   }
 
   Future<String> recognizeText(XFile file) async {

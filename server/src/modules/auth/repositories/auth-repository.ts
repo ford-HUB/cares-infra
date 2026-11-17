@@ -165,6 +165,7 @@ export class AuthRepository {
           current_address: data.current_address,
           phone_number: data.phone_number,
           partner_barangay: data.partner_barangay ?? null,
+          beneficiary_type: data.beneficiary_type ?? null,
           role: {
             connect: {
               role_id: role.role_id,
@@ -239,8 +240,10 @@ export class AuthRepository {
         },
       });
 
+      let review: { user_request_id: string; reference_number: number } | null =
+        null;
       if (registrationRequest) {
-        await tx.userRequest.create({
+        review = await tx.userRequest.create({
           data: {
             kind: registrationRequest.kind,
             user_id: user.user_id,
@@ -259,6 +262,7 @@ export class AuthRepository {
               },
             },
           },
+          select: { user_request_id: true, reference_number: true },
         });
       }
 
@@ -267,6 +271,8 @@ export class AuthRepository {
         account_id: account.account_id,
         user_biometric_id:
           user.user_verifications[0]?.user_biometric_id ?? null,
+        /** The director's review filed with the sign-up, when it needs one. */
+        registration_review: review,
       };
     });
   }
@@ -436,6 +442,7 @@ export class AuthRepository {
       select: {
         user_id: true,
         firstname: true,
+        beneficiary_type: true,
         role: { select: { type: true } },
         user_interest: { select: { user_interest_id: true } },
         accounts: {
@@ -490,6 +497,28 @@ export class AuthRepository {
     });
   }
 
+  /**
+   * A registration review as the public status page shows it — looked up by the
+   * id inside a signed status link, so nothing here is guessable from outside.
+   */
+  async findRegistrationStatus(userRequestId: string) {
+    return this.prisma.userRequest.findFirst({
+      where: {
+        user_request_id: userRequestId,
+        kind: { in: [...REGISTRATION_REVIEW_KINDS] },
+      },
+      select: {
+        kind: true,
+        status: true,
+        reference_number: true,
+        rejection_reason: true,
+        decided_at: true,
+        createdAt: true,
+        user: { select: { firstname: true } },
+      },
+    });
+  }
+
   async findAccountForLogin(email: string) {
     return this.prisma.account.findUnique({
       where: { email },
@@ -505,6 +534,7 @@ export class AuthRepository {
             user_id: true,
             firstname: true,
             lastname: true,
+            beneficiary_type: true,
             role: {
               select: { type: true },
             },

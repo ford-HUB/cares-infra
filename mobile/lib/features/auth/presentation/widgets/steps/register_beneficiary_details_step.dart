@@ -13,9 +13,13 @@ import 'package:mobile/features/auth/presentation/widgets/registration_document_
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
 /// Beneficiary details form — the donor sign-up pattern: hero panel, then one
-/// card per idea. Beneficiaries type everything in, so there is no OCR review
-/// and no ID or face capture behind this step. A supporting document (any file
-/// type) is attached here for the director who approves the account.
+/// card per idea. A regular beneficiary types everything in — no OCR review, no
+/// ID or face capture — and attaches a supporting document (any file type) for
+/// the director who approves the account.
+///
+/// An individual who picks Student goes the student volunteer's way instead:
+/// the rest of this form steps aside, and the flow continues to the school ID
+/// upload, the face scan and the details read off the ID.
 class RegisterBeneficiaryDetailsStep extends StatefulWidget {
   const RegisterBeneficiaryDetailsStep({
     super.key,
@@ -150,8 +154,14 @@ class _RegisterBeneficiaryDetailsStepState
       _organizationAddress.clear();
       widget.onProfileChanged(_profile.asIndividual());
     } else {
-      widget.onProfileChanged(_profile.copyWith(kind: kind));
+      widget.onProfileChanged(_profile.asOrganization());
     }
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {});
+  }
+
+  void _selectCategory(BeneficiaryCategory category) {
+    widget.onProfileChanged(_profile.copyWith(category: category));
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {});
   }
@@ -169,6 +179,20 @@ class _RegisterBeneficiaryDetailsStepState
 
   @override
   Widget build(BuildContext context) {
+    // A student's name, details and school record are read off their ID on
+    // the next steps, so only the choices stay on this one.
+    if (_profile.isStudent) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _kindCard(),
+          const SizedBox(height: 16),
+          _personalCard(),
+          const SizedBox(height: 8),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -306,12 +330,96 @@ class _RegisterBeneficiaryDetailsStepState
     );
   }
 
+  /// Individuals pick Regular or Student first; a student's details then
+  /// come from their school ID.
+  List<Widget> _categoryChoice() {
+    return [
+      Text(
+        'Beneficiary Type',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
+        ),
+      ),
+      const SizedBox(height: 8),
+      RegistrationChoiceTile(
+        key: const ValueKey('beneficiary-category-regular'),
+        icon: Icons.person_outline_rounded,
+        title: 'Regular',
+        description:
+            'Fill in your details and attach a supporting document. '
+            'A CARES director approves your account.',
+        isSelected: _profile.category == BeneficiaryCategory.regular,
+        onTap: () => _selectCategory(BeneficiaryCategory.regular),
+      ),
+      const SizedBox(height: 12),
+      RegistrationChoiceTile(
+        key: const ValueKey('beneficiary-category-student'),
+        icon: Icons.school_outlined,
+        title: 'Student',
+        description:
+            'A UC student: upload your school ID and scan your '
+            'face, like a student volunteer. No approval wait.',
+        isSelected: _profile.category == BeneficiaryCategory.student,
+        onTap: () => _selectCategory(BeneficiaryCategory.student),
+      ),
+      if (_profile.category == null) ...[
+        const SizedBox(height: 10),
+        const Text(
+          'Select one to continue.',
+          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+        ),
+      ],
+    ];
+  }
+
+  Widget _studentNote() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.accentLight.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: const Text(
+        'Next, upload your UC school ID and scan your face. Your name, '
+        'department and course are read off the ID for you to check. As a '
+        'student beneficiary you also see your department\'s School events, '
+        'and your Volunteer side is unlocked too.',
+        style: TextStyle(
+          fontSize: 12.5,
+          height: 1.4,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primaryDark,
+        ),
+      ),
+    );
+  }
+
   Widget _personalCard() {
+    if (_profile.isStudent) {
+      return RegistrationFormCard(
+        icon: Icons.person_outline_rounded,
+        title: 'Personal Information',
+        subtitle: 'Tell us whether you are a regular beneficiary or a student.',
+        children: [
+          ..._categoryChoice(),
+          const SizedBox(height: 14),
+          _studentNote(),
+        ],
+      );
+    }
+
     return RegistrationFormCard(
       icon: Icons.person_outline_rounded,
       title: 'Personal Information',
       subtitle: 'How the CARES team reaches and identifies you.',
       children: [
+        if (_profile.isIndividual) ...[
+          ..._categoryChoice(),
+          const SizedBox(height: 16),
+        ],
         _dropdown(
           label: 'Gender',
           hint: 'Select Gender',

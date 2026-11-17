@@ -426,8 +426,8 @@ export class UserRequestsSiteService {
     const approved = status === 'ACCEPTED';
     const alumni = row.kind === 'ALUMNI_REGISTRATION';
     const partnerBarangay = row.kind === 'PARTNER_BARANGAY_REGISTRATION';
-    // A manual registration is a staff or alumni sign-up whose ID the app
-    // could not recognize.
+    // A manual registration is a volunteer sign-up (student, staff, alumni or
+    // partner barangay) whose ID the app could not recognize.
     const manual = row.kind === 'MANUAL_REGISTRATION';
     // Alumni, partner-barangay and manual sign-ups all open a volunteer account.
     const volunteer = alumni || partnerBarangay || manual;

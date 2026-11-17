@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -10,6 +11,7 @@ import 'package:mobile/features/auth/domain/id_image_quality.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/id_image_check_banner.dart';
 import 'package:mobile/features/auth/presentation/widgets/id_recognition_fallback_message.dart';
+import 'package:mobile/features/auth/presentation/widgets/id_unclear_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// Each side is pre-validated on-device ([IdImagePreValidator]) before it is
@@ -17,10 +19,12 @@ import 'package:permission_handler/permission_handler.dart';
 /// so the back can't be uploaded until the front has, and Continue stays off
 /// until both have.
 ///
-/// When [onManualRegistration] is set (staff and alumni sign-ups), a photo the
-/// check can't properly recognize brings up [IdRecognitionFallbackMessage]:
-/// the registrant may proceed with it anyway, or switch to manual
-/// registration. Once [manualRegistration] is on, photos skip the check.
+/// When [onManualRegistration] is set (volunteer sign-ups), a photo the check
+/// can't properly recognize pops up [showIdUnclearDialog] and leaves
+/// [IdRecognitionFallbackMessage] under the card: the registrant may retake
+/// it, continue with it anyway ([onAcceptedUnclear] — the details read off it
+/// are then open for correction), or switch to manual registration. Once
+/// [manualRegistration] is on, photos skip the check.
 class RegisterIdUploadStep extends StatefulWidget {
   const RegisterIdUploadStep({
     super.key,
@@ -35,6 +39,7 @@ class RegisterIdUploadStep extends StatefulWidget {
     this.partnerBarangayId = false,
     this.manualRegistration = false,
     this.onManualRegistration,
+    this.onAcceptedUnclear,
   });
 
   final RegistrationRoleType roleType;
@@ -54,6 +59,10 @@ class RegisterIdUploadStep extends StatefulWidget {
   /// Offers the recognition fallback; called when the registrant picks
   /// Manual Registration (after the rejected photo has been accepted).
   final VoidCallback? onManualRegistration;
+
+  /// A side was accepted although the check said it is not clear (Continue
+  /// Anyway / Use this photo anyway).
+  final ValueChanged<IdCardSide>? onAcceptedUnclear;
   final XFile? frontImage;
   final XFile? backImage;
   final ValueChanged<XFile> onFrontPicked;
@@ -194,6 +203,12 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
             _detailMisses[side] = (_detailMisses[side] ?? 0) + 1;
           }
         });
+        if (_offersFallback &&
+            IdRecognitionFallbackMessage.offeredFor(result)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) unawaited(_promptUnclear(side, result));
+          });
+        }
       }
     } catch (_) {
       // Never let an unchecked photo through: ask for another attempt.
@@ -244,10 +259,33 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
     }
   }
 
+  /// The pop-up notice for an unclear photo; Retake leaves the fallback card
+  /// under the ID so the other choices stay one tap away.
+  Future<void> _promptUnclear(
+    IdCardSide side,
+    IdImageCheckResult result,
+  ) async {
+    final choice = await showIdUnclearDialog(
+      context,
+      result: result,
+      offersManualRegistration: _offersFallback,
+    );
+    if (!mounted || !identical(_failures[side], result)) return;
+    switch (choice) {
+      case IdUnclearChoice.retake:
+        return;
+      case IdUnclearChoice.proceed:
+        _useRejectedAnyway(side);
+      case IdUnclearChoice.manual:
+        _switchToManualRegistration(side);
+    }
+  }
+
   void _useRejectedAnyway(IdCardSide side) {
     final file = _rejectedFiles[side];
     final result = _failures[side];
     if (file == null || result == null) return;
+    widget.onAcceptedUnclear?.call(side);
     _accept(
       file,
       IdImageCheckResult(
@@ -311,10 +349,12 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
                 'photo check or face scan — a CARES director reviews your ID '
                 'before your account opens.';
     }
-    if (_isBeneficiary) {
-      return 'Upload a clear photo of a government-issued or other accepted valid ID '
-          '(e.g. National ID, Driver\'s License, Passport, Postal ID, or SSS/UMID). '
-          'Include the front first, then flip to add the back when your ID has two sides.';
+    // The only beneficiaries who upload an ID are students, with their UC
+    // school ID — the same check and face scan student volunteers go through.
+    if (_isBeneficiary && !_frontUploaded) {
+      return 'Upload a clear photo of your UC school ID — the front first, '
+          'then flip to add the back. Each photo is checked for blur, glare '
+          'and readable text, then your face is matched against it.';
     }
     if (widget.partnerBarangayId && !_frontUploaded) {
       return 'Upload a clear photo of your barangay ID or another valid ID '

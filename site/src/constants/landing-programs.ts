@@ -83,7 +83,8 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
   {
     id: 'basic-education',
     department: 'BASIC EDUCATION',
-    program: 'Basic Education CARES',
+    program: 'GATE',
+    tagline: 'Greening and Academic Tutorial Enrichment',
     logo: programLogo('university-of-cebu'),
     tone: 'navy',
     photo: programPhoto('basic-education'),
@@ -130,8 +131,8 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
   {
     id: 'senior-high-school',
     department: 'SENIOR HIGH SCHOOL',
-    program: 'UCLM SHS CARES',
-    tagline: 'Activities reported by the Senior High School Department',
+    program: 'Youth SMILE',
+    tagline: 'Supporting Mental-health and Improving Literacy for Empowerment',
     logo: programLogo('senior-high-school'),
     tone: 'blue',
     photo: programPhoto('senior-high-school'),
@@ -182,8 +183,8 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
   {
     id: 'teacher-education',
     department: 'TEACHER EDUCATION',
-    program: 'CTE CARES',
-    tagline: 'Alternative Learning System, literacy, and relief initiatives reported by CTE',
+    program: 'CTE CARES: Adopt a Learner',
+    tagline: 'Looc READS',
     logo: programLogo('teacher-education'),
     tone: 'blue',
     photo: programPhoto('teacher-education'),
@@ -222,8 +223,8 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
   {
     id: 'business-accountancy',
     department: 'BUSINESS & ACCOUNTANCY',
-    program: 'CBA CARES',
-    tagline: 'Activities reported by the College of Business and Accountancy',
+    program: 'BUILD',
+    tagline: 'Business Upliftment through Innovation, Literacy and Development',
     logo: programLogo('business-accountancy'),
     tone: 'green',
     photo: programPhoto('business-accountancy'),
@@ -272,7 +273,7 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
     id: 'customs-administration',
     department: 'CUSTOMS ADMINISTRATION',
     program: 'GLOBE',
-    tagline: 'Guiding Local Opportunities to Business Expansion',
+    tagline: 'Guiding Local Opportunities into Business Expansion',
     logo: programLogo('customs-administration'),
     tone: 'navy',
     photo: programPhoto('customs-administration'),
@@ -381,7 +382,7 @@ export const LANDING_DEPARTMENT_PROGRAMS: readonly LandingDepartmentProgram[] = 
   {
     id: 'criminology',
     department: 'CRIMINOLOGY',
-    program: 'SELF CARE',
+    program: 'SELF Care',
     tagline:
       'Social Empowerment and Lawful Fulfillment through Community Awareness, Resilience and Engagement',
     logo: programLogo('criminology'),
