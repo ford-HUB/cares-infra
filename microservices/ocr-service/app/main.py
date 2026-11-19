@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -109,16 +109,19 @@ async def health() -> ApiResponse:
 async def extract(
     front: UploadFile = File(...),
     back: UploadFile = File(...),
+    # "STAFF" reads the card as a staff / faculty ID; anything else is a student ID.
+    volunteerType: str | None = Form(None),
 ) -> ApiResponse:
     front_bytes = await read_upload(front)
     back_bytes = await read_upload(back)
+    staff_id = (volunteerType or "").strip().upper() == "STAFF"
 
     try:
         front = ocr_engine.extract_front(front_bytes)
         front_text = front.text
         back_text = ocr_engine.extract_text(back_bytes)
         parsed = ocr_engine.parse_id_text(
-            front_text, back_text, front.course_band, front.id_number
+            front_text, back_text, front.course_band, front.id_number, staff_id=staff_id
         )
     except ValueError as exc:
         raise failure(str(exc), 422) from exc

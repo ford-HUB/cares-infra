@@ -99,7 +99,11 @@ class RegisterOcrSample {
   RegisterOcrSample enrichFromRawText() {
     if (rawTextFront.isEmpty && rawTextBack.isEmpty) return this;
 
-    final parsed = RegisterOcrRawParser.parse(rawTextFront, rawTextBack);
+    final parsed = RegisterOcrRawParser.parse(
+      rawTextFront,
+      rawTextBack,
+      staffId: volunteerType.trim().toUpperCase() == 'STAFF',
+    );
     return copyWith(
       firstname: firstname.trim().isNotEmpty ? null : parsed.firstname,
       lastname: lastname.trim().isNotEmpty ? null : parsed.lastname,

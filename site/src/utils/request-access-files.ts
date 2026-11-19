@@ -1,5 +1,6 @@
 import type { FileValidationResult } from '../types/request-access'
 import {
+  REQUEST_ACCESS_ATTACHMENT_REQUIRED_MESSAGE,
   REQUEST_ACCESS_BLOCKED_EXTENSIONS,
   REQUEST_ACCESS_ALLOWED_EXTENSIONS,
   REQUEST_ACCESS_ALLOWED_MIME_TYPES,
@@ -60,6 +61,10 @@ export function validateRequestAccessFile(file: File): FileValidationResult {
 }
 
 export function validateRequestAccessFiles(files: File[]): FileValidationResult {
+  if (files.length === 0) {
+    return { valid: false, message: REQUEST_ACCESS_ATTACHMENT_REQUIRED_MESSAGE }
+  }
+
   if (files.length > REQUEST_ACCESS_MAX_FILES) {
     return { valid: false, message: `You can attach up to ${REQUEST_ACCESS_MAX_FILES} files.` }
   }

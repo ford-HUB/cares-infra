@@ -31,9 +31,13 @@ export function AttachmentUpload({
 
   return (
     <div>
-      <RequestFieldLabel icon={Paperclip}>Attachments (ID verification)</RequestFieldLabel>
+      <RequestFieldLabel icon={Paperclip}>
+        Attachments (ID verification)
+        <span aria-hidden className="text-red-600">*</span>
+        <span className="sr-only">(required)</span>
+      </RequestFieldLabel>
       <p className="mb-1.5 text-[10px] leading-tight text-[var(--cares-muted)]">
-        PDF, JPG, PNG, WebP, or DOC/DOCX · max {REQUEST_ACCESS_MAX_FILES} files · 5 MB each · no
+        Required · PDF, JPG, PNG, WebP, or DOC/DOCX · max {REQUEST_ACCESS_MAX_FILES} files · 5 MB each · no
         GIF/video/archive
       </p>
 

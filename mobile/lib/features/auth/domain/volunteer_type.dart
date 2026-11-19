@@ -16,8 +16,9 @@ extension VolunteerTypeX on VolunteerType {
     VolunteerType.partnerBarangay => 'PARTNER_BARANGAY',
   };
 
-  /// Sign-ups whose ID a director reviews instead of it being face matched and
-  /// read by OCR: the details are typed in and the account waits for approval.
+  /// Sign-ups whose ID a director reviews instead of it being read by OCR: the
+  /// details are typed in and the account waits for approval. Alumni are still
+  /// face matched against their alumni ID; partner-barangay volunteers are not.
   bool get isDirectorReviewed =>
       this == VolunteerType.alumni || this == VolunteerType.partnerBarangay;
 

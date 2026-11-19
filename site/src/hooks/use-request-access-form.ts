@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, type BaseSyntheticEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import {
@@ -45,12 +45,15 @@ export function useRequestAccessForm(onSubmitted: () => void) {
     setAttachmentError(null)
   }
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  /** Checks the attachments; shows the error under the dropzone and reports validity. */
+  const checkAttachments = () => {
     const fileCheck = validateRequestAccessFiles(attachments)
-    if (!fileCheck.valid) {
-      setAttachmentError(fileCheck.message ?? 'Invalid attachments')
-      return
-    }
+    setAttachmentError(fileCheck.valid ? null : (fileCheck.message ?? 'Invalid attachments'))
+    return fileCheck.valid
+  }
+
+  const submitValidated = form.handleSubmit(async (values) => {
+    if (!checkAttachments()) return
 
     setSubmitting(true)
     const res = await submitRequestAccess({
@@ -70,6 +73,12 @@ export function useRequestAccessForm(onSubmitted: () => void) {
 
     toast.error(res.message)
   })
+
+  /** Flags a missing ID alongside the field errors instead of only after they pass. */
+  const onSubmit = (event?: BaseSyntheticEvent) => {
+    checkAttachments()
+    return submitValidated(event)
+  }
 
   return {
     form,

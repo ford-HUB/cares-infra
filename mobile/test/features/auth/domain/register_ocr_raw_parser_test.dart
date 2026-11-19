@@ -104,17 +104,95 @@ void main() {
       '',
       ('', '', ''),
     ),
-    (
-      'back is never read',
-      '24250698\nID NO',
-      presidentBack,
-      ('', '', ''),
-    ),
+    ('back is never read', '24250698\nID NO', presidentBack, ('', '', '')),
   ];
 
   group('cardholder name extraction', () {
     for (final (name, front, back, expected) in nameCases) {
       test(name, () => expect(nameOf(front, back), expected));
+    }
+  });
+
+  // A UC Lapu-Lapu & Mandaue "COLLEGE FACULTY" ID: a 6-digit employee number
+  // after "ID NO." and "SURNAME, FIRST M." with no NAME label. Mirrors
+  // microservices/ocr-service/scripts/test_staff_id.py.
+  group('staff / faculty ID', () {
+    const facultyFront =
+        'university of cebu\n'
+        'LAPU-LAPU & MANDAUE CAMPUS\n'
+        'A.C. Cortes Ave., Mandaue City\n'
+        'ID NO. 201346\n'
+        'REYES, JESIECA C.\n'
+        'SIGNATURE\n'
+        'COLLEGE FACULTY.\n';
+    const studentFront =
+        'UNIVERSITY OF CEBU\n24250698\nID NO\nNAME\nJAY S. ICOY\nSIGNATURE';
+
+    (String, (String, String, String)) read(
+      String front, {
+      required bool staff,
+    }) {
+      final parsed = RegisterOcrRawParser.parse(front, '', staffId: staff);
+      return (
+        parsed.idNumber,
+        (parsed.firstname, parsed.middleName, parsed.lastname),
+      );
+    }
+
+    final staffCases =
+        <(String, String, bool, (String, (String, String, String)))>[
+          (
+            'faculty ID, read as staff',
+            facultyFront,
+            true,
+            ('201346', ('JESIECA', 'C', 'REYES')),
+          ),
+          (
+            'faculty ID, read as student (unchanged)',
+            facultyFront,
+            false,
+            ('', ('', '', '')),
+          ),
+          (
+            'staff number on the line below the label',
+            'ID NO.\n201346\nREYES, JESIECA C.',
+            true,
+            ('201346', ('JESIECA', 'C', 'REYES')),
+          ),
+          (
+            'staff number with OCR letter noise',
+            'ID NO. 2O1346\nREYES, JESIECA C.',
+            true,
+            ('201346', ('JESIECA', 'C', 'REYES')),
+          ),
+          (
+            'phone after the label is never an ID',
+            'ID NO. 09435291030\nREYES, JESIECA C.',
+            true,
+            ('', ('JESIECA', 'C', 'REYES')),
+          ),
+          (
+            'two given names',
+            'ID NO. 1043\nDELA CRUZ, MARIA LUISA B.',
+            true,
+            ('', ('MARIA', 'LUISA B', 'DELA CRUZ')),
+          ),
+          (
+            'campus line is not a name',
+            'ID NO. 201346\nMANDAUE CITY, CEBU',
+            true,
+            ('201346', ('', '', '')),
+          ),
+          (
+            'student ID, read as staff (student path still works)',
+            studentFront,
+            true,
+            ('24250698', ('JAY', 'S.', 'ICOY')),
+          ),
+        ];
+
+    for (final (name, front, staff, expected) in staffCases) {
+      test(name, () => expect(read(front, staff: staff), expected));
     }
   });
 }

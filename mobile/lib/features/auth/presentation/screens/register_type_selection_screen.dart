@@ -147,10 +147,12 @@ class _RegisterTypeSelectionScreenState
     VolunteerType.staff =>
       'You will upload your school ID and confirm your department.',
     VolunteerType.alumni =>
-      'You will upload your school ID and confirm your course and graduation year.',
+      'You will upload your alumni ID, scan your face, and confirm your course '
+          'and graduation year.',
     VolunteerType.partnerBarangay =>
-      'You will upload a valid ID and pick the partner barangay you volunteer '
-          'with. A CARES director reviews your sign-up before your account opens.',
+      'You will upload the front and back of a valid ID and pick the partner '
+          'barangay you volunteer with. A CARES director reviews your sign-up '
+          'before your account opens.',
   };
 
   @override

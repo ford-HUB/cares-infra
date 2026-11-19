@@ -37,11 +37,15 @@ class IdImageCheckResult {
 /// found, and — on the front — whether the portrait can be found and is sharp.
 /// Nothing is uploaded here.
 class IdImagePreValidator {
-  IdImagePreValidator({this.checkPortrait = true});
+  IdImagePreValidator({this.checkPortrait = true, this.staffId = false});
 
   /// Look for the ID portrait on the front. A blurry face fails the face scan
   /// later even when the text reads fine, so it is caught here.
   final bool checkPortrait;
+
+  /// The card is a staff/faculty ID: its ID number and name are printed
+  /// differently from a student ID's.
+  final bool staffId;
 
   /// [frontText] is the front's recognised text; pass it when checking the
   /// back so the name / ID number can be looked for across both sides.
@@ -75,10 +79,14 @@ class IdImagePreValidator {
     }
 
     final missing = side == IdCardSide.front
-        ? IdTextReadabilityRules.missingKeyFields(frontText: text)
+        ? IdTextReadabilityRules.missingKeyFields(
+            frontText: text,
+            staffId: staffId,
+          )
         : IdTextReadabilityRules.missingKeyFields(
             frontText: frontText ?? '',
             backText: text,
+            staffId: staffId,
           );
     final portraitIssue = side == IdCardSide.front && checkPortrait
         ? await _portraitIssue(file, bytes)

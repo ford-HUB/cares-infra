@@ -63,6 +63,9 @@ NAME_LABEL_WITH_JUNK = re.compile(r"^\W*NAME\W+[A-Za-z]?\W*$", re.IGNORECASE)
 # last words of 2+ letters, initials or words between ("JAY S. ICOY").
 PERSON_NAME_LINE = re.compile(r"^[A-Z]{2,}(?:\s+(?:[A-Z]\.?|[A-Z]{2,}))*\s+[A-Z]{2,}$")
 PERSON_NAME_MIN_LETTERS = 6
+# A staff / faculty ID prints the name as "REYES, JESIECA C." — surname, comma,
+# given names and an optional middle initial (its period already cleaned off).
+STAFF_NAME_LINE = re.compile(r"^[A-Z][A-Z']+(?: [A-Z][A-Z']+)*, ?[A-Z]{2,}(?: (?:[A-Z]{2,}|[A-Z]\.?))*$")
 ADDRESS_INLINE = re.compile(
     r"\bADDRESS\.?\s*[:\-]?\s*(.+)$",
     re.IGNORECASE,
@@ -122,6 +125,12 @@ STUDENT_ID_LABEL = re.compile(
 STUDENT_ID_TOKEN = re.compile(
     r"(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){7})(?![A-Za-z0-9/]|-[0-9A-Za-z])"
 )
+# A staff / faculty ID number after "ID NO." is not a fixed length: 5–10
+# digit-like chars, still bounded so an 11-digit phone number is never sliced.
+STAFF_ID_MIN_REAL_DIGITS = 4
+STAFF_ID_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){4,9})(?![A-Za-z0-9/]|-[0-9A-Za-z])"
+)
 SCHOOL_YEAR_RANGE = re.compile(r"((?:19|20)\d{2})((?:19|20)\d{2})")
 
 
@@ -179,12 +188,21 @@ class OcrEngine:
         back_text: str,
         course_band: str = "",
         id_number: str = "",
+        staff_id: bool = False,
     ) -> ParsedIdFields:
+        """[staff_id]: the card is a UC staff / faculty ID, which prints an
+        employee number of any length after "ID NO." and the name as
+        "SURNAME, FIRST M." with no NAME label. [id_number] is the student-ID
+        re-read, so for staff the printed number is preferred over it."""
         combined = f"{front_text}\n{back_text}"
         lines = _normalize_lines(combined)
         fields = ParsedIdFields()
 
-        fields.id_number = id_number or _extract_id_number(front_text)
+        if staff_id:
+            fields.id_number = _staff_id_near_label(_normalize_lines(front_text)) or id_number
+        else:
+            fields.id_number = id_number
+        fields.id_number = fields.id_number or _extract_id_number(front_text)
         fields.phone_number = _extract_phone(combined, lines)
         fields.gender = _extract_gender(combined)
 
@@ -203,13 +221,15 @@ class OcrEngine:
         # The cardholder's name is only printed on the front. The back carries
         # the emergency contact's NAME and the president's signature line, so
         # it is never consulted.
-        first, middle, last = _extract_name(_normalize_lines(front_text))
+        first, middle, last = _extract_name(_normalize_lines(front_text), staff_id=staff_id)
         fields.firstname = first
         fields.middle_name = middle
         fields.lastname = last
 
         fields.age = _extract_age(combined, lines)
-        if re.search(r"\bSTUDENT\b", combined, re.IGNORECASE):
+        if staff_id:
+            fields.volunteer_type = "STAFF"
+        elif re.search(r"\bSTUDENT\b", combined, re.IGNORECASE):
             fields.volunteer_type = "STUDENT"
 
         return fields
@@ -494,7 +514,7 @@ def _split_name_value(name_value: str) -> tuple[str, str, str]:
     return cleaned, "", ""
 
 
-def _extract_name(lines: list[str]) -> tuple[str, str, str]:
+def _extract_name(lines: list[str], staff_id: bool = False) -> tuple[str, str, str]:
     surname = ""
     given = ""
     middle = ""
@@ -526,6 +546,16 @@ def _extract_name(lines: list[str]) -> tuple[str, str, str]:
             and _looks_like_person_name(candidate)
         ):
             return _split_name_value(candidate)
+
+    if staff_id:
+        for line in lines:
+            candidate = _clean_name_value(line)
+            if (
+                STAFF_NAME_LINE.match(candidate)
+                and len(re.sub(r"[^A-Z]", "", candidate)) >= PERSON_NAME_MIN_LETTERS
+                and _looks_like_person_name(re.sub(r",\s*", " ", candidate, count=1))
+            ):
+                return _split_name_value(candidate)
 
     for index, line in enumerate(lines):
         for pattern, target in (
@@ -690,6 +720,25 @@ def _student_id_near_label(lines: list[str]) -> str:
         picked = _pick_student_id(candidates)
         if picked:
             return picked
+    return ""
+
+
+def _staff_id_near_label(lines: list[str]) -> str:
+    """A staff / faculty ID number ("ID NO. 201346") is printed right after the
+    label and is not a fixed length. Mirrors _staffIdNearLabel in
+    mobile/lib/features/auth/domain/register_ocr_raw_parser.dart."""
+    for index, line in enumerate(lines):
+        label = STUDENT_ID_LABEL.search(line)
+        if not label:
+            continue
+        nearby = [line[label.end() :]]
+        if index + 1 < len(lines):
+            nearby.append(lines[index + 1])
+        for text in nearby:
+            for match in STAFF_ID_TOKEN.finditer(text):
+                raw = match.group(1)
+                if len(re.findall(r"\d", raw)) >= STAFF_ID_MIN_REAL_DIGITS:
+                    return _normalize_id_number(raw)
     return ""
 
 

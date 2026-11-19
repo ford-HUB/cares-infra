@@ -74,6 +74,18 @@ export const RegistrationIdSchema = z
   })
   .strict();
 
+/**
+ * `volunteerType: 'STAFF'` makes the OCR service read the card as a staff /
+ * faculty ID (employee number after "ID NO.", "SURNAME, FIRST M." name).
+ * Left out for every other registration.
+ */
+export const ExtractIdSchema = z
+  .object({
+    registrationId: z.uuid(),
+    volunteerType: z.enum(['STAFF']).optional(),
+  })
+  .strict();
+
 export const StartSessionSchema = z
   .object({
     roleType: z.enum(RoleType),

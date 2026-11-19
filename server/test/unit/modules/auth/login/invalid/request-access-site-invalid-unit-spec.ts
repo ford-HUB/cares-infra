@@ -14,6 +14,7 @@ import { defineCases } from '../../../../../config/test-case';
 import {
   ACCESS_REQUEST,
   BODY_PREFIX,
+  ID_ATTACHMENT,
   MODULE,
   Upload,
   VALID_ACCESS_REQUEST as VALID,
@@ -127,6 +128,15 @@ describe('Request Access — invalid inputs', () => {
 
   /* ── attachments ─────────────────────────────────────────────────────── */
 
+  testCase(
+    'Volunteer submits the request without attaching an ID',
+    'Request fails with "Attach at least one ID document for verification" (400); no email is sent',
+    () => {
+      it('layer 2 — api refuses', async () => {
+        await expectNotSent([], 400, 'Attach at least one ID document for verification');
+      });
+    },
+  );
   testCase('Volunteer attaches 6 files (limit is 5)', 'Request fails (400); no email is sent', () => {
     it('layer 2 — api refuses', async () => {
       await expectNotSent(
@@ -182,7 +192,7 @@ describe('Request Access — invalid inputs', () => {
     () => {
       beforeEach(() => ctx.mailer.sendEmail.mockRejectedValue(new Error('SMTP connection refused') as never));
       it('layer 2 — api reports the delivery failure', async () => {
-        const outcome = await postAccessRequest(ctx, VALID);
+        const outcome = await postAccessRequest(ctx, VALID, [ID_ATTACHMENT]);
         expectRefusal(outcome, 502, 'Unable to send your access request. SMTP connection refused');
         expectSafeErrorEnvelope(outcome);
       });

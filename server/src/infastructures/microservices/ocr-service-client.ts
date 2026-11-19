@@ -23,6 +23,8 @@ export class OcrServiceClient {
     frontFilename: string,
     backImage: Buffer,
     backFilename: string,
+    /** 'STAFF' reads the card as a staff / faculty ID. */
+    volunteerType?: 'STAFF',
   ): Promise<IdOcrResultDto> {
     const form = new FormData();
     form.append(
@@ -35,6 +37,7 @@ export class OcrServiceClient {
       toImageBlob(backImage, undefined, backFilename),
       backFilename,
     );
+    if (volunteerType) form.append('volunteerType', volunteerType);
 
     const response = await fetch(`${this.baseUrl}/api/v1/extract`, {
       method: 'POST',

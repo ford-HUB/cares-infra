@@ -44,6 +44,15 @@ class _IdUnclearDialog extends StatelessWidget {
   final IdImageCheckResult result;
   final bool offersManualRegistration;
 
+  static const _buttonSize = Size.fromHeight(48);
+  static const _buttonShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+  );
+  static const _buttonText = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+  );
+
   String _titleFor(IdImageIssue issue) {
     if (issue != IdImageIssue.missingIdDetails ||
         result.missingFields.isEmpty) {
@@ -52,94 +61,155 @@ class _IdUnclearDialog extends StatelessWidget {
     return 'We couldn\'t read your ${result.missingFields.join(' and ')}';
   }
 
+  void _pick(BuildContext context, IdUnclearChoice choice) =>
+      Navigator.of(context).pop(choice);
+
   @override
   Widget build(BuildContext context) {
-    final muted = AppColors.primaryDark.withValues(alpha: 0.8);
-
-    return AlertDialog(
-      icon: const Icon(
-        Icons.report_gmailerrorred_rounded,
-        color: AppColors.accentOrange,
-        size: 34,
+    return Dialog(
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(24)),
       ),
-      title: const Text(
-        'Your ID isn\'t clear',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontWeight: FontWeight.w800),
-      ),
-      content: SingleChildScrollView(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(22, 26, 22, 18),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'The system detected that the ${result.side.label} of your ID '
-              'is not clear, so its details may not be read accurately:',
-              style: TextStyle(fontSize: 13.5, height: 1.4, color: muted),
-            ),
-            const SizedBox(height: 10),
-            for (final issue in result.issues)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  '•  ${_titleFor(issue)}',
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.accentOrange.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
               ),
-            const SizedBox(height: 10),
-            Text(
-              offersManualRegistration
-                  ? 'Retake the photo, continue with it and correct any '
-                        'details it misreads, or register manually — you type '
-                        'your details in and a CARES director approves your '
-                        'account.'
-                  : 'Retake the photo, or continue with it and correct any '
-                        'details it misreads.',
-              style: TextStyle(fontSize: 12.5, height: 1.4, color: muted),
+              child: const Icon(
+                Icons.report_gmailerrorred_rounded,
+                color: AppColors.accentOrange,
+                size: 30,
+              ),
             ),
+            const SizedBox(height: 14),
+            const Text(
+              'Your ID isn\'t clear',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primaryDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'We couldn\'t read the ${result.side.label} of your ID clearly.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.4,
+                color: AppColors.inkMuted,
+              ),
+            ),
+            if (result.issues.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              _IssueList(issues: [for (final i in result.issues) _titleFor(i)]),
+            ],
+            const SizedBox(height: 20),
+            FilledButton(
+              key: const ValueKey('id-unclear-retake'),
+              onPressed: () => _pick(context, IdUnclearChoice.retake),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                minimumSize: _buttonSize,
+                shape: _buttonShape,
+                textStyle: _buttonText,
+              ),
+              child: const Text('Retake Photo'),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton(
+              key: const ValueKey('id-unclear-proceed'),
+              onPressed: () => _pick(context, IdUnclearChoice.proceed),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary, width: 1.2),
+                minimumSize: _buttonSize,
+                shape: _buttonShape,
+                textStyle: _buttonText,
+              ),
+              child: const Text('Continue Anyway'),
+            ),
+            if (offersManualRegistration) ...[
+              const SizedBox(height: 4),
+              TextButton(
+                key: const ValueKey('id-unclear-manual'),
+                onPressed: () => _pick(context, IdUnclearChoice.manual),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  minimumSize: _buttonSize,
+                  shape: _buttonShape,
+                  textStyle: _buttonText.copyWith(fontWeight: FontWeight.w600),
+                ),
+                child: const Text('Register Manually'),
+              ),
+            ],
           ],
         ),
       ),
-      actionsAlignment: MainAxisAlignment.center,
-      actionsOverflowButtonSpacing: 4,
-      actions: [
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            key: const ValueKey('id-unclear-retake'),
-            onPressed: () => Navigator.of(context).pop(IdUnclearChoice.retake),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Retake Photo'),
-          ),
-        ),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            key: const ValueKey('id-unclear-proceed'),
-            onPressed: () => Navigator.of(context).pop(IdUnclearChoice.proceed),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary),
+    );
+  }
+}
+
+/// The detected problems, one short line each, in a soft warning panel.
+class _IssueList extends StatelessWidget {
+  const _IssueList({required this.issues});
+
+  final List<String> issues;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.accentOrange.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final (index, issue) in issues.indexed)
+            Padding(
+              padding: EdgeInsets.only(top: index == 0 ? 0 : 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      size: 16,
+                      color: AppColors.accentOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      issue,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        height: 1.3,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: const Text('Continue Anyway'),
-          ),
-        ),
-        if (offersManualRegistration)
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              key: const ValueKey('id-unclear-manual'),
-              onPressed: () =>
-                  Navigator.of(context).pop(IdUnclearChoice.manual),
-              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
-              child: const Text('Proceed to Manual Registration'),
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

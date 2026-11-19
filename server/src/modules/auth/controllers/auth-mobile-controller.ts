@@ -25,6 +25,7 @@ import {
   ResetPasswordSchema,
   VerifyResetOtpResponseSchema,
   VerifyResetOtpSchema,
+  ExtractIdSchema,
   LoginResponseSchema,
   LoginSchema,
   ManualVolunteerTypeSchema,
@@ -45,6 +46,7 @@ import {
 } from '../validators/auth-mobile-validator';
 import type {
   CreateUserDto,
+  ExtractIdDto,
   ExtractIdResponseDto,
   ForgotPasswordDto,
   ForgotPasswordResponseDto,
@@ -57,7 +59,6 @@ import type {
   RegisterFromSessionDto,
   RegisterUserResponseDto,
   RegistrationDocumentResponseDto,
-  RegistrationIdDto,
   SendVerificationDto,
   SendVerificationResponseDto,
   StartSessionDto,
@@ -152,8 +153,9 @@ export class AuthMobileController {
   }
 
   /**
-   * An alumni ID (front and back). Not checked by the student-ID classifier or face
-   * matched — the director reviews it with the registration.
+   * An alumni ID (front and back). Not checked by the student-ID classifier or
+   * read by OCR, but the alumnus's face is matched against it (`verify-face`);
+   * the director then reviews it with the registration.
    */
   @Post('upload-alumni-id')
   @Public()
@@ -188,8 +190,8 @@ export class AuthMobileController {
   }
 
   /**
-   * The valid ID (front and back) of a partner-barangay volunteer. Like an alumni
-   * ID it is not checked by the student-ID classifier or face matched — the
+   * The valid ID (front and back) of a partner-barangay volunteer. It is not
+   * checked by the student-ID classifier, face matched or read by OCR — the
    * director reviews it with the registration.
    */
   @Post('upload-partner-barangay-id')
@@ -349,9 +351,12 @@ export class AuthMobileController {
   @ResponseMessage('ID fields extracted')
   @ZSerialize(ExtractIdResponseSchema)
   async extractId(
-    @ZBody(RegistrationIdSchema) body: RegistrationIdDto,
+    @ZBody(ExtractIdSchema) body: ExtractIdDto,
   ): Promise<ExtractIdResponseDto> {
-    return await this.authMobileService.extractId(body.registrationId);
+    return await this.authMobileService.extractId(
+      body.registrationId,
+      body.volunteerType,
+    );
   }
 
   @Post('send-verification')

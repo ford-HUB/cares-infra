@@ -13,7 +13,11 @@ class RegisterOcrRawParser {
     String phoneNumber,
     String idNumber,
   })
-  parse(String frontText, String backText) {
+  /// [staffId]: the card is a UC staff/faculty ID rather than a student ID.
+  /// Staff IDs print an employee number of any length after "ID NO." and the
+  /// name as "SURNAME, FIRST M." with no NAME label, so both are looked for
+  /// on top of the student layout.
+  parse(String frontText, String backText, {bool staffId = false}) {
     final combined = '$frontText\n$backText';
     final lines = combined
         .split('\n')
@@ -30,6 +34,7 @@ class RegisterOcrRawParser {
           .map((line) => line.trim())
           .where((line) => line.isNotEmpty)
           .toList(),
+      staffId: staffId,
     );
     return (
       firstname: name.$1,
@@ -39,11 +44,14 @@ class RegisterOcrRawParser {
       age: _extractAge(combined, lines),
       currentAddress: _extractAddress(lines, combined),
       phoneNumber: _extractPhone(combined, lines),
-      idNumber: _extractIdNumber(frontText),
+      idNumber: _extractIdNumber(frontText, staffId: staffId),
     );
   }
 
-  static (String, String, String) _extractName(List<String> lines) {
+  static (String, String, String) _extractName(
+    List<String> lines, {
+    bool staffId = false,
+  }) {
     for (final line in lines) {
       final inline = RegExp(
         r"\bNAME\s+([A-Za-z][A-Za-z\s.']+?)(?:\s*[*|]?\s*$)",
@@ -110,8 +118,28 @@ class RegisterOcrRawParser {
       }
     }
 
+    if (staffId) {
+      for (final line in lines) {
+        final candidate = _cleanName(line);
+        if (_staffNameLine.hasMatch(candidate) &&
+            candidate.replaceAll(RegExp('[^A-Z]'), '').length >= 6 &&
+            _looksLikePersonName(
+              candidate.replaceFirst(RegExp(r',\s*'), ' '),
+            )) {
+          return _splitName(candidate);
+        }
+      }
+    }
+
     return ('', '', '');
   }
+
+  // Staff IDs print the name as "REYES, JESIECA C." — surname, comma, given
+  // names and an optional middle initial (its period is already stripped by
+  // [_cleanName]).
+  static final _staffNameLine = RegExp(
+    r"^[A-Z][A-Z']+(?: [A-Z][A-Z']+)*, ?[A-Z]{2,}(?: (?:[A-Z]{2,}|[A-Z]\.?))*$",
+  );
 
   static String _stripLeadingJunk(String value) {
     var cleaned = value.trim();
@@ -365,14 +393,49 @@ class RegisterOcrRawParser {
     return '';
   }
 
+  // A staff/faculty ID number (e.g. "ID NO. 201346") is printed right after
+  // the label and is not a fixed length, so 5–10 digit-like chars are taken;
+  // still bounded so an 11-digit phone number is never sliced.
+  static const _staffIdMinRealDigits = 4;
+  static final _staffIdToken = RegExp(
+    r'(?<![A-Za-z0-9/])([0-9OoIlUBSZ](?:-?[0-9OoIlUBSZ]){4,9})(?![A-Za-z0-9/]|-[0-9A-Za-z])',
+  );
+
+  static String _staffIdNearLabel(List<String> lines) {
+    for (var index = 0; index < lines.length; index++) {
+      final line = lines[index];
+      final label = _studentIdLabel.firstMatch(line);
+      if (label == null) continue;
+      final nearby = [
+        line.substring(label.end),
+        if (index + 1 < lines.length) lines[index + 1],
+      ];
+      for (final text in nearby) {
+        for (final match in _staffIdToken.allMatches(text)) {
+          final raw = match.group(1)!;
+          if (RegExp(r'\d').allMatches(raw).length < _staffIdMinRealDigits) {
+            continue;
+          }
+          return normalizeIdNumber(_normalizeDigits(raw));
+        }
+      }
+    }
+    return '';
+  }
+
   /// The student ID is only printed on the front of the card; the back
   /// carries school years, phone and birthdate, so it is never consulted.
-  static String _extractIdNumber(String frontText) {
+  /// A staff ID's number is looked for after its "ID NO." label first.
+  static String _extractIdNumber(String frontText, {bool staffId = false}) {
     final lines = frontText
         .split('\n')
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList();
+    if (staffId) {
+      final staff = _staffIdNearLabel(lines);
+      if (staff.isNotEmpty) return staff;
+    }
     final labeled = _studentIdNearLabel(lines);
     if (labeled.isNotEmpty) return labeled;
     return _pickStudentId([
