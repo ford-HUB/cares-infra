@@ -24,7 +24,8 @@ import 'package:permission_handler/permission_handler.dart';
 /// [IdRecognitionFallbackMessage] under the card: the registrant may retake
 /// it, continue with it anyway ([onAcceptedUnclear] — the details read off it
 /// are then open for correction), or switch to manual registration. Once
-/// [manualRegistration] is on, photos skip the check.
+/// [manualRegistration] is on, or when [skipPhotoCheck] is set (a
+/// partner-barangay ID), photos skip the check.
 class RegisterIdUploadStep extends StatefulWidget {
   const RegisterIdUploadStep({
     super.key,
@@ -37,6 +38,8 @@ class RegisterIdUploadStep extends StatefulWidget {
     this.validator,
     this.alumniId = false,
     this.partnerBarangayId = false,
+    this.staffId = false,
+    this.skipPhotoCheck = false,
     this.manualRegistration = false,
     this.onManualRegistration,
     this.onAcceptedUnclear,
@@ -45,12 +48,21 @@ class RegisterIdUploadStep extends StatefulWidget {
   final RegistrationRoleType roleType;
 
   /// The card is an alumni ID rather than a UCLM student ID. It still gets the
-  /// on-device photo check, but no face scan follows: a director reviews it.
+  /// on-device photo check and the face scan, then a director reviews it.
   final bool alumniId;
 
   /// The card is the valid ID a partner-barangay volunteer presents (a barangay
-  /// ID or another accepted ID). Like an alumni ID, a director reviews it.
+  /// ID or another accepted ID). Only a director reviews it — pair with
+  /// [skipPhotoCheck].
   final bool partnerBarangayId;
+
+  /// Photos are taken as picked, with no on-device pre-validation (blur,
+  /// glare, readable text): a director checks the ID instead.
+  final bool skipPhotoCheck;
+
+  /// The card is a UC staff/faculty ID. It goes through the same checks as a
+  /// student ID, but its ID number and name are read in the staff layout.
+  final bool staffId;
 
   /// Manual registration: the ID is exempt from the on-device pre-validation —
   /// any photo is accepted as picked, and a director reviews it instead.
@@ -83,7 +95,7 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
   final _picker = ImagePicker();
   final _flippableKey = GlobalKey<FlippableIdCardState>();
   late final IdImagePreValidator _validator =
-      widget.validator ?? IdImagePreValidator();
+      widget.validator ?? IdImagePreValidator(staffId: widget.staffId);
   IdCardSide? _pickingSide;
   bool _checking = false;
   bool _showingBack = false;
@@ -168,9 +180,10 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
   }
 
   Future<void> _validate(XFile file, IdCardSide side) async {
-    // Manual registration is exempt from the automatic pre-validation: the
-    // photo is taken as picked and a director checks it.
-    if (widget.manualRegistration) {
+    // Manual registration and a partner-barangay ID are exempt from the
+    // automatic pre-validation: the photo is taken as picked and a director
+    // checks it.
+    if (widget.manualRegistration || widget.skipPhotoCheck) {
       setState(() => _pickingSide = null);
       _accept(
         file,
@@ -356,17 +369,18 @@ class _RegisterIdUploadStepState extends State<RegisterIdUploadStep> {
           'then flip to add the back. Each photo is checked for blur, glare '
           'and readable text, then your face is matched against it.';
     }
-    if (widget.partnerBarangayId && !_frontUploaded) {
-      return 'Upload a clear photo of your barangay ID or another valid ID '
-          "(e.g. National ID, Driver's License, Passport, Postal ID) — "
-          'the front first, then flip to add the back. No face scan is '
-          'needed: a CARES director checks your ID before your account '
-          'opens.';
+    if (widget.partnerBarangayId) {
+      return _frontUploaded && !_showingBack && !_backUploaded
+          ? 'Front added — flip the card to add the back.'
+          : 'Upload a clear photo of your barangay ID or another valid ID '
+                "(e.g. National ID, Driver's License, Passport, Postal ID) — "
+                'the front first, then flip to add the back. A CARES '
+                'director checks your ID before your account opens.';
     }
     if (widget.alumniId && !_frontUploaded) {
       return 'Upload a clear photo of your UC alumni ID — the front first, then '
-          'flip to add the back. No face scan is needed: a CARES director '
-          'checks your alumni ID before your account opens.';
+          'flip to add the back. Your face is then matched against it, and a '
+          'CARES director checks your alumni ID before your account opens.';
     }
     if (_frontUploaded && !_showingBack) {
       return _uncheckedSides.contains(IdCardSide.front)

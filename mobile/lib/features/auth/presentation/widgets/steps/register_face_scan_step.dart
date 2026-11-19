@@ -12,6 +12,7 @@ import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/presentation/utils/face_camera_input_helper.dart';
 import 'package:mobile/features/auth/presentation/utils/face_guide_geometry.dart';
+import 'package:mobile/features/auth/presentation/widgets/face_match_fallback_message.dart';
 import 'package:mobile/features/auth/presentation/widgets/face_scan_overlay_painter.dart';
 import 'package:mobile/features/auth/presentation/widgets/unmirrored_face_image.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -25,6 +26,8 @@ class RegisterFaceScanStep extends StatefulWidget {
     required this.onCapturesChanged,
     required this.verifySelfie,
     required this.onVerified,
+    this.onManualRegistration,
+    this.idLabel = 'ID',
   });
 
   final String registrationId;
@@ -32,6 +35,14 @@ class RegisterFaceScanStep extends StatefulWidget {
   final ValueChanged<FaceCaptureSet> onCapturesChanged;
   final Future<VerifyFaceResponse> Function(XFile selfie) verifySelfie;
   final void Function(FaceCaptureSet captures, double similarity) onVerified;
+
+  /// When set, a [FaceMatchFallbackMessage] offering manual registration
+  /// appears once the selfie can't be matched to the ID — the ID photo may be
+  /// too unclear to read a face from.
+  final VoidCallback? onManualRegistration;
+
+  /// How the fallback names the ID, e.g. `alumni ID`.
+  final String idLabel;
 
   @override
   State<RegisterFaceScanStep> createState() => _RegisterFaceScanStepState();
@@ -42,6 +53,9 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   static const _frameThrottle = Duration(milliseconds: 100);
   static const _alignedHoldDuration = Duration(seconds: 1);
   static const _verifyCooldown = Duration(milliseconds: 1500);
+
+  /// Failed matches before manual registration is offered.
+  static const _manualAfterFailures = 2;
 
   final _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
@@ -70,7 +84,16 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   DateTime? _alignedSince;
   DateTime? _verifyCooldownUntil;
 
+  /// Selfies the server could not match to the ID. A face the server could
+  /// not find at all (a 4xx, usually an unclear ID photo) counts as enough on
+  /// its own.
+  int _failedMatches = 0;
+
   FaceCaptureSet get _captures => widget.captures;
+
+  bool get _offersManualRegistration =>
+      widget.onManualRegistration != null &&
+      _failedMatches >= _manualAfterFailures;
 
   @override
   void initState() {
@@ -364,6 +387,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       }
 
       setState(() {
+        _failedMatches++;
         _verifyCooldownUntil = DateTime.now().add(_verifyCooldown);
         _alignedSince = null;
         _errorMessage = result.message.isNotEmpty
@@ -376,6 +400,12 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       debugPrint('Face verification error: $e');
       if (mounted) {
         setState(() {
+          // The server could not find a face to compare (it answers 4xx);
+          // a dropped connection or a down service (5xx) is not the ID's fault.
+          final statusCode = e is ApiException ? e.statusCode : null;
+          if (statusCode != null && statusCode >= 400 && statusCode < 500) {
+            _failedMatches = _manualAfterFailures;
+          }
           _errorMessage = e is ApiException
               ? e.message
               : 'Verification failed. Please try again.';
@@ -495,6 +525,15 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
               icon: const Icon(Icons.settings),
               label: const Text('Open settings'),
             ),
+        ],
+        if (_offersManualRegistration && !allDone) ...[
+          const SizedBox(height: 12),
+          FaceMatchFallbackMessage(
+            idLabel: widget.idLabel,
+            onManualRegistration: _isVerifying
+                ? null
+                : widget.onManualRegistration,
+          ),
         ],
       ],
     );

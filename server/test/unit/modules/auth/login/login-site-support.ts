@@ -304,6 +304,9 @@ export const upload = (filename: string, contentType: string, bytes: number): Up
   buffer: Buffer.alloc(bytes, 1),
 });
 
+/** The ID document every Request Access submission must carry (attachments are required). */
+export const ID_ATTACHMENT: Upload = upload('id.pdf', 'application/pdf', 2048);
+
 const keepAliveAgent = new Agent({ keepAlive: true });
 
 /** Posts the Request Access form the way the portal does: multipart fields plus `attachments`. */

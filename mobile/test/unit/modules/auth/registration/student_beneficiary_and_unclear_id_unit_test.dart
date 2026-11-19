@@ -100,18 +100,18 @@ void main() {
       await _openDialog(tester, offersManual: true);
 
       expect(find.text('Your ID isn\'t clear'), findsOne);
-      expect(find.textContaining('system detected'), findsOne);
+      expect(find.textContaining('couldn\'t read the front'), findsOne);
       expect(find.textContaining('The photo on your ID is blurry'), findsOne);
       expect(find.text('Retake Photo'), findsOne);
       expect(find.text('Continue Anyway'), findsOne);
-      expect(find.text('Proceed to Manual Registration'), findsOne);
+      expect(find.text('Register Manually'), findsOne);
     });
 
     testWidgets('each button returns its choice', (tester) async {
       for (final (label, expected) in [
         ('Retake Photo', IdUnclearChoice.retake),
         ('Continue Anyway', IdUnclearChoice.proceed),
-        ('Proceed to Manual Registration', IdUnclearChoice.manual),
+        ('Register Manually', IdUnclearChoice.manual),
       ]) {
         IdUnclearChoice? choice;
         await tester.pumpWidget(
@@ -150,7 +150,7 @@ void main() {
 
       expect(find.text('Retake Photo'), findsOne);
       expect(find.text('Continue Anyway'), findsOne);
-      expect(find.text('Proceed to Manual Registration'), findsNothing);
+      expect(find.text('Register Manually'), findsNothing);
     });
   });
 

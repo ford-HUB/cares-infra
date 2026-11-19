@@ -49,7 +49,7 @@ export type RegistrationReviewKind = (typeof REGISTRATION_REVIEW_KINDS)[number];
  * The review request a self-registered beneficiary or alumnus files with their
  * sign-up — written in the same transaction as the account, so the account never
  * exists without it. A beneficiary attaches a supporting document; an alumnus
- * attaches the alumni ID they uploaded instead of being face verified.
+ * attaches the alumni ID they uploaded and the selfie matched against it.
  */
 export interface RegistrationReviewRequestInput {
   kind: RegistrationReviewKind;
@@ -59,6 +59,9 @@ export interface RegistrationReviewRequestInput {
   document?: { url: string; name: string; mime: string; sizeBytes: number };
   idFrontUrl?: string;
   idBackUrl?: string;
+  /** The face-scan selfie, for sign-ups face matched against their ID. */
+  selfieUrl?: string;
+  faceSimilarity?: number;
 }
 
 export type RegistrationConflictField = 'email' | 'phone_number' | 'id_number';
@@ -250,6 +253,8 @@ export class AuthRepository {
             summary: registrationRequest.summary,
             id_front_url: registrationRequest.idFrontUrl ?? null,
             id_back_url: registrationRequest.idBackUrl ?? null,
+            selfie_url: registrationRequest.selfieUrl ?? null,
+            face_similarity: registrationRequest.faceSimilarity ?? null,
             document_url: registrationRequest.document?.url ?? null,
             document_name: registrationRequest.document?.name ?? null,
             document_mime: registrationRequest.document?.mime ?? null,

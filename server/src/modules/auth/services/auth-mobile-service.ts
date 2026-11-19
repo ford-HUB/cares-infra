@@ -6,6 +6,7 @@ import {
 import {
   CreateUserDto,
   NewUserAccountDto,
+  ExtractIdDto,
   ExtractIdResponseDto,
   IdOcrResultDto,
   LoginDto,
@@ -457,9 +458,10 @@ export class AuthMobileService {
 
   /**
    * Opens an alumni registration. An alumni ID is not a UCLM student ID, so it is
-   * not run through the student-ID classifier, the face matcher or OCR: the
-   * alumnus types their details in, and a director checks them against this ID
-   * before the account opens (an ALUMNI_REGISTRATION request).
+   * not run through the student-ID classifier or OCR. The alumnus's face is
+   * matched against it (`verifyFace`), they type their details in, and a director
+   * checks them against this ID before the account opens (an
+   * ALUMNI_REGISTRATION request).
    */
   async uploadAlumniID(
     front: Express.Multer.File,
@@ -471,9 +473,10 @@ export class AuthMobileService {
   /**
    * Opens a partner-barangay volunteer registration. The volunteer presents a
    * valid ID (a barangay ID or another accepted ID) — not a UCLM school ID — so,
-   * as with an alumni ID, it skips the student-ID classifier, the face matcher and
-   * OCR. They type their details in, pick their partner barangay, and a director
-   * checks them before the account opens (a PARTNER_BARANGAY_REGISTRATION request).
+   * it skips the student-ID classifier, the face matcher and OCR. They type
+   * their details in, pick their partner barangay, and a director checks them
+   * against this ID before the account opens (a PARTNER_BARANGAY_REGISTRATION
+   * request).
    */
   async uploadPartnerBarangayID(
     front: Express.Multer.File,
@@ -666,19 +669,11 @@ export class AuthMobileService {
         'Face verification is only required for ID-backed registrations',
       );
     }
-    // An alumni, partner-barangay or manually registered ID is checked by a
-    // director, not matched against a face.
-    if (
-      session.idKind === 'alumni' ||
-      session.idKind === 'partner_barangay' ||
-      session.idKind === 'manual'
-    ) {
-      const who =
-        session.idKind === 'alumni'
-          ? 'Alumni'
-          : session.idKind === 'manual'
-            ? 'Manual'
-            : 'Partner barangay';
+    // A partner-barangay or manually registered ID is checked by a director,
+    // not matched against a face. An alumni ID is both: the alumnus's face is
+    // matched against it here, and a director still reviews the sign-up.
+    if (session.idKind === 'partner_barangay' || session.idKind === 'manual') {
+      const who = session.idKind === 'manual' ? 'Manual' : 'Partner barangay';
       throw new BadRequestException(
         `${who} registrations are reviewed by a director instead of face verification`,
       );
@@ -758,7 +753,15 @@ export class AuthMobileService {
     };
   }
 
-  async extractId(registrationId: string): Promise<ExtractIdResponseDto> {
+  /**
+   * [volunteerType] 'STAFF' reads the card as a staff / faculty ID: the OCR
+   * service then also looks for the employee number after "ID NO." and a
+   * "SURNAME, FIRST M." name.
+   */
+  async extractId(
+    registrationId: string,
+    volunteerType?: ExtractIdDto['volunteerType'],
+  ): Promise<ExtractIdResponseDto> {
     const session = await this.requireSession(registrationId);
 
     if (!session.idFrontImageUrl || !session.idBackImageUrl) {
@@ -802,6 +805,7 @@ export class AuthMobileService {
         'id-front.jpg',
         backImage,
         'id-back.jpg',
+        volunteerType,
       );
     } catch (error) {
       const detail =
@@ -848,8 +852,8 @@ export class AuthMobileService {
       );
     }
 
-    // An alumni session is locked to the Volunteer role it was opened for, and
-    // goes to a director instead of being face verified.
+    // An alumni session is locked to the Volunteer role it was opened for. It is
+    // face verified against the alumni ID and then goes to a director.
     const isAlumni = session.idKind === 'alumni';
     if (isAlumni && data.role_type !== RoleType.VOLUNTEER) {
       throw new BadRequestException(
@@ -930,13 +934,14 @@ export class AuthMobileService {
     }
 
     // Beneficiaries present no ID and enrol no face — their details are typed in
-    // and the email OTP is what vouches for them. Alumni present an alumni ID but
-    // enrol no face; a director checks the ID instead — and so do partner-barangay
-    // volunteers. Every other ID-backed role still needs the face that was
-    // matched against the ID.
+    // and the email OTP is what vouches for them. Partner-barangay and manual
+    // sign-ups present an ID but enrol no face; a director checks the ID instead.
+    // Every other ID-backed role — alumni included, who are also reviewed by a
+    // director — needs the face that was matched against the ID.
+    const enrolsFace = !isManual && !isPartnerBarangay;
     let biometric: CreateUserDto['biometric'];
     let schoolIdUrl: string | undefined;
-    if (session.idFrontImageUrl && isDirectorReviewedId) {
+    if (session.idFrontImageUrl && !enrolsFace) {
       schoolIdUrl = this.s3Service.buildObjectUrl(
         this.s3Service.resolveObjectKey(session.idFrontImageUrl),
       );
@@ -992,16 +997,18 @@ export class AuthMobileService {
       registrationRequest = {
         kind: UserRequestKind.ALUMNI_REGISTRATION,
         summary:
-          'Registered an alumni volunteer account and is waiting for approval to sign in.',
+          'Registered an alumni volunteer account and is waiting for approval to sign in. Their face was matched against the alumni ID.',
         actorName,
         idFrontUrl: session.idFrontImageUrl ?? undefined,
         idBackUrl: session.idBackImageUrl ?? undefined,
+        selfieUrl: session.selfieUrl ?? undefined,
+        faceSimilarity: session.faceSimilarity ?? undefined,
         document: supportingDocument ?? undefined,
       };
     } else if (isPartnerBarangay) {
       registrationRequest = {
         kind: UserRequestKind.PARTNER_BARANGAY_REGISTRATION,
-        summary: `Registered a volunteer account through ${data.partner_barangay} and is waiting for approval to sign in.`,
+        summary: `Registered a volunteer account through ${data.partner_barangay} and is waiting for approval to sign in. The ID was not photo-checked or face matched — verify it before approving.`,
         actorName,
         idFrontUrl: session.idFrontImageUrl ?? undefined,
         idBackUrl: session.idBackImageUrl ?? undefined,

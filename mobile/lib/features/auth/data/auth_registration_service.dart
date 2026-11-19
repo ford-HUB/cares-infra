@@ -60,16 +60,18 @@ class AuthRegistrationService {
   }
 
   /// Opens an alumni registration with the alumni ID's two sides. The server does
-  /// not run it through the student-ID check, a face scan or OCR — a director
-  /// reviews it with the registration instead.
+  /// not run it through the student-ID check or OCR; the face scan
+  /// ([verifyFace]) is matched against it, and a director reviews it with the
+  /// registration.
   Future<UploadIdResponse> uploadAlumniId({
     required XFile front,
     required XFile back,
   }) => _uploadReviewedId('/auth/upload-alumni-id', front: front, back: back);
 
   /// Opens a partner-barangay volunteer registration with the two sides of the
-  /// ID they present (a barangay ID or other valid ID). Like an alumni ID it is
-  /// not face matched or read by OCR — a director reviews it with the sign-up.
+  /// ID they present (a barangay ID or other valid ID). It is not photo
+  /// checked, face matched or read by OCR — a director reviews it with the
+  /// sign-up.
   Future<UploadIdResponse> uploadPartnerBarangayId({
     required XFile front,
     required XFile back,
@@ -176,10 +178,17 @@ class AuthRegistrationService {
     );
   }
 
-  Future<ExtractIdResponse> extractId({required String registrationId}) async {
+  /// [staffId] asks the OCR service to read the card as a staff/faculty ID.
+  Future<ExtractIdResponse> extractId({
+    required String registrationId,
+    bool staffId = false,
+  }) async {
     final response = await _api.postJson(
       '/auth/extract-id',
-      body: {'registrationId': registrationId},
+      body: {
+        'registrationId': registrationId,
+        if (staffId) 'volunteerType': 'STAFF',
+      },
       timeout: const Duration(seconds: 90),
     );
 

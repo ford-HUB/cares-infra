@@ -565,6 +565,11 @@ export class AuthSiteService {
   private buildAccessRequestAttachments(
     files: Express.Multer.File[],
   ): MailAttachment[] {
+    if (files.length === 0) {
+      throw new BadRequestException(
+        'Attach at least one ID document for verification',
+      );
+    }
     if (files.length > ACCESS_REQUEST_MAX_FILES) {
       throw new BadRequestException(
         `Attach at most ${ACCESS_REQUEST_MAX_FILES} files`,

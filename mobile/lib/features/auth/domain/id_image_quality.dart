@@ -313,12 +313,18 @@ abstract final class IdTextReadabilityRules {
   /// Labels of the identifying fields that can't be read from [frontText]
   /// and [backText] combined. With only the front available, finding either
   /// the name or the ID number is enough to show it is the right side; once
-  /// both sides are in, both must be found.
+  /// both sides are in, both must be found. [staffId] reads the card as a
+  /// staff/faculty ID (see [RegisterOcrRawParser.parse]).
   static List<String> missingKeyFields({
     required String frontText,
     String? backText,
+    bool staffId = false,
   }) {
-    final parsed = RegisterOcrRawParser.parse(frontText, backText ?? '');
+    final parsed = RegisterOcrRawParser.parse(
+      frontText,
+      backText ?? '',
+      staffId: staffId,
+    );
     final hasName =
         parsed.firstname.trim().isNotEmpty && parsed.lastname.trim().isNotEmpty;
     final hasIdNumber = parsed.idNumber.trim().isNotEmpty;

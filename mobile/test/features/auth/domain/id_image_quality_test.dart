@@ -86,10 +86,7 @@ void main() {
     test('rejects a blurry photo', () {
       final sharp = img.decodePng(cardPhoto())!;
       final blurred = img.gaussianBlur(sharp, radius: 12);
-      expect(
-        issuesOf(img.encodePng(blurred)),
-        contains(IdImageIssue.blurry),
-      );
+      expect(issuesOf(img.encodePng(blurred)), contains(IdImageIssue.blurry));
     });
 
     test('rejects a featureless, washed-out photo', () {
@@ -141,6 +138,36 @@ void main() {
           backText: back,
         ),
         ['ID number'],
+      );
+    });
+
+    test('a clear staff ID passes only when read as a staff ID', () {
+      const facultyFront =
+          'university of cebu\n'
+          'LAPU-LAPU & MANDAUE CAMPUS\n'
+          'A.C. Cortes Ave., Mandaue City\n'
+          'ID NO. 201346\n'
+          'REYES, JESIECA C.\n'
+          'SIGNATURE\n'
+          'COLLEGE FACULTY.\n';
+      expect(IdTextReadabilityRules.missingKeyFields(frontText: facultyFront), [
+        'name',
+        'ID number',
+      ]);
+      expect(
+        IdTextReadabilityRules.missingKeyFields(
+          frontText: facultyFront,
+          staffId: true,
+        ),
+        isEmpty,
+      );
+      expect(
+        IdTextReadabilityRules.missingKeyFields(
+          frontText: facultyFront,
+          backText: back,
+          staffId: true,
+        ),
+        isEmpty,
       );
     });
   });

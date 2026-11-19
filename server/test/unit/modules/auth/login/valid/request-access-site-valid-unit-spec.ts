@@ -12,6 +12,7 @@ import {
   ACCESS_REQUEST,
   ACCESS_REQUEST_RECIPIENT,
   BODY_PREFIX,
+  ID_ATTACHMENT,
   MODULE,
   Upload,
   VALID_ACCESS_REQUEST as VALID,
@@ -23,8 +24,9 @@ import {
 
 /**
  * Request Access — valid inputs. The form is mailed to the administrators'
- * inbox with the sender as Reply-To; text is HTML-escaped in the mail, and up to
- * five PDF / image / Word attachments (5 MB each, 15 MB combined) ride along.
+ * inbox with the sender as Reply-To; text is HTML-escaped in the mail, and one to
+ * five PDF / image / Word attachments (5 MB each, 15 MB combined) ride along — at
+ * least one ID document is required, so every case below attaches one.
  */
 const testCase = defineCases({ module: MODULE, unit: 'Request Access', kind: 'valid', prefix: 'ACCESS' });
 
@@ -41,7 +43,7 @@ const FREE_TEXT_FAMILIES: [string, SecurityPayload[]][] = [
 describe('Request Access — valid inputs', () => {
   const ctx = useAuthSiteApp();
 
-  const expectDelivered = async (fields: Record<string, string>, files: Upload[] = []) => {
+  const expectDelivered = async (fields: Record<string, string>, files: Upload[] = [ID_ATTACHMENT]) => {
     const outcome = await postAccessRequest(ctx, fields, files);
     expect(outcome.status).toBe(200);
     expect(outcome.body).toEqual({
@@ -54,15 +56,20 @@ describe('Request Access — valid inputs', () => {
   };
 
   testCase(
-    'Volunteer fills in email, subject and message',
-    '"Access request sent" — mailed to the admin inbox with the volunteer as Reply-To',
+    'Volunteer fills in email, subject and message and attaches their ID',
+    '"Access request sent" — mailed to the admin inbox with the volunteer as Reply-To and the ID attached',
     () => {
       acceptedBySchema(ACCESS_REQUEST, VALID);
       it('layer 2 — api delivers the request', async () => {
         const [to, subject, , options] = await expectDelivered(VALID);
         expect(to).toBe(ACCESS_REQUEST_RECIPIENT);
         expect(subject).toBe(VALID.subject);
-        expect(options).toEqual(expect.objectContaining({ replyTo: VALID.from_email, attachments: [] }));
+        expect(options).toEqual(
+          expect.objectContaining({
+            replyTo: VALID.from_email,
+            attachments: [expect.objectContaining({ filename: ID_ATTACHMENT.filename })],
+          }),
+        );
       });
     },
   );

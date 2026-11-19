@@ -13,6 +13,7 @@ import {
   VerifyResetOtpSchema,
   ExtractIdResponseSchema,
   PARTNER_BARANGAYS,
+  ExtractIdSchema,
   IdOcrResultSchema,
   LoginResponseSchema,
   LoginSchema,
@@ -52,6 +53,7 @@ export type MajorDto = UserSchoolInfoDto['major'];
 export type YearLevelDto = UserSchoolInfoDto['year_level'];
 
 export type RegistrationIdDto = z.infer<typeof RegistrationIdSchema>;
+export type ExtractIdDto = z.infer<typeof ExtractIdSchema>;
 export type StartSessionDto = z.infer<typeof StartSessionSchema>;
 export type RegisterFromSessionDto = z.infer<typeof RegisterFromSessionSchema>;
 export type SendVerificationDto = z.infer<typeof SendVerificationSchema>;

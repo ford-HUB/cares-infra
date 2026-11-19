@@ -53,7 +53,11 @@ class IdExtractionReview {
     final hasDevice =
         deviceFrontText.trim().isNotEmpty || deviceBackText.trim().isNotEmpty;
     final device = hasDevice
-        ? RegisterOcrRawParser.parse(deviceFrontText, deviceBackText)
+        ? RegisterOcrRawParser.parse(
+            deviceFrontText,
+            deviceBackText,
+            staffId: volunteerType == VolunteerType.staff,
+          )
         : null;
     final flags = <IdFieldFlag>[];
     var data = server;

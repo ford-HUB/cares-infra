@@ -23,7 +23,7 @@ Submitted via CARES Administrator Portal — Request Access.`
 export const REGISTRATION_GUIDELINES = [
   'Administrator accounts require approval before you can sign in.',
   'Fill in the message using: first name, middle name, last name, role, and department.',
-  'Attach a valid ID (PDF, image, or DOCX). GIF, video, and oversized files are rejected.',
+  'Attaching a valid ID (PDF, image, or DOCX) is required. GIF, video, and oversized files are rejected.',
   'An administrator will review your request and email you when access is approved.',
   'Once approved, return to the login page and sign in with your credentials.',
 ] as const
@@ -38,6 +38,10 @@ export const REQUEST_ACCESS_MAX_FILE_BYTES = 5 * 1024 * 1024
 export const REQUEST_ACCESS_MAX_TOTAL_BYTES = 15 * 1024 * 1024
 
 export const REQUEST_ACCESS_MAX_FILES = 5
+
+/** Shown when the form is submitted with no ID attached; matches the server's refusal. */
+export const REQUEST_ACCESS_ATTACHMENT_REQUIRED_MESSAGE =
+  'Attach at least one ID document for verification'
 
 export const REQUEST_ACCESS_ALLOWED_MIME_TYPES = [
   'application/pdf',
