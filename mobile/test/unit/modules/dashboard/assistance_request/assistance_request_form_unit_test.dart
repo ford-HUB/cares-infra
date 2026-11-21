@@ -22,6 +22,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -423,6 +424,9 @@ void main() {
   });
 
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );
@@ -1240,5 +1244,147 @@ void main() {
     final filed = _filed();
     expect(filed.location, const LatLng(10.3297, 123.9496));
     expect(_filed(pinned: false).location, isNull);
+  });
+
+  // -------------------------------------------------------------------------
+  // Invalid fields
+  // -------------------------------------------------------------------------
+
+  group('invalid fields', () {
+    testWidgets('the description is capped at 500 characters', (tester) async {
+      await _openForm(tester);
+      await _pickNeed(tester, 'Food Pack');
+
+      await _describe(tester, 'x' * 650);
+
+      expect(_text(tester, _descriptionHint), hasLength(500));
+      expect(_enabled(tester, 'Submit Request'), isTrue);
+    });
+
+    testWidgets('an over-long description is sent cut to 500 characters', (
+      tester,
+    ) async {
+      await _openForm(tester);
+      await _pickNeed(tester, 'Food Pack');
+      await _describe(tester, 'y' * 501);
+
+      await _tapSubmit(tester, 'Submit Request');
+
+      final fields = _fieldsOf(_server.where('POST', _minePath).single);
+      expect(fields['description'], hasLength(500));
+    });
+
+    testWidgets('"Other" filled in without a description cannot be submitted', (
+      tester,
+    ) async {
+      await _openForm(tester);
+
+      await _pickNeed(tester, kOtherOption);
+      await tester.enterText(_field(_otherHint), 'Roofing materials');
+      await tester.pump();
+
+      expect(_enabled(tester, 'Submit Request'), isFalse);
+      expect(find.text(_incompleteHint), findsOneWidget);
+    });
+
+    testWidgets('clearing "Other" again locks the form', (tester) async {
+      await _openForm(tester);
+
+      await _pickNeed(tester, kOtherOption);
+      await tester.enterText(_field(_otherHint), 'Roofing materials');
+      await _describe(tester, 'Our roof was torn off by the typhoon.');
+      expect(_enabled(tester, 'Submit Request'), isTrue);
+
+      await tester.enterText(_field(_otherHint), '');
+      await tester.pump();
+
+      expect(_enabled(tester, 'Submit Request'), isFalse);
+    });
+
+    testWidgets('"Other" of tabs and newlines does not count', (tester) async {
+      await _openForm(tester);
+
+      await _pickNeed(tester, kOtherOption);
+      await _describe(tester, 'Our roof was torn off by the typhoon.');
+      await tester.enterText(_field(_otherHint), '\t\n \t');
+      await tester.pump();
+
+      expect(_enabled(tester, 'Submit Request'), isFalse);
+    });
+
+    testWidgets('an incomplete form sends nothing even if Submit is tapped', (
+      tester,
+    ) async {
+      await _openForm(tester);
+      await _describe(tester, 'We lost our rice supply in the flood.');
+
+      await tester.tap(_button('Submit Request'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(_server.where('POST', _minePath), isEmpty);
+      expect(find.byType(AssistanceRequestFormScreen), findsOneWidget);
+    });
+
+    testWidgets('markup and quotes are sent as plain text, not stripped', (
+      tester,
+    ) async {
+      const typed = '<b>Help</b> & "rice" — 50% off? \' OR 1=1 --';
+      await _openForm(tester);
+      await _pickNeed(tester, 'Food Pack');
+      await _describe(tester, '  $typed  ');
+
+      await _tapSubmit(tester, 'Submit Request');
+
+      final fields = _fieldsOf(_server.where('POST', _minePath).single);
+      expect(fields['description'], typed);
+    });
+
+    testWidgets('a server validation refusal keeps what was typed', (
+      tester,
+    ) async {
+      _server.onCreate = (_) async =>
+          _fail(400, 'Description contains invalid characters.');
+      await _openForm(tester);
+      await _pickNeed(tester, 'Food Pack');
+      await _describe(tester, 'Help <script>alert(1)</script>');
+
+      await _tapSubmit(tester, 'Submit Request');
+
+      expect(
+        find.text('Description contains invalid characters.'),
+        findsOneWidget,
+      );
+      expect(
+        _text(tester, _descriptionHint),
+        'Help <script>alert(1)</script>',
+      );
+      expect(_enabled(tester, 'Submit Request'), isTrue);
+    });
+
+    testWidgets('editing into "Other" without naming it blocks Save', (
+      tester,
+    ) async {
+      await _openForm(tester, editing: _filed());
+
+      await tester.tap(find.text('Food Pack').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(kOtherOption).last);
+      await tester.pumpAndSettle();
+
+      expect(_field(_otherHint), findsOneWidget);
+      expect(_enabled(tester, 'Save Changes'), isFalse);
+      expect(_server.where('PATCH', '$_minePath/req-1'), isEmpty);
+    });
+
+    testWidgets('editing the description to only spaces blocks Save', (
+      tester,
+    ) async {
+      await _openForm(tester, editing: _filed());
+
+      await _describe(tester, '     ');
+
+      expect(_enabled(tester, 'Save Changes'), isFalse);
+      expect(find.text(_incompleteHint), findsOneWidget);
+    });
   });
 }

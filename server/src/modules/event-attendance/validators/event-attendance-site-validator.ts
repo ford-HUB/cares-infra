@@ -42,8 +42,15 @@ export const EventAttendeeResponseSchema = z.object({
   year_level: z.string().nullable(),
   status: z.enum(AttendanceStatus),
   validation_method: z.enum(GeoValidationMethod).nullable(),
+  /** Time in: the first reading inside the event zone. */
   first_ping_at: z.string().nullable(),
+  /** The last reading inside the event zone so far, settled or not. */
   last_ping_at: z.string().nullable(),
+  /**
+   * Time out: when the volunteer left the zone for good. Null while they are still
+   * inside, or out for less than the departure buffer mid-event (a break).
+   */
+  time_out_at: z.string().nullable(),
   hours_rendered: z.number().nullable(),
   remarks: z.string().nullable(),
   registered_at: z.string(),
@@ -124,6 +131,8 @@ export const LiveAttendeeResponseSchema = z.object({
   validation_method: z.enum(GeoValidationMethod).nullable(),
   first_ping_at: z.string().nullable(),
   last_ping_at: z.string().nullable(),
+  /** Time out, as on the roster: null while inside or on a break under the buffer. */
+  time_out_at: z.string().nullable(),
   /** Metres from the fence at the last reading; 0 when inside. */
   distance_meters: z.number().nullable(),
   /** Share (0–1) of the event so far the readings place inside the fence. */

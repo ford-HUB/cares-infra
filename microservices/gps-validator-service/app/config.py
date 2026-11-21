@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     # Readings this close to the boundary (metres) still count as inside —
     # consumer GPS wobbles, the fence was hand-drawn.
     boundary_tolerance_m: float = 10.0
+    # How long a volunteer may be out of the zone (lunch, a quick errand) before
+    # the exit counts as their time out. Mid-event, a time out is only settled
+    # once they have been gone this long without coming back. Keep in step with
+    # DEPARTURE_BUFFER_MS in the server's event-attendance module.
+    departure_buffer_seconds: int = 3600
 
     # --- anomaly detection -------------------------------------------------
     # Ground speed above this (m/s) between two readings is not human movement.

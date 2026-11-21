@@ -70,6 +70,25 @@ function SelectAllCheckbox({
   )
 }
 
+/**
+ * "7:21 AM – 4:58 PM". The time out stays a dash while the volunteer is still in the
+ * zone or out on a break the server has not yet settled (under an hour mid-event).
+ */
+function TimeInOut({ attendee }: { attendee: EventAttendee }) {
+  if (!attendee.checkedInAt) return <span className="text-gray-400">—</span>
+  return (
+    <>
+      {formatTimeOfDay(attendee.checkedInAt)}
+      <span className="mx-1 text-gray-300">–</span>
+      {attendee.checkedOutAt ? (
+        formatTimeOfDay(attendee.checkedOutAt)
+      ) : (
+        <span className="text-gray-400">—</span>
+      )}
+    </>
+  )
+}
+
 const cellBorder = ATTENDEE_CELL_BORDER
 const cellBase = ATTENDEE_CELL_BASE
 const gutter = ATTENDEE_GUTTER_CELL
@@ -232,7 +251,7 @@ export function AttendeesTable({
                   </td>
 
                   <td className={`${cellBorder} ${cellBase} text-gray-600 tabular-nums`}>
-                    {attendee.checkedInAt ? formatTimeOfDay(attendee.checkedInAt) : '—'}
+                    <TimeInOut attendee={attendee} />
                   </td>
 
                   <td className={`${cellBorder} ${cellBase} text-gray-600`}>

@@ -1,384 +1,334 @@
-import { asCase } from '../../../../config/test-case';
-import { BadRequestException } from '@nestjs/common';
+import { DonationPaymentMethod } from '../../../../../src/infastructures/prisma/common/client';
 import {
-  expectSafeErrorEnvelope,
-  runApiLayer,
+  ACCOUNT_NAME_MAX,
+  ACCOUNT_NUMBER_MAX,
+  DISPLAY_NAME_MAX,
+  INSTRUCTIONS_MAX,
+  SECRET_KEY_MAX,
+  SECRET_KEY_MIN,
+  STATEMENT_NAME_MAX,
+  UpdatePaymentSettingsSchema,
+} from '../../../../../src/modules/payments/validators/payments-site-validator';
+import { PAYMENT_CHANNEL_CODES } from '../../../../../src/shared/constants/payment-methods';
+import { DONATION_MAX_AMOUNT } from '../../../../../src/modules/donations/validators/donations-mobile-validator';
+import {
   LayerFixture,
-  autoMock,
+  expectLayer,
   expectValidationEnvelope,
+  runApiLayer,
   runSchemaLayer,
-  withPollution,
 } from '../../../../config/layer-harness';
+import { fixtureCases } from '../../../../config/test-case';
 import {
   CONFIRM_ENDPOINT,
-  ENDPOINTS,
-  PROOF_ENDPOINT,
-  usePaymentsApp,
   METHOD_ENDPOINTS,
+  SETTINGS_RESPONSE,
   TEST_ENDPOINT,
   VALID_CONFIRM,
   VALID_METHOD,
   VALID_TEST,
   describeBodyTable,
   describeMethodTable,
-  CALLER,
-  VERIFY_ENDPOINT,
-  BODY_ENDPOINTS,
+  usePaymentsApp,
 } from '../payments-site-support';
-import { DonationPaymentMethod } from '../../../../../src/infastructures/prisma/common/client';
-import { SECRET_KEY_MAX, SECRET_KEY_MIN, UpdatePaymentSettingsSchema } from '../../../../../src/modules/payments/validators/payments-site-validator';
-import { PaymentsSiteService } from '../../../../../src/modules/payments/services/payments-site-service';
-import {
-  CONTROL_CHAR_PAYLOADS,
-  HOSTILE_STRINGS,
-  MASS_ASSIGNMENT_KEYS,
-  OPERATOR_INJECTION_PAYLOADS,
-  PROTOTYPE_POLLUTION_BODIES,
-  SSRF_URL_PAYLOADS,
-} from '../../../../config/security-payloads';
 
 /**
- * Payments Module · Payment Gateway Settings — invalid inputs.
+ * Payments Module · Payment Gateway Settings — invalid inputs (field validation).
  *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
+ * Every case here is an intentionally wrong value for one field of the portal's
+ * Payments screen. A case Passes when the request is refused with "Validation failed"
+ * (400) on that field — and, where the schema defines one, the exact message — without
+ * reaching the service. Each fixture keeps every other field valid, so the named field
+ * is the only reason it can fail.
+ *
+ *   :method  POST …/methods/:method/verify · /account-proof · /account-proof/confirm
+ *   amount   POST …/methods/:method/account-proof/confirm   (ConfirmAccountProofSchema)
+ *   key, url POST …/settings/test                           (TestPaymentGatewaySchema)
+ *   the form PUT  …/settings                                (UpdatePaymentSettingsSchema)
+ *
  * The valid cases for this unit live in ../valid/.
  */
 
-/* ── error handling ──────────────────────────────────────────────────────── */
-{
-  /**
-   * Payments POST actions — error handling: unexpected service errors and a response the
-   * serializer refuses are masked as a generic 500 with nothing leaked, and the service's
-   * deliberate HttpExceptions keep their status and message through the envelope.
-   */
-  const DELIBERATE_ERRORS = [
-    {
-      title: 'account-proof · 400 for an account that fails its check',
-      endpoint: PROOF_ENDPOINT,
-      error: new BadRequestException('That is not a Philippine mobile number — a GCash account is 11 digits, e.g. 09171234567.'),
-    },
-    {
-      title: 'account-proof · 400 for a channel with no payout route',
-      endpoint: PROOF_ENDPOINT,
-      error: new BadRequestException('CARES cannot send a test payout to a Card account.'),
-    },
-    {
-      title: 'confirm · 400 for a channel that is not set up',
-      endpoint: CONFIRM_ENDPOINT,
-      error: new BadRequestException('That payment method is not set up yet'),
-    },
-    {
-      title: 'confirm · 400 when no payout is waiting',
-      endpoint: CONFIRM_ENDPOINT,
-      error: new BadRequestException('There is no test payout waiting to be confirmed. Send one first.'),
-    },
-  ];
+const UNKNOWN_METHOD = 'Unknown payment method';
+const NOT_A_KEY = 'That does not look like a Xendit secret key';
+const ONE_LINE = 'Cannot contain control characters';
+const WHOLE_PESOS = 'Enter the amount in whole pesos';
+const TOO_MUCH = 'That is far more than CARES would ever send';
+const UNKNOWN_CHANNEL = 'Unknown payment channel';
+const MAX_BELOW_MIN = 'The maximum must not be below the minimum';
+const METHOD_ONCE = 'Each payment method may appear only once';
 
-  describe('payments site · POST actions — error handling', () => {
-    const ctx = usePaymentsApp();
+/* ── :method ─────────────────────────────────────────────────────────────── */
+const methodFixtures: LayerFixture<string>[] = [
+  { name: 'Director picks a payment method in lower case (gcash)', input: VALID_METHOD.toLowerCase(), expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+  { name: 'Director picks a payment method by its label (GCash)', input: 'GCash', expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+  { name: 'Director picks a payment method that does not exist (PAYPAL)', input: 'PAYPAL', expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+  { name: 'Director picks a bank channel code instead of a method (BPI)', input: 'BPI', expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+  { name: 'Director picks a payment method with surrounding spaces', input: ` ${VALID_METHOD} `, expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+  { name: 'Director sends two payment methods at once', input: `${VALID_METHOD},${DonationPaymentMethod.CARD}`, expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+  { name: 'Director sends a method number instead of its name (0)', input: '0', expected: 'FAIL', field: '', message: UNKNOWN_METHOD },
+];
 
-    describe.each(ENDPOINTS)('$title', (endpoint) => {
-      const send = () =>
-        runApiLayer(ctx.app, { method: 'post', path: endpoint.path(), body: endpoint.validBody });
+/* ── confirm: amount ─────────────────────────────────────────────────────── */
+const confirmFixtures: LayerFixture[] = [
+  { name: 'Director confirms without entering the amount', input: {}, expected: 'FAIL', field: 'amount' },
+  { name: 'Director reports an amount of 0', input: { amount: 0 }, expected: 'FAIL', field: 'amount' },
+  { name: 'Director reports a negative amount', input: { amount: -1 }, expected: 'FAIL', field: 'amount' },
+  { name: 'Director reports 1001 pesos, one over the limit', input: { amount: 1001 }, expected: 'FAIL', field: 'amount', message: TOO_MUCH },
+  { name: 'Director reports an amount with centavos (1.50)', input: { amount: 1.5 }, expected: 'FAIL', field: 'amount', message: WHOLE_PESOS },
+  { name: 'Director reports the amount as text ("7")', input: { amount: '7' }, expected: 'FAIL', field: 'amount' },
+  { name: 'Director reports the amount with a peso sign ("₱7")', input: { amount: '₱7' }, expected: 'FAIL', field: 'amount' },
+  { name: 'Director sends an empty amount', input: { amount: '' }, expected: 'FAIL', field: 'amount' },
+  { name: 'Director sends the amount as null', input: { amount: null }, expected: 'FAIL', field: 'amount' },
+  { name: 'Client sends the amount as "amount_php" instead of "amount"', input: { amount_php: VALID_CONFIRM.amount }, expected: 'FAIL', field: 'amount' },
+];
 
-      asCase('invalid', 'The service fails with an unexpected internal or database error').it('masks an unexpected service error as a 500 without leaking detail', async () => {
-        ctx.service[endpoint.handler].mockRejectedValueOnce(new Error('syntax error at or near "OR"') as never);
-        const outcome = await send();
-        expect(outcome.status).toBe(500);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body).toEqual({ ok: false, message: 'Internal server error' });
-      });
+/* ── test connection: secret_key, api_url ────────────────────────────────── */
+const testFixtures: LayerFixture[] = [
+  { name: 'Director tests an empty key', input: { secret_key: '' }, expected: 'FAIL', field: 'secret_key' },
+  { name: 'Director tests a key of only spaces', input: { secret_key: ' '.repeat(SECRET_KEY_MIN) }, expected: 'FAIL', field: 'secret_key' },
+  {
+    name: `Director tests a key of ${SECRET_KEY_MIN - 1} characters, one under the minimum`,
+    input: { secret_key: 'k'.repeat(SECRET_KEY_MIN - 1) },
+    expected: 'FAIL',
+    field: 'secret_key',
+  },
+  {
+    name: `Director tests a key of ${SECRET_KEY_MAX + 1} characters, one over the maximum`,
+    input: { secret_key: 'k'.repeat(SECRET_KEY_MAX + 1) },
+    expected: 'FAIL',
+    field: 'secret_key',
+  },
+  {
+    name: 'Director pastes a key that wraps onto two lines',
+    input: { secret_key: `${VALID_TEST.secret_key.slice(0, 22)}\n${VALID_TEST.secret_key.slice(22)}` },
+    expected: 'FAIL',
+    field: 'secret_key',
+    message: ONE_LINE,
+  },
+  { name: 'Director sends the key as null', input: { secret_key: null }, expected: 'FAIL', field: 'secret_key' },
+  { name: 'Director tests a gateway URL over plain http', input: { api_url: 'http://api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director tests a gateway URL without a scheme', input: { api_url: 'api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director tests a gateway URL that is only a scheme', input: { api_url: 'https://' }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director tests a gateway URL of only spaces', input: { api_url: '   ' }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director sends the gateway URL as null', input: { api_url: null }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director tries to switch the gateway to LIVE while testing', input: { ...VALID_TEST, mode: 'LIVE' }, expected: 'FAIL' },
+];
 
-      asCase('invalid', 'The service returns data that breaks the response schema').it('masks a response the serializer refuses as a 500', async () => {
-        ctx.service[endpoint.handler].mockResolvedValueOnce({ secret_key_cipher: 'stored-key-cipher' } as never);
-        const outcome = await send();
-        expect(outcome.status).toBe(500);
-        expect(outcome.body).toEqual({ ok: false, message: 'Internal server error' });
-      });
+/* ── save settings (PUT) ─────────────────────────────────────────────────── */
+const SETTINGS_PATH = '/api/v1/payments/settings';
+const VALID_SETTINGS = { mode: 'TEST', enabled: true, methods: [] as unknown[] };
+const VALID_ENTRY = { method: DonationPaymentMethod.GCASH, enabled: true };
+const CHANNEL = PAYMENT_CHANNEL_CODES[0];
+
+/** The valid form with `field` removed. */
+const settingsWithout = (field: keyof typeof VALID_SETTINGS) => {
+  const { [field]: _omitted, ...rest } = VALID_SETTINGS;
+  return rest;
+};
+/** The valid form with one method entry, `patch` applied to it. */
+const withEntry = (patch: Record<string, unknown>) => ({ ...VALID_SETTINGS, methods: [{ ...VALID_ENTRY, ...patch }] });
+/** The valid form with one method entry missing `field`. */
+const entryWithout = (field: keyof typeof VALID_ENTRY) => {
+  const { [field]: _omitted, ...rest } = VALID_ENTRY;
+  return { ...VALID_SETTINGS, methods: [rest] };
+};
+
+const settingsFixtures: LayerFixture[] = [
+  // mode / enabled
+  { name: 'Director saves without a gateway mode', input: settingsWithout('mode'), expected: 'FAIL', field: 'mode' },
+  { name: 'Director saves the gateway mode in lower case (test)', input: { ...VALID_SETTINGS, mode: 'test' }, expected: 'FAIL', field: 'mode' },
+  { name: 'Director saves a gateway mode that does not exist (SANDBOX)', input: { ...VALID_SETTINGS, mode: 'SANDBOX' }, expected: 'FAIL', field: 'mode' },
+  { name: 'Director saves without the on/off switch', input: settingsWithout('enabled'), expected: 'FAIL', field: 'enabled' },
+  { name: 'Director sends the on/off switch as the text "true"', input: { ...VALID_SETTINGS, enabled: 'true' }, expected: 'FAIL', field: 'enabled' },
+
+  // secret_key / webhook_token
+  { name: 'Director saves an empty secret key', input: { ...VALID_SETTINGS, secret_key: '' }, expected: 'FAIL', field: 'secret_key', message: NOT_A_KEY },
+  {
+    name: `Director saves a secret key of ${SECRET_KEY_MIN - 1} characters`,
+    input: { ...VALID_SETTINGS, secret_key: 'k'.repeat(SECRET_KEY_MIN - 1) },
+    expected: 'FAIL',
+    field: 'secret_key',
+    message: NOT_A_KEY,
+  },
+  {
+    name: `Director saves a secret key of ${SECRET_KEY_MAX + 1} characters`,
+    input: { ...VALID_SETTINGS, secret_key: 'k'.repeat(SECRET_KEY_MAX + 1) },
+    expected: 'FAIL',
+    field: 'secret_key',
+  },
+  {
+    name: 'Director saves a secret key that wraps onto two lines',
+    input: { ...VALID_SETTINGS, secret_key: `${VALID_TEST.secret_key.slice(0, 22)}\r\n${VALID_TEST.secret_key.slice(22)}` },
+    expected: 'FAIL',
+    field: 'secret_key',
+    message: ONE_LINE,
+  },
+  { name: 'Director saves a webhook token of 7 characters', input: { ...VALID_SETTINGS, webhook_token: 'tok-123' }, expected: 'FAIL', field: 'webhook_token' },
+  {
+    name: `Director saves a webhook token of ${SECRET_KEY_MAX + 1} characters`,
+    input: { ...VALID_SETTINGS, webhook_token: 't'.repeat(SECRET_KEY_MAX + 1) },
+    expected: 'FAIL',
+    field: 'webhook_token',
+  },
+  {
+    name: 'Director saves a webhook token that wraps onto two lines',
+    input: { ...VALID_SETTINGS, webhook_token: 'webhook-token\nvalue' },
+    expected: 'FAIL',
+    field: 'webhook_token',
+    message: ONE_LINE,
+  },
+
+  // api_url
+  { name: 'Director saves a gateway URL over plain http', input: { ...VALID_SETTINGS, api_url: 'http://api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director saves a gateway URL without a scheme', input: { ...VALID_SETTINGS, api_url: 'api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
+  { name: 'Director saves a gateway URL of only spaces', input: { ...VALID_SETTINGS, api_url: '   ' }, expected: 'FAIL', field: 'api_url' },
+
+  // statement_name / support_email / support_contact
+  {
+    name: `Director saves a statement name of ${STATEMENT_NAME_MAX + 1} characters`,
+    input: { ...VALID_SETTINGS, statement_name: 'a'.repeat(STATEMENT_NAME_MAX + 1) },
+    expected: 'FAIL',
+    field: 'statement_name',
+  },
+  { name: 'Director saves a support email with no domain (support@)', input: { ...VALID_SETTINGS, support_email: 'support@' }, expected: 'FAIL', field: 'support_email' },
+  { name: 'Director saves a support email with no @ (support.cares.ph)', input: { ...VALID_SETTINGS, support_email: 'support.cares.ph' }, expected: 'FAIL', field: 'support_email' },
+  { name: 'Director saves a support email with a space in it', input: { ...VALID_SETTINGS, support_email: 'support @cares.ph' }, expected: 'FAIL', field: 'support_email' },
+  {
+    name: `Director saves a support contact of ${ACCOUNT_NUMBER_MAX + 1} characters`,
+    input: { ...VALID_SETTINGS, support_contact: '0'.repeat(ACCOUNT_NUMBER_MAX + 1) },
+    expected: 'FAIL',
+    field: 'support_contact',
+  },
+
+  // methods (the list)
+  { name: 'Director saves without the list of payment methods', input: settingsWithout('methods'), expected: 'FAIL', field: 'methods' },
+  { name: 'Director sends one payment method instead of a list', input: { ...VALID_SETTINGS, methods: VALID_ENTRY }, expected: 'FAIL', field: 'methods' },
+  {
+    name: 'Director lists the same payment method twice',
+    input: { ...VALID_SETTINGS, methods: [VALID_ENTRY, VALID_ENTRY] },
+    expected: 'FAIL',
+    field: 'methods',
+    message: METHOD_ONCE,
+  },
+  { name: 'Director sends 21 payment method entries, one over the maximum', input: { ...VALID_SETTINGS, methods: Array(21).fill(VALID_ENTRY) }, expected: 'FAIL', field: 'methods' },
+
+  // methods[] entry
+  { name: 'Director saves a payment method entry without its method', input: entryWithout('method'), expected: 'FAIL', field: 'methods.0.method' },
+  { name: 'Director saves a payment method that does not exist (PAYPAL)', input: withEntry({ method: 'PAYPAL' }), expected: 'FAIL', field: 'methods.0.method' },
+  { name: 'Director saves a payment method in lower case (gcash)', input: withEntry({ method: 'gcash' }), expected: 'FAIL', field: 'methods.0.method' },
+  { name: 'Director saves a payment method entry without its on/off switch', input: entryWithout('enabled'), expected: 'FAIL', field: 'methods.0.enabled' },
+  { name: 'Director sends a method on/off switch as the text "yes"', input: withEntry({ enabled: 'yes' }), expected: 'FAIL', field: 'methods.0.enabled' },
+  {
+    name: `Director saves a display name of ${DISPLAY_NAME_MAX + 1} characters`,
+    input: withEntry({ display_name: 'a'.repeat(DISPLAY_NAME_MAX + 1) }),
+    expected: 'FAIL',
+    field: 'methods.0.display_name',
+  },
+  {
+    name: `Director saves payment instructions of ${INSTRUCTIONS_MAX + 1} characters`,
+    input: withEntry({ instructions: 'a'.repeat(INSTRUCTIONS_MAX + 1) }),
+    expected: 'FAIL',
+    field: 'methods.0.instructions',
+  },
+  {
+    name: `Director saves an account name of ${ACCOUNT_NAME_MAX + 1} characters`,
+    input: withEntry({ account_name: 'a'.repeat(ACCOUNT_NAME_MAX + 1) }),
+    expected: 'FAIL',
+    field: 'methods.0.account_name',
+  },
+  {
+    name: `Director saves an account number of ${ACCOUNT_NUMBER_MAX + 1} characters`,
+    input: withEntry({ account_number: '0'.repeat(ACCOUNT_NUMBER_MAX + 1) }),
+    expected: 'FAIL',
+    field: 'methods.0.account_number',
+  },
+  { name: 'Director sends the account number as a number', input: withEntry({ account_number: 9171234567 }), expected: 'FAIL', field: 'methods.0.account_number' },
+  {
+    name: 'Director picks a channel code that does not exist (XYZ)',
+    input: withEntry({ channel_codes: ['XYZ'] }),
+    expected: 'FAIL',
+    field: 'methods.0.channel_codes.0',
+    message: UNKNOWN_CHANNEL,
+  },
+  {
+    name: 'Director picks a channel code in lower case',
+    input: withEntry({ channel_codes: [CHANNEL.toLowerCase()] }),
+    expected: 'FAIL',
+    field: 'methods.0.channel_codes.0',
+    message: UNKNOWN_CHANNEL,
+  },
+  { name: 'Director sends one channel code instead of a list', input: withEntry({ channel_codes: CHANNEL }), expected: 'FAIL', field: 'methods.0.channel_codes' },
+  { name: 'Director sends 21 channel codes, one over the maximum', input: withEntry({ channel_codes: Array(21).fill(CHANNEL) }), expected: 'FAIL', field: 'methods.0.channel_codes' },
+  { name: 'Director sets a negative minimum amount', input: withEntry({ min_amount: -1 }), expected: 'FAIL', field: 'methods.0.min_amount' },
+  { name: 'Director sets a minimum amount with centavos (10.50)', input: withEntry({ min_amount: 10.5 }), expected: 'FAIL', field: 'methods.0.min_amount' },
+  {
+    name: `Director sets a minimum amount over the donation ceiling (${DONATION_MAX_AMOUNT + 1})`,
+    input: withEntry({ min_amount: DONATION_MAX_AMOUNT + 1 }),
+    expected: 'FAIL',
+    field: 'methods.0.min_amount',
+  },
+  { name: 'Director sends the minimum amount as text ("100")', input: withEntry({ min_amount: '100' }), expected: 'FAIL', field: 'methods.0.min_amount' },
+  { name: 'Director sets a negative maximum amount', input: withEntry({ max_amount: -1 }), expected: 'FAIL', field: 'methods.0.max_amount' },
+  {
+    name: `Director sets a maximum amount over the donation ceiling (${DONATION_MAX_AMOUNT + 1})`,
+    input: withEntry({ max_amount: DONATION_MAX_AMOUNT + 1 }),
+    expected: 'FAIL',
+    field: 'methods.0.max_amount',
+  },
+  {
+    name: 'Director sets a maximum amount below the minimum (100 to 50)',
+    input: withEntry({ min_amount: 100, max_amount: 50 }),
+    expected: 'FAIL',
+    field: 'methods.0.max_amount',
+    message: MAX_BELOW_MIN,
+  },
+  { name: 'Client sends a read-only field in a method entry (default_label)', input: withEntry({ default_label: 'GCash' }), expected: 'FAIL' },
+
+  // the form as a whole
+  { name: 'Client sends a read-only field with the form (secret_key_last4)', input: { ...VALID_SETTINGS, secret_key_last4: 'wxyz' }, expected: 'FAIL' },
+];
+
+/**
+ * PUT fixtures through both layers. The support's tables cover the POST actions only,
+ * so the save gets its own here; a FAIL must come back in the validation envelope
+ * without reaching the service.
+ */
+const describeSettingsTable = (ctx: ReturnType<typeof usePaymentsApp>, fixtures: LayerFixture[]) => {
+  fixtureCases(fixtures, (fixture) => {
+    it('layer 1 — schema', async () => {
+      expectLayer(await runSchemaLayer(UpdatePaymentSettingsSchema, fixture.input), fixture);
     });
 
-    asCase('invalid', 'The service refuses the request with a deliberate HTTP error (each kind)', 'Each deliberate error keeps its status and message in the { ok: false } envelope').it.each(DELIBERATE_ERRORS)('keeps $title', async ({ endpoint, error }) => {
-      ctx.service[endpoint.handler].mockRejectedValueOnce(error as never);
-      const outcome = await runApiLayer(ctx.app, { method: 'post', path: endpoint.path(), body: endpoint.validBody });
-      expect(outcome.status).toBe(error.getStatus());
-      expectSafeErrorEnvelope(outcome);
-      expect(outcome.body.message).toBe(error.message);
-    });
-  });
-}
-
-/* ── input validation ────────────────────────────────────────────────────── */
-{
-  /**
-   * Payments POST actions — input validation: the `:method` param, the reported payout
-   * amount and its bounds, and the optional key and URL of a connection test, plus
-   * legitimate inputs that must pass.
-   */
-  const methodFixtures: LayerFixture<string>[] = [
-    { name: 'lower-case method', input: VALID_METHOD.toLowerCase(), expected: 'FAIL', message: 'Unknown payment method' },
-    { name: 'unknown method', input: 'PAYPAL', expected: 'FAIL' },
-    { name: 'method with surrounding spaces', input: ` ${VALID_METHOD} `, expected: 'FAIL' },
-    { name: 'two methods', input: `${VALID_METHOD},${DonationPaymentMethod.CARD}`, expected: 'FAIL' },
-    { name: 'enum index instead of a method', input: '0', expected: 'FAIL' },
-  ];
-
-  const confirmFixtures: LayerFixture[] = [
-    { name: 'amount missing', input: {}, expected: 'FAIL', field: 'amount' },
-    { name: 'amount zero', input: { amount: 0 }, expected: 'FAIL', field: 'amount' },
-    { name: 'amount negative', input: { amount: -1 }, expected: 'FAIL', field: 'amount' },
-    {
-      name: 'amount over max',
-      input: { amount: 1001 },
-      expected: 'FAIL',
-      field: 'amount',
-      message: 'That is far more than CARES would ever send',
-    },
-    {
-      name: 'amount with centavos',
-      input: { amount: 1.5 },
-      expected: 'FAIL',
-      field: 'amount',
-      message: 'Enter the amount in whole pesos',
-    },
-    { name: 'amount past the safe integer range', input: { amount: Number.MAX_SAFE_INTEGER + 1 }, expected: 'FAIL', field: 'amount' },
-    { name: 'amount as a numeric string', input: { amount: '7' }, expected: 'FAIL', field: 'amount' },
-    { name: 'amount empty string', input: { amount: '' }, expected: 'FAIL', field: 'amount' },
-  ];
-
-  const testFixtures: LayerFixture[] = [
-    { name: 'secret_key under min', input: { secret_key: 'k'.repeat(SECRET_KEY_MIN - 1) }, expected: 'FAIL', field: 'secret_key' },
-    { name: 'secret_key over max', input: { secret_key: 'k'.repeat(SECRET_KEY_MAX + 1) }, expected: 'FAIL', field: 'secret_key' },
-    {
-      name: 'secret_key under min once trimmed',
-      input: { secret_key: `  ${'k'.repeat(SECRET_KEY_MIN - 1)}  ` },
-      expected: 'FAIL',
-      field: 'secret_key',
-    },
-    { name: 'secret_key empty', input: { secret_key: '' }, expected: 'FAIL', field: 'secret_key' },
-    { name: 'secret_key whitespace-only', input: { secret_key: ' '.repeat(SECRET_KEY_MIN) }, expected: 'FAIL', field: 'secret_key' },
-    { name: 'api_url over plain http', input: { api_url: 'http://api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
-    { name: 'api_url whitespace-only', input: { api_url: '   ' }, expected: 'FAIL', field: 'api_url' },
-    { name: 'api_url without a scheme', input: { api_url: 'api.xendit.co' }, expected: 'FAIL', field: 'api_url' },
-    { name: 'api_url scheme only', input: { api_url: 'https://' }, expected: 'FAIL', field: 'api_url' },
-  ];
-
-  describe('payments site · POST actions — input validation', () => {
-    const ctx = usePaymentsApp();
-
-    describe.each(METHOD_ENDPOINTS)('$title', (endpoint) => {
-      describe('method', () => describeMethodTable(ctx, endpoint, methodFixtures));
-    });
-
-    describe(CONFIRM_ENDPOINT.title, () => {
-      describe('body', () => describeBodyTable(ctx, CONFIRM_ENDPOINT, confirmFixtures));
-    });
-
-    describe(TEST_ENDPOINT.title, () => {
-      describe('body', () => describeBodyTable(ctx, TEST_ENDPOINT, testFixtures));
-    });
-  });
-}
-
-/* ── normalization ───────────────────────────────────────────────────────── */
-{
-  /**
-   * Payments POST actions — normalisation: the service receives the validated method, the
-   * caller from the token and the trimmed key; the two actions without a body ignore one;
-   * and the response schema keeps what must not reach the portal off the wire.
-   */
-  describe('payments site · POST actions — normalisation', () => {
-    const ctx = usePaymentsApp();
-
-    describe.each([VERIFY_ENDPOINT, PROOF_ENDPOINT])('$title', (endpoint) => {
-
-      asCase('invalid', 'Client sends body fields the endpoint does not accept').it('ignores a body it does not read', async () => {
-        await runApiLayer(ctx.app, { method: 'post', path: endpoint.path(), body: { method: 'CARD', sub: 'someone-else' } });
-        expect(ctx.service[endpoint.handler]).toHaveBeenCalledWith(VALID_METHOD, CALLER);
-      });
-    });
-  });
-}
-
-/* ── security ────────────────────────────────────────────────────────────── */
-{
-  /**
-   * Payments POST actions — security: hostile strings in the `:method` enum, the reported
-   * amount and the gateway URL (all must FAIL), per-class payloads in the secret key, type
-   * confusion, mass assignment, prototype pollution and malformed JSON.
-   */
-  const methodFixtures: LayerFixture<string>[] = [
-    ...HOSTILE_STRINGS.map((p): LayerFixture<string> => ({
-      name: `method ← ${p.category}: ${p.label}`,
-      input: p.value as string,
-      expected: 'FAIL',
-    })),
-    { name: 'method ← enum value with SQL tail', input: `${VALID_METHOD}' OR '1'='1`, expected: 'FAIL' },
-    { name: 'method ← enum value with stacked query', input: `${VALID_METHOD}; DROP TABLE "User"`, expected: 'FAIL' },
-  ];
-
-  const confirmFixtures: LayerFixture[] = [
-    ...HOSTILE_STRINGS.map((p): LayerFixture => ({
-      name: `amount ← ${p.category}: ${p.label}`,
-      input: { amount: p.value },
-      expected: 'FAIL',
-      field: 'amount',
-    })),
-    // A number is what this field wants, so that payload is not type confusion here.
-    ...OPERATOR_INJECTION_PAYLOADS.filter((p) => typeof p.value !== 'number').map((p): LayerFixture => ({
-      name: `amount ← ${p.category}: ${p.label}`,
-      input: { amount: p.value },
-      expected: 'FAIL',
-      field: 'amount',
-    })),
-    ...MASS_ASSIGNMENT_KEYS.map((extra): LayerFixture => ({
-      name: `mass assignment: ${Object.keys(extra).join(', ')}`,
-      input: { ...VALID_CONFIRM, ...extra },
-      expected: 'FAIL',
-    })),
-    // The method comes from the path and the proof state from the server's own record.
-    { name: 'mass assignment: method', input: { ...VALID_CONFIRM, method: 'CARD' }, expected: 'FAIL' },
-    { name: 'mass assignment: account_proof', input: { ...VALID_CONFIRM, account_proof: 'VERIFIED' }, expected: 'FAIL' },
-    { name: 'mass assignment: account_proof_attempts', input: { ...VALID_CONFIRM, account_proof_attempts: 0 }, expected: 'FAIL' },
-  ];
-
-  /** Padded past the minimum, so a payload is judged on its content and not on its length. */
-  const asSecretKey = (value: unknown) => `${'k'.repeat(SECRET_KEY_MIN)}${value as string}`;
-
-  const testFixtures: LayerFixture[] = [
-    // The field trims, so it is treated as sanitised, and a key is one line: unlike a
-    // reply's body, line breaks are not an exception.
-    ...CONTROL_CHAR_PAYLOADS.map((p): LayerFixture => ({
-      name: `secret_key ← ${p.category}: ${p.label}`,
-      input: { secret_key: asSecretKey(p.value) },
-      expected: 'FAIL',
-      field: 'secret_key',
-    })),
-    ...OPERATOR_INJECTION_PAYLOADS.map((p): LayerFixture => ({
-      name: `secret_key ← ${p.category}: ${p.label}`,
-      input: { secret_key: p.value },
-      expected: 'FAIL',
-      field: 'secret_key',
-    })),
-    ...HOSTILE_STRINGS.map((p): LayerFixture => ({
-      name: `api_url ← ${p.category}: ${p.label}`,
-      input: { api_url: p.value },
-      expected: 'FAIL',
-      field: 'api_url',
-    })),
-    // The server sends the key being tried to this address.
-    ...SSRF_URL_PAYLOADS.map((p): LayerFixture => ({
-      name: `api_url ← ${p.category}: ${p.label}`,
-      input: { api_url: p.value },
-      expected: 'FAIL',
-      field: 'api_url',
-    })),
-    ...OPERATOR_INJECTION_PAYLOADS.map((p): LayerFixture => ({
-      name: `api_url ← ${p.category}: ${p.label}`,
-      input: { api_url: p.value },
-      expected: 'FAIL',
-      field: 'api_url',
-    })),
-    ...MASS_ASSIGNMENT_KEYS.map((extra): LayerFixture => ({
-      name: `mass assignment: ${Object.keys(extra).join(', ')}`,
-      input: { ...VALID_TEST, ...extra },
-      expected: 'FAIL',
-    })),
-    // A connection test must not be able to change what the settings save holds.
-    { name: 'mass assignment: mode', input: { ...VALID_TEST, mode: 'LIVE' }, expected: 'FAIL' },
-    { name: 'mass assignment: enabled', input: { ...VALID_TEST, enabled: true }, expected: 'FAIL' },
-    { name: 'mass assignment: webhook_token', input: { ...VALID_TEST, webhook_token: 'token-value' }, expected: 'FAIL' },
-  ];
-
-  describe('payments site · POST actions — security', () => {
-    const ctx = usePaymentsApp();
-
-    describe.each(METHOD_ENDPOINTS)('$title', (endpoint) => {
-      describe('method', () => describeMethodTable(ctx, endpoint, methodFixtures));
-    });
-
-    describe(CONFIRM_ENDPOINT.title, () => {
-      describe('body', () => describeBodyTable(ctx, CONFIRM_ENDPOINT, confirmFixtures));
-    });
-
-    describe(TEST_ENDPOINT.title, () => {
-      describe('body', () => describeBodyTable(ctx, TEST_ENDPOINT, testFixtures));
-
-      asCase('invalid', 'Staff enters a gateway key that is rejected').it('does not echo a rejected key back', async () => {
-        const secret_key = 'xnd_rejected_key';
-        const outcome = await runApiLayer(ctx.app, { method: 'post', path: TEST_ENDPOINT.path(), body: { secret_key } });
-        expectValidationEnvelope(outcome);
-        expect(JSON.stringify(outcome.body)).not.toContain(secret_key);
-      });
-    });
-
-    describe.each(BODY_ENDPOINTS)('$title', (endpoint) => {
-      asCase('invalid', 'Attacker adds a role_type field to the body', 'Rejected and reported as unrecognized_keys').it('mass assignment is reported as unrecognized_keys', async () => {
-        const outcome = await runSchemaLayer(endpoint.schema, { ...endpoint.validBody, role_type: 'ADMIN' });
-        expect(outcome.issues).toEqual(
-          expect.arrayContaining([expect.objectContaining({ code: 'unrecognized_keys' })]),
-        );
-      });
-
-      asCase('invalid', 'Attacker sends a __proto__ / constructor.prototype body', 'Request rejected (400); Object.prototype is not polluted').it.each(PROTOTYPE_POLLUTION_BODIES)('FAIL · prototype pollution: $label', async (p) => {
-        const outcome = await runApiLayer(ctx.app, {
-          method: 'post',
-          path: endpoint.path(),
-          rawBody: withPollution(endpoint.validBody, p.value as string),
-        });
-        expect(outcome.verdict).toBe('FAIL');
-        expectValidationEnvelope(outcome);
-        expect(ctx.service[endpoint.handler]).not.toHaveBeenCalled();
-        expect(({} as any).isAdmin).toBeUndefined();
-      });
-
-      asCase('invalid', 'Client sends malformed (truncated) JSON').it('answers a malformed JSON body in the safe envelope, without reaching the service', async () => {
-        const outcome = await runApiLayer(ctx.app, { method: 'post', path: endpoint.path(), rawBody: '{"amount":' });
-        expect(outcome.status).toBe(400);
-        expectSafeErrorEnvelope(outcome);
-        expect(ctx.service[endpoint.handler]).not.toHaveBeenCalled();
-      });
-    });
-
-    // The key must not be able to leave for an address the request chose, so this runs
-    // the real service: the validators cannot tell a proxy from an attacker's host.
-    describe('testConnection (real service)', () => {
-      const SAVED = { secretKey: 'saved-secret-key', apiUrl: 'https://saved-host.example' };
-      const REQUEST_URL = 'https://request-host.example';
-
-      const testConnection = async (body: { secret_key?: string; api_url?: string }) => {
-        const xendit = autoMock<any>({ getCashBalance: jest.fn().mockResolvedValue({}) });
-        const service = new PaymentsSiteService(
-          autoMock<any>({ findSettings: jest.fn().mockResolvedValue(null) }),
-          autoMock<any>({ getConfig: jest.fn().mockResolvedValue({ credentials: SAVED, sandbox: false }) }),
-          autoMock<any>(),
-          autoMock<any>(),
-          xendit,
-          autoMock<any>(),
-        );
-        await service.testConnection(body, CALLER as never);
-        return xendit.getCashBalance;
-      };
-
-      asCase('invalid', 'Attacker names another URL when testing the saved gateway key').it('sends the saved key to the saved host, whatever URL the request names', async () => {
-        expect(await testConnection({ api_url: REQUEST_URL })).toHaveBeenCalledWith(SAVED);
-      });
-    });
-
-    // PUT is outside this suite, but it shares these field rules: a saved URL is where
-    // every later gateway call sends the key.
-    describe('UpdatePaymentSettingsSchema (shared field rules)', () => {
-      const VALID_UPDATE = { mode: 'TEST', enabled: false, methods: [] };
-      const parse = (extra: object) => UpdatePaymentSettingsSchema.safeParseAsync({ ...VALID_UPDATE, ...extra });
-
-      asCase('invalid', 'Attacker sets the gateway URL to an internal or non-https address (SSRF)', 'Request rejected with "Validation failed" on api_url (400)').it.each(SSRF_URL_PAYLOADS)('FAIL · api_url ← $label', async (p) => {
-        expect((await parse({ api_url: p.value })).success).toBe(false);
-      });
-
-      asCase('invalid', 'Attacker hides control characters in the gateway secrets', 'Request rejected with "Validation failed" (400)').it.each(CONTROL_CHAR_PAYLOADS)('FAIL · secrets ← $label', async (p) => {
-        expect((await parse({ secret_key: asSecretKey(p.value) })).success).toBe(false);
-        expect((await parse({ webhook_token: asSecretKey(p.value) })).success).toBe(false);
-      });
+    it('layer 2 — api', async () => {
+      const outcome = await runApiLayer(ctx.app, { method: 'put', path: SETTINGS_PATH, body: fixture.input });
+      expectLayer(outcome, fixture);
+      expectValidationEnvelope(outcome);
+      expect(ctx.service.updateSettings).not.toHaveBeenCalled();
     });
   });
-}
+};
+
+describe('payments site — field validation', () => {
+  const ctx = usePaymentsApp();
+
+  beforeEach(() => {
+    ctx.service.updateSettings.mockReset().mockResolvedValue(SETTINGS_RESPONSE as never);
+  });
+
+  describe.each(METHOD_ENDPOINTS)('$title', (endpoint) => {
+    describe('method', () => describeMethodTable(ctx, endpoint, methodFixtures));
+  });
+
+  describe(CONFIRM_ENDPOINT.title, () => {
+    describe('amount', () => describeBodyTable(ctx, CONFIRM_ENDPOINT, confirmFixtures));
+  });
+
+  describe(TEST_ENDPOINT.title, () => {
+    describe('body', () => describeBodyTable(ctx, TEST_ENDPOINT, testFixtures));
+  });
+
+  describe(`PUT ${SETTINGS_PATH}`, () => {
+    describe('form', () => describeSettingsTable(ctx, settingsFixtures));
+  });
+});

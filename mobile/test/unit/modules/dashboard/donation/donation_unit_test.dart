@@ -25,6 +25,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -504,6 +505,9 @@ void main() {
   late _Launcher launcher;
 
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );
@@ -2267,5 +2271,172 @@ void main() {
       container.read(donationPaymentServiceProvider),
       isA<DonationPaymentService>(),
     );
+  });
+
+  // =========================================================================
+  // Invalid fields
+  // =========================================================================
+
+  group('DonationFlowScreen — invalid fields', () {
+    const amountHint = 'Enter amount';
+    const phoneHint = '09XXXXXXXXX';
+    final tooLow = 'Enter an amount of at least ${DonationFormat.pesoFull(1)}';
+    final tooHigh =
+        'The most you can give at once is ${DonationFormat.pesoFull(500000)}';
+
+    String amountText(WidgetTester tester) =>
+        tester.widget<TextField>(_field(amountHint)).controller!.text;
+
+    String? amountError(WidgetTester tester) =>
+        tester.widget<TextField>(_field(amountHint)).decoration?.errorText;
+
+    Future<void> typeAmount(WidgetTester tester, String text) async {
+      await tester.enterText(_field(amountHint), text);
+      await tester.pump();
+    }
+
+    flowTest('a custom amount of zero is refused', (tester) async {
+      await _openFlow(tester, campaign: _campaign(goods: false));
+
+      for (final zero in ['0', '00', '0000000']) {
+        await typeAmount(tester, zero);
+        expect(amountError(tester), tooLow, reason: zero);
+        expect(_enabled(tester, 'Continue'), isFalse, reason: zero);
+      }
+    });
+
+    flowTest('a custom amount over ₱500,000 is refused', (tester) async {
+      await _openFlow(tester, campaign: _campaign(goods: false));
+
+      await typeAmount(tester, '500001');
+
+      expect(amountError(tester), tooHigh);
+      expect(_enabled(tester, 'Continue'), isFalse);
+      // The total never falls back to the preset behind a bad entry.
+      expect(find.text('—'), findsOneWidget);
+    });
+
+    flowTest('the amount field keeps at most 7 digits', (tester) async {
+      await _openFlow(tester, campaign: _campaign(goods: false));
+
+      await typeAmount(tester, '123456789');
+
+      expect(amountText(tester), '1234567');
+      expect(amountError(tester), tooHigh);
+      expect(_enabled(tester, 'Continue'), isFalse);
+    });
+
+    flowTest('signs, decimals and symbols never reach the amount', (
+      tester,
+    ) async {
+      await _openFlow(tester, campaign: _campaign(goods: false));
+
+      await typeAmount(tester, '-250');
+      expect(amountText(tester), '250');
+
+      await typeAmount(tester, '99.50');
+      expect(amountText(tester), '9950');
+
+      await typeAmount(tester, '₱ 1e3');
+      expect(amountText(tester), '13');
+
+      await typeAmount(tester, 'abc');
+      expect(amountText(tester), isEmpty);
+      // Empty again: the preset is back in charge.
+      expect(amountError(tester), isNull);
+      expect(_enabled(tester, 'Continue'), isTrue);
+    });
+
+    flowTest('the limits themselves are accepted', (tester) async {
+      await _openFlow(tester, campaign: _campaign(goods: false));
+
+      for (final edge in ['1', '500000']) {
+        await typeAmount(tester, edge);
+        expect(amountError(tester), isNull, reason: edge);
+        expect(_enabled(tester, 'Continue'), isTrue, reason: edge);
+      }
+    });
+
+    flowTest('fixing a bad amount clears the error', (tester) async {
+      await _openFlow(tester, campaign: _campaign(goods: false));
+
+      await typeAmount(tester, '900000');
+      expect(amountError(tester), tooHigh);
+
+      await typeAmount(tester, '900');
+      expect(amountError(tester), isNull);
+      expect(find.text(DonationFormat.pesoFull(900)), findsOneWidget);
+      expect(_enabled(tester, 'Continue'), isTrue);
+    });
+
+    flowTest('an "Other" item is capped at 120 characters', (tester) async {
+      await _openFlow(tester, campaign: _campaign(funds: false));
+      await _tapText(tester, 'Other');
+
+      await tester.enterText(
+        _field('What would you like to donate?'),
+        'b' * 200,
+      );
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<TextField>(_field('What would you like to donate?'))
+            .controller!
+            .text,
+        hasLength(120),
+      );
+    });
+
+    flowTest('an invalid contact number cannot proceed', (tester) async {
+      await _openFlow(tester, campaign: _campaign(funds: false));
+      await _tapText(tester, 'Clothing');
+      await _tap(tester, 'Continue');
+      await _pickTomorrow(tester);
+
+      for (final bad in ['08171234567', '0917123', '+638171234567']) {
+        await tester.enterText(_field(phoneHint), bad);
+        await tester.pump();
+        expect(
+          tester.widget<TextField>(_field(phoneHint)).decoration?.errorText,
+          'Enter an 11-digit PH mobile number (09XXXXXXXXX)',
+          reason: bad,
+        );
+        expect(_enabled(tester, 'Continue'), isFalse, reason: bad);
+      }
+    });
+
+    flowTest('letters in the contact number are dropped', (tester) async {
+      await _openFlow(tester, campaign: _campaign(funds: false));
+      await _tapText(tester, 'Clothing');
+      await _tap(tester, 'Continue');
+
+      await tester.enterText(_field(phoneHint), 'my number');
+      await tester.pump();
+
+      expect(
+        tester.widget<TextField>(_field(phoneHint)).controller!.text,
+        isEmpty,
+      );
+      expect(_enabled(tester, 'Continue'), isFalse);
+    });
+
+    flowTest('a valid number without a delivery date cannot continue', (
+      tester,
+    ) async {
+      await _openFlow(tester, campaign: _campaign(funds: false));
+      await _tapText(tester, 'Clothing');
+      await _tap(tester, 'Continue');
+
+      await tester.enterText(_field(phoneHint), '09171234567');
+      await tester.pump();
+
+      expect(
+        tester.widget<TextField>(_field(phoneHint)).decoration?.errorText,
+        isNull,
+      );
+      expect(_enabled(tester, 'Continue'), isFalse);
+      expect(server.where('POST', _goodsPath), isEmpty);
+    });
   });
 }

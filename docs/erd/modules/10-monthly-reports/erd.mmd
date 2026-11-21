@@ -1,0 +1,69 @@
+%% CARES - Module 10: Monthly Reports (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 4 tables + 1 referenced stub tables, 6 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+erDiagram
+  User |o--o{ MonthlyReportFolder : "created_by"
+  MonthlyReportFolder |o--o{ MonthlyReport : "folder"
+  User |o--o{ MonthlyReport : "reviewer"
+  User |o--o{ MonthlyReport : "submitted_by"
+  MonthlyReport ||--o{ MonthlyReportDocument : "report"
+  MonthlyReport ||--o{ MonthlyReportTrailEntry : "report"
+
+  MonthlyReportFolder {
+    text monthly_report_folder_id PK
+    text name
+    text created_by_user_id FK "nullable"
+    text created_by_name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  MonthlyReport {
+    text monthly_report_id PK
+    text reference UK
+    text title
+    text period
+    ReportDepartment department
+    MonthlyReportStatus status
+    text summary
+    integer metric_events
+    integer metric_volunteers
+    integer metric_service_hours
+    integer metric_beneficiaries
+    text submitted_by_user_id FK "nullable"
+    text submitted_by_name
+    text submitted_by_email
+    text submitted_by_title
+    timestamp submitted_at
+    text reviewer_user_id FK "nullable"
+    text reviewer_name "nullable"
+    timestamp decided_at "nullable"
+    text decision_note "nullable"
+    text folder_id FK "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  MonthlyReportDocument {
+    text monthly_report_document_id PK
+    text monthly_report_id FK
+    text file_name
+    MonthlyReportDocumentKind kind
+    text storage_key
+    text content_type
+    integer byte_size
+    timestamp createdAt
+  }
+  MonthlyReportTrailEntry {
+    text monthly_report_trail_entry_id PK
+    text monthly_report_id FK
+    MonthlyReportTrailAction action
+    text actor_name
+    text note "nullable"
+    timestamp createdAt
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }

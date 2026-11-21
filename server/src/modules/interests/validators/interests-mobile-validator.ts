@@ -3,11 +3,41 @@ import { InterestCode } from '../../../infastructures/prisma/common/client';
 
 const InterestCodeSchema = z.enum(InterestCode);
 
+export const OTHER_INTEREST_MAX_LENGTH = 100;
+
+/** Plain text only: no markup characters, no control characters. */
+const OTHER_INTEREST_PATTERN = /^[^<>\p{Cc}]*$/u;
+
+const OtherInterestSchema = z
+  .string()
+  .trim()
+  .max(
+    OTHER_INTEREST_MAX_LENGTH,
+    `Keep your other interest under ${OTHER_INTEREST_MAX_LENGTH} characters`,
+  )
+  .regex(OTHER_INTEREST_PATTERN, 'Other interest contains invalid characters');
+
 export const SaveUserInterestsSchema = z
   .object({
     selected: z.array(InterestCodeSchema).min(1),
+    /**
+     * What the volunteer typed under "Others". Omit it to keep the saved
+     * text (older clients and code-only saves); when sent alongside OTHERS
+     * it must not be empty.
+     */
+    other_interest: OtherInterestSchema.nullish(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (data) =>
+      data.other_interest === undefined ||
+      !data.selected.includes(InterestCode.OTHERS) ||
+      (data.other_interest ?? '').length > 0,
+    {
+      path: ['other_interest'],
+      message: 'Tell us what your other interest is',
+    },
+  );
 
 export const UserIdParamSchema = z.uuid();
 
@@ -24,8 +54,10 @@ export const SaveUserInterestsResponseSchema = z.object({
   user_interest_id: z.string(),
   user_id: z.string(),
   selected: z.array(InterestCodeSchema),
+  other_interest: z.string().nullable(),
 });
 
 export const UserInterestsResponseSchema = z.object({
   selected: z.array(InterestCodeSchema).nullable(),
+  other_interest: z.string().nullable(),
 });

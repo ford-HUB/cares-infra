@@ -61,6 +61,7 @@ export const ATTENDEE_RESPONSE = {
   validation_method: GeoValidationMethod.MANUAL,
   first_ping_at: null,
   last_ping_at: null,
+  time_out_at: null,
   hours_rendered: 4,
   remarks: 'Marked present manually: The geofence was down during the event.',
   registered_at: '2026-10-20T08:00:00.000Z',

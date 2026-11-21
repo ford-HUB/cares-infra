@@ -53,6 +53,8 @@ export const VolunteerProfileSectionSchema = z.object({
     })
     .nullable(),
   interests: z.array(z.enum(InterestCode)),
+  /** What the volunteer typed under "Others"; null unless OTHERS is picked. */
+  other_interest: z.string().nullable(),
   /**
    * True when this side was opened by a director approving a role-access
    * request rather than by registering as a volunteer. Such accounts never

@@ -16,6 +16,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -210,6 +211,9 @@ Finder _rich(String text) => find.text(text, findRichText: true);
 
 void main() {
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );

@@ -98,6 +98,7 @@ class Rules:
     max_accuracy_m: float
     max_transitions_per_hour: int
     stationary_radius_m: float
+    departure_buffer_seconds: int
 
     @classmethod
     def resolve(cls, overrides: Thresholds | None) -> "Rules":
@@ -111,6 +112,7 @@ class Rules:
             max_accuracy_m=o.get("max_accuracy_m", settings.max_accuracy_m),
             max_transitions_per_hour=settings.max_transitions_per_hour,
             stationary_radius_m=settings.stationary_radius_m,
+            departure_buffer_seconds=o.get("departure_buffer_seconds", settings.departure_buffer_seconds),
         )
 
     def as_dict(self) -> dict[str, float | int]:
@@ -122,6 +124,7 @@ class Rules:
             "maxSpeedMps": self.max_speed_mps,
             "maxAccuracyM": self.max_accuracy_m,
             "maxTransitionsPerHour": self.max_transitions_per_hour,
+            "departureBufferSeconds": self.departure_buffer_seconds,
         }
 
 
@@ -215,6 +218,23 @@ def _visits(readings: list[Reading], window_start: datetime, window_end: datetim
     return visits
 
 
+def _time_out(inside: list[Reading], window_end: datetime, live: bool, rules: Rules) -> datetime | None:
+    """When the volunteer left the zone for good: their last reading inside it.
+
+    Stepping out and coming back (a lunch break, an errand) never ends the stay —
+    only the *final* exit is the time out, so earlier exits are ignored. Once the
+    event is over that exit is settled. Mid-event (`live`) it is not settled until
+    the volunteer has been away for the departure buffer without returning:
+    still inside, or out for less than the buffer, leaves the time out open."""
+    if not inside:
+        return None
+    last_inside = inside[-1].ping.captured_at
+    if not live:
+        return last_inside
+    away = (window_end - last_inside).total_seconds()
+    return last_inside if away >= rules.departure_buffer_seconds else None
+
+
 def _anomalies(readings: list[Reading], window_start: datetime, window_end: datetime, rules: Rules) -> list[Anomaly]:
     found: list[Anomaly] = []
     if not readings:
@@ -306,7 +326,13 @@ def _anomalies(readings: list[Reading], window_start: datetime, window_end: date
     return found
 
 
-def analyze(zone: Polygon | MultiPolygon, event: EventZone, pings: list[Ping], rules: Rules) -> MovementAnalysis:
+def analyze(
+    zone: Polygon | MultiPolygon,
+    event: EventZone,
+    pings: list[Ping],
+    rules: Rules,
+    live: bool = False,
+) -> MovementAnalysis:
     window_start = _utc(event.started_at)
     window_end = _utc(event.ended_at)
     duration = (window_end - window_start).total_seconds()
@@ -322,7 +348,7 @@ def analyze(zone: Polygon | MultiPolygon, event: EventZone, pings: list[Ping], r
 
     inside = [r for r in ordered if r.inside and window_start <= r.ping.captured_at <= window_end]
     time_in = inside[0].ping.captured_at if inside else None
-    time_out = inside[-1].ping.captured_at if inside else None
+    time_out = _time_out(inside, window_end, live, rules)
     inside_seconds = sum(v.duration_seconds for v in visits)
     coverage = inside_seconds / duration if duration > 0 else 0.0
 

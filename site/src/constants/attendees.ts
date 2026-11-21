@@ -42,11 +42,11 @@ export const GEO_VALIDATION_METHOD_LABELS: Record<GeoValidationMethod, string> =
 }
 
 export const ATTENDEE_COLUMNS = [
-  { key: 'name', label: 'Volunteer', width: 'w-[22%]' },
-  { key: 'email', label: 'Email', width: 'w-[20%]' },
-  { key: 'department', label: 'Department', width: 'w-[14%]' },
+  { key: 'name', label: 'Volunteer', width: 'w-[20%]' },
+  { key: 'email', label: 'Email', width: 'w-[18%]' },
+  { key: 'department', label: 'Department', width: 'w-[13%]' },
   { key: 'event', label: 'Event', width: 'w-[16%]' },
-  { key: 'checkedInAt', label: 'First Ping', width: 'w-[13%]' },
+  { key: 'timeInOut', label: 'Time In – Time Out', width: 'w-[18%]' },
   { key: 'method', label: 'Method', width: 'w-[9%]' },
   { key: 'status', label: 'Status', width: 'w-[12%]' },
 ] as const

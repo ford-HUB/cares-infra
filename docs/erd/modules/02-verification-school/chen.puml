@@ -1,0 +1,117 @@
+@startchen
+' CARES - Module 02: Verification & School Records (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 7 entities + 1 referenced stub entities, 7 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' Stub entities (key only) come from other modules: User (01)
+
+entity UserVerification {
+  user_verification_id : TEXT <<key>>
+  status : VerificationStatus
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserBiometric {
+  user_biometric_id : TEXT <<key>>
+  face_url : TEXT
+  embedding : JSONB
+  embedding_type : EmbeddingType
+  isActive : BOOLEAN
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserSchoolInfo {
+  user_school_info_id : TEXT <<key>>
+  id_number : TEXT
+  graduation_year : INTEGER
+  graduation_month : INTEGER
+  graduation_day : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  school_id_url : TEXT
+}
+
+entity Department {
+  department_id : TEXT <<key>>
+  name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Major {
+  major_id : TEXT <<key>>
+  name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity YearLevel {
+  year_level_id : TEXT <<key>>
+  name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity ResidencyDocument {
+  residency_document_id : TEXT <<key>>
+  file_url : TEXT
+  file_name : TEXT
+  mime_type : TEXT
+  size_bytes : INTEGER
+  extracted_address : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+relationship UPLOADS_RESIDENCY_DOC {
+}
+UPLOADS_RESIDENCY_DOC -1- User
+UPLOADS_RESIDENCY_DOC =N= ResidencyDocument
+
+relationship BELONGS_TO_DEPARTMENT {
+}
+BELONGS_TO_DEPARTMENT -1- Department
+BELONGS_TO_DEPARTMENT =N= UserSchoolInfo
+
+relationship TAKES_MAJOR {
+}
+TAKES_MAJOR -1- Major
+TAKES_MAJOR =N= UserSchoolInfo
+
+relationship HAS_SCHOOL_INFO {
+}
+HAS_SCHOOL_INFO -1- User
+HAS_SCHOOL_INFO =N= UserSchoolInfo
+
+relationship IN_YEAR_LEVEL {
+}
+IN_YEAR_LEVEL -1- YearLevel
+IN_YEAR_LEVEL =N= UserSchoolInfo
+
+relationship ENROLS_BIOMETRIC {
+}
+ENROLS_BIOMETRIC -1- UserBiometric
+ENROLS_BIOMETRIC -1- UserVerification
+
+relationship UNDERGOES_VERIFICATION {
+}
+UNDERGOES_VERIFICATION -1- User
+UNDERGOES_VERIFICATION =N= UserVerification
+
+@endchen

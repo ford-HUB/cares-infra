@@ -1943,4 +1943,251 @@ void main() {
       expect(find.byType(MySupportRequestsScreen), findsOneWidget);
     });
   });
+
+  // =========================================================================
+  // Invalid fields
+  // =========================================================================
+
+  group('invalid fields — Send Us a Message', () {
+    const shortError = 'Tell us a little more (at least 10 characters)';
+
+    screenTest('a subject of only spaces is still missing', (tester) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const SupportMessageFormScreen());
+
+      await _pickType(tester, SupportTicketType.account);
+      await _type(tester, _subjectHint, '     ');
+      await _type(tester, _descriptionHint, 'A long enough description.');
+      await _tap(tester, _button('Submit Request'));
+
+      expect(find.text('Add a short subject'), findsOneWidget);
+      expect(desk.where('POST', _mine), isEmpty);
+    });
+
+    screenTest('9 characters padded with spaces are too short; 10 are enough',
+        (tester) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const SupportMessageFormScreen());
+      await _pickType(tester, SupportTicketType.account);
+      await _type(tester, _subjectHint, 'Receipt missing');
+
+      await _type(tester, _descriptionHint, '      123456789      ');
+      await _tap(tester, _button('Submit Request'));
+      expect(find.text(shortError), findsOneWidget);
+      expect(desk.where('POST', _mine), isEmpty);
+
+      await _type(tester, _descriptionHint, '1234567890');
+      expect(find.text(shortError), findsNothing);
+    });
+
+    screenTest('a description of newlines and tabs is too short', (
+      tester,
+    ) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const SupportMessageFormScreen());
+      await _pickType(tester, SupportTicketType.other);
+      await _type(tester, _subjectHint, 'Hello');
+
+      await _type(tester, _descriptionHint, '\n\n\t\t\n\n\t\t\n\n\t\t');
+      await _tap(tester, _button('Submit Request'));
+
+      expect(find.text(shortError), findsOneWidget);
+      expect(desk.where('POST', _mine), isEmpty);
+    });
+
+    screenTest('a good subject and description still need a type', (
+      tester,
+    ) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const SupportMessageFormScreen());
+
+      await _type(tester, _subjectHint, 'Receipt missing');
+      await _type(tester, _descriptionHint, 'I donated and got no receipt.');
+      await _tap(tester, _button('Submit Request'));
+
+      expect(find.text('Choose what this is about'), findsOneWidget);
+      expect(find.text('Add a short subject'), findsNothing);
+      expect(find.text(shortError), findsNothing);
+      expect(desk.where('POST', _mine), isEmpty);
+    });
+
+    screenTest('markup and quotes are sent as plain text, trimmed', (
+      tester,
+    ) async {
+      const subject = '<img src=x onerror=alert(1)>';
+      const description = 'Name is "Rosa\'; DROP TABLE users; --" & more.';
+      final desk = _Desk();
+      await _pump(tester, desk, const SupportMessageFormScreen());
+
+      await _pickType(tester, SupportTicketType.other);
+      await _type(tester, _subjectHint, '  $subject ');
+      await _type(tester, _descriptionHint, ' $description  ');
+      await _tap(tester, _button('Submit Request'));
+
+      expect(_bodyOf(desk.where('POST', _mine).single), {
+        'subject': subject,
+        'description': description,
+        'type': 'OTHER',
+      });
+    });
+  });
+
+  group('invalid fields — Report a Bug', () {
+    const titleHint = 'e.g. App closes when opening the Events tab';
+    const happenedHint =
+        'What did you expect, and what did you see instead? Copy any error '
+        'message you saw.';
+
+    screenTest('a title of only spaces is still missing', (tester) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const ReportBugScreen());
+
+      await _tap(tester, find.text('Events'));
+      await _type(tester, titleHint, '    ');
+      await _type(tester, happenedHint, 'The app closes when I open Events.');
+      await _tap(tester, _button('Submit Bug Report'));
+
+      expect(find.text('Give the bug a short title'), findsOneWidget);
+      expect(desk.requests.where((r) => r.method == 'POST'), isEmpty);
+    });
+
+    screenTest('what happened needs 10 characters after trimming', (
+      tester,
+    ) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const ReportBugScreen());
+
+      await _tap(tester, find.text('Events'));
+      await _type(tester, titleHint, 'App closes');
+      await _type(tester, happenedHint, '   crashes   ');
+      await _tap(tester, _button('Submit Bug Report'));
+
+      expect(
+        find.text('Describe what went wrong (at least 10 characters)'),
+        findsOneWidget,
+      );
+      expect(desk.requests.where((r) => r.method == 'POST'), isEmpty);
+    });
+
+    screenTest('a complete report still needs an area', (tester) async {
+      final desk = _Desk();
+      await _pump(tester, desk, const ReportBugScreen());
+
+      await _type(tester, titleHint, 'App closes');
+      await _type(tester, happenedHint, 'The app closes when I open Events.');
+      await _tap(tester, _button('Submit Bug Report'));
+
+      expect(find.text('Pick where it happened'), findsOneWidget);
+      expect(find.text('Give the bug a short title'), findsNothing);
+      expect(desk.requests.where((r) => r.method == 'POST'), isEmpty);
+    });
+  });
+
+  group('invalid fields — Report a Problem', () {
+    const detailsError = 'Please add a few details so we can investigate';
+
+    screenTest('details of only whitespace are refused', (tester) async {
+      final desk = _Desk();
+      await _pump(
+        tester,
+        desk,
+        const ReportFormScreen(reason: ReportReason.user),
+      );
+
+      await _type(tester, ReportReason.user.hint, ' \n\t \n\t \n\t ');
+      await _tap(tester, _button('Submit Report'));
+
+      expect(find.text(detailsError), findsOneWidget);
+      expect(desk.requests.where((r) => r.method == 'POST'), isEmpty);
+    });
+
+    screenTest('9 characters padded with spaces are refused', (tester) async {
+      final desk = _Desk();
+      await _pump(
+        tester,
+        desk,
+        const ReportFormScreen(reason: ReportReason.event),
+      );
+
+      await _type(tester, ReportReason.event.hint, '     123456789     ');
+      await _tap(tester, _button('Submit Report'));
+
+      expect(find.text(detailsError), findsOneWidget);
+      expect(desk.requests.where((r) => r.method == 'POST'), isEmpty);
+    });
+
+    screenTest('fixing the details clears the error', (tester) async {
+      final desk = _Desk();
+      await _pump(
+        tester,
+        desk,
+        const ReportFormScreen(reason: ReportReason.event),
+      );
+      await _type(tester, ReportReason.event.hint, 'fake');
+      await _tap(tester, _button('Submit Report'));
+      expect(find.text(detailsError), findsOneWidget);
+
+      await _type(
+        tester,
+        ReportReason.event.hint,
+        'This event asks for a fee.',
+      );
+
+      expect(find.text(detailsError), findsNothing);
+    });
+  });
+
+  group('invalid fields — ticket replies', () {
+    Future<_Desk> openDetail(
+      WidgetTester tester,
+      Map<String, dynamic> ticket,
+    ) async {
+      final desk = _Desk([ticket]);
+      await _pump(
+        tester,
+        desk,
+        SupportRequestDetailScreen(request: _request(ticket)),
+      );
+      return desk;
+    }
+
+    bool canSend(WidgetTester tester) =>
+        tester.widget<ButtonStyleButton>(_button('Send')).onPressed != null;
+
+    screenTest('a reply of only whitespace cannot be sent', (tester) async {
+      final desk = await openDetail(tester, _ticketJson());
+
+      await _tap(tester, _button('Add a reply'));
+      await _type(tester, 'Add more detail for the team', '   \n\t  ');
+
+      expect(canSend(tester), isFalse);
+      expect(desk.where('POST', '$_mine/t-1/replies'), isEmpty);
+    });
+
+    screenTest('"Still not working" with only spaces cannot be sent', (
+      tester,
+    ) async {
+      final desk = await openDetail(
+        tester,
+        _ticketJson(status: 'UNDER_VERIFICATION'),
+      );
+
+      await _tap(tester, _button('Still not working'));
+      await _type(tester, 'What is still going wrong?', '      ');
+
+      expect(canSend(tester), isFalse);
+      expect(desk.where('POST', '$_mine/t-1/confirm-fix'), isEmpty);
+    });
+
+    screenTest('clearing a typed reply locks Send again', (tester) async {
+      await openDetail(tester, _ticketJson());
+
+      await _tap(tester, _button('Add a reply'));
+      await _type(tester, 'Add more detail for the team', 'Screenshot.');
+      expect(canSend(tester), isTrue);
+
+      await _type(tester, 'Add more detail for the team', '');
+      expect(canSend(tester), isFalse);
+    });
+  });
 }

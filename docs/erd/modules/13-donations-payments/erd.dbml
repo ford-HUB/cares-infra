@@ -1,0 +1,244 @@
+// CARES - Module 13: Donations & Payments (DBML, Crow's Foot)
+// Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+// 6 tables + 2 referenced stub tables, 8 foreign-key relationships
+//
+// Paste into https://dbdiagram.io (renders Crow's Foot notation).
+// Ref operators:  >  many-to-one (M:1)   <  one-to-many (1:M)   -  one-to-one (1:1)
+// Optionality: a nullable FK column ("null") = optional participation of the child
+// (zero-or-one parent); "not null" FK = mandatory (exactly one parent).
+
+Project CARES {
+  database_type: 'PostgreSQL'
+  Note: 'CARES platform database - Module 13: Donations & Payments. Generated from the Prisma schema.'
+}
+
+// ----------------------------------------------------------------------------
+Table Donation {
+  donation_id    text [pk, default: `uuid()`, note: 'PK']
+  sequence       integer [increment, unique, not null, note: 'Human tracking number — `DN-0007` is sequence 7.']
+  user_id        text [not null, note: 'FK -> User.user_id']
+  event_id       integer [not null, note: 'FK -> Event.event_id']
+  kind           DonationKind [not null]
+  status         DonationStatus [not null, default: 'PLEDGED']
+  amount         integer [not null, note: 'Whole pesos: what was paid for money; the credited value of the goods (goods-type value × quantity, snapshotted at pledge time) for goods.']
+  payment_id     text [unique, null, note: 'FK -> DonationPayment.donation_payment_id']
+  goods_type     text [null, note: 'Goods only — the `goods_types` id on the event (`food`, `clothing`, …) or `other`.']
+  goods_item     text [null, note: 'Goods only — what the donor said they are giving.']
+  goods_quantity integer [null]
+  donor_contact  text [null, note: 'Goods only — the number CARES can reach the donor on about the drop-off.']
+  delivery_date  "timestamp(3)" [null, note: 'Goods only — the day the donor plans to hand the goods in at the CARES office.']
+  confirmed_at   "timestamp(3)" [null]
+  createdAt      "timestamp(3)" [not null, default: `now()`]
+  updatedAt      "timestamp(3)" [not null, note: 'auto-updated on write']
+
+  indexes {
+    user_id
+    event_id
+    status
+  }
+
+  Note: 'The donation ledger the portal\'s Donation Tracking works and the donor app\'s Activity tab reads. A money row is opened by the gateway callback once a checkout is paid; a goods row is opened when the donor pledges. Only CONFIRMED rows count towards the donor board.'
+}
+
+// ----------------------------------------------------------------------------
+Table DonationTrailEntry {
+  donation_trail_entry_id text [pk, default: `uuid()`, note: 'PK']
+  donation_id             text [not null, note: 'FK -> Donation.donation_id']
+  status                  DonationStatus [not null]
+  "note"                  text [null]
+  actor_id                text [null, note: 'FK -> User.user_id']
+  actor_label             text [not null, note: '`System` for the donor-side submission, otherwise the portal account\'s name.']
+  notified_email          text [null, note: 'Donor address the status notice went to; null when nothing was sent.']
+  createdAt               "timestamp(3)" [not null, default: `now()`]
+
+  indexes {
+    donation_id
+  }
+
+  Note: 'Every status move on a donation, with who made it — the audit trail the portal shows and the proof that the donor was notified.'
+}
+
+// ----------------------------------------------------------------------------
+Table DonationPayment {
+  donation_payment_id text [pk, default: `uuid()`, note: 'PK']
+  user_id             text [not null, note: 'FK -> User.user_id']
+  event_id            integer [null, note: 'FK -> Event.event_id | The director event behind the campaign, when the campaign is event-backed.']
+  campaign_id         text [not null]
+  campaign_title      text [not null]
+  amount              integer [not null, note: 'Whole pesos.']
+  currency            text [not null, default: 'PHP']
+  method              DonationPaymentMethod [not null]
+  status              DonationPaymentStatus [not null, default: 'PENDING']
+  idempotency_key     text [not null, note: 'Client-generated per checkout attempt; the same key returns the same row.']
+  gateway_reference   text [unique, not null, note: 'The `reference_id` / `external_id` handed to Xendit; callbacks carry it back.']
+  gateway_resource_id text [null, note: 'Xendit\'s id for the charge, QR code or invoice we created.']
+  payment_reference   text [null, note: 'Xendit\'s id for the settled payment — the reference shown on the receipt.']
+  payment_channel     text [null, note: 'Payment channel Xendit reported on settlement (e.g. DD_BPI for a bank transfer).']
+  checkout_url        text [null, note: 'GCASH / CARD / BANK_TRANSFER: where the donor completes the payment.']
+  qr_string           text [null, note: 'QRPH only: the EMV string the app renders as a QR code.']
+  expires_at          "timestamp(3)" [null]
+  paid_at             "timestamp(3)" [null]
+  failure_reason      text [null]
+  createdAt           "timestamp(3)" [not null, default: `now()`]
+  updatedAt           "timestamp(3)" [not null, note: 'auto-updated on write']
+
+  indexes {
+    (user_id, idempotency_key) [unique]
+    user_id
+    status
+  }
+
+  Note: 'One money-donation checkout a donor started from the app. A row is created before the gateway is called so the client\'s idempotency key can dedupe a retried tap, and the gateway reference on it is what every Xendit callback carries back.'
+}
+
+// ----------------------------------------------------------------------------
+Table PaymentWebhookEvent {
+  webhook_id        text [pk, note: 'PK']
+  event             text [not null]
+  gateway_reference text [null, note: 'logical ref -> DonationPayment.gateway_reference (no FK constraint)']
+  payload           jsonb [not null]
+  receivedAt        "timestamp(3)" [not null, default: `now()`]
+
+  indexes {
+    gateway_reference
+  }
+
+  Note: 'Every Xendit callback already applied, keyed by its `webhook-id` header. Xendit retries until it sees a 2xx, so the same event can arrive more than once; inserting here in the same transaction as the status change makes a replay a no-op.'
+}
+
+// ----------------------------------------------------------------------------
+Table PaymentGatewaySettings {
+  payment_gateway_settings_id text [pk, default: `uuid()`, note: 'PK']
+  singleton                   boolean [unique, not null, default: true]
+  mode                        PaymentGatewayMode [not null, default: 'TEST']
+  enabled                     boolean [not null, default: false, note: 'Off until the director is ready to take money; every checkout is refused while false.']
+  secret_key_cipher           text [null, note: 'Ciphertext of the Xendit secret API key. Null means "still on the env key".']
+  secret_key_last4            text [null, note: 'Last four characters of the saved key, for telling two keys apart in the portal.']
+  webhook_token_cipher        text [null, note: 'Ciphertext of the callback verification token from Xendit\'s dashboard.']
+  api_url                     text [null, note: 'Blank for https://api.xendit.co — only set when pointing at a mock or proxy.']
+  statement_name              text [null, note: 'The name the donor sees on the GCash / card statement.']
+  support_email               text [null, note: 'Where donors reach CARES about a payment that went wrong.']
+  support_contact             text [null]
+  verified_at                 "timestamp(3)" [null, note: 'When the saved key last answered a live call, and why it last did not.']
+  verification_error          text [null]
+  updated_by_user_id          text [null, note: 'logical ref -> User.user_id (no FK constraint) | No relation, like `SecurityPolicy`: the row outlives the account that saved it.']
+  createdAt                   "timestamp(3)" [not null, default: `now()`]
+  updatedAt                   "timestamp(3)" [not null, note: 'auto-updated on write']
+
+  Note: 'The Xendit account CARES collects donations into, as the director enters it in the portal\'s Payments module. One row — every donor pays into the same account.  The secrets are held as AES-256-GCM ciphertext (see `secret-cipher-utils.ts`) and are never sent back to a client: the portal only ever sees `secret_key_last4` and the `*_set` flags, which is enough to say "a key is saved, and it ends in 1a2b".'
+}
+
+// ----------------------------------------------------------------------------
+Table PaymentMethodSetting {
+  payment_method_setting_id text [pk, default: `uuid()`, note: 'PK']
+  settings_id               text [not null, note: 'FK -> PaymentGatewaySettings.payment_gateway_settings_id']
+  method                    DonationPaymentMethod [not null]
+  enabled                   boolean [not null, default: false]
+  display_name              text [null, note: 'Overrides the channel\'s built-in name in the app; blank keeps the default.']
+  instructions              text [null, note: 'One line under the name on the donor\'s method step.']
+  account_name              text [null, note: 'The account the settlement lands in, as the director reads it off Xendit — the GCash number or bank account. Reference only: Xendit routes to the account behind the secret key, not to whatever is typed here.']
+  account_number            text [null]
+  channel_codes             "text[]" [not null, default: `'{}'`, note: 'Xendit channel codes this method opens (CARD / BANK_TRANSFER); empty uses the module\'s defaults.']
+  min_amount                integer [not null, default: 0, note: 'Whole pesos. 0 falls back to the module-wide donation limits.']
+  max_amount                integer [not null, default: 0]
+  sort_order                integer [not null, default: 0]
+  verification              PaymentMethodVerification [not null, default: 'NOT_VERIFIED', note: 'Set by the activation check that runs when the director switches this on.']
+  verified_at               "timestamp(3)" [null]
+  verification_message      text [null, note: 'What the gateway said — the sentence the portal shows under the badge.']
+  verified_channel_codes    "text[]" [not null, default: `'{}'`, note: 'Channel codes Xendit reported activated at the last check, for the record.']
+  callbacks_registered_at   "timestamp(3)" [null, note: 'When the callback URLs for this channel were last registered with Xendit.']
+  account_proof             PaymentAccountProof [not null, default: 'NOT_STARTED', note: '--- ownership proof: is the recorded account really reachable by CARES ---']
+  account_proof_amount      integer [null, note: 'Whole pesos sent, and the number the director has to report back. Cleared once the account is verified so a later reader cannot simply look up the answer.']
+  account_proof_reference   text [null, note: 'Our reference on the payout, and Xendit\'s id for it.']
+  account_proof_id          text [null]
+  account_proof_sent_at     "timestamp(3)" [null]
+  account_proof_attempts    integer [not null, default: 0, note: 'Wrong answers so far; the proof locks after `ACCOUNT_PROOF_MAX_ATTEMPTS`.']
+  account_proof_message     text [null, note: 'What the gateway or the check last said, for the portal to show.']
+  account_proof_target      text [null, note: 'The account this proof covered, so editing the number invalidates the proof.']
+  account_verified_at       "timestamp(3)" [null]
+  createdAt                 "timestamp(3)" [not null, default: `now()`]
+  updatedAt                 "timestamp(3)" [not null, note: 'auto-updated on write']
+
+  indexes {
+    (settings_id, method) [unique]
+  }
+
+  Note: 'One donor-facing payment channel. A channel the director has not enabled is not offered in the app and is refused by the checkout endpoint, so hiding it in the portal and blocking it on the server are one decision.'
+}
+
+// ----------------------------------------------------------------------------
+Table User {
+  user_id text [pk, note: 'PK']
+
+  Note: 'Stub - Defined in module 01 - Identity & Access. Only the key is shown here.'
+}
+
+// ----------------------------------------------------------------------------
+Table Event {
+  event_id integer [pk, note: 'PK']
+
+  Note: 'Stub - Defined in module 04 - Events, Attendance & Engagement. Only the key is shown here.'
+}
+
+// ----------------------------------------------------------------------------
+// Relationships (child.fk  > / -  parent.pk)
+// ----------------------------------------------------------------------------
+Ref: Donation.event_id > Event.event_id [delete: cascade]  // M:1, mandatory
+Ref: Donation.payment_id - DonationPayment.donation_payment_id  // 1:1, optional
+Ref DonationDonor: Donation.user_id > User.user_id [delete: cascade]  // M:1, mandatory
+Ref DonationTrailActor: DonationTrailEntry.actor_id > User.user_id  // M:1, optional
+Ref: DonationTrailEntry.donation_id > Donation.donation_id [delete: cascade]  // M:1, mandatory
+Ref DonationPaymentDonor: DonationPayment.user_id > User.user_id [delete: cascade]  // M:1, mandatory
+Ref: DonationPayment.event_id > Event.event_id [delete: set null]  // M:1, optional
+Ref: PaymentMethodSetting.settings_id > PaymentGatewaySettings.payment_gateway_settings_id [delete: cascade]  // M:1, mandatory
+
+// ----------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------
+Enum DonationPaymentMethod {
+  GCASH
+  QRPH
+  CARD
+  BANK_TRANSFER
+}
+
+Enum DonationPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+Enum PaymentGatewayMode {
+  TEST
+  LIVE
+}
+
+Enum PaymentMethodVerification {
+  NOT_VERIFIED [note: 'Never checked — the director has not switched it on yet.']
+  PENDING [note: 'Asked for, but the gateway could not answer yet (no account connected).']
+  VERIFIED [note: 'Xendit reports the channel activated and the callbacks registered.']
+  FAILED [note: 'The gateway answered and refused it; `verification_message` says why.']
+}
+
+Enum PaymentAccountProof {
+  NOT_STARTED [note: 'No payout sent yet.']
+  SENDING [note: 'The payout is with the gateway, not yet reported as received.']
+  AWAITING_CONFIRMATION [note: 'Money is on its way; waiting for the director to report the amount.']
+  VERIFIED [note: 'The director reported the right amount — the account is theirs to reach.']
+  FAILED [note: 'The payout was refused, or the amount was reported wrong too many times.']
+}
+
+Enum DonationKind {
+  MONEY
+  GOODS
+}
+
+Enum DonationStatus {
+  PLEDGED
+  AWAITING_PICKUP
+  VERIFYING
+  CONFIRMED
+  DECLINED
+  CANCELLED
+}

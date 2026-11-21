@@ -33,10 +33,15 @@ export interface EventAttendee {
   yearLevel?: string
   status: AttendanceStatus
   registeredAt: string
-  /** First reading inside the event geofence. */
+  /** Time in: the first reading inside the event geofence. */
   checkedInAt?: string | null
-  /** Last reading inside the event geofence. */
+  /**
+   * Time out: when the volunteer left the geofence for good. Breaks they came back
+   * from are ignored; mid-event it stays null until they have been gone an hour.
+   */
   checkedOutAt?: string | null
+  /** Latest reading inside the geofence, settled as a time out or not. */
+  lastPingAt?: string | null
   validationMethod?: GeoValidationMethod | null
   /** Credited service hours; only meaningful once the attendee is completed. */
   hoursRendered?: number

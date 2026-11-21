@@ -404,6 +404,7 @@ export const UserInterestScalarFieldEnum = {
   user_interest_id: 'user_interest_id',
   user_id: 'user_id',
   selected: 'selected',
+  other_interest: 'other_interest',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

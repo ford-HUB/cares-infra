@@ -117,7 +117,7 @@ export class ProfileRepository {
           take: 1,
         },
         user_interest: {
-          select: { selected: true },
+          select: { selected: true, other_interest: true },
         },
         // Two kinds of request shape the profile: an accepted role-access
         // request (a donor / beneficiary whose Volunteer side a director

@@ -1,0 +1,835 @@
+%% CARES - Entity Relationship Diagram (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 57 tables, 70 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+%% M:N relationships are resolved through associative entities:
+%%   Event M:N User via EventAttendance
+%%   Conversation M:N User via ConversationParticipant
+%%   CertificateTemplate M:N User via CertificateTemplateSignatory
+%%   CertificateTemplate M:N Event via CertificateDeployment
+%%   CertificateDeployment M:N User via IssuedCertificate
+%%   Event M:N User via EvaluationResponse
+erDiagram
+  Role ||--o{ User : "role"
+  User ||--o{ ResidencyDocument : "user"
+  User ||--o{ UserRoleAvatar : "user"
+  Department ||--o{ UserSchoolInfo : "department"
+  Major ||--o{ UserSchoolInfo : "major"
+  User ||--o{ UserSchoolInfo : "user"
+  YearLevel ||--o{ UserSchoolInfo : "year_level"
+  UserBiometric |o--o| UserVerification : "user_biometric"
+  User ||--o{ UserVerification : "user"
+  User ||--o{ UserPermissionOverride : "user"
+  User ||--o{ UserActionSuspension : "user"
+  User |o--o{ BlockedIp : "user"
+  User |o--o{ LoginActivity : "user"
+  User ||--o{ OAuthIdentity : "user"
+  User ||--o| GmailConnection : "user"
+  User ||--o| UserInterest : "user"
+  Event ||--o{ EventAttendance : "event"
+  User ||--o{ EventAttendance : "user"
+  Event |o--o{ EventLocationPing : "event"
+  User ||--o{ EventLocationPing : "user"
+  Conversation ||--o{ ConversationParticipant : "conversation"
+  User ||--o{ ConversationParticipant : "user"
+  Conversation ||--o{ ChatMessage : "conversation"
+  User ||--o{ ChatMessage : "sender"
+  ChatMessage ||--o{ ChatAttachment : "message"
+  User |o--o{ SupportTicket : "assignee"
+  User ||--o{ SupportTicket : "requester"
+  User |o--o{ SupportTicketReply : "author"
+  SupportTicket ||--o{ SupportTicketReply : "ticket"
+  User |o--o{ CertificateTemplate : "updated_by"
+  CertificateTemplate ||--o{ CertificateTemplateSignatory : "template"
+  User ||--o{ CertificateTemplateSignatory : "coordinator"
+  CertificateTemplate ||--o{ CertificateTemplateAsset : "template"
+  CertificateTemplate ||--o{ CertificateDeployment : "template"
+  User |o--o{ CertificateDeployment : "deployed_by"
+  Event ||--o{ CertificateDeployment : "event"
+  CertificateDeployment ||--o{ IssuedCertificate : "deployment"
+  Event ||--o{ IssuedCertificate : "event"
+  User ||--o{ IssuedCertificate : "user"
+  User |o--o{ MonthlyReportFolder : "created_by"
+  MonthlyReportFolder |o--o{ MonthlyReport : "folder"
+  User |o--o{ MonthlyReport : "reviewer"
+  User |o--o{ MonthlyReport : "submitted_by"
+  MonthlyReport ||--o{ MonthlyReportDocument : "report"
+  MonthlyReport ||--o{ MonthlyReportTrailEntry : "report"
+  User |o--o{ Announcement : "author"
+  User ||--o{ Notification : "user"
+  User |o--o{ EvaluationAssignment : "assigned_by"
+  Event ||--o| EvaluationAssignment : "event"
+  EvaluationForm ||--o{ EvaluationAssignment : "form"
+  Event ||--o{ EvaluationResponse : "event"
+  EvaluationForm ||--o{ EvaluationResponse : "form"
+  User ||--o{ EvaluationResponse : "user"
+  User |o--o{ UserRequest : "decided_by"
+  Event |o--o{ UserRequest : "event"
+  User ||--o{ UserRequest : "user"
+  UserRequest ||--o{ UserRequestTrailEntry : "user_request"
+  User ||--o| NeedsAssessment : "user"
+  User ||--o{ AssistanceRequest : "user"
+  AssistanceRequest ||--o{ AssistanceRequestAttachment : "assistance_request"
+  Event ||--o{ Donation : "event"
+  DonationPayment |o--o| Donation : "payment"
+  User ||--o{ Donation : "user"
+  User |o--o{ DonationTrailEntry : "actor"
+  Donation ||--o{ DonationTrailEntry : "donation"
+  User |o--o{ AuditLog : "actor_user"
+  User ||--o{ Account : "user"
+  User ||--o{ DonationPayment : "user"
+  Event |o--o{ DonationPayment : "event"
+  PaymentGatewaySettings ||--o{ PaymentMethodSetting : "settings"
+
+  User {
+    text user_id PK
+    text firstname
+    text lastname
+    text middle_name "nullable"
+    GenderType gender
+    integer age
+    text current_address
+    text phone_number UK
+    text avatar "nullable"
+    text role_id FK
+    timestamp createdAt
+    timestamp updatedAt
+    text portal_department "nullable"
+    text address_street "nullable"
+    text address_barangay "nullable"
+    text address_city "nullable"
+    text address_province "nullable"
+    integer household_size "nullable"
+    text partner_barangay "nullable"
+    BeneficiaryType beneficiary_type "nullable"
+  }
+  ResidencyDocument {
+    text residency_document_id PK
+    text user_id FK
+    text file_url
+    text file_name
+    text mime_type
+    integer size_bytes
+    text extracted_address
+    timestamp createdAt
+  }
+  UserRoleAvatar {
+    text user_role_avatar_id PK
+    text user_id FK
+    RoleType role_type
+    text avatar_url
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserSchoolInfo {
+    text user_school_info_id PK
+    text id_number UK
+    integer graduation_year
+    integer graduation_month
+    integer graduation_day
+    text department_id FK
+    text major_id FK
+    text year_level_id FK
+    text user_id FK
+    timestamp createdAt
+    timestamp updatedAt
+    text school_id_url "nullable"
+  }
+  Department {
+    text department_id PK
+    text name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  Major {
+    text major_id PK
+    text name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  YearLevel {
+    text year_level_id PK
+    text name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserVerification {
+    text user_verification_id PK
+    text user_id FK
+    VerificationStatus status
+    timestamp createdAt
+    timestamp updatedAt
+    text user_biometric_id FK, UK "nullable"
+  }
+  UserBiometric {
+    text user_biometric_id PK
+    text face_url
+    jsonb embedding "nullable"
+    EmbeddingType embedding_type
+    boolean isActive
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  Role {
+    text role_id PK
+    RoleType type
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  RolePermissionDefault {
+    text role_permission_default_id PK
+    RoleType role_type
+    PermissionKey permission
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserPermissionOverride {
+    text user_permission_override_id PK
+    text user_id FK
+    PermissionKey permission
+    PermissionOverrideEffect effect
+    text reason "nullable"
+    text granted_by_user_id "ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserActionSuspension {
+    text user_action_suspension_id PK
+    text user_id FK
+    PermissionKey permission
+    text reason
+    text issued_by_user_id "ref User"
+    timestamp expires_at "nullable"
+    timestamp lifted_at "nullable"
+    text lifted_by_user_id "nullable, ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  BlockedIp {
+    text blocked_ip_id PK
+    text ip_address UK
+    text reason "nullable"
+    text user_id FK "nullable"
+    text blocked_by_user_id "ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  SecurityPolicy {
+    text security_policy_id PK
+    boolean singleton UK
+    integer password_min_length
+    boolean password_require_uppercase
+    boolean password_require_lowercase
+    boolean password_require_number
+    boolean password_require_symbol
+    boolean lockout_enabled
+    integer lockout_max_attempts
+    integer lockout_window_minutes
+    integer lockout_duration_minutes
+    integer session_idle_timeout_minutes
+    integer session_max_duration_hours
+    integer max_concurrent_sessions
+    boolean login_hours_enabled
+    integer login_hours_start_minute
+    integer login_hours_end_minute
+    text[] ip_allowlist
+    text updated_by_user_id "nullable, ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  LoginActivity {
+    text login_activity_id PK
+    text user_id FK "nullable"
+    text email
+    text ip_address
+    text user_agent "nullable"
+    LoginSource source
+    LoginOutcome outcome
+    text failure_reason "nullable"
+    timestamp createdAt
+  }
+  OAuthIdentity {
+    text oauth_identity_id PK
+    AuthProvider provider
+    text provider_user_id
+    text email "nullable"
+    text user_id FK
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  GmailConnection {
+    text gmail_connection_id PK
+    text user_id FK, UK
+    text google_sub
+    text email
+    text scope
+    text access_token
+    text refresh_token
+    timestamp access_expires_at
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  Interest {
+    text interest_id PK
+    InterestCode code UK
+    text label
+    text description "nullable"
+    boolean is_active
+    integer sort_order
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserInterest {
+    text user_interest_id PK
+    text user_id FK, UK
+    jsonb selected
+    text other_interest "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  Event {
+    serial event_id PK
+    text title
+    text description
+    timestamp event_started
+    timestamp event_ended
+    text location
+    integer max_participants
+    integer participants
+    text organizer_name
+    text category
+    text department "nullable"
+    text specified_category "nullable"
+    text[] images
+    EventStatus status
+    boolean funds_donation
+    boolean goods_donation
+    text[] goods_types
+    boolean beneficiary_applicable
+    integer max_beneficiaries "nullable"
+    jsonb geojson "nullable"
+    float8 area_sqm "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+    float8 marker_lat "nullable"
+    float8 marker_lng "nullable"
+  }
+  EventAttendance {
+    text event_attendance_id PK
+    integer event_id FK
+    text user_id FK
+    AttendanceStatus status
+    GeoValidationMethod validation_method "nullable"
+    timestamp first_ping_at "nullable"
+    timestamp last_ping_at "nullable"
+    float8 hours_rendered "nullable"
+    EventParticipationRole participation_role
+    EventRoleApproval role_approval
+    text remarks "nullable"
+    timestamp registered_at
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  EventLocationPing {
+    serial event_location_ping_id PK
+    integer event_id FK "nullable"
+    text user_id FK
+    timestamp captured_at
+    float8 latitude
+    float8 longitude
+    float8 accuracy_m
+    boolean in_area
+    GeoValidationMethod source
+    timestamp createdAt
+  }
+  Conversation {
+    text conversation_id PK
+    timestamp last_message_at "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  ConversationParticipant {
+    text conversation_participant_id PK
+    text conversation_id FK
+    text user_id FK
+    timestamp last_read_at "nullable"
+    timestamp createdAt
+  }
+  ChatMessage {
+    text message_id PK
+    text conversation_id FK
+    text sender_id FK
+    text body
+    timestamp createdAt
+  }
+  ChatAttachment {
+    text attachment_id PK
+    text message_id FK
+    text name
+    integer size
+    text mime_type
+    text url
+    timestamp createdAt
+  }
+  SupportTicket {
+    text support_ticket_id PK
+    serial reference_number UK
+    text subject
+    text description
+    SupportTicketType type
+    SupportTicketStatus status
+    SupportTicketPriority priority
+    text requester_id FK
+    text assignee_id FK "nullable"
+    LoginSource source
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  SupportTicketReply {
+    text support_ticket_reply_id PK
+    text support_ticket_id FK
+    text author_id FK "nullable"
+    text author_name
+    SupportTicketAuthorType author_type
+    text body
+    timestamp createdAt
+  }
+  CertificateTemplate {
+    text certificate_template_id PK
+    text reference UK
+    text name
+    text description
+    CertificateTemplateCategory category
+    CertificateTemplateStatus status
+    CertificateOrientation orientation
+    integer issued
+    integer deployed_events
+    jsonb design
+    text updated_by_user_id FK "nullable"
+    text updated_by_name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  CertificateTemplateSignatory {
+    text certificate_template_signatory_id PK
+    text certificate_template_id FK
+    text coordinator_user_id FK
+    text name
+    text title
+    text department
+    text signature_token
+    integer position
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  CertificateTemplateAsset {
+    text certificate_template_asset_id PK
+    text certificate_template_id FK
+    CertificateAssetKind kind
+    text storage_key
+    text file_name
+    text content_type
+    integer byte_size
+    timestamp createdAt
+  }
+  CertificateDeployment {
+    text certificate_deployment_id PK
+    text reference UK
+    text certificate_template_id FK
+    text template_name
+    CertificateTemplateCategory category
+    CertificateOrientation orientation
+    jsonb design
+    integer event_id FK
+    text event_name
+    text event_venue
+    timestamp event_date
+    CertificateDeploymentStatus status
+    integer participants
+    integer distributed
+    integer claimed
+    text deployed_by_user_id FK "nullable"
+    text deployed_by_name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  IssuedCertificate {
+    text issued_certificate_id PK
+    text certificate_number UK
+    text certificate_deployment_id FK
+    integer event_id FK
+    text user_id FK
+    text recipient_name
+    text event_name
+    timestamp event_date
+    float8 hours_rendered
+    text organization
+    text template_name
+    CertificateTemplateCategory category
+    CertificateOrientation orientation
+    jsonb design
+    timestamp issued_at
+    timestamp claimed_at "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  MonthlyReportFolder {
+    text monthly_report_folder_id PK
+    text name
+    text created_by_user_id FK "nullable"
+    text created_by_name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  MonthlyReport {
+    text monthly_report_id PK
+    text reference UK
+    text title
+    text period
+    ReportDepartment department
+    MonthlyReportStatus status
+    text summary
+    integer metric_events
+    integer metric_volunteers
+    integer metric_service_hours
+    integer metric_beneficiaries
+    text submitted_by_user_id FK "nullable"
+    text submitted_by_name
+    text submitted_by_email
+    text submitted_by_title
+    timestamp submitted_at
+    text reviewer_user_id FK "nullable"
+    text reviewer_name "nullable"
+    timestamp decided_at "nullable"
+    text decision_note "nullable"
+    text folder_id FK "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  MonthlyReportDocument {
+    text monthly_report_document_id PK
+    text monthly_report_id FK
+    text file_name
+    MonthlyReportDocumentKind kind
+    text storage_key
+    text content_type
+    integer byte_size
+    timestamp createdAt
+  }
+  MonthlyReportTrailEntry {
+    text monthly_report_trail_entry_id PK
+    text monthly_report_id FK
+    MonthlyReportTrailAction action
+    text actor_name
+    text note "nullable"
+    timestamp createdAt
+  }
+  Announcement {
+    text announcement_id PK
+    text title
+    text body
+    AnnouncementTone tone
+    AnnouncementAudience[] audiences
+    AnnouncementChannel[] channels
+    AnnouncementState state
+    timestamp publish_at
+    timestamp expires_at "nullable"
+    boolean pinned
+    text window_id "nullable"
+    text author_id FK "nullable"
+    text author_name
+    integer reach
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  Notification {
+    text notification_id PK
+    text user_id FK
+    text title
+    text description
+    NotificationCategory category
+    NotificationTone tone
+    text href "nullable"
+    text dedupe_key "nullable"
+    RoleType audience_role "nullable"
+    timestamp read_at "nullable"
+    timestamp dismissed_at "nullable"
+    timestamp createdAt
+  }
+  EvaluationForm {
+    text evaluation_form_id PK
+    text title
+    text description
+    jsonb header_typography
+    jsonb questions
+    EvaluationFormStatus status
+    timestamp createdAt
+    timestamp updatedAt
+    boolean is_default
+  }
+  EvaluationAssignment {
+    text evaluation_assignment_id PK
+    text form_id FK
+    integer event_id FK, UK
+    text assigned_by_id FK "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  RankingSettings {
+    text ranking_settings_id PK
+    integer points_per_attendance
+    integer absence_penalty_step
+    integer absence_reset_days
+    text default_period
+    jsonb tiers
+    timestamp createdAt
+    timestamp updatedAt
+    integer donor_pesos_per_point
+    jsonb goods_type_values "nullable"
+    jsonb participation_role_points "nullable"
+  }
+  EvaluationResponse {
+    text evaluation_response_id PK
+    text form_id FK
+    integer event_id FK
+    text user_id FK
+    jsonb answers
+    integer rating "nullable"
+    EvaluationResponseStatus status
+    timestamp submitted_at
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserRequest {
+    text user_request_id PK
+    serial reference_number UK
+    UserRequestKind kind
+    UserRequestStatus status
+    text user_id FK
+    RoleType requested_role "nullable"
+    integer event_id FK "nullable"
+    EventParticipationRole participation_role "nullable"
+    text id_front_url "nullable"
+    text id_back_url "nullable"
+    text selfie_url "nullable"
+    float8 face_similarity "nullable"
+    text summary
+    text decided_by_user_id FK "nullable"
+    timestamp decided_at "nullable"
+    text rejection_reason "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+    jsonb selfie_embedding "nullable"
+    text residency_proof_url "nullable"
+    text residency_proof_name "nullable"
+    text residency_proof_mime "nullable"
+    text document_url "nullable"
+    text document_name "nullable"
+    text document_mime "nullable"
+    integer document_size_bytes "nullable"
+  }
+  UserRequestTrailEntry {
+    text user_request_trail_entry_id PK
+    text user_request_id FK
+    text label
+    text actor_name
+    timestamp createdAt
+  }
+  NeedsAssessment {
+    text needs_assessment_id PK
+    text user_id FK, UK
+    text[] needs
+    text other_need "nullable"
+    integer seriousness
+    text[] barriers
+    text other_barrier "nullable"
+    text community_problem
+    text other_community_problem "nullable"
+    text concern "nullable"
+    timestamp submitted_at
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  AssistanceRequest {
+    text assistance_request_id PK
+    serial reference_number UK
+    text user_id FK
+    text title
+    AssistanceCategory category
+    text description
+    AssistanceUrgency urgency
+    integer household_size
+    float8 location_latitude "nullable"
+    float8 location_longitude "nullable"
+    text location_details "nullable"
+    AssistanceRequestStatus status
+    AssistanceAssessmentStatus assessment_status
+    timestamp assessment_date "nullable"
+    text assigned_organization "nullable"
+    text[] items
+    text status_note "nullable"
+    timestamp screened_at "nullable"
+    timestamp decided_at "nullable"
+    timestamp released_at "nullable"
+    timestamp cancelled_at "nullable"
+    text cancel_reason "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  AssistanceRequestAttachment {
+    text assistance_request_attachment_id PK
+    text assistance_request_id FK
+    text name
+    text url
+    text mime
+    integer size_bytes
+    timestamp createdAt
+  }
+  Donation {
+    text donation_id PK
+    serial sequence UK
+    text user_id FK
+    integer event_id FK
+    DonationKind kind
+    DonationStatus status
+    integer amount
+    text payment_id FK, UK "nullable"
+    text goods_type "nullable"
+    text goods_item "nullable"
+    integer goods_quantity "nullable"
+    text donor_contact "nullable"
+    timestamp delivery_date "nullable"
+    timestamp confirmed_at "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  DonationTrailEntry {
+    text donation_trail_entry_id PK
+    text donation_id FK
+    DonationStatus status
+    text note "nullable"
+    text actor_id FK "nullable"
+    text actor_label
+    text notified_email "nullable"
+    timestamp createdAt
+  }
+  AuditLog {
+    text audit_log_id PK
+    text action
+    text description
+    AuditCategory category
+    AuditSeverity severity
+    AuditOutcome outcome
+    text actor_user_id FK "nullable"
+    text actor_name
+    text actor_email
+    RoleType actor_role "nullable"
+    text target_type
+    text target_label
+    text target_id "nullable"
+    text ip_address
+    text user_agent "nullable"
+    AuditSource source
+    text request_id "nullable"
+    text reason "nullable"
+    jsonb changes
+    jsonb metadata
+    timestamp createdAt
+  }
+  Account {
+    text account_id PK
+    text email UK
+    text password "nullable"
+    timestamp credential_expires_at "nullable"
+    text provisioned_by_user_id "nullable, ref User"
+    timestamp email_verified_at "nullable"
+    text signature_url "nullable"
+    boolean is_restricted
+    timestamp restricted_at "nullable"
+    text restriction_reason "nullable"
+    text last_login_ip "nullable"
+    text user_id FK
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  DonationPayment {
+    text donation_payment_id PK
+    text user_id FK
+    integer event_id FK "nullable"
+    text campaign_id
+    text campaign_title
+    integer amount
+    text currency
+    DonationPaymentMethod method
+    DonationPaymentStatus status
+    text idempotency_key
+    text gateway_reference UK
+    text gateway_resource_id "nullable"
+    text payment_reference "nullable"
+    text payment_channel "nullable"
+    text checkout_url "nullable"
+    text qr_string "nullable"
+    timestamp expires_at "nullable"
+    timestamp paid_at "nullable"
+    text failure_reason "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  PaymentWebhookEvent {
+    text webhook_id PK
+    text event
+    text gateway_reference "nullable, ref DonationPayment"
+    jsonb payload
+    timestamp receivedAt
+  }
+  PaymentGatewaySettings {
+    text payment_gateway_settings_id PK
+    boolean singleton UK
+    PaymentGatewayMode mode
+    boolean enabled
+    text secret_key_cipher "nullable"
+    text secret_key_last4 "nullable"
+    text webhook_token_cipher "nullable"
+    text api_url "nullable"
+    text statement_name "nullable"
+    text support_email "nullable"
+    text support_contact "nullable"
+    timestamp verified_at "nullable"
+    text verification_error "nullable"
+    text updated_by_user_id "nullable, ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  PaymentMethodSetting {
+    text payment_method_setting_id PK
+    text settings_id FK
+    DonationPaymentMethod method
+    boolean enabled
+    text display_name "nullable"
+    text instructions "nullable"
+    text account_name "nullable"
+    text account_number "nullable"
+    text[] channel_codes
+    integer min_amount
+    integer max_amount
+    integer sort_order
+    PaymentMethodVerification verification
+    timestamp verified_at "nullable"
+    text verification_message "nullable"
+    text[] verified_channel_codes
+    timestamp callbacks_registered_at "nullable"
+    PaymentAccountProof account_proof
+    integer account_proof_amount "nullable"
+    text account_proof_reference "nullable"
+    text account_proof_id "nullable"
+    timestamp account_proof_sent_at "nullable"
+    integer account_proof_attempts
+    text account_proof_message "nullable"
+    text account_proof_target "nullable"
+    timestamp account_verified_at "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }

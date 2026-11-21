@@ -1,309 +1,221 @@
-import { asCase } from '../../../../config/test-case';
-import { NotFoundException } from '@nestjs/common';
-import {
-  expectSafeErrorEnvelope,
-  runApiLayer,
-  LayerFixture,
-  expectValidationEnvelope,
-  runSchemaLayer,
-  withPollution,
-} from '../../../../config/layer-harness';
+import { LayerFixture } from '../../../../config/layer-harness';
 import {
   ANNOUNCEMENTS_PATH,
-  VALID_ANNOUNCEMENT,
-  useAnnouncementsApp,
   VALID_ANNOUNCEMENT as VALID,
   describeAnnouncementTable,
+  useAnnouncementsApp,
 } from '../announcements-site-support';
 import {
   AnnouncementAudience,
   AnnouncementChannel,
   AnnouncementState,
-  PermissionKey,
 } from '../../../../../src/infastructures/prisma/common/client';
-import { AnnouncementsSiteController } from '../../../../../src/modules/announcements/controllers/announcements-site-controller';
-import { PERMISSIONS_KEY } from '../../../../../src/shared/decorators/require-permission-decorator';
-import { SaveAnnouncementSchema } from '../../../../../src/modules/announcements/validators/announcements-site-validator';
-import {
-  CONTROL_CHAR_PAYLOADS,
-  HOSTILE_STRINGS,
-  MASS_ASSIGNMENT_KEYS,
-  OPERATOR_INJECTION_PAYLOADS,
-  PROTOTYPE_POLLUTION_BODIES,
-  SQL_INJECTION_PAYLOADS,
-  XSS_PAYLOADS,
-  specialCharacterSeries,
-} from '../../../../config/security-payloads';
 
 /**
- * Notices Module · Create Announcement — invalid inputs.
+ * Notices Module · Create Announcement — invalid inputs (field validation).
  *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
+ * Every case here is an intentionally wrong value for one field of the announcement
+ * dialog (POST /api/v1/announcements). A case Passes when the request is refused with
+ * "Validation failed" (400) on that field — and, where the schema defines one, the
+ * exact message — without reaching the service. The valid cases live in ../valid/.
+ *
+ * Each fixture keeps every other field valid, so the named field is the only reason
+ * it can fail.
  */
 
-/* ── error handling ──────────────────────────────────────────────────────── */
-{
-  /**
-   * Create announcement — error handling: an unexpected service error is masked as a
-   * generic 500 with nothing leaked, and the service's deliberate 404 keeps its status
-   * and message through the envelope.
-   */
-  describe('announcements site · create — error handling', () => {
-    const ctx = useAnnouncementsApp();
+const ALL_AUDIENCES = Object.values(AnnouncementAudience);
+const ALL_CHANNELS = Object.values(AnnouncementChannel);
 
-    describe(`POST ${ANNOUNCEMENTS_PATH}`, () => {
-      const create = () =>
-        runApiLayer(ctx.app, { method: 'post', path: ANNOUNCEMENTS_PATH, body: VALID_ANNOUNCEMENT });
+const MESSAGES = {
+  titleRequired: 'Title is required',
+  titleCharacters: 'Title may only contain letters, numbers, spaces and basic punctuation',
+  titleRepeated: 'Title cannot contain repeated punctuation',
+  titleColon: 'A colon before a word in the title must be followed by a space',
+  titleEncoded: 'Title cannot contain encoded values',
+  bodyRequired: 'Message is required',
+  bodyControl: 'Message cannot contain control characters',
+  audienceRequired: 'Pick at least one audience',
+  channelRequired: 'Pick at least one channel',
+  expiryOrder: 'Expiry must come after the publish time',
+  windowId: 'A valid maintenance window id is required',
+};
 
-      asCase('invalid', 'The service fails with an unexpected internal or database error').it('masks an unexpected service error as a 500 without leaking detail', async () => {
-        ctx.service.createAnnouncement.mockRejectedValueOnce(new Error('syntax error at or near "OR"'));
-        const outcome = await create();
-        expect(outcome.status).toBe(500);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body).toEqual({ ok: false, message: 'Internal server error' });
-      });
+/** The valid announcement without `field` — every field is required, nullable ones included. */
+const without = (field: keyof typeof VALID) => {
+  const { [field]: _omitted, ...rest } = VALID;
+  return rest;
+};
 
-      asCase('invalid', 'Request made when the signed-in account no longer exists', 'Request fails with 404; status and message are kept in the { ok: false } envelope').it('keeps the 404 when the signed-in account no longer exists', async () => {
-        ctx.service.createAnnouncement.mockRejectedValueOnce(new NotFoundException('Signed-in account not found'));
-        const outcome = await create();
-        expect(outcome.status).toBe(404);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body.message).toBe('Signed-in account not found');
-      });
-    });
+/* ── title ───────────────────────────────────────────────────────────────── */
+const titleFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the title out', input: without('title'), expected: 'FAIL', field: 'title' },
+  { name: 'Staff leaves the title empty', input: { ...VALID, title: '' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleRequired },
+  { name: 'Staff types a title of only spaces', input: { ...VALID, title: '   ' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleRequired },
+  { name: 'Staff types a title of 201 characters', input: { ...VALID, title: 'a'.repeat(201) }, expected: 'FAIL', field: 'title' },
+  { name: 'Staff types a title with an emoji', input: { ...VALID, title: 'Outreach day 🎉' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleCharacters },
+  { name: 'Staff types a title with double quotes', input: { ...VALID, title: 'Read the "Volunteer FAQ" first' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleCharacters },
+  { name: 'Staff types a title with a hash sign (Room #3)', input: { ...VALID, title: 'Briefing in Room #3' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleCharacters },
+  { name: 'Staff types a title with an underscore', input: { ...VALID, title: 'Outreach_day schedule' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleCharacters },
+  { name: 'Staff types a title over two lines', input: { ...VALID, title: 'Outreach day\nBring water' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleCharacters },
+  { name: 'Staff types a title ending in repeated exclamation marks', input: { ...VALID, title: 'Volunteers needed!!!' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleRepeated },
+  { name: 'Staff types a title with a double hyphen', input: { ...VALID, title: 'Outreach -- Barangay Guadalupe' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleRepeated },
+  { name: 'Staff types a title with empty parentheses', input: { ...VALID, title: 'Schedule update ()' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleRepeated },
+  { name: 'Staff types a title with a colon run into a word', input: { ...VALID, title: 'Reminder:bring your ID' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleColon },
+  { name: 'Staff types a title with a percent-encoded value (%20)', input: { ...VALID, title: 'Outreach%20day' }, expected: 'FAIL', field: 'title', message: MESSAGES.titleEncoded },
+  { name: 'Staff sends the title as a number', input: { ...VALID, title: 2026 }, expected: 'FAIL', field: 'title' },
+];
+
+/* ── body ────────────────────────────────────────────────────────────────── */
+const bodyFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the message out', input: without('body'), expected: 'FAIL', field: 'body' },
+  { name: 'Staff leaves the message empty', input: { ...VALID, body: '' }, expected: 'FAIL', field: 'body', message: MESSAGES.bodyRequired },
+  { name: 'Staff types a message of only spaces and line breaks', input: { ...VALID, body: ' \n\t \r\n ' }, expected: 'FAIL', field: 'body', message: MESSAGES.bodyRequired },
+  { name: 'Staff types a message of 4001 characters', input: { ...VALID, body: 'a'.repeat(4001) }, expected: 'FAIL', field: 'body' },
+  { name: 'Staff pastes a non-printing character (bell) into the message', input: { ...VALID, body: `${VALID.body}\u0007` }, expected: 'FAIL', field: 'body', message: MESSAGES.bodyControl },
+  { name: 'Staff pastes a form-feed character into the message', input: { ...VALID, body: 'Page one\u000Cpage two' }, expected: 'FAIL', field: 'body', message: MESSAGES.bodyControl },
+  { name: 'Staff pastes a delete character into the message', input: { ...VALID, body: `${VALID.body}\u007F` }, expected: 'FAIL', field: 'body', message: MESSAGES.bodyControl },
+  { name: 'Staff sends the message as a number', input: { ...VALID, body: 42 }, expected: 'FAIL', field: 'body' },
+  { name: 'Client sends the message as "message" instead of "body"', input: { ...without('body'), message: VALID.body }, expected: 'FAIL', field: 'body' },
+];
+
+/* ── tone ────────────────────────────────────────────────────────────────── */
+const toneFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the tone out', input: without('tone'), expected: 'FAIL', field: 'tone' },
+  { name: 'Staff picks a tone that does not exist (URGENT)', input: { ...VALID, tone: 'URGENT' }, expected: 'FAIL', field: 'tone' },
+  { name: 'Staff sends the tone in lower case (info)', input: { ...VALID, tone: 'info' }, expected: 'FAIL', field: 'tone' },
+  { name: 'Staff sends an empty tone', input: { ...VALID, tone: '' }, expected: 'FAIL', field: 'tone' },
+  { name: 'Staff sends the tone as a list', input: { ...VALID, tone: ['INFO'] }, expected: 'FAIL', field: 'tone' },
+];
+
+/* ── audiences ───────────────────────────────────────────────────────────── */
+const audienceFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the audiences out', input: without('audiences'), expected: 'FAIL', field: 'audiences' },
+  { name: 'Staff picks no audience', input: { ...VALID, audiences: [] }, expected: 'FAIL', field: 'audiences', message: MESSAGES.audienceRequired },
+  { name: 'Staff picks an audience that does not exist (EVERYONE)', input: { ...VALID, audiences: ['EVERYONE'] }, expected: 'FAIL', field: 'audiences.0' },
+  { name: 'Staff sends an audience in lower case (volunteers)', input: { ...VALID, audiences: ['volunteers'] }, expected: 'FAIL', field: 'audiences.0' },
+  { name: 'Staff picks a role name instead of an audience (VOLUNTEER)', input: { ...VALID, audiences: ['VOLUNTEER'] }, expected: 'FAIL', field: 'audiences.0' },
+  {
+    name: 'Staff picks one unknown audience among valid ones',
+    input: { ...VALID, audiences: [AnnouncementAudience.VOLUNTEERS, 'EVERYONE'] },
+    expected: 'FAIL',
+    field: 'audiences.1',
+  },
+  { name: 'Staff sends one audience as text instead of a list', input: { ...VALID, audiences: AnnouncementAudience.VOLUNTEERS }, expected: 'FAIL', field: 'audiences' },
+  {
+    name: `Staff sends ${ALL_AUDIENCES.length + 1} audiences, one more than exist`,
+    input: { ...VALID, audiences: [...ALL_AUDIENCES, ALL_AUDIENCES[0]] },
+    expected: 'FAIL',
+    field: 'audiences',
+  },
+  { name: 'Staff sends the audiences as null', input: { ...VALID, audiences: null }, expected: 'FAIL', field: 'audiences' },
+];
+
+/* ── channels ────────────────────────────────────────────────────────────── */
+const channelFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the channels out', input: without('channels'), expected: 'FAIL', field: 'channels' },
+  { name: 'Staff picks no channel', input: { ...VALID, channels: [] }, expected: 'FAIL', field: 'channels', message: MESSAGES.channelRequired },
+  { name: 'Staff picks a channel that does not exist (SMS)', input: { ...VALID, channels: ['SMS'] }, expected: 'FAIL', field: 'channels.0' },
+  { name: 'Staff sends a channel in lower case (portal)', input: { ...VALID, channels: ['portal'] }, expected: 'FAIL', field: 'channels.0' },
+  {
+    name: 'Staff picks one unknown channel among valid ones',
+    input: { ...VALID, channels: [AnnouncementChannel.PORTAL, 'SMS'] },
+    expected: 'FAIL',
+    field: 'channels.1',
+  },
+  { name: 'Staff sends one channel as text instead of a list', input: { ...VALID, channels: AnnouncementChannel.PORTAL }, expected: 'FAIL', field: 'channels' },
+  {
+    name: `Staff sends ${ALL_CHANNELS.length + 1} channels, one more than exist`,
+    input: { ...VALID, channels: [...ALL_CHANNELS, ALL_CHANNELS[0]] },
+    expected: 'FAIL',
+    field: 'channels',
+  },
+  { name: 'Staff sends the channels as null', input: { ...VALID, channels: null }, expected: 'FAIL', field: 'channels' },
+];
+
+/* ── state ───────────────────────────────────────────────────────────────── */
+const stateFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the state out', input: without('state'), expected: 'FAIL', field: 'state' },
+  // The editor only offers draft or schedule; publishing and taking down go through the state endpoint.
+  { name: 'Staff saves the notice straight as PUBLISHED', input: { ...VALID, state: AnnouncementState.PUBLISHED }, expected: 'FAIL', field: 'state' },
+  { name: 'Staff saves the notice straight as EXPIRED', input: { ...VALID, state: AnnouncementState.EXPIRED }, expected: 'FAIL', field: 'state' },
+  { name: 'Staff sends the state in lower case (draft)', input: { ...VALID, state: 'draft' }, expected: 'FAIL', field: 'state' },
+  { name: 'Staff picks a state that does not exist (ARCHIVED)', input: { ...VALID, state: 'ARCHIVED' }, expected: 'FAIL', field: 'state' },
+  { name: 'Staff sends an empty state', input: { ...VALID, state: '' }, expected: 'FAIL', field: 'state' },
+];
+
+/* ── publish_at ──────────────────────────────────────────────────────────── */
+const publishAtFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the publish time out', input: without('publish_at'), expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sends the publish time as null', input: { ...VALID, publish_at: null }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sends an empty publish time', input: { ...VALID, publish_at: '' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time as a date without a time', input: { ...VALID, publish_at: '2099-01-01' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time as a time without a date', input: { ...VALID, publish_at: '08:00:00' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time with a local offset (+08:00)', input: { ...VALID, publish_at: '2099-01-01T16:00:00+08:00' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time in a month that does not exist (13)', input: { ...VALID, publish_at: '2099-13-01T08:00:00.000Z' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time on a day that does not exist (30 February)', input: { ...VALID, publish_at: '2099-02-30T08:00:00.000Z' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time at an hour that does not exist (25:00)', input: { ...VALID, publish_at: '2099-01-01T25:00:00.000Z' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sets the publish time in day/month/year form', input: { ...VALID, publish_at: '01/01/2099 08:00' }, expected: 'FAIL', field: 'publish_at' },
+  { name: 'Staff sends the publish time as a timestamp number', input: { ...VALID, publish_at: 4070908800000 }, expected: 'FAIL', field: 'publish_at' },
+];
+
+/* ── expires_at ──────────────────────────────────────────────────────────── */
+const expiresAtFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the expiry out (null is required for "no expiry")', input: without('expires_at'), expected: 'FAIL', field: 'expires_at' },
+  { name: 'Staff sets the expiry equal to the publish time', input: { ...VALID, expires_at: VALID.publish_at }, expected: 'FAIL', field: 'expires_at', message: MESSAGES.expiryOrder },
+  { name: 'Staff sets the expiry before the publish time', input: { ...VALID, expires_at: '2098-12-31T08:00:00.000Z' }, expected: 'FAIL', field: 'expires_at', message: MESSAGES.expiryOrder },
+  { name: 'Staff sets the expiry one second before the publish time', input: { ...VALID, expires_at: '2099-01-01T07:59:59.000Z' }, expected: 'FAIL', field: 'expires_at', message: MESSAGES.expiryOrder },
+  { name: 'Staff sends an empty expiry', input: { ...VALID, expires_at: '' }, expected: 'FAIL', field: 'expires_at' },
+  { name: 'Staff sets the expiry as a date without a time', input: { ...VALID, expires_at: '2099-01-02' }, expected: 'FAIL', field: 'expires_at' },
+  { name: 'Staff sets the expiry with a local offset (+08:00)', input: { ...VALID, expires_at: '2099-01-02T16:00:00+08:00' }, expected: 'FAIL', field: 'expires_at' },
+  { name: 'Staff sets the expiry on a day that does not exist (31 April)', input: { ...VALID, expires_at: '2099-04-31T08:00:00.000Z' }, expected: 'FAIL', field: 'expires_at' },
+  { name: 'Staff sets the expiry in day/month/year form', input: { ...VALID, expires_at: '02/01/2099 08:00' }, expected: 'FAIL', field: 'expires_at' },
+  { name: 'Staff sends the expiry as a timestamp number', input: { ...VALID, expires_at: 4070995200000 }, expected: 'FAIL', field: 'expires_at' },
+];
+
+/* ── pinned ──────────────────────────────────────────────────────────────── */
+const pinnedFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the pinned flag out', input: without('pinned'), expected: 'FAIL', field: 'pinned' },
+  { name: 'Staff sends pinned as the text "true"', input: { ...VALID, pinned: 'true' }, expected: 'FAIL', field: 'pinned' },
+  { name: 'Staff sends pinned as the text "yes"', input: { ...VALID, pinned: 'yes' }, expected: 'FAIL', field: 'pinned' },
+  { name: 'Staff sends pinned as the number 1', input: { ...VALID, pinned: 1 }, expected: 'FAIL', field: 'pinned' },
+  { name: 'Staff sends pinned as null', input: { ...VALID, pinned: null }, expected: 'FAIL', field: 'pinned' },
+];
+
+/* ── window_id ───────────────────────────────────────────────────────────── */
+const windowIdFixtures: LayerFixture[] = [
+  { name: 'Staff leaves the window id out (null is required for "no window")', input: without('window_id'), expected: 'FAIL', field: 'window_id' },
+  { name: 'Staff sends an empty window id', input: { ...VALID, window_id: '' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id of 101 characters', input: { ...VALID, window_id: 'a'.repeat(101) }, expected: 'FAIL', field: 'window_id' },
+  { name: 'Staff sends a window id with a space', input: { ...VALID, window_id: 'win db-migration' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id with an underscore', input: { ...VALID, window_id: 'win_db_migration' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id starting with a hyphen', input: { ...VALID, window_id: '-win-db' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id ending with a hyphen', input: { ...VALID, window_id: 'win-db-' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id with a double hyphen', input: { ...VALID, window_id: 'win--db' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id with a dot', input: { ...VALID, window_id: 'win.db' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends a window id that is a hex literal (0x1f)', input: { ...VALID, window_id: '0x1f' }, expected: 'FAIL', field: 'window_id', message: MESSAGES.windowId },
+  { name: 'Staff sends the window id as a number', input: { ...VALID, window_id: 42 }, expected: 'FAIL', field: 'window_id' },
+];
+
+/* ── whole form ──────────────────────────────────────────────────────────── */
+const formFixtures: LayerFixture[] = [
+  { name: 'Staff submits an empty form', input: {}, expected: 'FAIL', field: 'title' },
+  { name: 'Client sends a field the dialog does not have (subject)', input: { ...VALID, subject: 'Extra' }, expected: 'FAIL' },
+];
+
+describe('announcements site · create — field validation', () => {
+  const ctx = useAnnouncementsApp();
+
+  describe(`POST ${ANNOUNCEMENTS_PATH}`, () => {
+    describe('title', () => describeAnnouncementTable(ctx, titleFixtures));
+    describe('body', () => describeAnnouncementTable(ctx, bodyFixtures));
+    describe('tone', () => describeAnnouncementTable(ctx, toneFixtures));
+    describe('audiences', () => describeAnnouncementTable(ctx, audienceFixtures));
+    describe('channels', () => describeAnnouncementTable(ctx, channelFixtures));
+    describe('state', () => describeAnnouncementTable(ctx, stateFixtures));
+    describe('publish_at', () => describeAnnouncementTable(ctx, publishAtFixtures));
+    describe('expires_at', () => describeAnnouncementTable(ctx, expiresAtFixtures));
+    describe('pinned', () => describeAnnouncementTable(ctx, pinnedFixtures));
+    describe('window_id', () => describeAnnouncementTable(ctx, windowIdFixtures));
+    describe('form', () => describeAnnouncementTable(ctx, formFixtures));
   });
-}
-
-/* ── input validation ────────────────────────────────────────────────────── */
-{
-  /**
-   * Create announcement — input validation: every required field, length and list
-   * boundaries, the states the editor may choose, the expiry-after-publish rule, and
-   * legitimate inputs that must still pass.
-   */
-  const ALL_AUDIENCES = Object.values(AnnouncementAudience);
-  const ALL_CHANNELS = Object.values(AnnouncementChannel);
-
-  /** Every field is required, including the nullable ones. */
-  const missing = (field: keyof typeof VALID): LayerFixture => {
-    const { [field]: _omitted, ...input } = VALID;
-    return { name: `${field} missing`, input, expected: 'FAIL', field };
-  };
-
-  const fixtures: LayerFixture[] = [
-    ...(Object.keys(VALID) as (keyof typeof VALID)[]).map(missing),
-
-    // title — real notices use dashes, times, apostrophes and version numbers
-    { name: 'title empty', input: { ...VALID, title: '' }, expected: 'FAIL', field: 'title', message: 'Title is required' },
-    { name: 'title whitespace-only', input: { ...VALID, title: '   ' }, expected: 'FAIL', field: 'title', message: 'Title is required' },
-    { name: 'title over max', input: { ...VALID, title: 'a'.repeat(201) }, expected: 'FAIL', field: 'title' },
-
-    // body
-    { name: 'body empty', input: { ...VALID, body: '' }, expected: 'FAIL', field: 'body', message: 'Message is required' },
-    { name: 'body whitespace-only', input: { ...VALID, body: ' \n ' }, expected: 'FAIL', field: 'body', message: 'Message is required' },
-    { name: 'body over max', input: { ...VALID, body: 'a'.repeat(4001) }, expected: 'FAIL', field: 'body' },
-    { name: 'tone unknown', input: { ...VALID, tone: 'URGENT' }, expected: 'FAIL', field: 'tone' },
-    { name: 'tone wrong case', input: { ...VALID, tone: 'info' }, expected: 'FAIL', field: 'tone' },
-
-    // audiences — no more entries than there are audiences to pick
-    { name: 'audiences empty', input: { ...VALID, audiences: [] }, expected: 'FAIL', field: 'audiences', message: 'Pick at least one audience' },
-    { name: 'audiences over max', input: { ...VALID, audiences: [...ALL_AUDIENCES, ALL_AUDIENCES[0]] }, expected: 'FAIL', field: 'audiences' },
-    { name: 'audiences unknown', input: { ...VALID, audiences: ['EVERYONE'] }, expected: 'FAIL', field: 'audiences.0' },
-    { name: 'audiences as one string, not a list', input: { ...VALID, audiences: ALL_AUDIENCES[0] }, expected: 'FAIL', field: 'audiences' },
-
-    // channels — no more entries than there are channels to pick
-    { name: 'channels empty', input: { ...VALID, channels: [] }, expected: 'FAIL', field: 'channels', message: 'Pick at least one channel' },
-    { name: 'channels over max', input: { ...VALID, channels: [...ALL_CHANNELS, ALL_CHANNELS[0]] }, expected: 'FAIL', field: 'channels' },
-    { name: 'channels unknown', input: { ...VALID, channels: ['SMS'] }, expected: 'FAIL', field: 'channels.0' },
-    { name: 'channels as one string, not a list', input: { ...VALID, channels: ALL_CHANNELS[0] }, expected: 'FAIL', field: 'channels' },
-    { name: 'state PUBLISHED cannot be chosen here', input: { ...VALID, state: AnnouncementState.PUBLISHED }, expected: 'FAIL', field: 'state' },
-    { name: 'state EXPIRED cannot be chosen here', input: { ...VALID, state: AnnouncementState.EXPIRED }, expected: 'FAIL', field: 'state' },
-    { name: 'state wrong case', input: { ...VALID, state: 'draft' }, expected: 'FAIL', field: 'state' },
-    { name: 'publish_at null', input: { ...VALID, publish_at: null }, expected: 'FAIL', field: 'publish_at' },
-    { name: 'publish_at empty', input: { ...VALID, publish_at: '' }, expected: 'FAIL', field: 'publish_at' },
-    { name: 'publish_at date only', input: { ...VALID, publish_at: '2099-01-01' }, expected: 'FAIL', field: 'publish_at' },
-    { name: 'publish_at with a local offset', input: { ...VALID, publish_at: '2099-01-01T16:00:00+08:00' }, expected: 'FAIL', field: 'publish_at' },
-    { name: 'publish_at impossible date', input: { ...VALID, publish_at: '2099-02-30T08:00:00.000Z' }, expected: 'FAIL', field: 'publish_at' },
-    { name: 'publish_at as an epoch number', input: { ...VALID, publish_at: 4070908800000 }, expected: 'FAIL', field: 'publish_at' },
-    { name: 'expires_at same as publish', input: { ...VALID, expires_at: VALID.publish_at }, expected: 'FAIL', field: 'expires_at', message: 'Expiry must come after the publish time' },
-    { name: 'expires_at before publish', input: { ...VALID, expires_at: '2098-01-01T08:00:00.000Z' }, expected: 'FAIL', field: 'expires_at', message: 'Expiry must come after the publish time' },
-    { name: 'expires_at empty', input: { ...VALID, expires_at: '' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'expires_at date only', input: { ...VALID, expires_at: '2099-01-02' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'pinned as a string', input: { ...VALID, pinned: 'true' }, expected: 'FAIL', field: 'pinned' },
-    { name: 'pinned as a number', input: { ...VALID, pinned: 1 }, expected: 'FAIL', field: 'pinned' },
-    { name: 'pinned null', input: { ...VALID, pinned: null }, expected: 'FAIL', field: 'pinned' },
-    { name: 'window_id over max', input: { ...VALID, window_id: 'a'.repeat(101) }, expected: 'FAIL', field: 'window_id' },
-    { name: 'window_id empty', input: { ...VALID, window_id: '' }, expected: 'FAIL', field: 'window_id' },
-  ];
-
-  describe('announcements site · create — input validation', () => {
-    const ctx = useAnnouncementsApp();
-
-    describe(`POST ${ANNOUNCEMENTS_PATH}`, () => {
-      describeAnnouncementTable(ctx, fixtures);
-    });
-  });
-}
-
-/* ── maintenance ─────────────────────────────────────────────────────────── */
-{
-  /**
-   * Create announcement from the portal's Maintenance screen (System). It shares
-   * `AnnouncementDialog` and POST /api/v1/announcements with the Notices screen, so the
-   * field rules and attack strings live in the other specs in this folder. This one
-   * covers what is particular to Maintenance: the bodies its dialog really builds, and
-   * the window ids it generates.
-   */
-
-  /** What `blankAnnouncement()` and `toApiDraft()` send for a new notice, as the dialog fills it in. */
-  const DIALOG_DRAFT = {
-    ...VALID_ANNOUNCEMENT,
-    title: 'CARES is offline tonight, 1:00–2:30 AM',
-    body: 'The portal and the app are unavailable while the database is migrated.',
-    publish_at: new Date('2099-01-01T17:00').toISOString(),
-  };
-
-  const fixtures: LayerFixture[] = [
-
-    // The dialog only offers draft or schedule; a window cannot publish a notice directly.
-    { name: 'publishing straight from the dialog', input: { ...DIALOG_DRAFT, state: AnnouncementState.PUBLISHED }, expected: 'FAIL', field: 'state' },
-  ];
-
-  describe('announcements site · create from maintenance', () => {
-    const ctx = useAnnouncementsApp();
-
-    describe(`POST ${ANNOUNCEMENTS_PATH}`, () => {
-      describeAnnouncementTable(ctx, fixtures);
-
-      // The route is gated on the notices right, not the right that opens the Maintenance
-      // page. This records that today's rule is deliberate-looking, not that it is right.
-      asCase('invalid', 'Staff with only the maintenance right posts a maintenance notice').it('requires the notices right, not the maintenance right', () => {
-        const required = Reflect.getMetadata(
-          PERMISSIONS_KEY,
-          AnnouncementsSiteController.prototype.createAnnouncement,
-        );
-        expect(required).toEqual([PermissionKey.SYSTEM_NOTICE_MANAGE]);
-      });
-    });
-  });
-}
-
-/* ── security ────────────────────────────────────────────────────────────── */
-{
-  /**
-   * Create announcement — security, per field class:
-   *   tone, audiences, channels, state, publish_at, expires_at, window_id
-   *              constrained: every hostile string FAILs
-   *   title      short label: SQLi, special-char series, control chars, XSS FAIL
-   *   body       free text, trimmed: control characters FAIL, line breaks stay
-   *   pinned     boolean: strings and objects FAIL
-   * plus type confusion, mass assignment and prototype pollution.
-   */
-  const rejectHostile = (field: string, wrap: (value: unknown) => unknown = (value) => value, issuePath = field): LayerFixture[] =>
-    HOSTILE_STRINGS.map((p) => ({
-      name: `${field} ← ${p.category}: ${p.label}`,
-      input: { ...VALID, [field]: wrap(p.value) },
-      expected: 'FAIL',
-      field: issuePath,
-    }));
-
-  /** `null` is a real value on the nullable fields, and is exercised as a PASS elsewhere. */
-  const typeConfusion = (field: string, { nullable = false, list = false } = {}): LayerFixture[] =>
-    OPERATOR_INJECTION_PAYLOADS.filter((p) => !(nullable && p.value === null)).map((p) => ({
-      name: `${field} ← ${p.category}: ${p.label}`,
-      input: { ...VALID, [field]: p.value },
-      expected: 'FAIL',
-      field: list && Array.isArray(p.value) ? `${field}.0` : field,
-    }));
-
-  const fixtures: LayerFixture[] = [
-    ...rejectHostile('tone'),
-    ...typeConfusion('tone'),
-
-    ...rejectHostile('audiences', (value) => [value], 'audiences.0'),
-    ...typeConfusion('audiences', { list: true }),
-
-    ...rejectHostile('channels', (value) => [value], 'channels.0'),
-    ...typeConfusion('channels', { list: true }),
-
-    ...rejectHostile('state'),
-    ...typeConfusion('state'),
-
-    ...rejectHostile('publish_at'),
-    ...typeConfusion('publish_at'),
-
-    ...rejectHostile('expires_at'),
-    ...typeConfusion('expires_at', { nullable: true }),
-
-    ...rejectHostile('window_id'),
-    ...typeConfusion('window_id', { nullable: true }),
-
-    ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...CONTROL_CHAR_PAYLOADS, ...XSS_PAYLOADS].map(
-      (p): LayerFixture => ({
-        name: `title ← ${p.category}: ${p.label}`,
-        input: { ...VALID, title: p.value },
-        expected: 'FAIL',
-        field: 'title',
-      }),
-    ),
-    ...typeConfusion('title'),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A notice can run over several lines, so line breaks are the exception.
-    ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
-      name: `body ← ${p.category}: ${p.label}`,
-      input: { ...VALID, body: p.value },
-      expected: 'FAIL',
-      field: 'body',
-    })),
-    ...typeConfusion('body'),
-
-    ...OPERATOR_INJECTION_PAYLOADS.filter((p) => !(typeof p.value === 'boolean')).map((p): LayerFixture => ({
-      name: `pinned ← ${p.category}: ${p.label}`,
-      // The catalogue's "boolean instead of string" is a real value for this field.
-      input: { ...VALID, pinned: p.value },
-      expected: 'FAIL',
-      ...(typeof p.value === 'boolean' ? {} : { field: 'pinned' }),
-    })),
-
-    ...MASS_ASSIGNMENT_KEYS.map((extra): LayerFixture => ({
-      name: `mass assignment: ${Object.keys(extra).join(', ')}`,
-      input: { ...VALID, ...extra },
-      expected: 'FAIL',
-    })),
-    // The server sets the author, the reach and the timestamps; none can be supplied.
-    { name: 'mass assignment: author_id', input: { ...VALID, author_id: 'someone-else' }, expected: 'FAIL' },
-    { name: 'mass assignment: author_name', input: { ...VALID, author_name: 'The Director' }, expected: 'FAIL' },
-    { name: 'mass assignment: reach', input: { ...VALID, reach: 100000 }, expected: 'FAIL' },
-    { name: 'mass assignment: announcement_id', input: { ...VALID, announcement_id: 'chosen-id' }, expected: 'FAIL' },
-    { name: 'mass assignment: created_at', input: { ...VALID, created_at: VALID.publish_at }, expected: 'FAIL' },
-  ];
-
-  describe('announcements site · create — security', () => {
-    const ctx = useAnnouncementsApp();
-
-    describe(`POST ${ANNOUNCEMENTS_PATH}`, () => {
-      describeAnnouncementTable(ctx, fixtures);
-
-      asCase('invalid', 'Attacker adds a role_type field to the body', 'Rejected and reported as unrecognized_keys').it('mass assignment is reported as unrecognized_keys', async () => {
-        const outcome = await runSchemaLayer(SaveAnnouncementSchema, { ...VALID, reach: 100000 });
-        expect(outcome.issues).toEqual(
-          expect.arrayContaining([expect.objectContaining({ code: 'unrecognized_keys' })]),
-        );
-      });
-
-      asCase('invalid', 'Attacker sends a __proto__ / constructor.prototype body', 'Request rejected (400); Object.prototype is not polluted').it.each(PROTOTYPE_POLLUTION_BODIES)('FAIL · prototype pollution: $label', async (p) => {
-        const outcome = await runApiLayer(ctx.app, {
-          method: 'post',
-          path: ANNOUNCEMENTS_PATH,
-          rawBody: withPollution(VALID, p.value as string),
-        });
-        expect(outcome.verdict).toBe('FAIL');
-        expectValidationEnvelope(outcome);
-        expect(ctx.service.createAnnouncement).not.toHaveBeenCalled();
-        expect(({} as any).isAdmin).toBeUndefined();
-      });
-    });
-  });
-}
+});

@@ -139,6 +139,8 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
   /// that is filled in (typed or scanned) is checked straight away.
   bool _ageTouched = false;
   bool _gradYearTouched = false;
+  bool _firstnameTouched = false;
+  bool _lastnameTouched = false;
 
   /// Barangay + city picked from the directory and a typed street, pre-filled
   /// from whatever the ID scan read ([PhAddress.lenient]). Sent as
@@ -188,6 +190,7 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
       _ => null,
     };
   }
+
   bool get _isNonTeaching => UclmDepartments.isNonTeaching(_selectedDepartment);
   List<String>? get _gradeLevels =>
       UclmDepartments.gradeLevelsFor(_selectedDepartment);
@@ -383,6 +386,22 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
     if (_age.text.trim().isEmpty && !_ageTouched) return null;
     return VolunteerFieldRules.ageError(_age.text);
   }
+
+  String? get _firstnameError {
+    if (_firstname.text.trim().isEmpty && !_firstnameTouched) return null;
+    return VolunteerFieldRules.nameError(_firstname.text, label: 'First name');
+  }
+
+  String? get _lastnameError {
+    if (_lastname.text.trim().isEmpty && !_lastnameTouched) return null;
+    return VolunteerFieldRules.nameError(_lastname.text, label: 'Last name');
+  }
+
+  String? get _middleNameError => VolunteerFieldRules.nameError(
+    _middleName.text,
+    label: 'Middle name',
+    isRequired: false,
+  );
 
   String? get _gradYearError {
     final type = widget.volunteerType;
@@ -626,23 +645,35 @@ class _RegisterOcrReviewStepState extends State<RegisterOcrReviewStep> {
             RegisterFormField(
               label: 'First Name',
               controller: _firstname,
+              errorText: _firstnameError,
               textInputAction: TextInputAction.next,
-              onChanged: (_) => _notifyParent(),
+              onChanged: (_) {
+                setState(() => _firstnameTouched = true);
+                _notifyParent();
+              },
             ),
             const SizedBox(height: 14),
             RegisterFormField(
               label: 'Middle Name',
               hint: 'Optional',
               controller: _middleName,
+              errorText: _middleNameError,
               textInputAction: TextInputAction.next,
-              onChanged: (_) => _notifyParent(),
+              onChanged: (_) {
+                setState(() {});
+                _notifyParent();
+              },
             ),
             const SizedBox(height: 14),
             RegisterFormField(
               label: 'Last Name',
               controller: _lastname,
+              errorText: _lastnameError,
               textInputAction: TextInputAction.next,
-              onChanged: (_) => _notifyParent(),
+              onChanged: (_) {
+                setState(() => _lastnameTouched = true);
+                _notifyParent();
+              },
             ),
             const SizedBox(height: 14),
             _dropdown(

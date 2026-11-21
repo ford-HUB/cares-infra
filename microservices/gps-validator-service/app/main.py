@@ -77,7 +77,9 @@ async def validate(body: ValidateBody) -> ApiResponse:
     """Judge every participant's recorded movement against the event's geofence.
 
     Chronological analysis per volunteer: when they first entered the zone
-    (timeIn), when they last left it (timeOut), how long they were inside,
+    (timeIn), when they left it for good (timeOut — breaks they came back from
+    are ignored, and with `live` an exit only counts once the departure buffer
+    has passed without a return), how long they were inside,
     whether that meets the coverage / late-entry rules, and any GPS anomalies.
     """
     if not gps_engine.model_loaded:
@@ -95,7 +97,7 @@ async def validate(body: ValidateBody) -> ApiResponse:
 
     results: list[ParticipantResult] = []
     for participant in body.participants:
-        analysis = analyze(zone, body.event, participant.pings, rules)
+        analysis = analyze(zone, body.event, participant.pings, rules, live=body.live)
         results.append(
             ParticipantResult(
                 userId=participant.user_id,

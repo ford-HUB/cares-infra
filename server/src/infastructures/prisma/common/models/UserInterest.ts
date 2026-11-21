@@ -27,6 +27,7 @@ export type AggregateUserInterest = {
 export type UserInterestMinAggregateOutputType = {
   user_interest_id: string | null
   user_id: string | null
+  other_interest: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -34,6 +35,7 @@ export type UserInterestMinAggregateOutputType = {
 export type UserInterestMaxAggregateOutputType = {
   user_interest_id: string | null
   user_id: string | null
+  other_interest: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -42,6 +44,7 @@ export type UserInterestCountAggregateOutputType = {
   user_interest_id: number
   user_id: number
   selected: number
+  other_interest: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -51,6 +54,7 @@ export type UserInterestCountAggregateOutputType = {
 export type UserInterestMinAggregateInputType = {
   user_interest_id?: true
   user_id?: true
+  other_interest?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -58,6 +62,7 @@ export type UserInterestMinAggregateInputType = {
 export type UserInterestMaxAggregateInputType = {
   user_interest_id?: true
   user_id?: true
+  other_interest?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -66,6 +71,7 @@ export type UserInterestCountAggregateInputType = {
   user_interest_id?: true
   user_id?: true
   selected?: true
+  other_interest?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -147,6 +153,7 @@ export type UserInterestGroupByOutputType = {
   user_interest_id: string
   user_id: string
   selected: runtime.JsonValue
+  other_interest: string | null
   createdAt: Date
   updatedAt: Date
   _count: UserInterestCountAggregateOutputType | null
@@ -176,6 +183,7 @@ export type UserInterestWhereInput = {
   user_interest_id?: Prisma.StringFilter<"UserInterest"> | string
   user_id?: Prisma.StringFilter<"UserInterest"> | string
   selected?: Prisma.JsonFilter<"UserInterest">
+  other_interest?: Prisma.StringNullableFilter<"UserInterest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"UserInterest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"UserInterest"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -185,6 +193,7 @@ export type UserInterestOrderByWithRelationInput = {
   user_interest_id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   selected?: Prisma.SortOrder
+  other_interest?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -197,6 +206,7 @@ export type UserInterestWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UserInterestWhereInput[]
   NOT?: Prisma.UserInterestWhereInput | Prisma.UserInterestWhereInput[]
   selected?: Prisma.JsonFilter<"UserInterest">
+  other_interest?: Prisma.StringNullableFilter<"UserInterest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"UserInterest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"UserInterest"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -206,6 +216,7 @@ export type UserInterestOrderByWithAggregationInput = {
   user_interest_id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   selected?: Prisma.SortOrder
+  other_interest?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserInterestCountOrderByAggregateInput
@@ -220,6 +231,7 @@ export type UserInterestScalarWhereWithAggregatesInput = {
   user_interest_id?: Prisma.StringWithAggregatesFilter<"UserInterest"> | string
   user_id?: Prisma.StringWithAggregatesFilter<"UserInterest"> | string
   selected?: Prisma.JsonWithAggregatesFilter<"UserInterest">
+  other_interest?: Prisma.StringNullableWithAggregatesFilter<"UserInterest"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserInterest"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"UserInterest"> | Date | string
 }
@@ -227,6 +239,7 @@ export type UserInterestScalarWhereWithAggregatesInput = {
 export type UserInterestCreateInput = {
   user_interest_id?: string
   selected: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutUser_interestInput
@@ -236,6 +249,7 @@ export type UserInterestUncheckedCreateInput = {
   user_interest_id?: string
   user_id: string
   selected: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -243,6 +257,7 @@ export type UserInterestUncheckedCreateInput = {
 export type UserInterestUpdateInput = {
   user_interest_id?: Prisma.StringFieldUpdateOperationsInput | string
   selected?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutUser_interestNestedInput
@@ -252,6 +267,7 @@ export type UserInterestUncheckedUpdateInput = {
   user_interest_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   selected?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -260,6 +276,7 @@ export type UserInterestCreateManyInput = {
   user_interest_id?: string
   user_id: string
   selected: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -267,6 +284,7 @@ export type UserInterestCreateManyInput = {
 export type UserInterestUpdateManyMutationInput = {
   user_interest_id?: Prisma.StringFieldUpdateOperationsInput | string
   selected?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -275,6 +293,7 @@ export type UserInterestUncheckedUpdateManyInput = {
   user_interest_id?: Prisma.StringFieldUpdateOperationsInput | string
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   selected?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -288,6 +307,7 @@ export type UserInterestCountOrderByAggregateInput = {
   user_interest_id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   selected?: Prisma.SortOrder
+  other_interest?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -295,6 +315,7 @@ export type UserInterestCountOrderByAggregateInput = {
 export type UserInterestMaxOrderByAggregateInput = {
   user_interest_id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
+  other_interest?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -302,6 +323,7 @@ export type UserInterestMaxOrderByAggregateInput = {
 export type UserInterestMinOrderByAggregateInput = {
   user_interest_id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
+  other_interest?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -341,6 +363,7 @@ export type UserInterestUncheckedUpdateOneWithoutUserNestedInput = {
 export type UserInterestCreateWithoutUserInput = {
   user_interest_id?: string
   selected: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -348,6 +371,7 @@ export type UserInterestCreateWithoutUserInput = {
 export type UserInterestUncheckedCreateWithoutUserInput = {
   user_interest_id?: string
   selected: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -371,6 +395,7 @@ export type UserInterestUpdateToOneWithWhereWithoutUserInput = {
 export type UserInterestUpdateWithoutUserInput = {
   user_interest_id?: Prisma.StringFieldUpdateOperationsInput | string
   selected?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -378,6 +403,7 @@ export type UserInterestUpdateWithoutUserInput = {
 export type UserInterestUncheckedUpdateWithoutUserInput = {
   user_interest_id?: Prisma.StringFieldUpdateOperationsInput | string
   selected?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  other_interest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -388,6 +414,7 @@ export type UserInterestSelect<ExtArgs extends runtime.Types.Extensions.Internal
   user_interest_id?: boolean
   user_id?: boolean
   selected?: boolean
+  other_interest?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -397,6 +424,7 @@ export type UserInterestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   user_interest_id?: boolean
   user_id?: boolean
   selected?: boolean
+  other_interest?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -406,6 +434,7 @@ export type UserInterestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   user_interest_id?: boolean
   user_id?: boolean
   selected?: boolean
+  other_interest?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -415,11 +444,12 @@ export type UserInterestSelectScalar = {
   user_interest_id?: boolean
   user_id?: boolean
   selected?: boolean
+  other_interest?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserInterestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_interest_id" | "user_id" | "selected" | "createdAt" | "updatedAt", ExtArgs["result"]["userInterest"]>
+export type UserInterestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"user_interest_id" | "user_id" | "selected" | "other_interest" | "createdAt" | "updatedAt", ExtArgs["result"]["userInterest"]>
 export type UserInterestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -439,6 +469,10 @@ export type $UserInterestPayload<ExtArgs extends runtime.Types.Extensions.Intern
     user_interest_id: string
     user_id: string
     selected: runtime.JsonValue
+    /**
+     * What the volunteer typed under "Others"; null unless OTHERS is selected.
+     */
+    other_interest: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["userInterest"]>
@@ -868,6 +902,7 @@ export interface UserInterestFieldRefs {
   readonly user_interest_id: Prisma.FieldRef<"UserInterest", 'String'>
   readonly user_id: Prisma.FieldRef<"UserInterest", 'String'>
   readonly selected: Prisma.FieldRef<"UserInterest", 'Json'>
+  readonly other_interest: Prisma.FieldRef<"UserInterest", 'String'>
   readonly createdAt: Prisma.FieldRef<"UserInterest", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"UserInterest", 'DateTime'>
 }

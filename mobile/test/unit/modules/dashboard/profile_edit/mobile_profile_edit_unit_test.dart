@@ -23,6 +23,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -449,6 +450,9 @@ void main() {
   });
 
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );
@@ -615,8 +619,8 @@ void main() {
     });
 
     test('completion labels for the "what\'s left" hint', () {
-      expect(ProfileCompletion.labelFor('school_record'), 'School information');
-      expect(ProfileCompletion.labelFor('household_size'), 'Household size');
+      expect(ProfileCompletion.labelFor('school_record'), 'School Information');
+      expect(ProfileCompletion.labelFor('household_size'), 'Household Size');
       expect(ProfileCompletion.labelFor('something_new'), 'something_new');
     });
 
@@ -644,9 +648,9 @@ void main() {
           'sign_in_providers': ['GOOGLE'],
           'has_password': true,
         }).signInLabel,
-        'Google · Email & password',
+        'Google · Email & Password',
       );
-      expect(DonorServerProfile.fromJson(const {}).signInLabel, 'Not set');
+      expect(DonorServerProfile.fromJson(const {}).signInLabel, 'Not Set');
     });
   });
 
@@ -1501,7 +1505,8 @@ void main() {
       expect(_filesOf(request).single.filename, 'barangay_certificate.pdf');
       expect(
         find.text(
-          'Address updated to "Purok 3, Mactan, Lapu-Lapu City, Cebu".',
+          'Address updated to "Purok 3, Mactan, Lapu-Lapu City, Cebu". '
+          'Your document was sent to the administrator for approval.',
         ),
         findsOneWidget,
       );
@@ -1621,6 +1626,225 @@ void main() {
         findsOneWidget,
       );
       expect(_canSave(tester), isFalse);
+    });
+  });
+
+  // =========================================================================
+  // Invalid fields
+  // =========================================================================
+
+  group('Philippine phone numbers — invalid input', () {
+    const message = 'Enter an 11-digit PH mobile number (09XXXXXXXXX)';
+
+    test('numbers of the wrong length are not valid', () {
+      for (final bad in [
+        '0917123456', // 10 digits
+        '091712345678', // 12 digits
+        '+63917123456', // canonical, one short
+        '+6391712345678', // canonical, one long
+        '63917123456', // country code, one short
+      ]) {
+        expect(isValidPhilippinePhone(bad), isFalse, reason: bad);
+        expect(philippinePhoneError(bad), message, reason: bad);
+      }
+    });
+
+    test('numbers outside the 09 / +639 mobile range are not valid', () {
+      for (final bad in [
+        '08171234567', // not a mobile prefix
+        '19171234567',
+        '+638171234567', // +63 but not a 9 mobile
+        '+649171234567', // another country code
+        '00639171234567', // international dial-out prefix
+      ]) {
+        expect(isValidPhilippinePhone(bad), isFalse, reason: bad);
+        expect(philippinePhoneError(bad), message, reason: bad);
+      }
+    });
+
+    test('letters that look like digits do not count as digits', () {
+      // A capital O for the zero and a lowercase L for the one.
+      for (final bad in ['O9171234567', '09l71234567', 'O9l7l234567']) {
+        expect(isValidPhilippinePhone(bad), isFalse, reason: bad);
+        expect(philippinePhoneError(bad), message, reason: bad);
+      }
+    });
+
+    test('a doubled plus sign is not normalized into a valid number', () {
+      expect(normalizePhilippinePhone('++639171234567'), '++639171234567');
+      expect(isValidPhilippinePhone('++639171234567'), isFalse);
+      expect(isValidPhilippinePhone('+63+9171234567'), isFalse);
+    });
+
+    test('text and symbols alone are not a number', () {
+      for (final bad in ['abcdefghijk', '+63', '+', '---', "' OR 1=1 --"]) {
+        expect(isValidPhilippinePhone(bad), isFalse, reason: bad);
+        expect(philippinePhoneError(bad), message, reason: bad);
+      }
+    });
+
+    test('a blank field is not valid but shows no inline error yet', () {
+      for (final blank in ['', '   ', '\t']) {
+        expect(isValidPhilippinePhone(blank), isFalse, reason: blank);
+        expect(philippinePhoneError(blank), isNull, reason: blank);
+      }
+    });
+
+    test('the formatter drops letters and symbols as they are typed', () {
+      const f = PhilippinePhoneFormatter();
+      String type(String next) => f
+          .formatEditUpdate(
+            TextEditingValue.empty,
+            TextEditingValue(
+              text: next,
+              selection: TextSelection.collapsed(offset: next.length),
+            ),
+          )
+          .text;
+
+      expect(type('abc'), isEmpty);
+      expect(type('0917<script>'), '0917');
+      expect(type('(0917) 123-4567'), '+639171234567');
+      expect(type('0917+1234'), '09171234'); // a stray inner plus goes
+    });
+
+    test('the formatter refuses more than 13 characters', () {
+      const f = PhilippinePhoneFormatter();
+      const old = TextEditingValue(text: '0917123456789');
+      final next = f.formatEditUpdate(
+        old,
+        const TextEditingValue(
+          text: '09171234567890',
+          selection: TextSelection.collapsed(offset: 14),
+        ),
+      );
+      expect(next.text, old.text);
+    });
+  });
+
+  group('MobileProfileEditScreen — invalid fields', () {
+    setUp(() => _cache(_profileJson()));
+
+    screenTest('a mobile number outside the PH range blocks saving', (
+      tester,
+    ) async {
+      await _openEdit(tester);
+
+      for (final bad in ['08171234567', '+638171234567', '091712345678']) {
+        await _type(tester, 'Mobile number', bad);
+        expect(
+          _error(tester, 'Mobile number'),
+          'Enter an 11-digit PH mobile number (09XXXXXXXXX)',
+          reason: bad,
+        );
+        expect(_canSave(tester), isFalse, reason: bad);
+      }
+    });
+
+    screenTest('letters typed into the mobile number are dropped', (
+      tester,
+    ) async {
+      await _openEdit(tester);
+
+      await _type(tester, 'Mobile number', 'call me');
+
+      expect(_text(tester, 'Mobile number'), isEmpty);
+      // An emptied number shows no inline error but still cannot be saved.
+      expect(_error(tester, 'Mobile number'), isNull);
+      expect(_canSave(tester), isFalse);
+    });
+
+    screenTest('a cleared mobile number cannot be saved', (tester) async {
+      await _openEdit(tester);
+
+      await _type(tester, 'First name', 'Juana'); // a real change elsewhere
+      expect(_canSave(tester), isTrue);
+
+      await _type(tester, 'Mobile number', '');
+      expect(_canSave(tester), isFalse);
+    });
+
+    screenTest('an age of all zeros is out of range', (tester) async {
+      await _openEdit(tester);
+
+      for (final bad in ['00', '000']) {
+        await _type(tester, 'Age', bad);
+        expect(
+          _error(tester, 'Age'),
+          'Enter an age between 1 and 150',
+          reason: bad,
+        );
+        expect(_canSave(tester), isFalse, reason: bad);
+      }
+    });
+
+    screenTest('signs, decimals and spaces cannot reach the age', (
+      tester,
+    ) async {
+      await _openEdit(tester);
+
+      await _type(tester, 'Age', '-5');
+      expect(_text(tester, 'Age'), '5');
+
+      await _type(tester, 'Age', '2.5');
+      expect(_text(tester, 'Age'), '25');
+
+      await _type(tester, 'Age', ' 3 0 ');
+      expect(_text(tester, 'Age'), '30');
+
+      await _type(tester, 'Age', '-.');
+      expect(_text(tester, 'Age'), isEmpty);
+      expect(_error(tester, 'Age'), 'Required');
+      expect(_canSave(tester), isFalse);
+    });
+
+    screenTest('an age over 150 with three digits is refused', (tester) async {
+      await _openEdit(tester);
+
+      await _type(tester, 'Age', '999');
+
+      expect(_error(tester, 'Age'), 'Enter an age between 1 and 150');
+      expect(_canSave(tester), isFalse);
+    });
+
+    screenTest('names longer than 80 characters are cut to 80', (tester) async {
+      await _openEdit(tester);
+      final long = 'A' * 120;
+
+      for (final label in [
+        'First name',
+        'Middle name (optional)',
+        'Last name',
+      ]) {
+        await _type(tester, label, long);
+        expect(_text(tester, label), hasLength(80), reason: label);
+      }
+    });
+
+    screenTest('a name of tabs and newlines is still empty', (tester) async {
+      await _openEdit(tester);
+
+      await _type(tester, 'Last name', '\t \n ');
+
+      expect(_error(tester, 'Last name'), 'Required');
+      expect(_canSave(tester), isFalse);
+    });
+
+    screenTest('one invalid field is enough to block an otherwise good save', (
+      tester,
+    ) async {
+      await _openEdit(tester);
+
+      await _type(tester, 'First name', 'Juana');
+      await _type(tester, 'Age', '25');
+      expect(_canSave(tester), isTrue);
+
+      await _type(tester, 'Mobile number', '0917');
+      expect(_canSave(tester), isFalse);
+      await tester.tap(_saveButton, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(server.where('PUT', _profilePath), isEmpty);
     });
   });
 }

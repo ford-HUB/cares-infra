@@ -21,6 +21,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -311,6 +312,9 @@ void main() {
   });
 
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );
@@ -877,6 +881,106 @@ void main() {
       expect(event.isApplicationPending, isFalse);
       expect(event.isApplicationAccepted, isFalse);
       expect(event.isApplicationRejected, isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Invalid fields
+  // -------------------------------------------------------------------------
+
+  group('application dialog — invalid proof files', () {
+    testWidgets('disguised or missing extensions are refused', (tester) async {
+      await _openDialog(tester);
+
+      for (final bad in [
+        'proof.pdf.exe',
+        'proof.exe',
+        'proofpdf',
+        'proof.pdf ',
+        'proof.docx',
+        'proof',
+      ]) {
+        _picker.willPick(bad);
+        await _choosePdf(tester);
+        expect(
+          find.text('Only PDF files are accepted.'),
+          findsOneWidget,
+          reason: bad,
+        );
+        expect(find.text('Choose PDF file'), findsOneWidget, reason: bad);
+        expect(_enabled(tester, _submitButton), isFalse, reason: bad);
+      }
+    });
+
+    testWidgets('a large non-PDF is refused for its type first',
+        (tester) async {
+      _picker.willPick('scan.png', size: 50 * 1024 * 1024);
+      await _openDialog(tester);
+
+      await _choosePdf(tester);
+
+      expect(find.text('Only PDF files are accepted.'), findsOneWidget);
+      expect(find.text('The PDF must be 10 MB or smaller.'), findsNothing);
+    });
+
+    testWidgets('a pick without a file path is ignored', (tester) async {
+      _picker.next = FilePickerResult([
+        PlatformFile(name: _proofName, size: 2048),
+      ]);
+      await _openDialog(tester);
+
+      await _choosePdf(tester);
+
+      expect(find.text('Choose PDF file'), findsOneWidget);
+      expect(find.text(_proofName), findsNothing);
+      expect(_enabled(tester, _submitButton), isFalse);
+    });
+
+    testWidgets('a refused pick does not replace the PDF already attached',
+        (tester) async {
+      _picker.willPick(_proofName);
+      await _openDialog(tester);
+      await _choosePdf(tester);
+      expect(_enabled(tester, _submitButton), isTrue);
+
+      _picker.willPick('selfie.jpg');
+      await tester.tap(find.text('Change'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Only PDF files are accepted.'), findsOneWidget);
+      expect(find.text(_proofName), findsOneWidget);
+      expect(find.text('selfie.jpg'), findsNothing);
+      expect(_enabled(tester, _submitButton), isTrue);
+    });
+
+    testWidgets('an oversized replacement keeps the earlier PDF',
+        (tester) async {
+      _picker.willPick(_proofName);
+      await _openDialog(tester);
+      await _choosePdf(tester);
+
+      _picker.willPick('huge.pdf', size: 11 * 1024 * 1024);
+      await tester.tap(find.text('Change'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('The PDF must be 10 MB or smaller.'), findsOneWidget);
+      expect(find.text(_proofName), findsOneWidget);
+      expect(find.text('huge.pdf'), findsNothing);
+    });
+
+    testWidgets('a refused file never reaches the server', (tester) async {
+      final rec = _Recorder();
+      await _withNetwork(rec, () async {
+        _picker.willPick('proof.exe');
+        await _openDialog(tester);
+        await _choosePdf(tester);
+
+        await tester.tap(_submitButton, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(rec.requests, isEmpty);
+        expect(find.byType(AlertDialog), findsOneWidget);
+      });
     });
   });
 }

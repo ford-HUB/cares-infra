@@ -40,11 +40,22 @@ class InterestsService {
         .toList();
   }
 
-  Future<void> saveInterests({required Set<UserInterest> interests}) async {
+  /// Replaces the saved interests. [otherInterest] is what the volunteer
+  /// typed under "Others"; leave it null to keep the text already on file
+  /// (code-only saves such as the profile form).
+  Future<void> saveInterests({
+    required Set<UserInterest> interests,
+    String? otherInterest,
+  }) async {
+    final other = otherInterest?.trim();
     await _api.putJson(
       '/interests',
       body: {
         'selected': interests.map((interest) => interest.apiValue).toList(),
+        if (other != null)
+          'other_interest': interests.contains(UserInterest.others)
+              ? other
+              : null,
       },
     );
   }

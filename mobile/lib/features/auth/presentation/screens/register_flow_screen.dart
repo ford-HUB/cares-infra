@@ -4,17 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mobile/core/constants/partner_barangays.dart';
-import 'package:mobile/core/constants/uclm_departments.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/phone_number_format.dart';
-import 'package:mobile/features/auth/domain/volunteer_field_rules.dart';
 import 'package:mobile/features/auth/domain/beneficiary_profile.dart';
 import 'package:mobile/features/auth/domain/face_capture_set.dart';
 import 'package:mobile/features/auth/domain/id_extraction_review.dart';
 import 'package:mobile/features/auth/domain/id_image_quality.dart';
 import 'package:mobile/features/auth/domain/register_ocr_sample.dart';
+import 'package:mobile/features/auth/domain/registration_account_rules.dart';
+import 'package:mobile/features/auth/domain/volunteer_details_rules.dart';
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/cares_terms_dialog.dart';
@@ -283,63 +282,15 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
           _supportingDocument != null;
     }
 
-    // A partner-barangay volunteer has no school ID or school record: the
-    // director checks the uploaded ID, the barangay they picked and the
-    // supporting document that ties them to it.
-    if (_isPartnerBarangay) {
-      return _supportingDocument != null &&
-          _ocrData.firstname.trim().isNotEmpty &&
-          _ocrData.lastname.trim().isNotEmpty &&
-          _ocrData.gender.trim().isNotEmpty &&
-          VolunteerFieldRules.isValidAge(_ocrData.age) &&
-          _ocrData.currentAddress.trim().isNotEmpty &&
-          isValidPhilippinePhone(_ocrData.phoneNumber) &&
-          PartnerBarangays.names.contains(_ocrData.partnerBarangay);
-    }
-
-    // An alumni sign-up is filed with the Certificate of Graduation the director
-    // reviews, so it cannot continue without one.
-    if (_isAlumni && _supportingDocument == null) return false;
-
-    final baseValid =
-        _ocrData.firstname.trim().isNotEmpty &&
-        _ocrData.lastname.trim().isNotEmpty &&
-        VolunteerFieldRules.isValidAge(_ocrData.age) &&
-        _ocrData.currentAddress.trim().isNotEmpty &&
-        isValidPhilippinePhone(_ocrData.phoneNumber) &&
-        _ocrData.idNumber.trim().isNotEmpty &&
-        _ocrData.departmentName.trim().isNotEmpty;
-
-    final volunteerType =
-        VolunteerTypeX.fromApiValue(_ocrData.volunteerType) ??
-        _schoolVolunteerType!;
-
-    // Non-teaching personnel have no year level or graduation year to check.
-    if (UclmDepartments.isNonTeaching(_ocrData.departmentName)) {
-      return switch (volunteerType) {
-        VolunteerType.staff => baseValid,
-        _ => baseValid && _ocrData.majorName.trim().isNotEmpty,
-      };
-    }
-
-    return switch (volunteerType) {
-      VolunteerType.student =>
-        baseValid &&
-            _ocrData.majorName.trim().isNotEmpty &&
-            _ocrData.yearLevelName.trim().isNotEmpty &&
-            VolunteerFieldRules.isValidGraduationYear(
-              _ocrData.graduationYear,
-              VolunteerType.student,
-            ),
-      VolunteerType.staff || VolunteerType.partnerBarangay => baseValid,
-      VolunteerType.alumni =>
-        baseValid &&
-            _ocrData.majorName.trim().isNotEmpty &&
-            VolunteerFieldRules.isValidGraduationYear(
-              _ocrData.graduationYear,
-              VolunteerType.alumni,
-            ),
-    };
+    // Volunteers (and a student beneficiary, whose school ID is read like a
+    // student's): partner-barangay volunteers are checked on the barangay they
+    // picked instead of a school record, and alumni and partner-barangay
+    // sign-ups cannot continue without the document the director reviews.
+    return VolunteerDetailsRules.isComplete(
+      _ocrData,
+      signUpType: _schoolVolunteerType,
+      hasDocument: _supportingDocument != null,
+    );
   }
 
   /// Beneficiary, alumni and partner-barangay details are typed in, so there is
@@ -350,17 +301,15 @@ class _RegisterFlowScreenState extends ConsumerState<RegisterFlowScreen> {
   bool get _extractionReady =>
       !_ocrExtracting && !_ocrExtractFailed && _ocrExtractSucceeded;
 
-  bool get _accountValid {
-    final emailOk = _email.contains('@') && _email.contains('.');
-    // The administrator's rules, so Continue unlocks on exactly what the chips under
-    // the field are still asking for.
-    final passwordOk = ref
-        .watch(currentPasswordPolicyProvider)
-        .isSatisfiedBy(_password);
-    final matchOk =
-        _password == _confirmPassword && _confirmPassword.isNotEmpty;
-    return emailOk && passwordOk && matchOk && _acceptedTerms;
-  }
+  bool get _accountValid => RegistrationAccountRules.isComplete(
+    email: _email,
+    password: _password,
+    confirmPassword: _confirmPassword,
+    acceptedTerms: _acceptedTerms,
+    // The administrator's rules, so Continue unlocks on exactly what the chips
+    // under the field are still asking for.
+    policy: ref.watch(currentPasswordPolicyProvider),
+  );
 
   bool get _canContinue {
     if (_isSubmitting) return false;

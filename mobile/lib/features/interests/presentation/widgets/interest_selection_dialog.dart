@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/session/role_account_store.dart';
@@ -15,9 +16,13 @@ import 'package:mobile/features/interests/domain/user_interest.dart';
 /// replace, so anything not pre-checked here would be dropped. [dismissible]
 /// adds a close button and lets the user back out without saving.
 ///
-/// Donors and beneficiaries whose Volunteer role a director approved are from
-/// outside the school community: the School interest is not offered to them
-/// and is dropped from [initialSelection] if it was saved earlier.
+/// Partner-barangay volunteers, and donors / beneficiaries whose Volunteer
+/// role a director approved, are from outside the school community: the
+/// School interest is not offered to them and is dropped from
+/// [initialSelection] if it was saved earlier.
+///
+/// Picking "Others" opens a text field for what that interest is; it is
+/// required while Others is selected and pre-filled from the saved profile.
 Future<Set<UserInterest>?> showInterestSelectionDialog(
   BuildContext context, {
   InterestsService? interestsService,
@@ -64,8 +69,32 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
       outsideSchool: _outsideSchool,
     ),
   };
+  late final TextEditingController _otherController = TextEditingController(
+    text: RoleAccountStore.instance.volunteerOtherInterest ?? '',
+  )..addListener(_onOtherChanged);
+  final FocusNode _otherFocus = FocusNode();
   bool _isSaving = false;
   String? _errorMessage;
+
+  bool get _othersSelected => _selected.contains(UserInterest.others);
+
+  String get _otherText => _otherController.text.trim();
+
+  /// Others needs a description before the picks can be saved.
+  bool get _canContinue =>
+      _selected.isNotEmpty && (!_othersSelected || _otherText.isNotEmpty);
+
+  @override
+  void dispose() {
+    _otherController.dispose();
+    _otherFocus.dispose();
+    super.dispose();
+  }
+
+  void _onOtherChanged() {
+    // Rebuilds the footer so the button enables as soon as text is typed.
+    setState(() => _errorMessage = null);
+  }
 
   void _toggle(UserInterest interest) {
     if (_isSaving) return;
@@ -77,10 +106,20 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
         _selected.add(interest);
       }
     });
+    if (interest == UserInterest.others) {
+      if (_othersSelected) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _otherText.isEmpty) _otherFocus.requestFocus();
+        });
+      } else {
+        _otherFocus.unfocus();
+      }
+    }
   }
 
   Future<void> _continue() async {
-    if (_selected.isEmpty || _isSaving) return;
+    if (!_canContinue || _isSaving) return;
+    _otherFocus.unfocus();
 
     setState(() {
       _isSaving = true;
@@ -88,7 +127,11 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
     });
 
     try {
-      await widget.interestsService.saveInterests(interests: _selected);
+      await widget.interestsService.saveInterests(
+        interests: _selected,
+        // Always sent from the picker so un-picking Others clears the text.
+        otherInterest: _othersSelected ? _otherText : '',
+      );
       if (!mounted) return;
       Navigator.of(context).pop(Set<UserInterest>.from(_selected));
     } on ApiException catch (error) {
@@ -151,13 +194,30 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
                   },
                 ),
               ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: _othersSelected
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                        child: _OtherInterestField(
+                          controller: _otherController,
+                          focusNode: _otherFocus,
+                          enabled: !_isSaving,
+                          onSubmitted: _continue,
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                 child: _DialogFooter(
                   selectedCount: _selected.length,
+                  needsOtherText: _othersSelected && _otherText.isEmpty,
                   isSaving: _isSaving,
                   errorMessage: _errorMessage,
-                  onContinue: _selected.isEmpty ? null : _continue,
+                  onContinue: _canContinue ? _continue : null,
                 ),
               ),
             ],
@@ -241,15 +301,73 @@ class _DialogHeader extends StatelessWidget {
   }
 }
 
+/// Free-text box shown under the grid while "Others" is picked.
+class _OtherInterestField extends StatelessWidget {
+  const _OtherInterestField({
+    required this.controller,
+    required this.focusNode,
+    required this.enabled,
+    required this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool enabled;
+  final VoidCallback onSubmitted;
+
+  /// Mirrors the server's limit on `other_interest`.
+  static const int maxLength = 100;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = UserInterest.others.accentColor;
+
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      maxLength: maxLength,
+      textCapitalization: TextCapitalization.sentences,
+      textInputAction: TextInputAction.done,
+      // The server accepts plain text only.
+      inputFormatters: [FilteringTextInputFormatter.deny(RegExp('[<>]'))],
+      onSubmitted: (_) => onSubmitted(),
+      decoration: InputDecoration(
+        labelText: 'Your other interest',
+        hintText: 'e.g. Tree planting, coastal clean-ups',
+        prefixIcon: Icon(UserInterest.others.icon, color: accent),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          borderSide: const BorderSide(color: AppColors.fieldBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          borderSide: const BorderSide(color: AppColors.fieldBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+      ),
+    );
+  }
+}
+
 class _DialogFooter extends StatelessWidget {
   const _DialogFooter({
     required this.selectedCount,
+    required this.needsOtherText,
     required this.isSaving,
     required this.errorMessage,
     required this.onContinue,
   });
 
   final int selectedCount;
+
+  /// Others is picked but its text box is still empty.
+  final bool needsOtherText;
   final bool isSaving;
   final String? errorMessage;
   final VoidCallback? onContinue;
@@ -258,6 +376,8 @@ class _DialogFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     final buttonLabel = selectedCount == 0
         ? 'Select at least one'
+        : needsOtherText
+        ? 'Tell us your other interest'
         : 'Continue with $selectedCount selected';
 
     return Column(

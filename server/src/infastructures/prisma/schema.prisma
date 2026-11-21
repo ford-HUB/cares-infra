@@ -359,6 +359,8 @@ model UserInterest {
   user_interest_id String   @id @default(uuid())
   user_id          String   @unique
   selected         Json
+  /// What the volunteer typed under "Others"; null unless OTHERS is selected.
+  other_interest   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)

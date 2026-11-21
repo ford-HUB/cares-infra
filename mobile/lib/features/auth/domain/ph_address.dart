@@ -16,11 +16,24 @@ class PhAddress {
 
   static const empty = PhAddress();
 
+  static const maxStreetLength = 120;
+
+  /// Letters, digits, spaces and the punctuation real addresses use —
+  /// "Blk 5 Lot 3, Phase 2 (Ext.)", "#12 Rizal St. & 3rd Ave", "Unit 4/F".
+  static final _streetPattern = RegExp(
+    r"^[\p{L}\p{M}0-9 .,#'’()/&-]+$",
+    unicode: true,
+  );
+
   /// Why the street is not acceptable yet, or null when it is.
   static String? streetError(String street) {
     final value = street.trim();
     if (value.isEmpty) return 'Enter your house no. and street.';
     if (value.length < 3) return 'Street is too short.';
+    if (value.length > maxStreetLength) return 'Street is too long.';
+    if (!_streetPattern.hasMatch(value)) {
+      return "Use letters, numbers and . , # ' - / ( ) & only.";
+    }
     if (!RegExp('[A-Za-zÑñ]').hasMatch(value)) {
       return 'Include the street name, not just a number.';
     }

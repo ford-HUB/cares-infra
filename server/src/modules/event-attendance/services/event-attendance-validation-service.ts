@@ -277,6 +277,7 @@ export class EventAttendanceValidationService {
         userId,
         pings: userPings,
       })),
+      { live: true },
     );
     for (const result of verdict.results) results.set(result.userId, result);
     return results;

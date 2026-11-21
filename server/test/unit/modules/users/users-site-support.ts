@@ -18,7 +18,7 @@ import {
   runApiLayer,
   runSchemaLayer,
 } from '../../../config/layer-harness';
-import { fixtureCases, setCaseUnit } from '../../../config/test-case';
+import { asCase, fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Users Module', unit: 'Master — Accounts', prefix: 'USERS' });
 
@@ -173,6 +173,101 @@ export const describeBodyTable = (
       }
     });
   });
+};
+
+/* ── field-validation cases (Add user · Reissue credentials · Block IP) ──────── */
+
+/**
+ * One row of the field-validation table. `name` is the Test Case Description, written
+ * as what the administrator does. A FAIL names the field and the exact message the
+ * schema must report for it.
+ */
+export interface FieldCase<TInput = unknown> extends LayerFixture<TInput> {
+  field?: string;
+  message?: string;
+}
+
+/** The Zod message for a value outside an enum, e.g. `Invalid option: expected one of "a"|"b"`. */
+export const oneOf = (values: readonly string[]) =>
+  `Invalid option: expected one of ${values.map((value) => `"${value}"`).join('|')}`;
+
+const fieldExpected = (fixture: FieldCase<unknown>) => {
+  if (fixture.expected === 'PASS') {
+    return 'PASS — request accepted (201) and passed to the service once';
+  }
+  const issue = fixture.field !== undefined ? `: ${fixture.field || '(body)'} — "${fixture.message}"` : '';
+  return `FAIL — request rejected with "Validation failed" (400)${issue}; the service is never reached`;
+};
+
+/**
+ * Registers each body fixture as its own case: a PASS row in valid/, a FAIL row in
+ * invalid/. Two checks per case — layer 1 runs the Zod schema, layer 2 posts the body
+ * to the real controller (service mocked) and checks the 400 envelope or the 201.
+ */
+export const fieldBodyCases = (
+  ctx: ReturnType<typeof useUsersApp>,
+  endpoint: UsersEndpoint,
+  fixtures: FieldCase[],
+) => {
+  for (const fixture of fixtures) {
+    const kind = fixture.expected === 'PASS' ? 'valid' : 'invalid';
+
+    asCase(kind, fixture.name, fieldExpected(fixture)).it.each(['layer 1 — schema', 'layer 2 — api'])(
+      '%s',
+      async (layer) => {
+        if (layer === 'layer 1 — schema') {
+          expectLayer(await runSchemaLayer(endpoint.schema, fixture.input), fixture);
+          return;
+        }
+
+        const outcome = await runApiLayer(ctx.app, { method: 'post', path: endpoint.path(), body: fixture.input });
+        expectLayer(outcome, fixture);
+        if (fixture.expected === 'FAIL') {
+          expectValidationEnvelope(outcome);
+          expect(ctx.service[endpoint.method]).not.toHaveBeenCalled();
+        } else {
+          expect(outcome.status).toBe(201);
+          expect(ctx.service[endpoint.method]).toHaveBeenCalledTimes(1);
+        }
+      },
+    );
+  }
+};
+
+/**
+ * The `:id` path segment of Reissue credentials / Block IP, sent with a valid body so
+ * the id is the only thing under test. API layer only — the id schema is private to
+ * the controller.
+ */
+export const fieldUserIdCases = (
+  ctx: ReturnType<typeof useUsersApp>,
+  endpoint: typeof REISSUE_ENDPOINT | typeof BLOCK_IP_ENDPOINT,
+  fixtures: FieldCase<string>[],
+) => {
+  for (const fixture of fixtures) {
+    const kind = fixture.expected === 'PASS' ? 'valid' : 'invalid';
+    const expected =
+      fixture.expected === 'PASS'
+        ? fieldExpected(fixture)
+        : `FAIL — request rejected with "Validation failed" (400): id — "${fixture.message}"; the service is never reached`;
+
+    asCase(kind, fixture.name, expected).it('layer 2 — api', async () => {
+      const outcome = await runApiLayer(ctx.app, {
+        method: 'post',
+        path: endpoint.path(fixture.input),
+        body: endpoint.valid,
+      });
+      expectLayer(outcome, { ...fixture, field: undefined });
+      if (fixture.expected === 'FAIL') {
+        expectValidationEnvelope(outcome);
+        expect(outcome.issues.map((issue) => issue.message)).toContain(fixture.message);
+        expect(ctx.service[endpoint.method]).not.toHaveBeenCalled();
+      } else {
+        expect(outcome.status).toBe(201);
+        expect(ctx.service[endpoint.method]).toHaveBeenCalledTimes(1);
+      }
+    });
+  }
 };
 
 /**

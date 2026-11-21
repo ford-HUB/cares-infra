@@ -29,6 +29,8 @@ interface EventAttendeeResponse {
   validation_method: 'GEOFENCE' | 'OFFLINE_SYNC' | 'AWAITING_SYNC' | 'MANUAL' | null
   first_ping_at: string | null
   last_ping_at: string | null
+  /** Null while still inside, or out for under the 1 h break buffer mid-event. */
+  time_out_at: string | null
   hours_rendered: number | null
   remarks: string | null
   registered_at: string
@@ -67,7 +69,8 @@ function toEventAttendee(row: EventAttendeeResponse): EventAttendee {
     status: STATUS_MAP[row.status],
     registeredAt: row.registered_at,
     checkedInAt: row.first_ping_at,
-    checkedOutAt: row.last_ping_at,
+    checkedOutAt: row.time_out_at,
+    lastPingAt: row.last_ping_at,
     validationMethod: row.validation_method
       ? METHOD_MAP[row.validation_method]
       : null,
