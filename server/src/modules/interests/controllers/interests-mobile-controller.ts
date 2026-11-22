@@ -60,6 +60,7 @@ export class InterestsMobileController {
     return this.interestsMobileService.saveUserInterests(
       user.sub,
       data.selected,
+      data.other_interest,
       { actor: user, context },
     );
   }

@@ -683,6 +683,7 @@ export class ProfileMobileService {
           }
         : null,
       interests: Array.isArray(selected) ? (selected as InterestCode[]) : [],
+      other_interest: row.user_interest?.other_interest ?? null,
       access_granted_by_director: this.isDirectorGrantedVolunteer(row),
       partner_barangay: row.partner_barangay ?? null,
       service_hours: attendance.hours,

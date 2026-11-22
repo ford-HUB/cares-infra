@@ -1,0 +1,46 @@
+%% CARES - Module 08: Announcements & Notifications (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 2 tables + 1 referenced stub tables, 2 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+erDiagram
+  User |o--o{ Announcement : "author"
+  User ||--o{ Notification : "user"
+
+  Announcement {
+    text announcement_id PK
+    text title
+    text body
+    AnnouncementTone tone
+    AnnouncementAudience[] audiences
+    AnnouncementChannel[] channels
+    AnnouncementState state
+    timestamp publish_at
+    timestamp expires_at "nullable"
+    boolean pinned
+    text window_id "nullable"
+    text author_id FK "nullable"
+    text author_name
+    integer reach
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  Notification {
+    text notification_id PK
+    text user_id FK
+    text title
+    text description
+    NotificationCategory category
+    NotificationTone tone
+    text href "nullable"
+    text dedupe_key "nullable"
+    RoleType audience_role "nullable"
+    timestamp read_at "nullable"
+    timestamp dismissed_at "nullable"
+    timestamp createdAt
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }

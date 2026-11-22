@@ -18,6 +18,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -340,6 +341,9 @@ void main() {
   });
 
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );
@@ -1169,6 +1173,159 @@ void main() {
           tester.widget<ButtonStyleButton>(_submitButton).onPressed,
           isNotNull,
         );
+      });
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Invalid fields
+  // -------------------------------------------------------------------------
+
+  group('EventFeedbackScreen — invalid fields', () {
+    testWidgets('a short answer is capped at 200 characters', (tester) async {
+      final rec = _Recorder(
+        evaluation: _evaluation(
+          questions: [_q('q_word', 'short_answer', 'One word')],
+        ),
+      );
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        await tester.enterText(find.byType(TextField), 'w' * 260);
+        await tester.pump();
+
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          hasLength(200),
+        );
+      });
+    });
+
+    testWidgets('a paragraph answer is capped at 1000 characters',
+        (tester) async {
+      final rec = _Recorder(
+        evaluation: _evaluation(
+          questions: [_q('q_suggest', 'paragraph', 'Any suggestions?')],
+        ),
+      );
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        await tester.enterText(find.byType(TextField), 'p' * 1300);
+        await tester.pump();
+
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          hasLength(1000),
+        );
+      });
+    });
+
+    testWidgets('a required paragraph of only newlines blocks the submit',
+        (tester) async {
+      final rec = _Recorder(
+        evaluation: _evaluation(
+          questions: [
+            _q('q_suggest', 'paragraph', 'Any suggestions?', required: true),
+          ],
+        ),
+      );
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        await tester.enterText(find.byType(TextField), '\n\n \t\n');
+        await tester.pump();
+        expect(find.text('1 required question left.'), findsOneWidget);
+
+        await _tapSubmit(tester);
+
+        expect(find.text('This question is required.'), findsOneWidget);
+        expect(rec.callsTo(_submitPath), 0);
+      });
+    });
+
+    testWidgets('a required checkbox question unticked back to none is '
+        'required again', (tester) async {
+      final rec = _Recorder(
+        evaluation: _evaluation(
+          questions: [
+            _q(
+              'q_well',
+              'checkboxes',
+              'What went well?',
+              required: true,
+              options: ['Organization', 'Communication', 'Safety'],
+            ),
+          ],
+        ),
+      );
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        await tester.tap(find.text('Safety'));
+        await tester.pump();
+        expect(find.textContaining('required question'), findsNothing);
+
+        await tester.tap(find.text('Safety'));
+        await tester.pump();
+        expect(find.text('1 required question left.'), findsOneWidget);
+
+        await _tapSubmit(tester);
+        expect(find.text('This question is required.'), findsOneWidget);
+        expect(rec.callsTo(_submitPath), 0);
+      });
+    });
+
+    testWidgets('whitespace-only optional answers are left out',
+        (tester) async {
+      final rec = _Recorder();
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        await _answerRequired(tester);
+        await tester.enterText(find.byType(TextField).at(0), '    ');
+        await tester.enterText(find.byType(TextField).at(1), '\n \n');
+        await tester.pump();
+
+        await _tapSubmit(tester);
+
+        final sent = _sentAnswers(rec.lastTo(_submitPath));
+        expect(sent.containsKey('q_word'), isFalse);
+        expect(sent.containsKey('q_suggest'), isFalse);
+      });
+    });
+
+    testWidgets('markup and quotes in an answer are sent as plain text',
+        (tester) async {
+      const typed = '<script>alert("hi")</script> \' OR 1=1 --';
+      final rec = _Recorder();
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        await _answerRequired(tester);
+        await tester.enterText(find.byType(TextField).at(1), typed);
+        await tester.pump();
+
+        await _tapSubmit(tester);
+
+        expect(_sentAnswers(rec.lastTo(_submitPath))['q_suggest'], typed);
+      });
+    });
+
+    testWidgets('only the still-missing required questions are flagged',
+        (tester) async {
+      final rec = _Recorder();
+      await _withNetwork(rec, () async {
+        await _openScreen(tester);
+
+        // Optional answers alone do not satisfy any required question.
+        await tester.tap(find.text('Organization'));
+        await tester.enterText(find.byType(TextField).at(0), 'Fun');
+        await tester.pump();
+        await _tapSubmit(tester);
+
+        expect(find.text('This question is required.'), findsNWidgets(3));
+        expect(rec.callsTo(_submitPath), 0);
       });
     });
   });

@@ -26,6 +26,8 @@ export class InterestsMobileService {
   async saveUserInterests(
     userId: string,
     selected: InterestCode[],
+    /** `undefined` keeps the text already on file. */
+    otherInterest: string | null | undefined,
     audit?: { actor: JwtPayload; context: RequestContextDto },
   ) {
     const user = await this.interestsRepository.findUserWithRole(userId);
@@ -49,9 +51,22 @@ export class InterestsMobileService {
       );
     }
 
+    // The typed text only describes the "Others" pick — drop it when OTHERS
+    // is not selected so a stale value never outlives the choice. A save
+    // that leaves the field out (code-only saves) keeps what was typed.
+    let other: string | null = null;
+    if (selected.includes(InterestCode.OTHERS)) {
+      other =
+        otherInterest === undefined
+          ? ((await this.interestsRepository.findUserInterests(userId))
+              ?.other_interest ?? null)
+          : otherInterest?.trim() || null;
+    }
+
     const saved = await this.interestsRepository.upsertUserInterests(
       userId,
       selected,
+      other,
     );
 
     if (audit) {
@@ -74,15 +89,19 @@ export class InterestsMobileService {
       user_interest_id: saved.user_interest_id,
       user_id: saved.user_id,
       selected: saved.selected as InterestCode[],
+      other_interest: saved.other_interest,
     };
   }
 
   async getUserInterests(userId: string): Promise<UserInterestsResponseDto> {
     const row = await this.interestsRepository.findUserInterests(userId);
     if (!row) {
-      return { selected: null };
+      return { selected: null, other_interest: null };
     }
 
-    return { selected: row.selected as InterestCode[] };
+    return {
+      selected: row.selected as InterestCode[],
+      other_interest: row.other_interest,
+    };
   }
 }

@@ -188,7 +188,7 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
           onTyped: _onBarangayTyped,
           onSelected: _onBarangaySelected,
           emptyMessage: _value.locality == null
-              ? 'No matching barangay in our service area.'
+              ? 'No matching barangay in Cebu.'
               : 'No matching barangay in ${_value.locality!.name}.',
         ),
         const SizedBox(height: 14),
@@ -204,7 +204,7 @@ class _AddressAutocompleteFieldsState extends State<AddressAutocompleteFields> {
           subtitleOf: (l) => l.province,
           onTyped: _onCityTyped,
           onSelected: _onCitySelected,
-          emptyMessage: 'No matching city or municipality in our service area.',
+          emptyMessage: 'No matching city or municipality in Cebu.',
         ),
         const SizedBox(height: 14),
         _AutocompleteField<String>(

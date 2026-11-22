@@ -1,236 +1,370 @@
+import { RoleType } from '../../../../../src/infastructures/prisma/common/client';
+import { LayerFixture } from '../../../../config/layer-harness';
 import { asCase } from '../../../../config/test-case';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import {
-  expectSafeErrorEnvelope,
-  runApiLayer,
-  LayerFixture,
-  expectValidationEnvelope,
-  runSchemaLayer,
-  withPollution,
-} from '../../../../config/layer-harness';
-import {
-  VALID_SUSPENSION,
-  suspendPath,
-  useAccessControlApp,
+  ACCESS_LIST_MAX_PAGE_SIZE,
   ALL_PERMISSIONS,
-  VALID_EXPIRY,
+  CALLER,
+  MESSAGES,
+  NON_PORTAL_ROLES,
+  PROTECTED_ADMIN,
+  VALID_BASELINE,
+  VALID_RIGHTS,
+  VALID_SUSPENSION,
+  VALID_SUSPENSION_ID,
   VALID_USER_ID,
-  describeSuspensionTable,
+  describeFieldTable,
+  describeRoleTypeTable,
+  describeSuspensionIdTable,
   describeUserIdTable,
+  expectNothingChanged,
+  expectRefusal,
+  getUser,
+  lift,
+  storedSuspensionRecord,
+  storedUser,
+  suspend,
+  updateBaseline,
+  updateRights,
+  useAccessControlApp,
 } from '../access-control-site-support';
-import { SuspendActionsSchema } from '../../../../../src/modules/access-control/validators/access-control-site-validator';
-import {
-  CONTROL_CHAR_PAYLOADS,
-  HOSTILE_STRINGS,
-  MASS_ASSIGNMENT_KEYS,
-  OPERATOR_INJECTION_PAYLOADS,
-  PROTOTYPE_POLLUTION_BODIES,
-} from '../../../../config/security-payloads';
 
 /**
- * Access Control Module · Suspend User Actions — invalid inputs.
+ * Access Control Module · Manage User & Role Rights — invalid inputs (field
+ * validation).
  *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
+ * Every case here is an intentionally wrong value for a field of an Access Control
+ * endpoint. A case Passes when the system refuses it exactly as stated — a refusal
+ * as expected is the correct result. The valid cases live in ../valid/.
  */
 
-/* ── error handling ──────────────────────────────────────────────────────── */
+/** Malformed uuids, shared by every id in a path. */
+const malformedIds = (subject: string, id: string): LayerFixture<string>[] => [
+  { name: `Admin ${subject} an id that is not a uuid`, input: 'user-1', expected: 'FAIL' },
+  { name: `Admin ${subject} an id that is a plain number`, input: '42', expected: 'FAIL' },
+  { name: `Admin ${subject} an id missing its last character`, input: id.slice(0, -1), expected: 'FAIL' },
+  { name: `Admin ${subject} an id with an extra character`, input: `${id}0`, expected: 'FAIL' },
+  { name: `Admin ${subject} an id without hyphens`, input: id.replace(/-/g, ''), expected: 'FAIL' },
+  { name: `Admin ${subject} an id with surrounding spaces`, input: ` ${id} `, expected: 'FAIL' },
+  { name: `Admin ${subject} an id with a non-hex character`, input: `${id.slice(0, -1)}g`, expected: 'FAIL' },
+  { name: `Admin ${subject} a blank id`, input: ' ', expected: 'FAIL' },
+];
+
+/** Bad `permissions` lists, shared by Rights, Suspend and Baseline (`base` keeps the rest of the body valid). */
+const permissionFixtures = (base: Record<string, unknown>): LayerFixture[] => [
+  { name: 'Admin sends a right that does not exist (ALL)', input: { ...base, permissions: ['ALL'] }, expected: 'FAIL', field: 'permissions.0' },
+  { name: 'Admin sends a right in lower case', input: { ...base, permissions: [ALL_PERMISSIONS[0].toLowerCase()] }, expected: 'FAIL', field: 'permissions.0' },
+  { name: 'Admin sends a right by its label instead of its key (View events)', input: { ...base, permissions: ['View events'] }, expected: 'FAIL', field: 'permissions.0' },
+  { name: 'Admin sends one unknown right among valid ones', input: { ...base, permissions: [ALL_PERMISSIONS[0], 'ALL'] }, expected: 'FAIL', field: 'permissions.1' },
+  { name: 'Admin sends a single right as text instead of a list', input: { ...base, permissions: ALL_PERMISSIONS[0] }, expected: 'FAIL', field: 'permissions' },
+  {
+    name: `Admin sends ${ALL_PERMISSIONS.length + 1} rights, one more than exist`,
+    input: { ...base, permissions: [...ALL_PERMISSIONS, ALL_PERMISSIONS[0]] },
+    expected: 'FAIL',
+    field: 'permissions',
+  },
+];
+
+/* ── List users ──────────────────────────────────────────────────────────── */
 {
-  /**
-   * Access Control Suspend — error handling: unexpected service errors are masked as
-   * a generic 500 with nothing leaked, and the service's deliberate HttpExceptions
-   * keep their status and message through the envelope.
-   */
-  const DELIBERATE_ERRORS = [
-    { title: '400 for suspending your own actions', error: new BadRequestException('You cannot suspend your own actions') },
-    { title: '400 for a non-portal account', error: new BadRequestException('Only portal accounts carry feature rights') },
-    { title: '400 for an expiry in the past', error: new BadRequestException('The expiry must be in the future') },
+  const queryFixtures: LayerFixture[] = [
+    { name: 'Admin searches with 121 characters', input: { search: 'a'.repeat(121) }, expected: 'FAIL', field: 'search' },
+    { name: 'Admin filters by an app-side role (VOLUNTEER)', input: { role: 'VOLUNTEER' }, expected: 'FAIL', field: 'role' },
+    { name: 'Admin filters by a role in lower case (director)', input: { role: 'director' }, expected: 'FAIL', field: 'role' },
+    { name: 'Admin filters by "ALL" in upper case instead of "all"', input: { role: 'ALL' }, expected: 'FAIL', field: 'role' },
+    { name: 'Admin sends an empty role filter', input: { role: '' }, expected: 'FAIL', field: 'role' },
+    { name: 'Admin filters by a rights state that does not exist (restricted)', input: { rights: 'restricted' }, expected: 'FAIL', field: 'rights' },
+    { name: 'Admin filters by a rights state with a capital letter (Suspended)', input: { rights: 'Suspended' }, expected: 'FAIL', field: 'rights' },
+    { name: 'Admin sends an empty rights filter', input: { rights: '' }, expected: 'FAIL', field: 'rights' },
+    { name: 'Admin opens page 0', input: { page: '0' }, expected: 'FAIL', field: 'page' },
+    { name: 'Admin opens a negative page', input: { page: '-1' }, expected: 'FAIL', field: 'page' },
+    { name: 'Admin opens a fractional page', input: { page: '1.5' }, expected: 'FAIL', field: 'page' },
+    { name: 'Admin types the page as a word (two)', input: { page: 'two' }, expected: 'FAIL', field: 'page' },
+    { name: 'Admin sends an empty page', input: { page: '' }, expected: 'FAIL', field: 'page' },
+    { name: 'Admin shows 0 users per page', input: { page_size: '0' }, expected: 'FAIL', field: 'page_size' },
     {
-      title: '403 for the root administrator',
-      error: new ForbiddenException('The root administrator account cannot have its actions suspended'),
+      name: `Admin shows ${ACCESS_LIST_MAX_PAGE_SIZE + 1} users per page, one over the maximum`,
+      input: { page_size: String(ACCESS_LIST_MAX_PAGE_SIZE + 1) },
+      expected: 'FAIL',
+      field: 'page_size',
     },
-    { title: '404 for an unknown user', error: new NotFoundException('User not found') },
+    { name: 'Admin types the page size as a word (ten)', input: { page_size: 'ten' }, expected: 'FAIL', field: 'page_size' },
+    { name: 'Client sends a query parameter the list does not take (sort)', input: { sort: 'name' }, expected: 'FAIL' },
   ];
 
-  describe('access control site · suspend — error handling', () => {
+  describe('access control site — List users field validation', () => {
     const ctx = useAccessControlApp();
 
-    describe('POST /api/v1/access-control/users/:id/suspensions', () => {
-      const suspend = () => runApiLayer(ctx.app, { method: 'post', path: suspendPath(), body: VALID_SUSPENSION });
+    describe('GET /api/v1/access-control/users', () => {
+      describe('query', () => describeFieldTable(ctx, 'list', queryFixtures));
+    });
+  });
+}
 
-      asCase('invalid', 'The service fails with an unexpected internal or database error').it('masks an unexpected service error as a 500 without leaking detail', async () => {
-        ctx.service.suspendActions.mockRejectedValueOnce(new Error('syntax error at or near "OR"'));
-        const outcome = await suspend();
-        expect(outcome.status).toBe(500);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body).toEqual({ ok: false, message: 'Internal server error' });
-      });
+/* ── User detail ─────────────────────────────────────────────────────────── */
+{
+  describe('access control site — User detail field validation', () => {
+    const ctx = useAccessControlApp();
 
-      asCase('invalid', 'The service refuses the request with a deliberate HTTP error (each kind)', 'Each deliberate error keeps its status and message in the { ok: false } envelope').it.each(DELIBERATE_ERRORS)('keeps the $title', async ({ error }) => {
-        ctx.service.suspendActions.mockRejectedValueOnce(error);
-        const outcome = await suspend();
-        expect(outcome.status).toBe(error.getStatus());
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body.message).toBe(error.message);
+    describe('GET /api/v1/access-control/users/:id', () => {
+      describe('id', () => describeUserIdTable(ctx, 'detail', malformedIds('opens the rights of', VALID_USER_ID)));
+
+      describe('id', () => {
+        asCase('invalid', 'Admin opens the rights of a well-formed id that belongs to no user', `Detail fails with "${MESSAGES.userNotFound}" (404)`).it(
+          'refuses an unknown user',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(null as never);
+            expectRefusal(await getUser(ctx), 404, MESSAGES.userNotFound);
+          },
+        );
+
+        asCase('invalid', `Admin opens the rights of an app-side account (${NON_PORTAL_ROLES.length} variants)`, `Detail fails with "${MESSAGES.notPortalUser}" (400)`).it.each(
+          NON_PORTAL_ROLES,
+        )('refuses a %s', async (role) => {
+          ctx.repository.findUser.mockResolvedValue(storedUser({ role }) as never);
+          expectRefusal(await getUser(ctx), 400, MESSAGES.notPortalUser);
+        });
       });
     });
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
+/* ── Update user rights ──────────────────────────────────────────────────── */
 {
-  /**
-   * Access Control Suspend — input validation: the user id path param, the permission
-   * list, the reason's required and length rules, the expiry format, and legitimate
-   * inputs that must still pass.
-   */
-  const userIdFixtures: LayerFixture<string>[] = [
-    { name: 'not a uuid', input: 'user-1', expected: 'FAIL' },
-    { name: 'uuid missing a character', input: VALID_USER_ID.slice(0, -1), expected: 'FAIL' },
-    { name: 'uuid without hyphens', input: VALID_USER_ID.replace(/-/g, ''), expected: 'FAIL' },
-    { name: 'uuid with surrounding spaces', input: ` ${VALID_USER_ID} `, expected: 'FAIL' },
-    { name: 'numeric id', input: '42', expected: 'FAIL' },
-  ];
-
   const bodyFixtures: LayerFixture[] = [
-
-    // permissions
-    { name: 'permissions missing', input: { reason: VALID_SUSPENSION.reason }, expected: 'FAIL', field: 'permissions' },
-    { name: 'permissions empty', input: { ...VALID_SUSPENSION, permissions: [] }, expected: 'FAIL', field: 'permissions', message: 'Select at least one action to suspend' },
-    // Same ceiling as the other permission lists in this module: no more entries than keys.
-    { name: 'permissions over max', input: { ...VALID_SUSPENSION, permissions: [...ALL_PERMISSIONS, ALL_PERMISSIONS[0]] }, expected: 'FAIL', field: 'permissions' },
-    { name: 'permissions unknown key', input: { ...VALID_SUSPENSION, permissions: ['ALL'] }, expected: 'FAIL', field: 'permissions.0' },
-    { name: 'permissions wrong case', input: { ...VALID_SUSPENSION, permissions: [ALL_PERMISSIONS[0].toLowerCase()] }, expected: 'FAIL', field: 'permissions.0' },
-    { name: 'permissions as one string, not a list', input: { ...VALID_SUSPENSION, permissions: ALL_PERMISSIONS[0] }, expected: 'FAIL', field: 'permissions' },
-    { name: 'permissions with one bad key among good', input: { ...VALID_SUSPENSION, permissions: [ALL_PERMISSIONS[0], 'ALL'] }, expected: 'FAIL', field: 'permissions.1' },
-
-    // reason
-    { name: 'reason missing', input: { permissions: VALID_SUSPENSION.permissions }, expected: 'FAIL', field: 'reason' },
-    { name: 'reason empty', input: { ...VALID_SUSPENSION, reason: '' }, expected: 'FAIL', field: 'reason', message: 'Describe the violation in at least 10 characters' },
-    { name: 'reason whitespace-only', input: { ...VALID_SUSPENSION, reason: ' '.repeat(12) }, expected: 'FAIL', field: 'reason' },
-    { name: 'reason one under min', input: { ...VALID_SUSPENSION, reason: 'a'.repeat(9) }, expected: 'FAIL', field: 'reason' },
-    { name: 'reason under min once trimmed', input: { ...VALID_SUSPENSION, reason: `   ${'a'.repeat(9)}   ` }, expected: 'FAIL', field: 'reason' },
-    { name: 'reason over max', input: { ...VALID_SUSPENSION, reason: 'a'.repeat(501) }, expected: 'FAIL', field: 'reason' },
-    { name: 'expires_at empty', input: { ...VALID_SUSPENSION, expires_at: '' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'expires_at date only', input: { ...VALID_SUSPENSION, expires_at: '2099-01-01' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'expires_at with a local offset', input: { ...VALID_SUSPENSION, expires_at: '2099-01-01T08:00:00+08:00' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'expires_at impossible month', input: { ...VALID_SUSPENSION, expires_at: '2099-13-01T00:00:00.000Z' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'expires_at impossible day', input: { ...VALID_SUSPENSION, expires_at: '2099-02-30T00:00:00.000Z' }, expected: 'FAIL', field: 'expires_at' },
-    { name: 'expires_at as an epoch number', input: { ...VALID_SUSPENSION, expires_at: 4070908800000 }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin saves without the rights list', input: { reason: VALID_RIGHTS.reason }, expected: 'FAIL', field: 'permissions' },
+    ...permissionFixtures(VALID_RIGHTS),
+    { name: 'Admin writes a reason of 501 characters', input: { ...VALID_RIGHTS, reason: 'a'.repeat(501) }, expected: 'FAIL', field: 'reason' },
+    { name: 'Client sends a field the rights form does not take (effect)', input: { ...VALID_RIGHTS, effect: 'GRANT' }, expected: 'FAIL' },
+    // The reason is sent to the user in their notification and kept in the audit trail,
+    // exactly like a suspension reason, so it is held to the same rule.
   ];
 
-  describe('access control site · suspend — input validation', () => {
+  describe('access control site — Update user rights field validation', () => {
     const ctx = useAccessControlApp();
 
-    describe('POST /api/v1/access-control/users/:id/suspensions', () => {
-      describe('id', () => describeUserIdTable(ctx, userIdFixtures));
-      describe('body', () => describeSuspensionTable(ctx, bodyFixtures));
-    });
-  });
-}
+    describe('PATCH /api/v1/access-control/users/:id/permissions', () => {
+      describe('id', () => describeUserIdTable(ctx, 'rights', malformedIds('saves the rights of', VALID_USER_ID)));
 
-/* ── security ────────────────────────────────────────────────────────────── */
-{
-  /**
-   * Access Control Suspend — security, per field class:
-   *   id, permissions, expires_at   constrained: every hostile string FAILs
-   *   reason                        free text, trimmed: control characters FAIL, line breaks stay
-   * plus type confusion, mass assignment and prototype pollution.
-   */
-  /** Keeps a reason payload above the 10-character minimum so length is never the reason it fails. */
-  const REASON_PREFIX = 'Reported incident:';
+      describe('id', () => {
+        asCase('invalid', 'Admin saves the rights of a well-formed id that belongs to no user', `Update fails with "${MESSAGES.userNotFound}" (404); nothing is changed`).it(
+          'refuses an unknown user',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(null as never);
+            expectRefusal(await updateRights(ctx, VALID_RIGHTS), 404, MESSAGES.userNotFound);
+            expectNothingChanged(ctx);
+          },
+        );
 
-  const userIdFixtures: LayerFixture<string>[] = [
-    ...HOSTILE_STRINGS.map((p): LayerFixture<string> => ({
-      name: `id ← ${p.category}: ${p.label}`,
-      input: p.value as string,
-      expected: 'FAIL',
-    })),
-    { name: 'id ← uuid with SQL tail', input: `${VALID_USER_ID}' OR '1'='1`, expected: 'FAIL' },
-    { name: 'id ← uuid with stacked query', input: `${VALID_USER_ID}; DROP TABLE "User"`, expected: 'FAIL' },
-  ];
+        asCase('invalid', `Admin saves the rights of an app-side account (${NON_PORTAL_ROLES.length} variants)`, `Update fails with "${MESSAGES.notPortalUser}" (400); nothing is changed`).it.each(
+          NON_PORTAL_ROLES,
+        )('refuses a %s', async (role) => {
+          ctx.repository.findUser.mockResolvedValue(storedUser({ role }) as never);
+          expectRefusal(await updateRights(ctx, VALID_RIGHTS), 400, MESSAGES.notPortalUser);
+          expectNothingChanged(ctx);
+        });
 
-  const bodyFixtures: LayerFixture[] = [
-    ...HOSTILE_STRINGS.map((p): LayerFixture => ({
-      name: `permissions ← ${p.category}: ${p.label}`,
-      input: { ...VALID_SUSPENSION, permissions: [p.value] },
-      expected: 'FAIL',
-      field: 'permissions.0',
-    })),
-    ...OPERATOR_INJECTION_PAYLOADS.map((p): LayerFixture => ({
-      name: `permissions ← ${p.category}: ${p.label}`,
-      input: { ...VALID_SUSPENSION, permissions: p.value },
-      expected: 'FAIL',
-      field: Array.isArray(p.value) ? 'permissions.0' : 'permissions',
-    })),
-
-    ...HOSTILE_STRINGS.map((p): LayerFixture => ({
-      name: `expires_at ← ${p.category}: ${p.label}`,
-      input: { ...VALID_SUSPENSION, expires_at: p.value },
-      expected: 'FAIL',
-      field: 'expires_at',
-    })),
-    ...OPERATOR_INJECTION_PAYLOADS.map((p): LayerFixture => ({
-      name: `expires_at ← ${p.category}: ${p.label}`,
-      input: { ...VALID_SUSPENSION, expires_at: p.value },
-      expected: 'FAIL',
-      field: 'expires_at',
-    })),
-    { name: 'expires_at ← valid date with SQL tail', input: { ...VALID_SUSPENSION, expires_at: `${VALID_EXPIRY}' OR '1'='1` }, expected: 'FAIL', field: 'expires_at' },
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A reason can run over several lines, so line breaks are the exception.
-    ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
-      name: `reason ← ${p.category}: ${p.label}`,
-      input: { ...VALID_SUSPENSION, reason: `${REASON_PREFIX} ${p.value as string}` },
-      expected: 'FAIL',
-      field: 'reason',
-    })),
-    ...OPERATOR_INJECTION_PAYLOADS.map((p): LayerFixture => ({
-      name: `reason ← ${p.category}: ${p.label}`,
-      input: { ...VALID_SUSPENSION, reason: p.value },
-      expected: 'FAIL',
-      field: 'reason',
-    })),
-
-    ...MASS_ASSIGNMENT_KEYS.map((extra): LayerFixture => ({
-      name: `mass assignment: ${Object.keys(extra).join(', ')}`,
-      input: { ...VALID_SUSPENSION, ...extra },
-      expected: 'FAIL',
-    })),
-    // The issuer is always the caller, and a new suspension always starts live.
-    { name: 'mass assignment: issued_by_user_id', input: { ...VALID_SUSPENSION, issued_by_user_id: VALID_USER_ID }, expected: 'FAIL' },
-    { name: 'mass assignment: suspension_id', input: { ...VALID_SUSPENSION, suspension_id: VALID_USER_ID }, expected: 'FAIL' },
-    { name: 'mass assignment: issued_at', input: { ...VALID_SUSPENSION, issued_at: VALID_EXPIRY }, expected: 'FAIL' },
-    { name: 'mass assignment: lifted_at', input: { ...VALID_SUSPENSION, lifted_at: VALID_EXPIRY }, expected: 'FAIL' },
-    { name: 'mass assignment: active', input: { ...VALID_SUSPENSION, active: false }, expected: 'FAIL' },
-  ];
-
-  describe('access control site · suspend — security', () => {
-    const ctx = useAccessControlApp();
-
-    describe('POST /api/v1/access-control/users/:id/suspensions', () => {
-      describe('id', () => describeUserIdTable(ctx, userIdFixtures));
-      describe('body', () => describeSuspensionTable(ctx, bodyFixtures));
-
-      asCase('invalid', 'Attacker adds a role_type field to the body', 'Rejected and reported as unrecognized_keys').it('mass assignment is reported as unrecognized_keys', async () => {
-        const outcome = await runSchemaLayer(SuspendActionsSchema, { ...VALID_SUSPENSION, active: false });
-        expect(outcome.issues).toEqual(
-          expect.arrayContaining([expect.objectContaining({ code: 'unrecognized_keys' })]),
+        asCase('invalid', 'Admin changes their own rights', `Update fails with "${MESSAGES.ownRights}" (400); nothing is changed`).it(
+          'refuses the caller as the target',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(storedUser({ userId: CALLER.sub, role: RoleType.ADMIN }) as never);
+            expectRefusal(await updateRights(ctx, VALID_RIGHTS, CALLER.sub), 400, MESSAGES.ownRights);
+            expectNothingChanged(ctx);
+          },
         );
       });
 
-      asCase('invalid', 'Attacker sends a __proto__ / constructor.prototype body', 'Request rejected (400); Object.prototype is not polluted').it.each(PROTOTYPE_POLLUTION_BODIES)('FAIL · prototype pollution: $label', async (p) => {
-        const outcome = await runApiLayer(ctx.app, {
-          method: 'post',
-          path: suspendPath(),
-          rawBody: withPollution(VALID_SUSPENSION, p.value as string),
+      describe('body', () => describeFieldTable(ctx, 'rights', bodyFixtures));
+    });
+  });
+}
+
+/* ── Suspend actions ─────────────────────────────────────────────────────── */
+{
+  const bodyFixtures: LayerFixture[] = [
+    { name: 'Admin suspends without the actions list', input: { reason: VALID_SUSPENSION.reason }, expected: 'FAIL', field: 'permissions' },
+    {
+      name: 'Admin suspends with no action selected',
+      input: { ...VALID_SUSPENSION, permissions: [] },
+      expected: 'FAIL',
+      field: 'permissions',
+      message: MESSAGES.atLeastOneAction,
+    },
+    ...permissionFixtures(VALID_SUSPENSION),
+    { name: 'Admin suspends without a reason', input: { permissions: VALID_SUSPENSION.permissions }, expected: 'FAIL', field: 'reason' },
+    { name: 'Admin suspends with an empty reason', input: { ...VALID_SUSPENSION, reason: '' }, expected: 'FAIL', field: 'reason', message: MESSAGES.reasonMin },
+    { name: 'Admin suspends with a reason of only spaces', input: { ...VALID_SUSPENSION, reason: ' '.repeat(12) }, expected: 'FAIL', field: 'reason', message: MESSAGES.reasonMin },
+    { name: 'Admin writes a reason of 9 characters, one under the minimum', input: { ...VALID_SUSPENSION, reason: 'a'.repeat(9) }, expected: 'FAIL', field: 'reason', message: MESSAGES.reasonMin },
+    { name: 'Admin writes a reason of 501 characters', input: { ...VALID_SUSPENSION, reason: 'a'.repeat(501) }, expected: 'FAIL', field: 'reason' },
+
+    {
+      name: 'Admin pastes a form-feed character into the reason',
+      input: { ...VALID_SUSPENSION, reason: 'Deleted events\u000Cwithout approval.' },
+      expected: 'FAIL',
+      field: 'reason',
+      message: MESSAGES.controlCharacters,
+    },
+    {
+      name: 'Admin pastes a delete character into the reason',
+      input: { ...VALID_SUSPENSION, reason: `${VALID_SUSPENSION.reason}\u007F` },
+      expected: 'FAIL',
+      field: 'reason',
+      message: MESSAGES.controlCharacters,
+    },
+    { name: 'Admin sends an empty expiry', input: { ...VALID_SUSPENSION, expires_at: '' }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin sets an expiry as a date without a time', input: { ...VALID_SUSPENSION, expires_at: '2099-01-01' }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin sets an expiry with a local offset (+08:00)', input: { ...VALID_SUSPENSION, expires_at: '2099-01-01T08:00:00+08:00' }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin sets an expiry in a month that does not exist (13)', input: { ...VALID_SUSPENSION, expires_at: '2099-13-01T00:00:00.000Z' }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin sets an expiry on a day that does not exist (30 February)', input: { ...VALID_SUSPENSION, expires_at: '2099-02-30T00:00:00.000Z' }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin sets an expiry in day/month/year form', input: { ...VALID_SUSPENSION, expires_at: '01/01/2099' }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Admin sends the expiry as a timestamp number', input: { ...VALID_SUSPENSION, expires_at: 4070908800000 }, expected: 'FAIL', field: 'expires_at' },
+    { name: 'Client sends "permission" instead of "permissions"', input: { permission: VALID_SUSPENSION.permissions, reason: VALID_SUSPENSION.reason }, expected: 'FAIL', field: 'permissions' },
+  ];
+
+  describe('access control site — Suspend actions field validation', () => {
+    const ctx = useAccessControlApp();
+
+    describe('POST /api/v1/access-control/users/:id/suspensions', () => {
+      describe('id', () => describeUserIdTable(ctx, 'suspend', malformedIds('suspends actions of', VALID_USER_ID)));
+
+      describe('id', () => {
+        asCase('invalid', 'Admin suspends actions of a well-formed id that belongs to no user', `Suspend fails with "${MESSAGES.userNotFound}" (404); nothing is changed`).it(
+          'refuses an unknown user',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(null as never);
+            expectRefusal(await suspend(ctx, VALID_SUSPENSION), 404, MESSAGES.userNotFound);
+            expectNothingChanged(ctx);
+          },
+        );
+
+        asCase('invalid', `Admin suspends actions of an app-side account (${NON_PORTAL_ROLES.length} variants)`, `Suspend fails with "${MESSAGES.notPortalUser}" (400); nothing is changed`).it.each(
+          NON_PORTAL_ROLES,
+        )('refuses a %s', async (role) => {
+          ctx.repository.findUser.mockResolvedValue(storedUser({ role }) as never);
+          expectRefusal(await suspend(ctx, VALID_SUSPENSION), 400, MESSAGES.notPortalUser);
+          expectNothingChanged(ctx);
         });
-        expect(outcome.verdict).toBe('FAIL');
-        expectValidationEnvelope(outcome);
-        expect(ctx.service.suspendActions).not.toHaveBeenCalled();
-        expect(({} as any).isAdmin).toBeUndefined();
+
+        asCase('invalid', 'Admin suspends their own actions', `Suspend fails with "${MESSAGES.ownSuspension}" (400); nothing is changed`).it(
+          'refuses the caller as the target',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(storedUser({ userId: CALLER.sub, role: RoleType.ADMIN }) as never);
+            expectRefusal(await suspend(ctx, VALID_SUSPENSION, CALLER.sub), 400, MESSAGES.ownSuspension);
+            expectNothingChanged(ctx);
+          },
+        );
+
+        asCase('invalid', 'Admin suspends actions of the root administrator account', `Suspend fails with "${MESSAGES.protectedAdmin}" (403); nothing is changed`).it(
+          'refuses the protected admin',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(PROTECTED_ADMIN() as never);
+            expectRefusal(await suspend(ctx, VALID_SUSPENSION), 403, MESSAGES.protectedAdmin);
+            expectNothingChanged(ctx);
+          },
+        );
       });
+
+      describe('body', () => describeFieldTable(ctx, 'suspend', bodyFixtures));
+
+      describe('expires_at', () => {
+        asCase('invalid', 'Admin sets an expiry that has already passed', `Suspend fails with "${MESSAGES.pastExpiry}" (400); nothing is changed`).it(
+          'refuses a past expiry',
+          async () => {
+            expectRefusal(await suspend(ctx, { ...VALID_SUSPENSION, expires_at: '2020-01-01T00:00:00.000Z' }), 400, MESSAGES.pastExpiry);
+            expectNothingChanged(ctx);
+          },
+        );
+      });
+    });
+  });
+}
+
+/* ── Lift suspension ─────────────────────────────────────────────────────── */
+{
+  describe('access control site — Lift suspension field validation', () => {
+    const ctx = useAccessControlApp();
+
+    describe('DELETE /api/v1/access-control/users/:id/suspensions/:suspensionId', () => {
+      describe('id', () => describeUserIdTable(ctx, 'lift', malformedIds('lifts a suspension of', VALID_USER_ID)));
+      describe('suspensionId', () => describeSuspensionIdTable(ctx, malformedIds('lifts a suspension by', VALID_SUSPENSION_ID)));
+
+      describe('id', () => {
+        asCase('invalid', 'Admin lifts a suspension of a well-formed id that belongs to no user', `Lift fails with "${MESSAGES.userNotFound}" (404); nothing is changed`).it(
+          'refuses an unknown user',
+          async () => {
+            ctx.repository.findUser.mockResolvedValue(null as never);
+            expectRefusal(await lift(ctx), 404, MESSAGES.userNotFound);
+            expectNothingChanged(ctx);
+          },
+        );
+      });
+
+      describe('suspensionId', () => {
+        asCase('invalid', 'Admin lifts a well-formed suspension id that does not exist', `Lift fails with "${MESSAGES.suspensionNotFound}" (404); nothing is changed`).it(
+          'refuses an unknown suspension',
+          async () => {
+            ctx.repository.findSuspension.mockResolvedValue(null as never);
+            expectRefusal(await lift(ctx), 404, MESSAGES.suspensionNotFound);
+            expectNothingChanged(ctx);
+          },
+        );
+
+        asCase('invalid', "Admin lifts another user's suspension through this user's address", `Lift fails with "${MESSAGES.suspensionNotFound}" (404); nothing is changed`).it(
+          'refuses a suspension that belongs to someone else',
+          async () => {
+            ctx.repository.findSuspension.mockResolvedValue(storedSuspensionRecord({ user_id: CALLER.sub }) as never);
+            expectRefusal(await lift(ctx), 404, MESSAGES.suspensionNotFound);
+            expectNothingChanged(ctx);
+          },
+        );
+
+        asCase('invalid', 'Admin lifts a suspension that was already lifted', `Lift fails with "${MESSAGES.alreadyLifted}" (400); nothing is changed`).it(
+          'refuses an already lifted suspension',
+          async () => {
+            ctx.repository.findSuspension.mockResolvedValue(storedSuspensionRecord({ lifted_at: new Date('2026-11-02T00:00:00.000Z') }) as never);
+            expectRefusal(await lift(ctx), 400, MESSAGES.alreadyLifted);
+            expectNothingChanged(ctx);
+          },
+        );
+      });
+    });
+  });
+}
+
+/* ── Update role baseline ────────────────────────────────────────────────── */
+{
+  const roleTypeFixtures: LayerFixture<string>[] = [
+    { name: 'Admin edits the baseline of an app-side role (VOLUNTEER)', input: RoleType.VOLUNTEER, expected: 'FAIL' },
+    { name: 'Admin edits the baseline of an app-side role (DONOR)', input: RoleType.DONOR, expected: 'FAIL' },
+    { name: 'Admin edits the baseline of an app-side role (BENEFICIARY)', input: RoleType.BENEFICIARY, expected: 'FAIL' },
+    { name: 'Admin edits a role in lower case (director)', input: 'director', expected: 'FAIL' },
+    { name: 'Admin edits a role that does not exist (MANAGER)', input: 'MANAGER', expected: 'FAIL' },
+    { name: 'Admin edits the "all" role filter as if it were a role', input: 'all', expected: 'FAIL' },
+  ];
+
+  const bodyFixtures: LayerFixture[] = [
+    { name: 'Admin saves a baseline without the rights list', input: {}, expected: 'FAIL', field: 'permissions' },
+    ...permissionFixtures({}),
+    { name: 'Client sends a reason, which the baseline does not take', input: { ...VALID_BASELINE, reason: 'Quarterly review' }, expected: 'FAIL' },
+  ];
+
+  describe('access control site — Update role baseline field validation', () => {
+    const ctx = useAccessControlApp();
+
+    describe('PATCH /api/v1/access-control/roles/:roleType/permissions', () => {
+      describe('roleType', () => describeRoleTypeTable(ctx, roleTypeFixtures));
+
+      describe('roleType', () => {
+        asCase('invalid', 'Admin edits the ADMIN baseline', `Update fails with "${MESSAGES.adminBaseline}" (400); nothing is changed`).it(
+          'refuses the fixed admin baseline',
+          async () => {
+            expectRefusal(await updateBaseline(ctx, RoleType.ADMIN, VALID_BASELINE), 400, MESSAGES.adminBaseline);
+            expectNothingChanged(ctx);
+          },
+        );
+      });
+
+      describe('body', () => describeFieldTable(ctx, 'baseline', bodyFixtures));
     });
   });
 }

@@ -33,6 +33,7 @@ import 'package:mobile/features/auth/data/models/login_api_models.dart';
 import 'package:mobile/features/auth/data/models/registration_api_models.dart';
 import 'package:mobile/features/auth/data/social_auth_client.dart';
 import 'package:mobile/features/auth/domain/ph_address.dart';
+import 'package:mobile/features/auth/domain/registration_role_type.dart';
 import 'package:mobile/features/auth/presentation/widgets/social_auth_buttons.dart';
 
 const _origin = 'http://api.test';
@@ -212,6 +213,10 @@ void main() {
     AuthSession.clear();
     AuthSession.onSessionEnded = null;
     DonorSession.instance.signOut();
+  });
+
+  test('the donor role maps to the server RoleType value', () {
+    expect(RegistrationRoleType.donor.apiValue, 'DONOR');
   });
 
   test(

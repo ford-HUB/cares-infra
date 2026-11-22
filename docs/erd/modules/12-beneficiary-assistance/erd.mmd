@@ -1,0 +1,65 @@
+%% CARES - Module 12: Beneficiary Assistance (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 3 tables + 1 referenced stub tables, 3 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+erDiagram
+  User ||--o| NeedsAssessment : "user"
+  User ||--o{ AssistanceRequest : "user"
+  AssistanceRequest ||--o{ AssistanceRequestAttachment : "assistance_request"
+
+  NeedsAssessment {
+    text needs_assessment_id PK
+    text user_id FK, UK
+    text[] needs
+    text other_need "nullable"
+    integer seriousness
+    text[] barriers
+    text other_barrier "nullable"
+    text community_problem
+    text other_community_problem "nullable"
+    text concern "nullable"
+    timestamp submitted_at
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  AssistanceRequest {
+    text assistance_request_id PK
+    serial reference_number UK
+    text user_id FK
+    text title
+    AssistanceCategory category
+    text description
+    AssistanceUrgency urgency
+    integer household_size
+    float8 location_latitude "nullable"
+    float8 location_longitude "nullable"
+    text location_details "nullable"
+    AssistanceRequestStatus status
+    AssistanceAssessmentStatus assessment_status
+    timestamp assessment_date "nullable"
+    text assigned_organization "nullable"
+    text[] items
+    text status_note "nullable"
+    timestamp screened_at "nullable"
+    timestamp decided_at "nullable"
+    timestamp released_at "nullable"
+    timestamp cancelled_at "nullable"
+    text cancel_reason "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  AssistanceRequestAttachment {
+    text assistance_request_attachment_id PK
+    text assistance_request_id FK
+    text name
+    text url
+    text mime
+    integer size_bytes
+    timestamp createdAt
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }

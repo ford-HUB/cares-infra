@@ -63,6 +63,7 @@ class Thresholds(BaseModel):
     boundary_tolerance_m: float | None = Field(default=None, alias="boundaryToleranceM", ge=0.0)
     max_speed_mps: float | None = Field(default=None, alias="maxSpeedMps", gt=0.0)
     max_accuracy_m: float | None = Field(default=None, alias="maxAccuracyM", gt=0.0)
+    departure_buffer_seconds: int | None = Field(default=None, alias="departureBufferSeconds", ge=0)
 
 
 class ValidateBody(BaseModel):
@@ -71,6 +72,10 @@ class ValidateBody(BaseModel):
     event: EventZone
     participants: list[Participant] = Field(..., min_length=1, max_length=2000)
     thresholds: Thresholds | None = None
+    # A mid-event snapshot: `endedAt` is "now" and the event is still running, so
+    # a volunteer outside the zone may only be on a break — their time out is
+    # left open until the departure buffer has passed without a return.
+    live: bool = False
 
 
 # ---------------------------------------------------------------------------

@@ -12,6 +12,35 @@ abstract final class VolunteerFieldRules {
   /// Earliest graduation year accepted for alumni.
   static const earliestAlumniYear = 1950;
 
+  /// Longest name the profile accepts later — kept in step with the server's
+  /// `max(80)` on first, middle and last name.
+  static const maxNameLength = 80;
+
+  /// Starts with a letter; then letters (ñ and accents included), spaces,
+  /// hyphens, apostrophes and periods — "Ma. Luisa", "Dela Cruz", "O'Neil".
+  static final _namePattern = RegExp(
+    r"^\p{L}[\p{L}\p{M} .'’-]*$",
+    unicode: true,
+  );
+
+  /// Why a name field is not acceptable yet, or null when it is. [label] names
+  /// the field in the "required" and "too long" messages.
+  static String? nameError(
+    String raw, {
+    required String label,
+    bool isRequired = true,
+  }) {
+    final text = raw.trim();
+    if (text.isEmpty) return isRequired ? '$label is required' : null;
+    if (text.length > maxNameLength) {
+      return '$label must be $maxNameLength characters or fewer';
+    }
+    if (!_namePattern.hasMatch(text)) {
+      return 'Use letters, spaces, hyphens, apostrophes or periods only';
+    }
+    return null;
+  }
+
   static String? ageError(String raw) {
     final text = raw.trim();
     if (text.isEmpty) return 'Age is required';

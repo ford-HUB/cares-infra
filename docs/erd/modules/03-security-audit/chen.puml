@@ -1,0 +1,105 @@
+@startchen
+' CARES - Module 03: Security & Audit (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 4 entities + 1 referenced stub entities, 3 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' Stub entities (key only) come from other modules: User (01)
+
+entity SecurityPolicy {
+  security_policy_id : TEXT <<key>>
+  singleton : BOOLEAN
+  password_min_length : INTEGER
+  password_require_uppercase : BOOLEAN
+  password_require_lowercase : BOOLEAN
+  password_require_number : BOOLEAN
+  password_require_symbol : BOOLEAN
+  lockout_enabled : BOOLEAN
+  lockout_max_attempts : INTEGER
+  lockout_window_minutes : INTEGER
+  lockout_duration_minutes : INTEGER
+  session_idle_timeout_minutes : INTEGER
+  session_max_duration_hours : INTEGER
+  max_concurrent_sessions : INTEGER
+  login_hours_enabled : BOOLEAN
+  login_hours_start_minute : INTEGER
+  login_hours_end_minute : INTEGER
+  ip_allowlist : TEXT <<multi>>
+  updated_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity BlockedIp {
+  blocked_ip_id : TEXT <<key>>
+  ip_address : TEXT
+  reason : TEXT
+  blocked_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity LoginActivity {
+  login_activity_id : TEXT <<key>>
+  email : TEXT
+  ip_address : TEXT
+  user_agent : TEXT
+  source : LoginSource
+  outcome : LoginOutcome
+  failure_reason : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity AuditLog {
+  audit_log_id : TEXT <<key>>
+  action : TEXT
+  description : TEXT
+  category : AuditCategory
+  severity : AuditSeverity
+  outcome : AuditOutcome
+  actor_name : TEXT
+  actor_email : TEXT
+  actor_role : RoleType
+  target_type : TEXT
+  target_label : TEXT
+  target_id : TEXT
+  ip_address : TEXT
+  user_agent : TEXT
+  source : AuditSource
+  request_id : TEXT
+  reason : TEXT
+  changes : JSONB
+  metadata : JSONB
+  createdAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+relationship ORIGINATES_IP_BLOCK {
+}
+ORIGINATES_IP_BLOCK -1- User
+ORIGINATES_IP_BLOCK -N- BlockedIp
+
+relationship LOGS_SIGN_IN {
+}
+LOGS_SIGN_IN -1- User
+LOGS_SIGN_IN -N- LoginActivity
+
+relationship PERFORMS_AUDITED_ACTION {
+}
+PERFORMS_AUDITED_ACTION -1- User
+PERFORMS_AUDITED_ACTION -N- AuditLog
+
+@endchen

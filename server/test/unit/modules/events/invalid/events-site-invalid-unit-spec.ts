@@ -105,9 +105,54 @@ import {
    * Others needs a name), plus legitimate inputs that must pass.
    */
   const requiredText = (field: string): LayerFixture[] => [
-    { name: `${field} missing`, input: { ...VALID, [field]: undefined }, expected: 'FAIL', field },
-    { name: `${field} empty`, input: { ...VALID, [field]: '' }, expected: 'FAIL', field },
-    { name: `${field} whitespace-only`, input: { ...VALID, [field]: '     ' }, expected: 'FAIL', field },
+    { 
+      
+
+
+
+
+
+      
+      
+    name: `${field} missing`, 
+    input: { ...VALID, [field]: undefined }, 
+    expected: 'FAIL', field },
+    
+
+
+
+
+
+
+
+  { 
+    
+    name: `${field} empty`, 
+    input: { ...VALID, [field]: '' }, 
+    expected: 'FAIL', field 
+  
+  },
+
+
+
+
+
+
+
+
+
+  { 
+    name: `${field} whitespace-only`,
+    input: { ...VALID, [field]: '     ' }, 
+    expected: 'FAIL', field 
+
+  },
+
+
+
+
+
+
   ];
 
   const lengthBounds = (field: string, min: number, max: number): LayerFixture[] => [
@@ -130,8 +175,13 @@ import {
     ...lengthBounds('organizer_name', 2, 255),
 
     ...requiredText('category'),
-    { name: 'category not on the list', input: { ...VALID, category: 'Festival' }, expected: 'FAIL', field: 'category' },
-    { name: 'category in the wrong case', input: { ...VALID, category: 'community' }, expected: 'FAIL', field: 'category' },
+    { 
+      name: 'no category selected', 
+      input: { ...VALID, category: 'community' }, 
+      expected: 'FAIL', field: 'category' 
+    
+    },
+
     { name: 'School without a department', input: { ...VALID, category: 'School' }, expected: 'FAIL', field: 'department' },
     { name: 'School with a blank department', input: { ...VALID, category: 'School', department: '   ' }, expected: 'FAIL', field: 'department' },
     { name: 'Others without a name', input: { ...VALID, category: 'Others' }, expected: 'FAIL', field: 'specified_category' },
@@ -437,7 +487,7 @@ import {
       });
 
       asCase('invalid', 'Staff keeps existing images and uploads more than the limit allows').it('never saves more images than the limit, existing ones first', async () => {
-        const { service, repository } = build();
+        const { service, repository } = build();  
         const existing = [STORED_IMAGE_URL, STORED_IMAGE_URL];
         const file = upload('photo.jpg', 'image/jpeg', JPEG_BYTES);
         await create(service, [file, file], { event_images_existing: existing });

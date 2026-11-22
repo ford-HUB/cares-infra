@@ -1,0 +1,1111 @@
+@startchen
+' CARES - Entity Relationship Diagram (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 57 entities, 70 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' M:N relationships are resolved through associative entities:
+'   Event M:N User via EventAttendance
+'   Conversation M:N User via ConversationParticipant
+'   CertificateTemplate M:N User via CertificateTemplateSignatory
+'   CertificateTemplate M:N Event via CertificateDeployment
+'   CertificateDeployment M:N User via IssuedCertificate
+'   Event M:N User via EvaluationResponse
+
+entity User {
+  user_id : TEXT <<key>>
+  firstname : TEXT
+  lastname : TEXT
+  middle_name : TEXT
+  gender : GenderType
+  age : INTEGER
+  current_address : TEXT
+  phone_number : TEXT
+  avatar : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  portal_department : TEXT
+  address_street : TEXT
+  address_barangay : TEXT
+  address_city : TEXT
+  address_province : TEXT
+  household_size : INTEGER
+  partner_barangay : TEXT
+  beneficiary_type : BeneficiaryType
+}
+
+entity ResidencyDocument {
+  residency_document_id : TEXT <<key>>
+  file_url : TEXT
+  file_name : TEXT
+  mime_type : TEXT
+  size_bytes : INTEGER
+  extracted_address : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity UserRoleAvatar {
+  user_role_avatar_id : TEXT <<key>>
+  role_type : RoleType
+  avatar_url : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserSchoolInfo {
+  user_school_info_id : TEXT <<key>>
+  id_number : TEXT
+  graduation_year : INTEGER
+  graduation_month : INTEGER
+  graduation_day : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  school_id_url : TEXT
+}
+
+entity Department {
+  department_id : TEXT <<key>>
+  name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Major {
+  major_id : TEXT <<key>>
+  name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity YearLevel {
+  year_level_id : TEXT <<key>>
+  name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserVerification {
+  user_verification_id : TEXT <<key>>
+  status : VerificationStatus
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserBiometric {
+  user_biometric_id : TEXT <<key>>
+  face_url : TEXT
+  embedding : JSONB
+  embedding_type : EmbeddingType
+  isActive : BOOLEAN
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Role {
+  role_id : TEXT <<key>>
+  type : RoleType
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity RolePermissionDefault {
+  role_permission_default_id : TEXT <<key>>
+  role_type : RoleType
+  permission : PermissionKey
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserPermissionOverride {
+  user_permission_override_id : TEXT <<key>>
+  permission : PermissionKey
+  effect : PermissionOverrideEffect
+  reason : TEXT
+  granted_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserActionSuspension {
+  user_action_suspension_id : TEXT <<key>>
+  permission : PermissionKey
+  reason : TEXT
+  issued_by_user_id : TEXT
+  expires_at : TIMESTAMP
+  lifted_at : TIMESTAMP
+  lifted_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity BlockedIp {
+  blocked_ip_id : TEXT <<key>>
+  ip_address : TEXT
+  reason : TEXT
+  blocked_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity SecurityPolicy {
+  security_policy_id : TEXT <<key>>
+  singleton : BOOLEAN
+  password_min_length : INTEGER
+  password_require_uppercase : BOOLEAN
+  password_require_lowercase : BOOLEAN
+  password_require_number : BOOLEAN
+  password_require_symbol : BOOLEAN
+  lockout_enabled : BOOLEAN
+  lockout_max_attempts : INTEGER
+  lockout_window_minutes : INTEGER
+  lockout_duration_minutes : INTEGER
+  session_idle_timeout_minutes : INTEGER
+  session_max_duration_hours : INTEGER
+  max_concurrent_sessions : INTEGER
+  login_hours_enabled : BOOLEAN
+  login_hours_start_minute : INTEGER
+  login_hours_end_minute : INTEGER
+  ip_allowlist : TEXT <<multi>>
+  updated_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity LoginActivity {
+  login_activity_id : TEXT <<key>>
+  email : TEXT
+  ip_address : TEXT
+  user_agent : TEXT
+  source : LoginSource
+  outcome : LoginOutcome
+  failure_reason : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity OAuthIdentity {
+  oauth_identity_id : TEXT <<key>>
+  provider : AuthProvider
+  provider_user_id : TEXT
+  email : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity GmailConnection {
+  gmail_connection_id : TEXT <<key>>
+  google_sub : TEXT
+  email : TEXT
+  scope : TEXT
+  access_token : TEXT
+  refresh_token : TEXT
+  access_expires_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Interest {
+  interest_id : TEXT <<key>>
+  code : InterestCode
+  label : TEXT
+  description : TEXT
+  is_active : BOOLEAN
+  sort_order : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserInterest {
+  user_interest_id : TEXT <<key>>
+  selected : JSONB
+  other_interest : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Event {
+  event_id : SERIAL <<key>>
+  title : TEXT
+  description : TEXT
+  event_started : TIMESTAMP
+  event_ended : TIMESTAMP
+  location : TEXT
+  max_participants : INTEGER
+  participants : INTEGER
+  organizer_name : TEXT
+  category : TEXT
+  department : TEXT
+  specified_category : TEXT
+  images : TEXT <<multi>>
+  status : EventStatus
+  funds_donation : BOOLEAN
+  goods_donation : BOOLEAN
+  goods_types : TEXT <<multi>>
+  beneficiary_applicable : BOOLEAN
+  max_beneficiaries : INTEGER
+  geojson : JSONB
+  area_sqm : FLOAT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  marker_lat : FLOAT
+  marker_lng : FLOAT
+}
+
+entity EventAttendance {
+  event_attendance_id : TEXT <<key>>
+  status : AttendanceStatus
+  validation_method : GeoValidationMethod
+  first_ping_at : TIMESTAMP
+  last_ping_at : TIMESTAMP
+  hours_rendered : FLOAT
+  participation_role : EventParticipationRole
+  role_approval : EventRoleApproval
+  remarks : TEXT
+  registered_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity EventLocationPing {
+  event_location_ping_id : SERIAL <<key>>
+  captured_at : TIMESTAMP
+  latitude : FLOAT
+  longitude : FLOAT
+  accuracy_m : FLOAT
+  in_area : BOOLEAN
+  source : GeoValidationMethod
+  createdAt : TIMESTAMP
+}
+
+entity Conversation {
+  conversation_id : TEXT <<key>>
+  last_message_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity ConversationParticipant {
+  conversation_participant_id : TEXT <<key>>
+  last_read_at : TIMESTAMP
+  createdAt : TIMESTAMP
+}
+
+entity ChatMessage {
+  message_id : TEXT <<key>>
+  body : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity ChatAttachment {
+  attachment_id : TEXT <<key>>
+  name : TEXT
+  size : INTEGER
+  mime_type : TEXT
+  url : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity SupportTicket {
+  support_ticket_id : TEXT <<key>>
+  reference_number : SERIAL
+  subject : TEXT
+  description : TEXT
+  type : SupportTicketType
+  status : SupportTicketStatus
+  priority : SupportTicketPriority
+  source : LoginSource
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity SupportTicketReply {
+  support_ticket_reply_id : TEXT <<key>>
+  author_name : TEXT
+  author_type : SupportTicketAuthorType
+  body : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity CertificateTemplate {
+  certificate_template_id : TEXT <<key>>
+  reference : TEXT
+  name : TEXT
+  description : TEXT
+  category : CertificateTemplateCategory
+  status : CertificateTemplateStatus
+  orientation : CertificateOrientation
+  issued : INTEGER
+  deployed_events : INTEGER
+  design : JSONB
+  updated_by_name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity CertificateTemplateSignatory {
+  certificate_template_signatory_id : TEXT <<key>>
+  name : TEXT
+  title : TEXT
+  department : TEXT
+  signature_token : TEXT
+  position : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity CertificateTemplateAsset {
+  certificate_template_asset_id : TEXT <<key>>
+  kind : CertificateAssetKind
+  storage_key : TEXT
+  file_name : TEXT
+  content_type : TEXT
+  byte_size : INTEGER
+  createdAt : TIMESTAMP
+}
+
+entity CertificateDeployment {
+  certificate_deployment_id : TEXT <<key>>
+  reference : TEXT
+  template_name : TEXT
+  category : CertificateTemplateCategory
+  orientation : CertificateOrientation
+  design : JSONB
+  event_name : TEXT
+  event_venue : TEXT
+  event_date : TIMESTAMP
+  status : CertificateDeploymentStatus
+  participants : INTEGER
+  distributed : INTEGER
+  claimed : INTEGER
+  deployed_by_name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity IssuedCertificate {
+  issued_certificate_id : TEXT <<key>>
+  certificate_number : TEXT
+  recipient_name : TEXT
+  event_name : TEXT
+  event_date : TIMESTAMP
+  hours_rendered : FLOAT
+  organization : TEXT
+  template_name : TEXT
+  category : CertificateTemplateCategory
+  orientation : CertificateOrientation
+  design : JSONB
+  issued_at : TIMESTAMP
+  claimed_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity MonthlyReportFolder {
+  monthly_report_folder_id : TEXT <<key>>
+  name : TEXT
+  created_by_name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity MonthlyReport {
+  monthly_report_id : TEXT <<key>>
+  reference : TEXT
+  title : TEXT
+  period : TEXT
+  department : ReportDepartment
+  status : MonthlyReportStatus
+  summary : TEXT
+  metric_events : INTEGER
+  metric_volunteers : INTEGER
+  metric_service_hours : INTEGER
+  metric_beneficiaries : INTEGER
+  submitted_by_name : TEXT
+  submitted_by_email : TEXT
+  submitted_by_title : TEXT
+  submitted_at : TIMESTAMP
+  reviewer_name : TEXT
+  decided_at : TIMESTAMP
+  decision_note : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity MonthlyReportDocument {
+  monthly_report_document_id : TEXT <<key>>
+  file_name : TEXT
+  kind : MonthlyReportDocumentKind
+  storage_key : TEXT
+  content_type : TEXT
+  byte_size : INTEGER
+  createdAt : TIMESTAMP
+}
+
+entity MonthlyReportTrailEntry {
+  monthly_report_trail_entry_id : TEXT <<key>>
+  action : MonthlyReportTrailAction
+  actor_name : TEXT
+  note : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity Announcement {
+  announcement_id : TEXT <<key>>
+  title : TEXT
+  body : TEXT
+  tone : AnnouncementTone
+  audiences : AnnouncementAudience <<multi>>
+  channels : AnnouncementChannel <<multi>>
+  state : AnnouncementState
+  publish_at : TIMESTAMP
+  expires_at : TIMESTAMP
+  pinned : BOOLEAN
+  window_id : TEXT
+  author_name : TEXT
+  reach : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Notification {
+  notification_id : TEXT <<key>>
+  title : TEXT
+  description : TEXT
+  category : NotificationCategory
+  tone : NotificationTone
+  href : TEXT
+  dedupe_key : TEXT
+  audience_role : RoleType
+  read_at : TIMESTAMP
+  dismissed_at : TIMESTAMP
+  createdAt : TIMESTAMP
+}
+
+entity EvaluationForm {
+  evaluation_form_id : TEXT <<key>>
+  title : TEXT
+  description : TEXT
+  header_typography : JSONB
+  questions : JSONB
+  status : EvaluationFormStatus
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  is_default : BOOLEAN
+}
+
+entity EvaluationAssignment {
+  evaluation_assignment_id : TEXT <<key>>
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity RankingSettings {
+  ranking_settings_id : TEXT <<key>>
+  points_per_attendance : INTEGER
+  absence_penalty_step : INTEGER
+  absence_reset_days : INTEGER
+  default_period : TEXT
+  tiers : JSONB
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  donor_pesos_per_point : INTEGER
+  goods_type_values : JSONB
+  participation_role_points : JSONB
+}
+
+entity EvaluationResponse {
+  evaluation_response_id : TEXT <<key>>
+  answers : JSONB
+  rating : INTEGER
+  status : EvaluationResponseStatus
+  submitted_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity UserRequest {
+  user_request_id : TEXT <<key>>
+  reference_number : SERIAL
+  kind : UserRequestKind
+  status : UserRequestStatus
+  requested_role : RoleType
+  participation_role : EventParticipationRole
+  id_front_url : TEXT
+  id_back_url : TEXT
+  selfie_url : TEXT
+  face_similarity : FLOAT
+  summary : TEXT
+  decided_at : TIMESTAMP
+  rejection_reason : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+  selfie_embedding : JSONB
+  residency_proof_url : TEXT
+  residency_proof_name : TEXT
+  residency_proof_mime : TEXT
+  document_url : TEXT
+  document_name : TEXT
+  document_mime : TEXT
+  document_size_bytes : INTEGER
+}
+
+entity UserRequestTrailEntry {
+  user_request_trail_entry_id : TEXT <<key>>
+  label : TEXT
+  actor_name : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity NeedsAssessment {
+  needs_assessment_id : TEXT <<key>>
+  needs : TEXT <<multi>>
+  other_need : TEXT
+  seriousness : INTEGER
+  barriers : TEXT <<multi>>
+  other_barrier : TEXT
+  community_problem : TEXT
+  other_community_problem : TEXT
+  concern : TEXT
+  submitted_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity AssistanceRequest {
+  assistance_request_id : TEXT <<key>>
+  reference_number : SERIAL
+  title : TEXT
+  category : AssistanceCategory
+  description : TEXT
+  urgency : AssistanceUrgency
+  household_size : INTEGER
+  location_latitude : FLOAT
+  location_longitude : FLOAT
+  location_details : TEXT
+  status : AssistanceRequestStatus
+  assessment_status : AssistanceAssessmentStatus
+  assessment_date : TIMESTAMP
+  assigned_organization : TEXT
+  items : TEXT <<multi>>
+  status_note : TEXT
+  screened_at : TIMESTAMP
+  decided_at : TIMESTAMP
+  released_at : TIMESTAMP
+  cancelled_at : TIMESTAMP
+  cancel_reason : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity AssistanceRequestAttachment {
+  assistance_request_attachment_id : TEXT <<key>>
+  name : TEXT
+  url : TEXT
+  mime : TEXT
+  size_bytes : INTEGER
+  createdAt : TIMESTAMP
+}
+
+entity Donation {
+  donation_id : TEXT <<key>>
+  sequence : SERIAL
+  kind : DonationKind
+  status : DonationStatus
+  amount : INTEGER
+  goods_type : TEXT
+  goods_item : TEXT
+  goods_quantity : INTEGER
+  donor_contact : TEXT
+  delivery_date : TIMESTAMP
+  confirmed_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity DonationTrailEntry {
+  donation_trail_entry_id : TEXT <<key>>
+  status : DonationStatus
+  note : TEXT
+  actor_label : TEXT
+  notified_email : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity AuditLog {
+  audit_log_id : TEXT <<key>>
+  action : TEXT
+  description : TEXT
+  category : AuditCategory
+  severity : AuditSeverity
+  outcome : AuditOutcome
+  actor_name : TEXT
+  actor_email : TEXT
+  actor_role : RoleType
+  target_type : TEXT
+  target_label : TEXT
+  target_id : TEXT
+  ip_address : TEXT
+  user_agent : TEXT
+  source : AuditSource
+  request_id : TEXT
+  reason : TEXT
+  changes : JSONB
+  metadata : JSONB
+  createdAt : TIMESTAMP
+}
+
+entity Account {
+  account_id : TEXT <<key>>
+  email : TEXT
+  password : TEXT
+  credential_expires_at : TIMESTAMP
+  provisioned_by_user_id : TEXT
+  email_verified_at : TIMESTAMP
+  signature_url : TEXT
+  is_restricted : BOOLEAN
+  restricted_at : TIMESTAMP
+  restriction_reason : TEXT
+  last_login_ip : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity DonationPayment {
+  donation_payment_id : TEXT <<key>>
+  campaign_id : TEXT
+  campaign_title : TEXT
+  amount : INTEGER
+  currency : TEXT
+  method : DonationPaymentMethod
+  status : DonationPaymentStatus
+  idempotency_key : TEXT
+  gateway_reference : TEXT
+  gateway_resource_id : TEXT
+  payment_reference : TEXT
+  payment_channel : TEXT
+  checkout_url : TEXT
+  qr_string : TEXT
+  expires_at : TIMESTAMP
+  paid_at : TIMESTAMP
+  failure_reason : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity PaymentWebhookEvent {
+  webhook_id : TEXT <<key>>
+  event : TEXT
+  gateway_reference : TEXT
+  payload : JSONB
+  receivedAt : TIMESTAMP
+}
+
+entity PaymentGatewaySettings {
+  payment_gateway_settings_id : TEXT <<key>>
+  singleton : BOOLEAN
+  mode : PaymentGatewayMode
+  enabled : BOOLEAN
+  secret_key_cipher : TEXT
+  secret_key_last4 : TEXT
+  webhook_token_cipher : TEXT
+  api_url : TEXT
+  statement_name : TEXT
+  support_email : TEXT
+  support_contact : TEXT
+  verified_at : TIMESTAMP
+  verification_error : TEXT
+  updated_by_user_id : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity PaymentMethodSetting {
+  payment_method_setting_id : TEXT <<key>>
+  method : DonationPaymentMethod
+  enabled : BOOLEAN
+  display_name : TEXT
+  instructions : TEXT
+  account_name : TEXT
+  account_number : TEXT
+  channel_codes : TEXT <<multi>>
+  min_amount : INTEGER
+  max_amount : INTEGER
+  sort_order : INTEGER
+  verification : PaymentMethodVerification
+  verified_at : TIMESTAMP
+  verification_message : TEXT
+  verified_channel_codes : TEXT <<multi>>
+  callbacks_registered_at : TIMESTAMP
+  account_proof : PaymentAccountProof
+  account_proof_amount : INTEGER
+  account_proof_reference : TEXT
+  account_proof_id : TEXT
+  account_proof_sent_at : TIMESTAMP
+  account_proof_attempts : INTEGER
+  account_proof_message : TEXT
+  account_proof_target : TEXT
+  account_verified_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+relationship HAS_ROLE {
+}
+HAS_ROLE -1- Role
+HAS_ROLE =N= User
+
+relationship UPLOADS_RESIDENCY_DOC {
+}
+UPLOADS_RESIDENCY_DOC -1- User
+UPLOADS_RESIDENCY_DOC =N= ResidencyDocument
+
+relationship HAS_ROLE_AVATAR {
+}
+HAS_ROLE_AVATAR -1- User
+HAS_ROLE_AVATAR =N= UserRoleAvatar
+
+relationship BELONGS_TO_DEPARTMENT {
+}
+BELONGS_TO_DEPARTMENT -1- Department
+BELONGS_TO_DEPARTMENT =N= UserSchoolInfo
+
+relationship TAKES_MAJOR {
+}
+TAKES_MAJOR -1- Major
+TAKES_MAJOR =N= UserSchoolInfo
+
+relationship HAS_SCHOOL_INFO {
+}
+HAS_SCHOOL_INFO -1- User
+HAS_SCHOOL_INFO =N= UserSchoolInfo
+
+relationship IN_YEAR_LEVEL {
+}
+IN_YEAR_LEVEL -1- YearLevel
+IN_YEAR_LEVEL =N= UserSchoolInfo
+
+relationship ENROLS_BIOMETRIC {
+}
+ENROLS_BIOMETRIC -1- UserBiometric
+ENROLS_BIOMETRIC -1- UserVerification
+
+relationship UNDERGOES_VERIFICATION {
+}
+UNDERGOES_VERIFICATION -1- User
+UNDERGOES_VERIFICATION =N= UserVerification
+
+relationship HAS_PERMISSION_OVERRIDE {
+}
+HAS_PERMISSION_OVERRIDE -1- User
+HAS_PERMISSION_OVERRIDE =N= UserPermissionOverride
+
+relationship HAS_SUSPENSION {
+}
+HAS_SUSPENSION -1- User
+HAS_SUSPENSION =N= UserActionSuspension
+
+relationship ORIGINATES_IP_BLOCK {
+}
+ORIGINATES_IP_BLOCK -1- User
+ORIGINATES_IP_BLOCK -N- BlockedIp
+
+relationship LOGS_SIGN_IN {
+}
+LOGS_SIGN_IN -1- User
+LOGS_SIGN_IN -N- LoginActivity
+
+relationship LINKS_OAUTH_IDENTITY {
+}
+LINKS_OAUTH_IDENTITY -1- User
+LINKS_OAUTH_IDENTITY =N= OAuthIdentity
+
+relationship CONNECTS_GMAIL {
+}
+CONNECTS_GMAIL -1- User
+CONNECTS_GMAIL =1= GmailConnection
+
+relationship SELECTS_INTERESTS {
+}
+SELECTS_INTERESTS -1- User
+SELECTS_INTERESTS =1= UserInterest
+
+relationship EVENT_HAS_ATTENDANCE {
+}
+EVENT_HAS_ATTENDANCE -1- Event
+EVENT_HAS_ATTENDANCE =N= EventAttendance
+
+relationship REGISTERS_ATTENDANCE {
+}
+REGISTERS_ATTENDANCE -1- User
+REGISTERS_ATTENDANCE =N= EventAttendance
+
+relationship EVENT_RECEIVES_PING {
+}
+EVENT_RECEIVES_PING -1- Event
+EVENT_RECEIVES_PING -N- EventLocationPing
+
+relationship SENDS_LOCATION_PING {
+}
+SENDS_LOCATION_PING -1- User
+SENDS_LOCATION_PING =N= EventLocationPing
+
+relationship CONVERSATION_HAS_PARTICIPANT {
+}
+CONVERSATION_HAS_PARTICIPANT -1- Conversation
+CONVERSATION_HAS_PARTICIPANT =N= ConversationParticipant
+
+relationship PARTICIPATES_IN {
+}
+PARTICIPATES_IN -1- User
+PARTICIPATES_IN =N= ConversationParticipant
+
+relationship CONTAINS_MESSAGE {
+}
+CONTAINS_MESSAGE -1- Conversation
+CONTAINS_MESSAGE =N= ChatMessage
+
+relationship SENDS_MESSAGE {
+}
+SENDS_MESSAGE -1- User
+SENDS_MESSAGE =N= ChatMessage
+
+relationship MESSAGE_HAS_ATTACHMENT {
+}
+MESSAGE_HAS_ATTACHMENT -1- ChatMessage
+MESSAGE_HAS_ATTACHMENT =N= ChatAttachment
+
+relationship ASSIGNED_TICKET {
+}
+ASSIGNED_TICKET -1- User
+ASSIGNED_TICKET -N- SupportTicket
+
+relationship FILES_TICKET {
+}
+FILES_TICKET -1- User
+FILES_TICKET =N= SupportTicket
+
+relationship WRITES_REPLY {
+}
+WRITES_REPLY -1- User
+WRITES_REPLY -N- SupportTicketReply
+
+relationship TICKET_HAS_REPLY {
+}
+TICKET_HAS_REPLY -1- SupportTicket
+TICKET_HAS_REPLY =N= SupportTicketReply
+
+relationship EDITS_TEMPLATE {
+}
+EDITS_TEMPLATE -1- User
+EDITS_TEMPLATE -N- CertificateTemplate
+
+relationship TEMPLATE_HAS_SIGNATORY {
+}
+TEMPLATE_HAS_SIGNATORY -1- CertificateTemplate
+TEMPLATE_HAS_SIGNATORY =N= CertificateTemplateSignatory
+
+relationship SIGNS_AS {
+}
+SIGNS_AS -1- User
+SIGNS_AS =N= CertificateTemplateSignatory
+
+relationship TEMPLATE_HAS_ASSET {
+}
+TEMPLATE_HAS_ASSET -1- CertificateTemplate
+TEMPLATE_HAS_ASSET =N= CertificateTemplateAsset
+
+relationship DEPLOYED_FROM {
+}
+DEPLOYED_FROM -1- CertificateTemplate
+DEPLOYED_FROM =N= CertificateDeployment
+
+relationship DEPLOYS_CERTIFICATE {
+}
+DEPLOYS_CERTIFICATE -1- User
+DEPLOYS_CERTIFICATE -N- CertificateDeployment
+
+relationship EVENT_HAS_DEPLOYMENT {
+}
+EVENT_HAS_DEPLOYMENT -1- Event
+EVENT_HAS_DEPLOYMENT =N= CertificateDeployment
+
+relationship DEPLOYMENT_ISSUES {
+}
+DEPLOYMENT_ISSUES -1- CertificateDeployment
+DEPLOYMENT_ISSUES =N= IssuedCertificate
+
+relationship EVENT_ISSUES_CERTIFICATE {
+}
+EVENT_ISSUES_CERTIFICATE -1- Event
+EVENT_ISSUES_CERTIFICATE =N= IssuedCertificate
+
+relationship RECEIVES_CERTIFICATE {
+}
+RECEIVES_CERTIFICATE -1- User
+RECEIVES_CERTIFICATE =N= IssuedCertificate
+
+relationship CREATES_FOLDER {
+}
+CREATES_FOLDER -1- User
+CREATES_FOLDER -N- MonthlyReportFolder
+
+relationship FILED_IN {
+}
+FILED_IN -1- MonthlyReportFolder
+FILED_IN -N- MonthlyReport
+
+relationship REVIEWS_REPORT {
+}
+REVIEWS_REPORT -1- User
+REVIEWS_REPORT -N- MonthlyReport
+
+relationship SUBMITS_REPORT {
+}
+SUBMITS_REPORT -1- User
+SUBMITS_REPORT -N- MonthlyReport
+
+relationship REPORT_HAS_DOCUMENT {
+}
+REPORT_HAS_DOCUMENT -1- MonthlyReport
+REPORT_HAS_DOCUMENT =N= MonthlyReportDocument
+
+relationship REPORT_HAS_TRAIL {
+}
+REPORT_HAS_TRAIL -1- MonthlyReport
+REPORT_HAS_TRAIL =N= MonthlyReportTrailEntry
+
+relationship AUTHORS_ANNOUNCEMENT {
+}
+AUTHORS_ANNOUNCEMENT -1- User
+AUTHORS_ANNOUNCEMENT -N- Announcement
+
+relationship RECEIVES_NOTIFICATION {
+}
+RECEIVES_NOTIFICATION -1- User
+RECEIVES_NOTIFICATION =N= Notification
+
+relationship ASSIGNS_EVALUATION {
+}
+ASSIGNS_EVALUATION -1- User
+ASSIGNS_EVALUATION -N- EvaluationAssignment
+
+relationship EVENT_USES_FORM {
+}
+EVENT_USES_FORM -1- Event
+EVENT_USES_FORM =1= EvaluationAssignment
+
+relationship FORM_ASSIGNED_TO {
+}
+FORM_ASSIGNED_TO -1- EvaluationForm
+FORM_ASSIGNED_TO =N= EvaluationAssignment
+
+relationship EVENT_HAS_RESPONSE {
+}
+EVENT_HAS_RESPONSE -1- Event
+EVENT_HAS_RESPONSE =N= EvaluationResponse
+
+relationship FORM_HAS_RESPONSE {
+}
+FORM_HAS_RESPONSE -1- EvaluationForm
+FORM_HAS_RESPONSE =N= EvaluationResponse
+
+relationship SUBMITS_EVALUATION {
+}
+SUBMITS_EVALUATION -1- User
+SUBMITS_EVALUATION =N= EvaluationResponse
+
+relationship DECIDES_REQUEST {
+}
+DECIDES_REQUEST -1- User
+DECIDES_REQUEST -N- UserRequest
+
+relationship REQUEST_CONCERNS_EVENT {
+}
+REQUEST_CONCERNS_EVENT -1- Event
+REQUEST_CONCERNS_EVENT -N- UserRequest
+
+relationship FILES_REQUEST {
+}
+FILES_REQUEST -1- User
+FILES_REQUEST =N= UserRequest
+
+relationship REQUEST_HAS_TRAIL {
+}
+REQUEST_HAS_TRAIL -1- UserRequest
+REQUEST_HAS_TRAIL =N= UserRequestTrailEntry
+
+relationship ANSWERS_ASSESSMENT {
+}
+ANSWERS_ASSESSMENT -1- User
+ANSWERS_ASSESSMENT =1= NeedsAssessment
+
+relationship REQUESTS_ASSISTANCE {
+}
+REQUESTS_ASSISTANCE -1- User
+REQUESTS_ASSISTANCE =N= AssistanceRequest
+
+relationship ASSISTANCE_HAS_ATTACHMENT {
+}
+ASSISTANCE_HAS_ATTACHMENT -1- AssistanceRequest
+ASSISTANCE_HAS_ATTACHMENT =N= AssistanceRequestAttachment
+
+relationship EVENT_RECEIVES_DONATION {
+}
+EVENT_RECEIVES_DONATION -1- Event
+EVENT_RECEIVES_DONATION =N= Donation
+
+relationship SETTLED_BY {
+}
+SETTLED_BY -1- DonationPayment
+SETTLED_BY -1- Donation
+
+relationship MAKES_DONATION {
+}
+MAKES_DONATION -1- User
+MAKES_DONATION =N= Donation
+
+relationship ACTS_ON_DONATION {
+}
+ACTS_ON_DONATION -1- User
+ACTS_ON_DONATION -N- DonationTrailEntry
+
+relationship DONATION_HAS_TRAIL {
+}
+DONATION_HAS_TRAIL -1- Donation
+DONATION_HAS_TRAIL =N= DonationTrailEntry
+
+relationship PERFORMS_AUDITED_ACTION {
+}
+PERFORMS_AUDITED_ACTION -1- User
+PERFORMS_AUDITED_ACTION -N- AuditLog
+
+relationship OWNS_ACCOUNT {
+}
+OWNS_ACCOUNT -1- User
+OWNS_ACCOUNT =N= Account
+
+relationship STARTS_PAYMENT {
+}
+STARTS_PAYMENT -1- User
+STARTS_PAYMENT =N= DonationPayment
+
+relationship EVENT_FUNDS_PAYMENT {
+}
+EVENT_FUNDS_PAYMENT -1- Event
+EVENT_FUNDS_PAYMENT -N- DonationPayment
+
+relationship CONFIGURES_METHOD {
+}
+CONFIGURES_METHOD -1- PaymentGatewaySettings
+CONFIGURES_METHOD =N= PaymentMethodSetting
+
+@endchen

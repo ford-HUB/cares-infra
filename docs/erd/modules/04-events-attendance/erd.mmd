@@ -1,0 +1,105 @@
+%% CARES - Module 04: Events, Attendance & Engagement (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 6 tables + 1 referenced stub tables, 5 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+%% M:N relationships are resolved through associative entities:
+%%   Event M:N User via EventAttendance
+erDiagram
+  User ||--o| UserInterest : "user"
+  Event ||--o{ EventAttendance : "event"
+  User ||--o{ EventAttendance : "user"
+  Event |o--o{ EventLocationPing : "event"
+  User ||--o{ EventLocationPing : "user"
+
+  Event {
+    serial event_id PK
+    text title
+    text description
+    timestamp event_started
+    timestamp event_ended
+    text location
+    integer max_participants
+    integer participants
+    text organizer_name
+    text category
+    text department "nullable"
+    text specified_category "nullable"
+    text[] images
+    EventStatus status
+    boolean funds_donation
+    boolean goods_donation
+    text[] goods_types
+    boolean beneficiary_applicable
+    integer max_beneficiaries "nullable"
+    jsonb geojson "nullable"
+    float8 area_sqm "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+    float8 marker_lat "nullable"
+    float8 marker_lng "nullable"
+  }
+  EventAttendance {
+    text event_attendance_id PK
+    integer event_id FK
+    text user_id FK
+    AttendanceStatus status
+    GeoValidationMethod validation_method "nullable"
+    timestamp first_ping_at "nullable"
+    timestamp last_ping_at "nullable"
+    float8 hours_rendered "nullable"
+    EventParticipationRole participation_role
+    EventRoleApproval role_approval
+    text remarks "nullable"
+    timestamp registered_at
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  EventLocationPing {
+    serial event_location_ping_id PK
+    integer event_id FK "nullable"
+    text user_id FK
+    timestamp captured_at
+    float8 latitude
+    float8 longitude
+    float8 accuracy_m
+    boolean in_area
+    GeoValidationMethod source
+    timestamp createdAt
+  }
+  Interest {
+    text interest_id PK
+    InterestCode code UK
+    text label
+    text description "nullable"
+    boolean is_active
+    integer sort_order
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  UserInterest {
+    text user_interest_id PK
+    text user_id FK, UK
+    jsonb selected
+    text other_interest "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  RankingSettings {
+    text ranking_settings_id PK
+    integer points_per_attendance
+    integer absence_penalty_step
+    integer absence_reset_days
+    text default_period
+    jsonb tiers
+    timestamp createdAt
+    timestamp updatedAt
+    integer donor_pesos_per_point
+    jsonb goods_type_values "nullable"
+    jsonb participation_role_points "nullable"
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }

@@ -207,20 +207,25 @@ class RoleAccountStore extends ChangeNotifier {
   /// only, with no school record or ID check behind it.
   bool get isStaffAccount => _staffAccount;
 
-  /// The Volunteer side was opened by a director approving a role-access
-  /// request from a donor or beneficiary — someone from outside the school
-  /// community. Read off the server profile once synced; before that, a
-  /// non-volunteer primary role with an unlocked (approved) Volunteer side
-  /// says the same thing.
+  /// The volunteer is from outside the school community: a partner-barangay
+  /// volunteer, or a donor / beneficiary whose Volunteer side a director
+  /// opened by approving a role-access request. Read off the server profile
+  /// once synced; before that, a non-volunteer primary role with an unlocked
+  /// (approved) Volunteer side says the same thing.
   bool get volunteerFromOutsideSchool {
     final account = _accounts[volunteer];
     if (account == null || !account.isUnlocked) return false;
     final server = account.serverProfile?.volunteer;
-    if (server != null) return server.accessGrantedByDirector;
+    if (server != null) return server.outsideSchool;
     // A student beneficiary's Volunteer side came with their school ID.
     if (_grantedWithAccount.contains(volunteer)) return false;
     return _primaryRoleType != null && _primaryRoleType != volunteer;
   }
+
+  /// What the volunteer typed under the "Others" interest, from the synced
+  /// server profile; null when nothing is on file.
+  String? get volunteerOtherInterest =>
+      _accounts[volunteer]?.serverProfile?.volunteer?.otherInterest;
 
   /// Called whenever a dashboard is opened for [roleType].
   ///

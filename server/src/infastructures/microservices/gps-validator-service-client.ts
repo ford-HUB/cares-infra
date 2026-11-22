@@ -85,16 +85,23 @@ export class GpsValidatorServiceClient {
    * Judges every participant's recorded movement against the event geofence:
    * time in/out, time inside, whether the coverage and late-entry rules pass, and
    * any GPS anomalies. Pass an `endedAt` of "now" for a mid-event snapshot — the
-   * coverage then reads as the share of the event so far.
+   * coverage then reads as the share of the event so far. Set `live` for such a
+   * snapshot so a volunteer who stepped out is not timed out until they have been
+   * gone for the departure buffer (1 h) without coming back.
    */
   async validate(
     event: GpsEventInput,
     participants: GpsParticipantInput[],
+    options: { live?: boolean } = {},
   ): Promise<GpsValidateResult> {
     const response = await fetch(`${this.baseUrl}/api/v1/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event, participants }),
+      body: JSON.stringify({
+        event,
+        participants,
+        live: options.live ?? false,
+      }),
     });
 
     const payload = (await response.json()) as GpsApiResponse;

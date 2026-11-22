@@ -29,6 +29,12 @@ import {
 import { EventAttendanceValidationService } from './event-attendance-validation-service';
 
 const MS_PER_HOUR = 3_600_000;
+/**
+ * How long a volunteer may be out of the zone mid-event before that exit counts
+ * as their time out. Keep in step with `departure_buffer_seconds` in
+ * gps-validator-service, which applies the same rule to live snapshots.
+ */
+const DEPARTURE_BUFFER_MS = MS_PER_HOUR;
 
 @Injectable()
 export class EventAttendanceSiteService {
@@ -117,6 +123,7 @@ export class EventAttendanceSiteService {
       validation_method: base.validation_method,
       first_ping_at: live?.timeIn ?? base.first_ping_at,
       last_ping_at: lastPingAt,
+      time_out_at: live ? live.timeOut : base.time_out_at,
       distance_meters: live?.lastDistanceToZoneM ?? null,
       inside_ratio: live ? live.coverageRatio : null,
       remarks: base.remarks,
@@ -269,7 +276,7 @@ export class EventAttendanceSiteService {
     }
   }
 
-  private mapToDto(row: RosterRow): EventAttendeeDto {
+  private mapToDto(row: RosterRow, now = new Date()): EventAttendeeDto {
     const schoolInfo = row.user.user_school_info[0];
 
     return {
@@ -290,11 +297,29 @@ export class EventAttendanceSiteService {
       validation_method: row.validation_method,
       first_ping_at: row.first_ping_at?.toISOString() ?? null,
       last_ping_at: row.last_ping_at?.toISOString() ?? null,
+      time_out_at: settledTimeOut(row, now)?.toISOString() ?? null,
       hours_rendered: row.hours_rendered,
       remarks: row.remarks,
       registered_at: row.registered_at.toISOString(),
     };
   }
+}
+
+/**
+ * Time out for a roster row: when the volunteer left the event zone for good.
+ * `last_ping_at` is their latest in-zone reading — once the validator has ruled
+ * it is already the settled time out, and once the event is over the last exit is
+ * final. While the event runs, stepping out (lunch, an errand) is not a time out:
+ * it only settles after `DEPARTURE_BUFFER_MS` with no reading back inside.
+ */
+function settledTimeOut(row: RosterRow, now: Date): Date | null {
+  const lastInside = row.last_ping_at;
+  if (!lastInside) return null;
+  if (row.status !== AttendanceStatus.PENDING) return lastInside;
+  if (row.event.event_ended.getTime() <= now.getTime()) return lastInside;
+  return now.getTime() - lastInside.getTime() >= DEPARTURE_BUFFER_MS
+    ? lastInside
+    : null;
 }
 
 /** The event's scheduled length in hours, to two decimals — what a manual ruling credits. */

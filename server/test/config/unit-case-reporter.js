@@ -26,6 +26,28 @@ const routeLabel = (title) => {
   return last.charAt(0).toUpperCase() + last.slice(1);
 };
 
+/** `PATCH /api/v1/users/:id/permissions` → `PATCH users/:id/permissions` — used when two routes share a label. */
+const routeSignature = (title) => {
+  const [method, path] = title.split(' ');
+  return `${method} ${path.replace(/^\/(api\/)?(v\d+\/)?/, '')}`;
+};
+
+/**
+ * One label per distinct route title in a unit: the short label, unless another
+ * route of the same unit would print the same one — then method + path.
+ */
+const routeLabels = (titles) => {
+  const distinct = [...new Set(titles.filter(Boolean))];
+  const byLabel = new Map();
+  for (const title of distinct) {
+    const label = routeLabel(title);
+    byLabel.set(label, (byLabel.get(label) || 0) + 1);
+  }
+  return new Map(
+    distinct.map((title) => [title, byLabel.get(routeLabel(title)) > 1 ? routeSignature(title) : routeLabel(title)]),
+  );
+};
+
 const parseCase = (title) => {
   const parts = title.split(SEPARATOR);
   if (parts.length !== 6) return null;
@@ -132,7 +154,7 @@ class UnitCaseReporter {
           const between = titles.slice(1, ownerIndex);
           const route = between.filter((t) => ROUTE.test(t)).pop();
           const scope = between.filter((t) => !ROUTE.test(t));
-          owner.route = route ? routeLabel(route) : '';
+          owner.route = route || '';
           if (scope.length) owner.description = `${scope.join(' › ')}: ${owner.description}`;
         }
         if (!owner) {
@@ -189,11 +211,12 @@ class UnitCaseReporter {
           `${bold(`Module: ${module}`)}   ${bold(`Unit: ${unit}`)}   ${dim(kind === 'valid' ? 'valid inputs' : 'invalid inputs')}   ${tally}`,
         );
 
-        const severalRoutes = new Set(group.map((c) => c.route).filter(Boolean)).size > 1;
+        const labels = routeLabels(group.map((c) => c.route));
+        const severalRoutes = labels.size > 1;
         const rows = group
           .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
           .map((c) => {
-            const description = severalRoutes && c.route ? `[${c.route}] ${c.description}` : c.description;
+            const description = severalRoutes && c.route ? `[${labels.get(c.route)}] ${c.description}` : c.description;
             const ok = c.failed.length === 0;
             const actual = ok
               ? 'Performed as expected'

@@ -1,0 +1,79 @@
+@startchen
+' CARES - Module 07: Portal Messaging (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 4 entities + 1 referenced stub entities, 5 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' M:N relationships are resolved through associative entities:
+'   Conversation M:N User via ConversationParticipant
+'
+' Stub entities (key only) come from other modules: User (01)
+
+entity Conversation {
+  conversation_id : TEXT <<key>>
+  last_message_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity ConversationParticipant {
+  conversation_participant_id : TEXT <<key>>
+  last_read_at : TIMESTAMP
+  createdAt : TIMESTAMP
+}
+
+entity ChatMessage {
+  message_id : TEXT <<key>>
+  body : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity ChatAttachment {
+  attachment_id : TEXT <<key>>
+  name : TEXT
+  size : INTEGER
+  mime_type : TEXT
+  url : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+relationship CONVERSATION_HAS_PARTICIPANT {
+}
+CONVERSATION_HAS_PARTICIPANT -1- Conversation
+CONVERSATION_HAS_PARTICIPANT =N= ConversationParticipant
+
+relationship PARTICIPATES_IN {
+}
+PARTICIPATES_IN -1- User
+PARTICIPATES_IN =N= ConversationParticipant
+
+relationship CONTAINS_MESSAGE {
+}
+CONTAINS_MESSAGE -1- Conversation
+CONTAINS_MESSAGE =N= ChatMessage
+
+relationship SENDS_MESSAGE {
+}
+SENDS_MESSAGE -1- User
+SENDS_MESSAGE =N= ChatMessage
+
+relationship MESSAGE_HAS_ATTACHMENT {
+}
+MESSAGE_HAS_ATTACHMENT -1- ChatMessage
+MESSAGE_HAS_ATTACHMENT =N= ChatAttachment
+
+@endchen

@@ -1,3 +1,5 @@
+part 'ph_address_cebu.dart';
+
 /// Structured Philippine address captured on the beneficiary details form.
 ///
 /// Barangay and city/municipality must come from [PhAddressDirectory] so a
@@ -16,11 +18,24 @@ class PhAddress {
 
   static const empty = PhAddress();
 
+  static const maxStreetLength = 120;
+
+  /// Letters, digits, spaces and the punctuation real addresses use —
+  /// "Blk 5 Lot 3, Phase 2 (Ext.)", "#12 Rizal St. & 3rd Ave", "Unit 4/F".
+  static final _streetPattern = RegExp(
+    r"^[\p{L}\p{M}0-9 .,#'’()/&-]+$",
+    unicode: true,
+  );
+
   /// Why the street is not acceptable yet, or null when it is.
   static String? streetError(String street) {
     final value = street.trim();
     if (value.isEmpty) return 'Enter your house no. and street.';
     if (value.length < 3) return 'Street is too short.';
+    if (value.length > maxStreetLength) return 'Street is too long.';
+    if (!_streetPattern.hasMatch(value)) {
+      return "Use letters, numbers and . , # ' - / ( ) & only.";
+    }
     if (!RegExp('[A-Za-zÑñ]').hasMatch(value)) {
       return 'Include the street name, not just a number.';
     }
@@ -106,9 +121,20 @@ class PhAddress {
 
     var localityIndex = -1;
     PhLocality? locality;
+    // A bare "Cebu" is usually the province ("…, Minglanilla, Cebu"), so it
+    // only counts as Cebu City when no other city or municipality is named.
+    var provinceIndex = -1;
     for (var i = parts.length - 1; i >= 0 && locality == null; i--) {
+      if (parts[i].toLowerCase() == 'cebu') {
+        if (provinceIndex == -1) provinceIndex = i;
+        continue;
+      }
       locality = PhAddressDirectory.localityLoosely(parts[i]);
       if (locality != null) localityIndex = i;
+    }
+    if (locality == null && provinceIndex != -1) {
+      locality = PhAddressDirectory.localityLoosely(parts[provinceIndex]);
+      localityIndex = provinceIndex;
     }
 
     var barangayIndex = -1;
@@ -194,235 +220,51 @@ class PhBarangay {
   String toString() => label;
 }
 
-/// Local lookup of the barangays CARES serves (Metro Cebu around UCLM).
-/// Extend [localities] to cover more areas — suggestions and validation both
-/// read from here.
+/// Local lookup of every barangay in Cebu Province (PSGC, see
+/// `ph_address_cebu.dart`). Suggestions and validation both read from here.
 abstract final class PhAddressDirectory {
   static const _cebu = 'Cebu';
 
-  static const localities = <PhLocality>[
-    PhLocality(
-      'Lapu-Lapu City',
-      _cebu,
-      [
-        'Agus',
-        'Babag',
-        'Bankal',
-        'Baring',
-        'Basak',
-        'Buaya',
-        'Calawisan',
-        'Canjulao',
-        'Caubian',
-        'Caw-oy',
-        'Cawhagan',
-        'Gun-ob',
-        'Ibo',
-        'Looc',
-        'Mactan',
-        'Maribago',
-        'Marigondon',
-        'Pajac',
-        'Pajo',
-        'Pangan-an',
-        'Poblacion',
-        'Punta Engaño',
-        'Pusok',
-        'Sabang',
-        'San Vicente',
-        'Santa Rosa',
-        'Subabasbas',
-        'Talima',
-        'Tingo',
-        'Tungasan',
-      ],
-      streets: [
-        'M.L. Quezon National Highway',
-        'Airport Road',
-        'Mactan Circumferential Road',
-        'Punta Engaño Road',
-      ],
-    ),
-    PhLocality(
-      'Mandaue City',
-      _cebu,
-      [
-        'Alang-alang',
-        'Bakilid',
-        'Banilad',
-        'Basak',
-        'Cabancalan',
-        'Cambaro',
-        'Canduman',
-        'Casili',
-        'Casuntingan',
-        'Centro',
-        'Cubacub',
-        'Guizo',
-        'Ibabao-Estancia',
-        'Jagobiao',
-        'Labogon',
-        'Looc',
-        'Maguikay',
-        'Mantuyong',
-        'Opao',
-        'Pagsabungan',
-        'Pakna-an',
-        'Subangdaku',
-        'Tabok',
-        'Tawason',
-        'Tingub',
-        'Tipolo',
-        'Umapad',
-      ],
-      streets: [
-        'M.C. Briones Street',
-        'A.C. Cortes Avenue',
-        'A. Soriano Jr. Avenue',
-        'U.N. Avenue',
-        'Hernan Cortes Street',
-        'Ouano Avenue',
-        'Plaridel Street',
-      ],
-    ),
-    PhLocality(
-      'Cebu City',
-      _cebu,
-      [
-        'Adlaon',
-        'Agsungot',
-        'Apas',
-        'Babag',
-        'Bacayan',
-        'Banilad',
-        'Basak Pardo',
-        'Basak San Nicolas',
-        'Binaliw',
-        'Bonbon',
-        'Budlaan',
-        'Buhisan',
-        'Bulacao',
-        'Buot-Taup',
-        'Busay',
-        'Calamba',
-        'Cambinocot',
-        'Capitol Site',
-        'Carreta',
-        'Cogon Pardo',
-        'Cogon Ramos',
-        'Day-as',
-        'Duljo Fatima',
-        'Ermita',
-        'Guadalupe',
-        'Guba',
-        'Hipodromo',
-        'Inayawan',
-        'Kalubihan',
-        'Kalunasan',
-        'Kamagayan',
-        'Kamputhaw',
-        'Kasambagan',
-        'Kinasang-an Pardo',
-        'Labangon',
-        'Lahug',
-        'Lorega San Miguel',
-        'Lusaran',
-        'Luz',
-        'Mabini',
-        'Mabolo',
-        'Malubog',
-        'Mambaling',
-        'Pahina Central',
-        'Pahina San Nicolas',
-        'Pamutan',
-        'Pari-an',
-        'Paril',
-        'Pasil',
-        'Pit-os',
-        'Poblacion Pardo',
-        'Pulangbato',
-        'Pung-ol Sibugay',
-        'Punta Princesa',
-        'Quiot Pardo',
-        'Sambag I',
-        'Sambag II',
-        'San Antonio',
-        'San Jose',
-        'San Nicolas Proper',
-        'San Roque',
-        'Santa Cruz',
-        'Santo Niño',
-        'Sapangdaku',
-        'Sawang Calero',
-        'Sinsin',
-        'Sirao',
-        'Suba',
-        'Sudlon I',
-        'Sudlon II',
-        'T. Padilla',
-        'Tabunan',
-        'Tagba-o',
-        'Talamban',
-        'Taptap',
-        'Tejero',
-        'Tinago',
-        'Tisa',
-        'To-ong',
-        'Zapatera',
-      ],
-      streets: [
-        'Osmeña Boulevard',
-        'Gorordo Avenue',
-        'Salinas Drive',
-        'Gov. M. Cuenco Avenue',
-        'Juan Luna Avenue',
-        'Archbishop Reyes Avenue',
-        'N. Bacalso Avenue',
-        'V. Rama Avenue',
-        'M.J. Cuenco Avenue',
-        'General Maxilom Avenue',
-        'Colon Street',
-      ],
-    ),
-    PhLocality('Cordova', _cebu, [
-      'Alegria',
-      'Bangbang',
-      'Buagsong',
-      'Catarman',
-      'Cogon',
-      'Dapitan',
-      'Day-as',
-      'Gabi',
-      'Gilutongan',
-      'Ibabao',
-      'Pilipog',
-      'Poblacion',
-      'San Miguel',
-    ]),
-    PhLocality('Talisay City', _cebu, [
-      'Biasong',
-      'Bulacao',
-      'Cadulawan',
-      'Camp IV',
-      'Cansojong',
-      'Dumlog',
-      'Jaclupan',
-      'Lagtang',
-      'Lawaan I',
-      'Lawaan II',
-      'Lawaan III',
-      'Linao',
-      'Maghaway',
-      'Manipis',
-      'Mohon',
-      'Poblacion',
-      'Pooc',
-      'San Isidro',
-      'San Roque',
-      'Tabunok',
-      'Tangke',
-      'Tapul',
-    ]),
+  /// Major roads per locality — offered after a barangay's own streets.
+  static const _localityStreets = <String, List<String>>{
+    'Lapu-Lapu City': [
+      'M.L. Quezon National Highway',
+      'Airport Road',
+      'Mactan Circumferential Road',
+      'Punta Engaño Road',
+    ],
+    'Mandaue City': [
+      'M.C. Briones Street',
+      'A.C. Cortes Avenue',
+      'A. Soriano Jr. Avenue',
+      'U.N. Avenue',
+      'Hernan Cortes Street',
+      'Ouano Avenue',
+      'Plaridel Street',
+    ],
+    'Cebu City': [
+      'Osmeña Boulevard',
+      'Gorordo Avenue',
+      'Salinas Drive',
+      'Gov. M. Cuenco Avenue',
+      'Juan Luna Avenue',
+      'Archbishop Reyes Avenue',
+      'N. Bacalso Avenue',
+      'V. Rama Avenue',
+      'M.J. Cuenco Avenue',
+      'General Maxilom Avenue',
+      'Colon Street',
+    ],
+  };
+
+  static final List<PhLocality> localities = [
+    for (final entry in _cebuBarangays.entries)
+      PhLocality(
+        entry.key,
+        _cebu,
+        entry.value,
+        streets: _localityStreets[entry.key] ?? const [],
+      ),
   ];
 
   /// Keyed `City|Barangay`.
@@ -447,6 +289,25 @@ abstract final class PhAddressDirectory {
       for (final name in locality.barangayNames) PhBarangay(name, locality),
   ];
 
+  /// Search keys worked out once — 1,200+ barangays are scanned per keystroke.
+  static final List<_BarangayKey> _barangayKeys = () {
+    // `City|Listed name` → folded other spellings.
+    final aliases = <String, List<String>>{};
+    for (final MapEntry(:key, :value) in _cebuBarangayAliases.entries) {
+      final [city, spelling] = key.split('|');
+      (aliases['$city|$value'] ??= []).add(_fold(spelling));
+    }
+    return [
+      for (final barangay in barangays)
+        _BarangayKey(
+          barangay,
+          _fold(barangay.name),
+          _fold(barangay.locality.name),
+          aliases['${barangay.locality.name}|${barangay.name}'] ?? const [],
+        ),
+    ];
+  }();
+
   static PhLocality? localityNamed(String name) {
     final key = _fold(name);
     for (final locality in localities) {
@@ -455,11 +316,14 @@ abstract final class PhAddressDirectory {
     return null;
   }
 
+  /// Exact (folded) name within [locality], or one of its other spellings
+  /// ("Camputhaw" for Kamputhaw, a barangay's former name).
   static PhBarangay? barangayNamed(String name, PhLocality locality) {
     final key = _fold(name);
-    for (final barangay in barangays) {
-      if (barangay.locality == locality && _fold(barangay.name) == key) {
-        return barangay;
+    for (final entry in _barangayKeys) {
+      if (entry.barangay.locality == locality &&
+          (entry.name == key || entry.aliases.contains(key))) {
+        return entry.barangay;
       }
     }
     return null;
@@ -479,29 +343,60 @@ abstract final class PhAddressDirectory {
     return null;
   }
 
-  /// Like [barangayNamed] but ignores a "Brgy." / "Barangay" prefix. Without
-  /// a [locality] it only answers when the name is unique across the list.
+  /// Like [barangayNamed] but ignores a "Brgy." / "Barangay" prefix and a
+  /// "(Pob.)" suffix. Without a [locality] it only answers when the name is
+  /// unique across the list.
   static PhBarangay? barangayLoosely(String text, PhLocality? locality) {
-    final name = text.replaceFirst(
+    final raw = text
+        .replaceFirst(RegExp(r'\s*\(?pob\.?\)?\s*$', caseSensitive: false), '')
+        .trim();
+    final bare = raw.replaceFirst(
       RegExp(r'^(brgy\.?|bgy\.?|barangay)\s+', caseSensitive: false),
       '',
     );
+    // "Barangay II" is itself a barangay name in a few towns, so try the text
+    // as written before dropping the prefix.
+    for (final name in {raw, bare}) {
+      final match = _barangayLooselyNamed(name, locality);
+      if (match != null) return match;
+    }
+    return null;
+  }
+
+  static PhBarangay? _barangayLooselyNamed(String name, PhLocality? locality) {
     if (locality != null) return barangayNamed(name, locality);
     final key = _fold(name);
-    final matches = barangays.where((b) => _fold(b.name) == key).toList();
+    final matches = _barangayKeys
+        .where((e) => e.name == key || e.aliases.contains(key))
+        .map((e) => e.barangay)
+        .toList();
     return matches.length == 1 ? matches.single : null;
   }
 
   /// Barangays matching [query], optionally within one [locality]. Names that
-  /// start with the query rank before ones that merely contain it.
+  /// start with the query rank before ones that merely contain it; a match on
+  /// another spelling or on the city name comes last.
   static List<PhBarangay> searchBarangays(
     String query, {
     PhLocality? locality,
   }) {
     final pool = locality == null
-        ? barangays
-        : barangays.where((b) => b.locality == locality);
-    return _rank(pool, query, (b) => b.name, alsoMatch: (b) => b.locality.name);
+        ? _barangayKeys
+        : _barangayKeys.where((e) => e.barangay.locality == locality);
+    final q = _fold(query);
+    if (q.isEmpty) return [for (final e in pool) e.barangay];
+    final starts = <PhBarangay>[];
+    final contains = <PhBarangay>[];
+    for (final e in pool) {
+      if (e.name.startsWith(q)) {
+        starts.add(e.barangay);
+      } else if (e.name.contains(q) ||
+          e.aliases.any((a) => a.contains(q)) ||
+          e.locality.contains(q)) {
+        contains.add(e.barangay);
+      }
+    }
+    return [...starts, ...contains];
   }
 
   static List<PhLocality> searchLocalities(String query) =>
@@ -515,9 +410,8 @@ abstract final class PhAddressDirectory {
   static List<T> _rank<T>(
     Iterable<T> pool,
     String query,
-    String Function(T) nameOf, {
-    String Function(T)? alsoMatch,
-  }) {
+    String Function(T) nameOf,
+  ) {
     final q = _fold(query);
     if (q.isEmpty) return pool.toList();
     final starts = <T>[];
@@ -526,8 +420,7 @@ abstract final class PhAddressDirectory {
       final name = _fold(nameOf(item));
       if (name.startsWith(q)) {
         starts.add(item);
-      } else if (name.contains(q) ||
-          (alsoMatch != null && _fold(alsoMatch(item)).contains(q))) {
+      } else if (name.contains(q)) {
         contains.add(item);
       }
     }
@@ -542,4 +435,13 @@ abstract final class PhAddressDirectory {
       .replaceAll(RegExp(r'[^a-z0-9 ]'), '')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
+}
+
+class _BarangayKey {
+  const _BarangayKey(this.barangay, this.name, this.locality, this.aliases);
+
+  final PhBarangay barangay;
+  final String name;
+  final String locality;
+  final List<String> aliases;
 }

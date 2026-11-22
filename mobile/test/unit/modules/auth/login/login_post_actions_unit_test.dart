@@ -34,9 +34,7 @@ class _Recorder {
   http.Request? last;
   int calls = 0;
 
-  ApiClient client(
-    Future<http.Response> Function(http.Request request) reply,
-  ) {
+  ApiClient client(Future<http.Response> Function(http.Request request) reply) {
     return ApiClient(
       client: MockClient((request) async {
         last = request;
@@ -98,23 +96,25 @@ void main() {
       expect(rec.last!.headers['User-Agent'], startsWith('CARES-Mobile'));
     });
 
-    test('trims and lowercases the email but leaves the password as typed',
-        () async {
-      final rec = _Recorder();
-      final service = AuthLoginService(
-        apiClient: rec.client((_) async => _ok(_loginData())),
-      );
+    test(
+      'trims and lowercases the email but leaves the password as typed',
+      () async {
+        final rec = _Recorder();
+        final service = AuthLoginService(
+          apiClient: rec.client((_) async => _ok(_loginData())),
+        );
 
-      await service.login(
-        email: '  Juan@UCLM.edu.PH ',
-        password: ' Secret#123 ',
-      );
+        await service.login(
+          email: '  Juan@UCLM.edu.PH ',
+          password: ' Secret#123 ',
+        );
 
-      expect(rec.body, {
-        'email': 'juan@uclm.edu.ph',
-        'password': ' Secret#123 ',
-      });
-    });
+        expect(rec.body, {
+          'email': 'juan@uclm.edu.ph',
+          'password': ' Secret#123 ',
+        });
+      },
+    );
 
     test('never sends a stale bearer token with the login request', () async {
       AuthSession.setAccessToken('old.token');
@@ -177,83 +177,95 @@ void main() {
       expect(AuthSession.accessToken, 'still.valid');
     });
 
-    test('a 403 EMAIL_NOT_VERIFIED keeps the error list for the OTP branch',
-        () async {
-      final rec = _Recorder();
-      final service = AuthLoginService(
-        apiClient: rec.client(
-          (_) async => _json(403, {
-            'ok': false,
-            'message': 'Verify your email first',
-            'errors': [
-              {'code': 'EMAIL_NOT_VERIFIED', 'message': 'Not verified'},
-            ],
-          }),
-        ),
-      );
+    test(
+      'a 403 EMAIL_NOT_VERIFIED keeps the error list for the OTP branch',
+      () async {
+        final rec = _Recorder();
+        final service = AuthLoginService(
+          apiClient: rec.client(
+            (_) async => _json(403, {
+              'ok': false,
+              'message': 'Verify your email first',
+              'errors': [
+                {'code': 'EMAIL_NOT_VERIFIED', 'message': 'Not verified'},
+              ],
+            }),
+          ),
+        );
 
-      try {
-        await service.login(email: 'juan@uclm.edu.ph', password: 'Secret#123');
-        fail('expected ApiException');
-      } on ApiException catch (e) {
-        expect(e.statusCode, 403);
-        expect(e.errors, isA<List>());
-        expect((e.errors as List).first['code'], 'EMAIL_NOT_VERIFIED');
-      }
-    });
+        try {
+          await service.login(
+            email: 'juan@uclm.edu.ph',
+            password: 'Secret#123',
+          );
+          fail('expected ApiException');
+        } on ApiException catch (e) {
+          expect(e.statusCode, 403);
+          expect(e.errors, isA<List>());
+          expect((e.errors as List).first['code'], 'EMAIL_NOT_VERIFIED');
+        }
+      },
+    );
 
-    test('a 403 ACCOUNT_PENDING_APPROVAL maps to the review screen state',
-        () async {
-      final rec = _Recorder();
-      final service = AuthLoginService(
-        apiClient: rec.client(
-          (_) async => _json(403, {
-            'ok': false,
-            'message': 'Awaiting director approval',
-            'errors': [
-              {'code': 'ACCOUNT_PENDING_APPROVAL'},
-            ],
-          }),
-        ),
-      );
+    test(
+      'a 403 ACCOUNT_PENDING_APPROVAL maps to the review screen state',
+      () async {
+        final rec = _Recorder();
+        final service = AuthLoginService(
+          apiClient: rec.client(
+            (_) async => _json(403, {
+              'ok': false,
+              'message': 'Awaiting director approval',
+              'errors': [
+                {'code': 'ACCOUNT_PENDING_APPROVAL'},
+              ],
+            }),
+          ),
+        );
 
-      try {
-        await service.login(email: 'ben@example.com', password: 'Secret#123');
-        fail('expected ApiException');
-      } on ApiException catch (e) {
-        expect(registrationReviewStateOf(e), RegistrationReviewState.pending);
-      }
-    });
+        try {
+          await service.login(email: 'ben@example.com', password: 'Secret#123');
+          fail('expected ApiException');
+        } on ApiException catch (e) {
+          expect(registrationReviewStateOf(e), RegistrationReviewState.pending);
+        }
+      },
+    );
 
-    test('a 400 validation error surfaces the Zod message and errors',
-        () async {
-      final rec = _Recorder();
-      final service = AuthLoginService(
-        apiClient: rec.client(
-          (_) async => _json(400, {
-            'ok': false,
-            'message': 'Email must be a valid email address',
-            'errors': [
-              {'path': 'email', 'message': 'Email must be a valid email address'},
-            ],
-          }),
-        ),
-      );
+    test(
+      'a 400 validation error surfaces the Zod message and errors',
+      () async {
+        final rec = _Recorder();
+        final service = AuthLoginService(
+          apiClient: rec.client(
+            (_) async => _json(400, {
+              'ok': false,
+              'message': 'Email must be a valid email address',
+              'errors': [
+                {
+                  'path': 'email',
+                  'message': 'Email must be a valid email address',
+                },
+              ],
+            }),
+          ),
+        );
 
-      await expectLater(
-        service.login(email: 'not-an-email', password: 'x'),
-        throwsA(
-          isA<ApiException>()
-              .having((e) => e.statusCode, 'statusCode', 400)
-              .having(
-                (e) => e.message,
-                'message',
-                'Email must be a valid email address',
-              )
-              .having((e) => e.errors, 'errors', isNotEmpty),
-        ),
-      );
-    });
+        await expectLater(
+          service.login(email: 'not-an-email', password: 'x'),
+          throwsA(
+            isA<ApiException>()
+                .having((e) => e.statusCode, 'statusCode', 400)
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'Email must be a valid email address',
+                )
+                .having((e) => e.errors, 'errors', isNotEmpty),
+          ),
+        );
+      },
+    );
 
     test('a 2xx with ok:false is still treated as a failure', () async {
       final rec = _Recorder();
@@ -266,7 +278,11 @@ void main() {
       await expectLater(
         service.login(email: 'juan@uclm.edu.ph', password: 'Secret#123'),
         throwsA(
-          isA<ApiException>().having((e) => e.message, 'message', 'Account locked'),
+          isA<ApiException>().having(
+            (e) => e.message,
+            'message',
+            'Account locked',
+          ),
         ),
       );
     });
@@ -287,83 +303,89 @@ void main() {
       );
     });
 
-    test('a network failure is wrapped in a "Cannot reach API" ApiException',
-        () async {
-      final service = AuthLoginService(
-        apiClient: ApiClient(
-          client: MockClient(
-            (_) async => throw const SocketException('Connection refused'),
+    test(
+      'a network failure is wrapped in a "Cannot reach API" ApiException',
+      () async {
+        final service = AuthLoginService(
+          apiClient: ApiClient(
+            client: MockClient(
+              (_) async => throw const SocketException('Connection refused'),
+            ),
           ),
-        ),
-      );
+        );
 
-      await expectLater(
-        service.login(email: 'juan@uclm.edu.ph', password: 'Secret#123'),
-        throwsA(
-          isA<ApiException>().having(
-            (e) => e.message,
-            'message',
-            contains('Cannot reach API at $_origin/v1/auth/login'),
+        await expectLater(
+          service.login(email: 'juan@uclm.edu.ph', password: 'Secret#123'),
+          throwsA(
+            isA<ApiException>().having(
+              (e) => e.message,
+              'message',
+              contains('Cannot reach API at $_origin/v1/auth/login'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 
   group('POST /auth/send-verification (unverified email at sign-in)', () {
-    test('sends the email with purpose "login" and no phone/id fields',
-        () async {
-      final rec = _Recorder();
-      final service = AuthRegistrationService(
-        apiClient: rec.client(
-          (_) async => _ok({
-            'email': 'juan@uclm.edu.ph',
-            'sent': true,
-            'reused': false,
-            'verified': false,
-            'expiresInSeconds': 300,
-          }),
-        ),
-      );
+    test(
+      'sends the email with purpose "login" and no phone/id fields',
+      () async {
+        final rec = _Recorder();
+        final service = AuthRegistrationService(
+          apiClient: rec.client(
+            (_) async => _ok({
+              'email': 'juan@uclm.edu.ph',
+              'sent': true,
+              'reused': false,
+              'verified': false,
+              'expiresInSeconds': 300,
+            }),
+          ),
+        );
 
-      final result = await service.sendVerificationCode(
-        email: ' juan@uclm.edu.ph ',
-        purpose: VerificationPurpose.login,
-      );
+        final result = await service.sendVerificationCode(
+          email: ' juan@uclm.edu.ph ',
+          purpose: VerificationPurpose.login,
+        );
 
-      expect(rec.last!.method, 'POST');
-      expect(rec.last!.url.path, '/v1/auth/send-verification');
-      expect(rec.body, {'email': 'juan@uclm.edu.ph', 'purpose': 'login'});
+        expect(rec.last!.method, 'POST');
+        expect(rec.last!.url.path, '/v1/auth/send-verification');
+        expect(rec.body, {'email': 'juan@uclm.edu.ph', 'purpose': 'login'});
 
-      expect(result.sent, isTrue);
-      expect(result.reused, isFalse);
-      expect(result.verified, isFalse);
-      expect(result.expiresInSeconds, 300);
-    });
+        expect(result.sent, isTrue);
+        expect(result.reused, isFalse);
+        expect(result.verified, isFalse);
+        expect(result.expiresInSeconds, 300);
+      },
+    );
 
-    test('reports a reused code so the screen says "enter the code we sent"',
-        () async {
-      final rec = _Recorder();
-      final service = AuthRegistrationService(
-        apiClient: rec.client(
-          (_) async => _ok({
-            'email': 'juan@uclm.edu.ph',
-            'sent': false,
-            'reused': true,
-            'expiresInSeconds': 120,
-          }),
-        ),
-      );
+    test(
+      'reports a reused code so the screen says "enter the code we sent"',
+      () async {
+        final rec = _Recorder();
+        final service = AuthRegistrationService(
+          apiClient: rec.client(
+            (_) async => _ok({
+              'email': 'juan@uclm.edu.ph',
+              'sent': false,
+              'reused': true,
+              'expiresInSeconds': 120,
+            }),
+          ),
+        );
 
-      final result = await service.sendVerificationCode(
-        email: 'juan@uclm.edu.ph',
-        purpose: VerificationPurpose.login,
-      );
+        final result = await service.sendVerificationCode(
+          email: 'juan@uclm.edu.ph',
+          purpose: VerificationPurpose.login,
+        );
 
-      expect(result.sent, isFalse);
-      expect(result.reused, isTrue);
-      expect(result.expiresInSeconds, 120);
-    });
+        expect(result.sent, isFalse);
+        expect(result.reused, isTrue);
+        expect(result.expiresInSeconds, 120);
+      },
+    );
 
     test('a 429 rate limit throws with the server message', () async {
       final rec = _Recorder();
@@ -523,29 +545,31 @@ void main() {
   });
 
   group('POST /auth/forgot-password + /auth/verify-reset-otp', () {
-    test('requestCode trims + lowercases the email and parses the reply',
-        () async {
-      final rec = _Recorder();
-      final service = PasswordResetService(
-        apiClient: rec.client(
-          (_) async => _ok({
-            'email': 'juan@uclm.edu.ph',
-            'sent': true,
-            'reused': false,
-            'expiresInSeconds': 600,
-          }),
-        ),
-      );
+    test(
+      'requestCode trims + lowercases the email and parses the reply',
+      () async {
+        final rec = _Recorder();
+        final service = PasswordResetService(
+          apiClient: rec.client(
+            (_) async => _ok({
+              'email': 'juan@uclm.edu.ph',
+              'sent': true,
+              'reused': false,
+              'expiresInSeconds': 600,
+            }),
+          ),
+        );
 
-      final result = await service.requestCode(email: ' Juan@UCLM.edu.ph ');
+        final result = await service.requestCode(email: ' Juan@UCLM.edu.ph ');
 
-      expect(rec.last!.method, 'POST');
-      expect(rec.last!.url.path, '/v1/auth/forgot-password');
-      expect(rec.last!.headers.containsKey('Authorization'), isFalse);
-      expect(rec.body, {'email': 'juan@uclm.edu.ph'});
-      expect(result.sent, isTrue);
-      expect(result.expiresInSeconds, 600);
-    });
+        expect(rec.last!.method, 'POST');
+        expect(rec.last!.url.path, '/v1/auth/forgot-password');
+        expect(rec.last!.headers.containsKey('Authorization'), isFalse);
+        expect(rec.body, {'email': 'juan@uclm.edu.ph'});
+        expect(result.sent, isTrue);
+        expect(result.expiresInSeconds, 600);
+      },
+    );
 
     test('verifyCode trims the OTP and returns the reset token', () async {
       final rec = _Recorder();

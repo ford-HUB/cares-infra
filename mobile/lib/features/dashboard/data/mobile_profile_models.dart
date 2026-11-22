@@ -374,6 +374,7 @@ class VolunteerServerProfile {
   const VolunteerServerProfile({
     required this.school,
     required this.interests,
+    this.otherInterest,
     required this.accessGrantedByDirector,
     this.partnerBarangay,
     required this.serviceHours,
@@ -393,6 +394,10 @@ class VolunteerServerProfile {
           .map(UserInterestX.fromApiValue)
           .whereType<UserInterest>()
           .toSet(),
+      otherInterest: switch (json['other_interest']) {
+        final String text when text.trim().isNotEmpty => text.trim(),
+        _ => null,
+      },
       accessGrantedByDirector:
           json['access_granted_by_director'] as bool? ?? false,
       partnerBarangay: switch (json['partner_barangay']) {
@@ -409,6 +414,9 @@ class VolunteerServerProfile {
 
   final VolunteerSchoolInfo? school;
   final Set<UserInterest> interests;
+
+  /// What the volunteer typed under "Others"; null unless that is picked.
+  final String? otherInterest;
 
   /// This side was opened by a director approving a role-access request, not
   /// by registering as a volunteer — there is no school record to show.
@@ -429,11 +437,15 @@ class VolunteerServerProfile {
   /// All-time leaderboard points under the portal's scoring rule.
   final int rankingPoints;
 
-  /// The interests this side may hold: a director-granted volunteer is from
-  /// outside the school community, so the School interest is dropped even if
-  /// it was saved before the role was approved.
+  /// Not part of the school community: a director-granted volunteer (donor /
+  /// beneficiary) or a partner-barangay volunteer.
+  bool get outsideSchool => accessGrantedByDirector || isPartnerBarangay;
+
+  /// The interests this side may hold: a volunteer from [outsideSchool] does
+  /// not get the School interest, so it is dropped even if it was saved
+  /// earlier.
   Set<UserInterest> get allowedInterests =>
-      UserInterestX.allowed(interests, outsideSchool: accessGrantedByDirector);
+      UserInterestX.allowed(interests, outsideSchool: outsideSchool);
 }
 
 class DonorServerProfile {

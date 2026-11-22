@@ -32,6 +32,54 @@ void main() {
       expect(results.every((b) => b.locality == mandaue), isTrue);
     });
 
+    test('covers every Cebu city and municipality (PSGC)', () {
+      expect(PhAddressDirectory.localities, hasLength(53));
+      expect(PhAddressDirectory.barangays, hasLength(1203));
+      for (final city in [
+        'Minglanilla',
+        'Consolacion',
+        'Bantayan',
+        'Toledo City',
+      ]) {
+        expect(PhAddressDirectory.localityNamed(city), isNotNull, reason: city);
+      }
+    });
+
+    test('no barangay name breaks the comma-separated address', () {
+      for (final b in PhAddressDirectory.barangays) {
+        expect(b.name.contains(','), isFalse, reason: b.label);
+        expect(b.name.contains('�'), isFalse, reason: b.label);
+      }
+    });
+
+    test('official PSGC spellings and former names resolve', () {
+      expect(barangay('Camputhaw', 'Cebu City').name, 'Kamputhaw');
+      expect(barangay('Tabunoc', 'Talisay City').name, 'Tabunok');
+      expect(barangay('Lutopan', 'Toledo City').name, 'Don Andres Soriano');
+      expect(
+        PhAddressDirectory.searchBarangays('camputhaw').map((b) => b.label),
+        contains('Kamputhaw, Cebu City'),
+      );
+    });
+
+    test('loose barangay match drops (Pob.) and keeps "Barangay II" names', () {
+      final cebu = PhAddressDirectory.localityNamed('Cebu City');
+      expect(
+        PhAddressDirectory.barangayLoosely('Lahug (Pob.)', cebu)?.name,
+        'Lahug',
+      );
+      final withBarangayNames = PhAddressDirectory.barangays.firstWhere(
+        (b) => b.name == 'Barangay II',
+      );
+      expect(
+        PhAddressDirectory.barangayLoosely(
+          'Barangay II',
+          withBarangayNames.locality,
+        ),
+        withBarangayNames,
+      );
+    });
+
     test('street suggestions start with the barangay roads', () {
       final looc = barangay('Looc', 'Mandaue City');
       expect(looc.streetSuggestions.first, 'A.C. Cortes Avenue');
@@ -108,6 +156,21 @@ void main() {
       expect(address.barangay?.name, 'Pusok');
       expect(address.locality?.name, 'Lapu-Lapu City');
       expect(address.street, 'Purok 2, Sitio Mangga');
+    });
+
+    test('lenient split reads a trailing "Cebu" as the province', () {
+      final address = PhAddress.lenient(
+        '12 Rizal St, Tulay, Minglanilla, Cebu',
+      );
+      expect(address.locality?.name, 'Minglanilla');
+      expect(address.barangay?.name, 'Tulay');
+      expect(address.street, '12 Rizal St');
+    });
+
+    test('lenient split still reads "…, Lahug, Cebu" as Cebu City', () {
+      final address = PhAddress.lenient('Salinas Drive, Lahug, Cebu');
+      expect(address.locality?.name, 'Cebu City');
+      expect(address.barangay?.name, 'Lahug');
     });
 
     test('lenient split keeps unmatched text as the street', () {

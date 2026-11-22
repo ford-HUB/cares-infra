@@ -1,0 +1,102 @@
+@startchen
+' CARES - Module 10: Monthly Reports (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 4 entities + 1 referenced stub entities, 6 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' Stub entities (key only) come from other modules: User (01)
+
+entity MonthlyReportFolder {
+  monthly_report_folder_id : TEXT <<key>>
+  name : TEXT
+  created_by_name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity MonthlyReport {
+  monthly_report_id : TEXT <<key>>
+  reference : TEXT
+  title : TEXT
+  period : TEXT
+  department : ReportDepartment
+  status : MonthlyReportStatus
+  summary : TEXT
+  metric_events : INTEGER
+  metric_volunteers : INTEGER
+  metric_service_hours : INTEGER
+  metric_beneficiaries : INTEGER
+  submitted_by_name : TEXT
+  submitted_by_email : TEXT
+  submitted_by_title : TEXT
+  submitted_at : TIMESTAMP
+  reviewer_name : TEXT
+  decided_at : TIMESTAMP
+  decision_note : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity MonthlyReportDocument {
+  monthly_report_document_id : TEXT <<key>>
+  file_name : TEXT
+  kind : MonthlyReportDocumentKind
+  storage_key : TEXT
+  content_type : TEXT
+  byte_size : INTEGER
+  createdAt : TIMESTAMP
+}
+
+entity MonthlyReportTrailEntry {
+  monthly_report_trail_entry_id : TEXT <<key>>
+  action : MonthlyReportTrailAction
+  actor_name : TEXT
+  note : TEXT
+  createdAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+relationship CREATES_FOLDER {
+}
+CREATES_FOLDER -1- User
+CREATES_FOLDER -N- MonthlyReportFolder
+
+relationship FILED_IN {
+}
+FILED_IN -1- MonthlyReportFolder
+FILED_IN -N- MonthlyReport
+
+relationship REVIEWS_REPORT {
+}
+REVIEWS_REPORT -1- User
+REVIEWS_REPORT -N- MonthlyReport
+
+relationship SUBMITS_REPORT {
+}
+SUBMITS_REPORT -1- User
+SUBMITS_REPORT -N- MonthlyReport
+
+relationship REPORT_HAS_DOCUMENT {
+}
+REPORT_HAS_DOCUMENT -1- MonthlyReport
+REPORT_HAS_DOCUMENT =N= MonthlyReportDocument
+
+relationship REPORT_HAS_TRAIL {
+}
+REPORT_HAS_TRAIL -1- MonthlyReport
+REPORT_HAS_TRAIL =N= MonthlyReportTrailEntry
+
+@endchen

@@ -24,6 +24,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -190,6 +191,9 @@ RecommendedEvent _event([Map<String, dynamic>? row]) =>
 
 void main() {
   setUp(() {
+    // AuthSession.clear() wipes the saved session; give it an in-memory
+    // secure store so it does not hit the missing platform plugin.
+    FlutterSecureStorage.setMockInitialValues({});
     dotenv.testLoad(
       fileInput: 'APP_ENV=development\nDEVELOPMENT_ORIGIN=$_origin/\n',
     );

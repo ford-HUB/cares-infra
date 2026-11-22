@@ -1,182 +1,172 @@
+import { LayerFixture } from '../../../../config/layer-harness';
 import { asCase } from '../../../../config/test-case';
-import { NotFoundException } from '@nestjs/common';
 import {
-  expectSafeErrorEnvelope,
-  runApiLayer,
-  LayerFixture,
-  expectValidationEnvelope,
-  runSchemaLayer,
-  withPollution,
-} from '../../../../config/layer-harness';
-import {
+  MESSAGES,
+  SUPPORT_TICKETS_MAX_LIMIT,
+  VALID_ASSIGNEE_ID,
+  VALID_NOTE,
   VALID_REPLY,
   VALID_TICKET_ID,
-  replyPath,
-  useSupportTicketsApp,
+  describeListQueryTable,
   describeReplyBodyTable,
   describeTicketIdTable,
+  describeUpdateBodyTable,
+  expectNothingWritten,
+  expectRefusal,
+  replyToTicket,
+  updateTicket,
+  useSupportTicketsApp,
 } from '../support-tickets-site-support';
-import { ReplyToSupportTicketSchema } from '../../../../../src/modules/support-tickets/validators/support-tickets-site-validator';
-import {
-  CONTROL_CHAR_PAYLOADS,
-  HOSTILE_STRINGS,
-  MASS_ASSIGNMENT_KEYS,
-  OPERATOR_INJECTION_PAYLOADS,
-  PROTOTYPE_POLLUTION_BODIES,
-} from '../../../../config/security-payloads';
 
 /**
- * Support Tickets Module · Reply to Ticket — invalid inputs.
+ * Support Tickets Module · List / Update / Reply to Ticket — invalid inputs (field
+ * validation).
  *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
+ * Every case here is an intentionally wrong value for a field of the three portal
+ * ticket endpoints. A case Passes when the system refuses it exactly as stated — a
+ * refusal as expected is the correct result. The valid cases live in ../valid/.
  */
 
-/* ── error handling ──────────────────────────────────────────────────────── */
+/** Malformed ticket ids, shared by Update and Reply. */
+const ticketIdFixtures = (action: string): LayerFixture<string>[] => [
+  { name: `Staff ${action} a ticket id that is not a uuid`, input: 'ticket-10', expected: 'FAIL' },
+  { name: `Staff ${action} the reference number instead of the ticket id`, input: '10', expected: 'FAIL' },
+  { name: `Staff ${action} a ticket id missing its last character`, input: VALID_TICKET_ID.slice(0, -1), expected: 'FAIL' },
+  { name: `Staff ${action} a ticket id with an extra character`, input: `${VALID_TICKET_ID}0`, expected: 'FAIL' },
+  { name: `Staff ${action} a ticket id without hyphens`, input: VALID_TICKET_ID.replace(/-/g, ''), expected: 'FAIL' },
+  { name: `Staff ${action} a ticket id with surrounding spaces`, input: ` ${VALID_TICKET_ID} `, expected: 'FAIL' },
+  { name: `Staff ${action} a ticket id with a non-hex character`, input: `${VALID_TICKET_ID.slice(0, -1)}g`, expected: 'FAIL' },
+  { name: `Staff ${action} a blank ticket id`, input: ' ', expected: 'FAIL' },
+];
+
+/* ── List tickets ────────────────────────────────────────────────────────── */
 {
-  /**
-   * Support Tickets reply — error handling: unexpected service errors are masked as
-   * a generic 500 with nothing leaked, and the service's deliberate HttpExceptions
-   * keep their status and message through the envelope.
-   */
-  describe('support tickets site · reply — error handling', () => {
+  const queryFixtures: LayerFixture<Record<string, string>>[] = [
+    { name: 'Staff filters by a status in lower case (open)', input: { status: 'open' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff filters by a status that does not exist (DONE)', input: { status: 'DONE' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff sends an empty status filter', input: { status: '' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff filters by "ALL" in upper case instead of "all"', input: { status: 'ALL' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff filters by a type that does not exist (PAYMENT)', input: { type: 'PAYMENT' }, expected: 'FAIL', field: 'type' },
+    { name: 'Staff filters by a type in lower case (bug)', input: { type: 'bug' }, expected: 'FAIL', field: 'type' },
+    { name: 'Staff sends an empty type filter', input: { type: '' }, expected: 'FAIL', field: 'type' },
+    { name: 'Staff filters by a priority that does not exist (URGENT)', input: { priority: 'URGENT' }, expected: 'FAIL', field: 'priority' },
+    { name: 'Staff filters by a priority in lower case (high)', input: { priority: 'high' }, expected: 'FAIL', field: 'priority' },
+    { name: 'Staff sends an empty priority filter', input: { priority: '' }, expected: 'FAIL', field: 'priority' },
+    { name: 'Staff asks for 0 tickets', input: { limit: '0' }, expected: 'FAIL', field: 'limit' },
+    {
+      name: `Staff asks for ${SUPPORT_TICKETS_MAX_LIMIT + 1} tickets, one over the maximum`,
+      input: { limit: String(SUPPORT_TICKETS_MAX_LIMIT + 1) },
+      expected: 'FAIL',
+      field: 'limit',
+    },
+    { name: 'Staff asks for a negative number of tickets', input: { limit: '-1' }, expected: 'FAIL', field: 'limit' },
+    { name: 'Staff asks for a fractional number of tickets', input: { limit: '1.5' }, expected: 'FAIL', field: 'limit' },
+    { name: 'Staff types the limit as a word (ten)', input: { limit: 'ten' }, expected: 'FAIL', field: 'limit' },
+    { name: 'Staff sends an empty limit', input: { limit: '' }, expected: 'FAIL', field: 'limit' },
+    { name: 'Client sends a query parameter the list does not take (page)', input: { page: '2' }, expected: 'FAIL' },
+  ];
+
+  describe('support tickets site — List field validation', () => {
     const ctx = useSupportTicketsApp();
 
-    describe('POST /api/v1/support-tickets/:id/replies', () => {
-      const reply = () =>
-        runApiLayer(ctx.app, { method: 'post', path: replyPath(VALID_TICKET_ID), body: VALID_REPLY });
-
-      asCase('invalid', 'The service fails with an unexpected internal or database error').it('masks an unexpected service error as a 500 without leaking detail', async () => {
-        ctx.service.replyToTicket.mockRejectedValueOnce(new Error('syntax error at or near "OR"'));
-        const outcome = await reply();
-        expect(outcome.status).toBe(500);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body).toEqual({ ok: false, message: 'Internal server error' });
-      });
-
-      asCase('invalid', 'Request made when the ticket does not exist', 'Request fails with 404; status and message are kept in the { ok: false } envelope').it('keeps the 404 when the ticket does not exist', async () => {
-        ctx.service.replyToTicket.mockRejectedValueOnce(new NotFoundException('Support ticket not found'));
-        const outcome = await reply();
-        expect(outcome.status).toBe(404);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body.message).toBe('Support ticket not found');
-      });
-
-      asCase('invalid', 'Request made when the signed-in account no longer exists', 'Request fails with 404; status and message are kept in the { ok: false } envelope').it('keeps the 404 when the signed-in account no longer exists', async () => {
-        ctx.service.replyToTicket.mockRejectedValueOnce(new NotFoundException('Signed-in account not found'));
-        const outcome = await reply();
-        expect(outcome.status).toBe(404);
-        expectSafeErrorEnvelope(outcome);
-        expect(outcome.body.message).toBe('Signed-in account not found');
-      });
+    describe('GET /api/v1/support-tickets', () => {
+      describe('query', () => describeListQueryTable(ctx, queryFixtures));
     });
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
+/* ── Update ticket ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Support Tickets reply — input validation: the ticket id path param, and the
-   * reply body's required, empty and length rules plus legitimate inputs that
-   * must pass.
-   */
-  const ticketIdFixtures: LayerFixture<string>[] = [
-    { name: 'not a uuid', input: 'ticket-1', expected: 'FAIL' },
-    { name: 'uuid missing a character', input: VALID_TICKET_ID.slice(0, -1), expected: 'FAIL' },
-    { name: 'uuid without hyphens', input: VALID_TICKET_ID.replace(/-/g, ''), expected: 'FAIL' },
-    { name: 'uuid with surrounding spaces', input: ` ${VALID_TICKET_ID} `, expected: 'FAIL' },
-    { name: 'reference number instead of an id', input: '10', expected: 'FAIL' },
-  ];
-
   const bodyFixtures: LayerFixture[] = [
-    { name: 'body missing', input: {}, expected: 'FAIL', field: 'body' },
-    { name: 'body empty', input: { body: '' }, expected: 'FAIL', field: 'body' },
-    { name: 'body whitespace-only', input: { body: '   ' }, expected: 'FAIL', field: 'body' },
-    { name: 'body line breaks only', input: { body: '\n\r\n' }, expected: 'FAIL', field: 'body' },
-    { name: 'body over max', input: { body: 'a'.repeat(2001) }, expected: 'FAIL', field: 'body' },
+    { name: 'Staff saves without changing anything', input: {}, expected: 'FAIL', field: '', message: MESSAGES.nothingToUpdate },
+    { name: 'Staff moves the ticket to a status in lower case (resolved)', input: { status: 'resolved' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff moves the ticket to a status that does not exist (DONE)', input: { status: 'DONE' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff sends an empty status', input: { status: '' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff sends "all" as the status (a list filter, not a status)', input: { status: 'all' }, expected: 'FAIL', field: 'status' },
+    { name: 'Staff adds an empty note', input: { note: '' }, expected: 'FAIL', field: 'note' },
+    { name: 'Staff adds a note of only spaces and line breaks', input: { note: '   \n  ' }, expected: 'FAIL', field: 'note' },
+    { name: 'Staff adds a note of 2001 characters', input: { note: 'a'.repeat(2001) }, expected: 'FAIL', field: 'note' },
+    { name: 'Staff assigns the ticket to an id that is not a uuid', input: { assignee_id: 'grace' }, expected: 'FAIL', field: 'assignee_id' },
+    { name: 'Staff assigns the ticket to an empty id', input: { assignee_id: '' }, expected: 'FAIL', field: 'assignee_id' },
+    { name: 'Staff assigns the ticket to a user number instead of a uuid', input: { assignee_id: '42' }, expected: 'FAIL', field: 'assignee_id' },
+    { name: 'Staff tries to change the priority, which Update does not take', input: { priority: 'HIGH' }, expected: 'FAIL' },
+    { name: 'Staff tries to edit the subject, which Update does not take', input: { status: 'IN_PROGRESS', subject: 'Renamed' }, expected: 'FAIL' },
+    { name: 'Staff sends a valid status alongside an invalid note', input: { status: 'RESOLVED', note: '' }, expected: 'FAIL', field: 'note' },
+    // A note is stored and shown to the requester exactly like a reply, so it is held to the reply's rule.
+    {
+      name: 'Staff pastes a non-printing character (bell) into the note',
+      input: { note: `${VALID_NOTE}\u0007` },
+      expected: 'FAIL',
+      field: 'note',
+    },
   ];
 
-  describe('support tickets site · reply — input validation', () => {
+  describe('support tickets site — Update field validation', () => {
     const ctx = useSupportTicketsApp();
 
-    describe('POST /api/v1/support-tickets/:id/replies', () => {
-      describe('id', () => describeTicketIdTable(ctx, ticketIdFixtures));
-      describe('body', () => describeReplyBodyTable(ctx, bodyFixtures));
-    });
-  });
-}
+    describe('PATCH /api/v1/support-tickets/:id', () => {
+      describe('id', () => describeTicketIdTable(ctx, 'updates', ticketIdFixtures('updates')));
 
-/* ── security ────────────────────────────────────────────────────────────── */
-{
-  /**
-   * Support Tickets reply — security: hostile strings in the id path param (a uuid,
-   * so all must FAIL), per-class payloads in the reply body, type confusion, mass
-   * assignment and prototype pollution.
-   */
-  const ticketIdFixtures: LayerFixture<string>[] = [
-    ...HOSTILE_STRINGS.map((p): LayerFixture<string> => ({
-      name: `id ← ${p.category}: ${p.label}`,
-      input: p.value as string,
-      expected: 'FAIL',
-    })),
-    { name: 'id ← uuid with SQL tail', input: `${VALID_TICKET_ID}' OR '1'='1`, expected: 'FAIL' },
-    { name: 'id ← uuid with stacked query', input: `${VALID_TICKET_ID}; DROP TABLE "User"`, expected: 'FAIL' },
-  ];
-
-  const bodyFixtures: LayerFixture[] = [
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A reply can run over several lines and never reaches a mail header,
-    // so line breaks are the exception.
-    ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
-      name: `body ← ${p.category}: ${p.label}`,
-      input: { body: p.value },
-      expected: 'FAIL',
-      field: 'body',
-    })),
-    ...OPERATOR_INJECTION_PAYLOADS.map((p): LayerFixture => ({
-      name: `body ← ${p.category}: ${p.label}`,
-      input: { body: p.value },
-      expected: 'FAIL',
-      field: 'body',
-    })),
-    ...MASS_ASSIGNMENT_KEYS.map((extra): LayerFixture => ({
-      name: `mass assignment: ${Object.keys(extra).join(', ')}`,
-      input: { ...VALID_REPLY, ...extra },
-      expected: 'FAIL',
-    })),
-    // The author is always the caller, and a reply must not be able to move the ticket.
-    { name: 'mass assignment: author_id', input: { ...VALID_REPLY, author_id: VALID_TICKET_ID }, expected: 'FAIL' },
-    { name: 'mass assignment: author_type', input: { ...VALID_REPLY, author_type: 'STAFF' }, expected: 'FAIL' },
-    { name: 'mass assignment: status', input: { ...VALID_REPLY, status: 'CLOSED' }, expected: 'FAIL' },
-    { name: 'mass assignment: assignee_id', input: { ...VALID_REPLY, assignee_id: VALID_TICKET_ID }, expected: 'FAIL' },
-  ];
-
-  describe('support tickets site · reply — security', () => {
-    const ctx = useSupportTicketsApp();
-
-    describe('POST /api/v1/support-tickets/:id/replies', () => {
-      describe('id', () => describeTicketIdTable(ctx, ticketIdFixtures));
-      describe('body', () => describeReplyBodyTable(ctx, bodyFixtures));
-
-      asCase('invalid', 'Attacker adds a role_type field to the body', 'Rejected and reported as unrecognized_keys').it('mass assignment is reported as unrecognized_keys', async () => {
-        const outcome = await runSchemaLayer(ReplyToSupportTicketSchema, { ...VALID_REPLY, status: 'CLOSED' });
-        expect(outcome.issues).toEqual(
-          expect.arrayContaining([expect.objectContaining({ code: 'unrecognized_keys' })]),
+      describe('id', () => {
+        asCase('invalid', 'Staff updates a well-formed id that belongs to no ticket', `Update fails with "${MESSAGES.ticketNotFound}" (404); nothing is written`).it(
+          'refuses an unknown ticket',
+          async () => {
+            ctx.repository.findTicket.mockResolvedValue(null as never);
+            const outcome = await updateTicket(ctx, { status: 'IN_PROGRESS', note: VALID_NOTE });
+            expectRefusal(outcome, 404, MESSAGES.ticketNotFound);
+            expectNothingWritten(ctx);
+          },
         );
       });
 
-      asCase('invalid', 'Attacker sends a __proto__ / constructor.prototype body', 'Request rejected (400); Object.prototype is not polluted').it.each(PROTOTYPE_POLLUTION_BODIES)('FAIL · prototype pollution: $label', async (p) => {
-        const outcome = await runApiLayer(ctx.app, {
-          method: 'post',
-          path: replyPath(VALID_TICKET_ID),
-          rawBody: withPollution(VALID_REPLY, p.value as string),
-        });
-        expect(outcome.verdict).toBe('FAIL');
-        expectValidationEnvelope(outcome);
-        expect(ctx.service.replyToTicket).not.toHaveBeenCalled();
-        expect(({} as any).isAdmin).toBeUndefined();
+    });
+  });
+}
+
+/* ── Reply to ticket ─────────────────────────────────────────────────────── */
+{
+  const bodyFixtures: LayerFixture[] = [
+    { name: 'Staff sends a reply with the body left out', input: {}, expected: 'FAIL', field: 'body' },
+    { name: 'Staff sends an empty reply', input: { body: '' }, expected: 'FAIL', field: 'body' },
+    { name: 'Staff sends a reply of only spaces and line breaks', input: { body: '   \r\n\t  ' }, expected: 'FAIL', field: 'body' },
+    { name: 'Staff types a reply of 2001 characters', input: { body: 'a'.repeat(2001) }, expected: 'FAIL', field: 'body' },
+    {
+      name: 'Staff pastes a form-feed character into the reply',
+      input: { body: 'Page one\u000Cpage two' },
+      expected: 'FAIL',
+      field: 'body',
+      message: MESSAGES.controlCharacters,
+    },
+    {
+      name: 'Staff pastes a delete character into the reply',
+      input: { body: 'Typo\u007F' },
+      expected: 'FAIL',
+      field: 'body',
+      message: MESSAGES.controlCharacters,
+    },
+    { name: 'Staff sends the reply under "message" instead of "body"', input: { message: VALID_REPLY.body }, expected: 'FAIL', field: 'body' },
+    { name: 'Client sends a field the reply does not take (status)', input: { ...VALID_REPLY, status: 'RESOLVED' }, expected: 'FAIL' },
+  ];
+
+  describe('support tickets site — Reply field validation', () => {
+    const ctx = useSupportTicketsApp();
+
+    describe('POST /api/v1/support-tickets/:id/replies', () => {
+      describe('id', () => describeTicketIdTable(ctx, 'reply', ticketIdFixtures('replies on')));
+
+      describe('id', () => {
+        asCase('invalid', 'Staff replies on a well-formed id that belongs to no ticket', `Reply fails with "${MESSAGES.ticketNotFound}" (404); nothing is written`).it(
+          'refuses an unknown ticket',
+          async () => {
+            ctx.repository.findTicket.mockResolvedValue(null as never);
+            const outcome = await replyToTicket(ctx, VALID_REPLY);
+            expectRefusal(outcome, 404, MESSAGES.ticketNotFound);
+            expectNothingWritten(ctx);
+          },
+        );
       });
+
+      describe('body', () => describeReplyBodyTable(ctx, bodyFixtures));
     });
   });
 }

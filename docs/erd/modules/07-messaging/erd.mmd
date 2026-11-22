@@ -1,0 +1,48 @@
+%% CARES - Module 07: Portal Messaging (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 4 tables + 1 referenced stub tables, 5 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+%% M:N relationships are resolved through associative entities:
+%%   Conversation M:N User via ConversationParticipant
+erDiagram
+  Conversation ||--o{ ConversationParticipant : "conversation"
+  User ||--o{ ConversationParticipant : "user"
+  Conversation ||--o{ ChatMessage : "conversation"
+  User ||--o{ ChatMessage : "sender"
+  ChatMessage ||--o{ ChatAttachment : "message"
+
+  Conversation {
+    text conversation_id PK
+    timestamp last_message_at "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  ConversationParticipant {
+    text conversation_participant_id PK
+    text conversation_id FK
+    text user_id FK
+    timestamp last_read_at "nullable"
+    timestamp createdAt
+  }
+  ChatMessage {
+    text message_id PK
+    text conversation_id FK
+    text sender_id FK
+    text body
+    timestamp createdAt
+  }
+  ChatAttachment {
+    text attachment_id PK
+    text message_id FK
+    text name
+    integer size
+    text mime_type
+    text url
+    timestamp createdAt
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }

@@ -1,0 +1,81 @@
+%% CARES - Module 03: Security & Audit (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 4 tables + 1 referenced stub tables, 3 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+erDiagram
+  User |o--o{ BlockedIp : "user"
+  User |o--o{ LoginActivity : "user"
+  User |o--o{ AuditLog : "actor_user"
+
+  SecurityPolicy {
+    text security_policy_id PK
+    boolean singleton UK
+    integer password_min_length
+    boolean password_require_uppercase
+    boolean password_require_lowercase
+    boolean password_require_number
+    boolean password_require_symbol
+    boolean lockout_enabled
+    integer lockout_max_attempts
+    integer lockout_window_minutes
+    integer lockout_duration_minutes
+    integer session_idle_timeout_minutes
+    integer session_max_duration_hours
+    integer max_concurrent_sessions
+    boolean login_hours_enabled
+    integer login_hours_start_minute
+    integer login_hours_end_minute
+    text[] ip_allowlist
+    text updated_by_user_id "nullable, ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  BlockedIp {
+    text blocked_ip_id PK
+    text ip_address UK
+    text reason "nullable"
+    text user_id FK "nullable"
+    text blocked_by_user_id "ref User"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  LoginActivity {
+    text login_activity_id PK
+    text user_id FK "nullable"
+    text email
+    text ip_address
+    text user_agent "nullable"
+    LoginSource source
+    LoginOutcome outcome
+    text failure_reason "nullable"
+    timestamp createdAt
+  }
+  AuditLog {
+    text audit_log_id PK
+    text action
+    text description
+    AuditCategory category
+    AuditSeverity severity
+    AuditOutcome outcome
+    text actor_user_id FK "nullable"
+    text actor_name
+    text actor_email
+    RoleType actor_role "nullable"
+    text target_type
+    text target_label
+    text target_id "nullable"
+    text ip_address
+    text user_agent "nullable"
+    AuditSource source
+    text request_id "nullable"
+    text reason "nullable"
+    jsonb changes
+    jsonb metadata
+    timestamp createdAt
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }

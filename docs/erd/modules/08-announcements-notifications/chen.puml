@@ -1,0 +1,65 @@
+@startchen
+' CARES - Module 08: Announcements & Notifications (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 2 entities + 1 referenced stub entities, 2 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' Stub entities (key only) come from other modules: User (01)
+
+entity Announcement {
+  announcement_id : TEXT <<key>>
+  title : TEXT
+  body : TEXT
+  tone : AnnouncementTone
+  audiences : AnnouncementAudience <<multi>>
+  channels : AnnouncementChannel <<multi>>
+  state : AnnouncementState
+  publish_at : TIMESTAMP
+  expires_at : TIMESTAMP
+  pinned : BOOLEAN
+  window_id : TEXT
+  author_name : TEXT
+  reach : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity Notification {
+  notification_id : TEXT <<key>>
+  title : TEXT
+  description : TEXT
+  category : NotificationCategory
+  tone : NotificationTone
+  href : TEXT
+  dedupe_key : TEXT
+  audience_role : RoleType
+  read_at : TIMESTAMP
+  dismissed_at : TIMESTAMP
+  createdAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+relationship AUTHORS_ANNOUNCEMENT {
+}
+AUTHORS_ANNOUNCEMENT -1- User
+AUTHORS_ANNOUNCEMENT -N- Announcement
+
+relationship RECEIVES_NOTIFICATION {
+}
+RECEIVES_NOTIFICATION -1- User
+RECEIVES_NOTIFICATION =N= Notification
+
+@endchen

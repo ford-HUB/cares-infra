@@ -1,0 +1,88 @@
+@startchen
+' CARES - Module 12: Beneficiary Assistance (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 3 entities + 1 referenced stub entities, 3 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' Stub entities (key only) come from other modules: User (01)
+
+entity NeedsAssessment {
+  needs_assessment_id : TEXT <<key>>
+  needs : TEXT <<multi>>
+  other_need : TEXT
+  seriousness : INTEGER
+  barriers : TEXT <<multi>>
+  other_barrier : TEXT
+  community_problem : TEXT
+  other_community_problem : TEXT
+  concern : TEXT
+  submitted_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity AssistanceRequest {
+  assistance_request_id : TEXT <<key>>
+  reference_number : SERIAL
+  title : TEXT
+  category : AssistanceCategory
+  description : TEXT
+  urgency : AssistanceUrgency
+  household_size : INTEGER
+  location_latitude : FLOAT
+  location_longitude : FLOAT
+  location_details : TEXT
+  status : AssistanceRequestStatus
+  assessment_status : AssistanceAssessmentStatus
+  assessment_date : TIMESTAMP
+  assigned_organization : TEXT
+  items : TEXT <<multi>>
+  status_note : TEXT
+  screened_at : TIMESTAMP
+  decided_at : TIMESTAMP
+  released_at : TIMESTAMP
+  cancelled_at : TIMESTAMP
+  cancel_reason : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity AssistanceRequestAttachment {
+  assistance_request_attachment_id : TEXT <<key>>
+  name : TEXT
+  url : TEXT
+  mime : TEXT
+  size_bytes : INTEGER
+  createdAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+relationship ANSWERS_ASSESSMENT {
+}
+ANSWERS_ASSESSMENT -1- User
+ANSWERS_ASSESSMENT =1= NeedsAssessment
+
+relationship REQUESTS_ASSISTANCE {
+}
+REQUESTS_ASSISTANCE -1- User
+REQUESTS_ASSISTANCE =N= AssistanceRequest
+
+relationship ASSISTANCE_HAS_ATTACHMENT {
+}
+ASSISTANCE_HAS_ATTACHMENT -1- AssistanceRequest
+ASSISTANCE_HAS_ATTACHMENT =N= AssistanceRequestAttachment
+
+@endchen

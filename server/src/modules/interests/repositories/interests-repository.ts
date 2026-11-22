@@ -41,20 +41,27 @@ export class InterestsRepository {
     });
   }
 
-  async upsertUserInterests(userId: string, selected: InterestCode[]) {
+  async upsertUserInterests(
+    userId: string,
+    selected: InterestCode[],
+    otherInterest: string | null,
+  ) {
     return this.prisma.userInterest.upsert({
       where: { user_id: userId },
       create: {
         user_id: userId,
         selected,
+        other_interest: otherInterest,
       },
       update: {
         selected,
+        other_interest: otherInterest,
       },
       select: {
         user_interest_id: true,
         user_id: true,
         selected: true,
+        other_interest: true,
       },
     });
   }
@@ -62,7 +69,7 @@ export class InterestsRepository {
   async findUserInterests(userId: string) {
     return this.prisma.userInterest.findUnique({
       where: { user_id: userId },
-      select: { selected: true },
+      select: { selected: true, other_interest: true },
     });
   }
 

@@ -1,0 +1,156 @@
+@startchen
+' CARES - Module 06: Certificates (Chen notation)
+' Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+' 5 entities + 2 referenced stub entities, 10 relationships
+' Paste into https://www.plantuml.com/plantuml or https://www.planttext.com
+'
+' Legend
+'   rectangle = entity          oval = attribute (name : data type)
+'   diamond   = relationship    underlined oval = key attribute (PK)
+'   double oval = multivalued attribute (array column)
+'   1 / N on a line = cardinality of the entity at that end (1:1 or 1:N)
+'   double line = total participation (FK is NOT NULL: every row must take part)
+'   single line = partial participation (optional)
+'   Foreign-key columns are not drawn as ovals - in Chen notation the
+'   relationship diamond is what represents them.
+'
+' M:N relationships are resolved through associative entities:
+'   CertificateTemplate M:N User via CertificateTemplateSignatory
+'   CertificateTemplate M:N Event via CertificateDeployment
+'   CertificateDeployment M:N User via IssuedCertificate
+'
+' Stub entities (key only) come from other modules: User (01), Event (04)
+
+entity CertificateTemplate {
+  certificate_template_id : TEXT <<key>>
+  reference : TEXT
+  name : TEXT
+  description : TEXT
+  category : CertificateTemplateCategory
+  status : CertificateTemplateStatus
+  orientation : CertificateOrientation
+  issued : INTEGER
+  deployed_events : INTEGER
+  design : JSONB
+  updated_by_name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity CertificateTemplateSignatory {
+  certificate_template_signatory_id : TEXT <<key>>
+  name : TEXT
+  title : TEXT
+  department : TEXT
+  signature_token : TEXT
+  position : INTEGER
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity CertificateTemplateAsset {
+  certificate_template_asset_id : TEXT <<key>>
+  kind : CertificateAssetKind
+  storage_key : TEXT
+  file_name : TEXT
+  content_type : TEXT
+  byte_size : INTEGER
+  createdAt : TIMESTAMP
+}
+
+entity CertificateDeployment {
+  certificate_deployment_id : TEXT <<key>>
+  reference : TEXT
+  template_name : TEXT
+  category : CertificateTemplateCategory
+  orientation : CertificateOrientation
+  design : JSONB
+  event_name : TEXT
+  event_venue : TEXT
+  event_date : TIMESTAMP
+  status : CertificateDeploymentStatus
+  participants : INTEGER
+  distributed : INTEGER
+  claimed : INTEGER
+  deployed_by_name : TEXT
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity IssuedCertificate {
+  issued_certificate_id : TEXT <<key>>
+  certificate_number : TEXT
+  recipient_name : TEXT
+  event_name : TEXT
+  event_date : TIMESTAMP
+  hours_rendered : FLOAT
+  organization : TEXT
+  template_name : TEXT
+  category : CertificateTemplateCategory
+  orientation : CertificateOrientation
+  design : JSONB
+  issued_at : TIMESTAMP
+  claimed_at : TIMESTAMP
+  createdAt : TIMESTAMP
+  updatedAt : TIMESTAMP
+}
+
+entity User {
+  user_id : TEXT <<key>>
+}
+
+entity Event {
+  event_id : SERIAL <<key>>
+}
+
+relationship EDITS_TEMPLATE {
+}
+EDITS_TEMPLATE -1- User
+EDITS_TEMPLATE -N- CertificateTemplate
+
+relationship TEMPLATE_HAS_SIGNATORY {
+}
+TEMPLATE_HAS_SIGNATORY -1- CertificateTemplate
+TEMPLATE_HAS_SIGNATORY =N= CertificateTemplateSignatory
+
+relationship SIGNS_AS {
+}
+SIGNS_AS -1- User
+SIGNS_AS =N= CertificateTemplateSignatory
+
+relationship TEMPLATE_HAS_ASSET {
+}
+TEMPLATE_HAS_ASSET -1- CertificateTemplate
+TEMPLATE_HAS_ASSET =N= CertificateTemplateAsset
+
+relationship DEPLOYED_FROM {
+}
+DEPLOYED_FROM -1- CertificateTemplate
+DEPLOYED_FROM =N= CertificateDeployment
+
+relationship DEPLOYS_CERTIFICATE {
+}
+DEPLOYS_CERTIFICATE -1- User
+DEPLOYS_CERTIFICATE -N- CertificateDeployment
+
+relationship EVENT_HAS_DEPLOYMENT {
+}
+EVENT_HAS_DEPLOYMENT -1- Event
+EVENT_HAS_DEPLOYMENT =N= CertificateDeployment
+
+relationship DEPLOYMENT_ISSUES {
+}
+DEPLOYMENT_ISSUES -1- CertificateDeployment
+DEPLOYMENT_ISSUES =N= IssuedCertificate
+
+relationship EVENT_ISSUES_CERTIFICATE {
+}
+EVENT_ISSUES_CERTIFICATE -1- Event
+EVENT_ISSUES_CERTIFICATE =N= IssuedCertificate
+
+relationship RECEIVES_CERTIFICATE {
+}
+RECEIVES_CERTIFICATE -1- User
+RECEIVES_CERTIFICATE =N= IssuedCertificate
+
+@endchen

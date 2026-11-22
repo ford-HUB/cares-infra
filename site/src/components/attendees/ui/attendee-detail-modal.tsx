@@ -97,11 +97,11 @@ export function AttendeeDetailModal({ attendee, onClose }: AttendeeDetailModalPr
               }
             />
             <Field
-              label="First Ping"
+              label="Time In"
               value={attendee.checkedInAt ? formatTimestamp(attendee.checkedInAt) : '—'}
             />
             <Field
-              label="Last Ping"
+              label="Time Out"
               value={attendee.checkedOutAt ? formatTimestamp(attendee.checkedOutAt) : '—'}
             />
             <Field label="Hours Rendered" value={hours} />

@@ -1,0 +1,133 @@
+// CARES - Module 12: Beneficiary Assistance (DBML, Crow's Foot)
+// Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+// 3 tables + 1 referenced stub tables, 3 foreign-key relationships
+//
+// Paste into https://dbdiagram.io (renders Crow's Foot notation).
+// Ref operators:  >  many-to-one (M:1)   <  one-to-many (1:M)   -  one-to-one (1:1)
+// Optionality: a nullable FK column ("null") = optional participation of the child
+// (zero-or-one parent); "not null" FK = mandatory (exactly one parent).
+
+Project CARES {
+  database_type: 'PostgreSQL'
+  Note: 'CARES platform database - Module 12: Beneficiary Assistance. Generated from the Prisma schema.'
+}
+
+// ----------------------------------------------------------------------------
+Table NeedsAssessment {
+  needs_assessment_id     text [pk, default: `uuid()`, note: 'PK']
+  user_id                 text [unique, not null, note: 'FK -> User.user_id']
+  needs                   "text[]" [not null, note: 'Q1 — what the household needs help with (`food`, `healthcare`, … `other`).']
+  other_need              text [null]
+  seriousness             integer [not null, note: 'Q2 — 1 (not serious) to 5 (very serious).']
+  barriers                "text[]" [not null, note: 'Q3 — what makes the need hard to meet (`money`, … `other`, `none`).']
+  other_barrier           text [null]
+  community_problem       text [not null, note: 'Q4 — the problem most commonly seen in the community.']
+  other_community_problem text [null]
+  concern                 text [null, note: 'Q5 — anything else the household wants CARES to know.']
+  submitted_at            "timestamp(3)" [not null, default: `now()`, note: 'When the answers were last submitted — the first take or the latest update.']
+  createdAt               "timestamp(3)" [not null, default: `now()`]
+  updatedAt               "timestamp(3)" [not null, note: 'auto-updated on write']
+
+  Note: 'A beneficiary\'s Needs Assessment Survey — one per account, overwritten when they update it. Answers are stored as the codes the residential-needs clustering works on (`food`, `money`, …), not the app\'s display labels.'
+}
+
+// ----------------------------------------------------------------------------
+Table AssistanceRequest {
+  assistance_request_id text [pk, default: `uuid()`, note: 'PK']
+  reference_number      integer [increment, unique, not null, note: 'Sequential tracking number; the app renders it as `CARES-AR-2026-0007`.']
+  user_id               text [not null, note: 'FK -> User.user_id']
+  title                 text [not null, note: 'What is needed — the picked option or what the beneficiary typed.']
+  category              AssistanceCategory [not null]
+  description           text [not null]
+  urgency               AssistanceUrgency [not null]
+  household_size        integer [not null]
+  location_latitude     float8 [null, note: 'Where the assistance is needed, pinned by the beneficiary on the map. Both are set together or both are null.']
+  location_longitude    float8 [null]
+  location_details      text [null, note: 'Landmark or address details typed beside the pin.']
+  status                AssistanceRequestStatus [not null, default: 'PENDING']
+  assessment_status     AssistanceAssessmentStatus [not null, default: 'NOT_STARTED']
+  assessment_date       "timestamp(3)" [null, note: 'The needs assessment visit — scheduled or held.']
+  assigned_organization text [null]
+  items                 "text[]" [not null, note: 'What is being released, filled in by staff once it is decided.']
+  status_note           text [null, note: 'Staff note shown under the status; the app falls back to a stock line.']
+  screened_at           "timestamp(3)" [null]
+  decided_at            "timestamp(3)" [null]
+  released_at           "timestamp(3)" [null]
+  cancelled_at          "timestamp(3)" [null, note: 'Set when the beneficiary withdraws the request themselves.']
+  cancel_reason         text [null]
+  createdAt             "timestamp(3)" [not null, default: `now()`]
+  updatedAt             "timestamp(3)" [not null, note: 'auto-updated on write']
+
+  indexes {
+    user_id
+    status
+  }
+
+  Note: 'Assistance a beneficiary asked for from the app (food pack, medicine, …). The stage timestamps drive the progress trail the app draws.'
+}
+
+// ----------------------------------------------------------------------------
+Table AssistanceRequestAttachment {
+  assistance_request_attachment_id text [pk, default: `uuid()`, note: 'PK']
+  assistance_request_id            text [not null, note: 'FK -> AssistanceRequest.assistance_request_id']
+  name                             text [not null]
+  url                              text [not null]
+  mime                             text [not null]
+  size_bytes                       integer [not null]
+  createdAt                        "timestamp(3)" [not null, default: `now()`]
+
+  indexes {
+    assistance_request_id
+  }
+
+  Note: 'A proof document filed with an assistance request (ID, bill, photo, …).'
+}
+
+// ----------------------------------------------------------------------------
+Table User {
+  user_id text [pk, note: 'PK']
+
+  Note: 'Stub - Defined in module 01 - Identity & Access. Only the key is shown here.'
+}
+
+// ----------------------------------------------------------------------------
+// Relationships (child.fk  > / -  parent.pk)
+// ----------------------------------------------------------------------------
+Ref: NeedsAssessment.user_id - User.user_id [delete: cascade]  // 1:1, mandatory
+Ref: AssistanceRequest.user_id > User.user_id [delete: cascade]  // M:1, mandatory
+Ref: AssistanceRequestAttachment.assistance_request_id > AssistanceRequest.assistance_request_id [delete: cascade]  // M:1, mandatory
+
+// ----------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------
+Enum AssistanceCategory {
+  FOOD
+  MEDICAL
+  EDUCATION
+  FINANCIAL
+  LIVELIHOOD
+  DISASTER_RELIEF
+}
+
+Enum AssistanceUrgency {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+Enum AssistanceRequestStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  COMPLETED
+  DECLINED
+  CANCELLED [note: 'Withdrawn by the beneficiary before it was completed.']
+}
+
+Enum AssistanceAssessmentStatus {
+  NOT_STARTED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}

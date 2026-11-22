@@ -1,0 +1,108 @@
+%% CARES - Module 06: Certificates (Mermaid erDiagram, Crow's Foot)
+%% Source: server/src/infastructures/prisma/schema.prisma (PostgreSQL)
+%% 5 tables + 2 referenced stub tables, 10 foreign-key relationships
+%% Paste into https://mermaid.live
+%% Cardinality symbols:  ||  exactly one   |o  zero or one   o{  zero or many   |{  one or many
+%% Parent side: || when the FK is NOT NULL (mandatory), |o when the FK is nullable (optional).
+%% Child side:  o{ for 1:M, o| for 1:1 (FK column is UNIQUE).
+%% M:N relationships are resolved through associative entities:
+%%   CertificateTemplate M:N User via CertificateTemplateSignatory
+%%   CertificateTemplate M:N Event via CertificateDeployment
+%%   CertificateDeployment M:N User via IssuedCertificate
+erDiagram
+  User |o--o{ CertificateTemplate : "updated_by"
+  CertificateTemplate ||--o{ CertificateTemplateSignatory : "template"
+  User ||--o{ CertificateTemplateSignatory : "coordinator"
+  CertificateTemplate ||--o{ CertificateTemplateAsset : "template"
+  CertificateTemplate ||--o{ CertificateDeployment : "template"
+  User |o--o{ CertificateDeployment : "deployed_by"
+  Event ||--o{ CertificateDeployment : "event"
+  CertificateDeployment ||--o{ IssuedCertificate : "deployment"
+  Event ||--o{ IssuedCertificate : "event"
+  User ||--o{ IssuedCertificate : "user"
+
+  CertificateTemplate {
+    text certificate_template_id PK
+    text reference UK
+    text name
+    text description
+    CertificateTemplateCategory category
+    CertificateTemplateStatus status
+    CertificateOrientation orientation
+    integer issued
+    integer deployed_events
+    jsonb design
+    text updated_by_user_id FK "nullable"
+    text updated_by_name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  CertificateTemplateSignatory {
+    text certificate_template_signatory_id PK
+    text certificate_template_id FK
+    text coordinator_user_id FK
+    text name
+    text title
+    text department
+    text signature_token
+    integer position
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  CertificateTemplateAsset {
+    text certificate_template_asset_id PK
+    text certificate_template_id FK
+    CertificateAssetKind kind
+    text storage_key
+    text file_name
+    text content_type
+    integer byte_size
+    timestamp createdAt
+  }
+  CertificateDeployment {
+    text certificate_deployment_id PK
+    text reference UK
+    text certificate_template_id FK
+    text template_name
+    CertificateTemplateCategory category
+    CertificateOrientation orientation
+    jsonb design
+    integer event_id FK
+    text event_name
+    text event_venue
+    timestamp event_date
+    CertificateDeploymentStatus status
+    integer participants
+    integer distributed
+    integer claimed
+    text deployed_by_user_id FK "nullable"
+    text deployed_by_name
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  IssuedCertificate {
+    text issued_certificate_id PK
+    text certificate_number UK
+    text certificate_deployment_id FK
+    integer event_id FK
+    text user_id FK
+    text recipient_name
+    text event_name
+    timestamp event_date
+    float8 hours_rendered
+    text organization
+    text template_name
+    CertificateTemplateCategory category
+    CertificateOrientation orientation
+    jsonb design
+    timestamp issued_at
+    timestamp claimed_at "nullable"
+    timestamp createdAt
+    timestamp updatedAt
+  }
+  User {
+    text user_id PK "stub - module 01"
+  }
+  Event {
+    serial event_id PK "stub - module 04"
+  }
