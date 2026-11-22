@@ -193,7 +193,7 @@ jobs:
       # for the Play Console upload.
       - name: Keep the AAB as a workflow artifact
         if: matrix.target == 'aab'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.version.outputs.file }}
           path: mobile/${{ steps.version.outputs.file }}
