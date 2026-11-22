@@ -56,11 +56,11 @@ jobs:
           echo "file=cares-$version.$TARGET" >> "$GITHUB_OUTPUT"
           echo "### CARES $version (build $build_number) - $TARGET" >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ env.TAG }}
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -193,7 +193,7 @@ jobs:
       # for the Play Console upload.
       - name: Keep the AAB as a workflow artifact
         if: matrix.target == 'aab'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.version.outputs.file }}
           path: mobile/${{ steps.version.outputs.file }}
