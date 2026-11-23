@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /request-access
+Disallow: /registration-status
+
+Sitemap: https://cares-online.com/sitemap.xml

@@ -2,14 +2,73 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Home page values for crawlers that don't run JavaScript; useRouteSeo keeps
+         them current per route. Origin must match SITE_URL in src/constants/seo.ts. -->
+    <title>UCLM CARES | Community Awareness, Relations, and Extension Services</title>
+    <meta name="description" content="UCLM CARES is the University of Cebu Lapu-Lapu and Mandaue’s arm for community engagement — need-based, sustainable extension programs in literacy, disaster relief, health and the environment across Mandaue and Lapu-Lapu City." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://cares-online.com/" />
+    <meta name="theme-color" content="#1b4332" />
     <link rel="icon" type="image/png" href="/transparent-logo.png" />
+    <link rel="apple-touch-icon" href="/transparent-logo.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="UCLM CARES" />
+    <meta property="og:locale" content="en_PH" />
+    <meta property="og:title" content="UCLM CARES | Community Awareness, Relations, and Extension Services" />
+    <meta property="og:description" content="UCLM CARES is the University of Cebu Lapu-Lapu and Mandaue’s arm for community engagement — need-based, sustainable extension programs in literacy, disaster relief, health and the environment across Mandaue and Lapu-Lapu City." />
+    <meta property="og:url" content="https://cares-online.com/" />
+    <meta property="og:image" content="https://cares-online.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="674" />
+    <meta property="og:image:alt" content="UCLM CARES volunteers at a community fun run" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="UCLM CARES | Community Awareness, Relations, and Extension Services" />
+    <meta name="twitter:description" content="UCLM CARES is the University of Cebu Lapu-Lapu and Mandaue’s arm for community engagement — need-based, sustainable extension programs in literacy, disaster relief, health and the environment across Mandaue and Lapu-Lapu City." />
+    <meta name="twitter:image" content="https://cares-online.com/og-image.jpg" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "UCLM CARES",
+        "alternateName": "Community Awareness, Relations, and Extension Services",
+        "url": "https://cares-online.com/",
+        "logo": "https://cares-online.com/transparent-logo.png",
+        "image": "https://cares-online.com/og-image.jpg",
+        "email": "cares.lm@uc.edu.ph",
+        "telephone": "+63-32-345-6666",
+        "parentOrganization": {
+          "@type": "CollegeOrUniversity",
+          "name": "University of Cebu Lapu-Lapu and Mandaue"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "A.C. Cortes Avenue, Looc",
+          "addressLocality": "Mandaue City",
+          "addressRegion": "Cebu",
+          "postalCode": "6014",
+          "addressCountry": "PH"
+        }
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CARES Administrator</title>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>UCLM CARES — Community Awareness, Relations, and Extension Services</h1>
+      <p>
+        UCLM CARES is the University of Cebu Lapu-Lapu and Mandaue’s arm for community
+        engagement and social responsibility, bridging the academe and the community through
+        collaborative, need-based and sustainable extension programs.
+      </p>
+      <p>Contact: cares.lm@uc.edu.ph · (032) 345-6666 loc. 6217 · A.C. Cortes Avenue, Looc, Mandaue City, 6014 Cebu</p>
+      <p>Please enable JavaScript to view the full site.</p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
