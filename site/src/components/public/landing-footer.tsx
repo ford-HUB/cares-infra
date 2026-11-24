@@ -1,4 +1,6 @@
 import { Mail, MapPin, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
+import { PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH } from "../../constants/routes";
 import {
   LANDING_BANNER_SERIF,
   LANDING_CONTAINER,
@@ -6,6 +8,11 @@ import {
   LANDING_DISPLAY,
   LANDING_HERO_ACCENT,
 } from "../../constants/landing-bulletin";
+
+const LEGAL_LINKS = [
+  { label: "Privacy Policy", to: PRIVACY_POLICY_PATH },
+  { label: "Terms of Service", to: TERMS_OF_SERVICE_PATH },
+] as const;
 
 /** Site footer on deep CARES green with a soft glow: the logo and a two-tone serif
  *  "UCLM CARES" over the office name in spaced capitals, a hairline divider, then the
@@ -70,6 +77,25 @@ export function LandingFooter() {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="border-t border-white/10">
+        <div
+          className={`${LANDING_CONTAINER} flex flex-col gap-3 py-4 text-[12px] text-white/60 sm:flex-row sm:items-center sm:justify-between`}
+        >
+          <p>© {new Date().getFullYear()} University of Cebu — Lapu-Lapu and Mandaue. All rights reserved.</p>
+          <nav aria-label="Legal" className="flex gap-5">
+            {LEGAL_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="rounded transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {/* <div className="border-t border-white/10">
