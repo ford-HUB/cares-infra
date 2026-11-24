@@ -4,9 +4,11 @@ import {
   HIGHLIGHTS_PATH,
   HOME_PATH,
   LOGIN_PATH,
+  PRIVACY_POLICY_PATH,
   PROGRAMS_PATH,
   REGISTRATION_STATUS_PATH,
   REQUEST_ACCESS_PATH,
+  TERMS_OF_SERVICE_PATH,
 } from './routes'
 
 /** The canonical public origin. Search engines index this host only; the Vercel
@@ -54,6 +56,20 @@ const PUBLIC_SEO: Record<string, RouteSeo> = {
     description: 'Check the review status of your UCLM CARES volunteer or beneficiary registration.',
     canonicalPath: REGISTRATION_STATUS_PATH,
     index: false,
+  },
+  [PRIVACY_POLICY_PATH]: {
+    title: `Privacy Policy | ${SITE_NAME}`,
+    description:
+      'How UCLM CARES collects, uses, shares and protects personal data under the Data Privacy Act of 2012, and the rights you have over it.',
+    canonicalPath: PRIVACY_POLICY_PATH,
+    index: true,
+  },
+  [TERMS_OF_SERVICE_PATH]: {
+    title: `Terms of Service | ${SITE_NAME}`,
+    description:
+      'The terms for using the UCLM CARES website, staff portal and mobile app as a volunteer, donor, beneficiary or staff member.',
+    canonicalPath: TERMS_OF_SERVICE_PATH,
+    index: true,
   },
 }
 
