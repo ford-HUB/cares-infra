@@ -10,6 +10,28 @@ Generated from `server/src/infastructures/prisma/schema.prisma`. Every diagram c
 
 Full diagram: `cares-erd.dbml`, `cares-erd.mmd`, `cares-erd-chen.puml` (57 tables, 70 relationships). Module map: `modules/00-overview.mmd`.
 
+## Print-ready Chen diagrams
+
+Each module folder also has `chen-web.svg`, `chen-web.png` (300 dpi) and `chen-web.pdf`: Chen notation
+with each entity's attributes in a web around it, crow's-foot ends on the relationship lines, laid out on
+one short bond page (8.5 x 11 in, 3.54 cm left margin, 2.54 cm elsewhere). A dashed entity is a stub
+defined in another module.
+
+`chen-web.drawio` is the same diagram as an editable draw.io file (open it in VS Code with the
+Draw.io Integration extension, or at diagrams.net): every line is glued to its shapes, so entities,
+attributes and relationships can be moved, renamed or added by hand. Regenerating overwrites it, so
+keep hand-edited copies under another name.
+
+Regenerate (Windows, needs Pillow and Microsoft Edge):
+
+```
+cd docs/erd/tools
+python chen_web.py ../modules/01-identity-access/chen-web.svg   # module 01 (hand-tuned star layout)
+python chen_modules.py all                                       # modules 02-13, read from each erd.dbml
+```
+
+Page size, margins, fonts and whether data types are shown are constants at the top of `tools/chen_web.py`.
+
 ## Modules
 
 Each module folder holds the module's own tables in full, every foreign key those tables hold, and key-only stubs of the tables in other modules they point at. Each relationship is drawn in exactly one module; `modules/00-overview.mmd` shows how the modules connect.

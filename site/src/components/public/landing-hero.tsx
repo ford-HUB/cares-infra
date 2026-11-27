@@ -160,7 +160,7 @@ export function LandingHero() {
               className="inline-flex items-center rounded-lg border border-white/50 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white/80 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             >
               Request Administrator Access
-            </Link>
+            </Link> 
           </div>
         </div>
       </div>
