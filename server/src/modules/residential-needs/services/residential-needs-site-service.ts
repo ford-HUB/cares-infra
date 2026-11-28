@@ -89,7 +89,7 @@ function toHouseholdRow(row: NeedsAssessmentRow): HouseholdRowDto {
   return {
     id: row.needs_assessment_id,
     family_name: row.user.lastname,
-    barangay: row.user.address_barangay?.trim() || UNSPECIFIED_BARANGAY,
+    barangay: toBarangay(row.user),
     members: Math.max(1, members),
     survey: {
       needs: row.needs,
@@ -103,6 +103,28 @@ function toHouseholdRow(row: NeedsAssessmentRow): HouseholdRowDto {
     },
     surveyed_at: row.submitted_at.toISOString(),
   };
+}
+
+/**
+ * The `address_barangay` column is only written by the portal profile form.
+ * App users have just `current_address`, which the app always formats as
+ * `Street, Barangay, City/Municipality, Province` — so when the column is
+ * empty the barangay is read out of that string, the same way the Users
+ * master list does.
+ */
+function toBarangay(user: NeedsAssessmentRow['user']): string {
+  const stored = user.address_barangay?.trim();
+  if (stored) return stored;
+
+  const parts = (user.current_address ?? '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  // Anything shorter isn't the app's canonical shape (e.g. a free-text
+  // address read off a residency document) — guessing would mislabel it.
+  if (parts.length < 4) return UNSPECIFIED_BARANGAY;
+
+  return parts[parts.length - 3] || UNSPECIFIED_BARANGAY;
 }
 
 function toServiceHousehold(household: HouseholdRowDto): NeedsHouseholdInput {

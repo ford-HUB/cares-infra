@@ -21,6 +21,8 @@ const surveyInclude = {
     select: {
       lastname: true,
       address_barangay: true,
+      /** The app's free-text address — supplies the barangay when the column is empty. */
+      current_address: true,
       household_size: true,
       /** Fallback head count when the profile has none — the latest request's. */
       assistance_requests: {
