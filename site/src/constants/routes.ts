@@ -10,6 +10,8 @@ export const REGISTRATION_STATUS_PATH = '/registration-status'
 /** Linked from the site footer and the mobile app. */
 export const PRIVACY_POLICY_PATH = '/privacy-policy'
 export const TERMS_OF_SERVICE_PATH = '/terms-of-service'
+/** Data deletion instructions; also the URL given to Google Play and Facebook Login. */
+export const DATA_DELETION_PATH = '/data-deletion'
 export const ADMIN_BASE_PATH = '/admin'
 export const ADMIN_OVERVIEW_PATH = '/admin/overview'
 export const ADMIN_PROFILE_PATH = '/admin/profile'
