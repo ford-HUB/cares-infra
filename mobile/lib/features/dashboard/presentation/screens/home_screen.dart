@@ -14,7 +14,6 @@ import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
-/// Main authenticated shell — home landing, events, and bottom navigation.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -32,8 +31,7 @@ class HomeScreen extends StatefulWidget {
   final int points;
   final bool profileComplete;
 
-  /// Whether the volunteer has already picked event-type interests. When
-  /// false the interest picker pops as soon as the dashboard appears.
+  /// When false, the interest picker pops once the dashboard appears.
   final bool hasInterests;
 
   static String greetingFirstName(String? firstName) {
@@ -67,18 +65,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadVolunteerProfile().then((_) => _promptForInterests());
   }
 
-  /// First-time volunteers have no interests on file, so the picker blocks
-  /// the dashboard until they choose. The dialog saves to the server itself;
-  /// it only returns once that succeeds. Skipped when there is no session
-  /// token (e.g. straight after registration) because the save could never
-  /// be accepted — the next real login carries `has_interests: false` and
-  /// prompts then.
-  ///
-  /// Only runs after the profile fetch has settled: callers such as the role
-  /// switcher land here with `hasInterests: false` as a placeholder, so the
-  /// server's record — not the constructor flag — decides whether to prompt.
-  /// If the fetch failed we have no record to trust and stay quiet rather
-  /// than re-asking someone who may already have chosen.
+  /// Blocks the dashboard until chosen; the dialog saves itself. Skipped
+  /// without a session token (the next login prompts). Runs only after the
+  /// profile fetch settles, since callers may pass a placeholder
+  /// `hasInterests: false`; a failed fetch stays quiet.
   Future<void> _promptForInterests() async {
     if (!mounted || _hasInterests || !AuthSession.isSignedIn) return;
     if (_volunteerProfile == null) return;
@@ -103,20 +93,18 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _volunteerProfile = profile;
         _profileComplete = profile.profileComplete;
-        // The server's record decides in both directions: an outside
-        // volunteer whose only pick was School has nothing left and is
-        // asked again.
+        // The server decides both ways: an outside volunteer whose only pick
+        // was School is asked again.
         _hasInterests = profile.interests.isNotEmpty;
       });
     } on ApiException {
       // Profile stays as it was; the shell still renders.
     } catch (_) {
-      // Same — a failed fetch never blocks the dashboard.
+      // A failed fetch never blocks the dashboard.
     }
   }
 
-  /// Pull-to-refresh: refetch the shell's own data, then remount all tabs so
-  /// each one reloads from scratch, not just the page that was pulled.
+  /// Refetch the shell's data, then remount all tabs, not just the pulled one.
   Future<void> _refreshAll() async {
     await Future.wait([
       _loadVolunteerProfile(),

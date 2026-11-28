@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { EVENT_MAP_HEIGHT_CLASS } from '../../../constants/event-map'
 
-/** Mirrors the event map page's toolbar + map frame while the first fetch runs. */
 export function EventMapSkeleton() {
   return (
     <div aria-hidden className="space-y-3">

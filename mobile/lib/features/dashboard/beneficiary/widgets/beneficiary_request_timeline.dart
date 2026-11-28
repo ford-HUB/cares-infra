@@ -5,12 +5,9 @@ import 'package:mobile/features/dashboard/data/assistance_request_data.dart';
 import 'package:mobile/features/dashboard/widgets/assistance_request_widgets.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 
-/// Which filter chip a timeline entry falls under. Declined and cancelled
-/// requests are [closed] and only show under "All".
+/// Declined and cancelled requests are [closed] and only show under "All".
 enum TimelineStage { pending, approved, completed, closed }
 
-/// One row on the beneficiary home timeline — an assistance request or the
-/// needs assessment survey, flattened to what the row draws.
 class _TimelineEntry {
   const _TimelineEntry({
     required this.title,
@@ -35,9 +32,6 @@ class _TimelineEntry {
   final VoidCallback? onTap;
 }
 
-/// Timeline of the beneficiary's assistance requests and needs assessment,
-/// newest first, with All │ Pending │ Approved │ Completed chips. Shows
-/// "No requests yet" when there is nothing on file.
 class BeneficiaryRequestTimeline extends StatefulWidget {
   const BeneficiaryRequestTimeline({
     super.key,
@@ -55,7 +49,7 @@ class BeneficiaryRequestTimeline extends StatefulWidget {
   final VoidCallback onOpenAssessment;
   final bool isLoading;
 
-  /// Most rows drawn at once; the section's "See all" opens the rest.
+  /// "See all" opens the rest.
   final int limit;
 
   @override
@@ -170,7 +164,6 @@ class _BeneficiaryRequestTimelineState
   }
 }
 
-/// White outlined pill; selected = `primaryDark` fill.
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
@@ -216,8 +209,6 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-/// Status dot on the rail, a connector down to the next entry, and the
-/// entry's title, kind, reference, date and status pill.
 class _TimelineRow extends StatelessWidget {
   const _TimelineRow({required this.entry, required this.isLast});
 

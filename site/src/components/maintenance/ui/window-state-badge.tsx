@@ -12,7 +12,6 @@ interface WindowStateBadgeProps {
   className?: string
 }
 
-/** Where a booked window sits in its life; only a window running now animates. */
 export function WindowStateBadge({ state, className }: WindowStateBadgeProps) {
   return (
     <span

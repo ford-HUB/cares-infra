@@ -6,20 +6,12 @@ import {
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/**
- * Departments are free text on the profile, the event and the school record, and each
- * spells the college its own way — so a scope is a list of aliases, matched
- * case-insensitively.
- */
+/** Free-text departments, so matched case-insensitively against aliases. */
 function departmentIn(aliases: string[]) {
   return { in: aliases, mode: Prisma.QueryMode.insensitive };
 }
 
-/**
- * Row reads for the statistics page. The service does the month bucketing and the
- * ratios: one window of events with their attendance rows is a small enough set
- * that grouping in memory beats a query per chart.
- */
+/** The service buckets in memory: one window is small enough. */
 @Injectable()
 export class StatisticsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -28,7 +20,7 @@ export class StatisticsRepository {
     return { department: departmentIn(aliases) };
   }
 
-  /** Volunteers whose school record files under any spelling of the college. */
+  /** Matches any spelling of the college. */
   volunteersInDepartment(aliases: string[]): Prisma.UserWhereInput {
     return {
       user_school_info: {
@@ -37,11 +29,7 @@ export class StatisticsRepository {
     };
   }
 
-  /**
-   * Every non-cancelled event that starts inside the window, with each registration's
-   * verdict, credited hours and the volunteer's year level. Ordered by start so the
-   * month buckets come out in axis order.
-   */
+  /** Non-cancelled, ordered by start so buckets come out in axis order. */
   findEventsStartingBetween(
     from: Date,
     to: Date,
@@ -80,7 +68,7 @@ export class StatisticsRepository {
     });
   }
 
-  /** Monthly reports filed for the given `YYYY-MM` periods, status only. */
+  /** Status only. */
   findReportsForPeriods(
     periods: string[],
     where: Prisma.MonthlyReportWhereInput,
@@ -91,7 +79,6 @@ export class StatisticsRepository {
     });
   }
 
-  /** Each volunteer's year level, for the participation-by-year-level list. */
   findVolunteerYearLevels(where: Prisma.UserWhereInput = {}) {
     return this.prisma.userSchoolInfo.findMany({
       where: { user: { ...where, role: { type: RoleType.VOLUNTEER } } },
@@ -99,7 +86,7 @@ export class StatisticsRepository {
     });
   }
 
-  /** Year levels in the order they were seeded, so the list never reorders between loads. */
+  /** Seed order, so the list is stable. */
   findYearLevels() {
     return this.prisma.yearLevel.findMany({
       orderBy: { createdAt: 'asc' },

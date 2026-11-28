@@ -35,7 +35,7 @@ import {
   type VolunteerScore,
 } from './ranking-scoring';
 
-/** The ladder as shipped — mirrors the portal's `RANKING_DEFAULT_TIERS`. */
+/** Must match the portal's `RANKING_DEFAULT_TIERS`. */
 export const DEFAULT_RANKING_TIERS: RankingTierDto[] = [
   {
     id: 'mythic',
@@ -91,7 +91,6 @@ export const DEFAULT_RANKING_SETTINGS: Omit<RankingSettingsDto, 'updated_at'> =
     tiers: DEFAULT_RANKING_TIERS,
   };
 
-/** A volunteer's identity plus their score — the board before ranks are dealt. */
 export interface RankedVolunteer extends VolunteerScore {
   userId: string;
   firstname: string;
@@ -101,14 +100,13 @@ export interface RankedVolunteer extends VolunteerScore {
   rank: number;
 }
 
-/** A donor's identity plus their confirmed giving — the donor board before ranks. */
 export interface RankedDonor {
   userId: string;
   name: string;
   email: string;
   rank: number;
   points: number;
-  /** Money paid plus the credited value of goods, whole pesos. */
+  /** Money plus credited goods value, whole pesos. */
   amount: number;
   moneyAmount: number;
   goodsAmount: number;
@@ -117,14 +115,11 @@ export interface RankedDonor {
 }
 
 export interface BoardScope {
-  /** Restrict to volunteers whose school record files them under these college spellings. */
+  /** By school record, any college spelling. */
   volunteerDepartments?: string[];
 }
 
-/**
- * The scored, ranked volunteer board — shared by the portal's standings and the
- * app's leaderboard so the two never disagree on a number.
- */
+/** Shared by portal and app so numbers never disagree. */
 @Injectable()
 export class RankingsBoardService {
   constructor(private readonly repository: RankingsRepository) {}
@@ -146,13 +141,13 @@ export class RankingsBoardService {
       points_per_attendance: row.points_per_attendance,
       absence_penalty_step: row.absence_penalty_step,
       absence_reset_days: row.absence_reset_days,
-      // A row saved before the criterion existed scores roles at the defaults.
+      // Rows saved before the criterion use defaults.
       participation_role_points: {
         ...DEFAULT_PARTICIPATION_ROLE_POINTS,
         ...(rolePoints.success ? rolePoints.data : {}),
       },
       donor_pesos_per_point: row.donor_pesos_per_point,
-      // A type added to the catalog after the row was saved takes its default.
+      // Newer catalog types use their default.
       goods_type_values: {
         ...DEFAULT_GOODS_TYPE_VALUES,
         ...(goodsValues.success ? goodsValues.data : {}),
@@ -184,10 +179,7 @@ export class RankingsBoardService {
     };
   }
 
-  /**
-   * The standings for one window. Ties on points are broken by attendance count and
-   * then by name, so the order is stable between refreshes.
-   */
+  /** Ties break on attendance count, then name, for a stable order. */
   async buildBoard(
     rule: ScoringRule,
     window: { since?: Date; now: Date },
@@ -201,10 +193,7 @@ export class RankingsBoardService {
     return rankRows(rows, rule, window.now);
   }
 
-  /**
-   * One volunteer's all-time tally under the saved rule — the profile's points
-   * tile. Scores their rows alone rather than building the whole board.
-   */
+  /** All-time; scores only their rows. */
   async scoreVolunteer(
     userId: string,
     now = new Date(),
@@ -218,7 +207,7 @@ export class RankingsBoardService {
     );
   }
 
-  /** The same board over the window just before this one, for the rank arrows. */
+  /** The preceding window, for rank arrows. */
   async previousRanks(
     rule: ScoringRule,
     period: RankingPeriod,
@@ -231,7 +220,6 @@ export class RankingsBoardService {
     return new Map(board.map((entry) => [entry.userId, entry.rank]));
   }
 
-  /** Pesos credited for one unit of a goods type under the saved values. */
   goodsUnitValue(settings: RankingSettingsDto, goodsType: string): number {
     const values: GoodsTypeValuesDto = settings.goods_type_values;
     const known = (GOODS_TYPE_IDS as readonly string[]).includes(goodsType)
@@ -240,11 +228,7 @@ export class RankingsBoardService {
     return known ?? values.other ?? DEFAULT_GOODS_TYPE_VALUES.other;
   }
 
-  /**
-   * The donor standings for one window: confirmed pesos (money paid plus the
-   * credited value of goods) at one point per `donor_pesos_per_point`. Ties are
-   * broken by amount, then by how many donations, then by name.
-   */
+  /** One point per `donor_pesos_per_point`; ties by amount, donation count, then name. */
   async buildDonorBoard(
     pesosPerPoint: number,
     window: { since?: Date; now: Date },
@@ -255,7 +239,7 @@ export class RankingsBoardService {
     return rankDonors(rows, pesosPerPoint);
   }
 
-  /** The donor board over the window just before this one, for the rank arrows. */
+  /** The preceding window, for rank arrows. */
   async previousDonorRanks(
     pesosPerPoint: number,
     period: RankingPeriod,
@@ -267,10 +251,7 @@ export class RankingsBoardService {
     return new Map(board.map((entry) => [entry.userId, entry.rank]));
   }
 
-  /**
-   * Every college ranked on its volunteers' hours and the confirmed pesos given to
-   * its events — always the whole school, since the board compares colleges.
-   */
+  /** Always school-wide. */
   async buildDepartmentBoard(
     rule: ScoringRule,
     window: { since?: Date; now: Date },
@@ -292,7 +273,7 @@ export class RankingsBoardService {
     );
   }
 
-  /** The department board over the window just before this one, for the arrows. */
+  /** The preceding window, for rank arrows. */
   async previousDepartmentRanks(
     rule: ScoringRule,
     period: RankingPeriod,
@@ -304,7 +285,7 @@ export class RankingsBoardService {
     return new Map(board.entries.map((entry) => [entry.key, entry.ranks]));
   }
 
-  /** The tier a standing falls into: first rung whose cut-off it clears. */
+  /** First rung whose cut-off it clears. */
   tierForRank(rank: number | null, tiers: RankingTierDto[]): RankingTierDto {
     const last = tiers[tiers.length - 1];
     if (rank === null) return last;
@@ -319,7 +300,7 @@ function isPeriod(value: string): value is RankingPeriod {
   return (RANKING_PERIODS as readonly string[]).includes(value);
 }
 
-/** Where a period's window opens; undefined means all time. */
+/** Undefined means all time. */
 export function periodStart(
   period: RankingPeriod,
   now: Date,
@@ -336,7 +317,7 @@ export function periodStart(
   }
 }
 
-/** The window of the same length that closed when this one opened. */
+/** Same length, closing when this one opens. */
 function previousWindow(
   period: RankingPeriod,
   now: Date,
@@ -395,7 +376,7 @@ function rankRows(
   return scored.map((entry, index) => ({ ...entry, rank: index + 1 }));
 }
 
-/** Points from pesos under the donor rule — floored, never rounded up. */
+/** Floored. */
 export function donorPoints(amount: number, pesosPerPoint: number): number {
   if (pesosPerPoint <= 0) return 0;
   return Math.floor(amount / pesosPerPoint);

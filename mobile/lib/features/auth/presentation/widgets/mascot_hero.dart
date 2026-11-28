@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Static floating mascot — no idle motion; faces toward the board when on the right.
 class MascotHero extends StatelessWidget {
   const MascotHero({
     super.key,

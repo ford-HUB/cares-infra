@@ -22,20 +22,15 @@ import { CertificateAccentPicker } from './certificate-accent-picker'
 import { CertificateSealMark } from './certificate-seal-mark'
 
 interface CertificateSealFieldProps {
-  /** The design being edited, so each tile previews this certificate's accent. */
   design: CertificateDesign
   onSelect: (style: CertificateSealStyle) => void
-  /** `undefined` puts the seal back on the sheet's own accent. */
+  /** `undefined` falls back to the sheet's accent. */
   onAccentChange: (accent: CertificateAccent | undefined) => void
   onUpload: (dataUrl: string, fileName: string) => void
   onRemoveUpload: () => void
 }
 
-/**
- * The pre-built seals, drawn in the certificate's own accent, plus the director's own
- * SVG. An imported seal wins over whichever tile is picked until it is removed — the
- * same rule the frame upload follows, so neither one silently overrides the other.
- */
+/** An imported SVG wins over the picked tile until removed, like the frame upload. */
 export function CertificateSealField({
   design,
   onSelect,
@@ -61,8 +56,6 @@ export function CertificateSealField({
 
   return (
     <div className="space-y-2">
-      {/* Each tile is the seal itself at card size — the names alone would not say
-          which is which. */}
       <div className="grid grid-cols-3 gap-1.5">
         {CERTIFICATE_SEAL_ORDER.map((style) => {
           const preset = CERTIFICATE_SEAL_PRESETS[style]
@@ -84,8 +77,7 @@ export function CertificateSealField({
                     uploaded && 'opacity-60',
                   )}
                 >
-                  {/* The mark is sized in container units, so the tile is its own
-                      container — 100cqw is then exactly this square. */}
+                  {/* The mark is sized in container units, so the tile is its own container. */}
                   <span className="@container flex h-10 w-10 items-center justify-center">
                     <CertificateSealMark
                       design={{
@@ -108,7 +100,7 @@ export function CertificateSealField({
         })}
       </div>
 
-      {/* An uploaded SVG carries its own colours, so this only drives the built-ins. */}
+      {/* Uploaded SVGs carry their own colours; this only drives the built-ins. */}
       {!uploaded && (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CertificateAccentPicker

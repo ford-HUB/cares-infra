@@ -10,11 +10,9 @@ import { eventsOnDay, monthGridDays } from '../../../utils/calendar-layout'
 import { CalendarEventChip } from './calendar-event-chip'
 
 interface CalendarMonthGridProps {
-  /** Any day inside the month being drawn. */
   cursor: Dayjs
   events: CalendarEvent[]
   onSelect: (event: CalendarEvent) => void
-  /** Drills into the day view — the cell itself is the affordance. */
   onOpenDay: (day: Dayjs) => void
 }
 

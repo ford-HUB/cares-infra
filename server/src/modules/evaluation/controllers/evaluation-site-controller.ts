@@ -41,12 +41,7 @@ import {
   SaveEvaluationFormSchema,
 } from '../validators/evaluation-site-validator';
 
-/**
- * The Director Portal's Evaluation area: the questionnaire builder, the Forms list
- * that points each event at one, and the answers that come back. All of it is the
- * director's programme feedback, as the portal's own route says; holding it here too
- * keeps another role from reaching the answers by calling the API directly.
- */
+/** Director-only, so other roles can't reach answers via the API. */
 @Controller('v1/evaluation')
 @Roles(RoleType.DIRECTOR)
 export class EvaluationSiteController {
@@ -147,7 +142,7 @@ export class EvaluationSiteController {
     return this.evaluationSiteService.listResponses(query.event_id);
   }
 
-  /** Answer photos are private in S3, so the portal streams them here. */
+  /** Private in S3, so streamed here. */
   @Get('responses/:id/answers/:questionId/images/:index')
   async getAnswerImage(
     @ZParam('id', EvaluationResponseIdParamSchema) id: string,

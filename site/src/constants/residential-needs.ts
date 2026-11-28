@@ -7,7 +7,6 @@ import type {
   NeedsFeatureKey,
 } from '../types/residential-needs'
 
-/** Q1 choices in survey order. */
 export const NEED_CATEGORY_ORDER: NeedCategory[] = [
   'food',
   'healthcare',
@@ -26,7 +25,6 @@ export const NEED_CATEGORY_LABELS: Record<NeedCategory, string> = {
   other: 'Other',
 }
 
-/** Q2 scale, lowest first. */
 export const NEED_SERIOUSNESS_ORDER: NeedSeriousness[] = [1, 2, 3, 4, 5]
 
 export const NEED_SERIOUSNESS_LABELS: Record<NeedSeriousness, string> = {
@@ -39,7 +37,6 @@ export const NEED_SERIOUSNESS_LABELS: Record<NeedSeriousness, string> = {
 
 export const NEED_SERIOUSNESS_MAX: NeedSeriousness = 5
 
-/** Q3 choices in survey order. */
 export const NEED_BARRIER_ORDER: NeedBarrier[] = [
   'money',
   'services',
@@ -62,7 +59,6 @@ export const NEED_BARRIER_LABELS: Record<NeedBarrier, string> = {
   none: 'No difficulty',
 }
 
-/** Q4 choices in survey order. */
 export const COMMUNITY_PROBLEM_ORDER: CommunityProblem[] = [
   'food',
   'healthcare',
@@ -92,10 +88,7 @@ export const NEED_PRIORITY_LABELS: Record<NeedPriority, string> = {
   low: 'Low',
 }
 
-/**
- * Seriousness (Q2) at or above which a household falls into each band. Checked
- * top-down, so `low` is whatever is left — "not serious" and "slightly serious".
- */
+/** Checked top-down; `low` is whatever is left. */
 export const NEED_PRIORITY_THRESHOLDS: Record<NeedPriority, NeedSeriousness> = {
   critical: 5,
   high: 4,
@@ -103,7 +96,6 @@ export const NEED_PRIORITY_THRESHOLDS: Record<NeedPriority, NeedSeriousness> = {
   low: 1,
 }
 
-/** Colour spent on priority only — one record per visual channel so they cannot drift. */
 export const NEED_PRIORITY_BADGE_STYLES: Record<NeedPriority, string> = {
   critical: 'bg-red-50 text-red-700',
   high: 'bg-amber-50 text-amber-700',
@@ -125,23 +117,17 @@ export const NEED_PRIORITY_DOT_STYLES: Record<NeedPriority, string> = {
   low: 'bg-gray-300',
 }
 
-/** Where the rows come from — every row is a survey submitted from the mobile app. */
 export const NEEDS_SURVEY_SOURCE_LABEL = 'Beneficiary Needs Assessment survey'
 
-/** The server's label for a respondent with no barangay on their profile. */
+/** Server's label for a respondent with no barangay. */
 export const UNSPECIFIED_BARANGAY = 'Unspecified'
 
-/** Socket.IO namespace + event that announce a submitted or updated survey. */
+/** Must match the server gateway. */
 export const RESIDENTIAL_NEEDS_SOCKET_NAMESPACE = '/residential-needs'
 export const RESIDENTIAL_NEEDS_CHANGED_EVENT = 'residential-needs:changed'
 
-/** The "every barangay" / "every priority" choice in the household table filters. */
 export const NEEDS_FILTER_ALL = 'all'
 
-/**
- * Cluster identity colours — categorical, so no hue outranks another; a cluster's
- * index picks its swatch everywhere (scatter dot, card chip, table pill).
- */
 export const CLUSTER_COLORS = [
   '#2a78d6',
   '#1baf7a',
@@ -163,11 +149,10 @@ export const CLUSTER_SWATCH_STYLES = [
 export const CLUSTER_K_MIN = 2
 export const CLUSTER_K_MAX = 6
 export const CLUSTER_K_DEFAULT = 3
-/** Lloyd iterations before the run is cut off unconverged. */
 export const CLUSTER_MAX_ITERATIONS = 50
 export const CLUSTER_DEFAULT_SEED = 7
 
-/** The named Q1 categories the model flags — "Other" is free text, so it is left out. */
+/** "Other" is free text, so the model skips it. */
 export const CLUSTER_NEED_CATEGORIES: Exclude<NeedCategory, 'other'>[] = [
   'food',
   'healthcare',
@@ -192,10 +177,6 @@ export const NEEDS_FEATURE_LABELS: Record<NeedsFeatureKey, string> = {
   financial: NEED_CATEGORY_LABELS.financial,
 }
 
-/**
- * The two axes of the cluster scatter — how serious the need is against how many
- * needs the household ticked, the two things a director reads first.
- */
 export const CLUSTER_SCATTER_X_LABEL = 'Seriousness'
 export const CLUSTER_SCATTER_Y_LABEL = 'Needs selected'
 

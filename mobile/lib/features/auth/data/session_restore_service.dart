@@ -6,13 +6,10 @@ import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/services/session_storage.dart';
 
 enum SessionRestoreStatus {
-  /// Nothing saved — a first launch, or the person signed out last time.
   none,
 
-  /// A session was saved but is no longer valid; the person signs in again.
   expired,
 
-  /// The saved session is live again and the dashboard can open.
   restored,
 }
 
@@ -31,16 +28,11 @@ class SessionRestoreResult {
   final SessionRestoreStatus status;
   final StoredSession? session;
 
-  /// Why an [SessionRestoreStatus.expired] session ended, ready to show.
   final String? message;
 }
 
-/// Brings a saved session back on launch.
-///
-/// The token's own expiry is checked first, offline. A token that is still in
-/// date is then confirmed against the server, because the server can end a
-/// session long before `exp` — the security policy's idle timeout or maximum
-/// length, the per-account device limit, or a sign-out from the portal.
+/// Checks `exp` offline, then confirms with the server, which can end a session
+/// earlier (idle timeout, max length, device limit, portal sign-out).
 class SessionRestoreService {
   SessionRestoreService({
     ApiClient? apiClient,
@@ -54,11 +46,10 @@ class SessionRestoreService {
   final SessionStorage _storage;
   final DateTime Function() _clock;
 
-  /// Any authenticated mobile route would do; the profile is the one every
-  /// mobile role can read, and it carries fresh names for the dashboard.
+  /// Readable by every mobile role and carries fresh names.
   static const _probePath = '/profile/me/mobile';
 
-  /// Long enough for a slow connection, short enough not to hold the splash.
+  /// Short enough not to hold the splash.
   static const _probeTimeout = Duration(seconds: 6);
 
   static const expiredMessage =
@@ -90,18 +81,15 @@ class SessionRestoreService {
           error.message.trim().isEmpty ? expiredMessage : error.message,
         );
       }
-      // Offline, server down, or any other refusal: the token is still in
-      // date, so keep the person signed in. If the server has in fact ended
-      // the session, the dashboard's first request gets the 401 and the app's
-      // normal session-ended handling signs them out then.
+      // Offline or other failure: keep the in-date session; a real 401 later
+      // goes through normal session-ended handling.
       return SessionRestoreResult.restored(stored);
     } on TimeoutException {
       return SessionRestoreResult.restored(stored);
     }
   }
 
-  /// Names and email as the server has them now, so a profile edited on
-  /// another device shows correctly. The role stays as signed in with.
+  /// Picks up profile edits from other devices; the role is kept.
   StoredSession _refreshed(StoredSession stored, Object? data) {
     if (data is! Map<String, dynamic>) return stored;
     String? nonEmpty(Object? value) =>

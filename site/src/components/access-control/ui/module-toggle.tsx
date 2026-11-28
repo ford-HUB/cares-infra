@@ -3,26 +3,17 @@ import type { PermissionDescriptor, PermissionKey } from '../../../types/access-
 
 interface ModuleToggleProps {
   module: string
-  /** Keeps the input ids apart when two pickers are mounted on the same page. */
+  /** Keeps input ids unique when two pickers are mounted. */
   idPrefix: string
   permissions: PermissionDescriptor[]
   selected: ReadonlySet<PermissionKey>
-  /**
-   * Actions under suspension. They stay ticked (the grant is kept) but the header
-   * never moves them, and once every action is suspended the header locks and reads red.
-   */
+  /** Stay ticked but never move with the header; all suspended locks the header. */
   suspended?: ReadonlySet<PermissionKey>
   disabled: boolean
-  /** Receives every movable key in the module and the state they should all move to. */
   onToggleAll: (permissions: PermissionKey[], next: boolean) => void
 }
 
-/**
- * The module-level switch at the top of each permission group: one tick grants the
- * whole module, one untick takes it away, and a half-ticked box shows the module is
- * partly held. Ticking a module is how an admin opens a screen to an account — the
- * portal shows a module when the account holds its "view" right.
- */
+/** The portal shows a module when the account holds its "view" right. */
 export function ModuleToggle({
   module,
   idPrefix,

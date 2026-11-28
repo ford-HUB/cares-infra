@@ -18,10 +18,7 @@ type ValidationIssue = {
   message: string;
 };
 
-/**
- * nest-zod throws `BadRequestException('Validation failed', { cause: ZodError })`, so the
- * per-issue detail the clients render lives on the cause rather than in the response payload.
- */
+/** nest-zod puts the ZodError on `cause`. */
 const zodIssues = (exception: unknown): ValidationIssue[] | undefined => {
   const cause = exception instanceof Error ? exception.cause : undefined;
 
@@ -41,8 +38,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse();
 
-    // A 500 is the server's own fault (nest-zod's "Serialization failed" among them), so
-    // its detail goes to the log below. A deliberate 502 or 503 still tells the client why.
+    // 500s are logged, not exposed; deliberate 502/503 keep their message.
     if (
       exception instanceof HttpException &&
       exception.getStatus() !== Number(HttpStatus.INTERNAL_SERVER_ERROR)

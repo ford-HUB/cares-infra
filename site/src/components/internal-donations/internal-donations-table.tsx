@@ -11,7 +11,6 @@ import { InternalDonationsTableSkeleton } from './ui/internal-donations-table-sk
 interface InternalDonationsTableProps {
   donations: InternalDonation[]
   loading: boolean
-  /** False until the first fetch settles — see `internal-donation-store`. */
   initialized: boolean
   errored: boolean
   onSelect: (donation: InternalDonation) => void
@@ -19,7 +18,7 @@ interface InternalDonationsTableProps {
 
 const cellBase = 'h-14 border-b border-gray-100 px-3 align-middle text-[13px]'
 
-/** One line summarising what was given, so both kinds fit the same column. */
+/** One line, so money and goods fit the same column. */
 function donationDetail(donation: InternalDonation): string {
   if (donation.kind === 'money') {
     return donation.method ?? 'Payment'

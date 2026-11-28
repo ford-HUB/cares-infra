@@ -35,7 +35,6 @@ Color locationSyncColor(LocationRecordSyncState state) => switch (state) {
   LocationRecordSyncState.uploading => AppColors.secondary,
 };
 
-/// Small pill showing whether the day's captures have reached the server.
 class LocationSyncBadge extends StatelessWidget {
   const LocationSyncBadge({super.key, required this.state});
 
@@ -90,8 +89,6 @@ class LocationSyncBadge extends StatelessWidget {
   }
 }
 
-/// One day in the list: icon, day label + key, event and
-/// capture count, sync badge, chevron.
 class LocationRecordTile extends StatelessWidget {
   const LocationRecordTile({
     super.key,
@@ -187,7 +184,6 @@ class LocationRecordTile extends StatelessWidget {
   }
 }
 
-/// Storage / sync summary shown above the file list.
 class LocationRecordsSummaryCard extends StatelessWidget {
   const LocationRecordsSummaryCard({
     super.key,

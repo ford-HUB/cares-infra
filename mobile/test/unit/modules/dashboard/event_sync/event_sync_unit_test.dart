@@ -1,6 +1,4 @@
-// Unit tests for event sync — pushing the geofence coordinates a joined
-// event recorded on the phone up to the server, so attendance can be
-// validated:
+// Unit tests for pushing a joined event's geofence coordinates to the server:
 //
 //   POST /v1/attendance/geofence/mobile/coordinates  LocationSyncService.submitLive
 //   POST /v1/attendance/geofence/mobile/sync         LocationSyncService.syncEvent
@@ -9,11 +7,9 @@
 //   EventLocationTracker.stateFor                    what the sheet's header shows
 //   showEventSyncSheet                               status rows, Area, Sync button
 //
-// The captures live in SQLite on a real phone. Here the sqflite platform
-// channel is answered by an in-memory table, the network is package:http's
-// MockClient (through `http.runWithClient` for the sheet, which builds its own
-// service), and the documents folder points at a temp directory. Every event,
-// volunteer and coordinate is a local fixture — nothing reaches a server.
+// sqflite's channel is answered by an in-memory table, http by MockClient
+// (`http.runWithClient` for the sheet) and documents by a temp folder. All data
+// is local fixtures.
 
 import 'dart:async';
 import 'dart:convert';
@@ -52,10 +48,6 @@ const _pathProvider = MethodChannel('plugins.flutter.io/path_provider');
 
 const _venueLat = 10.3297;
 const _venueLng = 123.9496;
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 CaresEvent _event({String id = _eventId, bool completed = false}) => CaresEvent(
   id: id,
@@ -113,14 +105,8 @@ LocationCaptureRow _fix({
   synced: synced,
 );
 
-// ---------------------------------------------------------------------------
-// In-memory SQLite (answers the sqflite platform channel)
-// ---------------------------------------------------------------------------
-
-/// Stands in for the phone's `cares_geofence.db`. It answers the handful of
-/// statements [LocationCaptureDb] sends for captures — filtered selects, the
-/// per-event stats, the pending-events group and the batched "mark synced"
-/// update — against a plain list of rows.
+/// Stands in for `cares_geofence.db`, answering the statements
+/// [LocationCaptureDb] sends against a plain list of rows.
 class _FakeSqlite {
   static const channel = MethodChannel('com.tekartik.sqflite');
 
@@ -314,10 +300,6 @@ class _FakeSqlite {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 class _Server {
   /// Overrides the reply to a CSV upload; null accepts it.
   Future<http.Response> Function(http.Request request)? onSync;
@@ -361,7 +343,6 @@ http.Response _ok(Map<String, dynamic> data) =>
 http.Response _fail(int status, String message) =>
     _json(status, {'ok': false, 'message': message});
 
-/// One part of a captured multipart/form-data body.
 class _Part {
   _Part(this.headers, this.content);
 
@@ -418,10 +399,6 @@ List<String> _csvLines(Iterable<LocationCaptureRow> fixes) => [
 List<String> _linesOf(String csv) =>
     const LineSplitter().convert(csv).where((l) => l.isNotEmpty).toList();
 
-// ---------------------------------------------------------------------------
-// Sheet harness
-// ---------------------------------------------------------------------------
-
 Finder _button(String label) => find.ancestor(
   of: find.text(label),
   matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
@@ -448,8 +425,8 @@ Color? _rowColor(WidgetTester tester, String label) {
   return tester.widget<Text>(find.text(value)).style?.color;
 }
 
-/// Opens the sync sheet from a launcher, the way the event details screen
-/// does, then waits for the first read of the captures.
+/// Opened as the event details screen does, then waits for the first capture
+/// read.
 Future<void> _openSheet(
   WidgetTester tester, {
   CaresEvent? event,
@@ -528,10 +505,6 @@ void main() {
     AuthSession.onSessionEnded = null;
   });
 
-  // -------------------------------------------------------------------------
-  // Live submit
-  // -------------------------------------------------------------------------
-
   group('LocationSyncService.submitLive', () {
     test(
       'posts one fix as JSON to the coordinates endpoint with the token',
@@ -586,10 +559,6 @@ void main() {
       expect(db.rows, isEmpty);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Event CSV upload
-  // -------------------------------------------------------------------------
 
   group('LocationSyncService.syncEvent', () {
     test('uploads the pending rows as one CSV with the event fields', () async {
@@ -980,10 +949,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Every pending event
-  // -------------------------------------------------------------------------
-
   group('LocationSyncService.syncPending', () {
     test('uploads one CSV per event that still has pending rows', () async {
       db.addAll([
@@ -1034,10 +999,6 @@ void main() {
       expect(result.error, isNull);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Models
-  // -------------------------------------------------------------------------
 
   group('LocationCaptureRow', () {
     final row = LocationCaptureRow(
@@ -1215,10 +1176,6 @@ void main() {
       expect(EventTrackingState.ended.label, 'Ended');
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Sync sheet
-  // -------------------------------------------------------------------------
 
   group('showEventSyncSheet', () {
     // No documents folder on the test device: the sheet's upload goes out

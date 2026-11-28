@@ -12,14 +12,9 @@ import 'package:mobile/features/auth/presentation/widgets/register_form_field.da
 import 'package:mobile/features/auth/presentation/widgets/registration_document_card.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
-/// Beneficiary details form — the donor sign-up pattern: hero panel, then one
-/// card per idea. A regular beneficiary types everything in — no OCR review, no
-/// ID or face capture — and attaches a supporting document (any file type) for
-/// the director who approves the account.
-///
-/// An individual who picks Student goes the student volunteer's way instead:
-/// the rest of this form steps aside, and the flow continues to the school ID
-/// upload, the face scan and the details read off the ID.
+/// Regular beneficiaries type everything in and attach a supporting document
+/// for the approving director. Picking Student hands off to the ID upload, face
+/// scan and review steps.
 class RegisterBeneficiaryDetailsStep extends StatefulWidget {
   const RegisterBeneficiaryDetailsStep({
     super.key,
@@ -37,7 +32,6 @@ class RegisterBeneficiaryDetailsStep extends StatefulWidget {
   final ValueChanged<RegisterOcrSample> onChanged;
   final ValueChanged<BeneficiaryProfile> onProfileChanged;
 
-  /// The picked supporting document; null until one is chosen.
   final PlatformFile? document;
   final ValueChanged<PlatformFile?> onDocumentChanged;
 
@@ -121,7 +115,6 @@ class _RegisterBeneficiaryDetailsStepState
         gender: _gender,
         age: int.tryParse(_age.text.trim()) ?? 0,
         phoneNumber: _phone.text.trim(),
-        // Beneficiaries register without an ID or school information.
         idNumber: '',
         departmentName: '',
         majorName: '',
@@ -134,9 +127,8 @@ class _RegisterBeneficiaryDetailsStepState
     );
   }
 
-  /// The structured address lives on the profile; the flat `current_address`
-  /// sent to the server is its formatted form, or empty while incomplete so
-  /// the step can't continue.
+  /// The flat `current_address` is the formatted form, or empty while
+  /// incomplete so the step can't continue.
   void _onAddressChanged(PhAddress address) {
     widget.onProfileChanged(_profile.copyWith(address: address));
     widget.onChanged(widget.data.copyWith(currentAddress: address.formatted));
@@ -179,8 +171,7 @@ class _RegisterBeneficiaryDetailsStepState
 
   @override
   Widget build(BuildContext context) {
-    // A student's name, details and school record are read off their ID on
-    // the next steps, so only the choices stay on this one.
+    // A student's details come from their ID on the next steps.
     if (_profile.isStudent) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -330,8 +321,6 @@ class _RegisterBeneficiaryDetailsStepState
     );
   }
 
-  /// Individuals pick Regular or Student first; a student's details then
-  /// come from their school ID.
   List<Widget> _categoryChoice() {
     return [
       Text(

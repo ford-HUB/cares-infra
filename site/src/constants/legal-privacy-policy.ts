@@ -1,12 +1,10 @@
 import type { LegalDocument } from '../types/legal'
 import { LANDING_CONTACT } from './landing-bulletin'
 
-/** Effective date shared by both legal documents; bump it whenever either changes. */
+/** Shared by both legal documents; bump when either changes. */
 export const LEGAL_EFFECTIVE_DATE = '24 November 2026'
 
-/** Public privacy policy, written to the Data Privacy Act of 2012 (RA 10173), its IRR
- *  and National Privacy Commission guidance. Static content — nothing here is fetched.
- *  Keep in step with the per-role notices in the mobile app's cares_terms_dialog.dart. */
+/** Keep in sync with mobile cares_terms_dialog.dart. */
 export const PRIVACY_POLICY: LegalDocument = {
   title: 'Privacy Policy',
   summary:

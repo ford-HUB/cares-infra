@@ -31,9 +31,9 @@ interface ReportReviewPanelProps {
   initialized: boolean
   saving: boolean
   onOpenDocument: (document: ReportDocument) => void
-  /** Both omitted when the account lacks the publish right — the panel reads only. */
+  /** Both omitted without the publish right; the panel is read-only. */
   onApprove?: () => void
-  /** Set when the publish right is suspended — Return/Approve are drawn locked instead. */
+  /** Set when the publish right is suspended; draws Return/Approve locked. */
   publishSuspension?: SessionSuspension
   onReturn?: () => void
 }
@@ -60,11 +60,6 @@ function Metric({
   )
 }
 
-/**
- * The review side of the screen: who filed what, the figures they are claiming, the
- * files behind those figures, and the decision. Reading the document is the point of
- * the panel, so "Open Docs" sits on every attachment rather than behind a menu.
- */
 export function ReportReviewPanel({
   report,
   initialized,

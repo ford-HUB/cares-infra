@@ -22,21 +22,7 @@ import { asCase, fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Users Module', unit: 'Master — Accounts', prefix: 'USERS' });
 
-/**
- * Shared by every spec in this folder — four POSTs on the portal's Master screen
- * (Manage Users):
- *   POST /api/v1/users                          (Create account: ProvisionUserSchema)
- *   POST /api/v1/users/check-email              (Check email: CheckProvisionEmailSchema)
- *   POST /api/v1/users/:id/reissue-credentials  (Reissue credentials: id uuid + ReissueCredentialsSchema)
- *   POST /api/v1/users/:id/block-ip             (Block IP: id uuid + BlockUserIpSchema)
- *
- * The id schema is a private const in the controller, so path-param fixtures run
- * through the API layer only. `@Roles` and `@RequirePermission` are not exercised:
- * the global guards are out of scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
+/** The id schema is private to the controller, so path-param cases are API-layer only. */
 export const VALID_USER_ID = 'b3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 export const CALLER = { sub: 'caller-user-id', role_type: RoleType.ADMIN };
 
@@ -108,11 +94,7 @@ type UsersEndpoint =
   | typeof REISSUE_ENDPOINT
   | typeof BLOCK_IP_ENDPOINT;
 
-/**
- * Boots `UsersSiteController` with a mocked service for the enclosing `describe`.
- * The handlers read the caller, so a stand-in for the global JWT guard puts
- * `CALLER` on the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the handlers read it); `app` is assigned in `beforeAll`. */
 export const useUsersApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -147,10 +129,7 @@ export const useUsersApp = () => {
   return ctx;
 };
 
-/**
- * Body fixtures through both layers. A FAIL must come back in the validation
- * envelope without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeBodyTable = (
   ctx: ReturnType<typeof useUsersApp>,
   endpoint: UsersEndpoint,
@@ -175,13 +154,7 @@ export const describeBodyTable = (
   });
 };
 
-/* ── field-validation cases (Add user · Reissue credentials · Block IP) ──────── */
-
-/**
- * One row of the field-validation table. `name` is the Test Case Description, written
- * as what the administrator does. A FAIL names the field and the exact message the
- * schema must report for it.
- */
+/** `name` is the Test Case Description; a FAIL also names the field and exact message. */
 export interface FieldCase<TInput = unknown> extends LayerFixture<TInput> {
   field?: string;
   message?: string;
@@ -199,11 +172,7 @@ const fieldExpected = (fixture: FieldCase<unknown>) => {
   return `FAIL — request rejected with "Validation failed" (400)${issue}; the service is never reached`;
 };
 
-/**
- * Registers each body fixture as its own case: a PASS row in valid/, a FAIL row in
- * invalid/. Two checks per case — layer 1 runs the Zod schema, layer 2 posts the body
- * to the real controller (service mocked) and checks the 400 envelope or the 201.
- */
+/** Each fixture is its own case (PASS in valid/, FAIL in invalid/), checked on both layers. */
 export const fieldBodyCases = (
   ctx: ReturnType<typeof useUsersApp>,
   endpoint: UsersEndpoint,
@@ -234,11 +203,7 @@ export const fieldBodyCases = (
   }
 };
 
-/**
- * The `:id` path segment of Reissue credentials / Block IP, sent with a valid body so
- * the id is the only thing under test. API layer only — the id schema is private to
- * the controller.
- */
+/** `:id` with a valid body; API layer only, as the id schema is private to the controller. */
 export const fieldUserIdCases = (
   ctx: ReturnType<typeof useUsersApp>,
   endpoint: typeof REISSUE_ENDPOINT | typeof BLOCK_IP_ENDPOINT,
@@ -270,10 +235,7 @@ export const fieldUserIdCases = (
   }
 };
 
-/**
- * User id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through the API layer, with a valid body so the id is the only thing under test.
- */
+/** `input` is the raw id (URL-encoded); the body stays valid so only the id is tested. */
 export const describeUserIdTable = (
   ctx: ReturnType<typeof useUsersApp>,
   endpoint: typeof REISSUE_ENDPOINT | typeof BLOCK_IP_ENDPOINT,

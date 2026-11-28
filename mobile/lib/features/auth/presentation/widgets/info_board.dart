@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Presentation board — expands to fill available height above navigation.
 class InfoBoard extends StatelessWidget {
   const InfoBoard({
     super.key,

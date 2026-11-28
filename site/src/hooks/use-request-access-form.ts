@@ -14,7 +14,6 @@ import {
   type RequestAccessFormValues,
 } from '../validators/request-access-schema'
 
-/** `onSubmitted` runs after the request is sent, e.g. to switch the modal back to sign-in. */
 export function useRequestAccessForm(onSubmitted: () => void) {
   const [attachments, setAttachments] = useState<File[]>([])
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
@@ -45,7 +44,6 @@ export function useRequestAccessForm(onSubmitted: () => void) {
     setAttachmentError(null)
   }
 
-  /** Checks the attachments; shows the error under the dropzone and reports validity. */
   const checkAttachments = () => {
     const fileCheck = validateRequestAccessFiles(attachments)
     setAttachmentError(fileCheck.valid ? null : (fileCheck.message ?? 'Invalid attachments'))
@@ -74,7 +72,6 @@ export function useRequestAccessForm(onSubmitted: () => void) {
     toast.error(res.message)
   })
 
-  /** Flags a missing ID alongside the field errors instead of only after they pass. */
   const onSubmit = (event?: BaseSyntheticEvent) => {
     checkAttachments()
     return submitValidated(event)

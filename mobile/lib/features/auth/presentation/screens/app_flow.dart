@@ -14,26 +14,13 @@ import 'package:mobile/features/auth/presentation/widgets/leading/leading_slides
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_story.dart';
 import 'package:mobile/features/auth/presentation/widgets/splash_update_panel.dart';
 
-/// Root flow: entry splash → leading story → login.
+/// Entry splash → leading story → login, as three stacked opaque layers; each
+/// hand-off slides one layer away (smoother than a height-morph).
 ///
-/// Three opaque layers stacked bottom to top: login, the leading story, and
-/// the splash curtain. Each hand-off is a single vertical slide of one layer,
-/// revealing the next one already painted underneath — one transform on one
-/// opaque layer stays smooth where a height-morph could not.
-///
-/// Once on login, dragging its header down pulls the story back over it from
-/// the top, opened on its last beat so it can be rolled back to the first.
-///
-/// The splash also checks GitHub Releases for a newer build while it plays.
-/// When one exists the curtain stays down and shows [SplashUpdatePanel]
-/// instead of handing off, until the person updates or picks "Later".
-///
-/// It also restores the last signed-in session ([sessionRestoreProvider]):
-/// a live one skips straight to the dashboard, an expired one skips the story
-/// and lands on login with the reason, and none plays the story — but only
-/// on a fresh install. Once the story has been left (Continue on its last
-/// beat, or Skip) [LeadingStoryStorage] remembers it and later launches go
-/// straight to login; it stays reachable by pulling login's header down.
+/// Pulling login's header down brings the story back, opened on its last beat.
+/// The splash also offers updates ([SplashUpdatePanel]) and restores the
+/// session: live → dashboard, expired → login with the reason, none → story
+/// (first install only, see [LeadingStoryStorage]).
 class AppFlow extends ConsumerStatefulWidget {
   const AppFlow({super.key});
 
@@ -43,17 +30,14 @@ class AppFlow extends ConsumerStatefulWidget {
 
 class _AppFlowState extends ConsumerState<AppFlow>
     with TickerProviderStateMixin {
-  /// Drives the intro itself.
   late final AnimationController _introController;
 
-  /// Drives the curtain's exit.
   late final AnimationController _handoffController;
 
   late final Animation<double> _curtainSlide;
 
-  /// Where the leading story sits: 0 covers the screen, 1 is fully off the
-  /// top. Driven by animations for Continue and directly by the finger when
-  /// pulled down from login.
+  /// 0 covers the screen, 1 is fully off the top; finger-driven when pulled
+  /// from login.
   late final AnimationController _leadingController;
 
   GlobalKey<LeadingStoryState> _leadingKey = GlobalKey<LeadingStoryState>();
@@ -64,13 +48,11 @@ class _AppFlowState extends ConsumerState<AppFlow>
   bool _introDone = false;
   bool _assetsWarmed = false;
 
-  /// The intro animation has played out; the curtain may leave once the
-  /// update check lets it.
+  /// The curtain may leave once the update check allows.
   bool _introFinished = false;
   bool _handoffStarted = false;
 
-  /// Whether this install has been through the leading story before; null
-  /// until preferences have been read (well within the intro).
+  /// Null until preferences are read (well within the intro).
   bool? _leadingSeen;
 
   static const Duration _slideDuration = Duration(milliseconds: 850);
@@ -78,8 +60,8 @@ class _AppFlowState extends ConsumerState<AppFlow>
   @override
   void initState() {
     super.initState();
-    // Both controllers exist before anything starts ticking — the intro's
-    // completion listener reaches for the handoff one.
+    // Both exist before ticking: the intro's completion listener uses the
+    // handoff one.
     _introController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
@@ -95,8 +77,6 @@ class _AppFlowState extends ConsumerState<AppFlow>
 
     _curtainSlide = CurvedAnimation(
       parent: _handoffController,
-      // Eases out of rest and accelerates away — a single continuous move
-      // with no second beat to give the seam away.
       curve: Curves.easeInOutCubic,
     );
 
@@ -118,20 +98,17 @@ class _AppFlowState extends ConsumerState<AppFlow>
       _leadingSeen = seen;
       _maybeHandOff();
     });
-    // Runs alongside the intro; deferred a microtask because a provider may
-    // not change state while the tree is building.
+    // Deferred: a provider may not change state during build.
     Future.microtask(() {
       if (!mounted) return;
       ref.read(appUpdateProvider.notifier).check();
-      // Reading the saved session and confirming it with the server overlaps
-      // the intro, so a returning person rarely waits on it.
+      // Overlaps the intro so a returning person rarely waits.
       ref.read(sessionRestoreProvider);
     });
   }
 
-  /// Leave the splash once the intro has played, no update is being offered
-  /// (or the check is still out — it times out in seconds), and the saved
-  /// session has been resolved.
+  /// Waits for the intro, any update offer (the check times out in seconds) and
+  /// the session restore.
   void _maybeHandOff() {
     if (!mounted || !_introFinished || _handoffStarted) return;
     if (_leadingSeen == null) return;
@@ -168,12 +145,11 @@ class _AppFlowState extends ConsumerState<AppFlow>
       case SessionRestoreStatus.none:
       case null:
         if (_leadingSeen!) {
-          // Not a new install: the story played on an earlier launch.
           _handOffToLogin();
           return;
         }
-        // Build the story first and let it lay out for one frame, so the cost
-        // of its first paint lands before the curtain starts moving.
+        // Lay the story out a frame early so its first paint lands before the
+        // curtain moves.
         setState(() => _showLeading = true);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _handoffController.forward();
@@ -181,7 +157,6 @@ class _AppFlowState extends ConsumerState<AppFlow>
     }
   }
 
-  /// Lift the curtain straight onto login, with [message] in a snackbar.
   void _handOffToLogin({String? message}) {
     setState(() => _showLogin = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -205,8 +180,7 @@ class _AppFlowState extends ConsumerState<AppFlow>
     super.didChangeDependencies();
     if (_assetsWarmed) return;
     _assetsWarmed = true;
-    // Decode the story photos and the login header's photo while the splash
-    // is still playing; otherwise that work lands on the first reveal frame.
+    // Decode photos during the splash, not on the first reveal frame.
     precacheLeadingSlides(context);
     precacheImage(const AssetImage(AppAssets.loginEntryBanner), context);
   }
@@ -219,15 +193,13 @@ class _AppFlowState extends ConsumerState<AppFlow>
     super.dispose();
   }
 
-  /// Continue on the last beat, or Skip: slide the story up and off.
   void _dismissLeading() {
     if (_leadingSeen != true) {
       _leadingSeen = true;
       LeadingStoryStorage.instance.markSeen();
     }
     if (!_showLogin) {
-      // First hand-off: build login underneath and give it a frame to lay
-      // out, same as the splash does for the story.
+      // Give login a frame to lay out first, as the splash does for the story.
       setState(() => _showLogin = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _slideLeadingTo(1, curve: Curves.easeInOutCubic);
@@ -275,8 +247,7 @@ class _AppFlowState extends ConsumerState<AppFlow>
     _slideLeadingTo(open ? 0 : 1);
   }
 
-  /// System back while the story is up steps back a beat; on the first beat
-  /// it returns to login if there is one, otherwise leaves the app.
+  /// Steps back a beat; on the first beat returns to login, or leaves the app.
   void _onSystemBack(bool didPop, Object? _) {
     if (didPop) return;
     if (_leadingKey.currentState?.goBack() ?? false) return;
@@ -304,8 +275,8 @@ class _AppFlowState extends ConsumerState<AppFlow>
         body: Stack(
           fit: StackFit.expand,
           children: [
-            // Login sits underneath at full opacity — no fade, no transform,
-            // so its own header animation plays exactly as designed.
+            // No fade or transform, so login's own header animation plays as
+            // designed.
             if (_showLogin)
               LoginScreen(
                 onHeaderPullStart: _onPullStart,
@@ -330,8 +301,7 @@ class _AppFlowState extends ConsumerState<AppFlow>
       ).animate(_leadingController),
       child: AnimatedBuilder(
         animation: _leadingController,
-        // Corners round off as the story lifts, so its leading edge reads as
-        // a sheet moving over login rather than a hard seam.
+        // Rounded corners read as a sheet moving over login, not a hard seam.
         builder: (context, child) {
           final lift = (_leadingController.value * 6).clamp(0.0, 1.0);
           if (lift == 0) return child!;
@@ -353,8 +323,6 @@ class _AppFlowState extends ConsumerState<AppFlow>
     );
   }
 
-  /// The intro, its wordmark easing up into the top of the screen while the
-  /// update panel covers the foot.
   Widget _buildIntro() {
     final shows = ref.watch(appUpdateProvider.select((s) => s.showsPanel));
     final lift = shows ? MediaQuery.sizeOf(context).height * 0.45 : 0.0;
@@ -372,7 +340,6 @@ class _AppFlowState extends ConsumerState<AppFlow>
     );
   }
 
-  /// Rises from the foot of the splash when an update is on offer.
   Widget _buildUpdatePanel() {
     final shows = ref.watch(appUpdateProvider.select((s) => s.showsPanel));
     return SafeArea(

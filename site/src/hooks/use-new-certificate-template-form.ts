@@ -16,10 +16,6 @@ const EMPTY: NewCertificateTemplateFormValues = {
   orientation: 'landscape',
 }
 
-/**
- * Owns the "new template" form. The created template is handed back so the page can
- * open the customizer on it — filing a template and designing it is one errand.
- */
 export function useNewCertificateTemplateForm(
   open: boolean,
   onCreated: (template: CertificateTemplate) => void,
@@ -33,7 +29,6 @@ export function useNewCertificateTemplateForm(
     mode: 'onChange',
   })
 
-  // Reopening starts on a blank form rather than the last abandoned draft.
   const { reset } = form
   useEffect(() => {
     if (open) reset(EMPTY)

@@ -1,11 +1,4 @@
-/**
- * Prints the UNIT TESTING table for every case declared with `defineCases`
- * (see `config/test-case.ts`): one row per case, grouped by module, unit and
- * kind (valid / invalid inputs). Jest's `summary` reporter runs after this one
- * and adds the totals and the detail of any failed check.
- *
- * Plain CommonJS: Jest loads reporters without the ts-jest transform.
- */
+/** Prints the UNIT TESTING table. Plain CommonJS: Jest loads reporters without ts-jest. */
 const SEPARATOR = ' ¦ ';
 
 const useColor = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
@@ -26,16 +19,13 @@ const routeLabel = (title) => {
   return last.charAt(0).toUpperCase() + last.slice(1);
 };
 
-/** `PATCH /api/v1/users/:id/permissions` → `PATCH users/:id/permissions` — used when two routes share a label. */
+/** `PATCH /api/v1/users/:id/permissions` → `PATCH users/:id/permissions`. */
 const routeSignature = (title) => {
   const [method, path] = title.split(' ');
   return `${method} ${path.replace(/^\/(api\/)?(v\d+\/)?/, '')}`;
 };
 
-/**
- * One label per distinct route title in a unit: the short label, unless another
- * route of the same unit would print the same one — then method + path.
- */
+/** Short label per route; method + path when two routes would share one. */
 const routeLabels = (titles) => {
   const distinct = [...new Set(titles.filter(Boolean))];
   const byLabel = new Map();
@@ -55,7 +45,6 @@ const parseCase = (title) => {
   return { id, module, unit, kind, description, expected };
 };
 
-/** First line of a failure that says something, without colour or stack. */
 const firstReason = (failureMessages) => {
   const lines = stripAnsi(failureMessages.join('\n'))
     .split('\n')
@@ -149,8 +138,7 @@ class UnitCaseReporter {
         const ownerIndex = titles.findIndex((t) => parseCase(t));
         const owner = ownerIndex >= 0 ? parseCase(titles[ownerIndex]) : null;
         if (owner) {
-          // Groups between the file's root describe and the case: a route (shown only
-          // when the unit has several, see below) and a part of the request (id, body).
+          // Describes between root and case: optional route plus request part (id, body).
           const between = titles.slice(1, ownerIndex);
           const route = between.filter((t) => ROUTE.test(t)).pop();
           const scope = between.filter((t) => !ROUTE.test(t));

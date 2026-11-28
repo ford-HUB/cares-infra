@@ -28,33 +28,20 @@ interface RankingState {
   settings: RankingSettings
   volunteers: VolunteerRankingEntry[]
   donors: DonorRankingEntry[]
-  /** Colleges on volunteer hours and confirmed donations — school-wide. */
   departments: DepartmentRankings
-  /** Top-three participation race, one trend per board. */
   volunteerTrend: RankingTrend
   donorTrend: RankingTrend
-  /** The college the volunteer board is cut to — set for a coordinator, else null. */
   scopeDepartment: string | null
-  /** The period the standings on file were counted over. */
   period: RankingPeriod | null
   loading: boolean
   saving: boolean
-  /** False until the first fetch settles, so nothing renders shipped defaults first. */
   initialized: boolean
   error: string | null
-  /**
-   * Loads the settings and every board. The server scopes the volunteer board to the
-   * caller, so a coordinator's college needs no passing in. Without a period the
-   * saved default is used.
-   */
   fetchRankings: (period?: RankingPeriod) => Promise<void>
   saveSettings: (settings: RankingSettings) => Promise<boolean>
 }
 
-/**
- * Settings and standings live together: the scoring rule is what produces the points,
- * so a saved change has to rescore the boards before the page can show them.
- */
+/** Saved scoring changes must rescore the boards. */
 export const useRankingStore = create<RankingState>((set, get) => ({
   settings: RANKING_DEFAULT_SETTINGS,
   volunteers: [],
@@ -109,7 +96,6 @@ export const useRankingStore = create<RankingState>((set, get) => ({
     }
 
     set({ settings: result.data, saving: false })
-    // The rates just changed, so the standings on file are stale by definition.
     await get().fetchRankings(get().period ?? undefined)
     return true
   },

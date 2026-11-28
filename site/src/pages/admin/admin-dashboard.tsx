@@ -41,7 +41,7 @@ export function AdminDashboard() {
     setRefreshing(false)
   }
 
-  // `!initialized` covers the mount render, before the effect has flipped `loading`.
+  // `!initialized` covers the mount render before `loading` flips.
   if (!initialized || (loading && !overview)) {
     return (
       <ContentShell>

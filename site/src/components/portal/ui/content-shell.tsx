@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 
 interface ContentShellProps {
   children: ReactNode
-  /** Dashboard-style pages use max-width constraint; tables use full width. */
   variant?: 'dashboard' | 'full'
   className?: string
 }

@@ -47,15 +47,9 @@ import { ManageEventsPage } from '../pages/shared/manage-events-page'
 import { NotificationsPage } from '../pages/shared/Notifications'
 import { settingsChildRoutes } from './settings-child-routes'
 
-/** Program operations — the roles the tracker, event and report screens serve. */
 const OPERATIONS_ROLES: PortalRole[] = ['director', 'coordinator']
 
-/**
- * Every guarded page carries the same right as its sidebar entry, so hiding an item
- * from the nav and refusing its URL are one decision, and both follow what an admin
- * ticks in Access Control on the next sync. Roles narrow a guard only where the nav
- * does the same — see the note on `adminNav`.
- */
+/** Guards mirror the nav's permission/roles; see `adminNav`. */
 const gated = (permission: string, roles: PortalRole[] = PORTAL_ROLES) => (
   <ProtectedPortal roles={roles} permission={permission} />
 )
@@ -72,8 +66,6 @@ export const adminRoutes: RouteObject[] = [
           { path: 'overview', element: <AdminDashboard /> },
           { path: 'statistics', element: <StatisticsPage /> },
           {
-            // The needs survey is school-wide programme planning — the director's
-            // screen; the route matches so a coordinator typing the URL is bounced.
             element: <ProtectedPortal roles={['director']} />,
             children: [
               { path: 'residential-needs', element: <ResidentialNeedsPage /> },
@@ -120,8 +112,6 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // The account donations are collected into: the director's screen, so the
-            // route is narrowed to that role as well as to the right.
             element: gated(P.PAYMENT_SETTINGS_MANAGE, ['director']),
             children: [{ path: 'payments', element: <PaymentSettingsPage /> }],
           },
@@ -130,14 +120,10 @@ export const adminRoutes: RouteObject[] = [
             children: [{ path: 'access-control', element: <AccessControlPage /> }],
           },
           {
-            // The policy decides who can sign in at all — the same right the server
-            // requires on /api/v1/security-policy.
             element: gated(P.SECURITY_POLICY_MANAGE),
             children: [{ path: 'security-policies', element: <SecurityPoliciesPage /> }],
           },
           {
-            // The sign-in trail exposes every account's IPs; the server requires the
-            // same right on /api/v1/login-activity and /api/v1/audit-logs.
             element: gated(P.SECURITY_AUDIT_VIEW),
             children: [
               { path: 'login-activity', element: <LoginActivityPage /> },
@@ -145,13 +131,10 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // Every account's signed-in devices are listed and revocable here — the
-            // same right the server requires on /api/v1/sessions.
             element: gated(P.SECURITY_SESSION_REVOKE),
             children: [{ path: 'active-sessions', element: <ActiveSessionsPage /> }],
           },
           {
-            // Each account links its own Google mailbox; it is not a shared inbox.
             element: gated(P.MAIL_ACCESS),
             children: [{ path: 'mail-inbox', element: <MailInboxPage /> }],
           },
@@ -160,8 +143,7 @@ export const adminRoutes: RouteObject[] = [
             children: [{ path: 'support-tickets', element: <SupportTicketsPage /> }],
           },
           {
-            // Reviewing follows the "Publish reports" right, whoever holds it;
-            // `post-requirements` is the queue's original path, kept working.
+            // `post-requirements` is a legacy alias.
             element: gated(P.REPORTS_PUBLISH),
             children: [
               { path: 'report-queue', element: <QueueReviewerPage /> },
@@ -169,13 +151,10 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // The filed library is the director's screen; the coordinator has their
-            // own filed record below.
             element: gated(P.REPORTS_VIEW, ['director']),
             children: [{ path: 'monthly-reports', element: <MonthlyReportsPage /> }],
           },
           {
-            // The coordinator's half: submit a report, then read the filed record.
             element: gated(P.REPORTS_VIEW, ['coordinator']),
             children: [
               { path: 'upload-report', element: <UploadReportPage /> },
@@ -183,8 +162,6 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // The ledger follows the "View donations" right, not the role — an admin
-            // can open it to a coordinator, or close it to a director, per account.
             element: gated(P.DONATIONS_VIEW, OPERATIONS_ROLES),
             children: [
               { path: 'internal-donation-tracking', element: <InternalDonationTrackingPage /> },
@@ -203,21 +180,15 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // The nav shows Map to directors only; the route matches so a coordinator
-            // typing the URL is bounced instead of reaching the school-wide map.
             element: gated(P.EVENTS_VIEW, ['director']),
             children: [{ path: 'event-map', element: <EventMapPage /> }],
           },
           { path: 'rankings', element: <RankingsPage /> },
           {
-            // Ranking Customization is director-only in the nav; the route matches so
-            // a coordinator typing the URL is bounced to their dashboard.
             element: <ProtectedPortal roles={['director']} />,
             children: [{ path: 'ranking-customization', element: <RankingCustomizationPage /> }],
           },
           {
-            // Held by the director baseline; a coordinator granted "View
-            // certificates" reaches it too.
             element: gated(P.CERTIFICATES_VIEW, OPERATIONS_ROLES),
             children: [
               { path: 'templates-list', element: <CertificateTemplatesPage /> },
@@ -225,8 +196,6 @@ export const adminRoutes: RouteObject[] = [
             ],
           },
           {
-            // Post-event evaluation is the director's programme feedback — the nav
-            // shows it to directors only and the route bounces everyone else.
             element: <ProtectedPortal roles={['director']} />,
             children: [
               { path: 'evaluation-questionnaire', element: <EvaluationQuestionnairePage /> },

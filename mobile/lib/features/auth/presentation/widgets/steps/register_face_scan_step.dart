@@ -17,7 +17,6 @@ import 'package:mobile/features/auth/presentation/widgets/face_scan_overlay_pain
 import 'package:mobile/features/auth/presentation/widgets/unmirrored_face_image.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/// Step 2: single face photo with oval guide and alignment feedback.
 class RegisterFaceScanStep extends StatefulWidget {
   const RegisterFaceScanStep({
     super.key,
@@ -36,9 +35,7 @@ class RegisterFaceScanStep extends StatefulWidget {
   final Future<VerifyFaceResponse> Function(XFile selfie) verifySelfie;
   final void Function(FaceCaptureSet captures, double similarity) onVerified;
 
-  /// When set, a [FaceMatchFallbackMessage] offering manual registration
-  /// appears once the selfie can't be matched to the ID — the ID photo may be
-  /// too unclear to read a face from.
+  /// Set to offer [FaceMatchFallbackMessage] once the selfie can't be matched.
   final VoidCallback? onManualRegistration;
 
   /// How the fallback names the ID, e.g. `alumni ID`.
@@ -84,8 +81,7 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
   DateTime? _alignedSince;
   DateTime? _verifyCooldownUntil;
 
-  /// Selfies the server could not match to the ID. A face the server could
-  /// not find at all (a 4xx, usually an unclear ID photo) counts as enough on
+  /// A server 4xx (no face found, usually an unclear ID) counts as enough on
   /// its own.
   int _failedMatches = 0;
 
@@ -400,8 +396,8 @@ class _RegisterFaceScanStepState extends State<RegisterFaceScanStep>
       debugPrint('Face verification error: $e');
       if (mounted) {
         setState(() {
-          // The server could not find a face to compare (it answers 4xx);
-          // a dropped connection or a down service (5xx) is not the ID's fault.
+          // 4xx: no face to compare. A 5xx or dropped connection isn't the ID's
+          // fault.
           final statusCode = e is ApiException ? e.statusCode : null;
           if (statusCode != null && statusCode >= 400 && statusCode < 500) {
             _failedMatches = _manualAfterFailures;

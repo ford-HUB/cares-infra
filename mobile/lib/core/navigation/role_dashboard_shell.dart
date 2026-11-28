@@ -6,9 +6,6 @@ import 'package:mobile/features/dashboard/beneficiary/beneficiary_dashboard_scre
 import 'package:mobile/features/dashboard/presentation/screens/donor_dashboard_screen.dart';
 import 'package:mobile/features/dashboard/presentation/screens/home_screen.dart';
 
-/// Root shell for a signed-in account. It rebuilds whenever the active role
-/// changes, so switching roles swaps the dashboard, navigation, and features
-/// in place — same account, no new login.
 class RoleDashboardShell extends StatelessWidget {
   const RoleDashboardShell({super.key});
 
@@ -19,8 +16,7 @@ class RoleDashboardShell extends StatelessWidget {
     return AnimatedBuilder(
       animation: session,
       builder: (context, _) {
-        // Keyed per role so each dashboard keeps its own tab state and is not
-        // rebuilt into a different role's layout.
+        // Keyed per role so each dashboard keeps its own tab state.
         return KeyedSubtree(
           key: ValueKey(session.activeRole),
           child: _dashboardFor(session),
@@ -49,7 +45,6 @@ class RoleDashboardShell extends StatelessWidget {
               lastName: session.lastName,
               email: session.email,
             );
-        // Keep the donor record on the same account when switching in.
         DonorSession.instance.register(donor);
         return DonorDashboardScreen(donor: donor);
 

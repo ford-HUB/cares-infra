@@ -6,13 +6,12 @@ import type { CertificateDesign } from '../../../types/certificate-template'
 
 interface CertificateSealMarkProps {
   design: CertificateDesign
-  /** Diameter, in the sheet's own units, so the seal scales with the certificate. */
+  /** In sheet units, so the seal scales with the certificate. */
   diameter: number
-  /** Font of the seal block, applied to the label. */
   labelStyle?: React.CSSProperties
 }
 
-/** Points of a star with `points` spikes, drawn in a 100×100 box. */
+/** Drawn in a 100×100 box. */
 function starPoints(points: number, outer: number, inner: number): string {
   return Array.from({ length: points * 2 }, (_, index) => {
     const radius = index % 2 === 0 ? outer : inner
@@ -21,7 +20,6 @@ function starPoints(points: number, outer: number, inner: number): string {
   }).join(' ')
 }
 
-/** Evenly spaced circles around the rim, which is what makes a rosette scalloped. */
 function scallops(count: number, radius: number, size: number) {
   return Array.from({ length: count }, (_, index) => {
     const angle = (Math.PI * 2 * index) / count - Math.PI / 2
@@ -34,11 +32,7 @@ function scallops(count: number, radius: number, size: number) {
   })
 }
 
-/**
- * The seal itself: an imported SVG when the director uploaded one, otherwise the
- * pre-built artwork they picked. Everything is drawn in the accent colour and sized
- * off the seal block, so a seal cannot fall out of step with the rest of the sheet.
- */
+/** Uploaded SVG if any, else the picked built-in; sized off the seal block. */
 export function CertificateSealMark({
   design,
   diameter,

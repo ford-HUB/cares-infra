@@ -17,10 +17,7 @@ export function SecurityPoliciesPage() {
         </p>
       </header>
 
-      {/*
-        A failed fetch would otherwise leave the form showing its defaults, which reads
-        as the saved policy — and saving from there would quietly overwrite the real one.
-      */}
+      {/* Otherwise defaults read as saved, and saving would overwrite the real policy. */}
       {error ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

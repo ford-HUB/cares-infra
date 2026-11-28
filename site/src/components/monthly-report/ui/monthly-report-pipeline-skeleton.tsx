@@ -1,10 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/**
- * Mirrors `MonthlyReportPipeline` — same card height, same hero-plus-bar split, so
- * the swap to the loaded counts moves nothing on screen.
- */
 export function MonthlyReportPipelineSkeleton() {
   return (
     <Card aria-hidden size="sm" className="mb-4 shrink-0 shadow-sm">

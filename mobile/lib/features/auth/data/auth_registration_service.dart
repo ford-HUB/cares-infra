@@ -12,7 +12,7 @@ class AuthRegistrationService {
 
   final ApiClient _api;
 
-  /// Starts an ID-less registration session (beneficiaries skip the ID upload).
+  /// ID-less session (beneficiaries skip the ID upload).
   Future<StartSessionResponse> startSession({required String roleType}) async {
     final response = await _api.postJson(
       '/auth/start-session',
@@ -59,19 +59,14 @@ class AuthRegistrationService {
     return UploadIdResponse.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Opens an alumni registration with the alumni ID's two sides. The server does
-  /// not run it through the student-ID check or OCR; the face scan
-  /// ([verifyFace]) is matched against it, and a director reviews it with the
-  /// registration.
+  /// Skips the student-ID check and OCR; [verifyFace] matches against it and a
+  /// director reviews it.
   Future<UploadIdResponse> uploadAlumniId({
     required XFile front,
     required XFile back,
   }) => _uploadReviewedId('/auth/upload-alumni-id', front: front, back: back);
 
-  /// Opens a partner-barangay volunteer registration with the two sides of the
-  /// ID they present (a barangay ID or other valid ID). It is not photo
-  /// checked, face matched or read by OCR — a director reviews it with the
-  /// sign-up.
+  /// Not photo-checked, face-matched or OCR'd; a director reviews it.
   Future<UploadIdResponse> uploadPartnerBarangayId({
     required XFile front,
     required XFile back,
@@ -81,12 +76,9 @@ class AuthRegistrationService {
     back: back,
   );
 
-  /// Opens a manual registration for a staff or alumni volunteer whose ID the
-  /// app could not recognize. The ID is exempt from the automatic ID checks and
-  /// the face scan; the details are typed in, and a director reviews the ID
-  /// through the Request module before the account opens.
-  ///
-  /// [volunteerType] is the API value — `STAFF` or `ALUMNI`.
+  /// For staff/alumni IDs the app couldn't recognize: skips the ID checks and
+  /// face scan; a director reviews it via the Request module. [volunteerType]
+  /// is `STAFF` or `ALUMNI`.
   Future<UploadIdResponse> uploadManualId({
     required XFile front,
     required XFile back,
@@ -129,8 +121,7 @@ class AuthRegistrationService {
     return UploadIdResponse.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Attaches the beneficiary's supporting document (any file type) to the
-  /// registration session; a second call replaces the first file.
+  /// Any file type; a second call replaces the first.
   Future<RegistrationDocumentResponse> uploadRegistrationDocument({
     required String registrationId,
     required String path,
@@ -217,14 +208,9 @@ class AuthRegistrationService {
     return response['data'] as Map<String, dynamic>? ?? {};
   }
 
-  /// [phoneNumber] and [idNumber] are checked for clashes with existing
-  /// accounts before a code is sent, so a taken value is reported as a
-  /// [RegistrationConflict] on the form rather than after the OTP.
-  ///
-  /// [purpose] is [VerificationPurpose.login] when an existing account that never
-  /// finished its OTP is being verified from the sign-in screen.
-  ///
-  /// [resend] forces the server to mail a new code even if one is still live.
+  /// [phoneNumber] / [idNumber] clashes surface as a [RegistrationConflict]
+  /// before the OTP. [purpose] is login when verifying an unfinished account
+  /// from sign-in; [resend] forces a new code.
   Future<SendVerificationResponse> sendVerificationCode({
     required String email,
     String? phoneNumber,
@@ -272,8 +258,7 @@ class AuthRegistrationService {
     );
   }
 
-  /// Any file type is accepted; well-known ones get their real type so the
-  /// portal can preview them, everything else goes up as a generic binary.
+  /// Known types get their real MIME type so the portal can preview them.
   MediaType _documentContentType(String name) {
     final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';
     return switch (ext) {
@@ -315,5 +300,4 @@ class AuthRegistrationService {
   }
 }
 
-/// Why a verification code is being mailed — see `sendVerificationCode`.
 enum VerificationPurpose { registration, login }

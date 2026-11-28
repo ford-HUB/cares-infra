@@ -6,7 +6,6 @@ import { CERTIFICATES_JOBS } from '../jobs/certificates-scheduler';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from '../scheduler-registry';
 import { CatalogedProcessor } from './base-processor';
 
-/** Cuts certificates for every finished event with a deployment still going out. */
 @Processor(SCHEDULER_QUEUES.certificates)
 export class CertificatesProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(CertificatesProcessor.name);

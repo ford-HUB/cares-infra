@@ -5,12 +5,8 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/user_request_service.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 
-/// A beneficiary applying for an event. The application is not a
-/// registration: it carries a proof of residency (a PDF of a barangay
-/// certificate or similar) and waits as "Pending approval" until a director
-/// accepts it on the portal — only then is the place booked.
-///
-/// Resolves to `true` once the application is filed.
+/// Not a registration: carries proof of residency (PDF) and stays "Pending
+/// approval" until a director accepts it. True once filed.
 Future<bool> showBeneficiaryEventApplicationDialog(
   BuildContext context,
   CaresEvent event,
@@ -228,8 +224,6 @@ class _PickedPdf {
   }
 }
 
-/// The upload slot: a call to action until a PDF is chosen, then the file's
-/// name and size with a way to swap or drop it.
 class _PdfSlot extends StatelessWidget {
   const _PdfSlot({
     required this.proof,

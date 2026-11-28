@@ -20,7 +20,6 @@ function matches(contact: MailContact, term: string): boolean {
   )
 }
 
-/** People already visible in the open folder — the fastest match, and free. */
 function correspondents(messages: MailSummary[], term: string): MailContact[] {
   return messages
     .map((message) => ({
@@ -30,7 +29,7 @@ function correspondents(messages: MailSummary[], term: string): MailContact[] {
     .filter((contact) => contact.email && matches(contact, term))
 }
 
-/** Later entries never displace an earlier one, so source order sets priority. */
+/** Source order sets priority. */
 function dedupe(contacts: MailContact[]): MailContact[] {
   const seen = new Set<string>()
   return contacts.filter((contact) => {
@@ -41,18 +40,13 @@ function dedupe(contacts: MailContact[]): MailContact[] {
   })
 }
 
-/**
- * Recipient suggestions for the fragment currently being typed. Correspondents from
- * the loaded mail appear first because they need no request; CARES users follow, from
- * a debounced directory lookup. Fetching pauses while `enabled` is false, so picking a
- * suggestion does not immediately reopen the list.
- */
+/** Paused while `enabled` is false so picking a suggestion doesn't reopen the list. */
 export function useRecipientSuggestions(
   fragment: string,
   enabled: boolean,
 ): UseRecipientSuggestionsResult {
   const messages = useMailboxStore((s) => s.messages)
-  /** Results are stamped with the term that produced them, so a stale page never shows. */
+  /** Stamped with its term so a stale page never shows. */
   const [directory, setDirectory] = useState<{ term: string; contacts: MailContact[] }>({
     term: '',
     contacts: [],

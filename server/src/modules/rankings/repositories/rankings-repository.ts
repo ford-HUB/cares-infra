@@ -8,7 +8,6 @@ import {
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/** Ruled attendance plus the volunteer it belongs to — the board's raw material. */
 const RANKED_ATTENDANCE_SELECT = {
   status: true,
   hours_rendered: true,
@@ -38,12 +37,11 @@ export type RankedAttendanceRow = Prisma.EventAttendanceGetPayload<{
   select: typeof RANKED_ATTENDANCE_SELECT;
 }>;
 
-/** A confirmed donation plus its donor — the donor board's raw material. */
 const CONFIRMED_DONATION_SELECT = {
   kind: true,
   amount: true,
   confirmed_at: true,
-  /** The college the gift is credited to on the department board. */
+  /** Credits the department board. */
   event: { select: { department: true } },
   user: {
     select: {
@@ -64,15 +62,10 @@ export type ConfirmedDonationRow = Prisma.DonationGetPayload<{
 }>;
 
 export interface RankedAttendanceFilter {
-  /** Only events that ended at or after this moment. */
+  /** Events ended at or after this. */
   since?: Date;
-  /** Only one volunteer's rows — for a profile's own tally. */
   userId?: string;
-  /**
-   * Only volunteers whose school record files them under one of these spellings
-   * of a college — the department the volunteer is actually assigned to, whatever
-   * events they attended.
-   */
+  /** By the volunteer's assigned college (any spelling), not events attended. */
   volunteerDepartments?: string[];
 }
 
@@ -86,7 +79,7 @@ export class RankingsRepository {
     });
   }
 
-  /** There is one settings row; the first save creates it, later saves update it. */
+  /** Single row, created on first save. */
   async saveSettings(data: {
     points_per_attendance: number;
     absence_penalty_step: number;
@@ -105,11 +98,7 @@ export class RankingsRepository {
     });
   }
 
-  /**
-   * Every ruled row (COMPLETED / ABSENT) of a volunteer on an event that has ended
-   * and was not cancelled. PENDING rows are left out here rather than in the scorer:
-   * an unsynced device is not a miss.
-   */
+  /** COMPLETED / ABSENT on ended, non-cancelled events; PENDING excluded (unsynced isn't a miss). */
   findRankedAttendance(
     now: Date,
     filter: RankedAttendanceFilter = {},
@@ -147,10 +136,7 @@ export class RankingsRepository {
     });
   }
 
-  /**
-   * Every confirmed donation, with the donor it belongs to — the donor board's raw
-   * material. Only CONFIRMED rows count: a pledge that never arrived is not a gift.
-   */
+  /** CONFIRMED only: an unarrived pledge isn't a gift. */
   findConfirmedDonations(
     now: Date,
     filter: { since?: Date; userId?: string } = {},
@@ -168,7 +154,7 @@ export class RankingsRepository {
     });
   }
 
-  /** The school's college list — every one is on the department board, even at zero. */
+  /** Every college appears, even at zero. */
   findDepartments() {
     return this.prisma.department.findMany({
       select: { name: true },

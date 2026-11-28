@@ -5,10 +5,7 @@ import {
   type LandingCollageSlot,
 } from '../../../constants/landing-bulletin'
 
-/* Outlines traced from the collage reference, in its own pixel coordinates; the
- * view box crops to the collage. The two bottom photos run past the lower edge so
- * they end in a straight cut, as they do in the reference. Each box is the photo's
- * slice-fit area around its path. */
+/* Paths traced from the collage reference in its pixel coordinates; the bottom photos overrun so they end in a straight cut. */
 const VIEW_BOX = '95 60 810 560'
 
 const SLOTS: Record<
@@ -40,7 +37,6 @@ const SLOTS: Record<
 /* SVG children scale and fade about their own bounds, not the canvas origin. */
 const OWN_ORIGIN = '[transform-box:fill-box] origin-center'
 
-/** Photos pop in one after another, after the hero copy has started. */
 const CELL_ENTER = `${OWN_ORIGIN} motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:fill-mode-both motion-safe:duration-700`
 const HERO_LEAD_STEPS = 3
 
@@ -67,7 +63,6 @@ export function LandingLeafCollage() {
         return (
           <g key={photo.slot} className={`${CELL_ENTER} group`} style={enterDelay(index)}>
             <title>{photo.alt}</title>
-            {/* Soft halo outside the frame, then the crisp white frame over the photo. */}
             <path d={path} fill="none" stroke="white" strokeOpacity={0.3} strokeWidth={12} />
             <g clipPath={`url(#${clipId(photo.slot)})`}>
               <image

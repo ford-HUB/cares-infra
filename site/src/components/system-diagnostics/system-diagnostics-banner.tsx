@@ -20,11 +20,6 @@ interface SystemDiagnosticsBannerProps {
   onRunNow: () => void
 }
 
-/**
- * The one question this page answers first: is everything the schedulers depend on
- * answering right now. The verdict, how stale it is, and the strip of past sweeps
- * sit together so "fine now" and "fine for the last hour" are read in one glance.
- */
 export function SystemDiagnosticsBanner({
   report,
   history,

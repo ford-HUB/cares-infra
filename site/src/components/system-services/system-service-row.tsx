@@ -15,9 +15,8 @@ import { ServiceStateBadge } from './ui/service-state-badge'
 
 interface SystemServiceRowProps {
   service: SystemService
-  /** Shared clock tick — the countdown and the elapsed bar read from it, not Date.now. */
+  /** Shared clock tick; the countdown and elapsed bar read it instead of `Date.now`. */
   now: number
-  /** True while one of this row's controls is in flight. */
   busy: boolean
   onTogglePaused: (service: SystemService) => void
   onRunNow: (service: SystemService) => void

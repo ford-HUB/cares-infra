@@ -9,11 +9,9 @@ import type { InternalDonation } from '../types/internal-donation'
 interface InternalDonationState {
   donations: InternalDonation[]
   loading: boolean
-  /** False until the first fetch settles, so the tiles don't flash zeroes. */
   initialized: boolean
   error: string | null
   fetchDonations: () => Promise<void>
-  /** Resolves with the donor address that was notified, for the caller's toast. */
   advance: (id: string, change: DonationStatusChange) => Promise<string>
 }
 

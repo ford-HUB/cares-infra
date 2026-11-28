@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-/** One household's Beneficiary Needs Assessment answers, as the portal shapes them. */
 export interface NeedsHouseholdInput {
   id: string;
   familyName: string;
@@ -22,13 +21,13 @@ export interface NeedsHouseholdInput {
 export interface NeedsClusterOptions {
   /** Groups to find; the service clamps it to the row count. */
   k?: number;
-  /** Random start for k-means++; same seed over the same rows is reproducible. */
+  /** k-means++ seed; reproducible for the same rows. */
   seed?: number;
   maxIterations?: number;
 }
 
 export type NeedPriority = 'critical' | 'high' | 'moderate' | 'low';
-/** The named Q1 categories the model flags — "other" is free text and left out. */
+/** Named Q1 categories; free-text "other" excluded. */
 export type ClusterNeed =
   | 'food'
   | 'healthcare'
@@ -48,7 +47,7 @@ export type NeedBarrier =
 export interface NeedsClusterBarangay {
   name: string;
   count: number;
-  /** `count` over the cluster's size — how concentrated the group is there. */
+  /** `count` / cluster size. */
   share: number;
 }
 
@@ -56,13 +55,13 @@ export interface NeedsCluster {
   /** 0-based, ordered highest need first. */
   index: number;
   householdIds: string[];
-  /** Mean of every feature over the members, in original units. */
+  /** Member feature means, original units. */
   centroid: Record<string, number>;
   dominantNeed: ClusterNeed;
   topBarrier: NeedBarrier;
   priority: NeedPriority;
   barangay: NeedsClusterBarangay;
-  /** Seriousness (1–5) plus mean named needs ticked (0–5) — what the ranking uses. */
+  /** Seriousness (1–5) + mean named needs (0–5); the ranking key. */
   needLevel: number;
 }
 
@@ -70,7 +69,7 @@ export interface NeedsClusterResult {
   k: number;
   clusters: NeedsCluster[];
   assignments: Record<string, number>;
-  /** Sum of squared distances to centroids in standardised feature space. */
+  /** Sum of squared distances in standardised space. */
   inertia: number;
   iterations: number;
   converged: boolean;
@@ -79,7 +78,7 @@ export interface NeedsClusterResult {
   features: string[];
 }
 
-/** decision-service already emits camelCase, so the envelope needs no renaming. */
+/** Already camelCase. */
 interface DecisionApiResponse {
   ok: boolean;
   message?: string;
@@ -92,11 +91,6 @@ export class DecisionServiceClient {
   private readonly baseUrl =
     process.env.DECISION_SERVICE_URL ?? 'http://localhost:8006';
 
-  /**
-   * Groups households with a similar need profile using scikit-learn K-Means and
-   * describes each group — its defining need, top barrier, priority band, and the
-   * barangay it concentrates in — so a programme can be aimed at each one.
-   */
   async clusterNeeds(
     households: NeedsHouseholdInput[],
     options: NeedsClusterOptions = {},

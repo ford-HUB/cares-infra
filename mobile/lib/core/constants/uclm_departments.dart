@@ -67,8 +67,6 @@ class UclmDepartments {
     'Non-Teaching Personnel': ['NT - Non-Teaching Personnel'],
   };
 
-  /// Grade levels for the basic-education departments, which use grades instead
-  /// of the college year levels.
   static const gradeLevelsByDepartment = {
     'Senior High School Department': ['Grade 11', 'Grade 12'],
     'Basic Education (Junior High School)': [
@@ -90,14 +88,13 @@ class UclmDepartments {
   static List<String> coursesFor(String department) =>
       coursesByDepartment[department] ?? const [];
 
-  /// Grade levels for a basic-education department, or null for a college.
+  /// Null for a college department.
   static List<String>? gradeLevelsFor(String? department) =>
       gradeLevelsByDepartment[department];
 
   static bool isNonTeaching(String? department) =>
       department?.trim() == nonTeaching;
 
-  /// Best-effort match of OCR-extracted text to a known department name.
   static String? matchDepartment(String extracted) {
     final normalized = extracted.trim().toLowerCase();
     if (normalized.isEmpty) return null;
@@ -114,7 +111,6 @@ class UclmDepartments {
     return null;
   }
 
-  /// Best-effort match of OCR-extracted text to a course under [department].
   static String? matchCourse(String department, String extracted) {
     final courses = coursesFor(department);
     if (courses.isEmpty) return null;

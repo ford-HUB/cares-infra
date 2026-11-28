@@ -5,19 +5,16 @@ import 'package:mobile/features/dashboard/data/models/donation_models.dart';
 import 'package:mobile/features/dashboard/data/models/donation_payment_models.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
-/// `/donations/payments` — opens a Xendit checkout for a money donation and
-/// watches it settle. The server owns the gateway; the app only ever sees the
-/// hand-off (a URL to open or a QR string to draw) and the resulting status.
+/// Xendit checkout. The server owns the gateway; the app only sees the hand-off
+/// (URL or QR string) and the status.
 class DonationPaymentService {
   DonationPaymentService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();
 
   final ApiClient _api;
 
-  /// Starts a checkout. [idempotencyKey] is minted once per attempt with
-  /// [newIdempotencyKey] and re-sent on retry, so a request that timed out
-  /// after the server already opened the charge comes back with the same
-  /// checkout instead of a second one.
+  /// Mint once per attempt with [newIdempotencyKey] and re-send on retry, so a
+  /// timed-out request returns the same checkout.
   Future<DonationPayment> createPayment({
     required String idempotencyKey,
     required String campaignId,
@@ -41,9 +38,8 @@ class DonationPaymentService {
     return DonationPayment.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Which channels CARES accepts right now, as the director set them in the
-  /// portal. Asked before the payment step so the app never offers a method the
-  /// server would refuse.
+  /// As set by the director; asked before the payment step so the app never
+  /// offers a refused method.
   Future<PaymentMethodAvailability> fetchAvailableMethods() async {
     final response = await _api.getJson('/payments/methods');
     return PaymentMethodAvailability.fromJson(

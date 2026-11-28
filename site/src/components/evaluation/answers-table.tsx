@@ -24,7 +24,7 @@ interface AnswersTableProps {
   loading: boolean
   initialized: boolean
   page: number
-  /** Max stars on the rating question, so a 4 reads as 4 of 5 and not 4 of 10. */
+  /** So a 4 reads as 4 of 5, not 4 of 10. */
   ratingMax: number
   onPageChange: (page: number) => void
   onView: (response: EvaluationResponse) => void
@@ -34,7 +34,6 @@ const cellBorder = ANSWER_CELL_BORDER
 const cellBase = ANSWER_CELL_BASE
 const gutter = ANSWER_GUTTER_CELL
 
-/** The participants' submissions, one per row, with their star rating on the row. */
 export function AnswersTable({
   responses,
   loading,

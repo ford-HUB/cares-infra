@@ -9,10 +9,7 @@ import {
 import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
 import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
-/**
- * The portal filters and sorts the loaded set client-side, so the list is fetched
- * whole rather than paged — capped so a runaway queue cannot ship unbounded rows.
- */
+/** Filtered client-side, so fetched whole but capped. */
 export const SUPPORT_TICKETS_DEFAULT_LIMIT = 200;
 export const SUPPORT_TICKETS_MAX_LIMIT = 500;
 
@@ -34,15 +31,12 @@ export const ListSupportTicketsQuerySchema = z
   })
   .strict();
 
-/**
- * Status and note travel together: a note explaining a move must not be able to land
- * without the move, or vice versa.
- */
+/** Status and note travel together. */
 export const UpdateSupportTicketSchema = z
   .object({
     status: z.enum(SupportTicketStatus).optional(),
     note: z.string().trim().min(1).max(2000).optional(),
-    /** `null` unassigns; omit the key to leave the assignee untouched. */
+    /** `null` unassigns; omit to keep. */
     assignee_id: z.uuid().nullable().optional(),
   })
   .strict()
@@ -80,7 +74,7 @@ export const SupportTicketReplySchema = z.object({
 
 export const SupportTicketSchema = z.object({
   support_ticket_id: z.string(),
-  /** Sequential tracking number; the portal renders it as `Support #010`. */
+  /** Rendered as `Support #010`. */
   reference_number: z.number(),
   subject: z.string(),
   description: z.string(),
@@ -102,7 +96,7 @@ export const SupportTicketSchema = z.object({
 
 export const SupportTicketListResponseSchema = z.object({
   items: z.array(SupportTicketSchema),
-  /** Total matching rows on the server, which may exceed what was returned. */
+  /** May exceed the returned rows. */
   total: z.number(),
 });
 

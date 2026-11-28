@@ -1,11 +1,8 @@
 import directorPortrait from '../assets/landing_page/org/montebon-director-message.jpg'
 import { LANDING_ORG_CARES_DIRECTOR } from './landing-org'
 
-/** The director's message that closes the About section, set on a glass scroll. The
- *  name comes from the org chart's entry, so the two never drift apart; the portrait is
- *  the message's own formal photo. */
+/** Name comes from the org chart entry so the two never drift. */
 export const LANDING_DIRECTOR_MESSAGE = {
-  /** Section heading above the scroll, in the "Our Partners" style. */
   section: {
     title: { before: 'Leading with', accent: 'Purpose' },
     description:

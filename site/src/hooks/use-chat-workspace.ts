@@ -28,7 +28,6 @@ function matchesTerm(contact: ChatContact, term: string): boolean {
   return haystack.includes(term)
 }
 
-/** Wires the chat store to the page: search, selection, files, and the draft. */
 export function useChatWorkspace() {
   const currentUserId = useAuthStore((s) => s.user?.id ?? null)
 
@@ -148,7 +147,6 @@ export function useChatWorkspace() {
     activeMessages,
     currentUserId,
     presenceOf,
-    /** `false` for a contact with no prior conversation — drives the empty state. */
     hasHistory: threadLoaded && activeMessages.length > 0,
     draft,
     setDraft,
@@ -158,7 +156,6 @@ export function useChatWorkspace() {
     handleSend,
     onSelect: (contactId: string) => {
       if (contactId === activeContactId) return
-      // A different thread starts with a clean composer.
       setDraft('')
       clearAttachments(attachments)
       void selectContact(contactId)

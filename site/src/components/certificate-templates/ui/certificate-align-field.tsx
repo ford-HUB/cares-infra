@@ -15,14 +15,10 @@ const ALIGN_ICONS: Record<CertificateTextAlign, typeof AlignLeft> = {
 interface CertificateAlignFieldProps {
   value: CertificateTextAlign
   onChange: (align: CertificateTextAlign) => void
-  /** No block selected — alignment is always a property of one block. */
   disabled?: boolean
 }
 
-/**
- * Pushes the selected block's text to the left edge of its own box, the centre, or
- * the right edge — the box itself stays where it was dragged.
- */
+/** Aligns text inside the block's box; the box itself stays put. */
 export function CertificateAlignField({
   value,
   onChange,

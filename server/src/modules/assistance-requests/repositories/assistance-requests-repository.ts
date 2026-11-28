@@ -7,7 +7,6 @@ import {
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/** The fields a beneficiary fills in — set when filing, changed by an edit. */
 export interface AssistanceRequestFieldsInput {
   title: string;
   category: AssistanceCategory;
@@ -32,7 +31,6 @@ export type AssistanceRequestRow = Prisma.AssistanceRequestGetPayload<{
   include: typeof requestInclude;
 }>;
 
-/** The portal's view also needs who filed it. */
 const siteRequestInclude = {
   ...requestInclude,
   user: {
@@ -50,13 +48,12 @@ export type SiteAssistanceRequestRow = Prisma.AssistanceRequestGetPayload<{
   include: typeof siteRequestInclude;
 }>;
 
-/** A staff move on a request: the status it lands in and the stage stamps. */
 export interface AssistanceTransitionInput {
   status: AssistanceRequestStatus;
   screenedAt?: Date;
   decidedAt?: Date;
   releasedAt?: Date;
-  /** Undefined leaves the existing note as it is. */
+  /** Undefined keeps the existing note. */
   statusNote?: string | null;
 }
 
@@ -64,7 +61,7 @@ export interface AssistanceTransitionInput {
 export class AssistanceRequestsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Every request, newest first — the portal groups them by day. */
+  /** Newest first. */
   async listAll(): Promise<SiteAssistanceRequestRow[]> {
     return this.prisma.assistanceRequest.findMany({
       include: siteRequestInclude,
@@ -90,10 +87,7 @@ export class AssistanceRequestsRepository {
     });
   }
 
-  /**
-   * Moves the request only while it is still in one of [fromStatuses], so a
-   * beneficiary's edit or cancel landing first wins. Null when it moved on.
-   */
+  /** Moves only while in [fromStatuses], so a concurrent edit/cancel wins. Null if it moved on. */
   async transitionIfIn(
     requestId: string,
     fromStatuses: readonly AssistanceRequestStatus[],
@@ -126,7 +120,7 @@ export class AssistanceRequestsRepository {
     });
   }
 
-  /** One of the user's own requests; null when it is not theirs or is gone. */
+  /** Null when not theirs or gone. */
   async findForUser(
     userId: string,
     requestId: string,
@@ -137,11 +131,7 @@ export class AssistanceRequestsRepository {
     });
   }
 
-  /**
-   * Applies an edit only while the request is still in [editableStatus] and
-   * unscreened, so a staff action landing between the read and this write
-   * wins. Null when that guard no longer holds.
-   */
+  /** Applies only while still editable, so a concurrent staff action wins. Null otherwise. */
   async updateFieldsIfEditable(
     requestId: string,
     editableStatus: AssistanceRequestStatus,
@@ -162,10 +152,7 @@ export class AssistanceRequestsRepository {
     });
   }
 
-  /**
-   * Withdraws the request while it is still in one of [cancellableStatuses].
-   * Null when it moved on (e.g. was completed) in the meantime.
-   */
+  /** Only while in [cancellableStatuses]; null if it moved on. */
   async cancelIfCancellable(
     requestId: string,
     cancellableStatuses: readonly AssistanceRequestStatus[],
@@ -189,7 +176,6 @@ export class AssistanceRequestsRepository {
     });
   }
 
-  /** The household size saved on the beneficiary's profile, if any. */
   async findHouseholdSize(userId: string): Promise<number | null> {
     const user = await this.prisma.user.findUnique({
       where: { user_id: userId },

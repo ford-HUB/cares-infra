@@ -3,7 +3,7 @@ import type { RankFrameAppearance } from '../../../types/ranking'
 import { RankFrameArt } from './rank-frame-designs'
 
 interface RankFrameProps {
-  /** Design and colours only — no standing, so previews can render it directly. */
+  /** No standing, so previews can render it directly. */
   appearance: RankFrameAppearance
   /** `sm` drops the ornaments outside the ring; `md` is the customization preview. */
   size?: 'sm' | 'md' | 'lg'
@@ -13,7 +13,7 @@ interface RankFrameProps {
 
 const FRAME_SIZE = { sm: 'h-9 w-9', md: 'h-14 w-14', lg: 'h-16 w-16' }
 
-/** A frame drawn from an appearance. `RankTierFrame` is this plus a tier lookup. */
+/** `RankTierFrame` is this plus a tier lookup. */
 export function RankFrame({ appearance, size = 'lg', title, children }: RankFrameProps) {
   const uid = useId()
   const gradientId = `frame-${uid}`

@@ -19,16 +19,13 @@ import { SessionSourceBadge } from './ui/session-source-badge'
 
 interface ActiveSessionsTableProps {
   sessions: ActiveSession[]
-  /** First page of a filter set — the grid is replaced by skeleton rows. */
+  /** First page of a filter set; later pages use `loadingMore`. */
   loading: boolean
-  /** A follow-up page — the loaded rows stay put and the footer shows progress. */
   loadingMore: boolean
-  /** False until the first fetch settles — see `active-sessions-store`. */
   initialized: boolean
   errored: boolean
   hasMore: boolean
   total: number
-  /** Session or account id currently being revoked, so its rows show as pending. */
   revoking: string | null
   onRevoke: (session: ActiveSession) => void
   onRevokeUser: (session: ActiveSession) => void
@@ -59,8 +56,7 @@ export function ActiveSessionsTable({
   const scrollRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLTableRowElement>(null)
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // or refetch keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refetches keep existing rows on screen.
   const showSkeleton = !initialized || (loading && sessions.length === 0)
 
   useInfiniteScroll({
@@ -70,8 +66,7 @@ export function ActiveSessionsTable({
     onLoadMore,
   })
 
-  // How many loaded devices each account has, so a row offers "end all" only when it
-  // would end more than the row itself.
+  // Loaded devices per account; "end all" shows only when it ends more than this row.
   const perUser = sessions.reduce<Record<string, number>>((counts, session) => {
     counts[session.userId] = (counts[session.userId] ?? 0) + 1
     return counts
@@ -242,10 +237,7 @@ export function ActiveSessionsTable({
                 )
               })}
 
-            {/*
-              The sentinel is a real row so it sits inside the scroll container, below
-              the last session. Crossing it is what asks the store for the next page.
-            */}
+            {/* Sentinel row inside the scroll container; crossing it loads the next page. */}
             {!showSkeleton && hasMore && (
               <tr ref={sentinelRef} aria-hidden>
                 <td colSpan={ACTIVE_SESSIONS_COLUMNS.length + 1} className="h-px p-0" />

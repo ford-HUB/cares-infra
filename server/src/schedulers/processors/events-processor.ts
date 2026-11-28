@@ -6,7 +6,6 @@ import { EVENTS_JOBS } from '../jobs/events-scheduler';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from '../scheduler-registry';
 import { CatalogedProcessor } from './base-processor';
 
-/** Moves event statuses forward on the clock. */
 @Processor(SCHEDULER_QUEUES.events)
 export class EventsProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(EventsProcessor.name);

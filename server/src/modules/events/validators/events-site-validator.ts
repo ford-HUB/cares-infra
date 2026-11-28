@@ -16,7 +16,6 @@ export const EVENT_ALLOWED_IMAGE_MIMES = [
 export const EVENT_MAX_PARTICIPANTS = 10000;
 export const EVENT_MAX_GOODS_TYPES = 20;
 
-/** The categories the portal's form offers. */
 export const EVENT_CATEGORIES = [
   'School',
   'Community',
@@ -31,12 +30,12 @@ export const EVENT_CATEGORIES = [
   'Others',
 ] as const;
 
-/** Multipart bodies deliver everything as strings, so booleans/numbers/JSON are coerced. */
+/** Multipart sends strings, so booleans/numbers/JSON are coerced. */
 const booleanFromString = z
   .union([z.boolean(), z.enum(['true', 'false', '1', '0'])])
   .transform((v) => v === true || v === 'true' || v === '1');
 
-/** A plain decimal, so `Number()` cannot read `0x10` or an empty box as a real count. */
+/** Plain decimal, so `0x10` or an empty box isn't a count. */
 const NUMERIC_TEXT_PATTERN = /^-?\d+(\.\d+)?(e[+-]?\d+)?$/i;
 
 const numberFromString = <T extends z.ZodType>(schema: T) =>
@@ -46,7 +45,7 @@ const numberFromString = <T extends z.ZodType>(schema: T) =>
     return NUMERIC_TEXT_PATTERN.test(v.trim()) ? Number(v) : v;
   }, schema);
 
-/** One value arrives as a string and several as an array; leaving it out means none. */
+/** A string for one, an array for several; omitted means none. */
 const listFromString = <T extends z.ZodType>(item: T, max: number) =>
   z.preprocess(
     (v) => (v === undefined ? [] : typeof v === 'string' ? [v] : v),
@@ -66,8 +65,7 @@ const geojsonFromString = z
         parsed = null;
       }
     }
-    // The attendance geofence reads this, so a shape it cannot use is refused here
-    // rather than quietly saving an event with no working boundary.
+    // The geofence needs a usable shape; refuse rather than save a broken boundary.
     if (!geofenceRings(parsed)) {
       ctx.addIssue({
         code: 'custom',
@@ -78,7 +76,7 @@ const geojsonFromString = z
     return parsed;
   });
 
-/** `2026-12-01T09:00`, with seconds and an offset optional. `new Date()` alone reads `' OR '1'='1` as 2001. */
+/** e.g. `2026-12-01T09:00`; `new Date()` alone reads `' OR '1'='1` as 2001. */
 const DATE_TIME_PATTERN =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})?$/;
 
@@ -93,11 +91,7 @@ const eventDateTime = (requiredMessage: string) =>
       { message: 'Enter a valid date and time' },
     );
 
-/**
- * The image route fetches whatever is stored here from the bucket every feature shares,
- * so a reference must resolve to a file this feature uploaded — `events/{name}`, as a
- * bare key or as its object URL. A URL is resolved first, so `..` cannot climb out.
- */
+/** Must resolve to `events/{name}` (bare key or object URL) in the shared bucket; URLs resolve first so `..` can't escape. */
 const EVENT_IMAGE_KEY_PATTERN = /^events\/[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
 const isEventImageReference = (value: string): boolean => {

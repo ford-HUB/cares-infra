@@ -10,7 +10,6 @@ interface CalendarEventChipProps {
   onSelect: (event: CalendarEvent) => void
 }
 
-/** One event as a single line — the month grid and the all-day rail both use it. */
 export function CalendarEventChip({ event, onSelect }: CalendarEventChipProps) {
   const tint = CALENDAR_CATEGORY_TINTS[event.category]
   const time = event.allDay

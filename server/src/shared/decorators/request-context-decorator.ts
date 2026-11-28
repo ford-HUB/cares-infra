@@ -1,11 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { AuthenticatedRequest } from '../types/authenticated-request';
 
-/**
- * Where the request came from, for the audit trail. Every privileged action records
- * it, so it is read once here rather than repeating `@Ip()` and `@Headers()` on each
- * handler that happens to write an entry.
- */
+/** Read once for the audit trail instead of `@Ip()`/`@Headers()` per handler. */
 export interface RequestContextDto {
   ipAddress?: string;
   userAgent?: string;

@@ -12,15 +12,10 @@ import { PaymentSettingsService } from '../../payments/services/payment-settings
 import { DonationsWebhookService } from '../services/donations-webhook-service';
 
 /**
- * Xendit's callback URL. Register it once in the Xendit dashboard
- * (Settings → Callbacks) for *eWallets*, *QR codes* and *Invoices*:
- *
+ * Register in Xendit (Settings → Callbacks) for eWallets, QR codes and Invoices:
  *   {API_PUBLIC_URL}/api/v1/donations/webhooks/xendit
- *
- * The dashboard's callback verification token is entered in the portal's Payments
- * module (and falls back to XENDIT_WEBHOOK_TOKEN while none is saved).
- * Xendit retries on anything but a 2xx, so a rejected token answers 401 and a
- * handled or duplicate event always answers 200.
+ * Token from the Payments module (fallback XENDIT_WEBHOOK_TOKEN). Xendit retries non-2xx,
+ * so a bad token is 401 and handled/duplicate events are 200.
  */
 @Controller('v1/donations/webhooks')
 export class DonationsWebhookController {
@@ -42,8 +37,7 @@ export class DonationsWebhookController {
     if (!this.xendit.isCallbackTokenValid(callbackToken, expected)) {
       throw new UnauthorizedException('Invalid callback token');
     }
-    // Every Xendit callback carries `webhook-id`; without it there is nothing
-    // to dedupe on, so fall back to the resource id inside the payload.
+    // No `webhook-id`: dedupe on the payload's resource id.
     const id = webhookId?.trim() || this.fallbackId(body);
     const result = await this.donationsWebhookService.handle(id, body);
     return { result };

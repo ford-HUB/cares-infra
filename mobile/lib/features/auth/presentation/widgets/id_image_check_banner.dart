@@ -3,8 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/id_image_pre_validator.dart';
 import 'package:mobile/features/auth/domain/id_image_quality.dart';
 
-/// Explains why a photo of one side of an ID was rejected and how to retake
-/// it. [onUseAnyway] is offered only when every issue is overridable.
+/// [onUseAnyway] is offered only when every issue is overridable.
 class IdImageCheckBanner extends StatelessWidget {
   const IdImageCheckBanner({super.key, required this.result, this.onUseAnyway});
 

@@ -7,16 +7,12 @@ import {
   registerQueueSchedulers,
 } from '../scheduler-registry';
 
-/** Job names on the cleanup queue — all of them are catalogued sweeps. */
 export const CLEANUP_JOBS = {
   purgeSettledNotifications: 'purge-settled-notifications',
   purgeFinishedJobs: 'purge-finished-jobs',
 } as const;
 
-/**
- * Nightly housekeeping. Nothing enqueues onto this queue by hand; it exists so the
- * purges have their own worker and a failed purge cannot hold up a notification.
- */
+/** Own worker so a failed purge can't hold up notifications. */
 @Injectable()
 export class CleanupScheduler implements OnModuleInit {
   private readonly logger = new Logger(CleanupScheduler.name);

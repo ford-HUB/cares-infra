@@ -5,11 +5,6 @@ import type {
 } from '../types/system-diagnostics'
 import { apiClient, parseApiError } from './api-client'
 
-/**
- * The diagnostics sweep on the server: the last report it wrote, or a fresh one on
- * demand. Failures throw with the server's message so the store can show it.
- */
-
 interface DiagnosticCheckApiResponse {
   id: string
   group: DiagnosticCheck['group']
@@ -71,12 +66,10 @@ async function diagnosticsRequest(
   }
 }
 
-/** The last sweep's report — what the minutely diagnostics job found. */
 export function fetchSystemDiagnostics(): Promise<SystemDiagnostics> {
   return diagnosticsRequest(() => apiClient.get('/api/v1/system-diagnostics'))
 }
 
-/** Runs every probe now and answers with the fresh report. */
 export function runSystemDiagnostics(): Promise<SystemDiagnostics> {
   return diagnosticsRequest(() =>
     apiClient.post('/api/v1/system-diagnostics/check'),

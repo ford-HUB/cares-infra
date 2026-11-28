@@ -8,11 +8,10 @@ import { modalReveal } from './ui/modal-reveal'
 import { REQUEST_FIELD_INPUT, RequestFieldLabel } from './ui/request-field-label'
 
 interface RequestAccessPanelProps {
-  /** Switches the modal to sign-in; also runs once a request is sent. */
+  /** Also runs once a request is sent. */
   onSignIn: () => void
 }
 
-/** Request-access card body; it sits inside the auth modal over the landing page. */
 export function RequestAccessPanel({ onSignIn }: RequestAccessPanelProps) {
   const {
     form,

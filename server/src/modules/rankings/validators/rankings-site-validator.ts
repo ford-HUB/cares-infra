@@ -2,14 +2,10 @@ import { z } from 'zod';
 import { GOODS_TYPE_IDS } from '../../../shared/constants/goods-types';
 import { SPECIAL_PARTICIPATION_ROLES } from '../../../shared/constants/participation-role-points';
 
-/** How far back the standings are counted. */
 export const RANKING_PERIODS = ['month', 'quarter', 'year', 'all'] as const;
 export const RankingPeriodSchema = z.enum(RANKING_PERIODS);
 
-/**
- * The frame gallery the portal's Customization page offers. Kept in step with
- * `site/src/constants/rank-frames.ts` and the app's `rank_frame_design.dart`.
- */
+/** Must match `site/src/constants/rank-frames.ts` and the app's `rank_frame_design.dart`. */
 export const RANK_FRAME_DESIGNS = [
   'aurora',
   'laurel',
@@ -31,10 +27,7 @@ export const RANKING_TIER_LABEL_MAX = 24;
 export const RANKING_TIER_MIN_COUNT = 2;
 export const RANKING_TIER_MAX_COUNT = 8;
 
-/**
- * One rung of the ladder. `max_rank` is the highest standing still in the tier;
- * null marks the catch-all last tier that takes everyone below the rest.
- */
+/** `max_rank` is the tier's lowest standing; null marks the catch-all last tier. */
 export const RankingTierSchema = z
   .object({
     id: z.string().trim().min(1),
@@ -56,7 +49,7 @@ export const DONOR_PESOS_PER_POINT_MIN = 1;
 export const DONOR_PESOS_PER_POINT_MAX = 100_000;
 export const GOODS_TYPE_VALUE_MAX = 1_000_000;
 
-/** Pesos credited per unit of each goods type — one entry per catalogued type. */
+/** Pesos per unit, per goods type. */
 export const GoodsTypeValuesSchema = z.partialRecord(
   z.enum(GOODS_TYPE_IDS),
   z.number().int().min(0).max(GOODS_TYPE_VALUE_MAX),
@@ -64,24 +57,22 @@ export const GoodsTypeValuesSchema = z.partialRecord(
 
 export const PARTICIPATION_ROLE_POINTS_MAX = 500;
 
-/** Extra points per attended event for each approved special role. */
 export const ParticipationRolePointsSchema = z.partialRecord(
   z.enum(SPECIAL_PARTICIPATION_ROLES),
   z.number().int().min(0).max(PARTICIPATION_ROLE_POINTS_MAX),
 );
 
-/** The whole scoring rule and ladder, as stored and as the portal edits it. */
 export const RankingSettingsResponseSchema = z.object({
   points_per_attendance: z.number().int(),
   absence_penalty_step: z.number().int(),
   absence_reset_days: z.number().int(),
-  /** Bonus on top of `points_per_attendance` for an approved Organizer/Facilitator/Speaker. */
+  /** Bonus for approved Organizer/Facilitator/Speaker. */
   participation_role_points: ParticipationRolePointsSchema,
-  /** Donor board: one point per this many pesos of confirmed donations. */
+  /** One point per this many confirmed pesos. */
   donor_pesos_per_point: z.number().int(),
   goods_type_values: GoodsTypeValuesSchema,
   default_period: RankingPeriodSchema,
-  /** Highest tier first; the last one is the catch-all and has no cut-off. */
+  /** Highest first; the last is the catch-all. */
   tiers: z.array(RankingTierSchema),
   updated_at: z.string(),
 });
@@ -126,7 +117,6 @@ export const RankingsQuerySchema = z
   })
   .strict();
 
-/** One volunteer's standing with the figures that produced it. */
 export const VolunteerRankingEntrySchema = z.object({
   user_id: z.string(),
   firstname: z.string(),
@@ -134,13 +124,12 @@ export const VolunteerRankingEntrySchema = z.object({
   email: z.string(),
   department: z.string().nullable(),
   rank: z.number().int(),
-  /** Standing in the previous period; null for a first-time entrant. */
+  /** Null for first-time entrants. */
   previous_rank: z.number().int().nullable(),
   points: z.number().int(),
   points_earned: z.number().int(),
-  /** The share of `points_earned` that came from approved participation roles. */
+  /** Portion of `points_earned` from approved roles. */
   role_points: z.number().int(),
-  /** Attended events served as each approved special role. */
   role_counts: z.object({
     ORGANIZER: z.number().int(),
     FACILITATOR: z.number().int(),
@@ -149,21 +138,20 @@ export const VolunteerRankingEntrySchema = z.object({
   points_deducted: z.number().int(),
   events_attended: z.number().int(),
   events_missed: z.number().int(),
-  /** Credited service hours, kept for the table — points never come from them. */
+  /** Display only; points never come from hours. */
   hours: z.number(),
-  /** Straight misses still counting against the next one; 0 once a week has passed. */
+  /** 0 once a week has passed. */
   current_streak: z.number().int(),
   last_active_at: z.string().nullable(),
 });
 
 export const VolunteerRankingsResponseSchema = z.object({
   period: RankingPeriodSchema,
-  /** The college the board is cut to; null for the whole school. */
+  /** Null for the whole school. */
   department: z.string().nullable(),
   entries: z.array(VolunteerRankingEntrySchema),
 });
 
-/** Cumulative points of the top three at each recent month end. */
 export const RankingTrendResponseSchema = z.object({
   labels: z.array(z.string()),
   series: z.array(
@@ -176,16 +164,15 @@ export const RankingTrendResponseSchema = z.object({
   ),
 });
 
-/** One donor's standing with the figures that produced it. */
 export const DonorRankingEntrySchema = z.object({
   user_id: z.string(),
   name: z.string(),
   email: z.string(),
   rank: z.number().int(),
-  /** Standing in the previous period; null for a first-time entrant. */
+  /** Null for first-time entrants. */
   previous_rank: z.number().int().nullable(),
   points: z.number().int(),
-  /** Confirmed pesos in the period — money paid plus the credited value of goods. */
+  /** Money plus credited goods value. */
   amount: z.number().int(),
   money_amount: z.number().int(),
   goods_amount: z.number().int(),
@@ -199,41 +186,36 @@ export const DonorRankingsResponseSchema = z.object({
   entries: z.array(DonorRankingEntrySchema),
 });
 
-/** A college's standing on each of the department board's three orders. */
 const DepartmentRanksSchema = z.object({
-  /** Ranked on `score` — hours and pesos weighted as equal shares. */
+  /** Ranked on `score`. */
   overall: z.number().int(),
   hours: z.number().int(),
   donations: z.number().int(),
 });
 
-/** One college's volunteer hours and confirmed giving over the period. */
 export const DepartmentRankingEntrySchema = z.object({
-  /** Stable grouping key — the college code when known, else its lowercased name. */
+  /** College code when known, else the lowercased name. */
   key: z.string(),
   name: z.string(),
-  /** Short code (`CCS`, …) when the name maps to a known college. */
+  /** e.g. `CCS`. */
   code: z.string().nullable(),
   volunteers: z.number().int(),
   events_attended: z.number().int(),
   hours: z.number(),
-  /** Confirmed pesos to events run by this college — money plus goods value. */
+  /** Money plus goods value. */
   donation_amount: z.number().int(),
   donations: z.number().int(),
-  /** 0–100: half the college's share of all hours, half its share of all pesos. */
+  /** 0–100: half share of hours, half share of pesos. */
   score: z.number(),
   ranks: DepartmentRanksSchema,
-  /** Standings over the previous window; null for all time. */
+  /** Null for all time. */
   previous_ranks: DepartmentRanksSchema.nullable(),
 });
 
 export const DepartmentRankingsResponseSchema = z.object({
   period: RankingPeriodSchema,
   entries: z.array(DepartmentRankingEntrySchema),
-  /**
-   * What no college could be credited with: hours from volunteers with no school
-   * record, and pesos given to school-wide events.
-   */
+  /** Volunteers without a school record, and school-wide event donations. */
   unattributed: z.object({
     hours: z.number(),
     donation_amount: z.number().int(),

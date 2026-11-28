@@ -12,10 +12,7 @@ interface RoleBaselinesModalProps {
   onSave: (role: string, permissions: PermissionKey[]) => void
 }
 
-/**
- * Edits what a role grants by default. Admin is absent on purpose — the server treats
- * that baseline as fixed, so offering it here would only produce a rejected request.
- */
+/** Admin is omitted: the server treats its baseline as fixed. */
 export function RoleBaselinesModal({
   open,
   catalog,
@@ -34,8 +31,7 @@ export function RoleBaselinesModal({
   const [selected, setSelected] = useState<Set<PermissionKey>>(stored)
   const [syncedStored, setSyncedStored] = useState(stored)
 
-  // Switching role tab, or a saved baseline arriving, reseeds the draft. Adjusting
-  // during render rather than in an effect avoids a cascading re-render.
+  // Reseed on tab switch or saved baseline; during render to avoid an effect cascade.
   if (syncedStored !== stored) {
     setSyncedStored(stored)
     setSelected(new Set(stored))

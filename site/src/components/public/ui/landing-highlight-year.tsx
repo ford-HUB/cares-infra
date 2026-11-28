@@ -13,8 +13,7 @@ interface HighlightRow {
   right: Story[]
 }
 
-/** Deals stories into rows of left, lead and right. Any left over stack in the last row's
- *  outer columns, so no row is left with an empty column. */
+/** Leftover stories stack in the last row's outer columns, so no column is empty. */
 function toRows(stories: readonly Story[]): HighlightRow[] {
   const rows: HighlightRow[] = []
   for (let i = 0; i + 3 <= stories.length; i += 3) {
@@ -37,13 +36,10 @@ interface LandingHighlightYearProps {
   highlight: Year
 }
 
-/* From lg, each column carries a hairline on its left (but the first), padded off both
- * sides. Columns keep their own height (self-start), so a hairline only runs as far as
- * the stories beside it and never down empty space. */
+/* `self-start` keeps each hairline only as tall as its column's stories. */
 const COLUMN =
   'lg:self-start lg:px-6 lg:first:pl-0 lg:last:pr-0 lg:[&:not(:first-child)]:border-l lg:border-gray-300'
 
-/** One story fading up in turn: left column, then the lead, then the right. */
 function StaggeredStory({
   story,
   step,
@@ -64,9 +60,6 @@ function StaggeredStory({
   )
 }
 
-/** The big year numerals: once they scroll into view they slide up out of a mask and
- *  sharpen from a blur (800ms, ease-out, once). The rule beneath stays put. Under reduced
- *  motion the year is simply shown. */
 function YearHeading({ year }: { year: number }) {
   const { ref, visible } = useReveal<HTMLHeadingElement>(0.5)
 
@@ -75,8 +68,7 @@ function YearHeading({ year }: { year: number }) {
       ref={ref}
       className={`${LANDING_SERIF} border-b-4 border-[var(--cares-heading)] pb-2 text-6xl font-bold text-[var(--cares-heading)] sm:text-8xl`}
     >
-      {/* The mask: a little vertical slack (cancelled by the negative margin) so the
-          numerals' edges are not clipped once they settle. */}
+      {/* Vertical slack (cancelled by the negative margin) keeps the numerals unclipped. */}
       <span className="-my-[0.1em] inline-block overflow-hidden py-[0.1em] align-bottom">
         <span
           className={`inline-block ${visible ? 'motion-safe:animate-landing-year-rise' : 'motion-safe:opacity-0'}`}
@@ -88,8 +80,6 @@ function YearHeading({ year }: { year: number }) {
   )
 }
 
-/** One year, laid out like a newspaper page: a big year heading over rows of three stories
- *  around a wide lead, each column ruled off from the next. */
 export function LandingHighlightYear({ highlight }: LandingHighlightYearProps) {
   const { year, stories } = highlight
   const featured = (feature: Story['feature']) =>

@@ -14,7 +14,6 @@ import { weekDays } from '../utils/calendar-layout'
 
 export type CalendarCategoryFilter = EventCategory | typeof CALENDAR_CATEGORY_FILTER_ALL
 
-/** The unit each view steps by, so Previous/Next means the same thing as the grid. */
 const STEP_UNIT: Record<CalendarView, dayjs.ManipulateType> = {
   month: 'month',
   week: 'week',
@@ -28,16 +27,11 @@ function rangeLabel(cursor: Dayjs, view: CalendarView): string {
   const days = weekDays(cursor)
   const start = days[0]
   const end = days[days.length - 1]
-  // "Jun 26 – 30, 2026" when the week sits inside one month, otherwise both months.
   return start.isSame(end, 'month')
     ? `${start.format(CALENDAR_DATE_FORMATS.rangeSameMonth)} – ${end.format(CALENDAR_DATE_FORMATS.rangeDay)}`
     : `${start.format(CALENDAR_DATE_FORMATS.rangeSameMonth)} – ${end.format(CALENDAR_DATE_FORMATS.fullDate)}`
 }
 
-/**
- * Owns which slice of the schedule is on screen — the view, the cursor date it is
- * centred on, the category filter, and the event opened in the detail modal.
- */
 export function useEventCalendar() {
   const allEvents = useCalendarStore((s) => s.events)
   const loading = useCalendarStore((s) => s.loading)
@@ -52,8 +46,7 @@ export function useEventCalendar() {
   )
   const [selected, setSelected] = useState<CalendarEvent | null>(null)
 
-  // A coordinator sees only their own college on the calendar. Until the profile has
-  // loaded the department is unknown, so nothing is shown rather than the whole school.
+  // Coordinator: own college only; show nothing until the profile loads.
   const isCoordinator = usePortalRole() === 'coordinator'
   const profileDepartment = useProfileStore((s) => s.profile?.department)
   const ensureProfile = useProfileStore((s) => s.ensureProfile)
@@ -83,7 +76,6 @@ export function useEventCalendar() {
   )
   const goToday = useCallback(() => setCursor(dayjs()), [])
 
-  /** Clicking a month cell drills into that day rather than only moving the cursor. */
   const openDay = useCallback((day: Dayjs) => {
     setCursor(day)
     setView('day')

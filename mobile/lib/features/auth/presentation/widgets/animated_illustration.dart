@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Animated community-circle illustration inspired by the UCLM CARES emblem:
-/// figures holding hands, heart at center, sprout growing — with orbiting motion.
 class AnimatedIllustration extends StatelessWidget {
   const AnimatedIllustration({
     super.key,
@@ -14,7 +12,6 @@ class AnimatedIllustration extends StatelessWidget {
     this.showLogo = true,
   });
 
-  /// Master animation value in [0, 1].
   final double progress;
   final double size;
   final bool showLogo;

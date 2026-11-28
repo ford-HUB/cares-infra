@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SendEmailOptions } from './mail-types';
 
-/** Brevo's transactional HTTPS endpoint — the development sender (production uses Resend). */
+/** Development sender; production uses Resend. */
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const BREVO_TIMEOUT_MS = 15_000;
 

@@ -12,17 +12,13 @@ import { LivePulse } from '../../attendance/ui/live-pulse'
 interface ServiceStateSegmentProps {
   state: ServiceState
   value: number
-  /** Share of the roster this state holds, 0–1. */
+  /** 0–1. */
   share: number
   active: boolean
   onToggle: (state: ServiceState) => void
 }
 
-/**
- * One state of the scheduler roster, as a legend entry under the duty bar. It is the
- * list's filter as well — a director hunting the failing job clicks the red segment
- * rather than reading every row.
- */
+/** Legend entry that doubles as the list's state filter. */
 export function ServiceStateSegment({
   state,
   value,

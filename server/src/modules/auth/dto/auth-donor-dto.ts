@@ -15,11 +15,7 @@ export type RegisterDonorWithEmailDto = z.infer<
   typeof RegisterDonorWithEmailSchema
 >;
 
-/**
- * Redis-only record behind an `oauth_ticket` — never serialized to a client, so it has
- * no schema. It exists so the registration call can trust an identity that was verified
- * on an earlier request without re-presenting the provider token.
- */
+/** Redis-only; lets registration trust an earlier-verified identity without the provider token. */
 export interface DonorOAuthTicketDto {
   provider: DonorOAuthProfileDto['provider'];
   providerUserId: string;

@@ -32,7 +32,7 @@ import type {
 } from '../../../types/system-service'
 
 interface ServiceLogsDialogProps {
-  /** The service whose log is open; `null` keeps the dialog closed. */
+  /** `null` keeps the dialog closed. */
   service: SystemService | null
   entries: ServiceLogEntry[]
   loading: boolean
@@ -40,11 +40,7 @@ interface ServiceLogsDialogProps {
   onClose: () => void
 }
 
-/**
- * What the scheduler actually wrote, grouped by run and newest run first — the answer
- * to "why is this one red" without leaving the board. Errors and cap kills are tinted
- * so a staff member scrolling a healthy log still lands on the one line that matters.
- */
+/** Grouped by run, newest first; errors and cap kills are tinted. */
 export function ServiceLogsDialog({
   service,
   entries,
@@ -52,8 +48,7 @@ export function ServiceLogsDialog({
   onRefresh,
   onClose,
 }: ServiceLogsDialogProps) {
-  // The parent keys this by service id, so the level filter starts clear each time a
-  // log is opened — reading a log is a fresh question every time.
+  // Keyed by service id upstream, so the level filter starts clear each time.
   const [level, setLevel] = useState<ServiceLogLevelFilter>(SERVICE_LOG_LEVEL_FILTER_ALL)
 
   const runs = useMemo(() => {

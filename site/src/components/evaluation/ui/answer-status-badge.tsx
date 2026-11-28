@@ -1,7 +1,6 @@
 import { ANSWER_STATUS_STYLES } from '../../../constants/evaluation'
 import type { EvaluationResponse } from '../../../types/evaluation'
 
-/** Dense badge sized for the answers grid — the same cut as `UserStatusBadge`. */
 export function AnswerStatusBadge({ status }: { status: EvaluationResponse['status'] }) {
   const style = ANSWER_STATUS_STYLES[status]
 

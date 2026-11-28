@@ -42,11 +42,7 @@ import {
   SignatoryCoordinatorListResponseSchema,
 } from '../validators/certificate-templates-site-validator';
 
-/**
- * Reading a template is open to the portal roles — a coordinator running an event has
- * to see what will be printed — but the designs themselves are the director's to
- * change, so every write narrows to director and admin.
- */
+/** Readable by portal roles; writes narrowed to director and admin. */
 @Controller('v1/certificate-templates')
 @Roles(...PORTAL_ROLE_TYPES)
 export class CertificateTemplatesSiteController {
@@ -61,10 +57,7 @@ export class CertificateTemplatesSiteController {
     return this.certificateTemplatesService.listTemplates();
   }
 
-  /**
-   * The accounts the signatory picker offers. Declared before `:id` so the literal
-   * segment is not read as a template id.
-   */
+  /** Declared before `:id` so the literal isn't read as an id. */
   @Get('signatories')
   @ResponseMessage('Signatory accounts')
   @ZSerialize(SignatoryCoordinatorListResponseSchema)
@@ -88,11 +81,7 @@ export class CertificateTemplatesSiteController {
     );
   }
 
-  /**
-   * The customizer submits the whole template — details, design and signature lines —
-   * because it edits them as one sheet: a partial update would let the wording and the
-   * people signing it drift out of step.
-   */
+  /** Whole-template PUT so wording and signatories can't drift apart. */
   @Put(':id')
   @RequirePermission(PermissionKey.CERTIFICATES_TEMPLATE_MANAGE)
   @ResponseMessage('Certificate template saved')
@@ -123,7 +112,7 @@ export class CertificateTemplatesSiteController {
     return this.certificateTemplatesService.deleteTemplate(caller, id, context);
   }
 
-  /** Imported artwork lives in a private bucket; the portal reads bytes through here. */
+  /** Private bucket, so bytes are proxied here. */
   @Get(':id/assets/:assetId')
   async getAsset(
     @ZParam('id', CertificateTemplateIdParamSchema) id: string,
@@ -135,11 +124,7 @@ export class CertificateTemplatesSiteController {
     return sendAsset(asset, request, response);
   }
 
-  /**
-   * What `{{signature-image}}` resolves to for one signature line — the coordinator's
-   * own signature image. Not called by the customizer, which shows the account rather
-   * than the picture; it is here for whatever renders the finished certificate.
-   */
+  /** Resolves `{{signature-image}}` for the certificate renderer; unused by the customizer. */
   @Get(':id/signatories/:signatoryId/signature')
   async getSignatorySignature(
     @ZParam('id', CertificateTemplateIdParamSchema) id: string,

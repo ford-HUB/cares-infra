@@ -24,16 +24,14 @@ import { CERTIFICATE_SEAL_ORDER } from '../constants/certificate-seals'
 import { CERTIFICATE_ELEMENT_ORDER } from '../constants/certificate-layout'
 import { TEMPLATE_CATEGORY_ORDER, TEMPLATE_STATUS_ORDER } from '../constants/certificate-templates'
 
-// Every field is filled from the picked coordinator, so this guards the shape rather
-// than free text a director typed.
+// Filled from the picked coordinator; guards shape, not typed text.
 const signatorySchema = z.object({
   id: z.string(),
   coordinatorId: z.string().min(1, 'Pick a coordinator account'),
   name: z.string().trim().min(2, 'Signatory name is required'),
   title: z.string().trim().min(2, 'Signatory title is required'),
   department: z.string().trim().min(2, 'Signatory department is required'),
-  // Carried through the form untouched: it is stored on the line and resolved at print
-  // time, and the customizer has no control that could change it.
+  // Resolved at print time; no control changes it.
   signatureToken: z.string(),
   hasSignature: z.boolean(),
   avatarUrl: z.string().optional(),
@@ -44,14 +42,13 @@ const positionSchema = z.object({
   y: z.number().min(0).max(100),
 })
 
-// One entry per movable block, so a layout can never arrive missing a position.
 const layoutSchema = z.object(
   Object.fromEntries(
     CERTIFICATE_ELEMENT_ORDER.map((id) => [id, positionSchema]),
   ) as Record<(typeof CERTIFICATE_ELEMENT_ORDER)[number], typeof positionSchema>,
 )
 
-// Placement is settled by dragging, so this guards the stored shape, not typed input.
+// Placed by dragging; guards the stored shape.
 const imageSchema = z.object({
   id: z.string(),
   url: z.string(),
@@ -81,18 +78,17 @@ export const certificateTemplateSchema = z.object({
   accent: z.enum(CERTIFICATE_ACCENT_ORDER),
   frame: z.enum(CERTIFICATE_FRAME_ORDER),
   images: z.array(imageSchema),
-  /** Data URL of an uploaded SVG sheet; when set it replaces the built-in frame. */
+  /** Replaces the built-in frame when set. */
   frameSvgUrl: z.string().optional(),
   frameSvgName: z.string().optional(),
   layout: layoutSchema,
   font: z.enum(CERTIFICATE_FONT_ORDER),
-  // Only the blocks a director actually changed carry an entry; the rest follow the
-  // sheet font.
+  // Only changed blocks carry an entry.
   elementFonts: z.partialRecord(
     z.enum(CERTIFICATE_ELEMENT_ORDER),
     z.enum(CERTIFICATE_FONT_ORDER),
   ),
-  /** Points; the field clamps as it is typed, so this guards the stored shape. */
+  /** Points; the field clamps as typed, so this guards the stored shape. */
   elementSizes: z.partialRecord(
     z.enum(CERTIFICATE_ELEMENT_ORDER),
     z.number().min(FONT_SIZE_MIN).max(FONT_SIZE_MAX),
@@ -114,7 +110,6 @@ export const certificateTemplateSchema = z.object({
     z.enum(FONT_WEIGHT_ORDER),
   ),
   elementUnderlines: z.partialRecord(z.enum(CERTIFICATE_ELEMENT_ORDER), z.boolean()),
-  /** The printed award name — its own wording, not the template's name. */
   title: z
     .string()
     .trim()
@@ -136,8 +131,7 @@ export const certificateTemplateSchema = z.object({
     .trim()
     .min(20, 'The award text is required')
     .max(BODY_MAX_LENGTH, `Award text must not exceed ${BODY_MAX_LENGTH} characters`)
-    // A malformed or missing placeholder only shows up once certificates are printed,
-    // so the wording is checked here rather than at issue time.
+    // Bad placeholders only show up at print time, so check them here.
     .superRefine((body, ctx) => {
       const issue = awardTextIssue(body)
       if (issue) {
@@ -147,9 +141,9 @@ export const certificateTemplateSchema = z.object({
   showSeal: z.boolean(),
   sealLabel: z.string().trim().max(24, 'Seal label must not exceed 24 characters'),
   sealStyle: z.enum(CERTIFICATE_SEAL_ORDER),
-  /** Unset means the seal takes the sheet's accent. */
+  /** Unset follows the sheet's accent. */
   sealAccent: z.enum(CERTIFICATE_ACCENT_ORDER).optional(),
-  /** Data URL of an imported seal; it wins over `sealStyle` while it is set. */
+  /** Wins over `sealStyle` while set. */
   sealSvgUrl: z.string().optional(),
   sealSvgName: z.string().optional(),
   signatories: z

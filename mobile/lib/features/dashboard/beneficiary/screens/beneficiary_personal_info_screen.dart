@@ -9,9 +9,8 @@ import 'package:mobile/features/auth/registration/utils/password_strength.dart';
 import 'package:mobile/features/dashboard/beneficiary/data/beneficiary_personal_profile_store.dart';
 import 'package:mobile/features/dashboard/beneficiary/domain/beneficiary_personal_profile.dart';
 
-/// Beneficiary "Edit Profile" — personal information only.
-/// Assistance, household, and visit details are edited from their own cards
-/// on the profile page.
+/// Personal info only; assistance, household and visit details have their own
+/// cards.
 class BeneficiaryPersonalInfoScreen extends StatefulWidget {
   const BeneficiaryPersonalInfoScreen({super.key});
 
@@ -123,8 +122,7 @@ class _BeneficiaryPersonalInfoScreenState
             ),
             const SizedBox(height: 10),
             _PasswordField(controller: newController, hint: 'New password'),
-            // Only the rules the new password has yet to satisfy; the row is empty
-            // until the user types and collapses again once they are all met.
+            // Only unmet rules; empty until typing and once all are met.
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: newController,
               builder: (_, value, _) => value.text.isEmpty

@@ -12,7 +12,7 @@ export type UpdateEventDto = z.infer<typeof UpdateEventSchema>;
 export type UpdateDonationsDto = z.infer<typeof UpdateDonationsSchema>;
 export type EventDto = z.infer<typeof EventResponseSchema>;
 
-/** Repository-facing shape — never serialized to a client, so it has no schema. */
+/** Never serialized. */
 export interface PersistEventDto {
   title: string;
   description: string;

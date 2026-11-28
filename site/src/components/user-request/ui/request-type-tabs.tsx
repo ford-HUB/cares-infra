@@ -9,11 +9,9 @@ const TABS: { value: RequestTab; label: string }[] = [
 interface RequestTypeTabsProps {
   tab: RequestTab
   onTabChange: (tab: RequestTab) => void
-  /** Requests awaiting review in each queue — shown so neither hides new work. */
   counts: Record<RequestTab, number>
 }
 
-/** Underline tabs splitting the Request page into its queues. */
 export function RequestTypeTabs({ tab, onTabChange, counts }: RequestTypeTabsProps) {
   return (
     <div role="tablist" aria-label="Request type" className="mb-5 flex gap-6 border-b border-gray-200">

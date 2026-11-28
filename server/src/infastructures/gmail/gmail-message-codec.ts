@@ -29,10 +29,7 @@ export interface RawMessageInput {
   inReplyTo?: string;
 }
 
-/**
- * Remote images are dropped along with scripts: an email that phones home the moment an
- * admin opens it is a tracking pixel, and the portal should not fire it automatically.
- */
+/** Drops remote images too: they act as tracking pixels. */
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'span']),
   allowedAttributes: {
@@ -87,7 +84,7 @@ export function parseAddress(value: string): ParsedMailAddress {
   return { name: email, email };
 }
 
-/** Splits on commas that sit outside quotes, so `"Doe, Jane" <j@x>` stays one address. */
+/** Splits on commas outside quotes (`"Doe, Jane" <j@x>`). */
 export function parseAddressList(value: string): string[] {
   if (!value.trim()) return [];
 
@@ -109,11 +106,7 @@ export function parseAddressList(value: string): string[] {
   return addresses;
 }
 
-/**
- * Walks the MIME tree for the best body parts. Gmail nests `multipart/alternative`
- * inside `multipart/mixed` whenever there are attachments, so this cannot just read
- * `payload.body`.
- */
+/** With attachments, Gmail nests `multipart/alternative` in `multipart/mixed`. */
 export function extractBodies(message: GmailMessage): ParsedMailBodies {
   const html: string[] = [];
   const text: string[] = [];
@@ -169,7 +162,6 @@ export function extractAttachments(
   return attachments;
 }
 
-/** Builds the base64url RFC 2822 payload the Gmail send endpoint expects. */
 export function buildRawMessage(input: RawMessageInput): string {
   const headers = [
     `From: ${input.from}`,
@@ -189,7 +181,7 @@ export function buildRawMessage(input: RawMessageInput): string {
   return encodeBase64Url(`${headers.join('\r\n')}\r\n\r\n${body}`);
 }
 
-/** Headers are ASCII-only, so anything else goes out as RFC 2047 encoded-words. */
+/** Non-ASCII headers use RFC 2047 encoded-words. */
 function encodeHeaderValue(value: string): string {
   // eslint-disable-next-line no-control-regex
   if (!/[^\x00-\x7F]/.test(value)) return value;

@@ -12,7 +12,7 @@ export interface ListUsersFilter {
   status: 'all' | 'active' | 'restricted' | 'pending' | 'expired';
   skip: number;
   take: number;
-  /** Roles the caller is allowed to see — a director never lists admins. */
+  /** A director never lists admins. */
   visibleRoles: readonly RoleType[];
 }
 
@@ -35,8 +35,7 @@ const managedUserSelect = {
   },
   role: { select: { type: true } },
   blocked_ips: { select: { ip_address: true } },
-  // App sign-ups carry their college on the school record rather than
-  // `portal_department`, so the list needs both to fill the Department column.
+  // App sign-ups store their college on the school record, not `portal_department`.
   user_school_info: {
     select: { department: { select: { name: true } } },
     take: 1,
@@ -57,7 +56,7 @@ export interface CreateProvisionedUserInput {
   lastname: string;
   roleId: string;
   department: string | null;
-  /** Partner-barangay volunteers only — the barangay stands in for a department. */
+  /** Stands in for a department. */
   partnerBarangay: string | null;
   phoneNumber: string;
   email: string;
@@ -77,8 +76,7 @@ export class UsersRepository {
   async listUsers(filter: ListUsersFilter) {
     const where = buildWhere(filter);
 
-    // Two independent reads, so they run concurrently rather than holding a
-    // transaction slot open — a paged read needs no atomicity.
+    // Concurrent reads; a paged read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
@@ -216,10 +214,7 @@ export class UsersRepository {
     });
   }
 
-  /**
-   * `Role` has no unique constraint on `type`, so a role is looked up before it is
-   * created — the same shape the admin seeder uses.
-   */
+  /** `Role.type` isn't unique, so look up before creating. */
   async findOrCreateRole(type: RoleType) {
     const existing = await this.prisma.role.findFirst({
       where: { type },
@@ -232,15 +227,13 @@ export class UsersRepository {
     );
   }
 
-  /** The user and its account are one write — an account-less user cannot sign in. */
+  /** One write: an account-less user can't sign in. */
   async createProvisionedUser(input: CreateProvisionedUserInput) {
     return this.prisma.user.create({
       data: {
         firstname: input.firstname,
         lastname: input.lastname,
-        // Age and address belong to the person, not to the administrator filling this
-        // in from an emailed request. They stay blank until the account completes its
-        // own profile.
+        // Left blank for the person to complete.
         age: 0,
         current_address: '',
         phone_number: input.phoneNumber,
@@ -253,7 +246,7 @@ export class UsersRepository {
             password: input.passwordHash,
             credential_expires_at: input.credentialExpiresAt,
             provisioned_by_user_id: input.provisionedByUserId,
-            // The credential is mailed to this address, so using it proves the inbox.
+            // Using the mailed credential proves the inbox.
             email_verified_at: new Date(),
           },
         },
@@ -291,12 +284,7 @@ export class UsersRepository {
     });
   }
 
-  /**
-   * Removes the user row and everything hanging off it. Most relations cascade or
-   * null out in the schema; the few that would block the delete (the sign-in account,
-   * school record, verifications and their face scans, certificate signatory lines)
-   * are cleared first, all in one transaction so a failure leaves nothing half-gone.
-   */
+  /** Clears blocking relations first, all in one transaction. */
   async deleteUser(userId: string) {
     return this.prisma.$transaction(async (tx) => {
       const verifications = await tx.userVerification.findMany({
@@ -347,7 +335,7 @@ function buildWhere(filter: ListUsersFilter): Prisma.UserWhereInput {
     ];
   }
 
-  // Restriction lives on the account row — see `Account.is_restricted`.
+  // See `Account.is_restricted`.
   if (filter.status === 'restricted') {
     where.accounts = { some: { is_restricted: true } };
   }
@@ -363,8 +351,7 @@ function buildWhere(filter: ListUsersFilter): Prisma.UserWhereInput {
     where.user_verifications = {
       none: { status: VerificationStatus.N },
     };
-    // An outstanding credential that has lapsed reads as `expired`, not `active` —
-    // the account cannot sign in either way.
+    // A lapsed credential reads as `expired`.
     where.accounts = {
       none: {
         OR: [

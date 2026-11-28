@@ -66,11 +66,7 @@ const sectionTitle = 'text-[13px] font-semibold text-gray-900'
 const sectionPanel =
   'space-y-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'
 
-/**
- * Where a director actually changes a certificate: wording, colour, frame, seal and
- * signatories, with the preview redrawing on every keystroke through the same
- * `CertificateCanvas` the gallery uses — so nothing is a surprise once deployed.
- */
+/** Preview uses the gallery's `CertificateCanvas`, so the deployed output matches. */
 export function CertificateTemplateCustomizer({
   template,
   open,
@@ -116,7 +112,6 @@ export function CertificateTemplateCustomizer({
 
   const framePreset = CERTIFICATE_FRAME_PRESETS[preview.frame]
 
-  /** No block selected means the sheet font; a block sets its own override. */
   const setFont = (target: CertificateElementId | null, font: CertificateFontId) => {
     const options = { shouldDirty: true, shouldValidate: true }
 
@@ -132,7 +127,7 @@ export function CertificateTemplateCustomizer({
     )
   }
 
-  /** Text size and block width are always per block — there is no sheet-wide value. */
+  /** Size and width are per block only; there is no sheet-wide value. */
   const setElementNumber =
     (field: 'elementSizes' | 'elementWidths' | 'elementHeights') =>
     (target: CertificateElementId, value: number) =>
@@ -167,8 +162,6 @@ export function CertificateTemplateCustomizer({
             className="flex min-h-0 flex-1 flex-col lg:flex-row"
             noValidate
           >
-            {/* The controls are one scrolling rail of a fixed width; every pixel the
-                dialog gains beyond it goes to the certificate itself. */}
             <div className="min-h-0 shrink-0 overflow-y-auto border-b border-gray-100 px-5 py-4 lg:w-[26rem] lg:border-r lg:border-b-0 xl:w-[30rem]">
               <div className="space-y-4">
                 <section className={sectionPanel}>
@@ -246,9 +239,6 @@ export function CertificateTemplateCustomizer({
                 <section className={sectionPanel}>
                   <h3 className={sectionTitle}>Layout</h3>
 
-                  {/* Each control gets its own row: the frame tile, the orientation
-                      pair and the accent swatches all need their full width, and the
-                      selection rings need room to sit outside the control. */}
                   <div className="space-y-1.5">
                     <Label className={fieldLabel}>Frame</Label>
                     <button
@@ -256,8 +246,6 @@ export function CertificateTemplateCustomizer({
                       onClick={() => setFrameOpen(true)}
                       className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-2 text-left transition-colors hover:border-gray-300 focus-visible:ring-2 focus-visible:ring-[var(--cares-primary)] focus-visible:outline-none"
                     >
-                      {/* A frame marker, not a preview — the editor beside it is the
-                          real one, so this only has to say which frame is in use. */}
                       <span className="shrink-0 overflow-hidden rounded border border-gray-100">
                         <CertificateCanvas
                           variant="thumb"
@@ -582,8 +570,7 @@ export function CertificateTemplateCustomizer({
                   )
                 }
                 onWeightChange={(target, weight) => {
-                  // Clearing the weight drops the entry, so the block follows its
-                  // frame again rather than pinning today's frame weight.
+                  // Dropping the entry makes the block follow its frame again.
                   const next = { ...(getValues('elementWeights') ?? {}) }
                   if (weight) next[target] = weight
                   else delete next[target]
@@ -604,8 +591,7 @@ export function CertificateTemplateCustomizer({
           </form>
         </TooltipProvider>
 
-        {/* The primitive pulls itself out of a padded dialog with negative margins;
-            this one has none, so they are reset or the buttons hang off the edge. */}
+        {/* Resets the primitive's negative margins, which assume a padded dialog. */}
         <DialogFooter className="mx-0 mb-0 shrink-0 items-center gap-2 rounded-b-xl border-t border-gray-100 px-5 py-3">
           <Button
             type="button"

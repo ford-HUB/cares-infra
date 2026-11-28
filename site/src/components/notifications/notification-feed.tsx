@@ -19,17 +19,13 @@ import type { NotificationItem } from '../../types/notification'
 
 interface NotificationFeedProps {
   groups: NotificationDayGroup[]
-  /** History rows are older than a week: the clock column shows the date, not the hour. */
+  /** `history` (older than a week) shows the date instead of the hour. */
   variant: 'recent' | 'history'
   emptyMessage: string
   onMarkRead: (id: string) => void
   onDismiss: (id: string) => void
 }
 
-/**
- * One list, two registers. "This week" is grouped by day and reads like a timeline;
- * history is grouped by month and dimmed, because it is the record, not the inbox.
- */
 export function NotificationFeed({
   groups,
   variant,
@@ -98,7 +94,6 @@ function NotificationRow({ item, variant, onMarkRead, onDismiss }: NotificationR
         !settled && 'bg-amber-50/30',
       )}
     >
-      {/* The clock reads first — this week it is the hour, in history it is the date. */}
       <div className="w-16 shrink-0 pt-0.5 text-right">
         <p
           className={cn(
@@ -111,7 +106,6 @@ function NotificationRow({ item, variant, onMarkRead, onDismiss }: NotificationR
         <p className="text-[11px] text-gray-400">{formatRelativeTime(item.createdAt)}</p>
       </div>
 
-      {/* Tone reads before the title does — it is why the reader stopped on this row. */}
       <span
         aria-hidden
         className={cn(
@@ -170,7 +164,6 @@ function NotificationRow({ item, variant, onMarkRead, onDismiss }: NotificationR
         </p>
       </div>
 
-      {/* Actions stay out of the way until the row is hovered or focused. */}
       <div className="flex shrink-0 items-start gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
         {item.href && (
           <Link

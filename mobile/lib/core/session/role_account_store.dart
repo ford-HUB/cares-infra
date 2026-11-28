@@ -4,24 +4,15 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/features/dashboard/data/models/user_request_models.dart';
 
-/// Whether a role can be used right now, still has to be unlocked, or has
-/// passed verification and is waiting on an administrator.
 enum RoleAccountStatus { unlocked, locked, pending }
 
-/// What the person has to do before a locked role opens up.
 enum RoleUnlockRequirement {
-  /// Opens on tap — nothing extra to verify.
   none,
 
-  /// Upload a valid ID and pass the face match against it.
   idAndFaceVerification,
 }
 
-/// One role on the signed-in person's account, with its own profile data.
-///
-/// Every role keeps a separate name, email and avatar so the Profile tab and
-/// the role switcher never mix donor details into the volunteer side and vice
-/// versa.
+/// Each role keeps its own name, email and avatar so sides never mix.
 class RoleAccount {
   const RoleAccount({
     required this.roleType,
@@ -35,25 +26,19 @@ class RoleAccount {
     this.serverProfile,
   });
 
-  /// Server-style role type (`VOLUNTEER`, `DONOR`, `BENEFICIARY`).
   final String roleType;
 
   final String displayName;
 
   final String email;
 
-  /// Initial-avatar colour before a picture is uploaded: the brand green
-  /// for every role, so it matches the Profile header avatar everywhere
-  /// (home hero, role switcher, unlock screen). A getter rather than a
-  /// stored field, so an account created under an older colour can't keep
-  /// it (e.g. the donor side's former orange surviving a hot reload).
+  /// A getter so accounts created under an older colour don't keep it.
   Color get avatarColor => AppColors.primary;
 
-  /// Optional local asset for this role's own profile picture.
   final String? avatarAssetPath;
 
-  /// The server's avatar stream once a photo is on file. Carries a version
-  /// query so the image cache drops the old bytes after an upload.
+  /// Carries a version query so the image cache drops old bytes after an
+  /// upload.
   final String? avatarUrl;
 
   final RoleAccountStatus status;
@@ -62,16 +47,14 @@ class RoleAccount {
 
   final String memberSince;
 
-  /// The role's record from `GET /profile/me/mobile`, once synced. Null until
-  /// the first successful fetch (or on prototype paths with no token).
+  /// From `GET /profile/me/mobile`; null until the first sync.
   final MobileProfile? serverProfile;
 
   bool get isLocked => status == RoleAccountStatus.locked;
 
   bool get isUnlocked => status == RoleAccountStatus.unlocked;
 
-  /// ID and face checks passed; an administrator still has to approve the
-  /// request before the role opens.
+  /// ID and face passed; awaiting administrator approval.
   bool get isPending => status == RoleAccountStatus.pending;
 
   String get roleLabel => RoleAccountStore.labelFor(roleType);
@@ -86,8 +69,6 @@ class RoleAccount {
     return parts.length > 1 ? parts.sublist(1).join(' ') : '';
   }
 
-  /// Short line shown under the name in the switcher when the role is not
-  /// open yet.
   String get unlockHint {
     if (isPending) return 'Waiting for administrator approval';
     return switch (requirement) {
@@ -122,12 +103,7 @@ class RoleAccount {
   }
 }
 
-/// In-memory record of every role the signed-in person holds, which one is
-/// active, and which ones are still locked.
-///
-/// The role used at registration / login is unlocked and becomes the primary
-/// role. The other roles are seeded as locked; the switcher on the Profile tab
-/// walks the person through the unlock requirement before letting them in.
+/// The registration/login role is the unlocked primary; the rest start locked.
 /// Cleared on sign-out and when a different email signs in.
 class RoleAccountStore extends ChangeNotifier {
   RoleAccountStore._();
@@ -140,8 +116,7 @@ class RoleAccountStore extends ChangeNotifier {
 
   static const List<String> allRoleTypes = [volunteer, donor, beneficiary];
 
-  /// Portal roles that sign in with their portal account. In the app they only
-  /// get the Volunteer side, so they are filed under [volunteer].
+  /// Portal staff only get the Volunteer side in the app.
   static const List<String> staffRoleTypes = ['DIRECTOR', 'COORDINATOR'];
 
   static bool isStaffRole(String roleType) =>
@@ -158,9 +133,8 @@ class RoleAccountStore extends ChangeNotifier {
     _ => 'Volunteer',
   };
 
-  /// Only volunteers register with an ID + face match, so unlocking that side
-  /// repeats the check. Donor and beneficiary accounts are ID-less (the email
-  /// OTP vouches for them), so activating those is instant.
+  /// Only volunteers register with ID + face, so unlocking that side repeats
+  /// it; donor/beneficiary sides are OTP-only and instant.
   static RoleUnlockRequirement requirementFor(String roleType) =>
       switch (normalize(roleType)) {
         volunteer => RoleUnlockRequirement.idAndFaceVerification,
@@ -182,7 +156,6 @@ class RoleAccountStore extends ChangeNotifier {
 
   bool get isEmpty => _accounts.isEmpty;
 
-  /// Roles in a stable order: volunteer, donor, beneficiary.
   List<RoleAccount> get accounts => [
     for (final type in allRoleTypes)
       if (_accounts[type] != null) _accounts[type]!,
@@ -191,27 +164,23 @@ class RoleAccountStore extends ChangeNotifier {
   RoleAccount? get active =>
       _activeRoleType == null ? null : _accounts[_activeRoleType!];
 
-  /// The role the person originally registered / signed in with.
   RoleAccount? get primary =>
       _primaryRoleType == null ? null : _accounts[_primaryRoleType!];
 
   RoleAccount? byType(String roleType) => _accounts[normalize(roleType)];
 
-  /// Every role other than the active one — what the switcher lists.
   List<RoleAccount> get switchable =>
       accounts.where((a) => a.roleType != _activeRoleType).toList();
 
   bool isUnlocked(String roleType) => byType(roleType)?.isUnlocked ?? false;
 
-  /// Signed in with a director or coordinator portal account — Volunteer side
-  /// only, with no school record or ID check behind it.
+  /// Director/coordinator portal account: Volunteer side only, no school record
+  /// or ID check.
   bool get isStaffAccount => _staffAccount;
 
-  /// The volunteer is from outside the school community: a partner-barangay
-  /// volunteer, or a donor / beneficiary whose Volunteer side a director
-  /// opened by approving a role-access request. Read off the server profile
-  /// once synced; before that, a non-volunteer primary role with an unlocked
-  /// (approved) Volunteer side says the same thing.
+  /// Partner-barangay volunteer, or a donor/beneficiary whose Volunteer side
+  /// was approved. Inferred from the primary role until the server profile
+  /// syncs.
   bool get volunteerFromOutsideSchool {
     final account = _accounts[volunteer];
     if (account == null || !account.isUnlocked) return false;
@@ -222,20 +191,12 @@ class RoleAccountStore extends ChangeNotifier {
     return _primaryRoleType != null && _primaryRoleType != volunteer;
   }
 
-  /// What the volunteer typed under the "Others" interest, from the synced
-  /// server profile; null when nothing is on file.
   String? get volunteerOtherInterest =>
       _accounts[volunteer]?.serverProfile?.volunteer?.otherInterest;
 
-  /// Called whenever a dashboard is opened for [roleType].
-  ///
-  /// First sign-in for this email: the role becomes the unlocked primary and
-  /// the other roles are seeded as locked. Later calls with the same email
-  /// only make [roleType] active (and unlock it if a server login says so).
-  ///
-  /// [unlockedRoles] are sides the server says are open from sign-up on — a
-  /// student beneficiary's Volunteer side, since their school ID and face
-  /// were already verified — so they open without the unlock flow.
+  /// First sign-in for an email makes [roleType] the unlocked primary and seeds
+  /// the rest locked; later calls only activate it. [unlockedRoles] skip the
+  /// unlock flow (e.g. a student beneficiary's Volunteer side).
   void signIn({
     required String roleType,
     required String email,
@@ -285,8 +246,7 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Opens the sides the server granted with the account itself. Never
-  /// re-locks anything: a side opened another way stays open.
+  /// Never re-locks: a side opened another way stays open.
   void _openGrantedRoles(Iterable<String> roleTypes) {
     for (final roleType in roleTypes) {
       final type = normalize(roleType);
@@ -298,9 +258,8 @@ class RoleAccountStore extends ChangeNotifier {
     }
   }
 
-  /// Marks [roleType] usable. Optional [displayName] / [email] let the unlock
-  /// flow store the details captured for that role (e.g. the name read off the
-  /// ID) separately from the primary role.
+  /// [displayName] / [email] store details captured for that role (e.g. the
+  /// name from the ID).
   void unlock(String roleType, {String? displayName, String? email}) {
     final type = normalize(roleType);
     final account = _accounts[type];
@@ -315,8 +274,7 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Marks [roleType] as verified but awaiting administrator approval. The
-  /// role stays unusable until an admin approves it and [unlock] is called.
+  /// Unusable until an admin approves and [unlock] is called.
   void markPending(String roleType) {
     final type = normalize(roleType);
     final account = _accounts[type];
@@ -326,10 +284,8 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Mirrors the server's role-access requests onto the roles: an open
-  /// request keeps the role pending, an accepted one unlocks it, and a
-  /// rejected one sends a pending role back to locked so it can be requested
-  /// again. Roles with no request on file are left as they are.
+  /// Open request → pending, accepted → unlocked, rejected → back to locked;
+  /// roles without a request are untouched.
   void applyRequestStatuses(Iterable<UserRequestResponse> requests) {
     // An older rejection must not undo a newer request still under review.
     final stillOpen = {
@@ -378,8 +334,7 @@ class RoleAccountStore extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
-  /// Switches the active role. Locked and pending roles are ignored — go
-  /// through [unlock] first.
+  /// Ignores locked and pending roles.
   void activate(String roleType) {
     final type = normalize(roleType);
     if (!isUnlocked(type) || _activeRoleType == type) return;
@@ -387,7 +342,6 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Updates the profile details of one role without touching the others.
   void updateAccount(
     String roleType, {
     String? displayName,
@@ -405,9 +359,8 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// One `Account` row backs every role, so a sign-in email change lands on
-  /// all of them at once; the owner key follows so a later sync is not
-  /// mistaken for a different person signing in.
+  /// One `Account` row backs every role; the owner key follows so a later sync
+  /// isn't taken for a new person.
   void updateEmailEverywhere(String email) {
     final trimmed = email.trim();
     if (trimmed.isEmpty) return;
@@ -418,18 +371,14 @@ class RoleAccountStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Mirrors a server profile onto the role it was scoped to
-  /// (`profiling_role` — the side the app asked for, which can differ from
-  /// the registered role after a local switch): name, email, member-since and
-  /// the role-specific section. That role is marked unlocked — the app only
-  /// asks for a side the person has already opened.
+  /// Applied to `profiling_role` (the side requested, may differ from the
+  /// registered role), which is marked unlocked.
   void applyServerProfile(MobileProfile profile, {String? avatarUrl}) {
     final type = normalize(profile.profilingRole);
     final key = profile.email.trim().toLowerCase();
 
     if (_accounts.isEmpty || (_ownerEmail != null && _ownerEmail != key)) {
-      // The registered role stays the primary; the profiling role is filled
-      // in below.
+      // The registered role stays primary.
       signIn(
         roleType: profile.roleType,
         email: profile.email,
@@ -445,8 +394,7 @@ class RoleAccountStore extends ChangeNotifier {
       displayName: profile.fullName.isNotEmpty ? profile.fullName : null,
       email: profile.email.trim().isNotEmpty ? profile.email.trim() : null,
       memberSince: profile.memberSinceLabel,
-      // Photos are per role on the server, so a side with no picture on
-      // file must not keep showing one it never had.
+      // Photos are per role: clear one this side never had.
       avatarUrl: avatarUrl,
       clearAvatarUrl: avatarUrl == null,
       status: RoleAccountStatus.unlocked,

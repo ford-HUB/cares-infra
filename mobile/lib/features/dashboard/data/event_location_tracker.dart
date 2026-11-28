@@ -11,18 +11,17 @@ import 'location_background_service.dart';
 import 'location_capture_db.dart';
 import 'location_recorder.dart';
 
-/// Where the recorder stands for one joined event, as shown on the sync sheet.
 enum EventTrackingState {
-  /// Recording is on and fixes are being written every second.
+  /// Fixes written every second.
   recording,
 
-  /// Recording should be on but location is off / denied.
+  /// Should record, but location is off or denied.
   blocked,
 
-  /// Recording is off — no joined upcoming event on record.
+  /// No joined upcoming event.
   inactive,
 
-  /// This event is over; whatever was captured awaits sync.
+  /// Event over; captures await sync.
   ended,
 }
 
@@ -35,28 +34,13 @@ extension EventTrackingStateX on EventTrackingState {
   };
 }
 
-/// Decides *whether* the volunteer's coordinates should be recorded, and
-/// keeps a [LocationRecorder] running for as long as they should — for the
-/// attendance data-cleaning microservice to match against the events they
-/// registered for.
+/// Keeps a [LocationRecorder] running for the attendance data-cleaning
+/// microservice. Recording is a persisted activated flag: on with any joined
+/// upcoming event; off only when online and none remain; offline it is left as
+/// is (SQLite-backed, survives restarts).
 ///
-/// Recording is a persisted **activated** flag, not an event window:
-///
-/// * It turns **on** as soon as the volunteer has any joined upcoming event.
-/// * It turns **off** only when the device is online *and* the check finds
-///   no joined upcoming event left — the server can then be trusted.
-/// * Offline (or before the first connectivity probe) the flag is left as it
-///   was: the app can't verify anything, so it keeps saving. The flag lives in
-///   SQLite so a restart while offline keeps recording too.
-///
-/// Where the recorder actually runs:
-///
-/// * **Android** — inside the foreground service
-///   ([LocationBackgroundService]), so recording survives the app being
-///   swiped away or the screen turning off. This class just starts/stops the
-///   service and mirrors its state for the UI.
-/// * **Elsewhere** — in-process, foreground only: the stream lives as long
-///   as the app process does.
+/// Android runs it in the foreground service ([LocationBackgroundService]) so
+/// it survives swipe-away; elsewhere it is in-process, foreground only.
 class EventLocationTracker extends ChangeNotifier {
   EventLocationTracker._();
 
@@ -82,7 +66,6 @@ class EventLocationTracker extends ChangeNotifier {
 
   bool get _usesService => LocationBackgroundService.isSupported;
 
-  /// The persisted flag: coordinates should be saved.
   bool get isActivated => _activated;
 
   /// The flag is on and the stream is actually delivering.
@@ -101,17 +84,14 @@ class EventLocationTracker extends ChangeNotifier {
       ? (_serviceState?.live ?? false)
       : (_recorder?.isLive ?? false);
 
-  /// An automatic upload of pending rows is running.
   bool get isSyncing => _usesService
       ? (_serviceState?.syncing ?? false)
       : (_recorder?.isSyncing ?? false);
 
-  /// Fixes handled since recording started — cheap live counter for the UI.
   int get capturesThisSession => _usesService
       ? (_serviceState?.captures ?? 0)
       : (_recorder?.captures ?? 0);
 
-  /// Of those, the ones that went straight to the server.
   int get liveSubmitsThisSession => _usesService
       ? (_serviceState?.liveSubmits ?? 0)
       : (_recorder?.liveSubmits ?? 0);
@@ -119,7 +99,6 @@ class EventLocationTracker extends ChangeNotifier {
   DateTime? get lastFixAt =>
       _usesService ? _serviceState?.fixAt : _recorder?.lastFixAt;
 
-  /// Joined events that haven't ended yet, soonest first.
   List<CaresEvent> get upcomingJoinedEvents {
     final now = DateTime.now();
     final events = [
@@ -132,7 +111,7 @@ class EventLocationTracker extends ChangeNotifier {
   String get _email =>
       StaticUserSession.instance.currentUser?.email ?? 'guest@cares.local';
 
-  /// Idempotent. Call once at app start; safe to call again after a join.
+  /// Idempotent; safe to call again after a join.
   void start() {
     if (_started) return;
     _started = true;
@@ -166,16 +145,14 @@ class EventLocationTracker extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Re-check now (e.g. right after joining an event).
   void refresh() => _evaluate();
 
-  /// Uploads every pending row now. Runs by itself when the connection comes
-  /// back; also safe to call from a "Sync" button.
+  /// Runs itself on reconnect; also safe from a "Sync" button.
   Future<void> syncPending() async {
     final recorder = _recorder;
     if (recorder != null) return recorder.syncPending();
-    // Android: the service owns the recorder; an ad-hoc one just for the
-    // upload is fine — it never starts a stream.
+    // Android: the service owns the recorder; an ad-hoc one never starts a
+    // stream.
     await LocationRecorder(email: _email).syncPending();
   }
 

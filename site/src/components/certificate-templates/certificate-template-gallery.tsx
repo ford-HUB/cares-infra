@@ -11,7 +11,6 @@ interface CertificateTemplateGalleryProps {
   onAction: (action: string, template: CertificateTemplate) => void
 }
 
-/** The default view: templates are artwork, so they get a gallery, not a grid of text. */
 export function CertificateTemplateGallery({
   templates,
   showSkeleton,

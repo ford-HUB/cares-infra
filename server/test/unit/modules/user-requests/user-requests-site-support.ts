@@ -21,20 +21,7 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Users Module', unit: 'User Request Decision', prefix: 'USER-REQ' });
 
-/**
- * Shared by every spec in this folder — the four POSTs on Users → Request in the portal:
- *   POST /api/v1/user-requests/:id/accept   (accept: id uuid)
- *   POST /api/v1/user-requests/:id/reject   (reject: id uuid + RejectUserRequestSchema)
- *   POST /api/v1/user-requests/:id/remove   (remove: id uuid)
- *   POST /api/v1/user-requests/:id/restore  (restore: id uuid)
- *
- * The id schema is a private const in the controller, so path-param fixtures run
- * through the API layer only. `@Roles` and `@RequirePermission` are not exercised:
- * the global guards are out of scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
+/** The id schema is private to the controller, so path-param cases are API-layer only. */
 export const VALID_REQUEST_ID = 'b3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 export const CALLER = { sub: 'caller-user-id' };
 
@@ -72,7 +59,6 @@ export const RESTORE_ENDPOINT = {
   validBody: undefined,
 } as const;
 
-/** The actions that read nothing but the id. */
 export const BODYLESS_ENDPOINTS = [ACCEPT_ENDPOINT, REMOVE_ENDPOINT, RESTORE_ENDPOINT];
 export const ENDPOINTS = [ACCEPT_ENDPOINT, REJECT_ENDPOINT, REMOVE_ENDPOINT, RESTORE_ENDPOINT];
 
@@ -114,11 +100,7 @@ export const REQUEST_RESPONSE = {
   updated_at: '2026-10-30T08:00:00.000Z',
 };
 
-/**
- * Boots `UserRequestsSiteController` with a mocked service for the enclosing `describe`.
- * The handlers read `user.sub`, so a stand-in for the global JWT guard puts `CALLER` on
- * the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (handlers read `user.sub`); `app` is assigned in `beforeAll`. */
 export const useUserRequestsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -152,12 +134,7 @@ export const useUserRequestsApp = () => {
   return ctx;
 };
 
-/**
- * Request id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through the API layer, with a valid body where the action reads one so the id is the
- * only thing under test. A FAIL must come back in the validation envelope without
- * reaching the service; a PASS must reach it exactly once.
- */
+/** `input` is the raw id (URL-encoded); any body stays valid so only the id is tested. */
 export const describeRequestIdTable = (
   ctx: ReturnType<typeof useUserRequestsApp>,
   endpoint: (typeof ENDPOINTS)[number],
@@ -182,7 +159,6 @@ export const describeRequestIdTable = (
   });
 };
 
-/** Reject body fixtures through both layers, against a valid request id. */
 export const describeRejectBodyTable = (ctx: ReturnType<typeof useUserRequestsApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

@@ -8,7 +8,6 @@ import { LandingReveal } from './landing-reveal'
 
 type Statement = (typeof LANDING_STATEMENTS)[number]
 
-/** One poster: tilts up to 2° toward the mouse and lifts while hovered. */
 function StatementCard({ statement }: { statement: Statement }) {
   const ref = useTilt<HTMLElement>(LANDING_MOTION.aboutTiltDeg, LANDING_MOTION.aboutLiftPx)
 
@@ -31,9 +30,6 @@ function StatementCard({ statement }: { statement: Statement }) {
   )
 }
 
-/** Vision and mission as two dark poster cards: a condensed uppercase headline and its
- *  text in mint on a plain green ground, centred in the card. Each fades up in turn on
- *  scroll. Side by side from lg, stacked below. */
 export function LandingAboutStatements() {
   return (
     <div className="grid gap-5 lg:grid-cols-2">

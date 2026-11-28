@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Green step header for the in-app identity flows (role unlock, school
-/// record re-verification): back arrow, "STEP n OF m", the step label and a
-/// white progress bar — the same shape as the registration flow's header.
 class VerificationFlowHeader extends StatelessWidget {
   const VerificationFlowHeader({
     super.key,

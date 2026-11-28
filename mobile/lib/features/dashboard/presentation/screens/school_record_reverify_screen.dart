@@ -16,16 +16,13 @@ import 'package:mobile/features/dashboard/presentation/widgets/verification_flow
 
 enum _ReverifyStep { intro, idUpload, faceScan, extracting, done }
 
-/// Re-runs the registration identity check to refresh a volunteer's school
-/// record. The department is never typed in: the ID is uploaded and validated
-/// (`/auth/upload-id`), a selfie is matched against it (`/auth/verify-face`),
-/// the OCR service reads the card (`/auth/extract-id`), and the server then
-/// rewrites department / program / year level / student ID from that read
-/// (`POST /profile/me/mobile/school-record`).
+/// Nothing is typed: upload-id → verify-face → extract-id, then
+/// `POST /profile/me/mobile/school-record` rewrites department, program, year
+/// level and student ID.
 class SchoolRecordReverifyScreen extends StatefulWidget {
   const SchoolRecordReverifyScreen({super.key});
 
-  /// Resolves to the refreshed profile, or null when the person backed out.
+  /// Null when the person backed out.
   static Future<MobileProfile?> open(BuildContext context) {
     return Navigator.of(context).push<MobileProfile>(
       MaterialPageRoute<MobileProfile>(
@@ -58,17 +55,15 @@ class _SchoolRecordReverifyScreenState
   XFile? _idBackImage;
   FaceCaptureSet _faceCaptures = const FaceCaptureSet();
 
-  /// Session handed back by `/auth/upload-id`; the face and OCR steps key
-  /// off it.
+  /// From `/auth/upload-id`; the face and OCR steps key off it.
   String? _registrationId;
 
   bool _submitting = false;
 
-  /// Why the extract / apply step failed, shown with a retry.
   String? _extractError;
 
-  /// OCR moves the session past `face_verified`, after which `/auth/extract-id`
-  /// refuses to run again — so a retry after a failed apply skips it.
+  /// OCR moves the session past `face_verified`, after which extract-id refuses
+  /// to rerun, so a retry skips it.
   bool _ocrDone = false;
 
   MobileProfile? _result;
@@ -129,9 +124,6 @@ class _SchoolRecordReverifyScreenState
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Steps
-
   Future<void> _uploadId() async {
     final front = _idFrontImage;
     final back = _idBackImage;
@@ -170,7 +162,6 @@ class _SchoolRecordReverifyScreenState
     unawaited(_extractAndApply());
   }
 
-  /// OCR the card, then let the server rewrite the record from that read.
   Future<void> _extractAndApply() async {
     final registrationId = _registrationId;
     if (registrationId == null) return;
@@ -222,9 +213,6 @@ class _SchoolRecordReverifyScreenState
       SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // Build
 
   @override
   Widget build(BuildContext context) {

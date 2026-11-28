@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/** The account details a session record does not carry, resolved for the list view. */
 export interface SessionUserRow {
   user_id: string;
   firstname: string;
@@ -16,7 +15,7 @@ export interface SessionUserRow {
 export class SessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** One query for the whole page of sessions, rather than a lookup per row. */
+  /** One query per page, not per row. */
   async findUsers(userIds: string[]): Promise<SessionUserRow[]> {
     if (userIds.length === 0) {
       return [];

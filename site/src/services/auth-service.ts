@@ -76,10 +76,7 @@ export async function getSession(): Promise<ApiResponse<AuthUser>> {
     persistSession(user, token)
     return toApiResponse(user)
   } catch (error) {
-    // Only a refusal from the server means the session is gone. A network blip, a
-    // server restart or a 5xx must leave the token in place — wiping it here would
-    // sign the tab out silently while the store still shows the person as signed in,
-    // and every later request would go out without a bearer.
+    // Only a server refusal ends the session; network blips and 5xx keep the token.
     if (isAuthFailure(error)) {
       clearSession()
     }
@@ -89,11 +86,10 @@ export async function getSession(): Promise<ApiResponse<AuthUser>> {
 
 export async function logoutSession(): Promise<void> {
   try {
-    // Ends the server-side session too, so the token cannot be replayed and the device
-    // stops appearing under Active Sessions. A failure here still clears this tab.
+    // Also ends the server session so the token can't be replayed.
     await apiClient.post('/api/v1/auth/admin/logout')
   } catch {
-    // Already signed out, or the API is unreachable — either way, sign out locally.
+    // Already signed out or unreachable: sign out locally.
   }
 
   clearSession()

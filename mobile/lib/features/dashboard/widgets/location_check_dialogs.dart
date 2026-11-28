@@ -4,11 +4,8 @@ import '../../../core/theme/app_theme.dart';
 import '../domain/cares_event.dart';
 import '../data/mock_location_checks.dart';
 
-/// Runs the static "Check Location" flow: a short verifying state, then the
-/// inside/outside-radius result taken from mock data.
-///
-/// Returns true when the participant is within the radius and chose to
-/// continue to attendance verification.
+/// Prototype check against mock distances. True when within the radius and the
+/// participant chose to continue.
 Future<bool> runStaticLocationCheck(
   BuildContext context,
   CaresEvent event,
@@ -30,8 +27,6 @@ Future<bool> runStaticLocationCheck(
   }
 }
 
-/// Shows the non-dismissible "Verifying your location…" state for a moment,
-/// then closes it again.
 Future<void> _showVerifyingDialog(BuildContext context) async {
   final navigator = Navigator.of(context, rootNavigator: true);
   _openVerifyingDialog(context);
@@ -39,7 +34,6 @@ Future<void> _showVerifyingDialog(BuildContext context) async {
   if (navigator.canPop()) navigator.pop();
 }
 
-/// Opens the verifying dialog without awaiting its dismissal.
 void _openVerifyingDialog(BuildContext context) {
   showDialog<void>(
     context: context,
@@ -138,7 +132,6 @@ Future<bool> _showOutsideRadiusDialog(
   return retry ?? false;
 }
 
-/// Confirmation shown once attendance has been recorded.
 Future<void> showAttendanceVerifiedDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
@@ -156,7 +149,6 @@ Future<void> showAttendanceVerifiedDialog(BuildContext context) {
   );
 }
 
-/// "Are you sure you want to cancel your participation in this event?"
 Future<bool> showCancelParticipationDialog(
   BuildContext context,
   CaresEvent event,
@@ -209,36 +201,6 @@ Future<bool> showCancelParticipationDialog(
               ),
             ),
             const SizedBox(height: 14),
-            // Container(
-            //   width: double.infinity,
-            //   padding: const EdgeInsets.all(12),
-            //   decoration: BoxDecoration(
-            //     color: AppColors.background,
-            //     borderRadius: BorderRadius.circular(12),
-            //     border: Border.all(color: AppColors.inputFill),
-            //   ),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         event.title,
-            //         style: const TextStyle(
-            //           fontSize: 14,
-            //           fontWeight: FontWeight.w700,
-            //           color: AppColors.textPrimary,
-            //         ),
-            //       ),
-            //       const SizedBox(height: 4),
-            //       Text(
-            //         event.dateTimeLabel,
-            //         style: const TextStyle(
-            //           fontSize: 12.5,
-            //           color: AppColors.textSecondary,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
             const SizedBox(height: 22),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(false),

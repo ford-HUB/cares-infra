@@ -23,11 +23,7 @@ interface InternalDonationsBoardProps {
 const controlClass =
   'h-9 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
 
-/**
- * One ledger for both kinds. Money and goods walk different ladders, so the row says
- * which it is and the status filter offers every rung either can reach — the split
- * that mattered is per-donation, not per-view.
- */
+/** One ledger for both kinds; the status filter offers every rung either ladder reaches. */
 export function InternalDonationsBoard({
   donations,
   statusFilter,

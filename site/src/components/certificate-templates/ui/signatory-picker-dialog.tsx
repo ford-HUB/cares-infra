@@ -16,7 +16,7 @@ import { SignatoryAvatar } from './signatory-avatar'
 
 interface SignatoryPickerDialogProps {
   open: boolean
-  /** Coordinators already on the certificate — listed, but not selectable twice. */
+  /** Listed but not selectable twice. */
   takenIds: string[]
   onOpenChange: (open: boolean) => void
   onSelect: (coordinator: SignatoryCoordinator) => void
@@ -24,22 +24,18 @@ interface SignatoryPickerDialogProps {
 
 const SKELETON_ROWS = 5
 
-/**
- * Signatories are real staff accounts, so they are picked from the directory rather
- * than typed — a misspelled name reaches every certificate printed from the template.
- */
+/** Picked from staff accounts, not typed, so names can't be misspelled. */
 export function SignatoryPickerDialog({
   open,
   takenIds,
   onOpenChange,
   onSelect,
 }: SignatoryPickerDialogProps) {
-  // `null` until the directory arrives — the absence of data is the loading state, so
-  // nothing has to be flipped on synchronously when the dialog opens.
+  // `null` doubles as the loading state, so nothing flips synchronously on open.
   const [coordinators, setCoordinators] = useState<SignatoryCoordinator[] | null>(null)
   const [search, setSearch] = useState('')
 
-  // Fetched once and kept: the directory does not change while a template is open.
+  // Fetched once: the directory doesn't change while a template is open.
   useEffect(() => {
     if (!open || coordinators) return
 
@@ -50,8 +46,7 @@ export function SignatoryPickerDialog({
       })
       .catch((error: unknown) => {
         if (!active) return
-        // An empty list rather than a stuck skeleton: the dialog still closes, and the
-        // director is told why nobody is listed.
+        // Empty list rather than a stuck skeleton; the dialog explains why.
         setCoordinators([])
         toast.error(
           error instanceof Error
@@ -67,7 +62,6 @@ export function SignatoryPickerDialog({
 
   const loading = !coordinators
 
-  // Cleared on close so the next open starts on the full directory.
   const handleOpenChange = (next: boolean) => {
     if (!next) setSearch('')
     onOpenChange(next)
@@ -168,10 +162,7 @@ export function SignatoryPickerDialog({
                           {coordinator.title} · {coordinator.department}
                         </span>
                       </span>
-                      {/* The signature image itself is never shown here — the line
-                          prints the account's stored signature at issue time — but an
-                          account that has not uploaded one is worth flagging before it
-                          goes onto a certificate. */}
+                      {/* Signatures print from the account at issue time; flag accounts without one. */}
                       {!taken && !coordinator.hasSignature && (
                         <span className="flex items-center gap-1 text-[11px] text-amber-600">
                           <PenOff className="h-3.5 w-3.5" />

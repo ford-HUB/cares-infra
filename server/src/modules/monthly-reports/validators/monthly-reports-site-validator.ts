@@ -6,14 +6,11 @@ import {
   ReportDepartment,
 } from '../../../infastructures/prisma/common/client';
 
-/**
- * The portal loads the board whole and filters it client-side — period, college and
- * search are all applied in the browser — so the list is capped rather than paged.
- */
+/** Filtered client-side, so capped rather than paged. */
 export const MONTHLY_REPORTS_DEFAULT_LIMIT = 200;
 export const MONTHLY_REPORTS_MAX_LIMIT = 500;
 
-/** Reporting month, `2026-08`. The portal groups and labels on this exact shape. */
+/** e.g. `2026-08`; the portal groups on this exact shape. */
 export const ReportPeriodSchema = z
   .string()
   .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'A reporting period reads as YYYY-MM');
@@ -53,11 +50,7 @@ export const ReportMetricsSchema = z.object({
   beneficiaries: z.number().int().min(0),
 });
 
-/**
- * One attached file on the way in. The bytes travel as a `data:` URL the same way
- * imported certificate artwork does — the portal never posts multipart, so a
- * submission stays one JSON body that either lands whole or not at all.
- */
+/** Bytes as a `data:` URL, so a submission is one all-or-nothing JSON body. */
 export const SubmitReportDocumentSchema = z
   .object({
     file_name: z.string().trim().min(1).max(200),
@@ -78,10 +71,7 @@ export const SubmitMonthlyReportSchema = z
   })
   .strict();
 
-/**
- * A return has to say why — it is the only thing the coordinator gets back — while an
- * approval's note is optional commendation.
- */
+/** Returns require a note; approval notes are optional. */
 export const DecideMonthlyReportSchema = z
   .object({
     decision: z.enum([
@@ -104,14 +94,10 @@ export const CreateReportFolderSchema = z
 
 export const RenameReportFolderSchema = CreateReportFolderSchema;
 
-/** `null` files the report back under its college; a folder id moves it onto a shelf. */
+/** `null` files it back under its college. */
 export const MoveMonthlyReportSchema = z
   .object({ folder_id: z.uuid().nullable() })
   .strict();
-
-/* -------------------------------------------------------------------------- */
-/* Responses                                                                  */
-/* -------------------------------------------------------------------------- */
 
 export const MonthlyReportDocumentSchema = z.object({
   monthly_report_document_id: z.string(),
@@ -120,10 +106,7 @@ export const MonthlyReportDocumentSchema = z.object({
   content_type: z.string(),
   byte_size: z.number(),
   uploaded_at: z.iso.datetime(),
-  /**
-   * The route the bytes are read from. The bucket is private, so this is an API path
-   * the portal fetches with its bearer token — never a stored S3 URL.
-   */
+  /** API path (private bucket), never a stored S3 URL. */
   url: z.string(),
 });
 
@@ -152,7 +135,7 @@ export const MonthlyReportSchema = z.object({
   reviewer_name: z.string().nullable(),
   decided_at: z.iso.datetime().nullable(),
   decision_note: z.string().nullable(),
-  /** Null while the report sits under its college folder. */
+  /** Null under its college folder. */
   folder_id: z.string().nullable(),
   documents: z.array(MonthlyReportDocumentSchema),
   trail: z.array(MonthlyReportTrailEntrySchema),
@@ -161,7 +144,7 @@ export const MonthlyReportSchema = z.object({
 
 export const MonthlyReportListResponseSchema = z.object({
   items: z.array(MonthlyReportSchema),
-  /** Total matching rows on the server, which may exceed what was returned. */
+  /** May exceed the returned rows. */
   total: z.number(),
 });
 
@@ -172,7 +155,7 @@ export const ReportFolderSchema = z.object({
   name: z.string(),
   created_by_name: z.string(),
   created_at: z.iso.datetime(),
-  /** Approved reports filed on this shelf, newest first. */
+  /** Newest first. */
   report_ids: z.array(z.string()),
 });
 

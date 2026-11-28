@@ -27,8 +27,6 @@ function Foot({ side }: { side: -1 | 1 }) {
   )
 }
 
-/** A front-on MacBook Pro: black panel with notch and chin around a 16:10 screen that
- *  holds `children`, on a wider aluminium base with a thumb cut-out and rubber feet. */
 export function LandingMacbookFrame({ children }: { children: ReactNode }) {
   return (
     <div className="relative [container-type:inline-size]">
@@ -53,7 +51,6 @@ export function LandingMacbookFrame({ children }: { children: ReactNode }) {
           {children}
         </div>
 
-        {/* Notch, with the small inward curves where it meets the top of the screen. */}
         <div
           aria-hidden
           className="pointer-events-none absolute left-1/2 z-10 flex -translate-x-1/2 items-center justify-center"
@@ -86,7 +83,6 @@ export function LandingMacbookFrame({ children }: { children: ReactNode }) {
           <span className="rounded-full bg-[#1d2733]" style={{ width: u(3), height: u(3) }} />
         </div>
 
-        {/* Chin below the screen. */}
         <div
           aria-hidden
           className="absolute"

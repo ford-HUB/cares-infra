@@ -3,9 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_category_icons.dart';
 
-/// "All Events" row on the events tab: square icon tiles, one per category,
-/// with the label underneath. Works as the category filter — the selected
-/// tile is filled in the brand green.
+/// Doubles as the category filter.
 class EventCategoryTiles extends StatelessWidget {
   const EventCategoryTiles({
     super.key,
@@ -20,8 +18,7 @@ class EventCategoryTiles extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onSelected;
 
-  /// Horizontal inset the first tile lines up with; the row bleeds to the
-  /// screen edge.
+  /// The row bleeds to the screen edge.
   final double gutter;
 
   static const _tileSize = 76.0;

@@ -16,16 +16,11 @@ import type {
 import { PdfReport } from './pdf/pdf-report'
 
 interface AnswersPdfOptions {
-  /** The form the responses answer, when they all answer one; it heads the report. */
+  /** Set when every response answers one form. */
   form: EvaluationForm | null
-  /**
-   * The questions one response was actually asked. Events can ask different
-   * questionnaires, so a response is only ever read against its own.
-   */
+  /** Events can ask different questionnaires, so read each response against its own. */
   questionsFor: (response: EvaluationResponse) => EvaluationQuestion[]
-  /** The filters in force, in words, so the reader knows what subset they hold. */
   filters: { label: string; value: string }[]
-  /** Every response before filtering — for the "N of M" line. */
   total: number
 }
 
@@ -33,7 +28,7 @@ function isEmpty(value: EvaluationAnswerValue | undefined): value is undefined |
   return value === undefined || value === null || (Array.isArray(value) && !value.length)
 }
 
-/** The answer as it would print — the same shape the details modal renders. */
+/** Same shape the details modal renders. */
 function formatAnswer(question: EvaluationQuestion, value: EvaluationAnswerValue | undefined) {
   if (isEmpty(value)) return '—'
   switch (question.type) {
@@ -54,7 +49,6 @@ function formatAnswer(question: EvaluationQuestion, value: EvaluationAnswerValue
   }
 }
 
-/** Compact enough to sit in a table cell without wrapping. */
 const SUBMITTED_AT_FORMAT = 'MMM D, YYYY h:mm A'
 
 function share(part: number, whole: number) {
@@ -65,10 +59,6 @@ function participantName(response: EvaluationResponse) {
   return `${response.participant.firstName} ${response.participant.lastName}`.trim()
 }
 
-/**
- * Tallies one question across every response — option counts for choice questions,
- * a distribution and mean for scales, and how many answered for free text.
- */
 function summariseQuestion(
   report: PdfReport,
   question: EvaluationQuestion,
@@ -148,7 +138,6 @@ function summariseQuestion(
     }
 
     default:
-      // Free text and dates have no distribution — their answers print per respondent below.
       report.paragraph(
         answered
           ? `${answered} written answer${answered === 1 ? '' : 's'} — see Individual responses.`
@@ -158,11 +147,6 @@ function summariseQuestion(
   }
 }
 
-/**
- * The answers grid as a report: what was asked and how the group answered, then the
- * respondent list, then every submission in full. Filters travel with the export so
- * a PDF of one event reads as exactly that.
- */
 export function exportAnswersPdf(
   responses: EvaluationResponse[],
   questions: EvaluationQuestion[],
@@ -194,7 +178,6 @@ export function exportAnswersPdf(
     },
   ])
 
-  // ── Headline figures ────────────────────────────────────────────────────────
   report.heading('Summary')
   report.facts([
     { label: 'Responses', value: formatNumber(responses.length) },
@@ -215,7 +198,6 @@ export function exportAnswersPdf(
     },
   ])
 
-  // ── Per-question tallies ───────────────────────────────────────────────────
   report.heading('Question summary', `${questions.length} questions`)
   if (!questions.length) {
     report.paragraph('The evaluation form has no questions.', { muted: true, italic: true })
@@ -225,15 +207,13 @@ export function exportAnswersPdf(
       report,
       question,
       index,
-      // A questionnaire that never asked this question would otherwise read as
-      // a room full of people declining to answer it.
+      // Otherwise a questionnaire that never asked it reads as everyone declining.
       responses.filter((response) =>
         questionsFor(response).some((one) => one.id === question.id),
       ),
     ),
   )
 
-  // ── Who answered ───────────────────────────────────────────────────────────
   report.heading('Respondents', `${responses.length} listed`)
   report.table(
     ['#', 'Participant', 'Email', 'Department', 'Event', 'Submitted', 'Rating', 'Status'],
@@ -254,13 +234,11 @@ export function exportAnswersPdf(
     },
   )
 
-  // ── Every submission in full ───────────────────────────────────────────────
   if (responses.length && questions.length) {
     report.heading('Individual responses')
     responses.forEach((response, index) => {
       const asked = questionsFor(response)
       const answered = asked.filter((q) => !isEmpty(response.answers[q.id])).length
-      // Keep the respondent's header on the same page as the start of their answers.
       report.ensureSpace(36)
       report.subheading(
         `${index + 1}. ${participantName(response)} — ${response.participant.email}`,

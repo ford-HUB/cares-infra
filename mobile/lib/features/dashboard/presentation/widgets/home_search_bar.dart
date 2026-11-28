@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Pill-shaped search affordance under the greeting. It is a button, not a
-/// field: tapping hands off to the Events tab, which owns the real search.
+/// A button, not a field: the Events tab owns the real search.
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({
     super.key,

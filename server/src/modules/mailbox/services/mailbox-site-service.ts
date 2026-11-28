@@ -42,7 +42,6 @@ import {
   portalUrl,
 } from '../../../shared/utils/environment-utils';
 
-/** Gmail system labels behind each folder the portal shows. */
 const FOLDER_LABELS: Record<MailboxFolder, string> = {
   inbox: 'INBOX',
   starred: 'STARRED',
@@ -54,14 +53,10 @@ const FOLDER_LABELS: Record<MailboxFolder, string> = {
 
 const OAUTH_STATE_PREFIX = 'gmail:oauth:state:';
 const OAUTH_STATE_TTL = DurationUtils.ONE_MINUTE * 10;
-/** Refresh a little early so a call never starts with a token that dies mid-flight. */
+/** Refresh early so a token can't expire mid-call. */
 const TOKEN_REFRESH_MARGIN_MS = 60_000;
 
-/**
- * Every list row costs one extra Gmail call. Firing a whole page of them at once is
- * what Gmail answers with "Too many concurrent requests for user", so the fan-out is
- * walked a few at a time.
- */
+/** Bounded fan-out: Gmail rejects too many concurrent requests per user. */
 const MESSAGE_HYDRATION_CONCURRENCY = 4;
 
 const NOT_CONNECTED_MESSAGE =
@@ -95,12 +90,7 @@ export class MailboxSiteService {
     };
   }
 
-  /**
-   * The browser cannot carry the portal's bearer token through Google's redirect, so the
-   * caller's identity is parked in Redis behind a single-use nonce and read back in the
-   * callback. That nonce doubles as the OAuth `state`, which is what makes the callback
-   * CSRF-resistant.
-   */
+  /** Identity parked in Redis under a single-use nonce that doubles as the OAuth `state` (CSRF). */
   async createAuthorizeUrl(userId: string): Promise<MailboxAuthorizeDto> {
     const nonce = randomUUID();
     await this.redisService.set(
@@ -116,10 +106,7 @@ export class MailboxSiteService {
     };
   }
 
-  /**
-   * Returns the portal URL to bounce the browser to. It never throws — the admin is mid
-   * page-navigation, so every outcome has to end as a redirect carrying a status flag.
-   */
+  /** Never throws: every outcome must redirect with a status flag. */
   async completeConnection(
     state: string | undefined,
     result: GmailOAuthResult | null,
@@ -130,7 +117,7 @@ export class MailboxSiteService {
 
     const stateKey = `${OAUTH_STATE_PREFIX}${state}`;
     const payload = await this.redisService.get<OAuthStatePayload>(stateKey);
-    // Single use: consuming it here stops a replayed callback from relinking the mailbox.
+    // Single use, so a replayed callback can't relink.
     await this.redisService.delete(stateKey);
 
     if (!payload) {
@@ -144,11 +131,7 @@ export class MailboxSiteService {
       return this.portalRedirect('denied');
     }
 
-    /**
-     * Google withholds the refresh token on a repeat consent it considers redundant.
-     * Keeping the previous one means a reconnect does not downgrade the link to an
-     * access token that expires within the hour.
-     */
+    /** Google may omit the refresh token on repeat consent; keep the previous one. */
     const existing = await this.mailboxRepository.findConnectionByUserId(
       payload.user_id,
     );
@@ -177,7 +160,7 @@ export class MailboxSiteService {
       return { disconnected: true };
     }
 
-    // Revoking first means a stale grant is not left behind if the delete then fails.
+    // Revoke first so a failed delete leaves no stale grant.
     await this.gmailApiClient.revokeToken(connection.refresh_token);
     await this.mailboxRepository.deleteConnection(userId);
 
@@ -251,7 +234,7 @@ export class MailboxSiteService {
           : { removeLabelIds: ['UNREAD'] },
       );
 
-      // `modify` answers with labels only, so the row is re-read for its headers.
+      // `modify` returns labels only.
       const refreshed = await this.gmailApiClient.getMessage(
         accessToken,
         message.id,
@@ -287,7 +270,7 @@ export class MailboxSiteService {
     });
   }
 
-  /** `Promise.all` with a ceiling: results keep the input order. */
+  /** Preserves input order. */
   private async mapWithLimit<TItem, TResult>(
     items: TItem[],
     limit: number,
@@ -324,10 +307,7 @@ export class MailboxSiteService {
       received_at: this.receivedAt(message),
       unread: labels.includes('UNREAD'),
       starred: labels.includes('STARRED'),
-      /**
-       * Best effort: Gmail's `metadata` format omits body parts, so a list row can only
-       * report attachments Gmail happened to expose. The detail view is authoritative.
-       */
+      /** Best effort: `metadata` omits body parts; the detail view is authoritative. */
       has_attachments: extractAttachments(message).length > 0,
     };
   }
@@ -353,11 +333,7 @@ export class MailboxSiteService {
     return connection;
   }
 
-  /**
-   * Every Gmail call funnels through here so token lifetime is handled in one place:
-   * refresh when the stored token is about to lapse, and retry once when Google rejects
-   * it anyway (revoked from the Google account side, password change, and so on).
-   */
+  /** Refreshes near expiry and retries once on rejection. */
   private async withAccessToken<T>(
     userId: string,
     operation: (accessToken: string) => Promise<T>,
@@ -404,11 +380,7 @@ export class MailboxSiteService {
 
       return refreshed.access_token;
     } catch (error) {
-      /**
-       * A refresh token only fails permanently — revoked, expired, or consent withdrawn
-       * in the Google account. Dropping the row puts the page back on the connect screen
-       * instead of leaving the admin with a mailbox that errors on every action.
-       */
+      /** A failed refresh is permanent; dropping the row returns the page to the connect screen. */
       this.logger.warn(
         `Dropping the Gmail connection for ${connection.user_id}: ${
           error instanceof Error ? error.message : String(error)
@@ -421,7 +393,7 @@ export class MailboxSiteService {
     }
   }
 
-  /** Gmail being unreachable is a gateway problem, not a bad request from the portal. */
+  /** Unreachable Gmail is a gateway error, not a bad request. */
   private asClientError(error: unknown): unknown {
     if (error instanceof GmailApiError) {
       this.logger.error(

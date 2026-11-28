@@ -41,7 +41,7 @@ import type {
 } from '../../../types/system-service'
 
 interface ServiceScheduleDialogProps {
-  /** The service being configured; `null` keeps the dialog closed. */
+  /** `null` keeps the dialog closed. */
   service: SystemService | null
   saving: boolean
   onClose: () => void
@@ -55,18 +55,12 @@ const MODE_LABELS: Record<ServiceTriggerMode, string> = {
   manual: 'Manual',
 }
 
-/** Minutes a mode implies, so the countdown and the overlap check have one unit. */
+/** One unit for the countdown and the overlap check. */
 function minutesFor(mode: ServiceTriggerMode, intervalMinutes: number): number {
   return mode === 'interval' ? intervalMinutes : 1440
 }
 
-/**
- * The two controls a 24/7 scheduler actually needs: when it fires, and how long it may
- * run before the scheduler kills it. Both live in one dialog because changing the
- * trigger without checking the runtime cap is how a job starts overlapping itself.
- *
- * The parent keys this by service id, so the draft starts fresh for each service.
- */
+/** Trigger and runtime cap share a dialog, since changing one without the other causes self-overlap. Keyed by service id upstream. */
 export function ServiceScheduleDialog({
   service,
   saving,
@@ -81,8 +75,7 @@ export function ServiceScheduleDialog({
   const [cronExpression, setCronExpression] = useState(
     service?.trigger.cronExpression ?? '0 * * * *',
   )
-  // Which dropdown entry is showing. Derived from the expression on open, so a saved
-  // preset comes back as its label; "custom" stays put while the raw field is edited.
+  // Derived from the expression on open so a saved preset shows its label; "custom" stays while editing.
   const [cronPreset, setCronPreset] = useState<string>(() =>
     cronPresetFor(service?.trigger.cronExpression ?? '0 * * * *'),
   )
@@ -103,8 +96,7 @@ export function ServiceScheduleDialog({
     cronExpression,
   }
 
-  // A run that may outlast the gap between triggers will collide with itself; the
-  // overlap policy is what decides the collision, so say so before it is saved.
+  // A run that can outlast the trigger gap collides with itself; warn before saving.
   const overlapping =
     mode === 'interval' && maxRuntimeMinutes >= intervalMinutes
 

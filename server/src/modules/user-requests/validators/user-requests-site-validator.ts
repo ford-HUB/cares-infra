@@ -8,10 +8,7 @@ import {
 import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-character-validator';
 import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
-/**
- * The portal groups the queue by day and works it client-side, so the list is
- * fetched whole — capped so a runaway queue cannot ship unbounded rows.
- */
+/** Worked client-side, so fetched whole but capped. */
 export const USER_REQUESTS_DEFAULT_LIMIT = 200;
 export const USER_REQUESTS_MAX_LIMIT = 500;
 
@@ -32,7 +29,7 @@ export const ListUserRequestsQuerySchema = z
 
 export const REJECTION_REASON_MAX_LENGTH = 500;
 
-/** The director must say why — the requester reads this in the app. */
+/** Required; shown to the requester. */
 export const RejectUserRequestSchema = withoutPrototypeKeys(
   z
     .object({
@@ -51,7 +48,7 @@ export const RejectUserRequestSchema = withoutPrototypeKeys(
     .strict(),
 );
 
-/** Which stored proof file a `GET :id/attachments/:kind` streams back. */
+/** For `GET :id/attachments/:kind`. */
 export const UserRequestAttachmentKindSchema = z.enum([
   'id-front',
   'id-back',
@@ -61,15 +58,12 @@ export const UserRequestAttachmentKindSchema = z.enum([
 ]);
 
 export const UserRequestAttachmentSchema = z.object({
-  /**
-   * Stable per request: `id-front`, `id-back`, `selfie`, `residency-proof`,
-   * `supporting-document`.
-   */
+  /** `id-front`, `id-back`, `selfie`, `residency-proof`, `supporting-document`. */
   kind: UserRequestAttachmentKindSchema,
   label: z.string(),
-  /** Set when the file is not necessarily an image (a PDF, or any document type). */
+  /** Set for non-image files. */
   content_type: z.string().nullable(),
-  /** The uploaded file's own name — set for documents, so a download keeps it. */
+  /** Set for documents so downloads keep it. */
   file_name: z.string().nullable(),
   size_bytes: z.number().nullable(),
 });
@@ -95,7 +89,7 @@ export const UserRequestSchema = z.object({
   requester_phone: z.string(),
   requester_address: z.string(),
   requested_role: z.enum(RoleType).nullable(),
-  /** EVENT_ROLE only — the event role the volunteer asked to take. */
+  /** EVENT_ROLE only. */
   participation_role: z.enum(EventParticipationRole).nullable(),
   event_id: z.number().nullable(),
   event_title: z.string().nullable(),

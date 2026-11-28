@@ -26,7 +26,6 @@ interface DashboardInput {
   settings: RankingSettings
   volunteers: VolunteerRankingEntry[]
   donors: DonorRankingEntry[]
-  /** Already ordered on `departmentBasis`. */
   departments: DisplayedDepartment[]
   departmentBasis: DepartmentRankingBasis
   departmentUnattributed: { hours: number; donationAmount: number }
@@ -39,17 +38,12 @@ function sum<T>(rows: T[], pick: (row: T) => number): number {
   return rows.reduce((total, row) => total + pick(row), 0)
 }
 
-/** A college's podium figure is whatever the board is currently ordered on. */
 function departmentFigure(entry: DisplayedDepartment, basis: DepartmentRankingBasis): string {
   if (basis === 'hours') return formatHours(entry.hours)
   if (basis === 'donations') return formatCurrency(entry.donationAmount)
   return formatScore(entry.score)
 }
 
-/**
- * The headline tiles and podium for the active board. Every board maps into the
- * same podium shape so the podium stays criteria-agnostic.
- */
 export function rankingDashboard({
   board,
   settings,
@@ -126,8 +120,7 @@ export function rankingDashboard({
     }
   }
 
-  // A college with nothing on the current order is on the table, but not on the
-  // podium — and since it sorts last, the podium's ranks stay 1, 2, 3.
+  // Zero entries stay off the podium; they sort last, so ranks stay 1, 2, 3.
   const onPodium = departments.filter((entry) =>
     departmentBasis === 'hours'
       ? entry.hours > 0

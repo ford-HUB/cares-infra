@@ -28,15 +28,13 @@ export function UserRequestPage() {
   const [binOpen, setBinOpen] = useState(false)
   const [rejecting, setRejecting] = useState<UserRequest | null>(null)
   const [tab, setTab] = useState<RequestTab>('access')
-  // Loaded with the page, so the Assistance tab's count shows before it is opened.
+  // Loaded with the page so the Assistance tab's count shows early.
   const assistance = useAssistanceRequestReview()
-  // Sign-up reviews get their own tab; the access tab keeps role and event requests.
   const accessRequests = useMemo(
     () => requests.filter((request) => !isRegistrationRequest(request.kind)),
     [requests],
   )
-  // Beneficiary and alumni sign-ups share one queue: both keep the account shut
-  // until a director approves it.
+  // Both keep the account shut until a director approves.
   const registrations = useMemo(
     () => requests.filter((request) => isRegistrationRequest(request.kind)),
     [requests],
@@ -54,8 +52,7 @@ export function UserRequestPage() {
     void fetchRequests()
   }, [fetchRequests])
 
-  // Deleted rows live in the bin, not the timeline — everything else stays on the
-  // trail so an accepted request keeps its place in the day it came in.
+  // Deleted rows live in the bin; the rest keep their place in the timeline.
   const timeline = useMemo(
     () => accessRequests.filter((request) => request.status !== 'deleted'),
     [accessRequests],
@@ -75,7 +72,7 @@ export function UserRequestPage() {
       await action()
       toast.success(message)
     } catch (error) {
-      // The server's message says why — a full event, an already-decided row.
+      // e.g. a full event or an already-decided row.
       toast.error(error instanceof Error ? error.message : 'The request could not be updated')
     } finally {
       setBusyId(null)
@@ -93,8 +90,7 @@ export function UserRequestPage() {
           : `${request.reference} accepted`,
     )
 
-  // The modal stays open until the call settles, so a failed rejection keeps the
-  // typed reason for another try.
+  // Modal stays open until settled so a failure keeps the typed reason.
   const handleConfirmReject = async (request: UserRequest, reason: string) => {
     setBusyId(request.id)
     try {
@@ -130,7 +126,7 @@ export function UserRequestPage() {
         title="User Request"
         description="Volunteer access requests, beneficiary event-join requests, proof-of-residency reviews, new beneficiary and alumni registrations, and beneficiaries' assistance requests, submitted from the mobile app."
         action={
-          // The bin belongs to the access queue; assistance requests are never deleted.
+          // Assistance requests are never deleted.
           tab === 'access' && (
             <button
               type="button"

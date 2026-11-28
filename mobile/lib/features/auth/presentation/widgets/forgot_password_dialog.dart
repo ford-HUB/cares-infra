@@ -6,8 +6,6 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/password_reset_service.dart';
 import 'package:mobile/features/auth/presentation/widgets/verification_code_input.dart';
 
-/// What the dialog hands back once the code checks out — the caller uses it to
-/// open the new-password screen.
 class ForgotPasswordResult {
   const ForgotPasswordResult({required this.email, required this.resetToken});
 
@@ -15,8 +13,7 @@ class ForgotPasswordResult {
   final String resetToken;
 }
 
-/// Shows the reset dialog and resolves to the verified email + token, or null if
-/// the user backed out.
+/// Null if the user backed out.
 Future<ForgotPasswordResult?> showForgotPasswordDialog(
   BuildContext context, {
   String initialEmail = '',
@@ -28,9 +25,7 @@ Future<ForgotPasswordResult?> showForgotPasswordDialog(
   );
 }
 
-/// One dialog, two steps: ask for the email, then — once the server confirms an
-/// account exists and mails a code — swap the same card over to the six OTP boxes.
-/// Keeping it in one dialog means the user never loses the email they just typed.
+/// Email then OTP in one card, so the typed email is never lost.
 class ForgotPasswordDialog extends StatefulWidget {
   const ForgotPasswordDialog({super.key, this.initialEmail = ''});
 
@@ -187,8 +182,6 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
             children: [
               _header(),
               const SizedBox(height: 18),
-              // The step swaps inside the card so the dialog never jumps to a
-              // different surface mid-flow.
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
                 child: _stage == _Stage.email ? _emailStep() : _codeStep(),
@@ -310,8 +303,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 color: _codeExpired ? AppColors.error : AppColors.textSecondary,
               ),
             ),
-            // Resending before the current code lapses only returns the same
-            // code, so the button waits for the countdown to run out.
+            // Resending early returns the same code, so wait for the countdown.
             TextButton(
               onPressed: _codeExpired && !_isBusy
                   ? () => _sendCode(resend: true)

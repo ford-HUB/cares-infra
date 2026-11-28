@@ -5,34 +5,24 @@ import { DurationUtils } from '../../../shared/utils/duration-utils';
 import type { ProfileAssetKind } from '../dto/profile-site-dto';
 import type { PortalProfileRow } from '../repositories/profile-repository';
 
-/**
- * Above this, the asset streams straight from S3 every time. Redis is a cache, not a
- * file store, and a 5 MB avatar base64s to ~6.7 MB of resident memory per user.
- */
+/** Larger assets stream from S3: Redis is a cache, not a file store. */
 const MAX_CACHED_ASSET_BYTES = 1024 * 1024;
 
 export interface CachedProfileAsset {
   buffer: Buffer;
   contentType: string;
-  /** Content hash, quoted for the `ETag` header, so a new upload invalidates browsers too. */
+  /** Quoted content hash, so new uploads invalidate browsers. */
   etag: string;
 }
 
-/** What actually lands in Redis — JSON only, so the buffer travels as base64. */
+/** JSON-only, so the buffer is base64. */
 interface StoredProfileAsset {
   content_type: string;
   etag: string;
   data: string;
 }
 
-/**
- * Cache for the portal shell's per-refresh reads: `GET /v1/profile/me` and the navbar
- * avatar behind `GET /v1/profile/me/{avatar,signature}`. Both are per-user, so every
- * key carries the user id.
- *
- * Every method swallows Redis failures — a cache miss and a dead Redis must look the
- * same to the caller, which then falls through to Prisma/S3.
- */
+/** Per-user keys. Redis failures are swallowed so the caller falls through to Prisma/S3. */
 @Injectable()
 export class ProfileCacheService {
   private readonly logger = new Logger(ProfileCacheService.name);
@@ -69,7 +59,7 @@ export class ProfileCacheService {
     };
   }
 
-  /** Returns the asset with its etag whether or not it was small enough to store. */
+  /** Returns the etag even when too large to store. */
   async setAsset(
     userId: string,
     kind: ProfileAssetKind,
@@ -98,15 +88,11 @@ export class ProfileCacheService {
     return cached;
   }
 
-  /**
-   * Call from every write that touches a field of the portal profile row —
-   * `ProfileSiteService.updateMyProfile` and the account-settings email change.
-   */
+  /** Call from every portal-profile write (`updateMyProfile`, account-settings email change). */
   async invalidateProfile(userId: string): Promise<void> {
     await this.safeDelete(this.profileKey(userId));
   }
 
-  /** Call when the stored S3 object behind `kind` is replaced. */
   async invalidateAsset(userId: string, kind: ProfileAssetKind): Promise<void> {
     await this.safeDelete(this.assetKey(userId, kind));
   }
@@ -148,7 +134,7 @@ export class ProfileCacheService {
     try {
       await this.redisService.delete(key);
     } catch (error) {
-      // The TTL is the backstop, but a missed delete serves stale data until it fires.
+      // Stale until the TTL fires.
       this.logger.error(`Redis invalidation failed for ${key}`, error);
     }
   }

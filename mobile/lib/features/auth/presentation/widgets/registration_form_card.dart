@@ -3,16 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/providers/password_policy_provider.dart';
 
-/// Shared building blocks for the "donor style" registration forms.
-///
-/// The pattern is: a gradient hero panel that sells the account type, then a
-/// stack of white [RegistrationFormCard]s that each group one idea (your name,
-/// who you are, sign-in details), and a sticky action bar at the bottom of the
-/// screen. Password fields are always followed by the strength bar, the
-/// [PasswordRuleChips] row and, once the user types a confirmation, the
-/// [PasswordMatchNote].
-
-/// Gradient intro panel used at the top of a registration form.
 class RegistrationHeroPanel extends StatelessWidget {
   const RegistrationHeroPanel({
     super.key,
@@ -26,7 +16,6 @@ class RegistrationHeroPanel extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  /// Short "what you get" lines, each with its own leading icon.
   final List<(IconData, String)> highlights;
 
   @override
@@ -125,7 +114,6 @@ class RegistrationHeroPanel extends StatelessWidget {
   }
 }
 
-/// White card grouping one set of related fields.
 class RegistrationFormCard extends StatelessWidget {
   const RegistrationFormCard({
     super.key,
@@ -286,7 +274,6 @@ class RegistrationChoiceTile extends StatelessWidget {
   }
 }
 
-/// Small pass/fail pill for one password requirement.
 class PasswordRuleChip extends StatelessWidget {
   const PasswordRuleChip({super.key, required this.label, required this.met});
 
@@ -295,8 +282,7 @@ class PasswordRuleChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Orange while outstanding so it reads as "still needed", not as a passed check
-    // in a slightly different green.
+    // Orange reads as still needed, not a passed check.
     final color = met ? AppColors.secondary : AppColors.warning;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -334,12 +320,7 @@ class PasswordRuleChip extends StatelessWidget {
   }
 }
 
-/// The password rules still outstanding, as one wrapping row.
-///
-/// Only unmet rules appear, and nothing at all is drawn before the user has typed
-/// anything or once every rule is satisfied: a checklist of things already done is
-/// noise under a field the user has finished with. The rules themselves come from the
-/// security policy the administrator set in the portal.
+/// Only unmet rules, and nothing before typing or once all are met.
 class PasswordRuleChips extends ConsumerWidget {
   const PasswordRuleChips({super.key, required this.password});
 
@@ -363,7 +344,6 @@ class PasswordRuleChips extends ConsumerWidget {
   }
 }
 
-/// "Passwords match" / "Passwords do not match" line under the confirm field.
 class PasswordMatchNote extends StatelessWidget {
   const PasswordMatchNote({super.key, required this.matches});
 

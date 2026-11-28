@@ -1,7 +1,4 @@
-"""Manual probe: python scripts/test_validate.py [http://localhost:8005]
-
-Builds four synthetic volunteers against a rectangular fence in Mandaue and
-prints each verdict. Not a test suite — eyeball the output."""
+"""Manual probe (not a test suite): python scripts/test_validate.py [http://localhost:8005]"""
 
 import json
 import sys

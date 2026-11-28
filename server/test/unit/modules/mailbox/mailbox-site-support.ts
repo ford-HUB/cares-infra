@@ -16,14 +16,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Mail Inbox Module', unit: 'Connect / Send Mail', prefix: 'MAIL' });
 
-/**
- * Shared by every spec in this folder — the Mail Inbox module's two POSTs:
- *   POST /api/v1/mailbox/connection  (createAuthorizeUrl: no body, caller from the token)
- *   POST /api/v1/mailbox/messages    (sendMail: SendMailSchema)
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const CONNECTION_PATH = '/api/v1/mailbox/connection';
 export const MESSAGES_PATH = '/api/v1/mailbox/messages';
 
@@ -42,12 +34,7 @@ export const VALID_IN_REPLY_TO = '<CAF+abc_123=def.456@mail.gmail.com>';
 export const AUTHORIZE_RESPONSE = { authorize_url: 'https://accounts.google.com/o/oauth2/v2/auth?state=nonce' };
 export const SEND_RESPONSE = { id: '18c2f1a9b3d4e5f7', thread_id: VALID_THREAD_ID };
 
-/**
- * Boots `MailboxSiteController` with a mocked service for the enclosing
- * `describe`. The controller reads `user.sub`, so a stand-in for the global JWT
- * guard puts `CALLER` on the request. Read `app` inside tests — it is assigned
- * in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the controller reads `user.sub`); `app` is assigned in `beforeAll`. */
 export const useMailboxApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -80,10 +67,7 @@ export const useMailboxApp = () => {
   return ctx;
 };
 
-/**
- * sendMail fixtures through both layers. A FAIL must come back in the validation
- * envelope without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeSendMailTable = (ctx: ReturnType<typeof useMailboxApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

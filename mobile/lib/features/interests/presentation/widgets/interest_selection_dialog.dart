@@ -7,22 +7,10 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/interests/data/interests_service.dart';
 import 'package:mobile/features/interests/domain/user_interest.dart';
 
-/// Shows a blocking popup for a volunteer to pick the event types they care
-/// about. Options mirror the portal's event categories. The dialog saves the
-/// picks itself and only closes once the server has accepted them; it returns
-/// the saved set, or `null` if it was dismissed without saving.
-///
-/// Pass [initialSelection] when editing an existing set — the save is a full
-/// replace, so anything not pre-checked here would be dropped. [dismissible]
-/// adds a close button and lets the user back out without saving.
-///
-/// Partner-barangay volunteers, and donors / beneficiaries whose Volunteer
-/// role a director approved, are from outside the school community: the
-/// School interest is not offered to them and is dropped from
-/// [initialSelection] if it was saved earlier.
-///
-/// Picking "Others" opens a text field for what that interest is; it is
-/// required while Others is selected and pre-filled from the saved profile.
+/// Saves the picks itself and closes only once the server accepts; null if
+/// dismissed unsaved. The save is a full replace, so pass [initialSelection]
+/// when editing. Outside-school volunteers aren't offered School; "Others"
+/// requires its text.
 Future<Set<UserInterest>?> showInterestSelectionDialog(
   BuildContext context, {
   InterestsService? interestsService,
@@ -231,7 +219,7 @@ class _InterestSelectionDialogState extends State<InterestSelectionDialog> {
 class _DialogHeader extends StatelessWidget {
   const _DialogHeader({this.onClose});
 
-  /// Shown only when the dialog can be dismissed (editing from the profile).
+  /// Only when dismissible (editing from the profile).
   final VoidCallback? onClose;
 
   @override
@@ -301,7 +289,6 @@ class _DialogHeader extends StatelessWidget {
   }
 }
 
-/// Free-text box shown under the grid while "Others" is picked.
 class _OtherInterestField extends StatelessWidget {
   const _OtherInterestField({
     required this.controller,
@@ -366,7 +353,6 @@ class _DialogFooter extends StatelessWidget {
 
   final int selectedCount;
 
-  /// Others is picked but its text box is still empty.
   final bool needsOtherText;
   final bool isSaving;
   final String? errorMessage;
@@ -504,9 +490,7 @@ class _InterestCard extends StatelessWidget {
   }
 }
 
-/// The animated artwork on a card. Plays the category's Lottie file and
-/// falls back to the Material icon if the asset has not been added yet, so
-/// the picker never shows a broken slot.
+/// Falls back to the Material icon if the Lottie asset is missing.
 class _InterestArt extends StatelessWidget {
   const _InterestArt({required this.interest, required this.accent});
 

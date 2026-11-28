@@ -39,11 +39,7 @@ import {
 const UserIdParamSchema = z.uuid('A valid user id is required');
 const SuspensionIdParamSchema = z.uuid('A valid suspension id is required');
 
-/**
- * Reading rights needs "View rights"; changing anything needs "Manage rights". Both
- * default to the admin baseline only, but either can be granted to another portal
- * account — or suspended on an admin — in Access Control itself.
- */
+/** Reads need "View rights", writes "Manage rights". */
 @Controller('v1/access-control')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.ACCESS_CONTROL_VIEW)

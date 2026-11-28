@@ -13,10 +13,7 @@ interface SaveOutcome {
 interface SecurityPolicyState {
   policy: SecurityPolicyDetail | null
   loading: boolean
-  /**
-   * False until the first fetch settles. The form must not populate from defaults and
-   * then jump to the saved values — it renders a skeleton until this flips.
-   */
+  /** Skeleton until loaded so the form doesn't jump from defaults to saved values. */
   initialized: boolean
   saving: boolean
   error: string | null
@@ -52,8 +49,7 @@ export const useSecurityPolicyStore = create<SecurityPolicyState>((set) => ({
       return { ok: false, message: result.message }
     }
 
-    // Keep the saved copy: it carries the new `updated_at`, which the form's footer
-    // shows, and a refetch would only ask for what the response already returned.
+    // The saved copy carries the new `updated_at`; no refetch needed.
     set({ policy: result.policy ?? null, saving: false, error: null })
     return { ok: true }
   },

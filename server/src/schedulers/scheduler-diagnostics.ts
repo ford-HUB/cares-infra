@@ -21,13 +21,12 @@ export type DiagnosticGroup =
   | 'scheduler'
   | 'process';
 
-/** One probe's verdict, in the words staff read on the Services screen. */
 export interface DiagnosticCheck {
   id: string;
   group: DiagnosticGroup;
   name: string;
   status: DiagnosticStatus;
-  /** Round-trip of the probe; null where nothing was timed. */
+  /** Null where nothing was timed. */
   latencyMs: number | null;
   detail: string;
 }
@@ -38,12 +37,10 @@ export interface DiagnosticReport {
   checkedAt: string;
   durationMs: number;
   overall: DiagnosticOverall;
-  /** Whether the report came from the scheduled sweep or a staff-pressed check. */
   source: 'scheduled' | 'manual';
   checks: DiagnosticCheck[];
 }
 
-/** One line per past report — the strip under the diagnostics card. */
 export interface DiagnosticHistoryEntry {
   checkedAt: string;
   overall: DiagnosticOverall;
@@ -54,25 +51,21 @@ const LATEST_KEY = 'diagnostics:latest';
 const HISTORY_KEY = 'diagnostics:history';
 const HISTORY_MAX = 60;
 
-/** A probe that takes longer than this is answered but flagged. */
+/** Slower than this is flagged. */
 const SLOW_MS = 1_000;
-/** A probe still unanswered after this is failed. */
+/** Unanswered after this fails. */
 const PROBE_TIMEOUT_MS = 5_000;
 
-/** A scheduler whose next fire is this far in the past is stuck, not just busy. */
+/** Next fire this far past means stuck. */
 const OVERDUE_GRACE_MS = 2 * 60 * 1000;
 
-/** Queued work beyond this is a backlog the workers are not clearing. */
+/** Backlog threshold. */
 const BACKLOG_WARN = 100;
 
-/**
- * A failure older than this is history, not a live warning. BullMQ keeps the last
- * `removeOnFail.count` failed jobs around, so the raw failed count would otherwise
- * hold a queue at "degraded" long after every later run has succeeded.
- */
+/** Older failures are history; BullMQ keeps `removeOnFail.count` failed jobs, which would pin "degraded". */
 const RECENT_FAILURE_MS = 60 * 60 * 1000;
 
-/** Heap use above this share of the limit is the process running out of room. */
+/** Share of the heap limit. */
 const HEAP_WARN_SHARE = 0.85;
 
 const MICROSERVICES: {
@@ -113,12 +106,7 @@ const MICROSERVICES: {
   },
 ];
 
-/**
- * Probes everything the schedulers depend on to keep running — the database, Redis,
- * the ML services, the queues and their workers, and the schedulers' own clocks —
- * and writes one report to Redis. The sweep on the diagnostics queue runs it every
- * minute; the Services screen can run it on demand and reads the latest either way.
- */
+/** Writes one report to Redis; run every minute and on demand. */
 @Injectable()
 export class SystemDiagnosticsChecker {
   private readonly logger = new Logger(SystemDiagnosticsChecker.name);
@@ -179,7 +167,7 @@ export class SystemDiagnosticsChecker {
         HISTORY_MAX,
       );
     } catch (error) {
-      // Redis being down is itself in the report; the caller still gets it.
+      // Redis being down is itself in the report.
       this.logger.warn(`report not stored: ${(error as Error).message}`);
     }
 
@@ -194,8 +182,6 @@ export class SystemDiagnosticsChecker {
   async history(): Promise<DiagnosticHistoryEntry[]> {
     return this.redisService.listAll<DiagnosticHistoryEntry>(HISTORY_KEY);
   }
-
-  // ---------------------------------------------------------------- probes
 
   private async checkDatabase(): Promise<DiagnosticCheck[]> {
     return [
@@ -303,12 +289,7 @@ export class SystemDiagnosticsChecker {
     );
   }
 
-  /**
-   * Each catalogued job against its own clock: a scheduler that should be armed but
-   * is missing, a next fire well in the past, a run past its cap, or a last run
-   * that failed. The diagnostics sweep does not judge itself — its verdict is this
-   * report existing at all.
-   */
+  /** Missing scheduler, overdue fire, over-cap run or failed last run. The diagnostics sweep doesn't judge itself. */
   private async checkSchedulers(): Promise<DiagnosticCheck[]> {
     const now = Date.now();
     return Promise.all(
@@ -425,8 +406,7 @@ export class SystemDiagnosticsChecker {
   private async checkProcess(): Promise<DiagnosticCheck[]> {
     const lag = await eventLoopLagMs();
     const memory = process.memoryUsage();
-    // Against V8's ceiling, not `heapTotal` — the latter grows with use and is
-    // always nearly full, which would make this a permanent false alarm.
+    // Against V8's limit; `heapTotal` is always nearly full.
     const heapLimit = getHeapStatistics().heap_size_limit;
     const heapShare = memory.heapUsed / heapLimit;
     const detail = `Heap ${Math.round(memory.heapUsed / 1024 ** 2)} MB of ${Math.round(heapLimit / 1024 ** 2)} MB limit · RSS ${Math.round(memory.rss / 1024 ** 2)} MB · up ${Math.round(process.uptime() / 60)} min`;
@@ -456,8 +436,6 @@ export class SystemDiagnosticsChecker {
   }
 }
 
-// -------------------------------------------------------------------- helpers
-
 function check(
   id: string,
   group: DiagnosticGroup,
@@ -469,7 +447,7 @@ function check(
   return { id, group, name, status, latencyMs, detail };
 }
 
-/** Times one probe; a slow answer is a warning, an error or timeout a failure. */
+/** Slow = warning; error or timeout = failure. */
 async function probe(
   id: string,
   group: DiagnosticGroup,
@@ -510,7 +488,7 @@ async function probe(
   }
 }
 
-/** How late a zero-delay timer fires — the thread's backlog right now. */
+/** Zero-delay timer lateness. */
 function eventLoopLagMs(): Promise<number> {
   const startedAt = process.hrtime.bigint();
   return new Promise((resolve) =>
@@ -522,8 +500,7 @@ function eventLoopLagMs(): Promise<number> {
 
 function overallOf(checks: DiagnosticCheck[]): DiagnosticOverall {
   if (checks.some((one) => one.status === 'fail')) {
-    // The database or Redis failing takes everything with it; anything else is a
-    // degraded service, not an outage.
+    // DB or Redis failing is an outage; anything else is degraded.
     const core = checks.filter(
       (one) => one.group === 'database' || one.group === 'cache',
     );

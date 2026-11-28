@@ -36,26 +36,10 @@ import { PORTAL_PERMISSION as P } from '../constants/portal-permissions'
 import type { PortalNavConfig } from '../types/nav'
 import type { PortalRole } from '../types/portal-roles'
 
-/**
- * Program operations — events, tracking, certificates, reports. The admin is a
- * system operator, not a program operator, so these stay hidden from that role.
- */
+/** Admin is a system operator, so operations screens stay hidden from it. */
 const OPERATIONS_ROLES: PortalRole[] = ['director', 'coordinator']
 
-/**
- * One portal UI for every portal role. What an item needs is its `permission` — the
- * right an admin grants or revokes per account in Access Control. Grant "View
- * accounts" to a coordinator and Manage Users appears in their sidebar on the next
- * sync; untick "View donations" and Donation drops out. The server checks the same
- * right on every request behind the screen.
- *
- * `roles` is kept only where the right alone cannot decide: the same right served
- * by a different screen per role (the director's report library vs the
- * coordinator's filed record), a screen scoped to one role's job (the school-wide
- * map, the account-request form), items with no catalog right yet (Rankings,
- * Notices), and the operations groups the admin — a system operator, not a program
- * operator — is kept out of by design.
- */
+/** Items gate on `permission` (per-account, server re-checks); `roles` only where the right alone can't decide. */
 export const adminNav: PortalNavConfig = {
   portalTitle: 'CARES Admin Portal',
   basePath: ADMIN_BASE_PATH,
@@ -68,16 +52,11 @@ export const adminNav: PortalNavConfig = {
       children: [
         { label: 'Overview', to: '/admin/overview' },
         { label: 'Statistics', to: '/admin/statistics' },
-        // The household needs survey and its clusters — programme planning, so the
-        // director's alone.
         { label: 'Residential Needs', to: ADMIN_RESIDENTIAL_NEEDS_PATH, roles: ['director'] },
       ],
     },
     { type: 'link', label: 'User Profile', to: '/admin/profile', icon: CircleUser },
-    // A module of its own rather than a Tracker child: the tracker reads what came in,
-    // this decides whether anything can come in at all. Where donor money lands is a
-    // finance decision, so it stays the director's, gated on the right as well as the
-    // role so an admin can hand it over without editing code.
+    // Director-only finance setting, also gated on the right.
     {
       type: 'link',
       label: 'Payments',
@@ -100,7 +79,7 @@ export const adminNav: PortalNavConfig = {
       label: 'Mail Inbox',
       to: ADMIN_MAIL_INBOX_PATH,
       icon: Mail,
-      // Each account links a personal Google mailbox — nothing here is shared.
+      // Per-account Google mailbox, not shared.
       permission: P.MAIL_ACCESS,
     },
     {
@@ -108,8 +87,6 @@ export const adminNav: PortalNavConfig = {
       label: 'Support Tickets',
       to: ADMIN_SUPPORT_TICKETS_PATH,
       icon: LifeBuoy,
-      // Tickets come in from every portal and the mobile app; whoever holds the
-      // right triages them.
       permission: P.SUPPORT_TICKET_MANAGE,
     },
 
@@ -119,8 +96,6 @@ export const adminNav: PortalNavConfig = {
       label: 'Manage Users',
       icon: Users,
       children: [
-        // Open to whichever director or coordinator holds "User requests"; the admin
-        // stays out as with the other operations screens.
         { label: 'Request', to: '/admin/user-request', roles: OPERATIONS_ROLES, permission: P.USERS_REQUEST },
         { label: 'Master', to: '/admin/manage-users', permission: P.USERS_VIEW },
         { label: 'Access Control', to: '/admin/access-control', permission: P.ACCESS_CONTROL_VIEW },
@@ -132,8 +107,6 @@ export const adminNav: PortalNavConfig = {
       icon: LibraryBig,
       roles: OPERATIONS_ROLES,
       children: [
-        // Donations follow the account's "View donations" right — the director
-        // baseline holds it, a coordinator's is whatever the admin set.
         { label: 'Donation', to: '/admin/internal-donation-tracking', permission: P.DONATIONS_VIEW },
         { label: 'Attendance', to: '/admin/attendance-log', permission: P.ATTENDANCE_VIEW },
       ],
@@ -147,7 +120,7 @@ export const adminNav: PortalNavConfig = {
       children: [
         { label: 'Event', to: '/admin/event-list' },
         { label: 'Attendees', to: '/admin/event-attendees' },
-        // The map spans every college; a coordinator works one department at a time.
+        // School-wide map; coordinators work one department.
         { label: 'Map', to: ADMIN_EVENT_MAP_PATH, roles: ['director'] },
         { label: 'Calendar', to: '/admin/event-calendar' },
       ],
@@ -156,7 +129,6 @@ export const adminNav: PortalNavConfig = {
       type: 'group',
       label: 'Manage Certificate',
       icon: CreditCard,
-      // Held by the director baseline; a coordinator sees it once granted "View certificates".
       roles: OPERATIONS_ROLES,
       permission: P.CERTIFICATES_VIEW,
       children: [
@@ -170,7 +142,6 @@ export const adminNav: PortalNavConfig = {
       icon: Trophy,
       roles: OPERATIONS_ROLES,
       children: [
-        // The ladder is set school-wide by the director; coordinators only read it.
         { label: 'Customization', to: '/admin/ranking-customization', roles: ['director'] },
         { label: 'Ranking', to: '/admin/rankings' },
       ],
@@ -182,11 +153,9 @@ export const adminNav: PortalNavConfig = {
       roles: OPERATIONS_ROLES,
       permission: P.REPORTS_VIEW,
       children: [
-        // Reviewing is the "Publish reports" right; submitting is the coordinator's job.
         { label: 'Queue Reviewer', to: '/admin/report-queue', permission: P.REPORTS_PUBLISH },
         { label: 'Upload Report', to: ADMIN_UPLOAD_REPORT_PATH, roles: ['coordinator'] },
-        // The director's library has folders of its own; the coordinator gets the
-        // filed record per department and nothing to rearrange.
+        // Coordinators get a per-department filed record instead.
         { label: 'Monthly Report', to: '/admin/monthly-reports', roles: ['director'] },
         { label: 'Monthly Report', to: ADMIN_DEPARTMENT_FILES_PATH, roles: ['coordinator'] },
       ],
@@ -196,11 +165,9 @@ export const adminNav: PortalNavConfig = {
       type: 'group',
       label: 'Evaluation',
       icon: ClipboardList,
-      // Post-event evaluation is programme feedback the director designs and reads.
       roles: ['director'],
       children: [
         { label: 'Questionnaire', to: ADMIN_EVALUATION_QUESTIONNAIRE_PATH },
-        // Forms is the library: which questionnaire each event asks.
         { label: 'Forms', to: ADMIN_EVALUATION_FORMS_PATH },
         { label: 'Answers', to: ADMIN_EVALUATION_ANSWERS_PATH },
       ],

@@ -14,20 +14,16 @@ export const CERTIFICATE_ACCENT_ORDER: CertificateAccent[] = [
   'slate',
 ]
 
-/** One record, six channels — a new accent cannot land half-styled. */
 export const CERTIFICATE_ACCENT_STYLES: Record<
   CertificateAccent,
   {
     label: string
-    /** Swatch in the customizer. */
     swatch: string
     frame: string
     rule: string
     seal: string
     headline: string
-    /** Solid fill for a frame's panels, ribbons and bands. */
     solid: string
-    /** Soft wash behind an ornament. */
     tint: string
   }
 > = {
@@ -93,10 +89,7 @@ export const CERTIFICATE_ACCENT_STYLES: Record<
   },
 }
 
-/**
- * Placeholders the print job fills in per recipient. `required` ones name the award
- * itself — a certificate without them prints the same wording for everybody.
- */
+/** `required` tokens name the award; without them every recipient gets the same text. */
 export const CERTIFICATE_TOKENS: {
   token: string
   label: string
@@ -120,20 +113,14 @@ export const CERTIFICATE_TOKENS: {
   },
 ]
 
-/** The placeholders award text cannot print without. */
 export const REQUIRED_CERTIFICATE_TOKENS = CERTIFICATE_TOKENS.filter(
   (entry) => entry.required,
 )
 
-/** Anything brace-wrapped, so a half-typed `{{date}` is caught rather than printed. */
+/** Catches half-typed tokens like `{{date}`. */
 const TOKEN_LIKE_PATTERN = /\{+[^{}]*\}+/g
 
-/**
- * Every brace group must be a real placeholder written exactly. The award name is held
- * to this alone — it may carry placeholders, but none is required there.
- *
- * Returns the message to show, or `null` when the wording is fine.
- */
+/** Token spelling only (used for the award name); returns the error message or `null`. */
 export function placeholderIssue(text: string): string | null {
   const names = new Set(CERTIFICATE_TOKENS.map((entry) => entry.token.slice(2, -2)))
 
@@ -150,13 +137,7 @@ export function placeholderIssue(text: string): string | null {
   return null
 }
 
-/**
- * The one place award-text wording is judged: every brace group must be a real
- * placeholder written exactly, and the required ones must all be present. Optional
- * tokens — hours, organization — are free to be left out.
- *
- * Returns the message to show, or `null` when the wording is fine.
- */
+/** Token spelling plus required tokens; returns the error message or `null`. */
 export function awardTextIssue(text: string): string | null {
   const malformed = placeholderIssue(text)
   if (malformed) return malformed
@@ -171,15 +152,13 @@ export function awardTextIssue(text: string): string | null {
   return null
 }
 
-/** A certificate is signed by a few people, not a committee. */
 export const MAX_SIGNATORIES = 3
 
 export const HEADLINE_MAX_LENGTH = 60
-/** Matches the template name's own limit — the award name starts as a copy of it. */
+/** Matches the template name limit; the award name starts as a copy. */
 export const TITLE_MAX_LENGTH = 80
 export const BODY_MAX_LENGTH = 240
 
-/** Fills every `{{token}}` with its sample so the preview reads like a real award. */
 export function renderCertificateTokens(text: string): string {
   return CERTIFICATE_TOKENS.reduce(
     (filled, entry) => filled.split(entry.token).join(entry.sample),
@@ -187,10 +166,7 @@ export function renderCertificateTokens(text: string): string {
   )
 }
 
-/**
- * The award name as printed: the design's own wording, or the template name on a
- * template saved before the award name was its own field.
- */
+/** Falls back to the template name for templates saved before the award-name field. */
 export function certificateTitle(
   design: { title?: string },
   fallback: string,
@@ -198,7 +174,6 @@ export function certificateTitle(
   return design.title?.trim() ? design.title : fallback
 }
 
-/** The accent a brand-new template starts on, taken from its category. */
 export const CATEGORY_DEFAULT_ACCENT: Record<
   CertificateTemplateCategory,
   CertificateAccent
@@ -210,15 +185,9 @@ export const CATEGORY_DEFAULT_ACCENT: Record<
   sponsorship: 'amber',
 }
 
-/**
- * The placeholder every signature line carries. The printed certificate swaps it for
- * the coordinator's own signature image, which is why a line is picked from an account
- * rather than typed; the customizer never renders the token, because the director is
- * choosing a person, not a picture.
- */
+/** Printed as the coordinator's signature image; the customizer never renders it. */
 export const SIGNATURE_IMAGE_TOKEN = '{{signature-image}}'
 
-/** A signatory line is only ever built from a real coordinator account. */
 export function createSignatory(
   coordinator: SignatoryCoordinator,
 ): CertificateSignatory {
@@ -234,7 +203,6 @@ export function createSignatory(
   }
 }
 
-/** Deterministic tint for an initials avatar, so a coordinator keeps one colour. */
 export const AVATAR_TONES = [
   'bg-emerald-100 text-emerald-700',
   'bg-sky-100 text-sky-700',

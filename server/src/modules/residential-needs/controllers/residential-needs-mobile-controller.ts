@@ -15,11 +15,7 @@ import {
   SubmitNeedsAssessmentSchema,
 } from '../validators/residential-needs-mobile-validator';
 
-/**
- * The beneficiary's Needs Assessment Survey. Shares `v1/residential-needs`
- * with the portal controller; every route here sits under `me` so the two
- * never collide.
- */
+/** Routes under `me` to avoid clashing with the site controller. */
 @Controller('v1/residential-needs')
 @Roles(...MOBILE_NEEDS_ROLE_TYPES)
 export class ResidentialNeedsMobileController {
@@ -36,7 +32,6 @@ export class ResidentialNeedsMobileController {
     return this.residentialNeedsMobileService.findMine(user.sub);
   }
 
-  /** Takes the survey the first time and overwrites it on every update. */
   @Put('me')
   @ResponseMessage('Needs assessment saved')
   @ZSerialize(MyNeedsAssessmentResponseSchema)

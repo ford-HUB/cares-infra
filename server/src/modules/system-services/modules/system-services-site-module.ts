@@ -4,8 +4,7 @@ import { SystemServicesSiteController } from '../controllers/system-services-sit
 import { SystemServicesSiteService } from '../services/system-services-site-service';
 
 @Module({
-  // The queues and the run recorder come from the schedulers module — this one only
-  // reads and steers them.
+  // Queues and run recorder come from the schedulers module.
   imports: [SchedulersModule],
   controllers: [SystemServicesSiteController],
   providers: [SystemServicesSiteService],

@@ -12,11 +12,6 @@ import {
   useAuthSiteApp,
 } from '../login-site-support';
 
-/**
- * Login — valid inputs. Every case is a legitimate sign-in that the portal must
- * accept: 200, a token is issued, a session is created and the attempt is
- * recorded as SUCCESS.
- */
 const testCase = defineCases({ module: MODULE, unit: 'Login', kind: 'valid', prefix: 'LOGIN' });
 
 describe('Login — valid inputs', () => {

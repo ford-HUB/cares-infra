@@ -2,9 +2,7 @@ import type { LegalDocument } from '../types/legal'
 import { LANDING_CONTACT } from './landing-bulletin'
 import { LEGAL_EFFECTIVE_DATE } from './legal-privacy-policy'
 
-/** Public terms of service for the website, staff portal and CARES mobile app.
- *  Static content — nothing here is fetched. Keep in step with the per-role notices in
- *  the mobile app's cares_terms_dialog.dart. */
+/** Keep in sync with mobile cares_terms_dialog.dart. */
 export const TERMS_OF_SERVICE: LegalDocument = {
   title: 'Terms of Service',
   summary:

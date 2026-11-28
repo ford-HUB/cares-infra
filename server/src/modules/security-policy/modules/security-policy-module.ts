@@ -6,14 +6,7 @@ import { SecurityPolicyService } from '../services/security-policy-service';
 import { SecurityPolicyPublicModule } from './security-policy-public-module';
 import { SecurityPolicySiteModule } from './security-policy-site-module';
 
-/**
- * Global for the same reason `SessionsModule` is: the policy is read far from the
- * feature that owns it — the two auth flows, the password forms, and `SessionGuard`
- * all consult it, and threading an import through each of them buys nothing.
- *
- * `LoginActivityModule` is imported here rather than by the enforcer's callers: the
- * enforcer writes its refusals to the sign-in trail.
- */
+/** Global: read by both auth flows, password forms and `SessionGuard`. Imports `LoginActivityModule` for refusals. */
 @Global()
 @Module({
   imports: [

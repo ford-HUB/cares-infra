@@ -18,7 +18,6 @@ import type {
   CertificateImageShape,
 } from '../../../types/certificate-template'
 
-/** Corner and edge grips; each says which dimensions it changes and how. */
 const HANDLES = [
   { id: 'nw', className: '-top-1 -left-1 cursor-nwse-resize', dx: -1, dy: -1 },
   {
@@ -64,11 +63,7 @@ interface CertificateImageBoxProps {
   onRemove: () => void
 }
 
-/**
- * One placed image on the editing surface: dragged from the middle, resized from any
- * edge or corner, and right-clicked for its shape and stacking. Grips only appear once
- * it is selected, so an unselected sheet still reads as the finished certificate.
- */
+/** Grips appear only when selected, so an unselected sheet reads as final. */
 export function CertificateImageBox({
   image,
   selected,
@@ -137,8 +132,6 @@ export function CertificateImageBox({
         <ContextMenuLabel className="text-[11px] tracking-wider text-gray-500 uppercase">
           Reshape
         </ContextMenuLabel>
-        {/* The four shapes sit inline rather than behind a submenu — picking a shape is
-            the whole reason this menu is open. */}
         <div className="flex items-center gap-1 px-1.5 pb-1.5">
           {IMAGE_SHAPE_ORDER.map((shape) => (
             <button

@@ -20,7 +20,7 @@ import { ChartCard } from './chart-card'
 interface CpuLoadChartProps {
   samples: PerformanceSample[]
   range: PerformanceRangeId
-  /** Set by the banner's legend; the other two bands fall back rather than vanish. */
+  /** Set by the banner legend; other bands fade rather than vanish. */
   focus: CpuBand | null
 }
 
@@ -33,11 +33,7 @@ const config: ChartConfig = Object.fromEntries(
   ]),
 )
 
-/**
- * Where the host's time goes, stacked so the top of the stack is total CPU busy and
- * the gap above it is real headroom. The y-axis is pinned to 100 % on purpose: an
- * auto-scaled axis makes a quiet host look as alarming as a saturated one.
- */
+/** Y-axis pinned to 100 % so a quiet host doesn't look as alarming as a saturated one. */
 export function CpuLoadChart({ samples, range, focus }: CpuLoadChartProps) {
   const rows = samples.map((sample) => ({
     at: formatSampleTime(sample.at, range),
@@ -100,7 +96,7 @@ export function CpuLoadChart({ samples, range, focus }: CpuLoadChartProps) {
               fillOpacity={focus && focus !== band ? 0.08 : 0.24}
               strokeOpacity={focus && focus !== band ? 0.25 : 1}
               strokeWidth={2}
-              // A stream repainting every three seconds must not re-animate each tick.
+              // A stream repainting every 3 s must not re-animate each tick.
               isAnimationActive={false}
               dot={false}
             />

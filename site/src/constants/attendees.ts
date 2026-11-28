@@ -4,7 +4,6 @@ import type {
   GeoValidationMethod,
 } from '../types/attendee'
 
-/** Fixed row metrics — the grid measures its container against these to fill the viewport. */
 export const ATTENDEE_ROW_HEIGHT_PX = 44
 export const ATTENDEE_HEADER_HEIGHT_PX = 36
 
@@ -19,7 +18,6 @@ export const ATTENDEE_STATUS_LABELS: Record<AttendanceStatus, string> = {
   absent: 'Absent',
 }
 
-/** Light-only palette, in step with the rest of the portal's badges. */
 export const ATTENDEE_STATUS_STYLES: Record<AttendanceStatus, string> = {
   pending: 'bg-blue-50 text-blue-700',
   completed: 'bg-emerald-50 text-emerald-700',
@@ -33,7 +31,6 @@ export const ATTENDEE_STATUS_FILTERS: { value: AttendeeStatusFilter; label: stri
   { value: 'absent', label: ATTENDEE_STATUS_LABELS.absent },
 ]
 
-/** The METHOD column: where the coordinates came from, not how a scan was taken. */
 export const GEO_VALIDATION_METHOD_LABELS: Record<GeoValidationMethod, string> = {
   geofence: 'Geofence',
   offline_sync: 'Offline Sync',
@@ -51,32 +48,24 @@ export const ATTENDEE_COLUMNS = [
   { key: 'status', label: 'Status', width: 'w-[12%]' },
 ] as const
 
-/**
- * Cell classes shared by the attendees table and its loading skeleton. They live here
- * so the skeleton cannot drift from the real row — a height mismatch is exactly the
- * layout jump the skeleton exists to prevent.
- */
+/** Shared with the loading skeleton so row heights can't drift. */
 export const ATTENDEE_CELL_BORDER = 'border-r border-gray-100 last:border-r-0'
 export const ATTENDEE_CELL_BASE =
   'h-11 truncate border-b border-gray-100 px-3 py-0 text-[13px]'
-/** The checkbox column drawn only for accounts that may mark attendance by hand. */
 export const ATTENDEE_SELECT_CELL = 'w-10 border-r border-gray-100 px-0 text-center'
 export const ATTENDEE_GUTTER_CELL =
   'sticky left-0 z-10 w-10 border-r border-gray-200 bg-gray-50 text-center text-[11px] tabular-nums text-gray-400'
 
 export const MANUAL_ATTENDANCE_REASON_MAX = 300
 
-/**
- * Whether a row can be marked present by hand: the event must be over (the ruling
- * credits its whole window) and the row not already completed.
- */
+/** Event must be over (the ruling credits its whole window) and the row not completed. */
 export function isManuallyMarkable(attendee: EventAttendee, now = Date.now()): boolean {
   return (
     attendee.status !== 'completed' && new Date(attendee.eventEndDate).getTime() <= now
   )
 }
 
-/** The event's scheduled length in hours, to two decimals — what the server credits. */
+/** Rounded to two decimals, matching what the server credits. */
 export function scheduledEventHours(attendee: EventAttendee): number {
   const ms =
     new Date(attendee.eventEndDate).getTime() - new Date(attendee.eventDate).getTime()

@@ -1,4 +1,3 @@
-/** Simulated network latency when `VITE_USE_MOCK_API` is enabled. */
 export const MOCK_API_DELAY_MS = {
   default: 300,
   forgotPassword: 600,

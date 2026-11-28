@@ -19,14 +19,7 @@ interface SuspendActionsModalProps {
   onClose: () => void
 }
 
-/**
- * Suspends specific actions after a violation. Only actions the user currently holds
- * are offerable — suspending something they were never granted would be a no-op.
- *
- * Actions already under suspension stay in the list so the admin sees the full
- * picture of the module, but they are locked and read red; hovering one shows the
- * reason and window of the suspension in force.
- */
+/** Offers only held actions; already-suspended ones are shown locked. */
 export function SuspendActionsModal({
   user,
   detail,

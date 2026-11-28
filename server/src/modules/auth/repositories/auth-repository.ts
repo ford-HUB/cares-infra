@@ -31,11 +31,11 @@ export interface CreateDonorInput extends DonorDetailsInput {
 }
 
 export interface CreateDonorWithPasswordInput extends DonorDetailsInput {
-  /** Already bcrypt-hashed — the repository never sees a plaintext password. */
+  /** Already bcrypt-hashed. */
   hashedPassword: string;
 }
 
-/** The sign-up kinds that keep an account shut until a director approves it. */
+/** Kinds that keep the account shut until a director approves. */
 export const REGISTRATION_REVIEW_KINDS = [
   UserRequestKind.BENEFICIARY_REGISTRATION,
   UserRequestKind.ALUMNI_REGISTRATION,
@@ -45,21 +45,16 @@ export const REGISTRATION_REVIEW_KINDS = [
 
 export type RegistrationReviewKind = (typeof REGISTRATION_REVIEW_KINDS)[number];
 
-/**
- * The review request a self-registered beneficiary or alumnus files with their
- * sign-up — written in the same transaction as the account, so the account never
- * exists without it. A beneficiary attaches a supporting document; an alumnus
- * attaches the alumni ID they uploaded and the selfie matched against it.
- */
+/** Written in the account's transaction so the account never exists without it. */
 export interface RegistrationReviewRequestInput {
   kind: RegistrationReviewKind;
   summary: string;
-  /** The first trail line's actor — the person who just registered. */
+  /** The registrant. */
   actorName: string;
   document?: { url: string; name: string; mime: string; sizeBytes: number };
   idFrontUrl?: string;
   idBackUrl?: string;
-  /** The face-scan selfie, for sign-ups face matched against their ID. */
+  /** For sign-ups face matched against their ID. */
   selfieUrl?: string;
   faceSimilarity?: number;
 }
@@ -75,10 +70,7 @@ const REGISTRATION_CONFLICT_MESSAGES: Record<
   id_number: 'This ID number is already registered to another account',
 };
 
-/**
- * A 409 whose `errors` carries the clashing field in the same `{ path, message }`
- * shape as validation issues, so a client can jump back to that input.
- */
+/** 409 with `errors` in the validation `{ path, message }` shape. */
 export function registrationConflict(
   field: RegistrationConflictField,
 ): ConflictException {
@@ -104,10 +96,7 @@ export class AuthRepository {
     }
   }
 
-  /**
-   * Turns a unique-index clash into a 409 naming the field, so a registration retry
-   * reads as "already taken" instead of a raw database failure.
-   */
+  /** Unique-index clash → 409 naming the field. */
   private mapUniqueViolation(error: unknown): unknown {
     if (
       !(error instanceof Prisma.PrismaClientKnownRequestError) ||
@@ -198,8 +187,7 @@ export class AuthRepository {
               },
             },
           },
-          // A face is only enrolled once it has matched the ID during sign-up, so
-          // the verification it owns is already passed — not left pending.
+          // Face only enrolled after matching the ID, so already passed.
           user_verifications: data.biometric
             ? {
                 create: {
@@ -230,7 +218,7 @@ export class AuthRepository {
         data: {
           email: data.account.email,
           password: data.account.password,
-          // Only reached after the sign-up OTP — see `requireVerifiedEmail`.
+          // Only reached after the sign-up OTP (`requireVerifiedEmail`).
           email_verified_at: new Date(),
           user: {
             connect: {
@@ -276,19 +264,12 @@ export class AuthRepository {
         account_id: account.account_id,
         user_biometric_id:
           user.user_verifications[0]?.user_biometric_id ?? null,
-        /** The director's review filed with the sign-up, when it needs one. */
         registration_review: review,
       };
     });
   }
 
-  /**
-   * Creates a donor and the social identity that may sign in as them, in one
-   * transaction — a donor row with no way to sign in would be unreachable.
-   *
-   * Donors have no school record and no biometric enrolment: they never present an ID
-   * or a face scan, so those relations stay empty rather than being filled with stubs.
-   */
+  /** One transaction, so no donor without a sign-in. No school record or biometrics. */
   async createDonorFromOAuth(data: CreateDonorInput) {
     return await this.prisma.$transaction(async (tx) => {
       const role =
@@ -318,7 +299,7 @@ export class AuthRepository {
       const account = await tx.account.create({
         data: {
           email: data.email,
-          // The provider vouched for the address when the token was checked.
+          // Provider vouched for the address.
           email_verified_at: new Date(),
           user: { connect: { user_id: user.user_id } },
         },
@@ -343,10 +324,7 @@ export class AuthRepository {
     });
   }
 
-  /**
-   * Creates a donor who signs in with a password instead of a provider. Same shape as
-   * the OAuth variant minus the identity row — the account itself carries the credential.
-   */
+  /** The account carries the credential; no identity row. */
   async createDonorWithPassword(data: CreateDonorWithPasswordInput) {
     return await this.prisma.$transaction(async (tx) => {
       const role =
@@ -387,7 +365,6 @@ export class AuthRepository {
     });
   }
 
-  /** Resolves a provider subject id to the CARES user it already signs in as. */
   async findOAuthIdentity(provider: AuthProvider, providerUserId: string) {
     return this.prisma.oAuthIdentity.findUnique({
       where: {
@@ -412,10 +389,7 @@ export class AuthRepository {
     });
   }
 
-  /**
-   * Attaches a provider identity to a user who already exists — the case where someone
-   * registered with an email and later taps the matching provider button.
-   */
+  /** For an email-registered user who later uses a matching provider. */
   async linkOAuthIdentity(
     userId: string,
     provider: AuthProvider,
@@ -440,7 +414,7 @@ export class AuthRepository {
     });
   }
 
-  /** Everything a session needs about a user resolved by something other than a password. */
+  /** For users resolved without a password. */
   async findUserForSession(userId: string) {
     return this.prisma.user.findUnique({
       where: { user_id: userId },
@@ -487,10 +461,7 @@ export class AuthRepository {
     });
   }
 
-  /**
-   * The latest sign-up review on the account (beneficiary or alumni), if it
-   * registered through one.
-   */
+  /** Latest beneficiary or alumni sign-up review, if any. */
   async findRegistrationReview(userId: string) {
     return this.prisma.userRequest.findFirst({
       where: {
@@ -502,10 +473,7 @@ export class AuthRepository {
     });
   }
 
-  /**
-   * A registration review as the public status page shows it — looked up by the
-   * id inside a signed status link, so nothing here is guessable from outside.
-   */
+  /** Looked up by the id inside a signed status link. */
   async findRegistrationStatus(userRequestId: string) {
     return this.prisma.userRequest.findFirst({
       where: {
@@ -552,11 +520,7 @@ export class AuthRepository {
     });
   }
 
-  /**
-   * Password-reset write. `credential_expires_at` is cleared as well: an account the
-   * administrator provisioned with a temporary credential now has one its owner chose,
-   * so the expiry that forced the hand-over no longer applies.
-   */
+  /** Also clears `credential_expires_at`: the owner now chose the password. */
   async updatePasswordByEmail(email: string, hashedPassword: string) {
     return this.prisma.account.update({
       where: { email },

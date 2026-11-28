@@ -5,9 +5,9 @@ export const PROGRAM_BULLETIN_PAGE_PATH = '/programs/bulletin/:page'
 export const HIGHLIGHTS_PATH = '/highlights'
 export const LOGIN_PATH = '/login'
 export const REQUEST_ACCESS_PATH = '/request-access'
-/** Public: the "Check status" link in the registration-submitted email lands here. */
+/** Linked from the registration-submitted email. */
 export const REGISTRATION_STATUS_PATH = '/registration-status'
-/** Public legal pages, linked from the site footer and the mobile app. */
+/** Linked from the site footer and the mobile app. */
 export const PRIVACY_POLICY_PATH = '/privacy-policy'
 export const TERMS_OF_SERVICE_PATH = '/terms-of-service'
 export const ADMIN_BASE_PATH = '/admin'

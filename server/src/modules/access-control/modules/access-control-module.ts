@@ -3,7 +3,7 @@ import { AccessControlSiteModule } from './access-control-site-module';
 
 @Module({
   imports: [AccessControlSiteModule],
-  // Re-exported so the app-wide PermissionsGuard can resolve effective rights.
+  // Re-exported for the app-wide PermissionsGuard.
   exports: [AccessControlSiteModule],
 })
 export class AccessControlModule {}

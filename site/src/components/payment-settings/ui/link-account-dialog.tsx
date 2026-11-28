@@ -28,7 +28,6 @@ import { SandboxAmountHint } from './sandbox-amount-hint'
 import { TextField } from './text-field'
 
 interface LinkAccountDialogProps {
-  /** Null keeps the dialog closed; a method opens it on that method. */
   method: PaymentMethodKey | null
   index: number
   meta?: PaymentMethodMeta
@@ -36,7 +35,7 @@ interface LinkAccountDialogProps {
   register: UseFormRegister<PaymentSettingsFormValues>
   errors?: FieldErrors<PaymentSettingsFormValues['methods'][number]>
   busy: boolean
-  /** Saves the form so the payout goes to the number that is stored, not typed. */
+  /** Saves first, so the payout goes to the stored number, not the typed one. */
   onSaveDetails: () => void
   onSendProof: () => void
   onConfirmAmount: (amount: number) => void
@@ -44,14 +43,7 @@ interface LinkAccountDialogProps {
   onCancel: () => void
 }
 
-/**
- * Switching a method on, as a walk-through rather than a single yes/no: record the
- * account, prove CARES can reach it, then offer it to donors.
- *
- * It is deliberately CARES' own dialog carrying the method's mark, not an imitation of
- * the wallet's app. No gateway offers a merchant-side account-linking screen, and a
- * dialog dressed up as one would be asking a director to trust a login that isn't real.
- */
+/** Record account → prove reachability → offer to donors. Deliberately CARES' own dialog, not a fake wallet login. */
 export function LinkAccountDialog({
   method,
   index,
@@ -74,8 +66,7 @@ export function LinkAccountDialog({
   const needsAccount = PAYMENT_METHOD_COLLECTS_ACCOUNT[method]
   const proof = meta?.accountProof ?? 'NOT_STARTED'
 
-  // The step is read off the data, never held in state: a reload, a refetch or a
-  // failed payout all land the director exactly where they actually are.
+  // Derived from data, never held in state, so reloads/refetches/failed payouts land on the real step.
   const step: 1 | 2 | 3 | 4 = !needsAccount
     ? 4
     : proof === 'VERIFIED'
@@ -256,7 +247,6 @@ export function LinkAccountDialog({
   )
 }
 
-/** Where the director is in the walk-through, and what is still ahead. */
 function StepRail({ step }: { step: 1 | 2 | 3 | 4 }) {
   const steps = ['Account', 'Test payout', 'Confirm', 'Go live']
 

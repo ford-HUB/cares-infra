@@ -7,11 +7,7 @@ import type { PortalRole } from '../../types/portal-roles'
 
 interface ProtectedPortalProps {
   roles: PortalRole[]
-  /**
-   * A right the account must hold as well as the role. Rights move at runtime — an
-   * admin revoking one in Access Control reaches this guard on the next sync, and a
-   * person already on the page is bounced to their dashboard.
-   */
+  /** Required on top of the role; revoked at runtime, it bounces the user on the next sync. */
   permission?: PermissionKey
 }
 

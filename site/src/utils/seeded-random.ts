@@ -1,7 +1,4 @@
-/**
- * Small deterministic PRNG (mulberry32). The same seed gives the same sequence on
- * every render, so a mock dataset or a k-means initialisation can be replayed.
- */
+/** mulberry32; same seed, same sequence. */
 export function seededRandom(seed: number): () => number {
   let state = seed >>> 0
   return () => {

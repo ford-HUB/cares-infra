@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-/// Feedback a volunteer submitted for an event they completed.
 class EventFeedback {
   EventFeedback({
     required this.eventId,
@@ -9,21 +8,16 @@ class EventFeedback {
     this.answers = const {},
   });
 
-  /// The `CaresEvent.id` form (`event-42`), which is what the cards key on.
+  /// The `CaresEvent.id` form (`event-42`) the cards key on.
   final String eventId;
   final String participantEmail;
   final DateTime submittedAt;
 
-  /// Answers keyed by question id; empty when only the server summary is known.
+  /// Empty when only the server summary is known.
   final Map<String, dynamic> answers;
 }
 
-/// Which completed events the signed-in volunteer has already given feedback
-/// on. The truth lives on the server; this mirrors it so the activity tab,
-/// the event details screen and the certificate wallet redraw together.
-///
-/// Feedback gates the certificate: a volunteer only unlocks the certificate
-/// for an event once feedback for that event has been submitted.
+/// Server mirror; feedback gates the certificate.
 class EventFeedbackStore extends ChangeNotifier {
   EventFeedbackStore._();
 
@@ -40,11 +34,9 @@ class EventFeedbackStore extends ChangeNotifier {
   bool hasSubmitted(String eventId, String email) =>
       _feedback.containsKey(_key(eventId, email));
 
-  /// True once feedback exists, which is what unlocks the certificate.
   bool isCertificateUnlocked(String eventId, String email) =>
       hasSubmitted(eventId, email);
 
-  /// Records a submission the server just accepted.
   EventFeedback markSubmitted({
     required String eventId,
     required String participantEmail,
@@ -62,8 +54,7 @@ class EventFeedbackStore extends ChangeNotifier {
     return feedback;
   }
 
-  /// Replaces everything known for [email] with the server's list, so a
-  /// submission made on another device shows and a removed one disappears.
+  /// Picks up submissions from other devices and drops removed ones.
   void hydrate(String email, Map<String, DateTime> submittedAtByEventId) {
     final suffix = '|${email.trim().toLowerCase()}';
     var changed = false;
@@ -90,7 +81,7 @@ class EventFeedbackStore extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
-  /// Clears feedback so the locked -> unlocked flow can be demoed again.
+  /// Demo helper to replay the locked → unlocked flow.
   void clear(String eventId, String email) {
     if (_feedback.remove(_key(eventId, email)) != null) notifyListeners();
   }

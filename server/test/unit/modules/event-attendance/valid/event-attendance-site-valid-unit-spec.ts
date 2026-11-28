@@ -23,19 +23,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Event Attendees Module · Manual Attendance — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Mark Present — input validation: the selected attendance ids and their row limit, and
-   * the optional reason's length, plus legitimate inputs that must pass.
-   */
   const ids = { event_attendance_ids: [VALID_ATTENDANCE_ID] };
 
   const fixtures: LayerFixture[] = [
@@ -73,13 +61,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Mark Present — normalisation: the schema drops repeated ids and trims the reason, a
-   * blank reason counts as none, the service receives that with the caller and where the
-   * request came from, and only the response schema's fields leave the server.
-   */
   describe('event attendance site · mark present — normalisation', () => {
     const ctx = useEventAttendanceApp();
 
@@ -130,20 +112,13 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /**
-   * Mark Present — security, per field class:
-   *   event_attendance_ids  uuids: every hostile string FAILs
-   *   reason                free text, trimmed: control characters FAIL, line breaks stay
-   * plus type confusion, mass assignment, prototype pollution, and the rules in the real
-   * service that decide who may credit service hours, and how many.
-   */
+  /** ids (uuids): every hostile string FAILs. reason: free text, control chars FAIL. */
   const ids = { event_attendance_ids: [VALID_ATTENDANCE_ID] };
 
   const fixtures: LayerFixture[] = [
 
-    // Free text: stored as data through Prisma and escaped by the portal when rendered.
+    // Free text: Prisma parameterises it and the portal escapes it on render.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `reason ← ${p.category}: ${p.label}`,
@@ -151,8 +126,7 @@ import {
         expected: 'PASS',
       }),
     ),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. A reason can run over several lines, so line breaks are the exception.
+    // Trimmed field rejects control characters; line breaks are allowed.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => p.label === 'CRLF injection').map((p): LayerFixture => ({
       name: `reason ← ${p.category}: ${p.label}`,
       input: { ...ids, reason: p.value },
@@ -168,7 +142,7 @@ import {
       describeMarkTable(ctx, fixtures);
     });
 
-    // The controller's service is mocked above; who may rule, and on what, lives in the real one.
+    // The controller's service is mocked; ruling rules live in the real one.
     describe('markPresentManually (real service)', () => {
       const NURSING = 'College of Nursing';
       const COORDINATOR = { sub: 'coordinator-user-id', role_type: RoleType.COORDINATOR };

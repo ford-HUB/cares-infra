@@ -30,17 +30,9 @@ import 'package:mobile/features/auth/registration/widgets/password_strength_indi
 import 'package:mobile/features/dashboard/presentation/screens/donor_dashboard_screen.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/notification_host.dart';
 
-/// Donor sign-up.
-///
-/// The Google / Facebook route is wired end to end: the provider token goes to
-/// `POST /v1/auth/donor/oauth`, which either signs an existing donor straight in or
-/// hands back a verified profile plus a ticket that `POST /v1/auth/donor/register`
-/// spends to create the account.
-///
-/// The email + password route has no provider to vouch for the address, so it borrows
-/// the volunteer OTP step: "Create donor account" mails a code, the
-/// [EmailVerificationScreen] confirms it, and only then does
-/// `POST /v1/auth/donor/register-email` create the account.
+/// Social: `POST /v1/auth/donor/oauth` signs a known donor in or returns a
+/// profile + ticket for `POST /v1/auth/donor/register`. Email: OTP via
+/// [EmailVerificationScreen], then `POST /v1/auth/donor/register-email`.
 class RegisterDonorScreen extends ConsumerStatefulWidget {
   const RegisterDonorScreen({super.key});
 
@@ -60,12 +52,10 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   final _emailFocus = FocusNode();
   final _phoneFocus = FocusNode();
 
-  /// Barangay + city picked from the directory and a typed street; sent and
-  /// stored as [PhAddress.formatted], the same shape beneficiaries register with.
+  /// Sent as [PhAddress.formatted], the same shape beneficiaries use.
   PhAddress _address = PhAddress.empty;
 
-  /// Set when the server says the email or phone number belongs to another
-  /// account; the input shows the message and takes focus until edited.
+  /// Server-reported clash; the input shows it and takes focus until edited.
   RegistrationConflict? _conflict;
 
   final _socialAuthClient = SocialAuthClient();
@@ -75,13 +65,11 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   bool _obscureConfirmPassword = true;
   bool _acceptedTerms = false;
 
-  /// Set once a provider has verified the donor and the server has confirmed they are
-  /// new here. Held together with [_oauthTicket], which is the only proof the register
-  /// call accepts — losing one makes the other useless.
+  /// Held with [_oauthTicket], the only proof the register call accepts.
   DonorOAuthProfile? _linkedAccount;
   String? _oauthTicket;
 
-  /// Which provider button is mid-flight, so only that one shows a spinner.
+  /// Only that provider's button shows a spinner.
   SocialAuthProvider? _pendingProvider;
   bool _submitting = false;
 
@@ -99,8 +87,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
         _firstNameController.text.trim().isNotEmpty &&
         _lastNameController.text.trim().isNotEmpty &&
         _emailController.text.trim().contains('@') &&
-        // The server needs both: `phone_number` is unique on the user record, and the
-        // address is what donation receipts are issued against.
+        // `phone_number` is unique server-side; donation receipts use the
+        // address.
         isValidPhilippinePhone(_phoneController.text) &&
         _address.isComplete &&
         _acceptedTerms;
@@ -108,7 +96,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     if (!baseDetailsFilled) return false;
     if (_isSocialSignUp) return true;
 
-    // Submit unlocks on exactly the rules the chips under the field are asking for.
+    // Same rules the chips under the field show.
     return ref
             .read(currentPasswordPolicyProvider)
             .isSatisfiedBy(_passwordController.text) &&
@@ -136,8 +124,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     if (_conflict?.field == field) _conflict = null;
   }
 
-  /// Highlights and focuses the field the server rejected. Runs on this page
-  /// directly from a failed send, or via the OTP screen after it pops itself.
+  /// Runs here after a failed send, or via the OTP screen after it pops.
   Future<void> _showConflict(RegistrationConflict conflict) async {
     if (!mounted) return;
     setState(() => _conflict = conflict);
@@ -165,9 +152,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       );
   }
 
-  /// Runs the provider consent flow, then asks the server what that identity means
-  /// here: an existing donor is signed in on the spot, a new one comes back as a
-  /// verified profile that seeds the form below.
+  /// Known donors sign in on the spot; new ones seed the form below.
   Future<void> _linkSocialAccount(SocialAuthProvider provider) async {
     if (_isBusy) return;
 
@@ -183,8 +168,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       if (result.isSignedIn) {
         final session = result.session!;
         _showMessage('Welcome back, ${session.firstName}.');
-        // Nothing was typed in — the login payload carries only a first name, and
-        // the donor profile screen fills the rest in from the server.
+        // The login payload only has a first name; the profile screen fetches
+        // the rest.
         _enterDashboard(
           session,
           middleName: '',
@@ -228,8 +213,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   }
 
   Future<void> _unlinkSocialAccount() async {
-    // Drops the provider's cached session too, so the next tap offers the chooser
-    // rather than silently re-linking the account they just backed out of.
+    // Also drop the cached provider session so the next tap shows the chooser.
     await _socialAuthClient.signOut();
     if (!mounted) return;
 
@@ -256,9 +240,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     await _sendVerificationCode();
   }
 
-  /// Email + password path: mail a code, then hand off to the OTP screen. The account
-  /// is created from that screen's `onVerified`, so a wrong or expired code never
-  /// leaves a half-made donor behind.
+  /// The account is created in the OTP screen's `onVerified`, so a bad code
+  /// leaves nothing half-made.
   Future<void> _sendVerificationCode() async {
     final email = _emailController.text.trim();
     setState(() => _submitting = true);
@@ -309,8 +292,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     }
   }
 
-  /// Runs on the OTP screen once the code is accepted. Errors are left to propagate:
-  /// the verification screen shows them and clears the code for another try.
+  /// Errors propagate: the OTP screen shows them and clears the code.
   Future<void> _createEmailDonor(BuildContext otpContext) async {
     await _donorAuthService.registerDonorWithEmail(
       email: _emailController.text,
@@ -326,9 +308,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     _showAccountCreated(otpContext, email: _emailController.text.trim());
   }
 
-  /// Sign-up does not sign the donor in: confirm the account was created, then
-  /// send them back to the sign-in screen. [navigatorContext] is whichever
-  /// screen is on top — this form, or the OTP screen pushed above it.
+  /// Sign-up does not sign in. [navigatorContext] is the top screen (this form
+  /// or the OTP screen).
   void _showAccountCreated(
     BuildContext navigatorContext, {
     required String email,
@@ -392,7 +373,6 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     }
   }
 
-  /// Stores the token every later API call authenticates with, then opens the dashboard.
   void _enterDashboard(
     LoginResponse session, {
     required String middleName,
@@ -427,9 +407,8 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
     _openDashboard(donor, navigatorContext ?? context);
   }
 
-  /// [navigatorContext] is whichever screen is on top — this form, or the OTP screen
-  /// pushed above it on the email path. Both share the root navigator, so the whole
-  /// sign-up stack is cleared either way.
+  /// Both possible contexts share the root navigator, so the whole sign-up
+  /// stack is cleared.
   void _openDashboard(DonorSessionUser donor, BuildContext navigatorContext) {
     Navigator.of(navigatorContext).pushAndRemoveUntil(
       MaterialPageRoute<void>(
@@ -605,8 +584,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
       subtitle: _isSocialSignUp
           ? 'Managed by ${_linkedAccount!.provider.label} — no password needed.'
           : '',
-      // The provider owns this address; the server reads it off the ticket, so editing
-      // it here would change nothing but confuse the donor.
+      // Provider-owned: the server reads the address off the ticket.
       children: [
         RegisterFormField(
           label: 'Email',
@@ -640,7 +618,7 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
           const SizedBox(height: 10),
           PasswordStrengthIndicator(password: password),
           const SizedBox(height: 10),
-          // Only the rules still outstanding; the row collapses once they are all met.
+          // Collapses once all rules are met.
           PasswordRuleChips(password: password),
           const SizedBox(height: 14),
           RegisterFormField(
@@ -746,7 +724,6 @@ class _RegisterDonorScreenState extends ConsumerState<RegisterDonorScreen> {
   }
 }
 
-/// Gradient intro panel at the top of the donor sign-up form.
 class _DonorHeroPanel extends StatelessWidget {
   const _DonorHeroPanel();
 
@@ -853,7 +830,6 @@ class _DonorHeroPanel extends StatelessWidget {
   }
 }
 
-/// Shown once a provider has verified the donor and the server confirmed they are new.
 class _LinkedAccountCard extends StatelessWidget {
   const _LinkedAccountCard({required this.account, required this.onUnlink});
 
@@ -894,8 +870,7 @@ class _LinkedAccountCard extends StatelessWidget {
                         width: 44,
                         height: 44,
                         fit: BoxFit.cover,
-                        // A provider avatar is decoration — falling back to initials
-                        // beats an error box if the CDN is unreachable.
+                        // Falls back to initials if the CDN is unreachable.
                         errorBuilder: (_, _, _) => Text(
                           account.initials,
                           style: const TextStyle(
@@ -969,7 +944,6 @@ class _LinkedAccountCard extends StatelessWidget {
   }
 }
 
-/// White card grouping one set of related fields.
 class _FormCard extends StatelessWidget {
   const _FormCard({
     required this.icon,

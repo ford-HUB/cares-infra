@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/models/account_security_models.dart';
 
-/// A signed-in session as the list shows it: the server record with the
-/// user agent and timestamps already turned into labels.
 class ConnectedDevice {
   const ConnectedDevice({
     required this.id,
@@ -15,9 +13,8 @@ class ConnectedDevice {
     this.isCurrent = false,
   });
 
-  /// Reads the user agent for a name and platform. The app stamps
-  /// `CARES-Mobile (android; ...)` on its requests; portal sessions carry a
-  /// browser UA; anything else falls back to the source.
+  /// The app sends `CARES-Mobile (android; ...)`; portal sessions carry a
+  /// browser UA; others fall back to the source.
   factory ConnectedDevice.fromSession(AccountSession session) {
     final ua = session.userAgent ?? '';
     final lower = ua.toLowerCase();
@@ -107,7 +104,6 @@ class ConnectedDevice {
   }
 }
 
-/// Confirm-then-signal dialog shared by the landing preview and the full list.
 Future<bool> confirmDeviceSignOut(
   BuildContext context,
   ConnectedDevice device,
@@ -136,7 +132,6 @@ Future<bool> confirmDeviceSignOut(
   return confirmed == true;
 }
 
-/// "See all N devices" link under the truncated preview list.
 class SeeAllDevicesLink extends StatelessWidget {
   const SeeAllDevicesLink({
     super.key,
@@ -185,9 +180,6 @@ class SeeAllDevicesLink extends StatelessWidget {
   }
 }
 
-/// One row in the connected devices list: platform icon, name, where and
-/// when it was last seen, then either a "This device" badge or a sign-out
-/// action.
 class ConnectedDeviceTile extends StatelessWidget {
   const ConnectedDeviceTile({
     super.key,

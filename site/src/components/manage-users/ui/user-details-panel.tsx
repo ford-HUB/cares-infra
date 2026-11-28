@@ -41,7 +41,6 @@ function formatDate(value?: string) {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString()
 }
 
-/** Sits beside the centred details modal and scrolls on its own. */
 export function UserDetailsPanel({
   detail,
   loading,

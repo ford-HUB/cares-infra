@@ -7,10 +7,10 @@ import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-ch
 import { plainLabel } from '../../../shared/validators/plain-label-validator';
 import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
-/** The largest value the `Int` column behind an event id can hold. */
+/** Max of the `Int` event id column. */
 const EVENT_ID_MAX = 2147483647;
 
-/** Mirrors the portal builder's question palette. */
+/** Must match the portal builder's palette. */
 export const EvaluationQuestionTypeSchema = z.enum([
   'short_answer',
   'paragraph',
@@ -23,7 +23,7 @@ export const EvaluationQuestionTypeSchema = z.enum([
   'image_upload',
 ]);
 
-/** Photos one image-upload question may take; the builder offers 1..this. */
+/** Per question; the builder offers 1..this. */
 export const EVALUATION_IMAGE_MAX_FILES = 5;
 export const EVALUATION_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 export const EVALUATION_IMAGE_ALLOWED_MIMES = [
@@ -32,7 +32,7 @@ export const EVALUATION_IMAGE_ALLOWED_MIMES = [
   'image/webp',
   'image/heic',
 ] as const;
-/** Prefix of every stored answer image, so a portal read can't reach other keys. */
+/** Bounds portal reads to these keys. */
 export const EVALUATION_IMAGE_KEY_PREFIX = 'evaluation-responses/';
 
 export const EvaluationFontFamilySchema = z.enum([
@@ -54,10 +54,7 @@ export const EvaluationTypographySchema = z
   })
   .strict();
 
-/**
- * One question as the builder stores it. The ids are minted client-side and are
- * what every answer is keyed on, so they must survive a save unchanged.
- */
+/** Client-minted ids key every answer, so must survive saves. */
 export const EvaluationQuestionSchema = z
   .object({
     id: z.string().min(1, 'Question id is required').max(64),
@@ -69,7 +66,7 @@ export const EvaluationQuestionSchema = z
     scale_max: z.number().int().min(2).max(10),
     scale_min_label: z.string().max(100),
     scale_max_label: z.string().max(100),
-    /** Image upload only: how many photos the participant may attach. */
+    /** Image upload only. */
     max_files: z
       .number()
       .int()
@@ -110,11 +107,11 @@ export const EvaluationFormResponseSchema = z.object({
   header_typography: EvaluationTypographySchema,
   questions: z.array(EvaluationQuestionSchema),
   status: z.enum(EvaluationFormStatus),
-  /** True on the questionnaire served for events with no assignment of their own. */
+  /** Served for unassigned events. */
   is_default: z.boolean(),
-  /** Events this questionnaire is assigned to; 0 means it only runs as the default. */
+  /** 0 means default-only. */
   assigned_events: z.number().int(),
-  /** Responses recorded against it, across every event it has served. */
+  /** Across every event. */
   response_count: z.number().int(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -122,7 +119,7 @@ export const EvaluationFormResponseSchema = z.object({
 
 export const EvaluationFormListSchema = z.array(EvaluationFormResponseSchema);
 
-/** A new questionnaire starts empty; the builder fills it and saves through PUT. */
+/** Starts empty; filled via PUT. */
 export const CreateEvaluationFormSchema = withoutPrototypeKeys(
   z
     .object({
@@ -166,7 +163,6 @@ export const EvaluationFormIdParamSchema = z
   .min(1, 'Questionnaire id is required')
   .max(64);
 
-/** One event-to-questionnaire assignment as the portal's Forms page reads it. */
 export const EvaluationAssignmentSchema = z.object({
   evaluation_assignment_id: z.string(),
   form_id: z.string(),
@@ -200,7 +196,6 @@ export const AssignEvaluationFormSchema = withoutPrototypeKeys(
     .strict(),
 );
 
-/** An event the picker offers, plus the questionnaire it already carries. */
 export const AssignableEventSchema = z.object({
   event_id: z.number(),
   title: z.string(),
@@ -228,10 +223,7 @@ export const EvaluationResponsesQuerySchema = z
   })
   .strict();
 
-/**
- * The value shape follows the question type: text, a choice list (or, for an
- * image upload, the stored image keys), or a number.
- */
+/** Text, choice list (or stored image keys), or number. */
 export const EvaluationAnswerValueSchema = z.union([
   z.string().max(5000),
   z.array(z.string().max(200)).max(10),
@@ -244,10 +236,10 @@ export const EvaluationAnswersSchema = z.record(
   EvaluationAnswerValueSchema,
 );
 
-/** One row of the portal's answers table, flat so it can be filtered client-side. */
+/** Flat for client-side filtering. */
 export const EvaluationResponseRowSchema = z.object({
   evaluation_response_id: z.string(),
-  /** Which questionnaire collected it — events can ask different ones. */
+  /** Events can use different questionnaires. */
   form_id: z.string(),
   form_title: z.string(),
   event_id: z.number(),
@@ -258,7 +250,7 @@ export const EvaluationResponseRowSchema = z.object({
   email: z.string(),
   department: z.string().nullable(),
   submitted_at: z.string(),
-  /** The star-rating answer, or null when the form has no such question. */
+  /** Null when the form has no rating question. */
   rating: z.number().int().nullable(),
   status: z.enum(EvaluationResponseStatus),
   answers: EvaluationAnswersSchema,

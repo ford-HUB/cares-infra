@@ -10,19 +10,14 @@ import { SchedulerRepository } from '../scheduler-repository';
 import { CatalogedProcessor } from './base-processor';
 import { portalUrl as resolvePortalUrl } from '../../shared/utils/environment-utils';
 
-/** The digest covers notices that arrived since the previous morning's run. */
 const DIGEST_WINDOW_HOURS = 24;
 
-/** How many titles the digest lists before "and N more". */
+/** Titles listed before "and N more". */
 const DIGEST_PREVIEW_COUNT = 5;
 
 const DEFAULT_SUPPORT_EMAIL = 'careeesadmin@gmail.com';
 
-/**
- * Sends queued mail and compiles the morning digest. A `send` that fails is retried
- * by BullMQ with backoff — SMTP hiccups are the norm, not the exception — and only
- * lands in the failed set once the attempts are spent.
- */
+/** Failed `send`s are retried by BullMQ with backoff. */
 @Processor(SCHEDULER_QUEUES.email)
 export class EmailProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(EmailProcessor.name);
@@ -58,11 +53,7 @@ export class EmailProcessor extends CatalogedProcessor {
     });
   }
 
-  /**
-   * One mail per person with unread attention/urgent notices. Each is enqueued as
-   * its own `send` job rather than sent inline, so one bad address cannot fail the
-   * whole digest and the sweep itself finishes quickly.
-   */
+  /** One `send` job per person, so a bad address can't fail the whole digest. */
   private async sendUnreadDigests(job: Job): Promise<void> {
     const since = new Date(Date.now() - DIGEST_WINDOW_HOURS * 60 * 60 * 1000);
     const digests = await this.schedulerRepository.findUnreadDigests(since);

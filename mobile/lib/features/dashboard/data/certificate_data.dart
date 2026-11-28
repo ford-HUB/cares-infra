@@ -6,10 +6,8 @@ import 'models/certificate_design.dart';
 
 export 'models/certificate_design.dart';
 
-/// A certificate the issuing scheduler generated for this volunteer from the
-/// template a director deployed to the event. Every field is as it read on
-/// the day of issue — the server froze the sheet, so nothing here moves if
-/// the event or template is edited later.
+/// Frozen by the server on issue, so later event or template edits don't move
+/// it.
 class CaresCertificate {
   const CaresCertificate({
     required this.id,
@@ -59,7 +57,7 @@ class CaresCertificate {
 
   final String id;
 
-  /// The deployed template's name — the award line on the sheet.
+  /// The deployed template's name (the award line).
   final String title;
   final String eventName;
   final String organization;
@@ -67,27 +65,26 @@ class CaresCertificate {
   final String certificateNumber;
   final double hoursCompleted;
 
-  /// Day the event itself took place.
   final DateTime? eventDate;
 
-  /// Server id of the event, so a completed card can find its own certificate.
+  /// Lets a completed card find its own certificate.
   final int? eventId;
 
   final String recipientName;
 
-  /// Headline and award text with every placeholder already filled in.
+  /// Placeholders already filled in.
   final String headline;
   final String body;
   final String category;
   final String orientation;
 
-  /// The frozen sheet — frame, layout, artwork, wording and signature lines.
+  /// The frozen sheet: frame, layout, artwork, wording, signatures.
   final CertificateDesign? design;
 
   List<CertificateSignatory> get signatories => design?.signatories ?? const [];
   String get accent => design?.accent ?? 'emerald';
 
-  /// When this device (or another) first opened the certificate.
+  /// First opened, on any device.
   final DateTime? claimedAt;
 
   bool get isLandscape => orientation == 'landscape';
@@ -176,14 +173,9 @@ CARES Community Action and Resource Engagement System
   }
 }
 
-/// The volunteer's certificate wallet — what the issuing scheduler has
-/// generated for them. The truth lives on the server; this mirrors it so the
-/// activity tab, the event details screen and the wallet redraw together.
-///
-/// A certificate lands here once the event is over, attendance was verified
-/// and the post-event feedback is in: the scheduler checks all three, so the
-/// wallet can show "generating" between the feedback going in and the sheet
-/// coming out.
+/// Server mirror shared by the activity tab, event details and wallet. Issued
+/// once the event is over, attendance verified and feedback in, so the wallet
+/// can show "generating" in between.
 class CertificateStore extends ChangeNotifier {
   CertificateStore._();
 
@@ -194,11 +186,9 @@ class CertificateStore extends ChangeNotifier {
   bool _refreshing = false;
   String? _lastError;
 
-  /// True once the server has answered at least once this session.
   bool get hydrated => _hydrated;
 
-  /// Why the last [refresh] failed, or null when it succeeded. Screens use it
-  /// to tell "not issued yet" apart from "could not ask the server".
+  /// Lets screens tell "not issued yet" from "could not ask the server".
   String? get lastError => _lastError;
 
   List<CaresCertificate> get all {
@@ -209,7 +199,6 @@ class CertificateStore extends ChangeNotifier {
 
   int get count => _byId.length;
 
-  /// The certificate for a server event, or null while none has been issued.
   CaresCertificate? forEvent(int? serverEventId) {
     if (serverEventId == null) return null;
     for (final certificate in _byId.values) {
@@ -220,7 +209,6 @@ class CertificateStore extends ChangeNotifier {
 
   CaresCertificate? byId(String id) => _byId[id];
 
-  /// Replaces everything with the server's list.
   void hydrate(List<CaresCertificate> certificates) {
     _byId
       ..clear()
@@ -229,14 +217,13 @@ class CertificateStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// One certificate, freshly opened — keeps `claimedAt` in step.
+  /// Keeps `claimedAt` in step after opening.
   void upsert(CaresCertificate certificate) {
     _byId[certificate.id] = certificate;
     notifyListeners();
   }
 
-  /// Pulls the wallet from the server. A failed fetch leaves what is already
-  /// held and records why in [lastError]; returns whether it succeeded.
+  /// A failed fetch keeps what is held and records [lastError].
   Future<bool> refresh({CertificateService? service}) async {
     if (_refreshing) return _lastError == null;
     _refreshing = true;
@@ -258,7 +245,7 @@ class CertificateStore extends ChangeNotifier {
     }
   }
 
-  /// Forgets everything — on sign-out, so the next account starts clean.
+  /// On sign-out, so the next account starts clean.
   void clear() {
     _byId.clear();
     _hydrated = false;

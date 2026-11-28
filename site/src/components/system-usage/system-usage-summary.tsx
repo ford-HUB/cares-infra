@@ -46,7 +46,7 @@ const Label = ({ children }: { children: ReactNode }) => (
   <p className="text-[11px] tracking-wider text-gray-500 uppercase">{children}</p>
 )
 
-/** Why a live zone has no number — no right, or the endpoint didn't answer. */
+/** No right, or the endpoint didn't answer. */
 function Unavailable({ source }: { source: LiveSourceState }) {
   return (
     <p className="text-[12px] text-gray-400">
@@ -55,12 +55,7 @@ function Unavailable({ source }: { source: LiveSourceState }) {
   )
 }
 
-/**
- * The live state in one card. The one number is CPU right now (the 3 s tick) —
- * the only thing on the screen that animates, a pulse meaning "live". Beside it:
- * memory now, the diagnostics verdict, and the services as parts of one fleet —
- * one segmented bar whose legend filters the table below.
- */
+/** CPU now (3 s tick) is the only animated value; the services bar's legend filters the table. */
 export function SystemUsageSummary({
   liveSample,
   today,
@@ -82,7 +77,6 @@ export function SystemUsageSummary({
   return (
     <Card size="sm" className="mb-4 shadow-sm">
       <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        {/* The one number */}
         <div className="flex items-center gap-3 lg:min-w-[16rem]">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
             <Cpu className="h-5 w-5" />
@@ -165,7 +159,6 @@ export function SystemUsageSummary({
 
         <Divider />
 
-        {/* Services as parts of one fleet */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Server className="h-3.5 w-3.5 text-gray-400" />

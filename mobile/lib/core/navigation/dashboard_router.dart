@@ -38,9 +38,6 @@ class DashboardRouter {
     return PlaceholderDashboardScreen(user: user);
   }
 
-  /// Resolves the dashboard for a server role (`VOLUNTEER`, `DONOR`,
-  /// `BENEFICIARY`) so registration and login always land on the dashboard
-  /// that matches the account's registered role.
   static Widget screenForRoleType(
     String roleType, {
     required String email,
@@ -50,9 +47,8 @@ class DashboardRouter {
     bool hasInterests = false,
     List<String> unlockedRoles = const [],
   }) {
-    // Record the role on the person's account list: the first role seen for
-    // this email is the unlocked primary, the rest start locked — except the
-    // sides the server opened with the account ([unlockedRoles]).
+    // First role seen for an email is the unlocked primary; others start locked
+    // unless in [unlockedRoles].
     RoleAccountStore.instance.signIn(
       roleType: roleType,
       email: email,
@@ -98,8 +94,8 @@ class DashboardRouter {
   }
 
   static void navigateAfterLogin(BuildContext context, StaticSessionUser user) {
-    // Resolve the screen before pushing: screenFor() writes to the session
-    // stores (notifyListeners), which must not run inside a route builder.
+    // screenFor() notifies session stores, so it must run outside the route
+    // builder.
     final screen = screenFor(user);
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => NotificationHost(child: screen)),
@@ -107,8 +103,6 @@ class DashboardRouter {
     );
   }
 
-  /// Clears the navigation stack and lands on the role's dashboard. Used after
-  /// API login and after the API registration flow completes.
   static void navigateToRoleDashboard(
     BuildContext context, {
     required String roleType,
@@ -119,10 +113,8 @@ class DashboardRouter {
     bool hasInterests = false,
     List<String> unlockedRoles = const [],
   }) {
-    // Resolve the screen before pushing: screenForRoleType() writes to the
-    // session stores (notifyListeners), which must not run inside a route
-    // builder — that throws "setState() called during build" and re-runs the
-    // sign-in side effects on every rebuild of the route.
+    // Resolved outside the route builder: screenForRoleType() notifies session
+    // stores.
     final screen = screenForRoleType(
       roleType,
       email: email,

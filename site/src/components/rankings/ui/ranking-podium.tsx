@@ -10,17 +10,14 @@ import type { RankingLeader, RankingTier } from '../../../types/ranking'
 import { UserAvatar } from '../../portal/ui/user-avatar'
 import { RankTierFrame } from './rank-tier-frame'
 
-/**
- * The podium takes one display name for either board — a volunteer's full name or a
- * donor's, organisation included — so the avatar initials come from splitting it.
- */
+/** One display name for either board, so initials come from splitting it. */
 function avatarNames(name: string): { firstName: string; lastName: string } {
   const [firstName = '', ...rest] = name.trim().split(/\s+/)
   return { firstName, lastName: rest.join(' ') }
 }
 
 interface RankingPodiumProps {
-  /** Top three of the active board, already mapped to a board-agnostic shape. */
+  /** Top three, already in a board-agnostic shape. */
   leaders: RankingLeader[]
   tiers: RankingTier[]
   loading: boolean
@@ -51,7 +48,6 @@ export function RankingPodium({ leaders, tiers, loading }: RankingPodiumProps) {
                   </p>
                   <p className="text-[11px] text-gray-500">{leader?.subtitle ?? ''}</p>
 
-                  {/* The frame is the rank badge — richer the higher the standing. */}
                   {leader && (
                     <>
                       <span className="mt-3">
@@ -68,8 +64,7 @@ export function RankingPodium({ leaders, tiers, loading }: RankingPodiumProps) {
                           )}
                         </RankTierFrame>
                       </span>
-                      {/* The label is tinted with the tier's own colour, so a
-                          recolour in Customization carries through here too. */}
+                      {/* Tinted with the tier's colour, so Customization recolours carry through. */}
                       <span
                         style={{ color: tierForRank(rank, tiers).colorTo }}
                         className="mt-1 text-[11px] font-semibold tracking-wider uppercase"

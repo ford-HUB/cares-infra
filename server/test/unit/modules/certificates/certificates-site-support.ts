@@ -17,16 +17,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Certificate Module', unit: 'Remind Pending', prefix: 'CERT-REMIND' });
 
-/**
- * Shared by every spec in this folder — Remind on the portal's Manage Certificate module:
- *   POST /api/v1/certificate-deployments/:id/remind  (remindPending: id uuid, no body)
- *
- * `@Roles` and `@RequirePermission` are not exercised: the global guards are out of
- * scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const VALID_DEPLOYMENT_ID = '6a0c1e2f-3b4d-4e5f-9a6b-7c8d9e0f1a2b';
 export const CALLER = { sub: 'caller-user-id', role_type: RoleType.DIRECTOR };
 
@@ -42,11 +32,7 @@ export const REMIND_RESPONSE = {
   awaiting_attendance: 1,
 };
 
-/**
- * Boots `CertificatesSiteController` with a mocked service for the enclosing `describe`.
- * The handler reads the caller, so a stand-in for the global JWT guard puts `CALLER` on
- * the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the handler reads it); `app` is assigned in `beforeAll`. */
 export const useCertificatesApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -78,11 +64,7 @@ export const useCertificatesApp = () => {
   return ctx;
 };
 
-/**
- * Deployment id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through both layers. A FAIL must come back in the validation envelope without reaching
- * the service; a PASS must reach it exactly once.
- */
+/** `input` is the raw id, URL-encoded into the path. FAIL: service untouched. PASS: called once. */
 export const describeDeploymentIdTable = (ctx: ReturnType<typeof useCertificatesApp>, fixtures: LayerFixture<string>[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

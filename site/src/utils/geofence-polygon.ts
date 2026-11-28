@@ -3,12 +3,7 @@ import type { MultiPolygon, Polygon, Position } from 'geojson'
 const EARTH_RADIUS_M = 6_378_137
 const CIRCLE_STEPS = 32
 
-/**
- * Build a small circular polygon (approximated with {@link CIRCLE_STEPS} points)
- * centred on the given coordinate. Used as the attendance geofence when no
- * building footprint is available, or when the traced footprint is too large to
- * be a useful check-in boundary.
- */
+/** Fallback geofence when no footprint is found or it's too large. */
 export function circlePolygon(lng: number, lat: number, radiusM: number): Polygon {
   const latRad = (lat * Math.PI) / 180
   const dLat = ((radiusM / EARTH_RADIUS_M) * 180) / Math.PI
@@ -24,11 +19,6 @@ export function circlePolygon(lng: number, lat: number, radiusM: number): Polygo
   return { type: 'Polygon', coordinates: [ring] }
 }
 
-/**
- * Grow (factor > 1) or shrink (factor < 1) a polygon around its own centre,
- * keeping its shape. Lets an operator widen an auto-traced footprint until it
- * covers the whole venue without redrawing it by hand.
- */
 export function scalePolygon<T extends Polygon | MultiPolygon>(geometry: T, factor: number): T {
   const rings: Position[][] =
     geometry.type === 'Polygon'
@@ -55,15 +45,11 @@ export function scalePolygon<T extends Polygon | MultiPolygon>(geometry: T, fact
   }
 }
 
-/** Every linear ring of a polygon geometry, flattened into one list. */
 export function polygonRings(geometry: Polygon | MultiPolygon): Position[][] {
   return geometry.type === 'Polygon' ? geometry.coordinates : geometry.coordinates.flat()
 }
 
-/**
- * Rebuild `geometry` from rings in the order {@link polygonRings} produced them,
- * restoring the original polygon/ring nesting for a MultiPolygon.
- */
+/** Restores the original nesting from {@link polygonRings} order. */
 export function withPolygonRings<T extends Polygon | MultiPolygon>(
   geometry: T,
   rings: Position[][],
@@ -79,12 +65,7 @@ export function withPolygonRings<T extends Polygon | MultiPolygon>(
   return { ...geometry, coordinates }
 }
 
-/**
- * Shift one edge of a polygon — the segment starting at `vertexIndex` of ring
- * `ringIndex` — by a lng/lat delta, moving both of its endpoints together. Lets an
- * operator push a whole side of the boundary in or out without touching corners.
- * Ring closure (first point repeated last) is preserved.
- */
+/** Moves both endpoints of the edge at `vertexIndex`; ring closure is preserved. */
 export function translatePolygonEdge<T extends Polygon | MultiPolygon>(
   geometry: T,
   ringIndex: number,
@@ -114,10 +95,7 @@ export function translatePolygonEdge<T extends Polygon | MultiPolygon>(
   )
 }
 
-/**
- * Even-odd point-in-polygon test across every ring of the geometry, so holes and
- * the separate parts of a MultiPolygon are both handled.
- */
+/** Even-odd across every ring, so holes and MultiPolygon parts are handled. */
 export function isPointInPolygon(
   geometry: Polygon | MultiPolygon,
   lng: number,
@@ -135,7 +113,7 @@ export function isPointInPolygon(
   return inside
 }
 
-/** Closest point to (lng, lat) on the segment a–b, in lng/lat space. */
+/** In lng/lat space. */
 function closestOnSegment(a: Position, b: Position, lng: number, lat: number): Position {
   const dx = b[0] - a[0]
   const dy = b[1] - a[1]
@@ -145,14 +123,10 @@ function closestOnSegment(a: Position, b: Position, lng: number, lat: number): P
   return [a[0] + t * dx, a[1] + t * dy]
 }
 
-/** How far inside the boundary a clamped point is pulled, as a share of the polygon's size. */
+/** Share of the polygon's size. */
 const CLAMP_INSET = 0.01
 
-/**
- * Keep a point within the geofence: inside points are returned untouched, outside
- * ones snap to the nearest boundary point and are nudged slightly inwards so the
- * marker always sits within the area the operator drew.
- */
+/** Outside points snap to the boundary and nudge slightly inwards. */
 export function clampPointToPolygon(
   geometry: Polygon | MultiPolygon,
   lng: number,
@@ -184,7 +158,7 @@ export function clampPointToPolygon(
   ]
 }
 
-/** Approximate distance in metres between two lng/lat points (haversine). */
+/** Haversine, in metres. */
 export function metersBetween(aLng: number, aLat: number, bLng: number, bLat: number): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180
   const dLat = toRad(bLat - aLat)

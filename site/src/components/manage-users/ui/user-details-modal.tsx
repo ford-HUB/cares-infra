@@ -48,7 +48,7 @@ export function UserDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      {/* Centred wrapper stays put — the panel is absolutely positioned off its right edge. */}
+      {/* The panel is absolutely positioned off this wrapper's right edge. */}
       <div className="relative w-full max-w-md">
         <div className="overflow-hidden rounded-xl bg-white shadow-lg">
           <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-4">

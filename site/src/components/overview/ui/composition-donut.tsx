@@ -15,15 +15,11 @@ interface CompositionDonutProps {
   title: string
   description: string
   slices: OverviewSlice[]
-  /** What the ring's centre number counts, e.g. "total accounts". */
+  /** E.g. "total accounts". */
   centreLabel: string
 }
 
-/**
- * A whole and its parts: the ring is the total, each arc is one segment, and the centre
- * holds the number the reader came for. A zero total still draws — as an empty track —
- * so the card never collapses on a fresh install.
- */
+/** A zero total draws an empty track, so the card never collapses. */
 export function CompositionDonut({
   title,
   description,

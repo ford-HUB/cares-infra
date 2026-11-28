@@ -4,9 +4,7 @@ import 'package:mobile/features/dashboard/data/event_reminder_scheduler.dart';
 import 'package:mobile/features/dashboard/data/event_reminder_store.dart';
 import 'package:mobile/features/dashboard/domain/cares_event.dart';
 
-/// Bottom sheet behind the bell on the event details screen: a switch for
-/// the device reminder and a row of lead-time chips. Writes straight to
-/// [EventReminderStore] so the bell updates as the user toggles.
+/// Writes straight to [EventReminderStore] so the bell updates while toggling.
 Future<void> showEventReminderSheet(BuildContext context, CaresEvent event) {
   return showModalBottomSheet<void>(
     context: context,

@@ -8,7 +8,6 @@ import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/core/session/static_user_session.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
-/// Ends the signed-in session on this device.
 class SignOutService {
   SignOutService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -17,11 +16,8 @@ class SignOutService {
   /// Sign-out should feel instant; the server call is a courtesy.
   static const _logoutTimeout = Duration(seconds: 5);
 
-  /// The person chose to sign out: the server revokes this device's session
-  /// (`POST /auth/logout`, so the token is dead even if a copy survived), then
-  /// every local trace is wiped — the saved session included — so the next
-  /// launch asks for credentials. Local sign-out never waits on, or fails
-  /// with, the network.
+  /// Revokes this device's session (`POST /auth/logout`), then wipes local
+  /// state; never waits on or fails with the network.
   Future<void> signOut() async {
     if (AuthSession.isSignedIn) {
       try {
@@ -37,8 +33,7 @@ class SignOutService {
     clearLocalSession();
   }
 
-  /// Clears the token, its saved copy, and the per-account state held in
-  /// memory. Also used when the server ends the session on its own.
+  /// Also used when the server ends the session.
   static void clearLocalSession() {
     AuthSession.clear();
     StaticUserSession.instance.signOut();

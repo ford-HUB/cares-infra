@@ -13,7 +13,7 @@ import { StarRating } from './star-rating'
 
 interface QuestionAnswerAreaProps {
   question: EvaluationQuestion
-  /** Editing controls (option inputs, scale bounds) are only drawn on the active card. */
+  /** Option inputs and scale bounds are drawn only on the active card. */
   editing: boolean
   bodyStyle: CSSProperties
   onAddOption: () => void
@@ -28,10 +28,6 @@ const rangeOptions = (min: number, max: number) =>
 const boundInputClass =
   'h-8 w-32 rounded-md border border-gray-200 bg-white px-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
 
-/**
- * The part of a card the participant would fill in. In edit mode the choices and
- * scale bounds are inputs; collapsed, it reads as the finished form would.
- */
 export function QuestionAnswerArea({
   question,
   editing,

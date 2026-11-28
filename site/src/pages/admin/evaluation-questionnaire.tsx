@@ -7,7 +7,6 @@ import { QuestionnaireToolbar } from '../../components/evaluation/questionnaire-
 import { ContentShell } from '../../components/portal/ui/content-shell'
 import { useEvaluationStore } from '../../store/evaluation-store'
 
-/** Which questionnaire the builder opens on — Forms links here with it set. */
 const FORM_PARAM = 'form'
 
 export function EvaluationQuestionnairePage() {
@@ -27,8 +26,7 @@ export function EvaluationQuestionnairePage() {
     void openForm(formId)
   }, [openForm, formId])
 
-  // The url carries the open questionnaire, so a switch is a navigation — reload
-  // and back both land on the one the director was editing.
+  // URL carries the open form so reload and back land on it.
   const handleSelect = (id: string) => {
     if (dirty && !window.confirm('Leave this questionnaire? Unsaved changes are lost.')) {
       return
@@ -42,8 +40,7 @@ export function EvaluationQuestionnairePage() {
     else toast.error(result.message ?? 'The questionnaire could not be saved')
   }
 
-  // Publishing is a save with the status flipped — volunteers only ever see a
-  // published form on a completed event's feedback screen.
+  // Volunteers only see published forms.
   const handlePublish = async () => {
     const result = await saveForm('published')
     if (result.ok) toast.success('Questionnaire published — assign it to an event next')

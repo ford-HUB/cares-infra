@@ -5,7 +5,6 @@ import { UserRequestTimelineSkeleton } from './ui/user-request-timeline-skeleton
 
 type AssistanceRequestTabPanelProps = ReturnType<typeof useAssistanceRequestReview>
 
-/** The Assistance tab of the Request page: error banner, queue, and the note prompt. */
 export function AssistanceRequestTabPanel({
   requests,
   showSkeleton,

@@ -14,7 +14,6 @@ const headerClass =
   'px-3 py-2 text-[11px] font-medium tracking-wider text-gray-500 uppercase'
 const cellClass = 'px-3 py-2 text-[13px] text-gray-700'
 
-/** The department's best-attended events this period — the table view behind the charts. */
 export function TopEventsTable({ events }: TopEventsTableProps) {
   return (
     <ChartCard

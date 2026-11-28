@@ -39,18 +39,12 @@ import {
   UpdateMobileProfileSchema,
 } from '../validators/profile-mobile-validator';
 
-/**
- * Profile for the Flutter app. Shares the `v1/profile` path with the portal
- * controller; the routes differ (`me/mobile`) so the two never collide.
- */
+/** Routes under `me/mobile` to avoid clashing with the site controller. */
 @Controller('v1/profile')
 export class ProfileMobileController {
   constructor(private readonly profileMobileService: ProfileMobileService) {}
 
-  /**
-   * `?role=` names the dashboard the app has open (the role switcher is
-   * local), so completion and the role section are scoped to that side.
-   */
+  /** `?role=` scopes completion and the role section to the open dashboard. */
   @Get('me/mobile')
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Profile')
@@ -62,10 +56,7 @@ export class ProfileMobileController {
     return this.profileMobileService.getMyProfile(user.sub, query.role);
   }
 
-  /**
-   * Multipart so the optional `avatar` file travels with the fields; the app
-   * sends every field each time (a full replace, not a patch).
-   */
+  /** Multipart for the optional `avatar`; full replace, not a patch. */
   @Put('me/mobile')
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Profile updated')
@@ -92,11 +83,7 @@ export class ProfileMobileController {
     );
   }
 
-  /**
-   * Department can't be typed in: the app re-runs the registration ID steps
-   * (`/auth/upload-id` → `/auth/verify-face` → `/auth/extract-id`) and hands
-   * the finished session here, and the school record is rewritten from OCR.
-   */
+  /** Rewritten from OCR via the registration ID session (`upload-id` → `verify-face` → `extract-id`); no typed department. */
   @Post('me/mobile/school-record')
   @Roles(RoleType.VOLUNTEER, RoleType.BENEFICIARY)
   @ResponseMessage('School record updated')
@@ -113,11 +100,7 @@ export class ProfileMobileController {
     );
   }
 
-  /**
-   * Address changes go through a proof of residency: the app uploads a
-   * barangay certificate (photo or PDF), the OCR service reads the address off
-   * it, and the file is kept on record. Nothing is typed in.
-   */
+  /** Address comes from OCR of a proof of residency; nothing typed. */
   @Post('me/mobile/residency')
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   @ResponseMessage('Address updated from your residency document')
@@ -142,7 +125,7 @@ export class ProfileMobileController {
     );
   }
 
-  /** The uploaded file itself, private to its owner, for the in-app viewer. */
+  /** Private to its owner. */
   @Get('me/mobile/residency/:documentId')
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   async getResidencyDocument(
@@ -161,11 +144,7 @@ export class ProfileMobileController {
     });
   }
 
-  /**
-   * The photo of the side named by `?role=` (registered role when omitted) —
-   * each role keeps its own picture. Same private, ETag-revalidated stream
-   * the portal uses for its navbar avatar.
-   */
+  /** Per-role photo (`?role=`, default registered role); ETag-revalidated. */
   @Get('me/mobile/avatar')
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)
   async getAvatar(

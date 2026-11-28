@@ -21,30 +21,13 @@ import {
   useUserRequestsApp,
 } from '../user-requests-site-support';
 
-/**
- * Users Module · User Request Decision — invalid inputs (field validation).
- *
- * Every case here is an intentionally wrong value for one field of Users → Request in
- * the portal. A case Passes when the request is refused with "Validation failed" (400)
- * on that field — and, where the schema defines one, the exact message — without
- * reaching the service. Each fixture keeps every other field valid, so the named field
- * is the only reason it can fail.
- *
- *   id      POST /api/v1/user-requests/:id/accept · /reject · /remove · /restore
- *   reason  POST /api/v1/user-requests/:id/reject                (RejectUserRequestSchema)
- *   kind    GET  /api/v1/user-requests/:id/attachments/:kind     (the proof files the
- *                                                                 director reviews)
- *   query   GET  /api/v1/user-requests                           (the queue)
- *
- * The valid cases for this unit live in ../valid/.
- */
+/** Each fixture keeps every other field valid. */
 
 const REQUEST_ID_REQUIRED = 'A valid request id is required';
 const REASON_REQUIRED = 'Enter a reason for the rejection';
 const REASON_TOO_LONG = `Keep the reason under ${REJECTION_REASON_MAX_LENGTH} characters`;
 const REASON_CONTROL = 'Reason cannot contain control characters';
 
-/** Malformed request ids, shared by every route with `:id`. */
 const requestIdFixtures = (action: string): LayerFixture<string>[] => [
   { name: `Director ${action} a request id that is not a uuid`, input: 'request-1', expected: 'FAIL', field: '', message: REQUEST_ID_REQUIRED },
   { name: `Director ${action} the reference number instead of the request id`, input: '10', expected: 'FAIL', field: '', message: REQUEST_ID_REQUIRED },
@@ -63,7 +46,6 @@ const ACTION_VERB: Record<string, string> = {
   restore: 'restores',
 };
 
-/* ── reject: reason ──────────────────────────────────────────────────────── */
 const rejectFixtures: LayerFixture[] = [
   { name: 'Director rejects without giving a reason', input: {}, expected: 'FAIL', field: 'reason' },
   { name: 'Director rejects with an empty reason', input: { reason: '' }, expected: 'FAIL', field: 'reason', message: REASON_REQUIRED },
@@ -105,7 +87,6 @@ const rejectFixtures: LayerFixture[] = [
   { name: 'Client sends a field the reject form does not have (notify_requester)', input: { ...VALID_REJECT, notify_requester: false }, expected: 'FAIL' },
 ];
 
-/* ── attachments: kind ───────────────────────────────────────────────────── */
 const attachmentPath = (id: string, kind: string) =>
   `/api/v1/user-requests/${encodeURIComponent(id)}/attachments/${encodeURIComponent(kind)}`;
 
@@ -118,7 +99,6 @@ const kindFixtures: LayerFixture<string>[] = [
   { name: 'Director opens a proof file kind with surrounding spaces', input: ' selfie ', expected: 'FAIL' },
 ];
 
-/* ── list: query ─────────────────────────────────────────────────────────── */
 const queryFixtures: LayerFixture<Record<string, string>>[] = [
   { name: 'Director filters by a status that does not exist (APPROVED)', input: { status: 'APPROVED' }, expected: 'FAIL', field: 'status' },
   { name: 'Director filters by a status in lower case (pending)', input: { status: 'pending' }, expected: 'FAIL', field: 'status' },

@@ -10,10 +10,6 @@ import {
 
 const EMPTY: NewEvaluationFormValues = { title: '' }
 
-/**
- * Owns the "new questionnaire" form. The created id is handed back so the page can
- * open the builder on it — filing a questionnaire and writing it is one errand.
- */
 export function useNewEvaluationForm(open: boolean, onCreated: (id: string) => void) {
   const createForm = useEvaluationStore((state) => state.createForm)
   const [saving, setSaving] = useState(false)
@@ -24,7 +20,6 @@ export function useNewEvaluationForm(open: boolean, onCreated: (id: string) => v
     mode: 'onChange',
   })
 
-  // Reopening starts on a blank form rather than the last abandoned draft.
   const { reset } = form
   useEffect(() => {
     if (open) reset(EMPTY)

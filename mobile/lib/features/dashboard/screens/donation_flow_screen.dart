@@ -39,22 +39,17 @@ enum _Stage {
   goodsStatus,
 }
 
-/// Multi-step donation flow. Money payments go through the server's Xendit
-/// integration: the app opens a checkout (`POST /donations/payments`), hands
-/// the donor to GCash / the hosted page or shows a QR Ph code, then polls
-/// the payment until the gateway's webhook settles it. The server opens the
-/// ledger row ONLY once the payment is reported paid.
+/// Money: `POST /donations/payments`, the hand-off (GCash / hosted page / QR
+/// Ph), then poll until the webhook settles it; the server opens the ledger row
+/// only once paid.
 ///
-/// Every donation is verification-based: paying or pledging only *pledges*
-/// it. A Director then moves it along on the portal's Donation Tracking —
-/// verifying, then confirmed — and only a confirmed donation shows
-/// "Donation Successful" and counts on the donor board. Goods are pledged
-/// through `POST /donations/goods`, are delivered by the donor to the CARES
-/// Office, and can be edited or cancelled until CARES starts receiving them.
+/// Paying or pledging only pledges: a Director moves it to verifying, then
+/// confirmed, on the portal, and only confirmed counts. Goods go through
+/// `POST /donations/goods`, are delivered to the CARES Office, and stay
+/// editable until receiving starts.
 ///
-/// Passing [existingDonation] opens the flow straight to the status view for
-/// a donation that already exists (from the Activity tab); [campaign] may
-/// then be left out.
+/// [existingDonation] opens straight to its status view; [campaign] may then be
+/// omitted.
 class DonationFlowScreen extends ConsumerStatefulWidget {
   const DonationFlowScreen({super.key, this.campaign, this.existingDonation})
     : assert(
@@ -73,7 +68,6 @@ class DonationFlowScreen extends ConsumerStatefulWidget {
     );
   }
 
-  /// Opens the status / details view for an existing donation (money or goods).
   static void openStatus(BuildContext context, {required Donation donation}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -93,8 +87,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   static const _minAmount = 1;
   static const _maxAmount = 500000;
 
-  /// How long to wait for the webhook to open the ledger row after the
-  /// gateway reports the checkout paid.
+  /// Waits for the webhook to open the ledger row after the gateway reports
+  /// paid.
   static const _ledgerPollInterval = Duration(seconds: 2);
   static const _ledgerPollAttempts = 15;
 
@@ -105,17 +99,14 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   final _customAmountController = TextEditingController();
   DonationPaymentMethod? _method;
 
-  /// Payment reference from the gateway once the payment is reported paid.
   /// Stored on the donation so the Director can verify it.
   String? _paymentReference;
 
-  // Live checkout state.
   final _paymentService = DonationPaymentService();
   final _donationService = DonationService();
 
-  /// One key per checkout attempt. Sent on every create call so a retry after
-  /// a timeout returns the checkout the server already opened. Reset whenever
-  /// the amount or method changes, and after a terminal outcome.
+  /// Sent on every create so a retry after a timeout returns the same checkout.
+  /// Reset when the amount or method changes, and after a terminal outcome.
   String? _idempotencyKey;
   DonationPayment? _payment;
   bool _creatingPayment = false;
@@ -123,22 +114,17 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   String? _paymentError;
   Timer? _pollTimer;
 
-  // Goods flow state.
   GoodsType? _selectedGood;
 
-  /// True when the donor picked "Other" and is typing their own item.
   bool _otherGoodSelected = false;
   final _otherGoodController = TextEditingController();
   int _quantity = 1;
   final _contactNumberController = TextEditingController();
 
-  /// The day the donor plans to hand the goods in at the CARES Office.
   DateTime? _deliveryDate;
 
-  /// True while re-editing an already-pledged donation.
   bool _editing = false;
 
-  /// True while a pledge, edit, cancel or refresh is on the wire.
   bool _saving = false;
 
   Donation? _completed;
@@ -165,8 +151,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     }
   }
 
-  /// The chosen channel as the portal describes it, or null before the payment
-  /// step has loaded.
+  /// Null before the payment step has loaded.
   AvailablePaymentMethod? get _selectedOffer {
     final method = _method;
     if (method == null) return null;
@@ -187,22 +172,19 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
-  /// Donation types the director enabled on the event behind this campaign.
   bool get _acceptsMoney => widget.campaign?.acceptsMonetary ?? false;
   bool get _acceptsGoods => widget.campaign?.acceptsGoods ?? false;
   bool get _onlyMoney => _acceptsMoney && !_acceptsGoods;
   bool get _onlyGoods => _acceptsGoods && !_acceptsMoney;
 
-  /// The campaign title for the summary rows — from the campaign when giving,
-  /// from the ledger row when only looking at an existing donation.
+  /// From the campaign when giving, the ledger row when viewing.
   String get _campaignTitle =>
       widget.campaign?.title ?? _completed?.eventTitle ?? '';
 
-  /// With a single accepted type there is no "how would you like to help?"
-  /// step, so every later step moves up by one.
+  /// A single accepted type skips the type step, shifting later steps by one.
   int get _skippedSteps => (_onlyMoney || _onlyGoods) ? 1 : 0;
 
-  /// Re-reads the donation so the status view shows the Director's latest move.
+  /// Picks up the Director's latest move.
   Future<void> _refreshDonation() async {
     final current = _completed;
     if (current == null) return;
@@ -213,7 +195,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     } on ApiException {
       // Keep what we have; the Activity tab refetches on its own.
     } catch (_) {
-      // Same — a stale status is better than a broken screen.
+      // A stale status beats a broken screen.
     }
   }
 
@@ -226,8 +208,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       );
   }
 
-  /// The Activity tab, the home deck's raised figures and the board all
-  /// change when a donation is made or moved.
+  /// Activity, the home raised figures and the board all change.
   void _invalidateDonorData() {
     ref.invalidate(myDonationsProvider);
     ref.invalidate(donationCampaignsProvider);
@@ -242,8 +223,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     super.dispose();
   }
 
-  /// The item the donor is pledging — either a listed need or the custom
-  /// "Other" item they typed. Null until a valid choice is made.
+  /// Null until a valid choice.
   String? get _goodsItem {
     if (_otherGoodSelected) {
       final custom = _otherGoodController.text.trim();
@@ -285,9 +265,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       isValidPhilippinePhone(_contactNumberController.text) &&
       _deliveryDate != null;
 
-  /// What the donor typed in the custom field, otherwise the selected preset.
-  /// Null when there is nothing valid to charge — a `0` or out-of-range custom
-  /// entry never silently falls back to the preset behind it.
+  /// The custom entry wins; null when invalid, so a bad custom amount never
+  /// falls back to the preset.
   int? get _effectiveAmount {
     final text = _customAmountController.text.trim();
     if (text.isEmpty) return _presetAmount;
@@ -298,7 +277,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     return custom;
   }
 
-  /// Inline message under the custom amount field; null while it is empty or valid.
+  /// Null while empty or valid.
   String? get _customAmountError {
     final text = _customAmountController.text.trim();
     if (text.isEmpty) return null;
@@ -313,7 +292,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     return null;
   }
 
-  // ------------------------------------------------------------- navigation
   bool get _isTerminal =>
       _stage == _Stage.moneyStatus || _stage == _Stage.goodsStatus;
 
@@ -360,8 +338,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
         setState(() => _stage = _Stage.goodsDelivery);
     }
   }
-
-  // ---------------------------------------------------------- live checkout
 
   /// Anything that changes what would be charged invalidates the attempt key.
   void _resetCheckout() {
@@ -448,8 +424,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     }
   }
 
-  /// Polls the server every few seconds while the checkout is open. The
-  /// webhook flips the status on the server; the app only ever reads it.
+  /// The webhook flips the status server-side; the app only reads it.
   void _startPolling() {
     _stopPolling();
     _pollTimer = Timer.periodic(
@@ -519,9 +494,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
       _payment?.status == DonationPaymentStatus.expired ||
       (_paymentError?.toLowerCase().contains('expired') ?? false);
 
-  /// Payment went through, so the server has opened the ledger row — but only
-  /// as *pledged*. The row is created by the gateway's callback, which can
-  /// land a moment after the status poll saw PAID, so wait for it briefly.
+  /// The ledger row (pledged) comes from the gateway callback, which can lag
+  /// the PAID poll, so wait briefly.
   Future<void> _pledgeMoney() async {
     if (_completed != null) {
       setState(() => _stage = _Stage.moneyStatus);
@@ -722,7 +696,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     if (picked != null) setState(() => _deliveryDate = picked);
   }
 
-  // ------------------------------------------------------------------- build
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -791,8 +764,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     _Stage.goodsStatus => _goodsStatusStage(),
   };
 
-  /// Compact secondary "Back" beside a review step's main action — sized to its
-  /// label so it never wraps to "Bac / k" on narrow phones.
+  /// Sized to its label so it never wraps on narrow phones.
   Widget _footerBackButton(VoidCallback onPressed) {
     return OutlinedButton(
       onPressed: onPressed,
@@ -806,7 +778,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  /// Standard step layout: scrolling content over a pinned footer.
   Widget _stepScaffold({
     int? step,
     int stepCount = 4,
@@ -843,7 +814,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // --------------------------------------------------------- Step 1: type
   Widget _chooseTypeStage() {
     return _stepScaffold(
       step: 1,
@@ -885,7 +855,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------------------------------- Step 2: amount
   Widget _enterAmountStage() {
     final amount = _effectiveAmount;
     final usingCustom = _customAmountController.text.trim().isNotEmpty;
@@ -990,11 +959,8 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------------------------- Step 3: payment method
-  /// Only what the director enabled in the portal's Payments module is offered,
-  /// with their wording and their per-channel limits. A channel whose limits
-  /// rule out the amount is shown greyed with the reason rather than hidden, so
-  /// the donor can go back and change the amount instead of wondering.
+  /// Only channels the director enabled, with their wording and limits;
+  /// out-of-range ones are greyed with the reason, not hidden.
   Widget _choosePaymentStage() {
     final amount = _effectiveAmount ?? 0;
     final availability = ref.watch(availablePaymentMethodsProvider);
@@ -1072,7 +1038,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     ];
   }
 
-  /// The one-off message the payment step shows in place of the tiles.
   Widget _paymentNotice(String message, {VoidCallback? onRetry}) {
     return Container(
       width: double.infinity,
@@ -1102,7 +1067,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ---------------------------------------------------- Step 4: review
   Widget _reviewStage() {
     final amount = _effectiveAmount ?? 0;
     final offer = _selectedOffer;
@@ -1127,8 +1091,7 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
               'Payment Method',
               offer?.label ?? _method?.label ?? '—',
             ),
-            // Where the money lands, when CARES recorded it in the portal —
-            // the donor should be able to see who they are paying.
+            // Shows who the donor is paying.
             if (_receivingAccount case final account?)
               DonationSummaryRow('Paid To', account),
           ],
@@ -1161,7 +1124,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------------------------- Step 5: live checkout
   Widget _paymentCheckoutStage() {
     final method = _method;
     final payment = _payment;
@@ -1272,7 +1234,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------- Money Steps 6–8: verification tracking
   Widget _moneyStatusStage() {
     final donation = _completed;
     if (donation == null) return const SizedBox.shrink();
@@ -1417,9 +1378,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     }
   }
 
-  // ==================================================== Goods flow
-
-  // ------------------------------------------- Goods Step 2: select item
   Widget _goodsSelectItemStage() {
     final goods = widget.campaign?.neededGoods ?? const <GoodsType>[];
     final good = _selectedGood;
@@ -1486,7 +1444,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------------------- Goods Step 3: delivery details
   Widget _goodsDeliveryStage() {
     return _stepScaffold(
       step: 3,
@@ -1545,7 +1502,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------------------- Goods Step 4: review
   Widget _goodsReviewStage() {
     final item = _goodsSummary;
     return _stepScaffold(
@@ -1604,7 +1560,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
     );
   }
 
-  // ------------------------------- Goods Steps 5–8: status tracking
   Widget _goodsStatusStage() {
     final donation = _completed;
     if (donation == null) return const SizedBox.shrink();
@@ -1848,7 +1803,6 @@ class _DonationFlowScreenState extends ConsumerState<DonationFlowScreen> {
   }
 }
 
-/// The heading, status pill and tracker at the top of a status view.
 class _StatusCard extends StatelessWidget {
   const _StatusCard({
     required this.icon,
@@ -1915,7 +1869,6 @@ class _StatusCard extends StatelessWidget {
   }
 }
 
-/// − 3 + for how many units are being given.
 class _QuantityStepper extends StatelessWidget {
   const _QuantityStepper({required this.value, required this.onChanged});
 
@@ -2071,8 +2024,7 @@ class _PickerField extends StatelessWidget {
   }
 }
 
-/// The must-read line of the delivery step: CARES no longer collects goods,
-/// so the donor brings them to the office themselves.
+/// CARES no longer collects goods; the donor brings them to the office.
 class _SelfDeliveryNotice extends StatelessWidget {
   const _SelfDeliveryNotice();
 
@@ -2123,10 +2075,8 @@ class _SelfDeliveryNotice extends StatelessWidget {
   }
 }
 
-/// A fixed map pinning the CARES Office on the UCLM campus, with the address
-/// underneath so the donor knows exactly where to bring the goods. Uses the
-/// same tile providers as the event route map, demoting on failure so it never
-/// stays blank.
+/// Same tile providers as the route map, demoting on failure so it never stays
+/// blank.
 class _CaresDropOffMap extends StatefulWidget {
   const _CaresDropOffMap();
 
@@ -2256,8 +2206,6 @@ class _CaresDropOffMapState extends State<_CaresDropOffMap> {
   }
 }
 
-// ---------------------------------------------------------------------------
-
 class _FooterBar extends StatelessWidget {
   const _FooterBar({required this.child});
 
@@ -2294,7 +2242,6 @@ class _CenteredStatus extends StatelessWidget {
   final String title;
   final String message;
 
-  /// Optional content shown under the message (e.g. a payment reference).
   final Widget? extra;
 
   @override
@@ -2334,8 +2281,7 @@ class _CenteredStatus extends StatelessWidget {
   }
 }
 
-/// Shows the reference number issued by the payment channel so the donor can
-/// keep it — the Director uses it to verify the payment.
+/// The Director uses it to verify the payment.
 class _PaymentReferenceCard extends StatelessWidget {
   const _PaymentReferenceCard({required this.label, required this.reference});
 

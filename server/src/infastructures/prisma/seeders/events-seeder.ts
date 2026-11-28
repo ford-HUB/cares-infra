@@ -3,7 +3,7 @@ import { EventStatus, Prisma, PrismaClient } from '../common/client';
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
 
-/** Sample images use public placeholder URLs so they render without S3 configuration. */
+/** Public placeholder URLs, so no S3 needed. */
 const img = (seed: string, w = 1200, h = 800): string =>
   `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
@@ -153,7 +153,7 @@ const buildEvents = (now: number): Prisma.EventCreateManyInput[] => [
   },
 ];
 
-/** Replaces the whole event table with a demo set spanning every status. */
+/** Replaces the whole event table. */
 export const seedEvents = async (prisma: PrismaClient): Promise<void> => {
   const existing = await prisma.event.count();
   if (existing > 0) {

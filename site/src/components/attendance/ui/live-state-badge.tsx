@@ -10,7 +10,6 @@ interface LiveStateBadgeProps {
   state: LiveAttendanceState
 }
 
-/** Mirrors `AttendanceStatusBadge` on the attendees page, plus a pulse when in-area. */
 export function LiveStateBadge({ state }: LiveStateBadgeProps) {
   return (
     <span

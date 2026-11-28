@@ -23,7 +23,7 @@ export function resolveImageMimeType(
   }
 }
 
-/** The type a file's leading bytes prove it to be, or null when they prove nothing. */
+/** Null when the bytes prove nothing. */
 export function sniffImageMimeType(buffer: Buffer): string | null {
   const startsWith = (bytes: number[], offset = 0) =>
     bytes.every((byte, index) => buffer[offset + index] === byte);

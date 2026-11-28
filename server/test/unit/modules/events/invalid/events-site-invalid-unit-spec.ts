@@ -37,21 +37,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Manage Event Module · Create Event — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Create event — error handling: unexpected service errors and a response the serializer
-   * refuses are masked as a generic 500 with nothing leaked, and the service's deliberate
-   * HttpExceptions keep their status and message through the envelope.
-   */
   const DELIBERATE_ERRORS = [
     { title: '400 for an empty image', error: new BadRequestException('One of the event images is empty') },
     { title: '400 for an image over the limit', error: new BadRequestException('Each event image must be 3 MB or smaller') },
@@ -97,13 +83,7 @@ import {
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Create event — input validation: required, empty and length rules, the numeric bounds,
-   * the rules the portal's own form enforces (the category list, School needs a department,
-   * Others needs a name), plus legitimate inputs that must pass.
-   */
   const requiredText = (field: string): LayerFixture[] => [
     { 
       
@@ -266,21 +246,11 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   /**
-   * Create event — security, per field class:
-   *   category, event_started, event_ended, max_participants, max_beneficiaries, area_sqm,
-   *   marker_lat, marker_lng, the three booleans, geojson
-   *              constrained: every hostile string FAILs
-   *   event_images_existing
-   *              constrained to this feature's own stored images, because the image route
-   *              fetches whatever is listed from the bucket every feature shares
-   *   title, location, organizer_name, department, specified_category, goods_types
-   *              short label: SQLi, special-char series, control chars, XSS FAIL
-   *   description
-   *              free text, trimmed: control characters FAIL, line breaks stay
-   * plus type confusion, mass assignment, prototype pollution and the uploaded files.
+   * Constrained fields: every hostile string FAILs. event_images_existing: only this
+   * feature's own stored images, since the image route fetches from the shared bucket.
+   * Short labels: SQLi/special/control/XSS FAIL. description: control chars FAIL.
    */
   const rejectHostile = (field: string, wrap: (value: unknown) => unknown = (value) => value, issuePath: string | null = field): LayerFixture[] =>
     HOSTILE_STRINGS.map((p) => ({
@@ -298,7 +268,7 @@ import {
       field: issuePath,
     }));
 
-  /** `skip` drops the payloads that are a real value for this field, exercised as PASS elsewhere. */
+  /** `skip` drops payloads that are a real value for this field (tested as PASS elsewhere). */
   const typeConfusion = (field: string, { skip = (_value: unknown) => false, list = false } = {}): LayerFixture[] =>
     OPERATOR_INJECTION_PAYLOADS.filter((p) => !skip(p.value)).map((p) => ({
       name: `${field} ← ${p.category}: ${p.label}`,
@@ -314,7 +284,7 @@ import {
     ...rejectHostile('category'),
     ...typeConfusion('category'),
 
-    // A start that does not parse is reported on the end, by the rule comparing the two.
+    // An unparseable start is reported on the end, by the start/end comparison rule.
     ...rejectHostile('event_started', undefined, null),
     ...typeConfusion('event_started'),
     ...rejectHostile('event_ended'),
@@ -348,14 +318,13 @@ import {
 
     ...['title', 'location', 'organizer_name', 'department', 'specified_category'].flatMap((field) => [
       ...rejectLabelAttacks(field),
-      // These two are optional, so `null` must still be refused rather than read as unset.
+      // Optional fields: `null` must still be refused, not read as unset.
       ...typeConfusion(field),
     ]),
 
     ...rejectLabelAttacks('goods_types', (value) => [value], 'goods_types.0'),
     ...typeConfusion('goods_types', { list: true }),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. The form encodes every line break as CRLF, so that is the exception.
+    // Trimmed field rejects control characters; CRLF is allowed (the form encodes line breaks as CRLF).
     ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
       name: `description ← ${p.category}: ${p.label}`,
       input: { ...VALID, description: `Event details ${p.value as string}` },
@@ -369,7 +338,7 @@ import {
       input: { ...VALID, ...extra },
       expected: 'FAIL',
     })),
-    // The server derives the status and counts the participants; none can be supplied.
+    // Status and participant counts are server-derived, never supplied.
     { name: 'mass assignment: status', input: { ...VALID, status: 'Completed' }, expected: 'FAIL' },
     { name: 'mass assignment: participants', input: { ...VALID, participants: 9999 }, expected: 'FAIL' },
     { name: 'mass assignment: event_id', input: { ...VALID, event_id: 1 }, expected: 'FAIL' },
@@ -426,8 +395,7 @@ import {
           expect(ctx.service.createEvent).not.toHaveBeenCalled();
         });
 
-        // Multer buffers uploads in memory, so the limit has to apply while reading the
-        // file: a check in the service only runs once all of it has been held.
+        // Multer buffers in memory, so the limit must apply while reading, not in the service.
         asCase('invalid', 'Staff submits a request with a file over the size limit').it('refuses a file over the size limit before reaching the service', async () => {
           const bytes = Buffer.alloc(EVENT_MAX_IMAGE_BYTES + 1);
           const res = await postForm(ctx.app, VALID_FORM, [{ ...IMAGE, bytes }]);
@@ -437,7 +405,7 @@ import {
       });
     });
 
-    // The controller's service is mocked above; the file rules live in the real one.
+    // The controller's service is mocked; file rules live in the real one.
     describe('createEvent (real service)', () => {
       const data = {
         ...VALID,

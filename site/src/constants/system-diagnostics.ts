@@ -4,10 +4,8 @@ import type {
   DiagnosticStatus,
 } from '../types/system-diagnostics'
 
-/** How often the diagnostics card re-reads the last sweep while the page is open. */
 export const DIAGNOSTICS_POLL_INTERVAL_MS = 15_000
 
-/** Draw order of the groups on the diagnostics card — the stack, top down. */
 export const DIAGNOSTIC_GROUP_ORDER: DiagnosticGroup[] = [
   'database',
   'cache',
@@ -32,7 +30,6 @@ export const DIAGNOSTIC_STATUS_LABELS: Record<DiagnosticStatus, string> = {
   fail: 'Failing',
 }
 
-/** Dot colour beside each check — the only place a check is coloured. */
 export const DIAGNOSTIC_STATUS_DOT_STYLES: Record<DiagnosticStatus, string> = {
   ok: 'bg-emerald-500',
   warn: 'bg-amber-500',
@@ -57,14 +54,12 @@ export const DIAGNOSTIC_OVERALL_STYLES: Record<DiagnosticOverall, string> = {
   down: 'bg-red-50 text-red-700',
 }
 
-/** Tick colour in the strip of past sweeps. */
 export const DIAGNOSTIC_OVERALL_TICK_STYLES: Record<DiagnosticOverall, string> = {
   healthy: 'bg-emerald-400',
   degraded: 'bg-amber-400',
   down: 'bg-red-400',
 }
 
-/** What each group covers — the card subtitles. */
 export const DIAGNOSTIC_GROUP_HINTS: Record<DiagnosticGroup, string> = {
   database: 'Postgres answering a query.',
   cache: 'Sessions, OTPs and the queues all live here.',
@@ -74,7 +69,6 @@ export const DIAGNOSTIC_GROUP_HINTS: Record<DiagnosticGroup, string> = {
   process: 'The API process itself — its thread and its memory.',
 }
 
-/** `just now`, `40s ago`, `3 min ago` — how stale the report on screen is. */
 export function formatSweepAgo(iso: string, now: number): string {
   const seconds = Math.max(0, Math.round((now - new Date(iso).getTime()) / 1000))
   if (seconds < 5) return 'just now'

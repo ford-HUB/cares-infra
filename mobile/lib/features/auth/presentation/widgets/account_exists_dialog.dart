@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Blocks the flow when the typed email already belongs to an account — the
-/// user has to acknowledge it before going back to change the address.
+/// Must be acknowledged before going back to change the address.
 Future<void> showAccountExistsDialog(
   BuildContext context, {
   required String email,

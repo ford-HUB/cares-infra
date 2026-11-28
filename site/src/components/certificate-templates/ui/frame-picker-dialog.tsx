@@ -29,22 +29,17 @@ import { CertificateCanvas } from './certificate-canvas'
 interface FramePickerDialogProps {
   open: boolean
   value: CertificateFrame
-  /** The wording and accent being edited, so each tile previews this certificate. */
   design: CertificateDesign
   orientation: CertificateOrientation
   title: string
   onOpenChange: (open: boolean) => void
   onSelect: (frame: CertificateFrame) => void
-  /** An imported sheet replaces the built-in frame until it is removed. */
+  /** An imported sheet replaces the built-in frame until removed. */
   onUpload: (dataUrl: string, fileName: string) => void
   onRemoveUpload: () => void
 }
 
-/**
- * The pre-built frames, each previewed with the template's own wording and accent.
- * Picking one also picks its text formatting — the two ship together in
- * `CERTIFICATE_FRAME_PRESETS`, so a frame always reads the way it was designed to.
- */
+/** Picking a frame also applies its text formatting (`CERTIFICATE_FRAME_PRESETS`). */
 export function FramePickerDialog({
   open,
   value,
@@ -90,7 +85,6 @@ export function FramePickerDialog({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
-          {/* An imported sheet is the director's own artwork, so it leads. */}
           <div className="flex items-center gap-3 rounded-xl border border-gray-200 p-3">
             <span className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-50">
               {uploaded ? (

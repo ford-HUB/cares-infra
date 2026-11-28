@@ -4,8 +4,7 @@ import 'package:mobile/features/auth/data/models/donor_auth_models.dart';
 import 'package:mobile/features/auth/data/models/login_api_models.dart';
 import 'package:mobile/features/auth/data/social_auth_client.dart';
 
-/// The CARES half of donor social sign-in: hands a provider token to the server and
-/// takes back either a session or a ticket to finish sign-up with.
+/// Returns a session, or a ticket to finish sign-up with.
 class DonorAuthService {
   DonorAuthService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -21,8 +20,7 @@ class DonorAuthService {
     return DonorOAuthResult.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Spends [oauthTicket] to create the donor. The email is not sent: the server takes
-  /// it from the ticket, so it is always the address the provider vouched for.
+  /// The email isn't sent: the server takes it from the ticket.
   Future<LoginResponse> registerDonor({
     required String oauthTicket,
     required String firstName,
@@ -47,9 +45,7 @@ class DonorAuthService {
     return LoginResponse.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Email + password donor sign-up. Only valid once the address has passed the shared
-  /// OTP check (`AuthRegistrationService.sendVerificationCode` + `verifyOtp`) — the
-  /// server refuses it otherwise.
+  /// The server refuses it unless the address passed the shared OTP check.
   Future<LoginResponse> registerDonorWithEmail({
     required String email,
     required String password,

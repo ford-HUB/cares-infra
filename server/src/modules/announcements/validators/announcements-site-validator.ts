@@ -9,10 +9,7 @@ import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-ch
 import { plainLabel } from '../../../shared/validators/plain-label-validator';
 import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
-/**
- * The board filters and sorts client-side, so the list is fetched whole rather than
- * paged — capped so a runaway board cannot ship unbounded rows.
- */
+/** Client-side filtering, so fetched whole but capped. */
 export const ANNOUNCEMENTS_DEFAULT_LIMIT = 200;
 export const ANNOUNCEMENTS_MAX_LIMIT = 500;
 
@@ -30,14 +27,10 @@ export const ListAnnouncementsQuerySchema = z
   })
   .strict();
 
-/** Hyphen-separated letters and digits (`win-db-migration`, or a uuid), never a hex literal. */
+/** `win-db-migration` or a uuid; never a hex literal. */
 const WINDOW_ID_PATTERN = /^(?!0x)[a-z0-9]+(?:-[a-z0-9]+)*$/i;
 
-/**
- * The full draft, as the dialog submits it. Only `draft` and `scheduled` can be chosen
- * from the editor — publishing and taking down go through the state endpoint so the
- * publish timestamp and reach are set by the server, not the client.
- */
+/** Only `draft`/`scheduled` here; publish state goes through the state endpoint so the server sets timestamp and reach. */
 export const SaveAnnouncementSchema = withoutPrototypeKeys(
   z
     .object({
@@ -84,7 +77,6 @@ export const SaveAnnouncementSchema = withoutPrototypeKeys(
     ),
 );
 
-/** Publish now, or pull a published notice back down. */
 export const SetAnnouncementStateSchema = z
   .object({
     state: z.enum([AnnouncementState.PUBLISHED, AnnouncementState.EXPIRED]),
@@ -116,7 +108,7 @@ export const AnnouncementSchema = z.object({
 
 export const AnnouncementListResponseSchema = z.object({
   items: z.array(AnnouncementSchema),
-  /** Total matching rows on the server, which may exceed what was returned. */
+  /** May exceed the returned rows. */
   total: z.number(),
 });
 

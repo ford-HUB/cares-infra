@@ -34,11 +34,7 @@ export function PaymentSettingsPage() {
         </p>
       </header>
 
-      {/*
-        A failed fetch would otherwise leave the form showing its defaults, which reads
-        as the saved settings — and saving from there would switch donations off and
-        clear the channels for real.
-      */}
+      {/* Otherwise defaults read as saved, and saving would switch donations off. */}
       {error ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

@@ -45,7 +45,7 @@ export function MailboxWorkspace({
   onSearchSubmit,
   onClearSearch,
 }: MailboxWorkspaceProps) {
-  // The connect screen and the mailbox look nothing alike, so the first check waits.
+  // The connect screen and mailbox look nothing alike, so wait for the first check.
   if (!initialized) {
     return (
       <div className="flex min-h-0 flex-1 flex-col gap-3 rounded-[var(--cares-radius)] border border-[var(--cares-border)] bg-[var(--cares-card)] p-4 shadow-sm">

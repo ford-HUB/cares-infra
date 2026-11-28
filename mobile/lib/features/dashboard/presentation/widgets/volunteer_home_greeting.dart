@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
-/// Top of the volunteer home tab: today's date in small type, a time-of-day
-/// greeting underneath, and the points pill + bell trailing on the greeting
-/// row so the header stays one block.
 class VolunteerHomeGreeting extends StatelessWidget {
   const VolunteerHomeGreeting({
     super.key,
@@ -28,8 +25,8 @@ class VolunteerHomeGreeting extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Points and bell share the date line so the greeting below gets the
-        // full width and never has to truncate a name.
+        // Points and bell share the date line so the greeting never truncates a
+        // name.
         Row(
           children: [
             Expanded(

@@ -1,6 +1,4 @@
-"""Staff / faculty ID checks: the employee number after "ID NO." and the
-"SURNAME, FIRST M." name are read only when the card is read as a staff ID,
-and a student ID reads exactly as before. Mirrors the staff cases in
+"""Staff ID parsing checks. Mirrors the staff cases in
 mobile/test/features/auth/domain/register_ocr_raw_parser_test.dart."""
 
 import sys

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Bottom navigation palette — deep green bar, white items, lime active pill.
 abstract final class DashboardNavColors {
   static const Color barBackground = AppColors.navBar;
   static const Color itemColor = Colors.white;
@@ -35,14 +34,11 @@ class DashboardBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  /// Overrides [DashboardTab.ranks] without changing the shared layout or
-  /// navigation order (e.g. 'Request' for the beneficiary dashboard).
+  /// e.g. 'Request' on the beneficiary dashboard.
   final String? ranksTabLabel;
   final IconData? ranksTabIcon;
 
-  /// Overrides the label of [DashboardTab.events] without changing the
-  /// shared layout, icons, or navigation order (e.g. 'Drives' for the
-  /// donor dashboard vs the default 'Events' for volunteers).
+  /// e.g. 'Drives' on the donor dashboard.
   final String? eventsTabLabel;
 
   @override

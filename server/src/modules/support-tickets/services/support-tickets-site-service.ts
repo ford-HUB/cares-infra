@@ -39,11 +39,7 @@ export class SupportTicketsSiteService {
     return { items: rows.map(toSupportTicket), total };
   }
 
-  /**
-   * Status, assignee, and the explanatory note are applied as one write — see the
-   * repository. The ticket is read first so a bad id is a 404 rather than the
-   * P2025 a blind update would raise.
-   */
+  /** One write; read first so a bad id 404s instead of P2025. */
   async updateTicket(
     id: string,
     staffUserId: string,
@@ -85,7 +81,7 @@ export class SupportTicketsSiteService {
     const ticket = await this.requireTicket(id);
 
     const row = await this.supportTicketsRepository.updateTicket(id, {
-      // A reply on an untouched ticket means someone has picked it up.
+      // Replying to an untouched ticket picks it up.
       status: ticket.status === 'OPEN' ? 'IN_PROGRESS' : undefined,
       note: await this.staffNote(staffUserId, reply.body),
     });
@@ -104,11 +100,7 @@ export class SupportTicketsSiteService {
     });
   }
 
-  /**
-   * A ticket is about the account, not one side of it, so the notice carries no
-   * audience role. Only app-filed tickets get an app link; a portal requester
-   * reads the thread on the portal.
-   */
+  /** Account-wide (no audience role); only app-filed tickets get an app link. */
   private async notifyRequester(
     row: SupportTicketRow,
     notice: {
@@ -174,7 +166,7 @@ const STATUS_NOTICES: Record<SupportTicketStatus, string> = {
   CLOSED: 'This ticket is closed. File a new one if the issue comes back.',
 };
 
-/** Statuses that are blocked on the requester doing something. */
+/** Blocked on the requester. */
 const STATUS_NEEDS_REQUESTER = new Set<SupportTicketStatus>([
   SupportTicketStatus.UNDER_VERIFICATION,
   SupportTicketStatus.CLIENT_FEEDBACK,

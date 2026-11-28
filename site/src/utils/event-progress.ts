@@ -1,22 +1,17 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
-// `end.from(now)` needs the plugin; extending is idempotent, and relying on
-// constants/formatting having already done it would be an invisible import-order bug.
+// Extend here too: relying on constants/formatting would be an import-order bug.
 dayjs.extend(relativeTime)
 
 export interface EventProgress {
-  /** 0–1 share of the event window already elapsed, clamped at both ends. */
+  /** 0–1, clamped. */
   ratio: number
-  /** Human label for what is left, e.g. `in 3 hours` / `Event window ended`. */
+  /** e.g. `in 3 hours` / `Event window ended`. */
   remainingLabel: string
 }
 
-/**
- * How far through its window a running event is, measured against the snapshot's
- * capture time rather than `Date.now()` so the bar and the roster below it always
- * describe the same moment.
- */
+/** Measured against the snapshot's capture time so the bar matches the roster. */
 export function eventProgress(
   startsAt: string,
   endsAt: string,

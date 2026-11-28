@@ -8,16 +8,16 @@ import { CatalogedProcessor } from './base-processor';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** A read or dismissed notification older than this is gone for good. */
+/** Read or dismissed notifications older than this are purged. */
 const NOTIFICATION_RETENTION_DAYS = 90;
 
-/** Finished BullMQ jobs older than this are removed from every queue. */
+/** Finished jobs older than this are removed. */
 const JOB_RETENTION_DAYS = 7;
 
-/** How many jobs one `clean` call may remove — bounded so the sweep stays short. */
+/** Per `clean` call, to keep the sweep short. */
 const CLEAN_BATCH = 1000;
 
-/** Nightly housekeeping — see the catalogue for what each sweep promises. */
+/** See the catalogue for each sweep. */
 @Processor(SCHEDULER_QUEUES.cleanup)
 export class CleanupProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(CleanupProcessor.name);

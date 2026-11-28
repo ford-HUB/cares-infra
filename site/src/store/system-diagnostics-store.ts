@@ -8,10 +8,8 @@ import type { SystemDiagnostics } from '../types/system-diagnostics'
 
 interface SystemDiagnosticsState {
   diagnostics: SystemDiagnostics | null
-  /** False until the first read settles, so the board never flashes empty. */
   initialized: boolean
   error: string | null
-  /** True while a staff-pressed check is running — the button locks. */
   running: boolean
   fetchDiagnostics: (options?: { silent?: boolean }) => Promise<void>
   runNow: () => Promise<void>

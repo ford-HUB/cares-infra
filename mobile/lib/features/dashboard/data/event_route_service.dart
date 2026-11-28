@@ -6,7 +6,6 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/config/geoapify_config.dart';
 import '../../../core/config/mapbox_config.dart';
 
-/// A walking route from the volunteer to the event venue.
 class EventRoute {
   const EventRoute({
     required this.points,
@@ -33,9 +32,8 @@ class EventRoute {
   }
 }
 
-/// Fetches a walking route from Mapbox Directions, falling back to Geoapify
-/// Routing, using the keys in `mobile/.env`. Both are third-party services,
-/// not the CARES server, so they are never proxied through ApiClient.
+/// Mapbox Directions, falling back to Geoapify. Third-party, so never proxied
+/// through ApiClient.
 class EventRouteService {
   EventRouteService({http.Client? client}) : _client = client ?? http.Client();
 

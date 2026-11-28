@@ -1,10 +1,6 @@
 import { randomBytes, randomInt } from 'node:crypto';
 
-/**
- * The password rules a generated credential has to satisfy. Declared structurally
- * rather than imported from the security-policy module so this utility stays free of
- * a feature dependency — the caller passes whatever the policy currently says.
- */
+/** Structural to avoid depending on the security-policy module. */
 export interface GeneratedPasswordRules {
   password_min_length: number;
   password_require_uppercase: boolean;
@@ -13,20 +9,20 @@ export interface GeneratedPasswordRules {
   password_require_symbol: boolean;
 }
 
-/** Ambiguous glyphs are left out — these credentials get read aloud or copied by hand. */
+/** No ambiguous glyphs: read aloud or typed by hand. */
 const UPPERCASE = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 const LOWERCASE = 'abcdefghijkmnopqrstuvwxyz';
 const DIGITS = '23456789';
 const SYMBOLS = '!@#$%&*?';
 
-/** Long enough that a short policy minimum still yields something worth issuing. */
+/** Floor above short policy minimums. */
 const MINIMUM_GENERATED_LENGTH = 14;
 
 function pick(alphabet: string): string {
   return alphabet[randomInt(alphabet.length)];
 }
 
-/** Fisher-Yates with a CSPRNG, so the required characters don't sit in a fixed order. */
+/** Fisher-Yates with a CSPRNG. */
 function shuffle(characters: string[]): string[] {
   for (let index = characters.length - 1; index > 0; index -= 1) {
     const swap = randomInt(index + 1);
@@ -38,10 +34,7 @@ function shuffle(characters: string[]): string[] {
   return characters;
 }
 
-/**
- * A random password that satisfies the policy by construction: one character from
- * every required class first, then filler drawn from the classes the policy allows.
- */
+/** One char from each required class, then filler from allowed classes. */
 export function generateTemporaryPassword(
   rules: GeneratedPasswordRules,
 ): string {
@@ -61,9 +54,7 @@ export function generateTemporaryPassword(
     required.push(pick(SYMBOLS));
   }
 
-  // Filler always spans the three alphanumeric classes: a policy that requires none
-  // of them still has to produce a password, and one that forbids none is not a thing
-  // the policy can express.
+  // Filler always spans the three alphanumeric classes so any policy yields a password.
   alphabets.push(UPPERCASE, LOWERCASE, DIGITS);
   if (rules.password_require_symbol) {
     alphabets.push(SYMBOLS);
@@ -80,11 +71,7 @@ export function generateTemporaryPassword(
   return shuffle(characters).join('');
 }
 
-/**
- * A mailbox-shaped identifier for a generated account. Nothing is delivered to it —
- * it is the sign-in name the administrator hands over, so it only has to be unique
- * and typeable.
- */
+/** Undeliverable sign-in name; only needs to be unique and typeable. */
 export function generateTemporaryEmail(
   firstname: string,
   lastname: string,
@@ -103,11 +90,7 @@ export function generateTemporaryEmail(
   return `${name || 'staff'}.${suffix}@${domain}`;
 }
 
-/**
- * `User.phone_number` is unique and required, and an account provisioned from an
- * emailed request has no phone behind it. A placeholder keeps the column honest until
- * the person completes their own profile — the same shape the admin seeder uses.
- */
+/** `User.phone_number` is unique and required; placeholder until the person updates it. */
 export function generatePlaceholderPhone(): string {
   return `provisioned-${randomBytes(6).toString('hex')}`;
 }

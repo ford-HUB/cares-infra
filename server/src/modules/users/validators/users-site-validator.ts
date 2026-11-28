@@ -16,7 +16,7 @@ import { PARTNER_BARANGAYS } from '../../auth/validators/auth-mobile-validator';
 export const USER_LIST_DEFAULT_PAGE_SIZE = 25;
 export const USER_LIST_MAX_PAGE_SIZE = 100;
 
-/** `all` keeps the portal's filter selects a single value space. */
+/** `all` keeps the filter a single value space. */
 export const UserStatusFilterSchema = z.enum([
   'all',
   'active',
@@ -25,24 +25,19 @@ export const UserStatusFilterSchema = z.enum([
   'expired',
 ]);
 
-/**
- * App-side roles an administrator can also provision ("Regular User" on the portal).
- * They sign in through the mobile app only — portal sign-in refuses any role outside
- * `PORTAL_ROLE_TYPES`.
- */
+/** "Regular User" roles; mobile sign-in only. */
 export const PROVISIONABLE_APP_ROLE_TYPES = [
   RoleType.VOLUNTEER,
   RoleType.DONOR,
   RoleType.BENEFICIARY,
 ] as const;
 
-/** A portal role, or an app role issued as a Regular User. */
 export const ProvisionableRoleSchema = z.enum([
   ...PORTAL_ROLE_TYPES,
   ...PROVISIONABLE_APP_ROLE_TYPES,
 ]);
 
-/** Mirrors the mobile app's `VolunteerType.apiValue`. Required for, and only for, volunteers. */
+/** Must match the mobile `VolunteerType.apiValue`. Volunteers only, and required for them. */
 export const ProvisionVolunteerTypeSchema = z.enum([
   'STUDENT',
   'STAFF',
@@ -50,21 +45,15 @@ export const ProvisionVolunteerTypeSchema = z.enum([
   'PARTNER_BARANGAY',
 ]);
 
-/**
- * A partner-barangay volunteer comes from one of the adopted communities, not a UCLM
- * college — so the barangay stands in for the department.
- */
+/** The barangay stands in for the department. */
 export const PARTNER_BARANGAY_VOLUNTEER_TYPE = 'PARTNER_BARANGAY';
 
-/** One hour to 90 days. Beyond that it stops being a hand-over credential. */
+/** 1 hour to 90 days. */
 export const CREDENTIAL_MIN_HOURS = 1;
 export const CREDENTIAL_MAX_HOURS = 24 * 90;
 export const CREDENTIAL_DEFAULT_HOURS = 72;
 
-/**
- * Mirrors PROVISIONABLE_DEPARTMENTS in site/src/constants/manage-users.ts — the portal
- * groups its department statistics by these exact names.
- */
+/** Must match site/src/constants/manage-users.ts; statistics group by these names. */
 export const PROVISIONABLE_DEPARTMENTS = [
   'College of Maritime Engineering',
   'College of Teacher Education (BSED)',
@@ -90,13 +79,7 @@ const CredentialLifetimeSchema = z
   .max(CREDENTIAL_MAX_HOURS)
   .default(CREDENTIAL_DEFAULT_HOURS);
 
-/**
- * `manual` carries the email the requester asked from, `generate` has the server mint
- * one. The password is always generated either way — an administrator choosing a
- * password for someone else is the thing this flow exists to avoid. The person's name
- * and phone are not collected here — they belong to the account holder, who fills them
- * in once signed in. `recipient_email` is the inbox the credentials are mailed to.
- */
+/** `manual` takes the requester's email, `generate` mints one. Password is always generated; name and phone are left to the holder. */
 export const ProvisionUserSchema = withoutPrototypeKeys(
   z
     .object({
@@ -112,12 +95,9 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
         .trim()
         .pipe(z.enum(PROVISIONABLE_DEPARTMENTS))
         .optional(),
-      /** Required for, and only for, a `PARTNER_BARANGAY` volunteer. */
+      /** Required only for `PARTNER_BARANGAY` volunteers. */
       partner_barangay: z.enum(PARTNER_BARANGAYS).optional(),
-      /**
-       * The complete set of actions the account should hold. Omit it to leave the
-       * account on its role's baseline; the server stores only the departures.
-       */
+      /** Full desired set; omit for the role baseline. Only departures are stored. */
       permissions: z
         .array(z.enum(PermissionKey))
         .max(Object.keys(PermissionKey).length)
@@ -167,7 +147,7 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
             'A partner barangay only applies to partner barangay volunteers',
         });
       }
-      // The barangay is their affiliation — a UCLM department does not apply.
+      // Partner-barangay volunteers have no UCLM department.
       if (isPartnerBarangay && data.department) {
         ctx.addIssue({
           code: 'custom',
@@ -176,7 +156,7 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
         });
       }
 
-      // App accounts hold no portal rights, so there is no scope to set on them.
+      // App accounts hold no portal rights.
       if (!isPortalRole(data.role_type) && data.permissions) {
         ctx.addIssue({
           code: 'custom',
@@ -187,11 +167,7 @@ export const ProvisionUserSchema = withoutPrototypeKeys(
     }),
 );
 
-/**
- * The pre-check the add-user form runs on the recipient address before submitting.
- * Loose on purpose — a malformed value comes back as `valid: false` with a reason,
- * not as a 400, so the form can show it inline next to the field.
- */
+/** Loose: malformed input returns `valid: false` with a reason, not 400. */
 export const CheckProvisionEmailSchema = withoutPrototypeKeys(
   z
     .object({
@@ -203,7 +179,7 @@ export const CheckProvisionEmailSchema = withoutPrototypeKeys(
 export const ProvisionEmailCheckResponseSchema = z.object({
   email: z.string(),
   valid: z.boolean(),
-  /** Why the address was rejected; null when it passed every check. */
+  /** Null when it passed. */
   reason: z.string().nullable(),
 });
 
@@ -264,7 +240,7 @@ export const ManagedUserSchema = z.object({
   role_type: z.enum(RoleType),
   department: z.string().nullable(),
   status: z.enum(['active', 'restricted', 'pending', 'expired']),
-  /** Set only while a provisioned credential is outstanding — null once it is replaced. */
+  /** Null once replaced. */
   credential_expires_at: z.iso.datetime().nullable(),
   restriction_reason: z.string().nullable(),
   last_login_ip: z.string().nullable(),
@@ -320,21 +296,14 @@ export const ManagedUserListResponseSchema = z.object({
   page_size: z.number(),
 });
 
-/**
- * The plaintext credential, returned exactly once — at issue time. It is never stored
- * in a readable form, so an administrator who closes the dialog without copying it has
- * to re-issue rather than look it up.
- */
+/** Plaintext, returned once; never stored readably. */
 export const IssuedCredentialsSchema = z.object({
   email: z.string(),
   password: z.string(),
   expires_at: z.iso.datetime(),
 });
 
-/**
- * Whether the credential mail reached SMTP. Null when nothing was mailed (a re-issue);
- * the dialog shows the credential either way, so a failed send is a notice, not an error.
- */
+/** Null when nothing was mailed (re-issue); failures are a notice, not an error. */
 export const CredentialDeliverySchema = z.object({
   recipient: z.string(),
   sent: z.boolean(),

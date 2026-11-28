@@ -3,20 +3,8 @@ import { runApiLayer, autoMock } from '../../../../config/layer-harness';
 import { CHECK_PATH, DIAGNOSTICS_RESPONSE, useSystemDiagnosticsApp } from '../system-diagnostics-site-support';
 import { SystemDiagnosticsSiteService } from '../../../../../src/modules/system-diagnostics/services/system-diagnostics-site-service';
 
-/**
- * System Module · Diagnostics — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Run checks — error handling: a failing sweep or a report that breaks the response
-   * schema comes back as a generic 500 with nothing leaked. A failing probe is not an
-   * error: it is a 200 whose report says so.
-   */
+  /** A failing probe isn't an error: it's a 200 whose report says so. */
   describe('system diagnostics site · run checks — error handling', () => {
     const ctx = useSystemDiagnosticsApp();
 
@@ -41,12 +29,7 @@ import { SystemDiagnosticsSiteService } from '../../../../../src/modules/system-
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Run checks — input validation: the endpoint takes no input, so a bare POST must
-   * work, and the only valid answers are the report shapes the portal reads.
-   */
   describe('system diagnostics site · run checks — input validation', () => {
     const ctx = useSystemDiagnosticsApp();
 
@@ -82,13 +65,8 @@ import { SystemDiagnosticsSiteService } from '../../../../../src/modules/system-
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Run checks — normalisation: the real service records a staff-pressed run as `manual`
-   * and maps the checker's report to the wire shape, with history oldest first. Only the
-   * checker is mocked, because its probes need live infrastructure.
-   */
+  /** Real service; only the checker is mocked (its probes need live infrastructure). */
   const CHECKER_REPORT = {
     checkedAt: '2026-11-03T08:00:00.000Z',
     durationMs: 42,
@@ -147,12 +125,7 @@ import { SystemDiagnosticsSiteService } from '../../../../../src/modules/system-
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /**
-   * Run checks — security: nothing the caller sends may reach the probes, and only the
-   * fields in `SystemDiagnosticsSchema` may leave the server.
-   */
   describe('system diagnostics site · run checks — security', () => {
     const ctx = useSystemDiagnosticsApp();
 

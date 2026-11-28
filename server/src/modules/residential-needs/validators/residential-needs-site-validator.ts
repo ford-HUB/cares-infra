@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Q1 choices on the Beneficiary Needs Assessment survey. */
+/** Survey Q1 choices. */
 export const NEED_CATEGORIES = [
   'food',
   'healthcare',
@@ -10,7 +10,7 @@ export const NEED_CATEGORIES = [
   'other',
 ] as const;
 
-/** The named categories the model clusters on — "other" is free text. */
+/** Clustered needs; excludes free-text `other`. */
 export const CLUSTER_NEEDS = [
   'food',
   'healthcare',
@@ -42,12 +42,11 @@ export const COMMUNITY_PROBLEMS = [
 
 export const NEED_PRIORITIES = ['critical', 'high', 'moderate', 'low'] as const;
 
-/** Bounds mirror the portal's Groups toggle and the decision-service's clamp. */
+/** Keep in sync with portal toggle and decision-service clamp. */
 export const CLUSTER_K_MIN = 1;
 export const CLUSTER_K_MAX = 12;
 export const CLUSTER_K_DEFAULT = 3;
 
-/** Shown when the respondent has no barangay on their profile yet. */
 export const UNSPECIFIED_BARANGAY = 'Unspecified';
 
 const OptionalText = z.string().trim().max(2000).nullish();
@@ -65,10 +64,6 @@ export const HouseholdSurveySchema = z
   })
   .strict();
 
-/**
- * The households are read from the submitted surveys, so the portal only picks
- * how many groups to find and which random start to use.
- */
 export const ClusterNeedsSchema = z
   .object({
     k: z
@@ -77,15 +72,12 @@ export const ClusterNeedsSchema = z
       .min(CLUSTER_K_MIN)
       .max(CLUSTER_K_MAX)
       .default(CLUSTER_K_DEFAULT),
-    /** Random start for k-means++; the same seed over the same rows is reproducible. */
+    /** k-means++ seed; deterministic per row set. */
     seed: z.number().int().min(0).default(0),
   })
   .strict();
 
-/**
- * One submitted survey as the portal lists it. Codes come back as plain strings
- * so a retired option never fails the read; they were validated on the way in.
- */
+/** Plain strings so retired codes still parse. */
 export const HouseholdRowSchema = z.object({
   id: z.string(),
   family_name: z.string(),
@@ -111,36 +103,36 @@ export const HouseholdListResponseSchema = z.object({
 export const ClusterBarangaySchema = z.object({
   name: z.string(),
   count: z.number(),
-  /** `count` over the cluster's size — how concentrated the group is there. */
+  /** count / cluster size. */
   share: z.number(),
 });
 
 export const NeedsClusterSchema = z.object({
-  /** 0-based, ordered highest need first. */
+  /** 0-based, highest need first. */
   index: z.number(),
   household_ids: z.array(z.string()),
-  /** Mean of every feature over the members, in original units. */
+  /** Per-feature mean, original units. */
   centroid: z.record(z.string(), z.number()),
   dominant_need: z.enum(CLUSTER_NEEDS),
   top_barrier: z.enum(NEED_BARRIERS),
   priority: z.enum(NEED_PRIORITIES),
   barangay: ClusterBarangaySchema,
-  /** Seriousness (1–5) plus mean named needs ticked (0–5) — what the ranking uses. */
+  /** Seriousness (1–5) + mean needs ticked (0–5); ranking key. */
   need_level: z.number(),
 });
 
 export const ClusterNeedsResponseSchema = z.object({
   k: z.number(),
   clusters: z.array(NeedsClusterSchema),
-  /** Which cluster each household landed in, by household id. */
+  /** household_id -> cluster index. */
   assignments: z.record(z.string(), z.number()),
-  /** Sum of squared distances to centroids in standardised feature space. */
+  /** SSE in standardised feature space. */
   inertia: z.number(),
   iterations: z.number(),
   converged: z.boolean(),
   seed: z.number(),
   algorithm: z.string(),
-  /** Feature order the model clustered on; centroid keys match. */
+  /** Feature order; matches centroid keys. */
   features: z.array(z.string()),
   generated_at: z.string(),
 });

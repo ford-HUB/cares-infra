@@ -1,8 +1,4 @@
-/**
- * Permission keys are the server's `PermissionKey` enum values, kept as a plain string
- * so a new key added on the server flows through the catalog endpoint without a
- * matching edit here. The catalog is the source of truth for what exists.
- */
+/** Plain string so new server `PermissionKey`s flow through the catalog without an edit here. */
 export type PermissionKey = string
 
 export type PermissionOverrideEffect = 'GRANT' | 'REVOKE'
@@ -12,7 +8,7 @@ export interface PermissionDescriptor {
   module: string
   label: string
   description: string
-  /** Server-flagged as worth a confirmation before it is handed out. */
+  /** Server-flagged as needing confirmation. */
   sensitive: boolean
 }
 
@@ -32,13 +28,13 @@ export interface AccessUser {
   email: string
   firstName: string
   lastName: string
-  /** Lowercased RoleType — `admin`, `director`, `coordinator`. */
+  /** Lowercased RoleType. */
   role: string
   department?: string
   isRestricted: boolean
-  /** The root operator account — its actions cannot be suspended. */
+  /** Root operator; its actions can't be suspended. */
   isProtected: boolean
-  /** In force right now: baseline + grants − revokes − active suspensions. */
+  /** Baseline + grants − revokes − active suspensions. */
   effectivePermissions: PermissionKey[]
   grantedCount: number
   revokedCount: number
@@ -62,14 +58,10 @@ export interface ActionSuspension {
   issuedAt: string
   expiresAt?: string
   liftedAt?: string
-  /** False once lifted or expired — the panel lists history as well as what's live. */
+  /** False once lifted or expired. */
   active: boolean
 }
 
-/**
- * A suspension as the suspended account itself sees it on its session — enough to
- * lock the module or button in place and explain why on hover.
- */
 export interface SessionSuspension {
   permission: PermissionKey
   reason: string
@@ -77,7 +69,6 @@ export interface SessionSuspension {
   expiresAt?: string
 }
 
-/** Everything the rights panel shows — one request, fetched when the panel opens. */
 export interface AccessUserDetail extends AccessUser {
   rolePermissions: PermissionKey[]
   overrides: AccessPermissionOverride[]
@@ -100,5 +91,4 @@ export interface AccessUsersResult {
   truncated: boolean
 }
 
-/** How a single permission ended up on or off, for the panel's per-row badge. */
 export type PermissionSource = 'inherited' | 'granted' | 'revoked' | 'suspended' | 'unset'

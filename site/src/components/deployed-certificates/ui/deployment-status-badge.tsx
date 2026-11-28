@@ -5,7 +5,6 @@ import {
 } from '../../../constants/deployed-certificates'
 import type { DeploymentStatus } from '../../../types/deployed-certificate'
 
-/** Dense status pill, shared by the deployment card, the table row and the panel. */
 export function DeploymentStatusBadge({ status }: { status: DeploymentStatus }) {
   return (
     <span

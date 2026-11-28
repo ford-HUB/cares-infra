@@ -11,7 +11,6 @@ interface MailboxConnectPanelProps {
   onConnect: () => void
 }
 
-/** Shown whenever no Google account is linked — the page's default state. */
 export function MailboxConnectPanel({
   connecting,
   error,

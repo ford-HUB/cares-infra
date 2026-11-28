@@ -11,7 +11,6 @@ interface AdminLoginFormProps {
   form: UseFormReturn<AdminLoginFormValues>
   onSubmit: () => void
   loading: boolean
-  /** The first session check is still running. */
   checking: boolean
   onRequestAccess: () => void
 }
@@ -28,7 +27,6 @@ function submitLabel(checking: boolean, loading: boolean) {
   return 'Sign in'
 }
 
-/** Sign-in card body; it sits inside the auth modal over the landing page. */
 export function AdminLoginForm({
   form,
   onSubmit,
@@ -89,8 +87,7 @@ export function AdminLoginForm({
                 className={cn(INPUT_CLASS, 'pr-10')}
                 {...register('password')}
               />
-              {/* Shows what was typed, so a mistyped password can be caught before
-                  it counts toward the lockout. The field keeps focus and its value. */}
+              {/* Lets a typo be caught before it counts toward the lockout. */}
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}

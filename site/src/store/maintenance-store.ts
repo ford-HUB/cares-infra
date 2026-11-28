@@ -24,10 +24,8 @@ interface MaintenanceStoreState {
   mode: MaintenanceMode | null
   windows: MaintenanceWindow[]
   announcements: Announcement[]
-  /** False until the first read settles, so the banner doesn't flash "live" wrongly. */
   initialized: boolean
   error: string | null
-  /** Which row or control is in flight — only that one locks. */
   busyId: string | null
   fetchAll: (options?: { silent?: boolean }) => Promise<void>
   applyMode: (
@@ -45,14 +43,12 @@ interface MaintenanceStoreState {
   togglePinned: (notice: Announcement) => Promise<void>
 }
 
-/** The server answers a mutation with the one row it touched; slot it into the board. */
 function upsertAnnouncement(list: Announcement[], one: Announcement): Announcement[] {
   return list.some((existing) => existing.id === one.id)
     ? list.map((existing) => (existing.id === one.id ? one : existing))
     : [one, ...list]
 }
 
-/** Shared shape of every control: lock the row, apply, report, unlock. */
 async function control(
   set: (partial: Partial<MaintenanceStoreState>) => void,
   id: string,

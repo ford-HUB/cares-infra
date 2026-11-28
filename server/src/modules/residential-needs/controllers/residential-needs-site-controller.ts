@@ -15,10 +15,6 @@ import {
   HouseholdListResponseSchema,
 } from '../validators/residential-needs-site-validator';
 
-/**
- * Residential Needs — the submitted Needs Assessment Surveys and the K-Means
- * grouping behind the Clusters screen.
- */
 @Controller('v1/residential-needs')
 @Roles(...PORTAL_ROLE_TYPES)
 export class ResidentialNeedsSiteController {
@@ -26,7 +22,6 @@ export class ResidentialNeedsSiteController {
     private readonly residentialNeedsSiteService: ResidentialNeedsSiteService,
   ) {}
 
-  /** Every submitted survey, newest first, with the respondent's household details. */
   @Get('households')
   @ResponseMessage('Surveyed households')
   @ZSerialize(HouseholdListResponseSchema)
@@ -34,10 +29,7 @@ export class ResidentialNeedsSiteController {
     return this.residentialNeedsSiteService.listHouseholds();
   }
 
-  /**
-   * Clusters every submitted survey. POST because each call runs the model
-   * afresh with the given group count and random start.
-   */
+  /** POST: reruns K-Means on every call. */
   @Post('clusters')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Households clustered')

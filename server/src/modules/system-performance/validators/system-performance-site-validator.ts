@@ -72,7 +72,6 @@ export const PerformanceSnapshotSchema = z.object({
   load_average: LoadAverageSchema,
 });
 
-/** The live tick: the newest reading and the breakdown that explains it. */
 export const PerformanceTickSchema = z.object({
   sample: PerformanceSampleSchema.nullable(),
   cores: z.array(CpuCoreSchema),
@@ -80,7 +79,7 @@ export const PerformanceTickSchema = z.object({
   load_average: LoadAverageSchema,
 });
 
-/** What the portal reports after a screen has loaded — cumulative marks, in ms. */
+/** Cumulative marks, in ms. */
 export const ReportPageTimingSchema = z
   .object({
     route: z

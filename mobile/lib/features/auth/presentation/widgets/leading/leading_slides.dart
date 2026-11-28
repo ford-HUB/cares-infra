@@ -2,8 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/constants/app_copy.dart';
 
-/// One beat of the leading story: its copy, its photo, and where in that photo
-/// the subject sits so a portrait crop of a landscape shot keeps them in frame.
+/// Includes where the subject sits so portrait crops keep them in frame.
 class LeadingSlide {
   const LeadingSlide({
     required this.copy,
@@ -44,17 +43,15 @@ final List<LeadingSlide> leadingSlides = [
   ),
 ];
 
-/// The photos are ~1450px masters at 2–3 MB each. Decoding them at screen
-/// height (plus headroom for the slow zoom) keeps five of them in memory
-/// cheaply; every caller must use this so precache and paint share a key.
+/// ~1450px, 2–3 MB masters decoded at screen height (plus zoom headroom). Use
+/// it everywhere so precache and paint share a key.
 ImageProvider leadingImage(BuildContext context, String asset) {
   final media = MediaQuery.of(context);
   final height = (media.size.height * media.devicePixelRatio * 1.15).round();
   return ResizeImage(AssetImage(asset), height: height);
 }
 
-/// Decodes every story photo ahead of time — call while the splash plays so
-/// the first crossfade never waits on a decode.
+/// Call during the splash so the first crossfade never waits on a decode.
 void precacheLeadingSlides(BuildContext context) {
   for (final slide in leadingSlides) {
     precacheImage(leadingImage(context, slide.asset), context);

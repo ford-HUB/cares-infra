@@ -3,15 +3,12 @@ import { Card, CardContent } from '@/components/ui/card'
 
 interface UsageCardProps {
   title: string
-  /** One line on how to read the block. */
   hint?: string
-  /** Current reading, legend or action — sits opposite the title. */
   aside?: ReactNode
   children: ReactNode
   className?: string
 }
 
-/** Shared frame for the screen's panels, so the charts and lists read as one report. */
 export function UsageCard({ title, hint, aside, children, className = '' }: UsageCardProps) {
   return (
     <Card className={`gap-0 shadow-sm ${className}`}>

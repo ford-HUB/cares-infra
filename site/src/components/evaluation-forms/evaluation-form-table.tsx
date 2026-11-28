@@ -17,7 +17,6 @@ interface EvaluationFormTableProps {
 const headCell =
   'px-3 py-2 text-[11px] font-semibold tracking-wider text-gray-400 uppercase'
 
-/** The dense view, for comparing reach and answers across every questionnaire at once. */
 export function EvaluationFormTable({
   forms,
   showSkeleton,

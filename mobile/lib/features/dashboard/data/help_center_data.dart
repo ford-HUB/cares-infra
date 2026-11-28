@@ -4,12 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 
-/// Static content model for the Help & Support center.
-///
-/// Everything in this file is mock/sample data for the prototype — no network
-/// calls, no persistence. Screens read from these constants directly.
+/// Help content is static mock data: no network calls or persistence.
 
-/// Top-level help categories surfaced in Quick Help and the FAQ list.
 enum HelpTopic { donations, events, account, payments }
 
 extension HelpTopicMeta on HelpTopic {
@@ -20,7 +16,6 @@ extension HelpTopicMeta on HelpTopic {
     HelpTopic.payments => 'Payments',
   };
 
-  /// Shorter label for compact chips / cards.
   String get shortLabel => switch (this) {
     HelpTopic.donations => 'Donations',
     HelpTopic.events => 'Events',
@@ -50,7 +45,6 @@ extension HelpTopicMeta on HelpTopic {
   };
 }
 
-/// A single expandable FAQ entry.
 class HelpArticle {
   const HelpArticle({
     required this.id,
@@ -65,7 +59,6 @@ class HelpArticle {
   final String answer;
 }
 
-/// The three categories shown as prominent Quick Help cards.
 const kQuickHelpTopics = <HelpTopic>[
   HelpTopic.donations,
   HelpTopic.events,
@@ -81,7 +74,6 @@ const kExampleSearches = <String>[
 ];
 
 const kHelpArticles = <HelpArticle>[
-  // ---------------------------------------------------------------- Donations
   HelpArticle(
     id: 'don-make',
     topic: HelpTopic.donations,
@@ -137,7 +129,6 @@ const kHelpArticles = <HelpArticle>[
         'clears, usually within a few minutes. Find it under the donation '
         'detail screen and tap Download receipt to save a PDF copy.',
   ),
-  // ------------------------------------------------------------------- Events
   HelpArticle(
     id: 'evt-register',
     topic: HelpTopic.events,
@@ -183,7 +174,6 @@ const kHelpArticles = <HelpArticle>[
         'access from a partner organization — once approved, a Create Event '
         'option appears in the Events tab.',
   ),
-  // ----------------------------------------------------------- Account & Profile
   HelpArticle(
     id: 'acc-edit',
     topic: HelpTopic.account,
@@ -220,7 +210,6 @@ const kHelpArticles = <HelpArticle>[
         'purposes, but your profile and personal details are permanently '
         'removed after a 14-day grace period.',
   ),
-  // ----------------------------------------------------------------- Payments
   HelpArticle(
     id: 'pay-failed',
     topic: HelpTopic.payments,
@@ -253,8 +242,7 @@ const kHelpArticles = <HelpArticle>[
 List<HelpArticle> articlesForTopic(HelpTopic topic) =>
     kHelpArticles.where((a) => a.topic == topic).toList(growable: false);
 
-/// Lightweight keyword ranking so the search bar feels responsive on static
-/// content. Returns articles ordered by how well they match [query].
+/// Simple keyword ranking over the static articles.
 List<HelpArticle> searchHelpArticles(String query) {
   final terms = query
       .toLowerCase()
@@ -279,15 +267,9 @@ List<HelpArticle> searchHelpArticles(String query) {
   return scored.map((s) => s.article).toList(growable: false);
 }
 
-// ---------------------------------------------------------------------------
-// Support requests
-//
-// Mirrors the portal's support-ticket model (site/src/types/support-ticket.ts)
-// so what a volunteer sees here lines up with what the admin queue shows:
-// the same six statuses, the same ticket types, and the same
-// Issue / Support / Feature priority buckets. Rows come from
-// `support_ticket_service.dart`; the enums here are the wire vocabulary.
-// ---------------------------------------------------------------------------
+// Mirrors the portal's support-ticket model
+// (`site/src/types/support-ticket.ts`): same statuses, types and priority
+// buckets. Rows come from `support_ticket_service.dart`.
 
 /// The portal's ticket workflow, in order.
 enum SupportRequestStatus {
@@ -313,8 +295,7 @@ extension SupportRequestStatusMeta on SupportRequestStatus {
     SupportRequestStatus.closed => 'Closed',
   };
 
-  /// What the status means from the requester's side — the portal's status
-  /// hints, reworded for the person who filed the ticket.
+  /// The portal's status hints, reworded for the requester.
   String get hint => switch (this) {
     SupportRequestStatus.open =>
       'Received. Our team has not picked this up yet.',
@@ -337,18 +318,16 @@ extension SupportRequestStatusMeta on SupportRequestStatus {
     SupportRequestStatus.closed => AppColors.textMuted,
   };
 
-  /// The ball is in the requester's court.
   bool get needsRequesterAction =>
       this == SupportRequestStatus.underVerification ||
       this == SupportRequestStatus.clientFeedback;
 
-  /// Still counts against the queue — anything not resolved or closed.
   bool get isUnresolved =>
       this != SupportRequestStatus.resolved &&
       this != SupportRequestStatus.closed;
 }
 
-/// What the reporter says went wrong — the portal routes triage by this.
+/// The portal routes triage by this.
 enum SupportTicketType {
   bug,
   login,
@@ -358,14 +337,14 @@ enum SupportTicketType {
   mobileApp,
   featureRequest,
 
-  /// Flagging another user, event, campaign, or content — the "Report a
-  /// Problem" flow, as opposed to a request about the reporter's own account.
+  /// Flagging another user, event, campaign or content, not the reporter's own
+  /// account.
   report,
   other,
 }
 
-/// The portal triages by three buckets. Priority and category are the same
-/// axis there: an Issue is by definition high priority, a Feature low.
+/// Priority and category are one axis on the portal: an Issue is high, a
+/// Feature low.
 enum SupportPriority { issue, support, feature }
 
 extension SupportPriorityMeta on SupportPriority {
@@ -457,14 +436,13 @@ class SupportMessage {
   final String body;
   final DateTime sentAt;
 
-  /// Portal account that replied; falls back to "CARES Support" when unset.
+  /// Falls back to "CARES Support" when unset.
   final String? authorName;
 
   String get timeLabel => formatSupportDateTime(sentAt);
 }
 
-/// One ticket as the requester sees it — the server's row, minus the
-/// requester block (it is them) and the assignee id.
+/// The server's row minus the requester block and assignee id.
 class SupportRequest {
   const SupportRequest({
     required this.id,
@@ -489,7 +467,7 @@ class SupportRequest {
   final DateTime updatedAt;
   final List<SupportMessage> conversation;
 
-  /// Portal account handling the ticket; null while it sits unassigned.
+  /// Null while unassigned.
   final String? assignee;
 
   SupportPriority get priority => type.priority;
@@ -528,7 +506,7 @@ String formatSupportDateTime(DateTime at) {
   return '${formatSupportDate(local)} · $hour12:$minute $period';
 }
 
-/// Counts the portal's summary strip shows, computed over the loaded list.
+/// The portal's summary strip counts, over the loaded list.
 class SupportRequestSummary {
   const SupportRequestSummary({
     required this.total,
@@ -560,12 +538,8 @@ class SupportRequestSummary {
   final int resolved;
 }
 
-// ---------------------------------------------------------------------------
-// Report a Bug (static options)
-// ---------------------------------------------------------------------------
-
-/// Where in the app the bug showed up. Prefixes the subject so triage can
-/// tell "[Events] app closes" from "[Login] app closes" at a glance.
+/// Prefixes the subject so triage can tell "[Events] app closes" from "[Login]
+/// app closes".
 enum BugArea {
   login,
   registration,
@@ -601,7 +575,6 @@ extension BugAreaMeta on BugArea {
   };
 }
 
-/// How often the bug shows up — helps the team reproduce it.
 enum BugFrequency { everyTime, sometimes, once }
 
 extension BugFrequencyMeta on BugFrequency {
@@ -612,9 +585,8 @@ extension BugFrequencyMeta on BugFrequency {
   };
 }
 
-/// Device details attached to a bug report when the reporter opts in. Read
-/// off `dart:io` so no extra plugin is needed; the model name is not
-/// available without one, so the platform and OS version stand in for it.
+/// Read from `dart:io` (no plugin), so platform + OS version stand in for the
+/// model name.
 class BugDeviceInfo {
   const BugDeviceInfo._();
 
@@ -622,10 +594,6 @@ class BugDeviceInfo {
       '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'.trim();
   static String get summary => os;
 }
-
-// ---------------------------------------------------------------------------
-// Report a Problem (static options)
-// ---------------------------------------------------------------------------
 
 enum ReportReason {
   donationCampaign,
@@ -663,7 +631,6 @@ extension ReportReasonMeta on ReportReason {
   };
 }
 
-/// Static support-desk contact details shown on the Contact Support screen.
 class SupportContactInfo {
   const SupportContactInfo._();
 

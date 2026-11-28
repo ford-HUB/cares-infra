@@ -44,13 +44,10 @@ import { toDonationDto, toDonationPaymentDto } from './donations-mapper';
 import { DonationsWebhookService } from './donations-webhook-service';
 import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
-/** How long a checkout stays open before Xendit expires it on its side. */
+/** Xendit expires it after this. */
 const CHECKOUT_TTL_SECONDS = 30 * 60;
 
-/**
- * Only ask Xendit for the current status of a pending checkout this often per
- * row — status polling from the app must not turn into a gateway hammer.
- */
+/** Per-row throttle on gateway status lookups. */
 const RECONCILE_MIN_AGE_MS = 15_000;
 
 @Injectable()
@@ -66,12 +63,7 @@ export class DonationsMobileService {
     private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
-  /**
-   * Starts a checkout. The row is reserved under the client's idempotency key
-   * *before* the gateway is called, so a retried tap (network blip, double
-   * press) lands on the same row instead of charging twice. If the gateway
-   * refuses, the reservation is released so the same key can be retried.
-   */
+  /** Reserves the row under the idempotency key before calling the gateway; released on refusal. */
   async createPayment(
     userId: string,
     userEmail: string,
@@ -84,8 +76,7 @@ export class DonationsMobileService {
     );
     if (existing) return toDonationPaymentDto(existing);
 
-    // What the director enabled in the portal's Payments module decides this, not the
-    // app: a channel switched off there is refused here even if the app still offers it.
+    // The portal's Payments settings decide, not the app.
     const { credentials, channel, config } =
       await this.paymentSettings.resolveCheckout(body.method, body.amount);
 
@@ -102,7 +93,7 @@ export class DonationsMobileService {
         gateway_reference: this.newGatewayReference(),
       });
     } catch (error) {
-      // Two requests raced on the same key; the first one owns the row.
+      // Raced on the same key; the first owns the row.
       if (isUniqueViolation(error)) {
         const winner = await this.donationsRepository.findByIdempotencyKey(
           userId,
@@ -133,12 +124,7 @@ export class DonationsMobileService {
     }
   }
 
-  /**
-   * Current state of one checkout. While it is still pending and the callback
-   * has not landed (webhooks cannot reach a dev machine without a tunnel), the
-   * gateway is asked directly — but not more than once per
-   * {@link RECONCILE_MIN_AGE_MS} per row.
-   */
+  /** Reconciles with the gateway while pending (webhooks can't reach dev), throttled by {@link RECONCILE_MIN_AGE_MS}. */
   async getPayment(
     userId: string,
     donationPaymentId: string,
@@ -159,9 +145,7 @@ export class DonationsMobileService {
     return { items: rows.map(toDonationPaymentDto) };
   }
 
-  // ------------------------------------------------------------- ledger
-
-  /** Every donation the donor made, latest first — the Activity tab. */
+  /** Latest first. */
   async listDonations(userId: string): Promise<DonationListDto> {
     const rows = await this.donationsRepository.listDonationsByUser(userId);
     return { items: rows.map(toDonationDto) };
@@ -171,11 +155,7 @@ export class DonationsMobileService {
     return toDonationDto(await this.findOwnedDonation(userId, donationId));
   }
 
-  /**
-   * Pledges goods for an event. The credited value (goods-type value × quantity
-   * under the saved ranking values) is snapshotted on the row, so a later change
-   * to the values does not rewrite what a donor was already told.
-   */
+  /** Credited value is snapshotted so later ranking value changes don't rewrite it. */
   async pledgeGoods(
     userId: string,
     body: CreateGoodsDonationDto,
@@ -212,7 +192,7 @@ export class DonationsMobileService {
     return toDonationDto(row);
   }
 
-  /** Edits a goods pledge. Only while still pledged — the drop-off leg locks it. */
+  /** Only while still pledged. */
   async updateGoods(
     userId: string,
     donationId: string,
@@ -227,7 +207,6 @@ export class DonationsMobileService {
     return toDonationDto(updated);
   }
 
-  /** The donor's off-ramp: a pledged goods donation that will not be given after all. */
   async cancelGoods(userId: string, donationId: string): Promise<DonationDto> {
     const row = await this.findOwnedDonation(userId, donationId);
     this.assertEditable(row);
@@ -251,7 +230,6 @@ export class DonationsMobileService {
     return toDonationDto(updated);
   }
 
-  /** The donor's own receipt for a move they made on the Donor side. */
   private async notifyGoods(
     row: { donation_id: string; user_id: string; status: DonationStatus },
     notice: { title: string; description: string },
@@ -303,8 +281,6 @@ export class DonationsMobileService {
     }
     return row;
   }
-
-  // ------------------------------------------------------------ internals
 
   private async findOwned(
     userId: string,
@@ -378,8 +354,7 @@ export class DonationsMobileService {
           amount: row.amount,
           description: `${gateway.statementName?.trim() || 'CARES donation'} — ${row.campaign_title}`,
           payerEmail,
-          // The banks and card networks the director ticked; the catalog defaults
-          // when they ticked none.
+          // Ticked banks and cards; catalog defaults when none.
           paymentMethods: gateway.channel.channelCodes,
           successRedirectUrl: redirect('success'),
           failureRedirectUrl: redirect('failure'),
@@ -396,13 +371,11 @@ export class DonationsMobileService {
     }
   }
 
-  /** Pulls the live status from Xendit and settles the row if it moved. */
   private async reconcile(
     row: DonationPaymentRow,
   ): Promise<DonationPaymentRow | null> {
     const resourceId = row.gateway_resource_id!;
-    // A row opened before the director switched a channel off still has to be
-    // reconciled, so only the credentials are required here — not the channel.
+    // Credentials only: rows opened before a channel was disabled still reconcile.
     const credentials = await this.paymentSettings.credentialsOrNull();
     if (!credentials) return null;
 
@@ -417,8 +390,7 @@ export class DonationsMobileService {
           break;
         }
         case 'QRPH': {
-          // QR codes only expose ACTIVE/INACTIVE; a settled QR is reported by
-          // the qr.payment callback, so the most we can do here is expire it.
+          // QR only exposes ACTIVE/INACTIVE; payment comes via the callback, so only expiry here.
           const qr = await this.xendit.getQrCode(credentials, resourceId);
           if (qr.status === 'INACTIVE') {
             await this.webhookService.settle(row, {
@@ -436,8 +408,7 @@ export class DonationsMobileService {
         }
       }
     } catch (error) {
-      // Polling must keep working when the gateway hiccups; the callback will
-      // still land, and the next poll retries the lookup.
+      // Keep polling through gateway hiccups.
       this.logger.warn(
         `Reconcile skipped for ${row.gateway_reference}: ${
           error instanceof Error ? error.message : String(error)
@@ -448,7 +419,7 @@ export class DonationsMobileService {
     return this.donationsRepository.findById(row.donation_payment_id);
   }
 
-  /** `CARES-DON-` + 12 hex chars: readable on a bank statement, unique enough for a lifetime. */
+  /** `CARES-DON-` + 12 hex chars. */
   private newGatewayReference(): string {
     return `CARES-DON-${randomBytes(6).toString('hex').toUpperCase()}`;
   }

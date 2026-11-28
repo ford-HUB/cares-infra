@@ -6,29 +6,18 @@ import {
 import { timingSafeEqual } from 'crypto';
 
 /**
- * Thin client over the Xendit REST API. Every payment channel the app offers
- * maps to one Xendit product, and each product has its own create call, its own
- * callback shape and its own status vocabulary — this class owns all three so
- * the donations module only speaks in "checkout" and "outcome".
- *
- *   GCash          → eWallet Charges   POST /ewallets/charges      cb: ewallet.capture
- *   QRPh           → QR Codes          POST /qr_codes              cb: qr.payment
- *   Card / Bank    → Invoices          POST /v2/invoices           cb: invoice paid/expired
- *
- * Auth is HTTP basic with the secret key as the username. Sandbox and live keys
- * hit the same host; the key prefix (`xnd_development_` / `xnd_production_`)
- * decides which environment answers.
- *
- * The credentials are passed in per call rather than read from the environment here:
- * they are entered by the director in the portal's Payments module and resolved by
- * `PaymentSettingsService`, so this class stays a transport with no opinion about
- * whose account the money lands in.
+ * Owns each channel's Xendit product, callback shape and statuses:
+ *   GCash       → eWallet Charges  POST /ewallets/charges  cb: ewallet.capture
+ *   QRPh        → QR Codes         POST /qr_codes          cb: qr.payment
+ *   Card / Bank → Invoices         POST /v2/invoices       cb: invoice paid/expired
+ * Key prefix (`xnd_development_` / `xnd_production_`) picks the environment.
+ * Credentials are passed per call (set in the portal via `PaymentSettingsService`).
  */
 @Injectable()
 export class XenditService {
   private readonly logger = new Logger(XenditService.name);
 
-  /** Proves a secret key works before it is saved — the portal's "Test connection". */
+  /** Validates a secret key before saving ("Test connection"). */
   async getCashBalance(credentials: XenditCredentials): Promise<Balance> {
     return this.request<Balance>(
       credentials,
@@ -37,11 +26,7 @@ export class XenditService {
     );
   }
 
-  /**
-   * Whether a callback really came from Xendit: the `x-callback-token` header must
-   * match the token saved with the account. Compared in constant time so a mismatch
-   * cannot be narrowed down by timing.
-   */
+  /** `x-callback-token` must match the saved token; constant-time compare. */
   isCallbackTokenValid(
     token: string | undefined,
     expected: string | null | undefined,
@@ -53,17 +38,7 @@ export class XenditService {
     return a.length === b.length && timingSafeEqual(a, b);
   }
 
-  // ------------------------------------------------------------- payouts
-
-  /**
-   * Sends money *out* to an account — used only for the token payout that proves the
-   * director holds the account they recorded. Needs Payouts/Disbursements enabled on
-   * the Xendit account; where it is not, Xendit refuses with a clear error code and
-   * the caller reports that rather than pretending the account is proven.
-   *
-   * `Idempotency-key` is required by Xendit here: a retried request with the same key
-   * returns the original payout instead of sending a second one.
-   */
+  /** Token payout for the ownership check; needs Payouts enabled. `Idempotency-key` prevents duplicate sends. */
   async createPayout(
     credentials: XenditCredentials,
     input: {
@@ -105,17 +80,7 @@ export class XenditService {
     );
   }
 
-  // -------------------------------------------------------- activation
-
-  /**
-   * Every channel on the account and whether Xendit has activated it. This is what
-   * "is GCash signed up?" actually means on Xendit's side: the channel is enabled by
-   * Xendit for the merchant after their own onboarding, and nothing an API call makes
-   * happen — so the portal checks it rather than claiming to switch it on.
-   *
-   * The shape is parsed defensively: Xendit has more than one generation of this
-   * endpoint, and an unexpected field must read as "unknown", never crash the check.
-   */
+  /** Channels are activated by Xendit, not by API. Parsed defensively across endpoint generations. */
   async listPaymentChannels(
     credentials: XenditCredentials,
   ): Promise<PaymentChannel[]> {
@@ -136,9 +101,7 @@ export class XenditService {
       const code = entry.channel_code ?? entry.channelCode ?? entry.code;
       if (typeof code !== 'string') return [];
 
-      // Some generations report activation as `is_activated`, the legacy
-      // `GET /payment_channels` as `is_enabled`, others as a status string.
-      // Anything we cannot read is treated as inactive, not as a pass.
+      // Field differs by endpoint generation; unreadable means inactive.
       const status = entry.status ?? entry.channel_status;
       const activated =
         entry.is_activated === true ||
@@ -151,11 +114,7 @@ export class XenditService {
     });
   }
 
-  /**
-   * Points one callback type at our webhook. Xendit also lets this be set by hand in
-   * the dashboard, and some accounts only allow that — a refusal here is reported,
-   * never thrown, so a channel is not held back by it.
-   */
+  /** Some accounts only allow dashboard setup, so a refusal is reported, not thrown. */
   async registerCallbackUrl(
     credentials: XenditCredentials,
     type: string,
@@ -169,13 +128,7 @@ export class XenditService {
     );
   }
 
-  // ------------------------------------------------------------- eWallet
-
-  /**
-   * One-time GCash charge. The donor is sent to `mobile_web_checkout_url`, logs
-   * into GCash, approves the amount and is bounced to the redirect URL; the
-   * `ewallet.capture` callback is what actually settles it.
-   */
+  /** Settled by the `ewallet.capture` callback, not the redirect. */
   async createGcashCharge(
     credentials: XenditCredentials,
     input: {
@@ -214,13 +167,7 @@ export class XenditService {
     );
   }
 
-  // ------------------------------------------------------------- QR Ph
-
-  /**
-   * Dynamic QR Ph code for a fixed amount. The app renders `qr_string`; the
-   * donor scans it with any QR Ph participant (GCash, Maya, bank apps) and the
-   * `qr.payment` callback reports the settlement.
-   */
+  /** Settled by the `qr.payment` callback. */
   async createQrphCode(
     credentials: XenditCredentials,
     input: {
@@ -258,14 +205,7 @@ export class XenditService {
     );
   }
 
-  // ------------------------------------------------------------- Invoices
-
-  /**
-   * Hosted checkout page limited to the given channels. Cards are entered on
-   * Xendit's PCI page (with 3DS); PH bank transfers are direct-debit channels
-   * where the donor signs in to their own bank. Xendit's invoice callback
-   * (no `event` field) reports PAID / EXPIRED.
-   */
+  /** Hosted checkout; the invoice callback (no `event` field) reports PAID / EXPIRED. */
   async createInvoice(
     credentials: XenditCredentials,
     input: {
@@ -302,8 +242,6 @@ export class XenditService {
       `/v2/invoices/${encodeURIComponent(invoiceId)}`,
     );
   }
-
-  // ------------------------------------------------------------- transport
 
   private async request<T>(
     credentials: XenditCredentials,
@@ -359,18 +297,17 @@ export class XenditService {
   }
 }
 
-/** Pinned so the QR callback arrives in the `qr.payment` shape we parse. */
+/** Pinned so callbacks arrive in the `qr.payment` shape. */
 const QR_API_VERSION = '2022-07-31';
 
 const DEFAULT_API_URL = 'https://api.xendit.co';
 
-/** The Xendit account a call is made against. `apiUrl` is only set for a mock host. */
+/** `apiUrl` is only set for a mock host. */
 export interface XenditCredentials {
   secretKey: string;
   apiUrl?: string | null;
 }
 
-/** `POST /v2/payouts` — the token payout behind the ownership check. */
 export interface Payout {
   id: string;
   reference_id: string;
@@ -385,18 +322,16 @@ export interface Payout {
   failure_code?: string | null;
 }
 
-/** One channel on the Xendit account, as the activation check reads it. */
 export interface PaymentChannel {
   channelCode: string;
   activated: boolean;
 }
 
-/** `GET /balance` — only the figure, which is all the connection test needs. */
 export interface Balance {
   balance: number;
 }
 
-/** The gateway answered with a 4xx/5xx; `code` is Xendit's `error_code`. */
+/** `code` is Xendit's `error_code`. */
 export class XenditRequestError extends Error {
   constructor(
     readonly status: number,

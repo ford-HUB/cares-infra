@@ -2,14 +2,12 @@ import { useEffect } from 'react'
 
 const VISITOR_SCROLL_EVENTS = ['wheel', 'touchstart', 'keydown'] as const
 
-/** A link opened straight to a section starts scrolling before the web fonts arrive. Their
- *  swap rewraps the text above and shortens the page, so the scroll lands short of the
- *  section's top. This aims again once the fonts are in, unless the visitor has taken over. */
+/** Font swap shortens the page, so re-aim the hash scroll once fonts load. */
 export function useRealignHashAfterFonts() {
   useEffect(() => {
     const sectionId = decodeURIComponent(window.location.hash.slice(1))
     const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
-    // A reload or Back restores the visitor's own position, which must not be overridden.
+    // Don't override a restored position on reload or Back.
     if (!sectionId || entry?.type !== 'navigate' || document.fonts.status === 'loaded') return
 
     let cancelled = false

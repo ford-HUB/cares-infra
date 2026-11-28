@@ -14,7 +14,6 @@ import type {
 interface CertificateTemplateState {
   templates: CertificateTemplate[]
   loading: boolean
-  /** False until the first fetch settles, so the header doesn't flash "0 of 0". */
   initialized: boolean
   error: string | null
   saving: boolean
@@ -52,8 +51,7 @@ export const useCertificateTemplateStore = create<CertificateTemplateState>((set
     set({ saving: true })
     try {
       const saved = await saveCertificateTemplate(id, input)
-      // The saved template replaces its own row rather than the list being refetched:
-      // the customizer stays open on it, and a refetch would flash the gallery.
+      // Replace in place: a refetch would flash the gallery under the open customizer.
       set((state) => ({
         saving: false,
         templates: state.templates.map((one) => (one.id === id ? saved : one)),

@@ -61,30 +61,19 @@ import { isPortalRole } from '../../../shared/constants/portal-role-types';
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
-/**
- * Generated sign-in names are minted under a domain nothing is delivered to — the
- * credential is read out to the requester, not emailed. Overridable so a deployment
- * that owns a real domain can use it.
- */
+/** Undeliverable domain: credentials are read out, not emailed. Overridable. */
 const DEFAULT_PROVISIONED_EMAIL_DOMAIN = 'cares.local';
 
-/** A minted address collides only by chance; a few attempts is more than enough. */
+/** Collisions are chance only. */
 const EMAIL_GENERATION_ATTEMPTS = 5;
 
-/** Where a restricted user is told to appeal; the same inbox that reads access requests. */
+/** Appeal inbox for restricted users. */
 const DEFAULT_SUPPORT_EMAIL = 'careeesadmin@gmail.com';
 
-/**
- * Provisioned accounts are minted under a domain nothing is delivered to (see
- * `DEFAULT_PROVISIONED_EMAIL_DOMAIN`); mailing them would only bounce.
- */
+/** Mailing provisioned addresses would only bounce. */
 const UNDELIVERABLE_EMAIL_DOMAINS = new Set([DEFAULT_PROVISIONED_EMAIL_DOMAIN]);
 
-/**
- * An admin sees every account; a director sees everyone except other admins; a
- * coordinator granted "View accounts" sees the app-side roles and other
- * coordinators — never the people above them.
- */
+/** Admins see all; directors all but admins; coordinators ("View accounts") app roles and coordinators. */
 const VISIBLE_ROLES: Record<string, readonly RoleType[]> = {
   [RoleType.ADMIN]: Object.values(RoleType),
   [RoleType.DIRECTOR]: Object.values(RoleType).filter(
@@ -153,7 +142,7 @@ export class UsersSiteService {
     return toManagedUserDetail(user);
   }
 
-  /** Streams another user's avatar or signature — portal staff only, gated by visibility. */
+  /** Portal staff only, gated by visibility. */
   async getUserAsset(caller: JwtPayload, userId: string, kind: UserAssetKind) {
     await this.requireVisibleUser(caller, userId);
 
@@ -188,9 +177,7 @@ export class UsersSiteService {
     const restrictedAt = new Date();
     await this.usersRepository.setRestriction(userId, true, data.reason);
 
-    // The login check only stops the *next* sign-in. Anything already signed in — on
-    // the portal or the app — holds a token `SessionGuard` will keep honouring until
-    // its record is gone, so every live session is ended here, in the same request.
+    // Login checks only stop the next sign-in; end live sessions now.
     const revoked = await this.sessionRegistry.revokeAllForUser(userId);
 
     const email = target.accounts[0]?.email ?? null;
@@ -206,8 +193,7 @@ export class UsersSiteService {
       action: 'user.restricted',
       description: `Restricted the account of ${displayName(target)}`,
       category: 'USER_MANAGEMENT',
-      // The account can no longer sign in, so this is the heaviest thing the user
-      // management screen can do short of blocking a network.
+      // Can no longer sign in, so WARNING.
       severity: 'WARNING',
       actor: caller,
       targetType: 'user',
@@ -220,9 +206,7 @@ export class UsersSiteService {
       metadata: {
         role: target.role.type,
         sessions_revoked: String(revoked),
-        // Whether the person was actually told — a bounce or an undeliverable
-        // address is what an operator wants to know when the user says "nobody
-        // told me".
+        // Whether the person was actually told.
         notified: String(notified),
       },
     });
@@ -230,11 +214,7 @@ export class UsersSiteService {
     return this.reload(userId);
   }
 
-  /**
-   * Mails the person the reason they were restricted. Best-effort: the restriction
-   * and the sign-out already happened, and a mail failure must not roll them back or
-   * turn the action into an error. Returns whether the notice was delivered to SMTP.
-   */
+  /** Best-effort; returns whether SMTP accepted it. */
   private async sendRestrictionNotice(
     target: ManagedUserRow,
     email: string | null,
@@ -298,8 +278,7 @@ export class UsersSiteService {
       targetId: target.user_id,
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
-      // The reason the account was restricted for is worth carrying over — it is
-      // cleared by the write, so the trail is the only place it survives.
+      // The write clears it, so the trail keeps it.
       reason: target.accounts[0]?.restriction_reason ?? null,
       changes: [{ field: 'is_restricted', before: 'true', after: 'false' }],
       metadata: { role: target.role.type },
@@ -344,14 +323,12 @@ export class UsersSiteService {
       reason: data.reason ?? null,
       changes: [{ field: 'blocked_ip', before: null, after: ipAddress }],
       metadata: {
-        // Whether the operator typed the address or took the account's last known
-        // one changes how the entry reads on review.
+        // Typed vs last-known IP reads differently on review.
         source: data.ip_address ? 'explicit' : 'last-sign-in',
       },
     });
 
-    // Every admin hears about a block, not just the one who placed it — a second
-    // pair of eyes on the address is the point of surfacing it.
+    // All admins are notified for a second look.
     await this.notificationScheduler.publish({
       title: `${ipAddress} blocked for ${displayName(target)}`,
       description: `${data.reason?.trim() || 'No reason given.'} Sign-ins from this address are refused until it is unblocked.`,
@@ -371,8 +348,7 @@ export class UsersSiteService {
     context: RequestContextDto = {},
   ): Promise<ManagedUserDto> {
     const target = await this.requireVisibleUser(caller, userId);
-    // Read before writing: an unblock-all clears rows the trail would otherwise
-    // have no way to name.
+    // Read first so the trail can name unblock-all rows.
     const cleared = ipAddress
       ? [ipAddress]
       : target.blocked_ips.map((blocked) => blocked.ip_address);
@@ -402,11 +378,7 @@ export class UsersSiteService {
     return this.reload(userId);
   }
 
-  /**
-   * Permanently removes an account. Live sessions are ended first so a token that is
-   * still in flight cannot outlive the row it points at; the trail entry is written
-   * after the delete and keeps the denormalised name, since the user row is gone.
-   */
+  /** Sessions end first; the trail entry, written after, keeps the denormalised name. */
   async deleteUser(
     caller: JwtPayload,
     userId: string,
@@ -425,7 +397,7 @@ export class UsersSiteService {
       action: 'user.deleted',
       description: `Deleted the account of ${displayName(target)}`,
       category: 'USER_MANAGEMENT',
-      // Irreversible — nothing this screen does is heavier.
+      // Irreversible.
       severity: 'CRITICAL',
       actor: caller,
       targetType: 'user',
@@ -447,12 +419,7 @@ export class UsersSiteService {
     });
   }
 
-  /**
-   * Creates a portal account for someone whose access request was approved, and hands
-   * back the one credential they sign in with. The password is generated in both modes
-   * and returned in plaintext exactly once — it is bcrypt-hashed before it is stored,
-   * so nothing can read it back afterwards.
-   */
+  /** The generated password is returned in plaintext once, then only stored hashed. */
   async provisionUser(
     caller: JwtPayload,
     data: ProvisionUserDto,
@@ -473,8 +440,7 @@ export class UsersSiteService {
       );
     }
 
-    // The form no longer asks for a name — the inbox the credential goes to is the
-    // best stand-in until the person completes their own profile.
+    // Name comes from the inbox until the person edits their profile.
     const { firstname, lastname } = nameFromEmail(recipientEmail);
     const email =
       data.mode === 'manual'
@@ -486,8 +452,7 @@ export class UsersSiteService {
     const role = await this.usersRepository.findOrCreateRole(data.role_type);
     const department = data.department?.trim() || null;
     const partnerBarangay = data.partner_barangay ?? null;
-    // Where the account belongs — a UCLM department, or the partner barangay a
-    // community volunteer comes from. Used wherever the mail and notice name it.
+    // UCLM department or partner barangay.
     const affiliation = department ?? partnerBarangay;
 
     const created = await this.usersRepository.createProvisionedUser({
@@ -496,7 +461,7 @@ export class UsersSiteService {
       roleId: role.role_id,
       department,
       partnerBarangay,
-      // `User.phone_number` is unique and required; nobody's real number is known here.
+      // `User.phone_number` is unique and required.
       phoneNumber: generatePlaceholderPhone(),
       email,
       passwordHash,
@@ -504,8 +469,7 @@ export class UsersSiteService {
       provisionedByUserId: caller.sub,
     });
 
-    // Portal roles sign in to the portal; volunteers, donors and beneficiaries are
-    // "Regular User" accounts that only the mobile app lets in.
+    // App roles ("Regular User") sign in only via the mobile app.
     const portalAccount = isPortalRole(data.role_type);
     const roleLabel = provisionedRoleLabel(data.role_type, data.volunteer_type);
 
@@ -531,9 +495,7 @@ export class UsersSiteService {
       action: 'user.provisioned',
       description: `Created a ${roleLabel} account for ${recipientEmail}`,
       category: 'USER_MANAGEMENT',
-      // A new account with portal rights is the heaviest thing this screen creates —
-      // it is reviewed on the same footing as handing out a restriction. An app
-      // account carries no portal rights, so it is logged a step lower.
+      // Portal-rights accounts are WARNING; app accounts NOTICE.
       severity: portalAccount ? 'WARNING' : 'NOTICE',
       actor: caller,
       targetType: 'user',
@@ -551,8 +513,7 @@ export class UsersSiteService {
         },
       ],
       metadata: {
-        // Whether the address was typed from the request or minted by the server
-        // changes what the entry means on review.
+        // Typed vs minted email reads differently on review.
         email_source: data.mode,
         account_kind: portalAccount ? 'portal' : 'app',
         volunteer_type: data.volunteer_type ?? 'none',
@@ -584,11 +545,7 @@ export class UsersSiteService {
     };
   }
 
-  /**
-   * The pre-check behind the add-user form's recipient field, and the gate `provisionUser`
-   * re-runs before it writes anything. Shape first, then a domain that can actually
-   * receive mail (an MX or A record), then no account already on the address.
-   */
+  /** Also re-run by `provisionUser`: shape, a mail-capable domain (MX or A), then no existing account. */
   async checkRecipientEmail(
     candidate: string,
   ): Promise<ProvisionEmailCheckDto> {
@@ -619,18 +576,14 @@ export class UsersSiteService {
     return { email, valid: true, reason: null };
   }
 
-  /**
-   * Mails the issued credential to the inbox the administrator named. Best-effort:
-   * the account exists by now, and the dialog shows the same credential, so a mail
-   * failure is reported back rather than turning the creation into an error.
-   */
+  /** Best-effort: the dialog shows the same credential. */
   private async sendCredentialsMail(input: {
     recipientEmail: string;
     signInEmail: string;
     password: string;
     /** e.g. `coordinator`, `student volunteer`, `donor`. */
     roleLabel: string;
-    /** False for Regular User accounts, which sign in through the mobile app only. */
+    /** False for mobile-only Regular User accounts. */
     portalAccount: boolean;
     department: string | null;
     expiresAt: Date;
@@ -676,11 +629,7 @@ export class UsersSiteService {
     }
   }
 
-  /**
-   * Replaces the credential on an account whose temporary one lapsed — or was never
-   * collected. The email is left alone: it is the sign-in name the requester was
-   * already given.
-   */
+  /** The email (sign-in name) is unchanged. */
   async reissueCredentials(
     caller: JwtPayload,
     userId: string,
@@ -738,7 +687,7 @@ export class UsersSiteService {
         password,
         expires_at: expiresAt.toISOString(),
       },
-      // A re-issue is read out by the administrator; nothing is mailed.
+      // Read out by the admin; nothing mailed.
       delivery: null,
     };
   }
@@ -778,7 +727,7 @@ export class UsersSiteService {
     );
   }
 
-  /** Generated against the live policy, then re-checked through the same gate a typed password passes. */
+  /** Generated against the live policy, then re-checked like a typed password. */
   private async issuePassword(): Promise<{
     password: string;
     passwordHash: string;
@@ -791,11 +740,7 @@ export class UsersSiteService {
     return { password, passwordHash: await bcrypt.hash(password, 10) };
   }
 
-  /**
-   * Stores the departures from the role baseline, exactly as the access-control screen
-   * does — an omitted selection leaves the account on its role's rights, so a later
-   * baseline change still reaches it.
-   */
+  /** Stores departures only, so later baseline changes still apply. */
   private async applyScope(
     caller: JwtPayload,
     userId: string,
@@ -886,11 +831,7 @@ function isDeliverableEmail(email: string): boolean {
   return Boolean(domain) && !UNDELIVERABLE_EMAIL_DOMAINS.has(domain);
 }
 
-/**
- * Whether anything answers for the domain — an MX record, or failing that an A/AAAA
- * record, which SMTP falls back to. A lookup error (no such domain, DNS unreachable)
- * counts as "no": the point is to catch a typo before a credential is mailed into it.
- */
+/** MX, else A/AAAA (SMTP fallback). Lookup errors count as no. */
 async function domainAcceptsMail(domain: string): Promise<boolean> {
   try {
     const mx = await dns.resolveMx(domain);
@@ -907,11 +848,7 @@ async function domainAcceptsMail(domain: string): Promise<boolean> {
   }
 }
 
-/**
- * A placeholder name from the recipient address, e.g. `jay.delacruz@…` → Jay Delacruz.
- * `User.firstname`/`lastname` are required columns, and the form deliberately stops
- * asking for them — the person corrects this the first time they open their profile.
- */
+/** Placeholder, e.g. `jay.delacruz@…` → Jay Delacruz; the columns are required. */
 function nameFromEmail(email: string): { firstname: string; lastname: string } {
   const capitalise = (part: string) =>
     part ? part[0].toUpperCase() + part.slice(1) : part;
@@ -927,7 +864,7 @@ function nameFromEmail(email: string): { firstname: string; lastname: string } {
   };
 }
 
-/** e.g. "10 September 2026, 14:05 (Asia/Manila)" — a person reads this, not a parser. */
+/** e.g. "10 September 2026, 14:05 (Asia/Manila)". */
 function formatNoticeDate(date: Date): string {
   const timeZone = process.env.TZ || 'Asia/Manila';
   const formatted = new Intl.DateTimeFormat('en-GB', {
@@ -942,7 +879,7 @@ function formatNoticeDate(date: Date): string {
   return `${formatted} (${timeZone})`;
 }
 
-/** The name the trail shows for the account acted on, denormalised at write time. */
+/** Denormalised at write time. */
 function displayName(row: ManagedUserRow): string {
   const name = `${row.firstname} ${row.lastname}`.trim();
   return name || (row.accounts[0]?.email ?? row.user_id);
@@ -985,12 +922,7 @@ function toManagedUserDetail(row: UserDetailRow): ManagedUserDetailDto {
   };
 }
 
-/**
- * The split address columns are only written by the portal profile form.
- * Mobile users register (and edit) a single `current_address` that the app
- * always formats as `Street, Barangay, City/Municipality, Province`, so when
- * the columns are empty the parts are read back out of that string instead.
- */
+/** Split columns are portal-only; otherwise parsed from `current_address` (`Street, Barangay, City/Municipality, Province`). */
 function toAddressParts(row: UserDetailRow) {
   const stored = {
     street: row.address_street,
@@ -1004,8 +936,7 @@ function toAddressParts(row: UserDetailRow) {
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean);
-  // Anything shorter isn't the app's canonical shape (e.g. a free-text
-  // address read off a residency document) — guessing would mislabel it.
+  // Not the canonical shape (e.g. OCR'd address); don't guess.
   if (parts.length < 4) return stored;
 
   const [barangay, city, province] = parts.slice(-3);
@@ -1021,19 +952,19 @@ function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
 
-/** `UserInterest.selected` is free-form JSON — accept an array of codes, ignore anything else. */
+/** Free-form JSON: accepts an array of codes only. */
 function toInterestLabels(selected: unknown): string[] {
   if (!Array.isArray(selected)) return [];
   return selected.filter((value): value is string => typeof value === 'string');
 }
 
-/** How a provisioned account is named in its mail, audit entry and notice. */
+/** Used in mail, audit entry and notice. */
 function provisionedRoleLabel(
   roleType: RoleType,
   volunteerType?: ProvisionUserDto['volunteer_type'],
 ): string {
   const role = roleType.toLowerCase();
-  // `PARTNER_BARANGAY` reads as "partner barangay volunteer", not "partner_barangay".
+  // e.g. "partner barangay volunteer".
   return volunteerType
     ? `${volunteerType.toLowerCase().replace(/_/g, ' ')} ${role}`
     : role;
@@ -1048,8 +979,7 @@ function toManagedUser(row: ManagedUserRow): ManagedUserDto {
     row.user_verifications[0]?.status === VerificationStatus.N;
   const account = row.accounts[0];
   const credentialExpiresAt = account?.credential_expires_at ?? null;
-  // A lapsed credential is reported ahead of a pending verification: it is the reason
-  // the account cannot sign in, and the one an administrator can act on from here.
+  // A lapsed credential outranks pending verification: it blocks sign-in and is actionable here.
   const credentialExpired =
     credentialExpiresAt !== null && credentialExpiresAt.getTime() <= Date.now();
 
@@ -1059,9 +989,7 @@ function toManagedUser(row: ManagedUserRow): ManagedUserDto {
     lastname: row.lastname,
     email: account?.email ?? '',
     role_type: row.role.type,
-    // Staff are provisioned into a portal department; volunteers and
-    // beneficiaries registered with a college on their school record; partner
-    // barangay volunteers belong to their barangay instead.
+    // Staff: portal department; volunteers/beneficiaries: school record; partner-barangay: barangay.
     department:
       row.portal_department?.trim() ||
       row.user_school_info[0]?.department.name ||

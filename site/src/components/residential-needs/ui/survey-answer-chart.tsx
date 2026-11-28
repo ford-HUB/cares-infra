@@ -21,9 +21,9 @@ export interface SurveyAnswerRow {
 interface SurveyAnswerChartProps {
   title: string
   description: string
-  /** One row per answer choice, in survey order; the chart sorts them by count. */
+  /** Survey order; the chart sorts by count. */
   rows: SurveyAnswerRow[]
-  /** Households the counts are out of — the share shown beside the leader. */
+  /** The denominator for the shares. */
   total: number
 }
 
@@ -31,10 +31,7 @@ const config: ChartConfig = {
   count: { label: 'Households', color: NEEDS_SERIES_COLOR },
 }
 
-/**
- * How many households picked each answer to one survey question — the shape used
- * for the needs (Q1), difficulties (Q3) and community problems (Q4) charts.
- */
+/** Shared by the Q1, Q3 and Q4 charts. */
 export function SurveyAnswerChart({ title, description, rows, total }: SurveyAnswerChartProps) {
   const sorted = [...rows].sort((a, b) => b.count - a.count)
   const leader = sorted[0]

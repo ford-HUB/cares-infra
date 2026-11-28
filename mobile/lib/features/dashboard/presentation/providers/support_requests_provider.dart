@@ -6,9 +6,7 @@ final supportTicketServiceProvider = Provider<SupportTicketService>(
   (ref) => SupportTicketService(),
 );
 
-/// The caller's own tickets, newest activity first. Kept alive across the
-/// help screens so the Help home, the list, and a detail page all read one
-/// copy; every mutation swaps the changed row in place rather than refetching.
+/// Kept alive so the help screens share one copy; mutations swap rows in place.
 final supportRequestsProvider =
     AsyncNotifierProvider<SupportRequestsNotifier, List<SupportRequest>>(
       SupportRequestsNotifier.new,
@@ -54,8 +52,8 @@ class SupportRequestsNotifier extends AsyncNotifier<List<SupportRequest>> {
     return _upsert(await _service.reopen(id, body));
   }
 
-  /// New rows go to the top; changed rows keep their slot until the next
-  /// refresh re-sorts by activity, so the list does not jump under a tap.
+  /// Changed rows keep their slot until the next refresh, so the list doesn't
+  /// jump under a tap.
   SupportRequest _upsert(SupportRequest updated) {
     final current = state.value ?? const <SupportRequest>[];
     final index = current.indexWhere((r) => r.id == updated.id);

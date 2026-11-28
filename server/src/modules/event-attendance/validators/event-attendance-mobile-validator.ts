@@ -1,14 +1,8 @@
 import { z } from 'zod';
 
-/**
- * The device's best-guess event for a reading. It sends its local id as a string and
- * `unassigned` when it could not name one; anything that is not a positive integer is
- * stored as a null hint rather than rejected, because the validation service re-assigns
- * rows from coordinates anyway.
- */
+/** Non-positive-integer ids (e.g. `unassigned`) stored as null, not rejected: the service re-assigns by coordinates. */
 export const PingEventIdSchema = z.string().trim().min(1);
 
-/** One live reading, sent every second while the volunteer is online. */
 export const LiveCoordinateSchema = z
   .object({
     eventId: PingEventIdSchema,
@@ -24,10 +18,7 @@ export const LiveCoordinateResponseSchema = z.object({
   accepted: z.number().int(),
 });
 
-/**
- * Multipart fields that ride alongside the CSV. They arrive as strings, so they are
- * coerced here; the CSV itself is parsed in the service.
- */
+/** Multipart strings, coerced here; the CSV is parsed in the service. */
 export const SyncCoordinatesFieldsSchema = z
   .object({
     eventId: PingEventIdSchema,
@@ -39,9 +30,8 @@ export const SyncCoordinatesFieldsSchema = z
 
 export const SyncCoordinatesResponseSchema = z.object({
   accepted: z.number().int(),
-  /** Lines the server could not read; the device keeps nothing for these. */
+  /** Unreadable lines; the device keeps nothing for these. */
   skipped: z.number().int(),
 });
 
-/** Columns of the CSV the device uploads, in order. */
 export const SYNC_CSV_HEADER = 'time,latitude,longitude,accuracy_m,in_area';

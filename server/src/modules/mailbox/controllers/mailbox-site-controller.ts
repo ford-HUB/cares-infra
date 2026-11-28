@@ -54,18 +54,12 @@ const MessageIdParamSchema = z
   .min(1, 'A message id is required')
   .max(200);
 
-/**
- * Passport hangs the consent result on `req.user` for the callback leg only — it is a
- * Google grant, never a CARES identity, so it deliberately shadows Express' `user`.
- */
+/** A Google grant on the callback leg, not a CARES identity; shadows Express' `user`. */
 type GmailCallbackRequest = Omit<Request, 'user'> & {
   user?: GmailOAuthResult | null;
 };
 
-/**
- * Needs the "Use mail inbox" right. Each portal account links its own Google
- * account — nothing here is shared between portal users.
- */
+/** Needs "Use mail inbox"; each account links its own Google account. */
 @Controller('v1/mailbox')
 export class MailboxSiteController {
   constructor(private readonly mailboxSiteService: MailboxSiteService) {}
@@ -104,15 +98,12 @@ export class MailboxSiteController {
     return this.mailboxSiteService.disconnect(user.sub);
   }
 
-  /**
-   * Entered by a browser redirect, so it carries no bearer token — the caller is proven
-   * by the single-use `state` nonce minted by `POST connection`.
-   */
+  /** Browser redirect without a bearer token; authenticated by the single-use `state` nonce. */
   @Get('google')
   @Public()
   @UseGuards(GmailOAuthGuard)
   startGoogleConsent(): void {
-    // Passport redirects to Google before this ever runs.
+    // Passport redirects to Google first.
   }
 
   @Get('google/callback')

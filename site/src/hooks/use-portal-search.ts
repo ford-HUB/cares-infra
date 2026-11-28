@@ -21,12 +21,6 @@ export interface PortalSearchGroup {
   entries: PortalSearchEntry[]
 }
 
-/**
- * The header search. Finds people and records inside modules (see
- * use-portal-records), every module and page, settings sections and a couple of
- * actions — all limited to what this account may open. Opening a record carries
- * the typed text along, so the module filters to it and highlights it.
- */
 export function usePortalSearch(nav: PortalNavConfig, onSignOut: () => void) {
   const role = useAuthStore((s) => s.user?.role)
   const permissionList = useAuthStore((s) => s.user?.permissions)
@@ -74,9 +68,7 @@ export function usePortalSearch(nav: PortalNavConfig, onSignOut: () => void) {
     [theme],
   )
 
-  // Groups are ordered by their best match (ties fall back to the fixed order), so
-  // "bea" leads with the person and "event" with the module — and Enter opens it.
-  // `flat` is that same order, so arrow keys walk the list exactly as it is drawn.
+  // `flat` follows the drawn order so arrow keys match.
   const { groups, flat } = useMemo(() => {
     const ranked = rankPortalEntries([...records, ...pages, ...actions], query)
     const grouped = PORTAL_SEARCH_GROUP_ORDER.map((kind, order) => {
@@ -105,7 +97,7 @@ export function usePortalSearch(nav: PortalNavConfig, onSignOut: () => void) {
       setQuery('')
       inputRef.current?.blur()
       if (entry.to && entry.find && term) {
-        // Highlight what was typed ("bea"), not the record's full name.
+        // Highlight the typed term, not the full name.
         navigate(entry.to, { state: portalFindState({ term, nonce: Date.now() }) })
       } else if (entry.to) navigate(entry.to)
       else if (entry.action === 'toggle-theme') switchTheme(theme === 'dark' ? 'light' : 'dark')
@@ -141,7 +133,6 @@ export function usePortalSearch(nav: PortalNavConfig, onSignOut: () => void) {
     }
   }
 
-  // Ctrl+K / ⌘K from anywhere in the portal.
   useEffect(() => {
     const onShortcut = (e: globalThis.KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === PORTAL_SEARCH_SHORTCUT_KEY) {
@@ -155,7 +146,6 @@ export function usePortalSearch(nav: PortalNavConfig, onSignOut: () => void) {
     return () => document.removeEventListener('keydown', onShortcut)
   }, [])
 
-  // A click anywhere outside the field and its results closes the list.
   useEffect(() => {
     if (!open) return
     const onClick = (e: MouseEvent) => {

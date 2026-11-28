@@ -15,16 +15,9 @@ import { IS_PUBLIC_KEY } from '../decorators/public-decorator';
 import { AuthenticatedRequest } from '../types/authenticated-request';
 
 /**
- * Turns the stateless token into a revocable one: the JWT is only accepted while its
- * session record still exists, so revoking a device — or signing out — ends access on
- * the very next request instead of at token expiry.
- *
- * Runs after `JwtAuthGuard`, which is what puts `request.user` in place.
- *
- * It is also where the security policy's session limits land: a session that has sat
- * idle too long, or has simply been open too long, is revoked here on its next use.
- * Both are checked against the record rather than the token, because the policy can
- * change after a token was minted.
+ * Accepts a JWT only while its session record exists, so revocation is immediate.
+ * Runs after `JwtAuthGuard`. Enforces the policy's idle/lifetime limits against the record,
+ * since the policy can change after minting.
  */
 @Injectable()
 export class SessionGuard implements CanActivate {
@@ -51,8 +44,7 @@ export class SessionGuard implements CanActivate {
       throw new UnauthorizedException('Authentication required');
     }
 
-    // Tokens minted before sessions existed carry no `sid`. They cannot be revoked,
-    // so they are refused and the holder signs in again once.
+    // Pre-session tokens have no `sid` and can't be revoked, so they're refused.
     if (!user.sid) {
       throw new UnauthorizedException('Session ended — please sign in again');
     }
@@ -69,12 +61,7 @@ export class SessionGuard implements CanActivate {
     return true;
   }
 
-  /**
-   * A director or coordinator signed in to the app keeps that session only while they
-   * hold "Use the mobile app" — an admin revoking it in Access Control signs them out
-   * of the app on its next request rather than when the token expires. Their portal
-   * sessions are untouched.
-   */
+  /** Staff app sessions need "Use the mobile app"; revoking it ends them on the next request. */
   private async assertMobileAccessHeld(session: SessionRecord): Promise<void> {
     if (
       session.source !== 'MOBILE' ||
@@ -94,11 +81,7 @@ export class SessionGuard implements CanActivate {
     }
   }
 
-  /**
-   * Ends the session — not just this request — when it falls outside the policy's
-   * idle or lifetime limits, so the holder has to sign in again rather than being
-   * refused one call at a time. Either limit set to 0 leaves it to the token's expiry.
-   */
+  /** Revokes the session, not just the request. 0 defers to token expiry. */
   private async assertWithinPolicyLimits(
     session: SessionRecord,
   ): Promise<void> {

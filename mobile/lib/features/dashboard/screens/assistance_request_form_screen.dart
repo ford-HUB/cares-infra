@@ -13,20 +13,15 @@ import '../data/assistance_request_data.dart';
 import '../presentation/utils/profile_gate.dart';
 import '../widgets/assistance_location_widgets.dart';
 
-/// "Request Assistance" form. Submitting files the request, with its proof
-/// documents and the pinned location, to `v1/assistance-requests/me`.
-/// Household size is not asked here — it comes from the beneficiary's
-/// profile, which must be complete before the form opens.
-///
-/// Given an [initial] request, the same form edits it instead; attachments
-/// stay as filed.
+/// Files to `v1/assistance-requests/me` with proof documents and the pinned
+/// location. Household size comes from the profile, which must be complete
+/// first. With [initial] it edits instead; attachments stay as filed.
 class AssistanceRequestFormScreen extends StatefulWidget {
   const AssistanceRequestFormScreen({super.key, this.initial});
 
   final AssistanceRequest? initial;
 
-  /// Returns the created request when one was filed. Locked until the
-  /// beneficiary profile is complete.
+  /// Locked until the beneficiary profile is complete.
   static Future<AssistanceRequest?> open(BuildContext context) async {
     final allowed = await ProfileGate.ensureComplete(
       context,
@@ -40,7 +35,6 @@ class AssistanceRequestFormScreen extends StatefulWidget {
     );
   }
 
-  /// Returns the updated request when an edit was saved.
   static Future<AssistanceRequest?> openEdit(
     BuildContext context,
     AssistanceRequest request,
@@ -536,7 +530,6 @@ class _AssistanceRequestFormScreenState
   }
 }
 
-/// Dashed-border action used to add a proof document.
 class _AttachmentButton extends StatelessWidget {
   const _AttachmentButton({
     required this.icon,
@@ -583,7 +576,6 @@ class _AttachmentButton extends StatelessWidget {
   }
 }
 
-/// One attached proof document with a thumbnail (for images) or file icon.
 class _AttachmentTile extends StatelessWidget {
   const _AttachmentTile({required this.attachment, required this.onRemove});
 
@@ -697,7 +689,6 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-/// Confirmation shown after a request is filed.
 Future<void> showRequestSubmittedDialog(
   BuildContext context,
   AssistanceRequest request,

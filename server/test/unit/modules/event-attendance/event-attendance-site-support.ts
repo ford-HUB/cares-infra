@@ -21,17 +21,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Event Attendees Module', unit: 'Manual Attendance', prefix: 'ATTEND' });
 
-/**
- * Shared by every spec in this folder — Mark Present on the Event Attendees screen of the
- * portal's Manage Event module:
- *   POST /api/v1/event-attendees/manual-attendance  (markPresent: ManualAttendanceSchema)
- *
- * `@Roles` and `@RequirePermission` are not exercised: the global guards are out of
- * scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const MANUAL_ATTENDANCE_PATH = '/api/v1/event-attendees/manual-attendance';
 export const CALLER = { sub: 'caller-user-id', role_type: RoleType.DIRECTOR };
 
@@ -69,11 +58,7 @@ export const ATTENDEE_RESPONSE = {
 
 export const MARK_RESPONSE = { marked: [ATTENDEE_RESPONSE], already_completed: 0 };
 
-/**
- * Boots `EventAttendanceSiteController` with a mocked service for the enclosing
- * `describe`. The handler reads the caller, so a stand-in for the global JWT guard puts
- * `CALLER` on the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the handler reads it); `app` is assigned in `beforeAll`. */
 export const useEventAttendanceApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -105,10 +90,7 @@ export const useEventAttendanceApp = () => {
   return ctx;
 };
 
-/**
- * Body fixtures through both layers. A FAIL must come back in the validation envelope
- * without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeMarkTable = (ctx: ReturnType<typeof useEventAttendanceApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

@@ -1,11 +1,6 @@
 import { PDF_LOGO_RASTER_PX, PDF_LOGO_SRC } from '../../constants/pdf-export'
 
-/**
- * The CARES seal, pre-rasterised for the PDF title band. The source PNG is ~1 MB at
- * 1000px; drawing it once onto a small canvas keeps every export light. Loading
- * starts when this module is imported, so it is ready long before anyone clicks
- * export — if it isn't (offline, slow first load), the band simply prints without it.
- */
+/** Pre-rasterised small (source is ~1 MB); loads on import, and the band prints without it if not ready. */
 let logoDataUrl: string | null = null
 
 if (typeof Image !== 'undefined') {
@@ -23,7 +18,7 @@ if (typeof Image !== 'undefined') {
   image.src = PDF_LOGO_SRC
 }
 
-/** The seal as a PNG data URL, or `null` while it is still loading or failed to. */
+/** `null` while loading or after failure. */
 export function getPdfLogo() {
   return logoDataUrl
 }

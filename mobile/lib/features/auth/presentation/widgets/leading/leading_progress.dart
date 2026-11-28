@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Story-style segmented progress: one track per slide, filled up to and
-/// including the current one. The newly reached segment fills left to right;
-/// stepping back drains it the same way.
 class LeadingProgress extends StatelessWidget {
   const LeadingProgress({super.key, required this.count, required this.index});
 

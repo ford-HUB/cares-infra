@@ -12,9 +12,7 @@ import 'package:mobile/features/dashboard/presentation/screens/profile_tab_scree
 import 'package:mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:mobile/shared/widgets/dashboard_refresh_shell.dart';
 
-/// Donor dashboard — mirrors the volunteer [HomeScreen] layout with campaigns
-/// in place of events. Every tab reads the server: the campaign feed, the
-/// donor's ledger and the donor board.
+/// Mirrors the volunteer [HomeScreen] with campaigns instead of events.
 class DonorDashboardScreen extends ConsumerStatefulWidget {
   const DonorDashboardScreen({super.key, required this.donor});
 
@@ -32,8 +30,7 @@ class _DonorDashboardScreenState extends ConsumerState<DonorDashboardScreen> {
   // Bumped on pull-to-refresh; keying the tab stack on it remounts every tab.
   int _refreshVersion = 0;
 
-  /// Pull-to-refresh: drop every cached fetch, then remount all tabs so each
-  /// one reloads from scratch, not just the page that was pulled.
+  /// Drop every cached fetch, then remount all tabs, not just the pulled one.
   Future<void> _refreshAll() async {
     ref.invalidate(donationCampaignsProvider);
     ref.invalidate(myDonationsProvider);

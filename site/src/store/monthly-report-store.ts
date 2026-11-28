@@ -16,14 +16,11 @@ import type { MonthlyReport, ReportFolder } from '../types/monthly-report'
 
 interface MonthlyReportState {
   reports: MonthlyReport[]
-  /** Director-made folders; department folders are derived in the view. */
   folders: ReportFolder[]
   loading: boolean
-  /** False until the first fetch settles, so the pipeline doesn't flash zeroes. */
   initialized: boolean
   error: string | null
   fetchReports: () => Promise<void>
-  /** Coordinator submission; the new report joins the board at the top. */
   submit: (submission: MonthlyReportSubmission) => Promise<MonthlyReport>
   decide: (id: string, decision: MonthlyReportDecision) => Promise<void>
   createFolder: (name: string) => Promise<void>
@@ -32,16 +29,11 @@ interface MonthlyReportState {
   moveToFolder: (reportId: string, folderId: string | null) => Promise<void>
 }
 
-/** Replaces one report in place, so the queue and the library both see the decision. */
 function replaceReport(reports: MonthlyReport[], updated: MonthlyReport) {
   return reports.map((report) => (report.id === updated.id ? updated : report))
 }
 
-/**
- * A report belongs to at most one folder, so filing it into one takes it out of every
- * other. Applied locally off the server's answer rather than refetching the folder
- * list — the move is already decided by the time it comes back.
- */
+/** At most one folder per report; applied locally from the server's answer. */
 function refileReport(
   folders: ReportFolder[],
   reportId: string,

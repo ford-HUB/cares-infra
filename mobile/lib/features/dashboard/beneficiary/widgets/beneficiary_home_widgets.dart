@@ -11,14 +11,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/home_event_image.
 import 'package:mobile/shared/widgets/ground_card.dart';
 import 'package:mobile/features/dashboard/screens/dashboard_notifications_screen.dart';
 
-/// Building blocks of the beneficiary home — the "assistance hub" layout:
-/// a greeting and request-status panel on the deep band, one floating
-/// assistance card over the band's edge, then a sideways strip of events.
-/// Same deep-green family as the volunteer and donor homes, but organised
-/// around requests instead of an event deck.
-
-/// Greeting row + request-status panel, painted on the deep ground the tab
-/// lays behind it. Reads the status-bar inset itself.
+/// Reads the status-bar inset itself.
 class BeneficiaryHomeHero extends StatelessWidget {
   const BeneficiaryHomeHero({
     super.key,
@@ -28,7 +21,7 @@ class BeneficiaryHomeHero extends StatelessWidget {
 
   final String firstName;
 
-  /// Null while loading or after a failed fetch — the panel shows dashes.
+  /// Null while loading or after a failed fetch; the panel shows dashes.
   final BeneficiaryRequestCounts? counts;
 
   static const double gutter = 20;
@@ -98,9 +91,6 @@ class BeneficiaryHomeHero extends StatelessWidget {
   }
 }
 
-/// Glassy panel on the deep band: "Your requests" with the active count,
-/// then Pending │ Approved │ Completed as big white numbers. Replaces the
-/// three white stat cards so the numbers read as part of the header.
 class RequestStatusPanel extends StatelessWidget {
   const RequestStatusPanel({super.key, required this.counts});
 
@@ -297,7 +287,7 @@ class _HeroAvatar extends StatelessWidget {
   }
 }
 
-/// Bell in a glassy circle; the dot follows the feed's unread count.
+/// The dot follows the feed's unread count.
 class _HeroBell extends StatelessWidget {
   const _HeroBell();
 
@@ -344,9 +334,8 @@ class _HeroBell extends StatelessWidget {
   }
 }
 
-/// Sideways strip of compact event cards — photo, category pill, title,
-/// date and place. Bleeds to the screen edge; [gutter] lines the first card
-/// up with the page margin.
+/// Bleeds to the screen edge; [gutter] aligns the first card with the page
+/// margin.
 class BeneficiaryEventStrip extends StatelessWidget {
   const BeneficiaryEventStrip({
     super.key,
@@ -381,7 +370,6 @@ class BeneficiaryEventStrip extends StatelessWidget {
   }
 }
 
-/// Card outlines while the beneficiary events load.
 class BeneficiaryEventStripSkeleton extends StatelessWidget {
   const BeneficiaryEventStripSkeleton({super.key, this.gutter = 20});
 

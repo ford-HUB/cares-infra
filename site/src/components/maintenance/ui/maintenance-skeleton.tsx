@@ -2,12 +2,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface MaintenanceSkeletonProps {
-  /** Roughly what the loaded board shows, so the swap causes no jump. */
   windowRows: number
   announcementRows: number
 }
 
-/** Mirrors the status banner, the window board, and the announcement board. */
 export function MaintenanceSkeleton({
   windowRows,
   announcementRows,

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/session/static_user_session.dart';
 import '../domain/beneficiary_personal_profile.dart';
 
-/// In-memory personal profile for the static prototype phase.
+/// In-memory prototype store.
 class BeneficiaryPersonalProfileStore extends ChangeNotifier {
   BeneficiaryPersonalProfileStore._();
 
@@ -12,7 +12,7 @@ class BeneficiaryPersonalProfileStore extends ChangeNotifier {
 
   BeneficiaryPersonalProfile? _profile;
 
-  /// Seeded from the signed-in session the first time it is read.
+  /// Seeded from the session on first read.
   BeneficiaryPersonalProfile get profile {
     return _profile ??= _seedFromSession();
   }

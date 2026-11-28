@@ -10,10 +10,7 @@ const TABS = [
   { label: 'Clusters', to: ADMIN_NEEDS_CLUSTERS_PATH, end: false },
 ] as const
 
-/**
- * The module's child screens as one row of tabs. Each tab is a route, so the browser
- * back button and a shared link both land on the right child.
- */
+/** Each tab is a route, so Back and shared links land on the right child. */
 export function NeedsModuleTabs() {
   return (
     <nav className="mb-4 flex gap-1 border-b border-gray-200" aria-label="Residential needs">

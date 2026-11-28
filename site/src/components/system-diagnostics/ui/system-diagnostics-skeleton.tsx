@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors the banner and the six group cards — same heights, same grid. */
 export function SystemDiagnosticsSkeleton() {
   return (
     <div aria-hidden>

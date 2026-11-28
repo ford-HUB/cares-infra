@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 
-/** True once the window has scrolled more than `offset` pixels. */
 export function useScrolledPast(offset: number) {
   const [scrolled, setScrolled] = useState(false)
 

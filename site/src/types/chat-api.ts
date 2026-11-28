@@ -1,6 +1,6 @@
 import type { ChatRoleType } from './chat'
 
-/** Wire shapes returned by server/src/modules/chat — snake_case, mapped in the service. */
+/** Wire shapes from server/src/modules/chat (snake_case). */
 export interface ChatContactApi {
   user_id: string
   firstname: string
@@ -46,7 +46,7 @@ export interface ChatConversationApi {
   messages: ChatMessageApi[]
 }
 
-/** Socket payloads (server/src/modules/chat/gateways/chat-gateway.ts). */
+/** Socket payloads from server chat-gateway.ts. */
 export interface ChatMessageEventApi {
   contact_id: string
   message: ChatMessageApi

@@ -5,7 +5,7 @@ import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-v
 export const MAILBOX_DEFAULT_PAGE_SIZE = 25;
 export const MAILBOX_MAX_PAGE_SIZE = 50;
 
-/** The folders the portal exposes; each maps to a Gmail system label. */
+/** Each maps to a Gmail system label. */
 export const MailboxFolderSchema = z.enum([
   'inbox',
   'starred',
@@ -18,7 +18,7 @@ export const MailboxFolderSchema = z.enum([
 export const ListMailQuerySchema = z
   .object({
     folder: MailboxFolderSchema.default('inbox'),
-    /** Passed straight to Gmail search, so the admin gets the same syntax as Gmail. */
+    /** Passed to Gmail search as-is. */
     search: z.string().trim().max(200).optional(),
     page_token: z.string().trim().max(500).optional(),
     page_size: z.coerce
@@ -34,13 +34,9 @@ const EmailAddressSchema = z.email('A valid email address is required');
 
 const LINE_BREAK_PATTERN = /[\r\n]/;
 
-/** Gmail thread ids are hexadecimal strings. */
 const GMAIL_THREAD_ID_PATTERN = /^[0-9a-f]+$/i;
 
-/**
- * `<id@domain>` in printable ASCII, without spaces or nested angle brackets.
- * The value is written raw into the In-Reply-To and References headers.
- */
+/** Printable ASCII `<id@domain>`; written raw into In-Reply-To and References. */
 const MESSAGE_ID_PATTERN = /^<[!-;=?-~]+@[!-;=?-~]+>$/;
 
 export const SendMailSchema = withoutPrototypeKeys(
@@ -52,7 +48,7 @@ export const SendMailSchema = withoutPrototypeKeys(
         .max(50),
       cc: z.array(EmailAddressSchema).max(50).optional(),
       bcc: z.array(EmailAddressSchema).max(50).optional(),
-      /** Written into the Subject header, so it must stay on one line. */
+      /** Subject header, so single-line. */
       subject: z
         .string()
         .trim()
@@ -67,14 +63,14 @@ export const SendMailSchema = withoutPrototypeKeys(
         )
         .default(''),
       body: z.string().max(100_000).default(''),
-      /** Set when replying — keeps the message inside the original Gmail thread. */
+      /** Keeps a reply in the original thread. */
       thread_id: z
         .string()
         .trim()
         .max(200)
         .regex(GMAIL_THREAD_ID_PATTERN, 'A valid thread id is required')
         .optional(),
-      /** The original message's `Message-ID` header, so mail clients thread the reply. */
+      /** Original `Message-ID`, for reply threading. */
       in_reply_to: z
         .string()
         .trim()
@@ -116,7 +112,6 @@ export const MailSummarySchema = z.object({
   to: z.array(z.string()),
   subject: z.string(),
   snippet: z.string(),
-  /** ISO-8601; the portal formats it for display. */
   received_at: z.string(),
   unread: z.boolean(),
   starred: z.boolean(),
@@ -131,10 +126,10 @@ export const MailListResponseSchema = z.object({
 
 export const MailDetailSchema = MailSummarySchema.extend({
   cc: z.array(z.string()),
-  /** Sanitised HTML when Gmail carries an HTML part, otherwise null. */
+  /** Sanitised; null without an HTML part. */
   body_html: z.string().nullable(),
   body_text: z.string(),
-  /** RFC `Message-ID`, needed to thread a reply correctly. */
+  /** Needed to thread a reply. */
   message_id_header: z.string().nullable(),
   attachments: z.array(MailAttachmentSchema),
 });

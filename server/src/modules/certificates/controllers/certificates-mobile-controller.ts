@@ -26,7 +26,6 @@ import {
   IssuedSignatoryIdParamSchema,
 } from '../validators/certificates-mobile-validator';
 
-/** The volunteer app's certificate wallet. */
 @Controller('v1/certificates')
 @Roles(...MOBILE_SIGN_IN_ROLE_TYPES)
 export class CertificatesMobileController {
@@ -43,7 +42,7 @@ export class CertificatesMobileController {
     return this.certificatesService.listMine(user.sub);
   }
 
-  /** Opening a certificate is what marks it claimed on the live page. */
+  /** Opening marks it claimed. */
   @Get(':id')
   @ResponseMessage('Certificate')
   @ZSerialize(IssuedCertificateResponseSchema)

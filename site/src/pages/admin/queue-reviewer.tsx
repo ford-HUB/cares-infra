@@ -21,14 +21,8 @@ import { usePermission, useSuspension } from '../../store/auth-store'
 import { useMonthlyReportStore } from '../../store/monthly-report-store'
 import type { MonthlyReportCounts } from '../../types/monthly-report'
 
-/**
- * The director's inbox for coordinator submissions: what still owes a decision, the
- * document behind each one, and the approve/return call. Approved reports leave this
- * screen for the Monthly Report library, filed under their college.
- */
 export function QueueReviewerPage() {
-  // Approving or returning a submission is the "Publish reports" right; without it
-  // the queue can be read and its documents opened, but no decision is offered.
+  // Without it the queue is read-only.
   const canPublish = usePermission(PORTAL_PERMISSION.REPORTS_PUBLISH)
   const publishSuspension = useSuspension(PORTAL_PERMISSION.REPORTS_PUBLISH)
 
@@ -54,8 +48,6 @@ export function QueueReviewerPage() {
   const [decision, setDecision] = useState<'approved' | 'returned' | null>(null)
   const [saving, setSaving] = useState(false)
 
-  // An approved report has left the queue for the Monthly Report library, so it is
-  // not listed here — only what still owes the director a decision.
   const inQueue = useMemo(
     () => scoped.filter((report) => report.status !== 'approved'),
     [scoped],
@@ -78,7 +70,6 @@ export function QueueReviewerPage() {
           (report) => status === REPORT_STATUS_FILTER_ALL || report.status === status,
         )
         .sort((a, b) => {
-          // What still owes a decision first, then whatever moved most recently.
           const byStatus = REPORT_STATUS_RANK[a.status] - REPORT_STATUS_RANK[b.status]
           if (byStatus !== 0) return byStatus
           return b.submittedAt.localeCompare(a.submittedAt)
@@ -86,9 +77,7 @@ export function QueueReviewerPage() {
     [inQueue, status],
   )
 
-  // Read from the store rather than holding a copy, so the panel reflects a decision
-  // the moment it lands. Falling back to the first row keeps the right column filled
-  // — including after a filter hides the previous selection.
+  // Read from the store so decisions show immediately; falls back to the first row.
   const selected = queue.find((report) => report.id === selectedId) ?? queue[0] ?? null
 
   const runMutation = async (action: () => Promise<void>, message: string) => {
@@ -176,7 +165,7 @@ export function QueueReviewerPage() {
 
       {decision && selected && (
         <ReviewDecisionModal
-          // Keyed by report so the note never carries over to another submission.
+          // Keyed by report so the note never carries over.
           key={`${selected.id}-${decision}`}
           report={selected}
           decision={decision}

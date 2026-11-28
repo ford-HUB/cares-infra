@@ -21,10 +21,7 @@ import {
   RecordClientActivitySchema,
 } from '../validators/audit-logs-mobile-validator';
 
-/**
- * The account holder's own trail. Scoped to the caller by the token — there is no
- * user id parameter, so one account can never page through another's activity.
- */
+/** Scoped by token; no user id param, so no cross-account reads. */
 @Controller('v1/audit-logs')
 export class AuditLogsMobileController {
   constructor(
@@ -42,7 +39,7 @@ export class AuditLogsMobileController {
     return this.auditLogsMobileService.listMyActivity(user.sub, query);
   }
 
-  /** Device-side actions (role switch/unlock) the app reports to keep the trail whole. */
+  /** Device-side actions (role switch/unlock). */
   @Post('me/activity')
   @HttpCode(200)
   @Roles(...MOBILE_PROFILE_ACCESS_ROLE_TYPES)

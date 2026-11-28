@@ -10,8 +10,7 @@ class PasswordStrengthIndicator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Scored against the administrator's minimum length, so the bar and the rules
-    // below it agree about what "long enough" means.
+    // Scored against the policy's minimum length so the bar and rules agree.
     final result = evaluatePasswordStrength(
       password,
       policy: ref.watch(currentPasswordPolicyProvider),

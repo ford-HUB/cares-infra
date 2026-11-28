@@ -12,11 +12,7 @@ import type {
 import { apiClient, parseApiError } from './api-client'
 import { buildMockMaintenanceMode, buildMockMaintenanceWindows } from './mock-data'
 
-/**
- * Announcements are served by `/api/v1/announcements`. The maintenance switch and the
- * window calendar have no endpoints yet, so those two still come from fixtures and keep
- * every change in memory — swap each for an `apiClient` call when its endpoint lands.
- */
+/** MOCK: maintenance switch and window calendar have no endpoints yet; announcements are live. */
 let mode: MaintenanceMode = buildMockMaintenanceMode()
 let windows: MaintenanceWindow[] = buildMockMaintenanceWindows()
 
@@ -24,7 +20,6 @@ type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 const ANNOUNCEMENTS_PATH = '/api/v1/announcements'
 
-/** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is lowercase. */
 type ApiAnnouncementTone = 'INFO' | 'WARNING' | 'CRITICAL'
 type ApiAnnouncementAudience = 'VOLUNTEERS' | 'BENEFICIARIES' | 'DONORS' | 'COORDINATORS'
 type ApiAnnouncementChannel = 'PORTAL' | 'MOBILE' | 'EMAIL'
@@ -81,16 +76,12 @@ export interface MaintenanceSnapshot {
   announcements: Announcement[]
 }
 
-/** Everything the page draws, read in one shot — the three parts are one state. */
 export async function fetchMaintenance(): Promise<MaintenanceSnapshot> {
   const announcements = await fetchAnnouncements()
   return { ...structuredClone({ mode, windows }), announcements }
 }
 
-/**
- * The whole board, newest first. The server sweeps scheduled and expired notices
- * forward on every read, which is what the page's silent poll relies on.
- */
+/** The server sweeps scheduled/expired notices forward on every read; the silent poll relies on it. */
 export async function fetchAnnouncements(): Promise<Announcement[]> {
   try {
     const { data: body } = await apiClient.get<ApiEnvelope<AnnouncementListApiResponse>>(
@@ -102,7 +93,6 @@ export async function fetchAnnouncements(): Promise<Announcement[]> {
   }
 }
 
-/** The switch itself. Closing nothing is the same as being live, so it clears the flag. */
 export async function setMaintenanceMode(
   surfaces: MaintenanceSurface[],
   patch: Partial<Pick<MaintenanceMode, 'message' | 'allowAdmins' | 'estimatedEndAt'>> = {},
@@ -115,7 +105,7 @@ export async function setMaintenanceMode(
     ...patch,
     surfaces,
     enabled,
-    // Staying down keeps the original timestamp — the notice says how long it has been.
+    // Staying down keeps the original timestamp.
     since: enabled ? (mode.since ?? new Date().toISOString()) : null,
     estimatedEndAt: enabled ? (patch.estimatedEndAt ?? mode.estimatedEndAt) : null,
     changedBy: enabled ? 'You' : null,
@@ -146,7 +136,7 @@ export async function saveMaintenanceWindow(
   return structuredClone(windows)
 }
 
-/** Called off, not deleted — a cancelled window is part of the record staff answer for. */
+/** Cancelled, not deleted: kept for the record. */
 export async function cancelMaintenanceWindow(id: string): Promise<MaintenanceWindow[]> {
   await delay(MOCK_API_DELAY_MS.default)
 
@@ -156,7 +146,6 @@ export async function cancelMaintenanceWindow(id: string): Promise<MaintenanceWi
   return structuredClone(windows)
 }
 
-/** Start a booked window early, or end a running one — the two ends of the same control. */
 export async function setWindowRunning(
   id: string,
   running: boolean,
@@ -186,7 +175,7 @@ export async function setWindowRunning(
 
 export type AnnouncementDraft = Omit<Announcement, 'id' | 'author' | 'reach'>
 
-/** The editor only saves a draft or a schedule; publishing goes through `setAnnouncementState`. */
+/** Publishing goes through `setAnnouncementState`. */
 function toApiDraft(draft: AnnouncementDraft) {
   return {
     title: draft.title,
@@ -222,7 +211,6 @@ export async function saveAnnouncement(
   }
 }
 
-/** Publish now, or pull a published notice back down. The server stamps the time and reach. */
 export async function setAnnouncementState(
   id: string,
   state: Extract<AnnouncementState, 'published' | 'expired'>,

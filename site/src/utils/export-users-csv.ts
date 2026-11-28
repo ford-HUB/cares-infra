@@ -15,7 +15,6 @@ function escapeCell(value: string) {
   return `"${value.replace(/"/g, '""')}"`
 }
 
-/** Downloads the given users as a CSV file from the browser — no server round-trip. */
 export function exportUsersCsv(users: ManagedUser[], filename = 'users.csv') {
   const rows = users.map((user) =>
     [

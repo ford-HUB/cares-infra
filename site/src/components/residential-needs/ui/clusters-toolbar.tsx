@@ -23,11 +23,7 @@ const K_OPTIONS = Array.from(
   (_, i) => CLUSTER_K_MIN + i,
 )
 
-/**
- * Title plus the two knobs the model exposes — how many groups to find, and a fresh
- * random start — with the run's fit beside them so a director can tell whether the
- * grouping is tight or an artefact of where it started.
- */
+/** Shows the run's fit beside the k and reseed controls, so a poor start is visible. */
 export function ClustersToolbar({
   k,
   result,

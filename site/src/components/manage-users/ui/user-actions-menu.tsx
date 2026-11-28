@@ -15,19 +15,16 @@ import { LockedMenuItem } from '../../portal/ui/locked-action'
 interface UserActionsMenuProps {
   user: ManagedUser
   onView: (user: ManagedUser) => void
-  /** Each pair is optional: without the right, that action is left out of the menu. */
+  /** Optional per right; without it the action is left out of the menu. */
   onRestrict?: (user: ManagedUser) => void
   onUnrestrict?: (user: ManagedUser) => void
   onBlockIp?: (user: ManagedUser) => void
   onUnblockIp?: (user: ManagedUser) => void
-  /** Undefined for a caller who cannot issue credentials — the item is then hidden. */
+  /** Omitted without the credentials right. */
   onReissueCredentials?: (user: ManagedUser) => void
-  /** Undefined for a caller who cannot delete accounts — the item is then hidden. */
+  /** Omitted without the delete right. */
   onDelete?: (user: ManagedUser) => void
-  /**
-   * Set when the right behind an action is suspended. The entry is then kept in the
-   * menu, locked and red, with the reason and window on hover.
-   */
+  /** Suspended rights keep their entry, locked and red, with the reason on hover. */
   restrictSuspension?: SessionSuspension
   blockIpSuspension?: SessionSuspension
 }
@@ -35,10 +32,7 @@ interface UserActionsMenuProps {
 const MENU_WIDTH_PX = 184
 const MENU_GAP_PX = 4
 
-/**
- * Row-level actions. The menu is rendered fixed-positioned against the trigger's rect
- * so the table's scroll container can't clip it.
- */
+/** Fixed-positioned against the trigger so the table's scroll container can't clip it. */
 export function UserActionsMenu({
   user,
   onView,

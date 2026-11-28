@@ -9,8 +9,6 @@ import '../../../core/theme/app_theme.dart';
 import '../data/event_route_service.dart';
 import '../domain/cares_event.dart';
 
-/// Map of the event venue with the walking route from the volunteer's
-/// current position, so they can follow it to get there.
 class EventRouteMapScreen extends StatefulWidget {
   const EventRouteMapScreen({super.key, required this.event});
 
@@ -35,8 +33,8 @@ class _EventRouteMapScreenState extends State<EventRouteMapScreen> {
   LatLng? _origin;
   EventRoute? _route;
 
-  /// Basemap provider, demoted one step whenever the current one fails to
-  /// serve tiles so the map never stays blank.
+  /// Demoted one step whenever it fails to serve tiles, so the map never stays
+  /// blank.
   _TileProvider _tiles = MapboxConfig.isConfigured
       ? _TileProvider.mapbox
       : GeoapifyConfig.isConfigured

@@ -11,7 +11,7 @@ import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-v
 export const ACCESS_LIST_DEFAULT_PAGE_SIZE = 25;
 export const ACCESS_LIST_MAX_PAGE_SIZE = 100;
 
-/** Only the portal roles carry rights — the app-side roles are never listed here. */
+/** Portal roles only. */
 export const PortalRoleSchema = z.enum(PORTAL_ROLE_TYPES);
 
 export const AccessRightsFilterSchema = z.enum([
@@ -35,11 +35,7 @@ export const ListAccessUsersQuerySchema = z
   })
   .strict();
 
-/**
- * The portal sends the full set of actions the user should end up with. The server
- * diffs it against the role baseline and stores only the departures, so a baseline
- * change later still flows through to users who never had an override.
- */
+/** Full desired set; the server stores only departures from the baseline. */
 export const UpdateUserPermissionsSchema = z
   .object({
     permissions: z
@@ -64,7 +60,7 @@ export const SuspendActionsSchema = withoutPrototypeKeys(
         .array(z.enum(PermissionKey))
         .min(1, 'Select at least one action to suspend')
         .max(Object.keys(PermissionKey).length),
-      /** Same minimum as the portal's form (site/src/validators/suspend-actions-schema.ts). */
+      /** Must match site/src/validators/suspend-actions-schema.ts. */
       reason: z
         .string()
         .trim()
@@ -110,14 +106,14 @@ export const AccessUserSchema = z.object({
   role_type: z.enum(RoleType),
   department: z.string().nullable(),
   is_restricted: z.boolean(),
-  /** The root operator account — its actions cannot be suspended. */
+  /** Root operator account: cannot be suspended. */
   is_protected: z.boolean(),
-  /** Rights in force right now: baseline + grants − revokes − active suspensions. */
+  /** baseline + grants − revokes − active suspensions. */
   effective_permissions: z.array(z.enum(PermissionKey)),
   granted_count: z.number(),
   revoked_count: z.number(),
   suspended_count: z.number(),
-  /** Set when at least one suspension is in force, for the row badge. */
+  /** Set when a suspension is in force. */
   latest_suspension_reason: z.string().nullable(),
 });
 
@@ -136,15 +132,11 @@ export const ActionSuspensionSchema = z.object({
   issued_at: z.iso.datetime(),
   expires_at: z.iso.datetime().nullable(),
   lifted_at: z.iso.datetime().nullable(),
-  /** False once lifted or expired — the portal shows history as well as what's live. */
+  /** False once lifted or expired. */
   active: z.boolean(),
 });
 
-/**
- * What the suspended account itself is told: which action, why, and for how long. It
- * rides on the session payload so the portal can show the locked module or button
- * in place, rather than making it vanish without explanation.
- */
+/** Sent to the suspended account so the portal can show the locked item with its reason. */
 export const SessionSuspensionSchema = z.object({
   permission: z.enum(PermissionKey),
   reason: z.string(),
@@ -153,7 +145,7 @@ export const SessionSuspensionSchema = z.object({
 });
 
 export const AccessUserDetailSchema = AccessUserSchema.extend({
-  /** The role baseline this user inherits, before any per-user change. */
+  /** Before any per-user change. */
   role_permissions: z.array(z.enum(PermissionKey)),
   overrides: z.array(
     z.object({

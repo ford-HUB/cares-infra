@@ -20,17 +20,13 @@ import {
   UpdateServiceScheduleSchema,
 } from '../validators/system-services-site-validator';
 
-/** Scheduler ids are catalogue slugs, not uuids: lower-case words joined by single hyphens. */
+/** Catalogue slugs, not uuids. */
 const ServiceIdParamSchema = z
   .string()
   .max(100, 'A valid service id is required')
   .regex(/^(?!0x)[a-z0-9]+(?:-[a-z0-9]+)*$/, 'A valid service id is required');
 
-/**
- * The scheduler control board. Reading and writing share one right — "Manage
- * services" — because the screen exists to operate the schedulers, not to browse
- * them; there is no read-only audience for it.
- */
+/** One right ("Manage services") for read and write: there's no read-only audience. */
 @Controller('v1/system-services')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SYSTEM_SERVICE_MANAGE)

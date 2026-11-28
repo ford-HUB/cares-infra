@@ -7,21 +7,16 @@ import type { StatisticSummary } from '../../../types/department-statistics'
 
 interface StatisticTileProps {
   icon: LucideIcon
-  /** Icon chip tint — `bg-{tone}-50 text-{tone}-600`. */
+  /** Icon chip tint, e.g. `bg-{tone}-50 text-{tone}-600`. */
   chipClass: string
   label: string
   summary: StatisticSummary
-  /** Renders the value; a rate passes a percent formatter, a count a number one. */
   format: (value: number) => string
-  /** What the number is compared against, e.g. "vs previous 6 months". */
+  /** E.g. "vs previous 6 months". */
   comparison: string
 }
 
-/**
- * One headline number: the value, its movement against the previous period, and the
- * per-month trend as a sparkline behind it. The delta is text plus an arrow so the
- * direction never rides on colour alone.
- */
+/** The delta is text plus an arrow, so direction never rides on colour alone. */
 export function StatisticTile({
   icon: Icon,
   chipClass,

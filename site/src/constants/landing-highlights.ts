@@ -1,8 +1,5 @@
-/** Highlights stories, drawn from the UCLM CARES Bulletin (Vol. 1 2024 and Vol. 2 2025).
- *  Static content — the public page fetches nothing. Photos live in public/timeline/{year}/,
- *  not public/highlights/: a folder named like the route would shadow it on static hosts. */
+/** Photos live in public/timeline/, not public/highlights/: a same-named folder would shadow the route on static hosts. */
 
-/** The topic tag on each story's photo, chosen from what the story is about. */
 export type LandingHighlightCategory =
   | 'Academic Engagement'
   | 'Community Outreach'
@@ -18,23 +15,17 @@ export type LandingHighlightCategory =
   | 'Youth & Leadership'
 
 export interface LandingHighlightStory {
-  /** As printed in the bulletin; just the year when the article gives no date. */
   date: string
   summary: string
   category: LandingHighlightCategory
-  /** A year's three top stories fill its opening row: `lead` in the wide centre column,
-   *  with `left` and `right` beside it. Every other story follows in rows of three. */
+  /** A year's top three stories fill its opening row. */
   feature?: 'lead' | 'left' | 'right'
-  /** A short paragraph under the headline. */
   detail?: string
-  /** Only where the bulletin names a venue or place. */
   location?: string
   image: string
   imageAlt: string
-  /** Shown whole rather than cropped to 4:3: award slides (cropping would cut their
-   *  text) and wide group photos (it would cut the people at the edges). */
+  /** Shown uncropped: award slides and wide group photos. */
   fit?: 'contain'
-  /** Keeps faces in frame when a tall photo is cropped to the card. */
   focus?: 'top'
 }
 
@@ -43,14 +34,12 @@ export interface LandingHighlightYear {
   stories: readonly LandingHighlightStory[]
 }
 
-/** Unique per story because the photo paths are: `highlight-2024-savings-seminar`. */
 export const landingHighlightStoryId = ({ image }: Pick<LandingHighlightStory, 'image'>) =>
   `highlight-${image.split('/').slice(-2).join('-').replace('.jpg', '')}`
 
 const photo = (year: number, slug: string) => `/timeline/${year}/${slug}.jpg`
 
-/** Written in calendar order, as the bulletins report them. Articles with no printed
- *  date sit at the end of their year. */
+/** Calendar order; undated articles at the end of their year. */
 const YEARS_IN_CALENDAR_ORDER: readonly LandingHighlightYear[] = [
   {
     year: 2023,
@@ -109,8 +98,6 @@ const YEARS_IN_CALENDAR_ORDER: readonly LandingHighlightYear[] = [
         location: 'Golden Prince Hotel',
         detail:
           'The training centered on Psychological First Aid and its principles of Prepare, Look, Listen and Link, with group activities and discussions led by DOH guest speakers.',
-        /* Cropped above the printed logo, caption and footer bar; shown whole so the
-           people at either edge stay in frame. */
         image: photo(2024, 'psychosocial-support-training-clean'),
         imageAlt: 'Training participants in a group photo at the hotel venue',
         fit: 'contain',
@@ -498,13 +485,11 @@ const YEARS_IN_CALENDAR_ORDER: readonly LandingHighlightYear[] = [
 
 const hasPrintedDate = ({ date }: LandingHighlightStory) => !/^\d{4}$/.test(date)
 
-/** Latest first; a story with no printed date can't be placed, so it stays at the end. */
 const newestFirst = (stories: readonly LandingHighlightStory[]) => [
   ...stories.filter(hasPrintedDate).reverse(),
   ...stories.filter((story) => !hasPrintedDate(story)),
 ]
 
-/** What the page shows: newest year at the top, oldest last. */
 export const LANDING_HIGHLIGHT_YEARS: readonly LandingHighlightYear[] = [
   ...YEARS_IN_CALENDAR_ORDER,
 ]

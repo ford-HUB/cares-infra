@@ -33,12 +33,7 @@ export type DeleteCertificateTemplateDto = z.infer<
   typeof DeleteCertificateTemplateResponseSchema
 >;
 
-/**
- * The design as it is stored: identical to what the portal sends, except every
- * imported file has been replaced by the id of its `CertificateTemplateAsset` row. The
- * bytes are in S3 and the row is the only handle on them, so nothing in the JSON is a
- * URL that could go stale when the bucket or region changes.
- */
+/** Imported files replaced by `CertificateTemplateAsset` ids, so no stale URLs in the JSON. */
 export interface StoredCertificateDesign extends Omit<
   CertificateDesignDto,
   'images' | 'frame_svg_url' | 'seal_svg_url'

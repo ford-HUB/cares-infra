@@ -21,11 +21,6 @@ import { ADMIN_EVALUATION_QUESTIONNAIRE_PATH } from '../../constants/routes'
 import { useEvaluationStore } from '../../store/evaluation-store'
 import type { EvaluationAssignment, EvaluationForm } from '../../types/evaluation'
 
-/**
- * The questionnaire library: every form the director has built, and which events ask
- * it. Same shape as Live Certificates — a built artefact on the left of the errand,
- * the events it has been deployed to on the right.
- */
 export function EvaluationFormsPage() {
   const navigate = useNavigate()
   const forms = useEvaluationStore((s) => s.forms)
@@ -57,8 +52,7 @@ export function EvaluationFormsPage() {
     void fetchAssignments()
   }, [fetchForms, fetchAssignments])
 
-  // Search narrows the whole the summary describes; status is that whole's own split,
-  // so the segments stay measured against every questionnaire still in scope.
+  // Status splits the in-scope whole, so segments stay measured against it.
   const inScope = useMemo(() => {
     const term = search.trim().toLowerCase()
     if (!term) return forms

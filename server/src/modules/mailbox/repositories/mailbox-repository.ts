@@ -23,7 +23,7 @@ export class MailboxRepository {
     });
   }
 
-  /** Re-consenting replaces the stored grant rather than stacking a second row. */
+  /** Replaces rather than stacks. */
   async upsertConnection(
     userId: string,
     data: GmailConnectionInput,

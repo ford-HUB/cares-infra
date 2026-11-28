@@ -25,12 +25,12 @@ import { LiveStateBadge } from './ui/live-state-badge'
 
 interface AttendanceTableProps {
   attendees: LiveAttendee[]
-  /** First load only — see `attendance-store`. */
+  /** First load only; polls use `refreshing`. */
   loading: boolean
-  /** A poll over rows already on screen; shows a sweep, never a skeleton. */
+  /** Poll over loaded rows: shows a sweep, never a skeleton. */
   refreshing: boolean
   initialized: boolean
-  /** Snapshot capture time; every "how long ago" on a row is measured against it. */
+  /** Reference time for every "how long ago" on a row. */
   capturedAt: string | null
   page: number
   onPageChange: (page: number) => void
@@ -41,7 +41,6 @@ const cellBorder = LIVE_CELL_BORDER
 const cellBase = LIVE_CELL_BASE
 const gutter = LIVE_GUTTER_CELL
 
-/** A device that has not reported in a while is still "in area", but worth flagging. */
 function isPingStale(lastPingAt: string | null | undefined, capturedAt: string | null) {
   if (!lastPingAt) return false
   return dayjs(capturedAt ?? undefined).diff(dayjs(lastPingAt)) > LIVE_STALE_PING_MS
@@ -64,8 +63,7 @@ export function AttendanceTable({
     LIVE_HEADER_HEIGHT_PX,
   )
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A poll or a
-  // refilter keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; polls keep existing rows on screen.
   const showSkeleton = !initialized || (loading && attendees.length === 0)
 
   const totalPages = Math.max(1, Math.ceil(attendees.length / rowsPerPage))

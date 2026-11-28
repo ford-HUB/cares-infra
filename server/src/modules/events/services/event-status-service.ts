@@ -6,11 +6,7 @@ export interface EventStatusSweepSummary {
   completed: number;
 }
 
-/**
- * Keeps `Event.status` in step with the clock. Create and edit derive the status
- * once; this sweep is what moves it afterwards, so the portal, the mobile feed and
- * the registration guard all agree on which events have started or finished.
- */
+/** Moves `Event.status` with the clock after create/edit set it once. */
 @Injectable()
 export class EventStatusService {
   constructor(private readonly eventsRepository: EventsRepository) {}

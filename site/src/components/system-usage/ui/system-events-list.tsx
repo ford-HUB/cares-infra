@@ -15,7 +15,6 @@ const SEVERITY_ICONS: Record<SystemEventSeverity, typeof Info> = {
   critical: AlertOctagon,
 }
 
-/** What happened to the system recently — newest first, severity as icon + word. */
 export function SystemEventsList({ events }: { events: SystemEvent[] }) {
   const [expanded, setExpanded] = useState(false)
   const shown = expanded ? events : events.slice(0, SYSTEM_EVENTS_PREVIEW)

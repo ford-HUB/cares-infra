@@ -20,11 +20,7 @@ interface DeployedCertificateCardProps {
   onAction: (action: string, deployment: DeployedCertificate) => void
 }
 
-/**
- * The event leads and the sheet supports it: on this screen a director is chasing a
- * distribution, not shopping for artwork — but the artwork still has to be the one
- * that was signed off in Customization, so the deployed design is drawn as-is.
- */
+/** Draws the deployed design as-is, so the director can verify the signed-off artwork. */
 export function DeployedCertificateCard({
   deployment,
   selected,

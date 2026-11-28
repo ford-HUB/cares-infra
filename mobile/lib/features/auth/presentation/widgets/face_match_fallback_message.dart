@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Shown on the face scan when the selfie keeps failing to match the ID — most
-/// often because the ID photo is too blurry or unclear to read a face from.
-/// Like [IdRecognitionFallbackMessage] on the ID upload step, it lets the
-/// registrant keep trying or switch to manual registration: no face scan, the
-/// details are typed in, and a director reviews the uploaded ID through the
-/// Request module before the account opens.
+/// Shown when the selfie keeps failing to match (usually a blurry ID photo);
+/// offers manual registration like [IdRecognitionFallbackMessage].
 class FaceMatchFallbackMessage extends StatelessWidget {
   const FaceMatchFallbackMessage({
     super.key,

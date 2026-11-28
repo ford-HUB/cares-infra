@@ -16,7 +16,6 @@ function PanelSkeleton({ chartClass }: { chartClass: string }) {
   )
 }
 
-/** Mirrors SystemUsage — summary, CPU chart, three small charts, table and events. */
 export function SystemUsageSkeleton() {
   return (
     <div aria-hidden>

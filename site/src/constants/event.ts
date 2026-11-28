@@ -24,10 +24,8 @@ export const EVENT_STATUSES: EventStatus[] = [
   'Cancelled',
 ]
 
-/** Sentinel department value meaning the event applies to every department. */
 export const ALL_DEPARTMENTS = 'All Departments'
 
-/** Departments (and their courses) offered — source of truth for the dropdown. */
 export const DEPARTMENT_COURSES: Record<string, string[]> = {
   'College of Maritime Engineering': [
     'BSMarE - Bachelor of Science in Marine Engineering',
@@ -87,11 +85,7 @@ export const DEPARTMENT_COURSES: Record<string, string[]> = {
 
 export const EVENT_DEPARTMENTS = Object.keys(DEPARTMENT_COURSES)
 
-/**
- * Whether an event belongs to a coordinator's college. Departments are compared
- * loosely — the value is free text on the profile and on the event, so casing and
- * stray spacing must not hide a coordinator's own event from them.
- */
+/** Loose compare: department is free text on both profile and event. */
 export function isEventInDepartment(
   eventDepartment: string | undefined,
   department: string,
@@ -101,26 +95,23 @@ export function isEventInDepartment(
   return (eventDepartment ?? '').trim().toLowerCase() === scope
 }
 
-/** Event image upload limits. */
 export const EVENT_IMAGE_MAX_COUNT = 3
-export const EVENT_IMAGE_MAX_BYTES = 3 * 1024 * 1024 // 3MB
+export const EVENT_IMAGE_MAX_BYTES = 3 * 1024 * 1024
 
 const MINUTES_PER_HOUR = 60
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
 const EVENT_DATETIME_FORMAT = 'MMM D, YYYY · h:mm A'
 
 export interface EventDurationSummary {
-  /** Total duration expressed in hours (e.g. 36.5). */
   totalHours: number
   /** e.g. "36.5 hours" or "45 minutes". */
   totalHoursLabel: string
   /** Human breakdown, e.g. "1 day and a half" or "3 hours 30 minutes". */
   friendlyLabel: string
-  /** Whether the event spans more than one calendar duration (>= 24h). */
+  /** >= 24h. */
   spansMultipleDays: boolean
   /** Formatted start, e.g. "Jul 3, 2026 · 8:00 AM". */
   startLabel: string
-  /** Formatted end. */
   endLabel: string
 }
 
@@ -128,10 +119,7 @@ function pluralize(value: number, unit: string): string {
   return `${value} ${unit}${value === 1 ? '' : 's'}`
 }
 
-/**
- * Compute a friendly duration summary between two datetime-local strings.
- * Returns null when either bound is missing or the range is not positive.
- */
+/** Null when either bound is missing or the range isn't positive. */
 export function summarizeEventDuration(
   start?: string,
   end?: string,
@@ -152,7 +140,6 @@ export function summarizeEventDuration(
 
   let friendlyLabel: string
   if (days >= 1) {
-    // Treat an exact 12-hour remainder as "and a half" for a natural phrase.
     if (hours === 12 && minutes === 0) {
       friendlyLabel = `${pluralize(days, 'day')} and a half`
     } else {
@@ -255,18 +242,12 @@ export const GOODS_TYPE_OPTIONS: GoodsTypeOption[] = [
 
 export const DEFAULT_MAP_CENTER: [number, number] = [123.8854, 10.3157]
 
-/**
- * Bounding box of Cebu province — Bantayan/Daanbantayan in the north down to
- * Santander in the south. The event map fits this so the whole island is on
- * screen before the operator zooms into a pin. `[[minLng, minLat], [maxLng, maxLat]]`.
- */
+/** Cebu province, `[[minLng, minLat], [maxLng, maxLat]]`. */
 export const CEBU_PROVINCE_BOUNDS: [[number, number], [number, number]] = [
   [123.15, 9.35],
   [124.35, 11.35],
 ]
 
-/** Padding (px) kept around {@link CEBU_PROVINCE_BOUNDS} when fitting the map. */
 export const CEBU_BOUNDS_PADDING = 32
 
-/** Zoom the map flies to when a pin is selected — venue level, not street level. */
 export const EVENT_PIN_FOCUS_ZOOM = 15

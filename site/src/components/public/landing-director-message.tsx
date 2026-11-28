@@ -12,8 +12,6 @@ import { LandingEyebrowHeading } from './ui/landing-eyebrow-heading'
 import { GlassSheen } from './ui/landing-glass-sheen'
 import { LandingReveal } from './ui/landing-reveal'
 
-/* The scroll's wavy left and right edges, cut with a mask: a wave strip repeats down
- * each side and a plain block fills the middle. */
 const WAVE_LEFT =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='56'%3E%3Cpath d='M16 0H8Q-2 14 8 28Q18 42 8 56H16Z'/%3E%3C/svg%3E\")"
 const WAVE_RIGHT =
@@ -29,13 +27,9 @@ const WAVY_EDGES: CSSProperties = {
   WebkitMaskRepeat: 'repeat-y, repeat-y, no-repeat',
 }
 
-/* The roll: the sheet's own mint glass wound into a cylinder, shaded light on top and
- * deeper underneath, with a thin green edge. */
 const ROLL_BODY =
   'bg-[linear-gradient(180deg,#c8f5dc_0%,#f4fff9_18%,#b6efcf_45%,#86dcae_75%,#5fc792_100%)] ring-[1.5px] ring-green-600/45'
 
-/** The roll's end seen face-on: a mint glass disc with the paper's turns drawn as a
- *  spiral running out from the core. */
 function RollSpiral({ side }: { side: 'left' | 'right' }) {
   return (
     <svg
@@ -62,8 +56,6 @@ function RollSpiral({ side }: { side: 'left' | 'right' }) {
   )
 }
 
-/** One end of the scroll: the letter rolled into a glossy mint cylinder, its spiral curl
- *  showing at one end (`side`) and a soft glint along the top. */
 function ScrollRoller({ side }: { side: 'left' | 'right' }) {
   return (
     <div aria-hidden className="relative z-10 h-16 sm:h-20">
@@ -77,8 +69,6 @@ function ScrollRoller({ side }: { side: 'left' | 'right' }) {
   )
 }
 
-/** Title block: a green bar beside "A Message from the / Director / UCLM CARES", a rule
- *  with a heavier centre, then the greeting on a mint glass pill. */
 function MessageHeading() {
   const { heading, greeting } = LANDING_DIRECTOR_MESSAGE
 
@@ -120,30 +110,22 @@ function MessageHeading() {
   )
 }
 
-/* Unrolling: the sheet is uncovered top to bottom while the bottom roller travels down
- * with its edge. The clip leaves 48px of slack at the sides and foot for the shadow. */
+/* The clip leaves 48px of slack at the sides and foot for the shadow. */
 const UNFURL_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const SHEET_CLOSED = 'inset(-48px -48px 100% -48px)'
 const SHEET_OPEN = 'inset(-48px -48px -48px -48px)'
-/** The sheet tucks 16px under each roller (the -my-4 below), so closed, the bottom
- *  roller rises by the sheet's height less those two overlaps. */
+/** The sheet tucks 16px under each roller (`-my-4`), so closed, the bottom roller rises by the sheet height less both overlaps. */
 const ROLLER_OVERLAP_PX = 32
 
-/* After unrolling, a band of light crosses the glass once. */
 const GLASS_SWEEP =
   'bg-[linear-gradient(110deg,transparent_35%,rgba(255,255,255,0.5)_50%,transparent_65%)] bg-[length:250%_100%] bg-no-repeat'
 
-/** The director's message, the last part of the About section: a green glass scroll
- *  hung between two rollers, with the title and portrait at the top, the letter beneath,
- *  and the director's name on a dark-green plate to sign it off. On first view it
- *  unrolls downward, its contents fade up in turn, and a reflection crosses it once. */
 export function LandingDirectorMessage() {
   const { section, salutation, paragraphs, closing, name, photo, signatureRole } =
     LANDING_DIRECTOR_MESSAGE
   const { triggerRef, sheetRef, open, sheetHeight, animate } = useScrollUnfurl<HTMLDivElement>()
   const { unfurlMs, unfurlContentStartMs, unfurlContentStepMs } = LANDING_MOTION
 
-  /* Fade-up for the n-th piece of the letter, in reading order. */
   const reveal = (step: number) => ({
     className: open ? 'motion-safe:animate-landing-soft-rise' : 'motion-safe:opacity-0',
     style: { animationDelay: `${unfurlContentStartMs + step * unfurlContentStepMs}ms` },
@@ -175,7 +157,6 @@ export function LandingDirectorMessage() {
               className="relative isolate bg-gradient-to-b from-emerald-50 via-green-100 to-green-200 px-9 pt-14 pb-12 sm:px-14 sm:pt-16"
             >
               <GlassSheen ripples />
-              {/* Where the sheet runs under each roll, the roll casts a soft shadow on it. */}
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-green-900/15 to-transparent"

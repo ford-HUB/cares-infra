@@ -12,8 +12,6 @@ class ProfileCompletionCard extends StatelessWidget {
 
   final VoidCallback? onTap;
 
-  /// Copy and icon differ per role (volunteer vs beneficiary); the layout,
-  /// colors, and spacing stay identical.
   final String title;
   final String subtitle;
   final IconData icon;

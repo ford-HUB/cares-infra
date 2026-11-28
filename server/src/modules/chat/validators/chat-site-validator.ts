@@ -8,7 +8,7 @@ export const CHAT_ATTACHMENT_MAX_COUNT = 5;
 export const CHAT_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
 export const CHAT_MESSAGE_PAGE_SIZE = 100;
 
-/** Mirrors the composer's accept list in site/src/constants/chat.ts. */
+/** Must match site/src/constants/chat.ts. */
 export const CHAT_ALLOWED_ATTACHMENT_MIMES = [
   'image/jpeg',
   'image/png',
@@ -23,10 +23,7 @@ export const CHAT_ALLOWED_ATTACHMENT_MIMES = [
   'text/plain',
 ] as const;
 
-/**
- * Sent as multipart so files ride along with the text, which is why `body` is a
- * plain string field rather than JSON.
- */
+/** Multipart, so `body` is a plain string. */
 export const SendChatMessageSchema = withoutPrototypeKeys(
   z
     .object({
@@ -75,7 +72,7 @@ export const ChatMessageSchema = z.object({
   message_id: z.string(),
   conversation_id: z.string(),
   sender_id: z.string(),
-  /** Lets the portal decide whether an incoming message plays a sound. */
+  /** Lets the portal decide whether to play a sound. */
   sender_role_type: z.enum(RoleType),
   body: z.string(),
   created_at: z.iso.datetime(),

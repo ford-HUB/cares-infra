@@ -7,14 +7,13 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 
-/** Every mobile side can file; the app's role switcher is local to the device. */
+/** Every mobile side can file; the role switcher is device-local. */
 export const MOBILE_ASSISTANCE_ROLE_TYPES = [
   RoleType.VOLUNTEER,
   RoleType.DONOR,
   RoleType.BENEFICIARY,
 ] as const;
 
-/** Proof documents on a request — photos from the camera or a picked PDF / image. */
 export const ASSISTANCE_ATTACHMENT_MAX_COUNT = 3;
 export const ASSISTANCE_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
 export const ASSISTANCE_ATTACHMENT_ALLOWED_MIMES = [
@@ -25,20 +24,13 @@ export const ASSISTANCE_ATTACHMENT_ALLOWED_MIMES = [
   'image/heic',
 ] as const;
 
-/**
- * Statuses a beneficiary may still withdraw — anything not yet completed,
- * declined, or already cancelled.
- */
 export const ASSISTANCE_CANCELLABLE_STATUSES = [
   AssistanceRequestStatus.PENDING,
   AssistanceRequestStatus.UNDER_REVIEW,
   AssistanceRequestStatus.APPROVED,
 ] as const;
 
-/**
- * Multipart sends every field as text, so the pin's coordinates arrive as
- * strings. An empty string means "no pin".
- */
+/** Multipart sends text; an empty string means "no pin". */
 const coordinate = (label: string, min: number, max: number) =>
   z.preprocess(
     (value) =>
@@ -65,7 +57,6 @@ const requestFields = {
     .min(1, 'Describe your situation')
     .max(500, 'Keep the description under 500 characters'),
   urgency: z.enum(AssistanceUrgency, 'Choose how urgent this is'),
-  /** Where the assistance is needed, pinned on the app's map. */
   location_latitude: coordinate('Latitude', -90, 90),
   location_longitude: coordinate('Longitude', -180, 180),
   location_details: z
@@ -75,7 +66,7 @@ const requestFields = {
     .nullish(),
 };
 
-/** A pin is both coordinates or neither. */
+/** Both coordinates or neither. */
 const hasWholePin = (body: {
   location_latitude?: number;
   location_longitude?: number;
@@ -88,16 +79,13 @@ const pinError = {
   path: ['location_latitude'],
 };
 
-/** Multipart body: these text fields beside up to three `attachments` files. */
+/** Multipart: text fields plus up to three `attachments`. */
 export const CreateAssistanceRequestSchema = z
   .object(requestFields)
   .strict()
   .refine(hasWholePin, pinError);
 
-/**
- * JSON body of an edit. Every field is sent, the same as the form shows it;
- * attachments stay as filed. Leaving the pin out removes it.
- */
+/** JSON; every field sent. Attachments stay as filed; omitting the pin removes it. */
 export const UpdateAssistanceRequestSchema = z
   .object(requestFields)
   .strict()
@@ -124,7 +112,7 @@ export const AssistanceAttachmentSchema = z.object({
   size_bytes: z.number(),
 });
 
-/** One stage on the request's progress trail, derived from the stage timestamps. */
+/** Derived from the stage timestamps. */
 export const AssistanceTimelineEntrySchema = z.object({
   label: z.string(),
   date: z.iso.datetime().nullable(),
@@ -135,7 +123,7 @@ export const AssistanceTimelineEntrySchema = z.object({
 export const MobileAssistanceRequestSchema = z.object({
   assistance_request_id: z.string(),
   reference_number: z.number(),
-  /** `CARES-AR-2026-0007` — the year filed and the padded tracking number. */
+  /** e.g. `CARES-AR-2026-0007`. */
   reference_label: z.string(),
   title: z.string(),
   category: z.enum(AssistanceCategory),
@@ -150,13 +138,12 @@ export const MobileAssistanceRequestSchema = z.object({
   assessment_date: z.iso.datetime().nullable(),
   assigned_organization: z.string().nullable(),
   items: z.array(z.string()),
-  /** Staff note, or a stock line for the status when none was written. */
+  /** Staff note, or the stock line for the status. */
   status_note: z.string(),
   attachments: z.array(AssistanceAttachmentSchema),
   timeline: z.array(AssistanceTimelineEntrySchema),
-  /** Still untouched by the relief desk, so the beneficiary may change it. */
+  /** Untouched by the relief desk. */
   can_edit: z.boolean(),
-  /** Not yet completed, declined, or cancelled. */
   can_cancel: z.boolean(),
   cancelled_at: z.iso.datetime().nullable(),
   cancel_reason: z.string().nullable(),

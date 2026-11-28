@@ -1,14 +1,7 @@
-// Unit tests for the last step of the forgot-password flow — the
-// "Set a new password" screen (ResetPasswordScreen):
-//
-//   client-side checks   password policy + confirm-match, before any request
-//   POST /v1/auth/reset-password   sent on "Update password"
-//   outcome              pops `true` back to sign-in, or shows the server message
-//
-// The screen builds its own PasswordResetService, so the network is swapped
-// for package:http's MockClient through `http.runWithClient` — nothing here
-// reaches a real server. The password policy is pinned with a provider
-// override so the rules never depend on `/security-policy/password-rules`.
+// Unit tests for ResetPasswordScreen: client-side policy and confirm checks,
+// `POST /v1/auth/reset-password`, and the outcome (pops `true` or shows the
+// server message). The screen builds its own service, so MockClient goes in via
+// `http.runWithClient`; the policy is pinned by a provider override.
 
 import 'dart:async';
 import 'dart:convert';
@@ -35,7 +28,6 @@ const _rulesNotMet = 'Your password does not meet all the rules yet.';
 const _mismatch = 'The two passwords do not match.';
 const _updated = 'Password updated. Sign in with your new password.';
 
-/// Records every request the screen sends and answers with [reply].
 class _Recorder {
   _Recorder(this.reply);
 
@@ -63,15 +55,13 @@ http.Response _updatedReply() => _json(200, {
   'data': {'email': _email},
 });
 
-/// What the reset screen popped with, once it has.
 class _PopResult {
   bool popped = false;
   bool? value;
 }
 
-/// Pumps a launcher page and pushes the reset screen on top of it, the same way
-/// the sign-in screen does, so the pop result and the snackbar shown afterwards
-/// can both be observed.
+/// Pushed over a launcher page, as sign-in does, so the pop result and snackbar
+/// are observable.
 Future<_PopResult> _openResetScreen(
   WidgetTester tester, {
   String email = _email,

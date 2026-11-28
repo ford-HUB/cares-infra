@@ -15,24 +15,17 @@ export const SYSTEM_USAGE_RANGES: { days: SystemUsageRangeDays; label: string }[
 
 export const DEFAULT_SYSTEM_USAGE_RANGE: SystemUsageRangeDays = 14
 
-/** The live CPU/memory reading — the same 3 s tick the System Performance page uses. */
 export const LIVE_TICK_MS = PERFORMANCE_TICK_MS
 
-/** The 24 h snapshot, the service roster and the diagnostics sweep are re-read this often. */
 export const LIVE_REFRESH_MS = DIAGNOSTICS_POLL_INTERVAL_MS
 
-/**
- * Chart series, stepped per theme. Green beside orange is the classic red-green
- * colour-blind trap, so the green was picked by the palette validator, not by eye:
- * these steps clear every check against the peak orange on the white and charcoal
- * cards (worst CVD ΔE 9.9 light / 8.8 dark, target ≥ 8). Re-run it before changing.
- */
+/** Palette-validator picked (CVD ΔE ≥ 8 vs orange, both themes); re-run before changing. */
 export const USAGE_SERIES_THEME = {
   average: { light: '#1ea672', dark: '#24a874' },
   peak: { light: '#eb6834', dark: '#d95926' },
 } as const
 
-/** Earlier days are placeholder data; they are drawn at this opacity so they read as such. */
+/** Earlier days are placeholder data, dimmed to read as such. */
 export const SAMPLE_DAY_OPACITY = 0.35
 
 export const SERVICE_HEALTH_ORDER: ServiceHealth[] = ['operational', 'degraded', 'down', 'paused']
@@ -44,7 +37,6 @@ export const SERVICE_HEALTH_LABELS: Record<ServiceHealth, string> = {
   paused: 'Paused',
 }
 
-/** One record per visual channel, so the badge, dot and bar for a state can't drift. */
 export const SERVICE_HEALTH_BADGE_STYLES: Record<ServiceHealth, string> = {
   operational: 'bg-emerald-50 text-emerald-700',
   degraded: 'bg-amber-50 text-amber-700',
@@ -78,16 +70,12 @@ export const EVENT_SEVERITY_STYLES: Record<SystemEventSeverity, string> = {
   critical: 'bg-red-50 text-red-700',
 }
 
-/** Rows in the recent-events list before "show all". */
 export const SYSTEM_EVENTS_PREVIEW = 6
 
-/** Most events derived for the list — the newest win. */
 export const SYSTEM_EVENTS_MAX = 30
 
-/** A scheduler succeeding on fewer of its recent runs than this is flagged. */
 export const SUCCESS_WARN_PERCENT = 90
 
-/** Service rows the skeleton draws before the first roster arrives. */
 export const SYSTEM_USAGE_SKELETON_ROWS = 6
 
 export const formatUsageDay = (date: string) => dayjs(date).format('MMM D')

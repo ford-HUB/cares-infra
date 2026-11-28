@@ -74,14 +74,7 @@ async def health() -> ApiResponse:
 
 @app.post("/api/v1/validate")
 async def validate(body: ValidateBody) -> ApiResponse:
-    """Judge every participant's recorded movement against the event's geofence.
-
-    Chronological analysis per volunteer: when they first entered the zone
-    (timeIn), when they left it for good (timeOut — breaks they came back from
-    are ignored, and with `live` an exit only counts once the departure buffer
-    has passed without a return), how long they were inside,
-    whether that meets the coverage / late-entry rules, and any GPS anomalies.
-    """
+    """Judge each participant's movement against the event geofence."""
     if not gps_engine.model_loaded:
         raise failure("GPS validator not ready", 503)
 

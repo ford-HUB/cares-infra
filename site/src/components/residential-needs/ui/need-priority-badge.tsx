@@ -11,7 +11,7 @@ interface NeedPriorityBadgeProps {
   className?: string
 }
 
-/** The priority word, tinted by band — the one place colour is spent on this screen. */
+/** The one place colour is spent on this screen. */
 export function NeedPriorityBadge({ priority, className }: NeedPriorityBadgeProps) {
   return (
     <Badge

@@ -9,7 +9,7 @@ import { LoginResponseSchema } from './auth-mobile-validator';
 export const DonorOAuthSchema = z
   .object({
     provider: z.enum(AuthProvider),
-    /** Google hands the client an ID token; Facebook an access token. */
+    /** Google: ID token; Facebook: access token. */
     token: z.string().trim().min(1),
   })
   .strict();
@@ -24,9 +24,9 @@ export const DonorOAuthProfileSchema = z.object({
 });
 
 export const DonorOAuthStatusSchema = z.enum([
-  /** The identity already maps to a CARES account — `session` carries the token. */
+  /** Known account; `session` carries the token. */
   'signed_in',
-  /** Verified, but new here — finish the donor form and post the ticket back. */
+  /** New: finish the donor form and post the ticket back. */
   'registration_required',
 ]);
 
@@ -34,7 +34,7 @@ export const DonorOAuthResponseSchema = z.object({
   status: DonorOAuthStatusSchema,
   session: LoginResponseSchema.nullable(),
   profile: DonorOAuthProfileSchema.nullable(),
-  /** Redis handle proving this profile was verified; spent by donor registration. */
+  /** Redis handle for the verified profile; spent by donor registration. */
   oauth_ticket: z.string().nullable(),
 });
 
@@ -51,10 +51,7 @@ export const RegisterDonorSchema = DonorDetailsSchema.extend({
   oauth_ticket: z.uuid(),
 }).strict();
 
-/**
- * Email + password donor sign-up. No provider vouches for the address here, so the
- * email must already have passed the shared OTP check (`/v1/auth/verify-otp`).
- */
+/** No provider vouches for the email, so it must pass `/v1/auth/verify-otp` first. */
 export const RegisterDonorWithEmailSchema = DonorDetailsSchema.extend({
   email: z.string().trim().email(),
   password: z.string().min(8),

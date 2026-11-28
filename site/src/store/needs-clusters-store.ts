@@ -5,23 +5,18 @@ import type { NeedsClusteringResult } from '../types/residential-needs'
 
 interface NeedsClustersState {
   result: NeedsClusteringResult | null
-  /** Groups to find — the toolbar's toggle. */
   k: number
-  /** Random start for k-means++; Re-run walks it forward. */
   seed: number
   loading: boolean
   error: string | null
-  /** Ticks per request so a reply that arrives after a newer request is dropped. */
+  /** Drops replies that arrive after a newer request. */
   requestId: number
   fetchClusters: () => Promise<void>
   setK: (k: number) => Promise<void>
   reseed: () => Promise<void>
 }
 
-/**
- * The Clusters screen's grouping, as decision-service returned it. The previous
- * result stays put while the next one is in flight so the cards do not flash.
- */
+/** Previous result stays while the next is in flight so cards don't flash. */
 export const useNeedsClustersStore = create<NeedsClustersState>((set, get) => ({
   result: null,
   k: CLUSTER_K_DEFAULT,

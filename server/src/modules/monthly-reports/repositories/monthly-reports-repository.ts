@@ -11,7 +11,7 @@ import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 export interface ListMonthlyReportsInput {
   status: MonthlyReportStatus | 'all';
   department: ReportDepartment | 'all';
-  /** `YYYY-MM`, or the literal `all` for every reporting period. */
+  /** `YYYY-MM`, or `all`. */
   period: string;
   limit: number;
 }
@@ -81,8 +81,7 @@ export class MonthlyReportsRepository {
       ...(input.period === 'all' ? {} : { period: input.period }),
     };
 
-    // Two independent reads, so they run concurrently rather than holding a
-    // transaction slot open — a capped read needs no atomicity.
+    // Concurrent reads; a capped read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.monthlyReport.findMany({
         where,
@@ -112,10 +111,7 @@ export class MonthlyReportsRepository {
     });
   }
 
-  /**
-   * The highest reference issued this year. References read `MR-2026-014`, so the
-   * sequence restarts each January and the caller only has to add one.
-   */
+  /** `MR-2026-014`: sequence restarts yearly. */
   async highestReferenceSequence(year: number): Promise<number> {
     const latest = await this.prisma.monthlyReport.findFirst({
       where: { reference: { startsWith: `MR-${year}-` } },
@@ -129,7 +125,7 @@ export class MonthlyReportsRepository {
     return Number.isFinite(sequence) ? sequence : 0;
   }
 
-  /** The submission and its opening trail entry land together — one is meaningless without the other. */
+  /** Written together with its opening trail entry. */
   async createReport(
     input: CreateMonthlyReportInput,
   ): Promise<MonthlyReportRow> {
@@ -181,10 +177,7 @@ export class MonthlyReportsRepository {
     });
   }
 
-  /**
-   * Decision and trail entry are one write: the board must never show a report as
-   * approved with nothing in its history saying who approved it.
-   */
+  /** Decision and trail entry in one write. */
   async decideReport(
     id: string,
     input: DecideMonthlyReportInput,
@@ -257,18 +250,14 @@ export class MonthlyReportsRepository {
     });
   }
 
-  /**
-   * Deleting a folder only empties the shelf: the reports it held fall back to their
-   * college folder, which is derived, so nothing filed is lost with it. The schema's
-   * `SetNull` does the falling back.
-   */
+  /** Reports fall back to their derived college folder via the schema's `SetNull`. */
   async deleteFolder(id: string): Promise<void> {
     await this.prisma.monthlyReportFolder.delete({
       where: { monthly_report_folder_id: id },
     });
   }
 
-  /** The JWT carries no name, so a snapshot is read here rather than trusted from the body. */
+  /** Read from DB: the JWT carries no name. */
   async findUser(userId: string) {
     return this.prisma.user.findUnique({
       where: { user_id: userId },

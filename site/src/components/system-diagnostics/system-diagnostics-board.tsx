@@ -16,11 +16,7 @@ interface SystemDiagnosticsBoardProps {
 
 const RANK = { fail: 0, warn: 1, ok: 2 } as const
 
-/**
- * Every probe, grouped by what it watches, with the failing ones lifted to the top
- * of their group. A group card carries its worst status in its header so the eye
- * lands on the broken area before reading a single row.
- */
+/** Failing probes rise to the top of their group; each card header shows its worst status. */
 export function SystemDiagnosticsBoard({ checks }: SystemDiagnosticsBoardProps) {
   const grouped = new Map<DiagnosticGroup, DiagnosticCheck[]>()
   for (const check of checks) {

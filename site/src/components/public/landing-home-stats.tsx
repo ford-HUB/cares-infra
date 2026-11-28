@@ -35,7 +35,6 @@ const BENEFICIARY_TOTAL = LANDING_BENEFICIARY_GROUPS.reduce(
 const share = (count: number, total: number) =>
   total === 0 ? 0 : count / total;
 
-/** Five stars filled to `value`, with partial fill on the last one. */
 function StarRow({ value }: { value: number }) {
   return (
     <div className="flex gap-0.5" aria-hidden>

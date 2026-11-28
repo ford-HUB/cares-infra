@@ -1,11 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Remembers that this install has already been through the leading story,
-/// so it plays once on a fresh install and later launches land on login.
-///
-/// Best-effort like [SessionStorage]: preferences that cannot be read count
-/// as "not seen", which only means the story plays again.
+/// Plays once per install; unreadable preferences count as not seen.
 class LeadingStoryStorage {
   LeadingStoryStorage._();
 

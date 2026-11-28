@@ -1,4 +1,4 @@
-/** Folders the portal exposes; the server maps each onto a Gmail system label. */
+/** Mapped server-side onto Gmail system labels. */
 export type MailFolder = 'inbox' | 'starred' | 'sent' | 'drafts' | 'spam' | 'trash'
 
 export interface MailboxConnection {
@@ -30,15 +30,14 @@ export interface MailSummary {
 
 export interface MailDetail extends MailSummary {
   cc: string[]
-  /** Sanitised server-side; still rendered inside a sandboxed frame. */
+  /** Sanitised server-side; still rendered in a sandboxed frame. */
   bodyHtml: string | null
   bodyText: string
-  /** RFC `Message-ID` of the original, needed so a reply threads correctly. */
+  /** Needed so a reply threads correctly. */
   messageIdHeader: string | null
   attachments: MailAttachment[]
 }
 
-/** One entry in the composer's recipient suggestions. */
 export interface MailContact {
   name: string
   email: string
@@ -66,10 +65,7 @@ export interface SendMailPayload {
   inReplyTo?: string
 }
 
-/**
- * `notConnected` separates "the admin has not linked Google yet" from a genuine
- * failure, so the page can show the connect screen instead of an error banner.
- */
+/** `notConnected` separates "Google not linked" from a real failure. */
 export interface MailboxResult<T> {
   success: boolean
   message?: string

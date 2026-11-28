@@ -22,19 +22,14 @@ import { AttendeesTableSkeleton } from './ui/attendees-table-skeleton'
 interface AttendeesTableProps {
   attendees: EventAttendee[]
   loading: boolean
-  /** False until the first fetch settles — see `attendee-store`. */
   initialized: boolean
   page: number
   onPageChange: (page: number) => void
   onView: (attendee: EventAttendee) => void
-  /**
-   * Set only for accounts that may mark attendance by hand — the checkbox column is
-   * drawn when present. Rows that cannot be marked (event not over, or already
-   * completed) show a disabled box.
-   */
+  /** Only for accounts allowed to mark attendance; unmarkable rows show a disabled box. */
   selection?: {
     selectedIds: ReadonlySet<string>
-    /** Markable rows across the whole filtered list, not just this page. */
+    /** Across the whole filtered list, not just this page. */
     markableCount: number
     onToggle: (attendee: EventAttendee) => void
     onToggleAll: () => void
@@ -70,10 +65,7 @@ function SelectAllCheckbox({
   )
 }
 
-/**
- * "7:21 AM – 4:58 PM". The time out stays a dash while the volunteer is still in the
- * zone or out on a break the server has not yet settled (under an hour mid-event).
- */
+/** Time out stays a dash while in zone or on an unsettled break (< 1h mid-event). */
 function TimeInOut({ attendee }: { attendee: EventAttendee }) {
   if (!attendee.checkedInAt) return <span className="text-gray-400">—</span>
   return (
@@ -113,8 +105,7 @@ export function AttendeesTable({
     ATTENDEE_HEADER_HEIGHT_PX,
   )
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refilters keep existing rows on screen.
   const showSkeleton = !initialized || (loading && attendees.length === 0)
 
   const totalPages = Math.max(1, Math.ceil(attendees.length / rowsPerPage))

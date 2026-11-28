@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors `ReportSubmissionList` rows — same four lines, same heights. */
 export function ReportSubmissionListSkeleton({ rows = 5 }: { rows?: number }) {
   return (
     <div aria-hidden>

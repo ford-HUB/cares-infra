@@ -4,14 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Event photos for a card header. One image is static; two or more cross-
-/// fade to the next every [interval] and loop, with a dot strip showing the
-/// position. A tap skips ahead; a finger held on the photo pauses the loop.
-/// The URLs point at the server's private image stream, so every request
-/// carries the session's bearer token.
-///
-/// Renders [placeholder] when there are no images so callers keep their
-/// category-tinted fallback.
+/// Two or more images cross-fade every [interval]; a tap skips, holding pauses.
+/// URLs are the private stream, so requests carry the bearer token.
+/// [placeholder] shows when there are none.
 class EventImageCarousel extends StatefulWidget {
   const EventImageCarousel({
     super.key,
@@ -27,10 +22,8 @@ class EventImageCarousel extends StatefulWidget {
   /// Fixed height, or null to fill whatever the parent gives (a hero).
   final double? height;
 
-  /// How long each image stays before it fades to the next one.
   final Duration interval;
 
-  /// Length of the cross-fade between two photos.
   static const fadeDuration = Duration(milliseconds: 900);
 
   @override

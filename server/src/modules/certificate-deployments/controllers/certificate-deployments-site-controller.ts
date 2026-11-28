@@ -26,11 +26,7 @@ import {
   UpdateDeploymentStatusSchema,
 } from '../validators/certificate-deployments-site-validator';
 
-/**
- * The live certificates page. Coordinators running an event need to see what is going
- * out, so reading is open to the portal roles; deploying and holding a deployment are
- * the director's call.
- */
+/** Readable by portal roles; deploy and hold are director-only. */
 @Controller('v1/certificate-deployments')
 @Roles(...PORTAL_ROLE_TYPES)
 export class CertificateDeploymentsSiteController {

@@ -11,18 +11,14 @@ interface CoreLoadGridProps {
   cores: CpuCore[]
 }
 
-/** The one place a reading is coloured by state — a pinned core is the alarm. */
+/** The one place a reading is coloured by state: a pinned core is the alarm. */
 const CORE_FILL: Record<HealthState, string> = {
   healthy: 'bg-emerald-500',
   strained: 'bg-amber-500',
   critical: 'bg-red-500',
 }
 
-/**
- * Per-core load as vertical meters. The host average hides the case that actually
- * hurts — one core pinned at 98 % while seven idle — so the cores are drawn
- * individually and the average is left to the banner.
- */
+/** Drawn per core because the host average hides one core pinned while others idle. */
 export function CoreLoadGrid({ cores }: CoreLoadGridProps) {
   return (
     <div>

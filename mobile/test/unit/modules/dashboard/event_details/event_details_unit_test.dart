@@ -1,5 +1,5 @@
-// Unit tests for the event details screen (EventDetailsScreen) — everything it
-// reads, derives and sends, minus the screen shell itself:
+// Unit tests for what EventDetailsScreen reads, derives and sends (local
+// fixtures, MockClient):
 //
 //   CaresEvent                     labels, start/end time, phase, slots, flags
 //   RecommendedEvent.toCaresEvent  how a server row becomes the details model
@@ -8,9 +8,6 @@
 //   DELETE /v1/events/:id/register EventRegistrationService.cancel    (Cancel)
 //   event_details_widgets.dart     info card, register bar, members row,
 //                                  organizer row, action card, banners
-//
-// Every event here is a local fixture and the network is replaced with
-// package:http's MockClient, so nothing reaches a real server.
 
 import 'dart:convert';
 
@@ -35,10 +32,6 @@ const _origin = 'http://api.test';
 // UCLM main campus, Mandaue — the venue every fixture sits at.
 const _venueLat = 10.3297;
 const _venueLng = 123.9496;
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 CaresEvent _event({
   String id = 'event-42',
@@ -164,10 +157,6 @@ Map<String, dynamic> _serverRow({
   };
 }
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 class _Recorder {
   _Recorder(this.reply);
 
@@ -195,10 +184,6 @@ http.Response _json(int status, Map<String, dynamic> body) => http.Response(
 http.Response _ok(Map<String, dynamic> data) =>
     _json(200, {'ok': true, 'message': 'OK', 'data': data});
 
-// ---------------------------------------------------------------------------
-// Widget harness
-// ---------------------------------------------------------------------------
-
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
   MaterialApp(
     home: Scaffold(
@@ -225,10 +210,6 @@ void main() {
     AuthSession.clear();
     AuthSession.onSessionEnded = null;
   });
-
-  // -------------------------------------------------------------------------
-  // CaresEvent — what the details screen reads
-  // -------------------------------------------------------------------------
 
   group('CaresEvent date and time labels', () {
     test('formats the date every way the details screen shows it', () {
@@ -502,10 +483,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Server row → details model
-  // -------------------------------------------------------------------------
-
   group('RecommendedEvent.toCaresEvent (server row → details)', () {
     test('maps the identity, schedule and numbers', () {
       final event = RecommendedEvent.fromJson(_serverRow()).toCaresEvent();
@@ -624,10 +601,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Participation role dropdown
-  // -------------------------------------------------------------------------
-
   group('EventParticipationRole', () {
     test('only Regular is confirmed without a review', () {
       expect(EventParticipationRole.regular.requiresApproval, isFalse);
@@ -654,10 +627,6 @@ void main() {
       expect(EventRoleApproval.fromApi('MAYBE'), isNull);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Join / cancel
-  // -------------------------------------------------------------------------
 
   group('POST /events/:id/register (Join)', () {
     test('sends the picked role and parses the fresh slot numbers', () async {
@@ -820,10 +789,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Details widgets
-  // -------------------------------------------------------------------------
-
   group('EventInfoCard', () {
     testWidgets('shows the long date, time and venue', (tester) async {
       await _pump(tester, EventInfoCard(event: _event(date: DateTime(2099, 3, 14))));
@@ -950,8 +915,7 @@ void main() {
       await _pump(tester, const EventMembersRow(count: 1003, capacity: 2000));
       expect(_rich('1k Members are joined:'), findsOneWidget);
 
-      // From 10k up it rounds to a whole number. (The `_compact` doc comment
-      // says 15700 → "15.7k"; the code gives "16k".)
+      // From 10k up it rounds to a whole number.
       await _pump(tester, const EventMembersRow(count: 15700, capacity: 20000));
       expect(_rich('16k Members are joined:'), findsOneWidget);
       expect(find.text('+16k'), findsOneWidget);

@@ -4,19 +4,15 @@ import type { Household } from '../types/residential-needs'
 
 interface ResidentialNeedsState {
   households: Household[]
-  /** True once the first fetch came back — until then there is nothing to show. */
   loaded: boolean
   loading: boolean
   error: string | null
-  /** Ticks per request so a reply that arrives after a newer request is dropped. */
+  /** Drops replies that arrive after a newer request. */
   requestId: number
   fetchHouseholds: () => Promise<void>
 }
 
-/**
- * The submitted Needs Assessment Surveys every Residential Needs screen reads.
- * A refetch keeps the current rows on screen until the new ones arrive.
- */
+/** Refetch keeps current rows until new ones arrive. */
 export const useResidentialNeedsStore = create<ResidentialNeedsState>((set, get) => ({
   households: [],
   loaded: false,

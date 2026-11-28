@@ -6,7 +6,7 @@ interface ClusterSwatchProps {
   className?: string
 }
 
-/** The dot that identifies a cluster wherever it appears — the same hue as its scatter points. */
+/** Same hue as the cluster's scatter points. */
 export function ClusterSwatch({ index, className }: ClusterSwatchProps) {
   return (
     <span

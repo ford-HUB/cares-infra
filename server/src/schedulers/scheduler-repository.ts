@@ -11,16 +11,11 @@ import { PrismaService } from '../infastructures/prisma/prisma-service';
 import { DEPARTMENT_ALIASES } from '../shared/constants/departments';
 import { PORTAL_ROLE_TYPES } from '../shared/constants/portal-role-types';
 
-/**
- * The reads the sweeps need across other modules' tables. Kept here rather than in
- * each feature's repository because the questions are the scheduler's ("what starts
- * in the next two hours?"), not the feature's, and no request handler asks them.
- */
+/** Cross-module reads that only the sweeps ask. */
 @Injectable()
 export class SchedulerRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Upcoming events whose start falls inside the window. */
   async findEventsStartingBetween(from: Date, to: Date) {
     return this.prisma.event.findMany({
       where: {
@@ -36,11 +31,7 @@ export class SchedulerRepository {
     });
   }
 
-  /**
-   * Coordinators of one college, matched against every spelling the profile might
-   * carry. Null department means the event is for everyone.
-   */
-  /** Volunteers still expected at the event — registered and not yet ruled on. */
+  /** Registered and not yet ruled on. */
   async findRegisteredVolunteerIds(eventId: number): Promise<string[]> {
     const rows = await this.prisma.eventAttendance.findMany({
       where: { event_id: eventId, status: AttendanceStatus.PENDING },
@@ -49,12 +40,7 @@ export class SchedulerRepository {
     return rows.map((row) => row.user_id);
   }
 
-  /**
-   * Everyone on the app side with a stake in one event: volunteers registered
-   * for it, beneficiaries whose application was accepted, and donors with a
-   * donation still in play. Ruled-on attendance is kept — a volunteer who was
-   * marked present still wants to hear the event was changed afterwards.
-   */
+  /** Registered volunteers, accepted beneficiaries, donors with a live donation. Ruled attendance included. */
   async findEventParticipantIds(eventId: number): Promise<{
     volunteers: string[];
     beneficiaries: string[];
@@ -89,7 +75,6 @@ export class SchedulerRepository {
     };
   }
 
-  /** Beneficiaries whose application to the event was accepted. */
   async findAcceptedBeneficiaryIds(eventId: number): Promise<string[]> {
     const rows = await this.prisma.userRequest.findMany({
       where: { event_id: eventId, kind: 'EVENT_JOIN', status: 'ACCEPTED' },
@@ -115,7 +100,7 @@ export class SchedulerRepository {
     return users.map((user) => user.user_id);
   }
 
-  /** Which colleges have filed a report for the period, whatever its review state. */
+  /** Any review state. */
   async findDepartmentsReportedFor(
     period: string,
   ): Promise<ReportDepartment[]> {
@@ -127,7 +112,6 @@ export class SchedulerRepository {
     return rows.map((row) => row.department);
   }
 
-  /** Administrator-issued credentials that lapse inside the window. */
   async findCredentialsExpiringBetween(from: Date, to: Date) {
     return this.prisma.account.findMany({
       where: {
@@ -144,10 +128,7 @@ export class SchedulerRepository {
     });
   }
 
-  /**
-   * Portal users with unread notices worth a morning email, and the notices. Info-tone
-   * rows are left out: they are the feed's ambient chatter, not something to chase.
-   */
+  /** Info-tone rows excluded. */
   async findUnreadDigests(since: Date) {
     const accounts = await this.prisma.account.findMany({
       where: {

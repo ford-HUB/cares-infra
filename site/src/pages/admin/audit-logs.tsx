@@ -34,11 +34,7 @@ export function AuditLogsPage() {
   const [range, setRange] = useState<AuditLogRange>(AUDIT_DEFAULT_RANGE)
   const [selected, setSelected] = useState<AuditLogEntry | null>(null)
 
-  /**
-   * Every filter — search included — narrows on the server: the grid only ever holds
-   * the pages scrolled so far, so filtering what is loaded would silently skip the
-   * rest of the trail.
-   */
+  /** Filters run server-side; the grid only holds scrolled pages. */
   useEffect(() => {
     const timer = setTimeout(
       () => setDebouncedSearch(search.trim()),
@@ -51,7 +47,7 @@ export function AuditLogsPage() {
     void fetchLogs({ search: debouncedSearch, category, severity, outcome, range })
   }, [fetchLogs, debouncedSearch, category, severity, outcome, range])
 
-  // Stable, so the scroll observer is not torn down and rebuilt on every render.
+  // Stable so the scroll observer isn't rebuilt every render.
   const handleLoadMore = useCallback(() => void loadMore(), [loadMore])
 
   const criticalCount = logs.filter((entry) => entry.severity === 'critical').length
@@ -78,11 +74,7 @@ export function AuditLogsPage() {
         onExport={() => exportAuditLogsCsv(logs)}
       />
 
-      {/*
-        A failed fetch leaves `logs` empty, which the table would otherwise render as
-        "no entries match the current filters" — a filter problem, not the outage it
-        actually is. Say which one it is.
-      */}
+      {/* Distinguish a failed fetch from an empty filter result. */}
       {error && (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

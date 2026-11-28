@@ -5,8 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Bake the sentence-embedding weights into the image so a fresh container never
-# reaches out to the Hugging Face hub at boot.
+# Bake model weights in so boot never hits the Hugging Face hub.
 ARG MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
 ENV MODEL_NAME=${MODEL_NAME}
 ENV HF_HOME=/app/models

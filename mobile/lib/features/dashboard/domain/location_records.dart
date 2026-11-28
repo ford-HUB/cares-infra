@@ -1,9 +1,3 @@
-/// Geolocation records kept on the device for attendance validation.
-///
-/// Fixes are recorded by `EventLocationTracker` once a second while
-/// recording is activated. Online they go straight to the server; offline
-/// they are stored in SQLite and synced as one CSV per event once the
-/// connection is back. The Records screens group those SQLite rows by day.
 enum LocationRecordSyncState { synced, pending, uploading }
 
 extension LocationRecordSyncStateX on LocationRecordSyncState {
@@ -14,7 +8,6 @@ extension LocationRecordSyncStateX on LocationRecordSyncState {
   };
 }
 
-/// One row inside a daily CSV: a single coordinate capture.
 class LocationCapture {
   const LocationCapture({
     required this.time,
@@ -31,7 +24,6 @@ class LocationCapture {
   final bool inArea;
 }
 
-/// One calendar day of captures.
 class LocationRecordFile {
   const LocationRecordFile({
     required this.date,
@@ -44,13 +36,12 @@ class LocationRecordFile {
 
   final DateTime date;
 
-  /// Title(s) of the event(s) recorded that day, joined with " · ".
+  /// Joined with " · " when several.
   final String eventTitle;
   final int captureCount;
   final int pendingCount;
 
-  /// Estimated size of the day's rows as they upload (see
-  /// [LocationRecords.bytesPerCapture]).
+  /// Estimated via [LocationRecords.bytesPerCapture].
   final double sizeKb;
   final LocationRecordSyncState syncState;
 
@@ -71,14 +62,12 @@ class LocationRecordFile {
 abstract final class LocationRecords {
   static const retentionDays = 30;
 
-  /// Columns of the per-event CSV the server ingests; `time` is an ISO-8601
-  /// UTC timestamp.
+  /// The server's CSV columns; `time` is ISO-8601 UTC.
   static const csvHeader = 'time,latitude,longitude,accuracy_m,in_area';
 
   /// Rough bytes of one CSV line, for the size shown on the Records screens.
   static const bytesPerCapture = 40;
 
-  /// How often a fix is written while an event window is open.
   static const captureInterval = Duration(seconds: 1);
 
   static String dayKeyFor(DateTime d) {

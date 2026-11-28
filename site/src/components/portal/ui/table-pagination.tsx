@@ -6,7 +6,7 @@ interface TablePaginationProps {
   onPageChange: (page: number) => void
 }
 
-/** Windows the page numbers around the current page so a long list stays one row. */
+/** Windows page numbers around the current page so they fit one row. */
 function pageItems(current: number, total: number): (number | 'gap')[] {
   if (total <= 7) {
     return Array.from({ length: total }, (_, index) => index + 1)

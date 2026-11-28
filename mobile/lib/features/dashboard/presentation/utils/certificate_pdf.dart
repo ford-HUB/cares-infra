@@ -11,21 +11,16 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/certificate_data.dart';
 
-/// Pixels across the long edge of the rasterised sheet — 300dpi on an 11in
-/// sheet, so the PDF prints as sharply as the portal's own export would.
+/// 300dpi on an 11in sheet.
 const _targetPixelsWide = 3300.0;
 
-/// The sheet as printed: US Letter in the certificate's orientation, in
-/// PDF points, matching the 792pt width the portal sizes type against.
+/// US Letter in PDF points, matching the portal's 792pt type width.
 PdfPageFormat _pageFormat(CaresCertificate certificate) =>
     certificate.isLandscape
     ? const PdfPageFormat(792, 594)
     : const PdfPageFormat(594, 792);
 
-/// Turns the sheet drawn under [boundaryKey] into a one-page PDF that looks
-/// exactly like the preview: the rendered pixels are captured at print
-/// resolution and laid on a page of the sheet's own proportions, edge to
-/// edge, so nothing is re-flowed or re-typeset on the way out.
+/// Captures the rendered pixels at print resolution, so nothing is re-flowed.
 Future<File> exportCertificatePdf({
   required GlobalKey boundaryKey,
   required CaresCertificate certificate,
@@ -72,9 +67,8 @@ Future<File> exportCertificatePdf({
   return file;
 }
 
-/// Where the PDF is kept on the device: the app's Downloads folder on
-/// Android (visible in Files under Android/data), the documents folder
-/// elsewhere. The file stays there whether or not the share sheet is used.
+/// App Downloads on Android (Files under Android/data), documents elsewhere;
+/// kept whether or not it is shared.
 Future<Directory> _downloadsDirectory() async {
   if (Platform.isAndroid) {
     final downloads = await getDownloadsDirectory();
@@ -83,10 +77,8 @@ Future<Directory> _downloadsDirectory() async {
   return getApplicationDocumentsDirectory();
 }
 
-/// Hands the PDF to the system share sheet — Save to Files / Drive, or send
-/// it on. Returns false when the share plugin is not in this build (the app
-/// was hot-reloaded after the dependency was added and needs a full rebuild);
-/// the file is already saved, so the caller can point at it instead.
+/// False when the share plugin isn't in this build (hot reload after adding
+/// it); the file is already saved.
 Future<bool> shareCertificatePdf(
   File file,
   CaresCertificate certificate,

@@ -36,9 +36,7 @@ export function EventAttendeesPage() {
   const [checkedIds, setCheckedIds] = useState<ReadonlySet<string>>(() => new Set())
   const [confirmingManual, setConfirmingManual] = useState(false)
 
-  // A coordinator sees only the volunteers on their own college's events. Until the
-  // profile has loaded the department is unknown, so the roster stays empty rather
-  // than flashing the whole school's list.
+  // Coordinator: own college only; empty until the profile loads.
   const isCoordinator = usePortalRole() === 'coordinator'
   const canExport = usePermission(PORTAL_PERMISSION.ATTENDANCE_EXPORT)
   const exportSuspension = useSuspension(PORTAL_PERMISSION.ATTENDANCE_EXPORT)
@@ -60,8 +58,6 @@ export function EventAttendeesPage() {
     [isCoordinator, profileDepartment, roster],
   )
 
-  // The picker is derived from the roster itself, so an event can never be selected
-  // that has nobody on it — soonest event first, past events after.
   const events = useMemo<AttendeeEventOption[]>(() => {
     const byId = new Map<number, AttendeeEventOption>()
     attendees.forEach((attendee) => {
@@ -103,8 +99,7 @@ export function EventAttendeesPage() {
     })
   }, [inSelectedEvent, search, statusFilter])
 
-  // Ticks only ever cover rows still visible and still markable, so a filter change
-  // or a completed ruling can't leave a hidden row selected.
+  // Only visible, markable rows, so filters can't leave hidden rows selected.
   const markable = useMemo(
     () => filtered.filter((attendee) => isManuallyMarkable(attendee)),
     [filtered],

@@ -10,14 +10,7 @@ interface DonationProgressStepsProps {
   status: DonationStatus
 }
 
-/**
- * The ladder for this donation's kind, with everything up to the current rung filled
- * in. Goods show four steps (the drop-off leg included), money three — the flow itself
- * comes from `DONATION_FLOW` so the two never drift apart.
- *
- * A declined donation left the ladder, so it renders as a single terminal note
- * instead of a half-filled track that implies it is still moving.
- */
+/** Steps come from `DONATION_FLOW`; a declined donation renders as one terminal note. */
 export function DonationProgressSteps({ kind, status }: DonationProgressStepsProps) {
   if (status === 'declined' || status === 'cancelled') {
     return (

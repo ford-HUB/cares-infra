@@ -7,10 +7,7 @@ import {
 import { SESSION_ACTIVE_NOW_MS } from '../constants/active-sessions'
 import type { ActiveSession, ActiveSessionsFilters } from '../types/active-session'
 
-/**
- * Devices used inside the touch window, counted when a page lands rather than during
- * render — a count read off the clock mid-render would differ between renders.
- */
+/** Counted when a page lands, not during render, so renders agree. */
 function countActiveNow(sessions: ActiveSession[]): number {
   const since = Date.now() - SESSION_ACTIVE_NOW_MS
   return sessions.filter(
@@ -27,38 +24,23 @@ interface RevokeOutcome {
 interface ActiveSessionsState {
   sessions: ActiveSession[]
   total: number
-  /** Of the loaded devices, how many were used recently — see `countActiveNow`. */
   activeNow: number
-  /** Filters the loaded pages belong to — `loadMore` repeats them for the next page. */
   filters: ActiveSessionsFilters
-  /** Undefined once the list is exhausted; the scroll stops asking for more. */
   nextCursor?: string
-  /** First page of a filter set — the grid shows skeleton rows. */
   loading: boolean
-  /** A follow-up page — the grid keeps its rows and shows a footer spinner. */
   loadingMore: boolean
-  /**
-   * False until the first fetch settles. Without it, the mount render — where
-   * `loading` is still false and `sessions` is still empty — is indistinguishable from
-   * a finished fetch that returned nothing, and the table flashes its empty state.
-   */
+  /** Distinguishes the mount render from an empty result, so the empty state doesn't flash. */
   initialized: boolean
-  /** The session or account currently being revoked, so only its rows look pending. */
   revoking: string | null
   error: string | null
-  /** Loads page one and replaces whatever was on screen. */
   fetchSessions: (filters?: ActiveSessionsFilters) => Promise<void>
-  /** Appends the next page. A no-op while a page is in flight or the list has ended. */
   loadMore: () => Promise<void>
   revoke: (sessionId: string) => Promise<RevokeOutcome>
   revokeForUser: (userId: string, keepCurrent?: boolean) => Promise<RevokeOutcome>
 }
 
 export const useActiveSessionsStore = create<ActiveSessionsState>((set, get) => {
-  /**
-   * Drops the rows the server just ended, so the grid settles immediately instead of
-   * waiting out a refetch — which, mid-scroll, would also throw away the loaded pages.
-   */
+  /** Drop locally: a mid-scroll refetch would discard loaded pages. */
   const dropSessions = (gone: (session: ActiveSession) => boolean) => {
     const remaining = get().sessions.filter((session) => !gone(session))
     const removed = get().sessions.length - remaining.length
@@ -86,8 +68,7 @@ export const useActiveSessionsStore = create<ActiveSessionsState>((set, get) => 
       set({ loading: true, error: null, filters })
       const res = await listActiveSessions(filters)
 
-      // A filter change that lands while an older fetch is still in flight would
-      // otherwise overwrite the newer result set with stale rows.
+      // Drop stale results from an older filter set.
       if (get().filters !== filters) return
 
       if (res.success) {

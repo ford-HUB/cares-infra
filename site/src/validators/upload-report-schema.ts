@@ -5,13 +5,12 @@ import {
   REPORT_TITLE_MAX_LENGTH,
 } from '../constants/monthly-report'
 
-/** `2026-08` — what a `<input type="month">` yields and what the server expects. */
+/** `2026-08`, from `<input type="month">`, as the server expects. */
 const reportPeriodSchema = z
   .string()
   .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Pick the reporting month')
 
-// The inputs register with `valueAsNumber`, so no coercion here — `z.coerce` would
-// widen the form's input type to `unknown`. An empty field arrives as NaN.
+// `valueAsNumber` inputs (empty is NaN); `z.coerce` would widen the input type to `unknown`.
 const countSchema = z
   .number({ message: 'Enter a whole number' })
   .int('Enter a whole number')
@@ -41,8 +40,7 @@ export const uploadReportSchema = z.object({
   }),
 })
 
-// Attachments are not part of the schema: they live on the upload page as files
-// being read, with their own progress and errors — see `useUploadReportForm`.
+// Attachments live outside the schema; see `useUploadReportForm`.
 
 export type UploadReportFormValues = z.infer<typeof uploadReportSchema>
 

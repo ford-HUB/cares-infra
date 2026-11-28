@@ -1,20 +1,14 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// Mapbox credentials for the event route map, read from `mobile/.env`.
-///
-/// Optional at build time: without a valid token the map falls back to
-/// Geoapify (see `GeoapifyConfig`), then OpenStreetMap.
 class MapboxConfig {
   MapboxConfig._();
 
-  /// `PUB_MAPBOX_TOKEN` is the public (`pk.`) token meant for the bundled
-  /// app; `MAPBOX_TOKEN` is accepted as a legacy fallback.
+  /// `MAPBOX_TOKEN` is a legacy fallback.
   static String get accessToken =>
       (dotenv.env['PUB_MAPBOX_TOKEN'] ?? dotenv.env['MAPBOX_TOKEN'])?.trim() ??
       '';
 
-  /// Mapbox only accepts `pk.`/`sk.`-prefixed tokens; anything else gets a
-  /// 401 and a blank map, so it is treated as unconfigured.
+  /// Mapbox 401s (blank map) on tokens without a `pk.`/`sk.` prefix.
   static bool get isConfigured =>
       accessToken.startsWith('pk.') || accessToken.startsWith('sk.');
 

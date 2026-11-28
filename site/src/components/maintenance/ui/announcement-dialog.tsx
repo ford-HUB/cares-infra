@@ -33,7 +33,7 @@ import type {
 } from '../../../types/maintenance'
 
 interface AnnouncementDialogProps {
-  /** `null` keeps the dialog closed; an announcement without an id is a new one. */
+  /** `null` keeps it closed; no id means a new announcement. */
   announcement: Announcement | null
   saving: boolean
   onClose: () => void
@@ -45,11 +45,7 @@ const TONES: AnnouncementTone[] = ['info', 'warning', 'critical']
 const toLocalInput = (iso: string | null) =>
   iso ? dayjs(iso).format('YYYY-MM-DDTHH:mm') : ''
 
-/**
- * Writing the notice. Audience and channel are separate choices on purpose — the same
- * words go to volunteers by push and to staff on the portal banner, and picking one
- * should never silently pick the other.
- */
+/** Audience and channel are separate on purpose; picking one must never imply the other. */
 export function AnnouncementDialog({
   announcement,
   saving,

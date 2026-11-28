@@ -3,13 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 
-/// Largest registration document the server accepts — kept in step with
-/// `REGISTRATION_DOCUMENT_MAX_BYTES`.
+/// Matches the server's `REGISTRATION_DOCUMENT_MAX_BYTES`.
 const int kRegistrationDocumentMaxBytes = 10 * 1024 * 1024;
 
-/// A required file of any type attached to a sign-up a director reviews — a
-/// beneficiary's supporting document, an alumnus's Certificate of Graduation.
-/// The pick is held by the flow and uploaded when the step is left.
+/// Held by the flow and uploaded when the step is left.
 class RegistrationDocumentCard extends StatefulWidget {
   const RegistrationDocumentCard({
     super.key,
@@ -21,10 +18,9 @@ class RegistrationDocumentCard extends StatefulWidget {
 
   final String title;
 
-  /// What to attach; the accepted types and size limit are appended.
+  /// Accepted types and size limit are appended.
   final String description;
 
-  /// The picked file; null until one is chosen.
   final PlatformFile? document;
   final ValueChanged<PlatformFile?> onChanged;
 

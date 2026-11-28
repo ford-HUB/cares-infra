@@ -5,7 +5,7 @@ import {
   UpdateSecurityPolicySchema,
 } from '../validators/security-policy-site-validator';
 
-/** The settings themselves, without the audit fields the response carries. */
+/** Without audit fields. */
 export type SecurityPolicyValuesDto = z.infer<typeof SecurityPolicySchema>;
 export type UpdateSecurityPolicyDto = z.infer<
   typeof UpdateSecurityPolicySchema

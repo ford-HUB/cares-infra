@@ -16,16 +16,15 @@ interface ManageUsersToolbarProps {
   shown: number
   total: number
   active: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0 users". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onRoleChange: (value: string) => void
   onStatusChange: (value: UserStatusFilter) => void
-  /** Omitted when the account lacks the export right — the button is not drawn. */
+  /** Omitted without the export right. */
   onExport?: () => void
-  /** Set when the export right is suspended — the button is drawn locked instead. */
+  /** Set when export is suspended; draws the button locked. */
   exportSuspension?: SessionSuspension
-  /** Undefined for a caller who cannot provision accounts — the button is then hidden. */
+  /** Omitted without the provision right. */
   onAddUser?: () => void
 }
 

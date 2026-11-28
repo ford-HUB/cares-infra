@@ -5,7 +5,6 @@ import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/features/dashboard/data/assistance_request_service.dart';
 import 'package:mobile/features/dashboard/data/needs_assessment_service.dart';
 
-/// Lifecycle of a beneficiary assistance request.
 enum AssistanceRequestStatus {
   pending,
   underReview,
@@ -25,13 +24,11 @@ extension AssistanceRequestStatusX on AssistanceRequestStatus {
     AssistanceRequestStatus.cancelled => 'Cancelled',
   };
 
-  /// Pending and under-review requests are the beneficiary's current ones.
   bool get isCurrent =>
       this == AssistanceRequestStatus.pending ||
       this == AssistanceRequestStatus.underReview;
 }
 
-/// Where the household stands in the CARES needs assessment.
 enum NeedsAssessmentStatus { notStarted, scheduled, inProgress, completed }
 
 extension NeedsAssessmentStatusX on NeedsAssessmentStatus {
@@ -43,7 +40,6 @@ extension NeedsAssessmentStatusX on NeedsAssessmentStatus {
   };
 }
 
-/// One step in a request's progress trail.
 class RequestTimelineEntry {
   const RequestTimelineEntry({
     required this.label,
@@ -58,9 +54,7 @@ class RequestTimelineEntry {
   final String? note;
 }
 
-/// A proof / supporting document attached to a request (ID, bill, medical
-/// certificate, photo of damage, ...). [path] is the local file while the
-/// form is being filled in, and the stored file's URL once it is filed.
+/// [path] is a local file while drafting, the stored file's URL once filed.
 class RequestAttachment {
   const RequestAttachment({
     required this.name,
@@ -132,22 +126,18 @@ class AssistanceRequest {
   final List<RequestTimelineEntry> timeline;
   final String? statusNote;
 
-  /// Proof documents the beneficiary attached when filing.
   final List<RequestAttachment> attachments;
 
-  /// Where the assistance is needed, pinned on the form's map.
   final LatLng? location;
 
-  /// Landmark or address details typed beside the pin.
   final String? locationDetails;
 
-  /// The server's call: true until the relief desk starts screening it.
+  /// Server-decided: true until the relief desk starts screening.
   final bool canEdit;
 
-  /// The server's call: true until it is completed, declined, or cancelled.
+  /// Server-decided: true until completed, declined or cancelled.
   final bool canCancel;
 
-  /// Why the beneficiary withdrew it, when they said.
   final String? cancelReason;
 
   String get submittedOnLabel => formatRequestDate(submittedOn);
@@ -178,8 +168,7 @@ String formatRequestDate(DateTime date) {
   return '${months[date.month - 1]} ${date.day}, ${date.year}';
 }
 
-/// Assistance categories on the Request Assistance form, keyed to the
-/// server's `AssistanceCategory` codes.
+/// Keyed to the server's `AssistanceCategory` codes.
 const kAssistanceCategoryCodes = {
   'Food': 'FOOD',
   'Medical Assistance': 'MEDICAL',
@@ -191,7 +180,7 @@ const kAssistanceCategoryCodes = {
 
 final kAssistanceCategories = kAssistanceCategoryCodes.keys.toList();
 
-/// Urgency choices, keyed to the server's `AssistanceUrgency` codes.
+/// Keyed to the server's `AssistanceUrgency` codes.
 const kAssistanceUrgencyCodes = {
   'Low': 'LOW',
   'Normal': 'NORMAL',
@@ -201,8 +190,7 @@ const kAssistanceUrgencyCodes = {
 
 final kAssistanceUrgencyLevels = kAssistanceUrgencyCodes.keys.toList();
 
-/// "What do you need?" choices on the Request Assistance form. Picking
-/// [kOtherOption] reveals a free-text field for the beneficiary's own need.
+/// [kOtherOption] reveals a free-text field.
 const kAssistanceNeedOptions = [
   'Food Pack',
   'Medicine / medical check-up',
@@ -290,9 +278,7 @@ AssistanceRequest assistanceRequestFromJson(Map<String, dynamic> json) {
   );
 }
 
-/// Where the beneficiary stands with the Needs Assessment Survey — the
-/// self-reported questionnaire about household needs and community concerns
-/// that later feeds the community needs clustering model.
+/// Self-reported survey that feeds the community needs clustering model.
 enum BeneficiaryAssessmentState { notCompleted, completed, needsUpdate }
 
 extension BeneficiaryAssessmentStateX on BeneficiaryAssessmentState {
@@ -305,8 +291,7 @@ extension BeneficiaryAssessmentStateX on BeneficiaryAssessmentState {
   bool get hasSubmission => this != BeneficiaryAssessmentState.notCompleted;
 }
 
-/// Option lists for the Needs Assessment Survey. "Other" is always last and
-/// prompts for a free-text entry when selected.
+/// "Other" is always last and prompts for free text.
 const kOtherOption = 'Other';
 
 /// Q1 — what the household currently needs help with (select all that apply).
@@ -354,8 +339,7 @@ const kCommunityProblemOptions = [
   kOtherOption,
 ];
 
-/// The structured answers of one Needs Assessment Survey — the shape that
-/// the community needs clustering model will later consume.
+/// Consumed later by the community needs clustering model.
 class NeedsAssessmentResponse {
   const NeedsAssessmentResponse({
     required this.householdNeeds,
@@ -368,25 +352,20 @@ class NeedsAssessmentResponse {
     this.additionalConcern = '',
   });
 
-  /// Q1 — everything the household needs help with.
   final List<String> householdNeeds;
   final String otherHouseholdNeed;
 
-  /// Q2 — how serious the most important need is.
   final String seriousness;
 
-  /// Q3 — what makes it difficult to meet that need.
   final List<String> barriers;
   final String otherBarrier;
 
-  /// Q4 — the problem most commonly observed in the community.
   final String communityProblem;
   final String otherCommunityProblem;
 
-  /// Q5 — another need or concern for CARES to know about.
   final String additionalConcern;
 
-  /// Display helpers that swap "Other" for what the beneficiary typed.
+  /// Swap "Other" for the typed text.
   String get householdNeedsLabel =>
       _joinWithOther(householdNeeds, otherHouseholdNeed);
 
@@ -404,7 +383,6 @@ class NeedsAssessmentResponse {
       values.map((v) => _withOther(v, other)).join(', ');
 }
 
-/// The beneficiary's own Needs Assessment Survey record.
 class NeedsAssessmentSummary {
   const NeedsAssessmentSummary({
     required this.state,
@@ -416,10 +394,9 @@ class NeedsAssessmentSummary {
   final BeneficiaryAssessmentState state;
   final DateTime? submittedOn;
 
-  /// Whether the beneficiary may revise the submitted assessment.
   final bool updateAvailable;
 
-  /// Submitted answers, null until the survey is completed.
+  /// Null until completed.
   final NeedsAssessmentResponse? response;
 
   bool get canUpdate =>
@@ -430,8 +407,7 @@ class NeedsAssessmentSummary {
       : formatRequestDate(submittedOn!);
 }
 
-/// Survey answers ↔ the codes `v1/residential-needs/me` stores — the same
-/// codes the portal's needs clustering works on.
+/// Same codes the portal's needs clustering uses (`v1/residential-needs/me`).
 const _kHouseholdNeedCodes = {
   'Food': 'food',
   'Healthcare': 'healthcare',
@@ -467,7 +443,7 @@ String? _nullIfBlank(String value) {
   return trimmed.isEmpty ? null : trimmed;
 }
 
-/// Body of `PUT /residential-needs/me`. Seriousness goes up as 1–5.
+/// Body of `PUT /residential-needs/me`; seriousness is sent as 1–5.
 Map<String, dynamic> needsAssessmentToJson(NeedsAssessmentResponse r) => {
   'needs': [for (final n in r.householdNeeds) _kHouseholdNeedCodes[n] ?? n],
   'other_need': r.householdNeeds.contains(kOtherOption)
@@ -529,9 +505,8 @@ NeedsAssessmentSummary needsAssessmentSummaryFromJson(
   );
 }
 
-/// Shared load/error bookkeeping for the beneficiary's server-backed stores.
-/// The stores are app-wide singletons, so whatever they hold is tied to the
-/// access token it was fetched with — a different sign-in starts empty.
+/// App-wide singletons, so data is tied to the access token it was fetched
+/// with; a new sign-in starts empty.
 abstract class _AccountScopedStore extends ChangeNotifier {
   String? _owner;
   bool _isLoading = false;
@@ -540,10 +515,9 @@ abstract class _AccountScopedStore extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  /// Whether this account's data has come back at least once.
   bool get hasLoaded => _hasLoaded && _owner == AuthSession.accessToken;
 
-  /// Message from the last failed load, cleared by the next attempt.
+  /// Cleared by the next attempt.
   String? get error => _error;
 
   void _reset();
@@ -577,9 +551,7 @@ abstract class _AccountScopedStore extends ChangeNotifier {
   }
 }
 
-/// The beneficiary's Needs Assessment Survey, read from and saved to
-/// `v1/residential-needs/me`. Shows the "not taken yet" state until [load]
-/// returns.
+/// Shows "not taken yet" until [load] returns.
 class NeedsAssessmentStore extends _AccountScopedStore {
   NeedsAssessmentStore._();
 
@@ -605,8 +577,7 @@ class NeedsAssessmentStore extends _AccountScopedStore {
     _summary = await _service.fetchMine();
   }, 'Could not load your needs assessment.');
 
-  /// Saves the answers — the first take or an update. Throws [ApiException]
-  /// when the server rejects them; the stored survey is left as it was.
+  /// Throws [ApiException] on rejection; the stored survey is kept.
   Future<void> submit(NeedsAssessmentResponse response) async {
     _claimForCurrentAccount();
     _summary = await _service.submit(response);
@@ -647,15 +618,13 @@ class AssistanceRequestStore extends _AccountScopedStore {
       .where((r) => r.status == AssistanceRequestStatus.completed)
       .toList();
 
-  /// Everything the beneficiary has ever filed, newest first.
   List<AssistanceRequest> get history => requests;
 
   Future<void> load() => _run(() async {
     _requests = await _service.fetchMine();
   }, 'Could not load your requests.');
 
-  /// Files a request with its proof documents. Throws [ApiException] when
-  /// the server rejects it.
+  /// Throws [ApiException] on rejection.
   Future<AssistanceRequest> submit({
     required String title,
     required String category,
@@ -680,9 +649,8 @@ class AssistanceRequestStore extends _AccountScopedStore {
     return request;
   }
 
-  /// Saves an edit of a request the relief desk has not picked up yet.
-  /// Throws [ApiException] when the server refuses (e.g. it was just
-  /// screened); the stored request is left as it was.
+  /// Only before the relief desk picks it up. Throws [ApiException] on refusal;
+  /// the stored request is kept.
   Future<AssistanceRequest> update(
     String id, {
     required String title,
@@ -706,8 +674,7 @@ class AssistanceRequestStore extends _AccountScopedStore {
     return request;
   }
 
-  /// Withdraws a request that has not been completed. Throws [ApiException]
-  /// when the server refuses.
+  /// Throws [ApiException] on refusal.
   Future<AssistanceRequest> cancel(String id, {String? reason}) async {
     _claimForCurrentAccount();
     final request = await _service.cancel(id, reason: reason);

@@ -1,6 +1,5 @@
-// Unit tests for the manual registration fallback on the face scan: when an
-// alumni selfie can't be matched to an unclear alumni ID, the registrant may
-// switch to Manual Registration, as staff and students can on the ID upload.
+// Manual-registration fallback on the face scan, when an alumni selfie can't
+// match an unclear alumni ID.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

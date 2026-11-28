@@ -15,18 +15,14 @@ interface PerformanceStatRowProps {
   host: PerformanceHost
 }
 
-/** Change from the window's first reading to its last, as a signed ratio. */
+/** First-to-last change across the window, as a signed ratio. */
 function driftOf(values: number[]): number {
   const first = values[0]
   const last = values[values.length - 1]
   return first > 0 ? (last - first) / first : 0
 }
 
-/**
- * The four readings that are not CPU: memory, the two halves of loading time, and the
- * traffic producing both. They are independent measurements — no whole to divide — so
- * they get equal-weight tiles rather than a shared bar.
- */
+/** Independent measurements with no shared whole, so equal-weight tiles. */
 export function PerformanceStatRow({ samples, host }: PerformanceStatRowProps) {
   const latest = samples[samples.length - 1]
 

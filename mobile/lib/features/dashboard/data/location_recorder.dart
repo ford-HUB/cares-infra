@@ -9,39 +9,26 @@ import '../domain/tracked_event.dart';
 import 'location_capture_db.dart';
 import 'location_sync_service.dart';
 
-/// The recording engine: streams GPS fixes and, once a second, sends the
-/// latest one live to the server or stores it in SQLite for a later sync.
+/// Streams GPS fixes; each second sends the latest live or stores it in SQLite.
+/// Free of UI/session state so it runs in-app and in the Android service
+/// isolate (email and events come from SQLite via [reloadEvents]).
 ///
-/// Deliberately free of any UI or session state so the same class runs in
-/// the app (foreground, non-Android) and inside the Android foreground
-/// service isolate, where nothing from the app's memory is reachable. It
-/// only needs the signed-in email and the joined events, both read from
-/// SQLite through [reloadEvents].
-///
-/// Where a fix goes depends on connectivity:
-///
-/// * **Online** — it is POSTed to the server right away and kept in SQLite
-///   as an already-synced row, so the Records screens show it. If the POST
-///   fails the fix takes the offline path, and live posting pauses for
-///   [liveRetryAfter] so a dead server doesn't cost a request per second.
-/// * **Offline** — it is stored in SQLite as a pending row.
-/// * **Back online** — every pending row is uploaded automatically, one CSV
-///   per event, through [LocationSyncService].
+/// Online: POSTed and kept as a synced row; a failed POST goes offline and
+/// pauses live posting for [liveRetryAfter]. Offline: stored pending. Back
+/// online: pending rows upload as one CSV per event via [LocationSyncService].
 class LocationRecorder {
   LocationRecorder({required String email, VoidCallback? onChanged})
     : _email = email.trim().toLowerCase(),
       _onChanged = onChanged;
 
-  /// A fix older than this is not re-written by the timer — the device has
-  /// stopped delivering positions (e.g. GPS lost indoors). A standing-still
-  /// phone still refreshes well inside this, so it keeps being recorded.
+  /// Older fixes aren't re-written (GPS lost); a still phone refreshes well
+  /// within this.
   static const Duration staleFixAfter = Duration(seconds: 30);
 
-  /// After a live post fails, fixes are stored locally for this long before
-  /// the next attempt to go live again.
+  /// Local-only window after a failed live post.
   static const Duration liveRetryAfter = Duration(seconds: 30);
 
-  /// Written when no joined event is known (e.g. the list is empty).
+  /// Used when no joined event is known.
   static const String unassignedEventId = 'unassigned';
   static const String unassignedEventTitle = 'Awaiting event match';
 
@@ -68,14 +55,12 @@ class LocationRecorder {
   Position? get lastFix => _lastFix;
   DateTime? get lastFixAt => _lastFixAt;
 
-  /// The stream is up and delivering.
   bool get isStreaming => _positions != null;
   bool get isLocationBlocked => _locationBlocked;
   bool get isSyncing => _syncing;
   int get captures => _captures;
   int get liveSubmits => _liveSubmits;
 
-  /// True while fixes are going to the server live rather than into SQLite.
   bool get isLive => _connectivity.isOnline == true && !_liveCoolingDown;
 
   bool get _liveCoolingDown {
@@ -91,7 +76,6 @@ class LocationRecorder {
     unawaited(reloadEvents());
   }
 
-  /// Joined events that haven't ended yet, soonest first.
   List<TrackedEvent> get upcomingEvents {
     final now = DateTime.now();
     return [
@@ -100,7 +84,6 @@ class LocationRecorder {
     ]..sort((a, b) => a.startsAt.compareTo(b.startsAt));
   }
 
-  /// Re-reads the joined events from SQLite.
   Future<void> reloadEvents() async {
     try {
       _events = await _db.readJoinedEvents(_email);
@@ -108,8 +91,7 @@ class LocationRecorder {
     _onChanged?.call();
   }
 
-  /// Starts the GPS stream (idempotent). False when location is off or the
-  /// permission is missing — the caller re-tries on its next evaluation.
+  /// Idempotent. False when location is off or denied; the caller retries.
   Future<bool> start() async {
     if (_positions != null) return true;
     if (!await _canTrack()) {
@@ -142,13 +124,13 @@ class LocationRecorder {
     _onChanged?.call();
   }
 
-  /// A fresh connection: try live again and push what piled up offline.
+  /// Fresh connection: try live again and push the offline backlog.
   void onBackOnline() {
     _liveFailedAt = null;
     unawaited(syncPending());
   }
 
-  /// Uploads every pending row now. One run at a time.
+  /// One run at a time.
   Future<void> syncPending() async {
     if (_syncing) return;
     _syncing = true;
@@ -189,8 +171,7 @@ class LocationRecorder {
     _lastFixAt = DateTime.now();
   }
 
-  /// The joined event a row is most likely for: one whose window is open,
-  /// else the next to start. Null when none is known.
+  /// An event whose window is open, else the next to start.
   TrackedEvent? _hintEvent(DateTime now) {
     final joined = upcomingEvents;
     if (joined.isEmpty) return null;
@@ -200,7 +181,6 @@ class LocationRecorder {
     return joined.first;
   }
 
-  /// One-second tick: send the latest fix live, or store it for later.
   Future<void> _writeTick() async {
     final position = _lastFix;
     final fixAt = _lastFixAt;
@@ -237,8 +217,7 @@ class LocationRecorder {
   Future<void> _submitLive(LocationCaptureRow row) async {
     if (await _sync.submitLive(row)) {
       _liveSubmits++;
-      // Kept locally too, already marked synced, so the Geolocation Records
-      // screens show the whole trail — not just what was buffered offline.
+      // Also kept locally as synced so Records shows the whole trail.
       await _storeLocally(row.copyWith(synced: true));
       return;
     }

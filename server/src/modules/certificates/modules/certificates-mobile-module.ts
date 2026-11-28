@@ -4,10 +4,7 @@ import { CertificatesMobileController } from '../controllers/certificates-mobile
 import { CertificatesMobileService } from '../services/certificates-mobile-service';
 import { CertificatesCoreModule } from './certificates-core-module';
 
-/**
- * The templates repository is listed directly, as the deployments module does: it is
- * a stateless reader, and it is only here to find the artwork a sheet points at.
- */
+/** Templates repository listed directly: stateless, only used to find artwork. */
 @Module({
   imports: [CertificatesCoreModule],
   controllers: [CertificatesMobileController],

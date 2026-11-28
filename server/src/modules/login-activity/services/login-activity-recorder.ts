@@ -5,11 +5,11 @@ import type {
 } from '../../../infastructures/prisma/common/client';
 import { LoginActivityRepository } from '../repositories/login-activity-repository';
 
-/** Stored when Express could not resolve a client address, so the column stays non-null. */
+/** Keeps the column non-null when Express can't resolve the IP. */
 const UNKNOWN_IP = 'unknown';
 
 export interface LoginAttempt {
-  /** Omitted when the submitted email matched no account. */
+  /** Omitted when the email matched no account. */
   userId?: string | null;
   email: string;
   ipAddress?: string | null;
@@ -19,11 +19,7 @@ export interface LoginAttempt {
   failureReason?: string | null;
 }
 
-/**
- * Writes the sign-in trail on behalf of the auth services. Recording is deliberately
- * best-effort: a failed insert is logged and swallowed, because losing an audit row
- * must never turn a valid sign-in — or a already-failing one — into a 500.
- */
+/** Best-effort: failures are logged and swallowed, never a 500. */
 @Injectable()
 export class LoginActivityRecorder {
   private readonly logger = new Logger(LoginActivityRecorder.name);

@@ -9,10 +9,6 @@ import '../data/models/donation_models.dart';
 import '../data/models/donation_payment_models.dart';
 import 'donation_flow_widgets.dart';
 
-/// Views for the live checkout stages of the money flow: the hand-off to
-/// GCash / the hosted page, the in-app QR Ph code, and a failed attempt.
-
-/// Shown while the server is opening the checkout with the gateway.
 class CheckoutPreparingView extends StatelessWidget {
   const CheckoutPreparingView({super.key, required this.method});
 
@@ -38,8 +34,8 @@ class CheckoutPreparingView extends StatelessWidget {
   }
 }
 
-/// GCash / card / bank: the payment happens outside the app. The donor can
-/// re-open the page, and the screen keeps polling until the gateway reports.
+/// Payment happens outside the app; the screen keeps polling until the gateway
+/// reports.
 class CheckoutExternalView extends StatelessWidget {
   const CheckoutExternalView({
     super.key,
@@ -116,7 +112,7 @@ class CheckoutExternalView extends StatelessWidget {
   }
 }
 
-/// QR Ph: the code is rendered here and paid from any participating app.
+/// Paid from any participating app.
 class CheckoutQrView extends StatelessWidget {
   const CheckoutQrView({
     super.key,
@@ -181,7 +177,6 @@ class CheckoutQrView extends StatelessWidget {
   }
 }
 
-/// The gateway reported a failure or the checkout expired.
 class CheckoutFailedView extends StatelessWidget {
   const CheckoutFailedView({
     super.key,
@@ -217,7 +212,6 @@ class CheckoutFailedView extends StatelessWidget {
   }
 }
 
-/// "Expires in 12:34" that ticks down and reads "Expired" at zero.
 class ExpiryCountdown extends StatefulWidget {
   const ExpiryCountdown({super.key, required this.expiresAt});
 
@@ -261,8 +255,6 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
     );
   }
 }
-
-// ------------------------------------------------------------- pieces
 
 class _CheckoutBody extends StatelessWidget {
   const _CheckoutBody({

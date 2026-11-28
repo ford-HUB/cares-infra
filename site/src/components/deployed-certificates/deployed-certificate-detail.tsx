@@ -35,12 +35,7 @@ interface DeployedCertificateDetailProps {
   onAction: (action: string, deployment: DeployedCertificate) => void
 }
 
-/**
- * Everything about one deployment the card has no room for. It opens as a modal rather
- * than a side panel so the sheet can be drawn at its true proportions — this is where a
- * director checks that the deployed artwork is the one they signed off — with the
- * distribution figures reading down the column beside it.
- */
+/** A modal, not a side panel, so the sheet draws at its true proportions. */
 export function DeployedCertificateDetail({
   deployment,
   open,
@@ -53,9 +48,7 @@ export function DeployedCertificateDetail({
   const unopened = Math.max(deployment.distributed - deployment.claimed, 0)
   const canRemind = pending > 0 && deployment.status !== 'scheduled'
 
-  // The roll is fetched per open rather than kept in the store: it moves on the
-  // sweep's own clock and only this modal reads it. The result is keyed on what was
-  // asked for, so a stale answer for another row is never shown under this one.
+  // Fetched per open (only this modal reads it); keyed on the request so a stale answer for another row is never shown.
   const rollKey = `${deployment.id}:${deployment.distributed}`
   const [roll, setRoll] = useState<{
     key: string
@@ -109,7 +102,6 @@ export function DeployedCertificateDetail({
         </DialogHeader>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:overflow-hidden">
-          {/* The sheet as deployed, at the size it is actually read at. */}
           <div className="h-72 border-b border-gray-100 bg-gray-50 lg:h-auto lg:border-r lg:border-b-0">
             <CertificateCanvas
               variant="full"
@@ -149,7 +141,6 @@ export function DeployedCertificateDetail({
               />
             </div>
 
-            {/* The three parts of the roster, spelled out under the bar they came from. */}
             <dl className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-3">
               <div>
                 <dt className="text-[11px] tracking-wider text-gray-500 uppercase">

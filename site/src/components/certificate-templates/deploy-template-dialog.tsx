@@ -16,7 +16,6 @@ import type { CertificateTemplate } from '../../types/certificate-template'
 import type { DeployedCertificate } from '../../types/deployed-certificate'
 
 interface DeployTemplateDialogProps {
-  /** Null keeps the dialog closed; a template opens it on that template. */
   template: CertificateTemplate | null
   onOpenChange: (open: boolean) => void
   onDeployed: (deployment: DeployedCertificate) => void
@@ -24,11 +23,7 @@ interface DeployTemplateDialogProps {
 
 const SKELETON_ROWS = 5
 
-/**
- * Picks the event a template is deployed to. The sheet is frozen as it reads today at
- * this point, so the copy says so — a director editing the template afterwards is not
- * editing what these participants will receive.
- */
+/** The sheet is frozen at deploy time; later template edits don't reach these participants. */
 export function DeployTemplateDialog({
   template,
   onOpenChange,
@@ -119,9 +114,7 @@ export function DeployTemplateDialog({
                           {event.status}
                         </span>
                       </span>
-                      {/* Already live on this event: re-picking it re-cuts that same
-                          deployment with the current design, which the server refuses
-                          once sheets have gone out. */}
+                      {/* Re-picking re-cuts this deployment; the server refuses once sheets have gone out. */}
                       {already && (
                         <span className="shrink-0 text-[11px] text-amber-600">
                           Already deployed

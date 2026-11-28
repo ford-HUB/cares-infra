@@ -3,22 +3,9 @@ import { expectSafeErrorEnvelope, runApiLayer } from '../../../../config/layer-h
 import { CHECK_PATH, DIAGNOSTICS_RESPONSE, useSystemDiagnosticsApp } from '../system-diagnostics-site-support';
 
 /**
- * System Module · Diagnostics — invalid inputs (field validation).
- *
- * Neither diagnostics endpoint takes a request field: GET /api/v1/system-diagnostics
- * reads the stored board and POST /api/v1/system-diagnostics/check runs the probes,
- * and neither reads a body, query or path param. The field validation this module
- * does is on the way out: `@ZSerialize(SystemDiagnosticsSchema)` checks every field of
- * the report before it reaches the portal. So the invalid cases here are:
- *
- *   - response fields — the service hands back a report with one field wrong; the
- *     client must get a generic "Internal server error" (500) and never the bad
- *     report. Each case is checked on both endpoints.
- *   - request shape — what the client sends anyway: a malformed body is refused,
- *     unused body and query fields are ignored.
- *
- * Each broken report keeps every other field valid, so the named field is the only
- * reason it can fail. The valid cases for this unit live in ../valid/.
+ * No endpoint takes request fields; validation is on the way out via
+ * `@ZSerialize(SystemDiagnosticsSchema)`. A broken report must come back as a masked
+ * 500 on both endpoints; each keeps every other field valid.
  */
 
 const BOARD_PATH = '/api/v1/system-diagnostics';
@@ -28,21 +15,18 @@ const HISTORY = DIAGNOSTICS_RESPONSE.history[0];
 
 type Patch = Record<string, unknown>;
 
-/** The stored response with keys of the top level replaced (or removed, with `undefined`). */
+/** Top-level keys replaced; `undefined` removes a key. */
 const withTop = (patch: Patch) => strip({ ...DIAGNOSTICS_RESPONSE, ...patch });
-/** The stored response with keys of `report` replaced or removed. */
 const withReport = (patch: Patch) => ({ ...DIAGNOSTICS_RESPONSE, report: strip({ ...REPORT, ...patch }) });
-/** The stored response with keys of the first probe in `report.checks` replaced or removed. */
 const withCheck = (patch: Patch) => ({ ...DIAGNOSTICS_RESPONSE, report: { ...REPORT, checks: [strip({ ...CHECK, ...patch })] } });
-/** The stored response with keys of the first `history` entry replaced or removed. */
 const withHistory = (patch: Patch) => ({ ...DIAGNOSTICS_RESPONSE, history: [strip({ ...HISTORY, ...patch })] });
 
-/** Drops keys set to `undefined`, so "missing" really means the key is absent. */
+/** Drops `undefined` keys so "missing" means absent. */
 function strip<T extends Record<string, unknown>>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
 }
 
-/** Both endpoints serialize through the same schema; each case is one check per endpoint. */
+/** Both serialize through the same schema: one check per endpoint. */
 const ROUTES = [
   { route: 'GET (diagnostics board)', method: 'get' as const, path: BOARD_PATH, handler: 'getDiagnostics' as const },
   { route: 'POST (run checks)', method: 'post' as const, path: CHECK_PATH, handler: 'runDiagnostics' as const },
@@ -56,12 +40,11 @@ describe('system diagnostics site — field validation', () => {
   let consoleError: jest.SpyInstance;
   beforeEach(() => {
     ctx.service.getDiagnostics.mockReset().mockResolvedValue(DIAGNOSTICS_RESPONSE as never);
-    // A serialization failure is logged by HttpExceptionFilter; keep the case table readable.
+    // HttpExceptionFilter logs serialization failures; silence it for a readable table.
     consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
   afterEach(() => consoleError.mockRestore());
 
-  /** One case: the service returns `response`; both endpoints must answer a masked 500. */
   const rejectsReport = (description: string, response: unknown) =>
     asCase('invalid', description, EXPECTED).it.each(ROUTES)('refuses it on $route', async ({ method, path, handler }) => {
       ctx.service[handler].mockResolvedValue(response as never);
@@ -72,7 +55,6 @@ describe('system diagnostics site — field validation', () => {
       expect(ctx.service[handler]).toHaveBeenCalledTimes(1);
     });
 
-  /* ── response: top level ─────────────────────────────────────────────── */
   describe('response', () => {
     rejectsReport('The service leaves the report out entirely (null is required before the first sweep)', withTop({ report: undefined }));
     rejectsReport('The service sends the report as text', withTop({ report: 'healthy' }));
@@ -80,7 +62,6 @@ describe('system diagnostics site — field validation', () => {
     rejectsReport('The service sends the history as null instead of a list', withTop({ history: null }));
   });
 
-  /* ── response: report ────────────────────────────────────────────────── */
   describe('report', () => {
     rejectsReport('The service leaves out when the checks ran (checked_at)', withReport({ checked_at: undefined }));
     rejectsReport('The service sends checked_at in a readable form (3 Nov 2026 08:00)', withReport({ checked_at: '3 Nov 2026 08:00' }));
@@ -99,7 +80,6 @@ describe('system diagnostics site — field validation', () => {
     rejectsReport('The service sends the checks as one object instead of a list', withReport({ checks: CHECK }));
   });
 
-  /* ── response: report.checks[] ───────────────────────────────────────── */
   describe('checks', () => {
     rejectsReport('The service leaves a probe id out', withCheck({ id: undefined }));
     rejectsReport('The service sends a probe id as a number', withCheck({ id: 1 }));
@@ -118,7 +98,6 @@ describe('system diagnostics site — field validation', () => {
     rejectsReport('The service sends a probe detail as null', withCheck({ detail: null }));
   });
 
-  /* ── response: history[] ─────────────────────────────────────────────── */
   describe('history', () => {
     rejectsReport('The service leaves out when a past run happened (checked_at)', withHistory({ checked_at: undefined }));
     rejectsReport('The service sends a past run time that is not an ISO date-time', withHistory({ checked_at: '2026-11-03 07:59' }));
@@ -128,9 +107,8 @@ describe('system diagnostics site — field validation', () => {
     rejectsReport('The service sends the failing count as null', withHistory({ failing: null }));
   });
 
-  /* ── request shape ───────────────────────────────────────────────────── */
   describe('request', () => {
-    /** The handler takes nothing, so the probes must run with no arguments at all. */
+    /** The handler takes nothing, so probes must run with no arguments. */
     const expectUntouchedRun = () => {
       expect(ctx.service.runDiagnostics).toHaveBeenCalledTimes(1);
       expect(ctx.service.runDiagnostics.mock.calls[0]).toEqual([]);

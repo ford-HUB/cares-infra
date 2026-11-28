@@ -4,9 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:mobile/core/models/sun_weather_mood.dart';
 
-/// Ambient weather backdrop for the login header — gusts of wind drifting
-/// across the band on a dry day, rain falling on a wet one. It is scenery, not
-/// an icon: nothing here should compete with the temperature sitting on top.
+/// Scenery behind the temperature: wind on a dry day, rain on a wet one.
 class WeatherAmbience extends StatefulWidget {
   const WeatherAmbience({
     super.key,
@@ -19,7 +17,6 @@ class WeatherAmbience extends StatefulWidget {
   final Size size;
   final SunWeatherMood mood;
 
-  /// Intro reveal, 0 -> 1.
   final double progress;
 
   /// 0 = calm, 1 = harsh. Drives how many gusts blow and how hard it rains.
@@ -73,10 +70,8 @@ class _WeatherAmbienceState extends State<WeatherAmbience>
   }
 }
 
-/// One wind streak. `y` is a fraction of the canvas height, `length` and
-/// `width` fractions of its width and height; `speed` is loops per animation
-/// cycle and must be a whole number so the drift never jumps when the
-/// controller wraps.
+/// Fractions of the canvas size; `speed` must be whole loops per cycle so the
+/// drift doesn't jump on wrap.
 typedef _Gust = ({
   double y,
   double length,
@@ -108,8 +103,6 @@ class _WeatherAmbiencePainter extends CustomPainter {
     (y: 0.32, length: 0.34, width: 0.03, alpha: 0.3, speed: 2, offset: 0.55),
   ];
 
-  /// Wide, faint streaks drifting under the gusts so the panel has some air in
-  /// it rather than lines on flat green.
   static const _smoke = <_Gust>[
     (y: 0.3, length: 0.95, width: 0.34, alpha: 0.13, speed: 1, offset: 0.12),
     (y: 0.58, length: 1.1, width: 0.42, alpha: 0.11, speed: 1, offset: 0.62),
@@ -132,9 +125,8 @@ class _WeatherAmbiencePainter extends CustomPainter {
     }
   }
 
-  /// A straight horizontal streak drifting left to right. It fades twice over:
-  /// along its own length, so the ends dissolve instead of stopping dead, and
-  /// across its run, so it fades in on entry and out on exit.
+  /// Fades along its length and across its run, so the ends dissolve and it
+  /// eases in and out.
   void _drawStreak(Canvas canvas, Size size, _Gust gust, {required bool soft}) {
     final length = size.width * gust.length;
     final travel = size.width + length * 2;
@@ -178,7 +170,6 @@ class _WeatherAmbiencePainter extends CustomPainter {
       return;
     }
 
-    // A diffuse halo under a thin bright core: reads as moving air, not ink.
     stroke(2.6, 0.22, width * 1.2);
     stroke(1.0, 0.9, width * 0.15);
   }
@@ -193,7 +184,6 @@ class _WeatherAmbiencePainter extends CustomPainter {
       final cycle = (phase * 3 + i * 0.137) % 1.0;
       final y = -size.height * 0.15 + cycle * size.height * 1.3;
       final len = size.height * (0.14 + (i % 3) * 0.04);
-      // Fade in as the drop enters and out as it lands.
       final alpha = 0.75 * math.sin(cycle * math.pi).clamp(0.0, 1.0);
 
       canvas.drawLine(

@@ -14,12 +14,7 @@ import {
 import { useAttendanceStore } from '../../store/attendance-store'
 import type { LiveAttendanceCounts, LiveAttendee } from '../../types/attendance'
 
-/**
- * The director's live view of today's running event: who the geofence is currently
- * capturing on site, and who has pushed nothing yet. The settled roster and its
- * completed/absent ruling belong to the Attendees page — this one is only the
- * in-flight picture, so it re-polls itself while it is open.
- */
+/** In-flight view only; the settled ruling lives on the Attendees page. */
 export function AttendanceLogPage() {
   const session = useAttendanceStore((s) => s.session)
   const attendees = useAttendanceStore((s) => s.attendees)
@@ -39,7 +34,7 @@ export function AttendanceLogPage() {
     void fetchLiveAttendance()
   }, [fetchLiveAttendance])
 
-  // Silent polls keep the rows on screen — the sweep bar is the only sign of activity.
+  // Silent polls keep the rows on screen.
   useEffect(() => {
     const timer = window.setInterval(
       () => void fetchLiveAttendance({ silent: true }),

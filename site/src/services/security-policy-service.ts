@@ -55,7 +55,7 @@ function mapFromApi(data: SecurityPolicyApiResponse): SecurityPolicyDetail {
   }
 }
 
-/** The server rejects unknown keys, so the payload carries the settings and nothing else. */
+/** Server rejects unknown keys. */
 function mapToApi(policy: SecurityPolicy) {
   return {
     password_min_length: policy.passwordMinLength,
@@ -94,10 +94,7 @@ export async function getSecurityPolicy(): Promise<SecurityPolicyResult> {
   }
 }
 
-/**
- * Saves the whole policy. It is a PUT rather than a PATCH on purpose: the form submits
- * every field, so an unchecked rule is distinguishable from one that was not sent.
- */
+/** PUT on purpose: every field is sent, so an unchecked rule differs from an absent one. */
 export async function updateSecurityPolicy(
   policy: SecurityPolicy,
 ): Promise<SecurityPolicyResult> {

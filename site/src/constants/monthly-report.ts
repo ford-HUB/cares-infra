@@ -6,17 +6,13 @@ import type {
   ReportTrailAction,
 } from '../types/monthly-report'
 
-/** Queue order: what still needs the director first, decided work last. */
 export const REPORT_STATUS_ORDER: MonthlyReportStatus[] = [
   'under_review',
   'returned',
   'approved',
 ]
 
-/**
- * What the review queue holds. An approved report leaves it for the library, so it
- * is not a stage the queue can be filtered to.
- */
+/** Approved reports leave the queue for the library. */
 export const REPORT_QUEUE_STATUSES: MonthlyReportStatus[] = ['under_review', 'returned']
 
 export const REPORT_STATUS_LABELS: Record<MonthlyReportStatus, string> = {
@@ -37,10 +33,6 @@ export const REPORT_STATUS_RANK: Record<MonthlyReportStatus, number> = {
   approved: 2,
 }
 
-/**
- * One record per visual channel — badge, bar segment, legend dot — so a status
- * cannot look like one thing on the pipeline and another in the list.
- */
 export const REPORT_STATUS_BADGE_STYLES: Record<MonthlyReportStatus, string> = {
   under_review: 'bg-amber-50 text-amber-700',
   approved: 'bg-emerald-50 text-emerald-700',
@@ -76,7 +68,6 @@ export const DEPARTMENT_LABELS: Record<ReportDepartment, string> = {
   CCJE: 'College of Criminal Justice Education',
 }
 
-/** Department accent, used only as an identity chip — never as status colour. */
 export const DEPARTMENT_CHIP_STYLES: Record<ReportDepartment, string> = {
   CCS: 'bg-indigo-50 text-indigo-700',
   CBA: 'bg-sky-50 text-sky-700',
@@ -86,7 +77,6 @@ export const DEPARTMENT_CHIP_STYLES: Record<ReportDepartment, string> = {
   CCJE: 'bg-slate-100 text-slate-700',
 }
 
-/** Bar colour per department, matching the chip so the legend needs no explaining. */
 export const DEPARTMENT_BAR_STYLES: Record<ReportDepartment, string> = {
   CCS: 'bg-indigo-500',
   CBA: 'bg-sky-500',
@@ -124,10 +114,10 @@ export const DOCUMENT_KIND_STYLES: Record<ReportDocumentKind, string> = {
   image: 'bg-violet-50 text-violet-600',
 }
 
-/** Only these render in the viewer; Office files are handed over as a download. */
+/** Office files download instead. */
 export const PREVIEWABLE_DOCUMENT_KINDS: ReportDocumentKind[] = ['pdf', 'image']
 
-/** `2026-08` reads as `August 2026` everywhere the period is shown. */
+/** `2026-08` -> `August 2026`. */
 export function formatReportPeriod(period: string): string {
   return dayjs(`${period}-01`).format('MMMM YYYY')
 }
@@ -139,18 +129,10 @@ export function formatReportPeriodShort(period: string): string {
 export const PERIOD_FILTER_ALL = 'all' as const
 export type PeriodFilter = string | typeof PERIOD_FILTER_ALL
 
-/* -------------------------------------------------------------------------- */
-/* Coordinator submission                                                     */
-/* -------------------------------------------------------------------------- */
-
 /** Mirrors the server's per-file cap on `POST /api/v1/monthly-reports`. */
 export const REPORT_DOCUMENT_MAX_BYTES = 15 * 1024 * 1024
 export const REPORT_DOCUMENT_MAX_COUNT = 10
-/**
- * What a coordinator may attach: PDF, Word, and images. Spreadsheets are not report
- * documents — the figures go in the form — so `.xlsx` is turned away at the picker
- * and again on drop.
- */
+/** No spreadsheets: figures go in the form. */
 export const REPORT_DOCUMENT_ALLOWED_TYPES: {
   extensions: string[]
   mimes: string[]
@@ -174,10 +156,8 @@ export const REPORT_DOCUMENT_ACCEPT = REPORT_DOCUMENT_ALLOWED_TYPES.flatMap((typ
   ...type.mimes,
 ]).join(',')
 
-/** Human reading of the allow-list, for the dropzone hint. */
 export const REPORT_DOCUMENT_FORMAT_HINT = 'Files must be in PDF, Word, PNG or JPG format.'
 
-/** The kind a picked file will be stored as, or null when it is not allowed. */
 export function reportDocumentKindFor(file: File): ReportDocumentKind | null {
   const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
   const match = REPORT_DOCUMENT_ALLOWED_TYPES.find(
@@ -186,7 +166,6 @@ export function reportDocumentKindFor(file: File): ReportDocumentKind | null {
   return match?.kind ?? null
 }
 
-/** The two pages of Upload Report, in order. */
 export const UPLOAD_REPORT_STEPS = [
   { key: 'details', label: 'Report details' },
   { key: 'files', label: 'Upload files' },
@@ -196,18 +175,13 @@ export type UploadReportStep = (typeof UPLOAD_REPORT_STEPS)[number]['key']
 export const REPORT_TITLE_MAX_LENGTH = 200
 export const REPORT_SUMMARY_MAX_LENGTH = 4000
 
-/** The same statuses read from the coordinator's side of the line. */
 export const REPORT_STATUS_SUBMITTER_HINTS: Record<MonthlyReportStatus, string> = {
   under_review: 'With the director — it can no longer be edited.',
   approved: 'Approved and filed under your department.',
   returned: 'Sent back with a note; upload a corrected copy.',
 }
 
-/**
- * The report department a portal profile's college maps to. Profiles carry the
- * college as free text (a code or its full name); reports carry the code. Null
- * when the profile's college is not one the report board files under.
- */
+/** Profiles store college as free text (code or name); reports use the code. */
 export function reportDepartmentFor(
   profileDepartment: string | null | undefined,
 ): ReportDepartment | null {

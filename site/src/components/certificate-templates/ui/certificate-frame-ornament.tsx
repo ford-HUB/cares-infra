@@ -8,15 +8,10 @@ import type {
 interface CertificateFrameOrnamentProps {
   frame: CertificateFrame
   accent: CertificateAccent
-  /** Ornaments shrink with the sheet so a gallery card reads like the full preview. */
   compact?: boolean
 }
 
-/**
- * The decoration that makes each frame recognisable — side panel, corner ribbons,
- * banner corners, header band. Drawn with plain elements rather than artwork so a
- * frame follows the chosen accent instead of shipping six colour variants of an image.
- */
+/** Drawn with plain elements so frames follow the chosen accent. */
 export function CertificateFrameOrnament({
   frame,
   accent,
@@ -44,7 +39,6 @@ export function CertificateFrameOrnament({
         aria-hidden
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
-        {/* Curved side panel — the signature shape of the ornate certificates. */}
         <span
           className={cn(
             'absolute inset-y-0 left-0 rounded-r-[60%_50%]',

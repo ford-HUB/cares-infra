@@ -7,12 +7,11 @@ import {
 import type { UpdateMobileProfileDto } from '../dto/profile-mobile-dto';
 import { PersistPortalProfileDto } from '../dto/profile-site-dto';
 
-/** The row shape the mobile profile endpoint reads. */
 export type MobileProfileRow = NonNullable<
   Awaited<ReturnType<ProfileRepository['findMobileProfile']>>
 >;
 
-/** The row shape the portal profile endpoints read — also what the cache stores. */
+/** Also what the cache stores. */
 export type PortalProfileRow = NonNullable<
   Awaited<ReturnType<ProfileRepository['findPortalProfile']>>
 >;
@@ -48,11 +47,7 @@ export class ProfileRepository {
     });
   }
 
-  /**
-   * One query for every role: the role-specific relations come back empty for
-   * roles that never write them (a donor has no school info), so the service can
-   * pick the section for the caller's role without a second round-trip.
-   */
+  /** One query for every role; unused relations come back empty. */
   async findMobileProfile(userId: string) {
     return this.prisma.user.findUnique({
       where: { user_id: userId },
@@ -71,7 +66,7 @@ export class ProfileRepository {
         address_city: true,
         address_province: true,
         household_size: true,
-        // Partner-barangay volunteers only — they have no school record.
+        // Partner-barangay volunteers only (no school record).
         partner_barangay: true,
         beneficiary_type: true,
         createdAt: true,
@@ -86,8 +81,7 @@ export class ProfileRepository {
           },
           orderBy: { createdAt: 'desc' },
         },
-        // One picture per side of the account; `avatar` above is only the
-        // legacy fallback for the registered role.
+        // Per side; `avatar` is the legacy fallback for the registered role.
         role_avatars: {
           select: { role_type: true, avatar_url: true },
         },
@@ -109,8 +103,7 @@ export class ProfileRepository {
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
-        // A volunteer's ID check is the verification opened at registration,
-        // which owns the biometric (face matched against the ID scan).
+        // The registration verification owns the biometric.
         user_verifications: {
           where: { user_biometric: { isActive: true } },
           select: { user_biometric_id: true },
@@ -119,11 +112,7 @@ export class ProfileRepository {
         user_interest: {
           select: { selected: true, other_interest: true },
         },
-        // Two kinds of request shape the profile: an accepted role-access
-        // request (a donor / beneficiary whose Volunteer side a director
-        // opened — they hold no school record, and the app hides that
-        // section), and residency verifications (a proof of residency the
-        // beneficiary profile waits on until a director accepts it).
+        // Accepted role-access requests (hide school section) and residency verifications (pending review).
         user_requests: {
           where: {
             OR: [
@@ -153,7 +142,6 @@ export class ProfileRepository {
     });
   }
 
-  /** Service-hour totals for the volunteer stats row. */
   async summarizeAttendance(userId: string) {
     const [registered, completed] = await Promise.all([
       this.prisma.eventAttendance.count({ where: { user_id: userId } }),
@@ -192,7 +180,7 @@ export class ProfileRepository {
         address_city: data.address_city,
         address_province: data.address_province,
         ...(data.avatar !== undefined ? { avatar: data.avatar } : {}),
-        // The signature is account state — see `Account.signature_url`.
+        // Account state; see `Account.signature_url`.
         ...(data.signature_url !== undefined
           ? {
               accounts: {
@@ -208,8 +196,7 @@ export class ProfileRepository {
     });
   }
 
-  /** Mobile edit — the free-text address column only; the portal's split
-   * address fields are left as they are. */
+  /** Free-text address only; split address fields untouched. */
   async updateMobileProfile(
     userId: string,
     data: UpdateMobileProfileDto & { avatar?: string },
@@ -233,7 +220,6 @@ export class ProfileRepository {
     });
   }
 
-  /** Sets (or replaces) the profile photo of one side of the account. */
   async upsertRoleAvatar(
     userId: string,
     roleType: RoleType,
@@ -247,18 +233,7 @@ export class ProfileRepository {
     });
   }
 
-  /**
-   * Records a proof-of-residency upload and moves the person to the address
-   * OCR read off it. The portal's split address columns are cleared so the
-   * new free-text address is what every reader shows, not the stale split.
-   */
-  /**
-   * Stores the document, moves the address to what OCR read, and puts the
-   * file in front of a director as a RESIDENCY_VERIFICATION request — all in
-   * one transaction. A person keeps at most one such request pending: a
-   * re-upload replaces the file on the open request instead of queueing a
-   * second one.
-   */
+  /** One transaction; clears split address columns. At most one pending RESIDENCY_VERIFICATION: re-uploads replace its file. */
   async applyResidencyDocument(
     userId: string,
     data: {
@@ -350,12 +325,7 @@ export class ProfileRepository {
     });
   }
 
-  /**
-   * Rewrites the volunteer's school record from a fresh OCR read. The latest
-   * row is updated in place (there is one per volunteer in practice); a
-   * volunteer with none yet gets one created. Department / major / year level
-   * are looked up by name the same way registration does.
-   */
+  /** Updates the latest row in place or creates one; lookups by name as in registration. */
   async replaceSchoolRecord(
     userId: string,
     data: {
@@ -410,7 +380,6 @@ export class ProfileRepository {
     });
   }
 
-  /** `department` / `major` / `yearLevel` share one `{ id, name }` shape. */
   private async findOrCreateByName<K extends string>(
     table: {
       findFirst(args: {

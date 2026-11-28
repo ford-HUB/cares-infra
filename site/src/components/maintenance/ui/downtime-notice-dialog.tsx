@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import type { MaintenanceMode } from '../../../types/maintenance'
 
 interface DowntimeNoticeDialogProps {
-  /** The current switch state; `null` keeps the dialog closed. */
+  /** `null` keeps the dialog closed. */
   mode: MaintenanceMode | null
   saving: boolean
   onClose: () => void
@@ -30,11 +30,7 @@ interface DowntimeNoticeDialogProps {
 const toLocalInput = (iso: string | null) =>
   iso ? dayjs(iso).format('YYYY-MM-DDTHH:mm') : ''
 
-/**
- * What users see while CARES is closed. It is edited apart from the switch itself so
- * the wording can be settled ahead of time — nobody should be writing copy at 1 AM
- * with the system already down.
- */
+/** Edited apart from the switch, so the wording can be settled ahead of downtime. */
 export function DowntimeNoticeDialog({
   mode,
   saving,

@@ -3,10 +3,7 @@ import { LoginActivityRepository } from '../repositories/login-activity-reposito
 import { LoginActivityRecorder } from '../services/login-activity-recorder';
 import { LoginActivitySiteModule } from './login-activity-site-module';
 
-/**
- * Also exports the recorder: writing the trail belongs to this feature, but the
- * writes themselves happen inside the auth flows, which import this module.
- */
+/** Exports the recorder for the auth flows. */
 @Module({
   imports: [LoginActivitySiteModule],
   providers: [LoginActivityRepository, LoginActivityRecorder],

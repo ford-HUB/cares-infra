@@ -26,11 +26,6 @@ function sumMetrics(reports: MonthlyReport[]): ReportMetrics {
   )
 }
 
-/**
- * The filed set. A report lands under its college the moment the director approves it
- * in Queue Reviewer; folders on top of that are the director's own — named for
- * whatever the packet is for, and holding reports from any department.
- */
 export function MonthlyReportsPage() {
   const {
     reports,

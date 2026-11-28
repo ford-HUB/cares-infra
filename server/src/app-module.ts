@@ -113,7 +113,7 @@ import { SessionGuard } from './shared/guards/session-guard';
       useClass: JwtAuthGuard,
     },
     {
-      // After JwtAuthGuard: it needs the decoded token this guard checks against Redis.
+      // After JwtAuthGuard: needs its decoded token.
       provide: APP_GUARD,
       useClass: SessionGuard,
     },
@@ -122,8 +122,7 @@ import { SessionGuard } from './shared/guards/session-guard';
       useClass: RolesGuard,
     },
     {
-      // After RolesGuard: the role admits a person to the portal, the rights ticked
-      // in Access Control decide what they may do there.
+      // After RolesGuard: the role admits to the portal; Access Control rights gate actions.
       provide: APP_GUARD,
       useClass: PermissionsGuard,
     },
@@ -141,7 +140,7 @@ export class AppModule implements NestModule {
         { path: 'health', method: RequestMethod.GET },
         { path: 'v1/auth/*path', method: RequestMethod.ALL },
         { path: 'v1/interests', method: RequestMethod.GET },
-        // Google consent legs are browser redirects; they authenticate by OAuth state.
+        // OAuth redirect legs; authenticated by OAuth state.
         { path: 'v1/mailbox/google', method: RequestMethod.GET },
         { path: 'v1/mailbox/google/callback', method: RequestMethod.GET },
       )

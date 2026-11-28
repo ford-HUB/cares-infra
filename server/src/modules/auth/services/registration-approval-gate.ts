@@ -6,17 +6,13 @@ import {
 import { LoginActivityRecorder } from 'src/modules/login-activity/services/login-activity-recorder';
 import { AuthRepository } from '../repositories/auth-repository';
 
-/** `errors[].code` on the 403s the app turns into the "under review" screen. */
+/** `errors[].code` the app maps to the "under review" screen. */
 export const ACCOUNT_PENDING_APPROVAL = 'ACCOUNT_PENDING_APPROVAL';
 export const ACCOUNT_REJECTED = 'ACCOUNT_REJECTED';
 
 /**
- * A beneficiary, alumnus, partner-barangay volunteer or manual (staff / alumni)
- * registrant who signs up on the app gets an account that stays shut until a
- * director accepts its BENEFICIARY_REGISTRATION / ALUMNI_REGISTRATION /
- * PARTNER_BARANGAY_REGISTRATION / MANUAL_REGISTRATION request. Every door that hands out a mobile session — password or social
- * provider — asks this gate first. Accounts with no such request (created before the
- * review existed, or by another role) pass.
+ * Keeps self-registered accounts shut until a director accepts their *_REGISTRATION request.
+ * Every mobile session issuer (password or social) checks this. Accounts with no such request pass.
  */
 @Injectable()
 export class RegistrationApprovalGate {

@@ -9,11 +9,7 @@ import type { SystemDiagnosticsDto } from '../dto/system-diagnostics-site-dto';
 import { SystemDiagnosticsSiteService } from '../services/system-diagnostics-site-service';
 import { SystemDiagnosticsSchema } from '../validators/system-diagnostics-site-validator';
 
-/**
- * The health board for what the schedulers depend on. It shares the "Manage
- * services" right: the people who operate the schedulers are the ones who act on
- * a failing probe.
- */
+/** Shares "Manage services": operators act on failing probes. */
 @Controller('v1/system-diagnostics')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SYSTEM_SERVICE_MANAGE)

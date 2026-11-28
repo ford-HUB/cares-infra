@@ -10,7 +10,6 @@ interface SystemUsageToolbarProps {
   onRefresh: () => void
 }
 
-/** Title, what is live, and a manual refresh — same shape as the programme toolbar. */
 export function SystemUsageToolbar({
   hostName,
   performanceSource,

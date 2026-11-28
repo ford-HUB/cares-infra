@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Green header band used at the top of every non-hero mobile screen.
-///
-/// * default — fresh gradient (registration, settings, sub-pages).
-/// * [HeaderBand.deep] — deep forest green (dashboard tabs, notifications).
-///
-/// Rounded bottom corners, a soft lighter wave sweeping up on the right, and
-/// white status-bar icons. [child] is laid out below the status bar inset.
+/// Default: fresh gradient (registration, settings); [HeaderBand.deep]:
+/// dashboard tabs. [child] sits below the status-bar inset.
 class HeaderBand extends StatelessWidget {
   const HeaderBand({
     super.key,
@@ -99,7 +94,6 @@ class _HeaderWavePainter extends CustomPainter {
   bool shouldRepaint(_HeaderWavePainter old) => old.deep != deep;
 }
 
-/// Title + optional subtitle block for a [HeaderBand].
 class HeaderBandTitle extends StatelessWidget {
   const HeaderBandTitle({
     super.key,
@@ -148,9 +142,7 @@ class HeaderBandTitle extends StatelessWidget {
   }
 }
 
-/// Deep green ground that a dashboard tab's content floats over: the deep
-/// header gradient, a lighter sweep on the right, and a gently curved bottom
-/// edge. Size it with `Positioned` behind the scrolling content.
+/// Size it with `Positioned` behind the scrolling content.
 class DeepGround extends StatelessWidget {
   const DeepGround({super.key, this.child});
 

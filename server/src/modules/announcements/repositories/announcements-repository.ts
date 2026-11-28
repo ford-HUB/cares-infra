@@ -32,12 +32,11 @@ export interface SaveAnnouncementInput {
 
 export interface SetAnnouncementStateInput {
   state: AnnouncementState;
-  /** Set when the notice goes out, so a published row always carries the real time. */
+  /** Set at publish time. */
   publishAt?: Date;
   reach?: number;
 }
 
-/** Which account roles each audience label addresses. */
 export const AUDIENCE_ROLES: Record<AnnouncementAudience, RoleType[]> = {
   VOLUNTEERS: [RoleType.VOLUNTEER],
   BENEFICIARIES: [RoleType.BENEFICIARY],
@@ -53,8 +52,7 @@ export class AnnouncementsRepository {
     const where: Prisma.AnnouncementWhereInput =
       input.state === 'all' ? {} : { state: input.state };
 
-    // Two independent reads, so they run concurrently rather than holding a
-    // transaction slot open — a capped read needs no atomicity.
+    // Concurrent reads; a capped read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.announcement.findMany({
         where,
@@ -67,14 +65,14 @@ export class AnnouncementsRepository {
     return { rows, total };
   }
 
-  /** Scheduled rows whose publish time has passed — the ones the read sweep promotes. */
+  /** Scheduled rows now due for publishing. */
   async findDueScheduled(now: Date): Promise<AnnouncementRow[]> {
     return this.prisma.announcement.findMany({
       where: { state: AnnouncementState.SCHEDULED, publish_at: { lte: now } },
     });
   }
 
-  /** Published rows past their expiry retire in one write; no per-row data is needed. */
+  /** Retires expired rows in one write. */
   async expireLapsed(now: Date): Promise<number> {
     const result = await this.prisma.announcement.updateMany({
       where: { state: AnnouncementState.PUBLISHED, expires_at: { lte: now } },
@@ -89,10 +87,7 @@ export class AnnouncementsRepository {
     });
   }
 
-  /**
-   * The JWT carries no name, and the row snapshots the author's — so the name is read
-   * here rather than trusted from the request body.
-   */
+  /** Read from DB: the JWT carries no name. */
   async findUserName(userId: string): Promise<string | null> {
     const user = await this.prisma.user.findUnique({
       where: { user_id: userId },
@@ -102,12 +97,12 @@ export class AnnouncementsRepository {
     return user ? `${user.firstname} ${user.lastname}` : null;
   }
 
-  /** How many unrestricted accounts a notice addressed to these audiences reaches right now. */
+  /** Unrestricted accounts only. */
   async countAudience(audiences: AnnouncementAudience[]): Promise<number> {
     const roles = [...new Set(audiences.flatMap((one) => AUDIENCE_ROLES[one]))];
     if (roles.length === 0) return 0;
 
-    // Restriction is on the account; the role is on the user it signs in as.
+    // Restriction lives on the account, role on the user.
     return this.prisma.account.count({
       where: {
         is_restricted: false,

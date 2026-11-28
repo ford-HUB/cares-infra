@@ -18,16 +18,11 @@ import {
 } from '../repositories/donations-repository';
 
 /**
- * Translates each Xendit callback into a status change on the matching
- * DonationPayment. Three shapes arrive on one URL:
- *
+ * Three shapes on one URL:
  *   { event: 'ewallet.capture', data: EwalletCharge }   GCash
  *   { event: 'qr.payment',      data: QrPayment }       QRPh
  *   Invoice                                             card / bank (no `event`)
- *
- * Every path is idempotent twice over: the `webhook-id` is recorded in the
- * same transaction as the update, and the update itself only touches PENDING
- * rows.
+ * Idempotent: `webhook-id` recorded in the same transaction, and only PENDING rows update.
  */
 @Injectable()
 export class DonationsWebhookService {
@@ -38,7 +33,7 @@ export class DonationsWebhookService {
     private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
-  /** Returns what happened, for the log line and the 200 body. */
+  /** For the log line and the 200 body. */
   async handle(
     webhookId: string,
     body: Record<string, unknown>,
@@ -208,12 +203,7 @@ export class DonationsWebhookService {
     }
   }
 
-  /**
-   * Every payment outcome goes through here — callbacks and the app's own
-   * reconcile poll alike — so the donor hears about it exactly once: the
-   * repository only moves a PENDING row, and a zero count means another path
-   * already settled it and notified.
-   */
+  /** Shared by callbacks and reconcile; only PENDING rows move, so the donor is notified once. */
   async settle(
     row: DonationPaymentRow,
     data: Parameters<DonationsRepository['settle']>[1],
@@ -262,8 +252,6 @@ export class DonationsWebhookService {
       dedupeKey: `donation-payment:${row.donation_payment_id}:${status}`,
     });
   }
-
-  // ------------------------------------------------------------ internals
 
   private classify(
     body: Record<string, unknown>,
@@ -315,7 +303,7 @@ export class DonationsWebhookService {
     return null;
   }
 
-  /** Xendit reports amounts as numbers in whole pesos for PHP; tolerate float noise. */
+  /** Whole pesos; tolerates float noise. */
   private amountMatches(expected: number, actual: number | undefined): boolean {
     return actual !== undefined && Math.abs(actual - expected) < 0.01;
   }

@@ -25,17 +25,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Users Module', unit: 'Assistance Request Decision', prefix: 'ASSIST' });
 
-/**
- * Shared by every spec in this folder — the two decisions on Users → Request in the portal:
- *   POST /api/v1/assistance-requests/:id/approve  (approve: id uuid + ApproveAssistanceRequestSchema)
- *   POST /api/v1/assistance-requests/:id/decline  (decline: id uuid + DeclineAssistanceRequestSchema)
- *
- * `@Roles` and `@RequirePermission` are not exercised: the global guards are out of
- * scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const VALID_REQUEST_ID = 'b3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 
 export const VALID_APPROVE = { note: 'Please bring a valid ID when you claim it.' };
@@ -96,11 +85,7 @@ export const REQUEST_RESPONSE = {
   updated_at: '2026-10-30T08:00:00.000Z',
 };
 
-/**
- * Boots `AssistanceRequestsSiteController` with a mocked service for the enclosing
- * `describe`. Neither handler reads the caller, so no stand-in guard is needed. Read
- * `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Neither handler reads the caller, so no stub guard; `app` is assigned in `beforeAll`. */
 export const useAssistanceRequestsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -123,12 +108,7 @@ export const useAssistanceRequestsApp = () => {
   return ctx;
 };
 
-/**
- * Request id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through both layers, with a valid body so the id is the only thing under test. A FAIL
- * must come back in the validation envelope without reaching the service; a PASS must
- * reach it exactly once.
- */
+/** `input` is the raw id (URL-encoded); the body stays valid so only the id is tested. */
 export const describeRequestIdTable = (
   ctx: ReturnType<typeof useAssistanceRequestsApp>,
   endpoint: (typeof ENDPOINTS)[number],
@@ -157,7 +137,6 @@ export const describeRequestIdTable = (
   });
 };
 
-/** Body fixtures through both layers, against a valid request id. */
 export const describeBodyTable = (
   ctx: ReturnType<typeof useAssistanceRequestsApp>,
   endpoint: (typeof ENDPOINTS)[number],

@@ -27,20 +27,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Evaluation Module · Create / Assign Form — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Evaluation POST actions — input validation: the new questionnaire's title and
-   * description, and the questionnaire and event an assignment joins, plus legitimate
-   * inputs that must pass.
-   */
   const createFixtures: LayerFixture[] = [
     { name: 'valid body', input: VALID_CREATE, expected: 'PASS' },
     { name: 'title alone, as the portal sends a new form', input: { title: VALID_CREATE.title }, expected: 'PASS' },
@@ -84,13 +71,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Evaluation POST actions — normalisation: the schema trims the title and defaults the
-   * description, assigning passes the caller from the token, and only the response
-   * schema's fields leave the server.
-   */
   describe('evaluation site · POST actions — normalisation', () => {
     const ctx = useEvaluationApp();
 
@@ -144,11 +125,10 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   const createFixtures: LayerFixture[] = [
 
-    // Free text: stored as data through Prisma and escaped by the clients when rendered.
+    // Free text: Prisma parameterises it and clients escape it on render.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `description ← ${p.category}: ${p.label}`,
@@ -156,8 +136,7 @@ import {
         expected: 'PASS',
       }),
     ),
-    // Control characters must not get through; a description can run over several lines,
-    // so line breaks are the exception.
+    // Control characters FAIL; line breaks are allowed for multi-line descriptions.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => p.label === 'CRLF injection').map((p): LayerFixture => ({
       name: `description ← ${p.category}: ${p.label}`,
       input: { ...VALID_CREATE, description: p.value },
@@ -176,7 +155,7 @@ import {
     describe.each(ENDPOINTS)('$title', (endpoint) => {
     });
 
-    // The controller's service is mocked above; what gets written lives in the real one.
+    // The controller's service is mocked; writes live in the real one.
     describe('real service', () => {
       const NOW = new Date('2026-10-30T08:00:00.000Z');
 

@@ -28,21 +28,7 @@ import {
   PROTOTYPE_POLLUTION_BODIES,
 } from '../../../../config/security-payloads';
 
-/**
- * Users Module · Assistance Request Decision — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Assistance requests approve / decline — error handling: unexpected service errors and
-   * a response the serializer refuses are masked as a generic 500 with nothing leaked, and
-   * the service's deliberate HttpExceptions keep their status and message through the envelope.
-   */
   const NOT_FOUND = new NotFoundException('Assistance request not found');
   const ALREADY_DECIDED = new ConflictException('This request is declined and can no longer be changed this way');
   const CHANGED_MEANWHILE = new ConflictException('This request was just changed by the beneficiary — refresh and try again');
@@ -89,13 +75,7 @@ import {
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Assistance requests approve / decline — input validation: the request id path param,
-   * the optional approval note, and the decline reason's required, empty and length rules,
-   * plus legitimate inputs that must pass.
-   */
   const requestIdFixtures: LayerFixture<string>[] = [
     { name: 'not a uuid', input: 'request-1', expected: 'FAIL', message: 'A valid assistance request id is required' },
     { name: 'uuid missing a character', input: VALID_REQUEST_ID.slice(0, -1), expected: 'FAIL' },
@@ -135,13 +115,7 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /**
-   * Assistance requests approve / decline — security: hostile strings in the id path param
-   * (a uuid, so all must FAIL), per-class payloads in the note and the reason, type
-   * confusion, mass assignment, prototype pollution and malformed JSON.
-   */
   const requestIdFixtures: LayerFixture<string>[] = [
     ...HOSTILE_STRINGS.map((p): LayerFixture<string> => ({
       name: `id ← ${p.category}: ${p.label}`,
@@ -152,10 +126,9 @@ import {
     { name: 'id ← uuid with stacked query', input: `${VALID_REQUEST_ID}; DROP TABLE "User"`, expected: 'FAIL' },
   ];
 
-  /** The two free-text fields hold to one rule; only `note` may also be null. */
+  /** Shared rule for both free-text fields; only `note` may be null. */
   const freeTextFixtures = (field: 'note' | 'reason', valid: object): LayerFixture[] => [
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. It can run over several lines, so line breaks are the exception.
+    // Trimmed field rejects control characters; line breaks are allowed.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
       name: `${field} ← ${p.category}: ${p.label}`,
       input: { [field]: p.value },
@@ -173,7 +146,7 @@ import {
       input: { ...valid, ...extra },
       expected: 'FAIL',
     })),
-    // The outcome is the action's own, and the request belongs to its beneficiary.
+    // Status is set by the action; the request belongs to its beneficiary.
     { name: 'mass assignment: status', input: { ...valid, status: 'COMPLETED' }, expected: 'FAIL' },
     { name: 'mass assignment: status_note', input: { ...valid, status_note: 'Overwritten' }, expected: 'FAIL' },
     { name: 'mass assignment: requester_id', input: { ...valid, requester_id: VALID_REQUEST_ID }, expected: 'FAIL' },

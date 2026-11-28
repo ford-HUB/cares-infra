@@ -24,15 +24,14 @@ type ListProps = Omit<RankingListProps, 'board' | 'settings' | 'loading'>
 interface RankingsBoardProps {
   view: RankingView
   board: RankingBoard
-  /** The tabs on offer; a coordinator's board has only the volunteer side. */
+  /** A coordinator's board has only the volunteer side. */
   boards: { value: RankingBoard; label: string }[]
   period: RankingPeriod
   settings: RankingSettings
-  /** Whole, unfiltered boards — the dashboard never follows the list's search. */
+  /** Unfiltered; the dashboard never follows the list's search. */
   dashboard: Omit<Parameters<typeof rankingDashboard>[0], 'board' | 'settings'>
   volunteerTrend: RankingTrend
   donorTrend: RankingTrend
-  /** Search, filters, and the narrowed rows for the Ranking List tab. */
   list: ListProps
   error: string | null
   loading: boolean
@@ -44,12 +43,7 @@ interface RankingsBoardProps {
 const selectClass =
   'h-9 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
 
-/**
- * Three standings, never one: volunteers are ranked on attendance, donors on amount
- * given, and colleges on their volunteers' hours and the donations to their events,
- * so the boards are switched between rather than combined. Each board is shown
- * either as its dashboard or as its full list — the `view` tabs pick which.
- */
+/** Volunteers rank on attendance, donors on amount, colleges on hours and donations, so boards are never combined. */
 export function RankingsBoard({
   view,
   board,
@@ -70,12 +64,10 @@ export function RankingsBoard({
   const trend =
     board === 'volunteer' ? volunteerTrend : board === 'donor' ? donorTrend : undefined
 
-  // The list carries the basis in its own toolbar; the dashboard needs it up here
-  // so the podium can be re-ordered without leaving the tab.
+  // The dashboard needs the basis up here so the podium can be re-ordered in place.
   const showBasis = board === 'department' && view === 'dashboard'
 
-  // Exports the active board as the Ranking List would show it — same search and
-  // filter — whichever tab is open.
+  // Exports the active board as the Ranking List shows it, whichever tab is open.
   const exportPdf = () =>
     exportRankingsPdf({
       board,
@@ -106,7 +98,6 @@ export function RankingsBoard({
           </p>
         )}
 
-        {/* Dashboard vs list — the underline tabs own the whole page below them. */}
         <div
           role="tablist"
           aria-label="Ranking view"
@@ -132,10 +123,7 @@ export function RankingsBoard({
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-2.5">
-        {/*
-          Board tabs sit on the panel's top edge like browser tabs: the active one
-          paints over the panel border so the two read as a single surface.
-        */}
+        {/* The active board tab paints over the panel border so they read as one surface. */}
         <div role="tablist" aria-label="Ranking board" className="-mb-px flex gap-1">
           {boards.map((item) => (
             <button

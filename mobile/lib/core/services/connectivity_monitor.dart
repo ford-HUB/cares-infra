@@ -5,13 +5,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobile/core/services/api_client.dart';
 
-/// Whether the app can currently reach the CARES server.
-///
-/// `connectivity_plus` says when a network interface comes or goes; that is
-/// not the same as having internet (captive Wi-Fi, no data), so every change
-/// is followed by a DNS probe of the API host. [isOnline] is null until the
-/// first probe finishes — callers that must be conservative treat null as
-/// offline.
+/// Each network change is DNS-probed against the API host, since an interface
+/// is not internet. [isOnline] is null until the first probe.
 class ConnectivityMonitor extends ChangeNotifier {
   ConnectivityMonitor._();
 
@@ -27,7 +22,6 @@ class ConnectivityMonitor extends ChangeNotifier {
 
   bool? get isOnline => _isOnline;
 
-  /// True only once a probe has confirmed the server host resolves.
   bool get isConfirmedOnline => _isOnline == true;
 
   void start() {
@@ -49,7 +43,7 @@ class ConnectivityMonitor extends ChangeNotifier {
     _started = false;
   }
 
-  /// Re-checks reachability now. Concurrent callers share one probe.
+  /// Concurrent callers share one probe.
   Future<bool> probe() {
     final running = _inFlight;
     if (running != null) return running;

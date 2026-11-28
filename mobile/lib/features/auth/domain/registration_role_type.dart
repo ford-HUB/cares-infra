@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Mobile registration paths — aligned with server [RoleType] (excluding ADMIN).
+/// Server [RoleType] minus ADMIN.
 enum RegistrationRoleType { volunteer, donor, beneficiary }
 
 extension RegistrationRoleTypeX on RegistrationRoleType {
@@ -25,7 +25,6 @@ extension RegistrationRoleTypeX on RegistrationRoleType {
     RegistrationRoleType.beneficiary => Icons.groups_outlined,
   };
 
-  /// API value sent on registration — matches server RoleType enum.
   String get apiValue => switch (this) {
     RegistrationRoleType.volunteer => 'VOLUNTEER',
     RegistrationRoleType.donor => 'DONOR',

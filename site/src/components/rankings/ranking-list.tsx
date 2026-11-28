@@ -22,7 +22,7 @@ export interface RankingListProps {
   board: RankingBoard
   settings: RankingSettings
   loading: boolean
-  /** Whole boards, for the "x of y" count. */
+  /** Unfiltered board sizes, for the "x of y" count. */
   totals: Record<RankingBoard, number>
   volunteers: VolunteerRankingEntry[]
   donors: DonorRankingEntry[]
@@ -46,7 +46,6 @@ const NOUNS: Record<RankingBoard, string> = {
 
 const NO_MATCH = 'Nothing on this board matches the search or filter.'
 
-/** The Ranking List tab: search and the board's filter above its standings. */
 export function RankingList({
   board,
   settings,
@@ -65,8 +64,6 @@ export function RankingList({
   departmentBasis,
   onDepartmentBasisChange,
 }: RankingListProps) {
-  // Each board filters on what sets its rows apart: a volunteer's college, how a
-  // donor gave, and which figure the colleges are ordered on.
   const filters: Record<RankingBoard, RankingListFilter> = {
     volunteer: {
       label: 'Filter by department',

@@ -7,13 +7,13 @@ import {
   registerQueueSchedulers,
 } from '../scheduler-registry';
 
-/** Job names on the email queue. Sweeps share their id with the catalogue. */
+/** Sweeps share their id with the catalogue. */
 export const EMAIL_JOBS = {
   send: 'send',
   unreadDigest: 'unread-digest',
 } as const;
 
-/** One outbound mail, rendered from a template under `shared/templates`. */
+/** Rendered from `shared/templates`. */
 export interface SendEmailJobData {
   to: string;
   subject: string;
@@ -22,11 +22,7 @@ export interface SendEmailJobData {
   replyTo?: string;
 }
 
-/**
- * Outbound mail that need not block a request — reminders, digests, notices. Mail
- * whose outcome the caller must report back (the credential hand-over, an OTP) still
- * goes straight through `NodemailerService`; this queue is for everything else.
- */
+/** Non-blocking mail only; mail whose outcome must be reported (credentials, OTP) uses `NodemailerService` directly. */
 @Injectable()
 export class EmailScheduler implements OnModuleInit {
   private readonly logger = new Logger(EmailScheduler.name);

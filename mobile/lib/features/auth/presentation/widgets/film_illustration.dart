@@ -4,8 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Cinematic hero illustration — volunteer character, organic blob, floating
-/// CARES program icons (extension, eco, literacy, care).
 class FilmIllustration extends StatelessWidget {
   const FilmIllustration({
     super.key,
@@ -144,7 +142,6 @@ class _FilmPainter extends CustomPainter {
     final fillPants = Paint()..color = const Color(0xFF81D4FA);
     final fillShoes = Paint()..color = const Color(0xFF263238);
 
-    // Legs
     canvas.drawLine(
       base + Offset(-14 * s, 50 * s),
       base + Offset(-14 * s, 95 * s),
@@ -178,7 +175,6 @@ class _FilmPainter extends CustomPainter {
       fillShoes,
     );
 
-    // Pants
     canvas.drawPath(
       Path()
         ..moveTo(base.dx - 18 * s, base.dy + 48 * s)
@@ -189,7 +185,6 @@ class _FilmPainter extends CustomPainter {
       fillPants,
     );
 
-    // Torso / CARES shirt
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(
@@ -215,7 +210,6 @@ class _FilmPainter extends CustomPainter {
     )..layout();
     caresText.paint(canvas, base + Offset(-caresText.width / 2, 8 * s));
 
-    // Arms — one holds sapling, one waves
     final wave = math.sin(progress * math.pi * 6) * 0.08;
     canvas.drawLine(
       base + Offset(-28 * s, 8 * s),
@@ -228,7 +222,6 @@ class _FilmPainter extends CustomPainter {
       stroke,
     );
 
-    // Sapling in hand
     final sprout = Curves.easeOut.transform(
       ((progress - 0.35) / 0.4).clamp(0.0, 1.0),
     );
@@ -249,7 +242,6 @@ class _FilmPainter extends CustomPainter {
       );
     }
 
-    // Head
     canvas.drawCircle(base + Offset(0, -28 * s), 22 * s, fillSkin);
     canvas.drawCircle(
       base + Offset(0, -28 * s),
@@ -257,7 +249,6 @@ class _FilmPainter extends CustomPainter {
       stroke..style = PaintingStyle.stroke,
     );
 
-    // Hair
     canvas.drawPath(
       Path()
         ..moveTo(base.dx - 20 * s, base.dy - 38 * s)
@@ -278,7 +269,6 @@ class _FilmPainter extends CustomPainter {
       Paint()..color = const Color(0xFF212121),
     );
 
-    // Glasses
     canvas.drawOval(
       Rect.fromCenter(
         center: base + Offset(-9 * s, -30 * s),
@@ -301,7 +291,6 @@ class _FilmPainter extends CustomPainter {
       stroke..strokeWidth = 2 * s,
     );
 
-    // Smile
     canvas.drawArc(
       Rect.fromCenter(
         center: base + Offset(0, -22 * s),

@@ -155,8 +155,8 @@ class _StudentEventsTabState extends State<StudentEventsTab> {
     );
   }
 
-  /// The prototype has no server behind it, so donor mode lists nothing; the
-  /// real donor dashboard reads `GET /events/donations`.
+  /// Prototype: donor mode lists nothing (the real dashboard reads
+  /// `GET /events/donations`).
   Widget _buildDonationsView(BuildContext context) {
     final showSuggestions =
         _searchFocusNode.hasFocus && _suggestions.isNotEmpty;

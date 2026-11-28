@@ -21,17 +21,13 @@ import type { AnnouncementState } from '../../types/maintenance'
 
 interface SystemNoticeBannerProps {
   counts: Record<AnnouncementStateFilter, number>
-  /** When the most recent notice went out; null while nothing has published. */
+  /** Null while nothing has published. */
   lastPublishedAt: string | null
   filter: AnnouncementStateFilter
   onFilterChange: (filter: AnnouncementStateFilter) => void
 }
 
-/**
- * What the page is opened to find out: how many notices users are reading right now.
- * The four states are parts of one board, so they render as segments of a single bar
- * rather than four tiles — and each legend entry filters the feed below it.
- */
+/** The four states share one bar; each legend entry filters the feed. */
 export function SystemNoticeBanner({
   counts,
   lastPublishedAt,

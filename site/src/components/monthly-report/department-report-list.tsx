@@ -7,21 +7,16 @@ import { ReportStatusBadge } from './ui/report-status-badge'
 import { ReportSubmissionListSkeleton } from './ui/report-submission-list-skeleton'
 
 interface DepartmentReportListProps {
-  /** Every report of the coordinator's college, newest upload first. */
+  /** Newest upload first. */
   reports: MonthlyReport[]
   initialized: boolean
   errored: boolean
-  /** Day picked on the calendar, `YYYY-MM-DD`, when the list is narrowed to one day. */
+  /** `YYYY-MM-DD`, when narrowed to one day. */
   selectedDay: string | null
   onClearDay: () => void
   onOpenDocument: (report: MonthlyReport, documentId: string) => void
 }
 
-/**
- * The department's monthly reports as a plain list — one row per report, every
- * status, with the files inline. There is nothing to file or move here; the row is
- * the record, and the calendar beside it says when each one went up.
- */
 export function DepartmentReportList({
   reports,
   initialized,

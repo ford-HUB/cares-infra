@@ -7,11 +7,9 @@ import {
 } from '../../../constants/manage-users'
 
 interface ManageUsersTableSkeletonProps {
-  /** Same row count the loaded table will render, so the swap causes no jump. */
   rows: number
 }
 
-/** Column-shaped placeholders — the name cell mirrors the avatar + label pairing. */
 function CellContent({ columnKey }: { columnKey: (typeof USER_COLUMNS)[number]['key'] }) {
   if (columnKey === 'actions') {
     return <Skeleton className="ml-auto h-5 w-5 rounded-md" />
@@ -33,10 +31,7 @@ function CellContent({ columnKey }: { columnKey: (typeof USER_COLUMNS)[number]['
   return <Skeleton className="h-3.5 w-4/5" />
 }
 
-/**
- * Renders into the table's existing `<tbody>`, so the header, borders, and column
- * widths above it stay exactly where they are while rows load.
- */
+/** Renders rows only, into the table's existing `<tbody>`. */
 export function ManageUsersTableSkeleton({ rows }: ManageUsersTableSkeletonProps) {
   return (
     <>

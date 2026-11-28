@@ -1,17 +1,7 @@
 import { apiClient } from '../api-client'
 
-/**
- * Report attachments live in a private S3 bucket, so the route the server hands back
- * cannot go straight into an `<iframe src>` or a download link — the request would
- * carry no bearer token and the browser would show a 401 instead of the file. This
- * module is the one place that translates a route into something the browser can open.
- *
- * Object URLs are kept for the life of the tab: a director reopens the same report
- * repeatedly while working through a period, and the alternative is re-downloading it
- * on every open.
- */
+/** Private S3 routes need a bearer, so open them as object URLs, kept for the tab's life. */
 const objectUrls = new Map<string, string>()
-/** In-flight fetches, so opening a file twice does not request it twice. */
 const pending = new Map<string, Promise<string>>()
 
 export async function loadReportDocument(route: string): Promise<string> {

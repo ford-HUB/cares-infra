@@ -10,9 +10,8 @@ import 'package:mobile/features/dashboard/screens/donation_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 import 'package:mobile/features/dashboard/widgets/donations_page_widgets.dart';
 
-/// Browse and search every open event accepting donations — the same
-/// `GET /events/donations` feed the home tab shows, with search and a
-/// category filter over it.
+/// Same `GET /events/donations` feed as the home tab, with search and a
+/// category filter.
 class DonorCampaignsTab extends ConsumerStatefulWidget {
   const DonorCampaignsTab({super.key});
 

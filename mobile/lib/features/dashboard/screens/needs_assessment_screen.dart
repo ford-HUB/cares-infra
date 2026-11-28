@@ -6,15 +6,10 @@ import '../../../core/theme/app_theme.dart';
 import '../data/assistance_request_data.dart';
 import '../presentation/utils/profile_gate.dart';
 
-/// How the Needs Assessment Survey screen is opened from the card.
 enum NeedsAssessmentMode { take, view, update }
 
-/// Needs Assessment Survey screen.
-///
-/// * [NeedsAssessmentMode.view] renders the submitted answers read-only.
-/// * [NeedsAssessmentMode.take] / [NeedsAssessmentMode.update] walk through
-///   the five survey steps; submitting saves the answers to the server
-///   through [NeedsAssessmentStore].
+/// [NeedsAssessmentMode.view] is read-only; take/update walk the five steps and
+/// save through [NeedsAssessmentStore].
 class NeedsAssessmentScreen extends StatelessWidget {
   const NeedsAssessmentScreen({
     super.key,
@@ -25,8 +20,8 @@ class NeedsAssessmentScreen extends StatelessWidget {
   final NeedsAssessmentMode mode;
   final NeedsAssessmentSummary summary;
 
-  /// Taking or updating the assessment is locked until the beneficiary
-  /// profile is complete; viewing a filed one never is.
+  /// Taking or updating is locked until the profile is complete; viewing never
+  /// is.
   static Future<void> open(
     BuildContext context, {
     required NeedsAssessmentMode mode,
@@ -58,10 +53,6 @@ class NeedsAssessmentScreen extends StatelessWidget {
     };
   }
 }
-
-// ---------------------------------------------------------------------------
-// Take / Update — five-step wizard
-// ---------------------------------------------------------------------------
 
 class _AssessmentWizard extends StatefulWidget {
   const _AssessmentWizard({required this.isUpdate, this.initial});
@@ -126,8 +117,7 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
 
   bool get _isLastStep => _step == _stepCount - 1;
 
-  /// Whether the current step has enough input to move on. "Other" requires
-  /// the free-text field to be filled in.
+  /// "Other" requires its free-text field.
   bool get _canContinue => switch (_step) {
     0 =>
       _householdNeeds.isNotEmpty &&
@@ -343,7 +333,6 @@ class _AssessmentWizardState extends State<_AssessmentWizard> {
   }
 }
 
-/// "Step 2 of 5 — Most important need" plus a segmented progress bar.
 class _StepProgressHeader extends StatelessWidget {
   const _StepProgressHeader({
     required this.step,
@@ -438,10 +427,8 @@ class _QuestionCard extends StatelessWidget {
   }
 }
 
-/// Multi-select list; selecting "Other" reveals a text field beneath it.
-/// [exclusiveOption] (e.g. "No difficulty") cannot be combined with any
-/// other choice — picking it clears the rest, and picking anything else
-/// clears it.
+/// "Other" reveals a text field; [exclusiveOption] (e.g. "No difficulty")
+/// clears the rest, and vice versa.
 class _CheckboxGroup extends StatelessWidget {
   const _CheckboxGroup({
     required this.options,
@@ -508,7 +495,7 @@ class _CheckboxGroup extends StatelessWidget {
   }
 }
 
-/// Single-select list; picking "Other" reveals a text field beneath it.
+/// "Other" reveals a text field.
 class _RadioGroup extends StatelessWidget {
   const _RadioGroup({
     required this.options,
@@ -643,12 +630,6 @@ InputDecoration _inputDecoration(String hint) => InputDecoration(
   ),
 );
 
-// ---------------------------------------------------------------------------
-// Success dialog
-// ---------------------------------------------------------------------------
-
-/// Confirmation shown after the survey is submitted or updated. Recaps the
-/// key answers and explains how the information will be used.
 Future<void> showAssessmentSubmittedDialog(
   BuildContext context, {
   required NeedsAssessmentResponse response,
@@ -819,10 +800,6 @@ class _SummaryLine extends StatelessWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// View — read-only summary of the submitted answers
-// ---------------------------------------------------------------------------
 
 class _AssessmentViewScreen extends StatelessWidget {
   const _AssessmentViewScreen({required this.summary});

@@ -11,18 +11,13 @@ import { formatPercent } from '../../../constants/formatting'
 interface FormStatusSegmentProps {
   status: FormStatus
   value: number
-  /** Share of all questionnaires this status holds, 0–1. */
+  /** 0–1. */
   share: number
-  /** True while the list is filtered to this status. */
   active: boolean
   onToggle: (status: FormStatus) => void
 }
 
-/**
- * One status of the questionnaire library, as a legend entry under the split bar. It
- * doubles as the list's filter — clicking narrows it, clicking again clears it, which
- * is why this is a button rather than a plain tile.
- */
+/** Legend entry that doubles as the list's status filter; clicking again clears it. */
 export function FormStatusSegment({
   status,
   value,

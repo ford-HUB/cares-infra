@@ -16,7 +16,6 @@ export type TemplateCategoryFilter =
 
 export type TemplateViewMode = 'grid' | 'table'
 
-/** Draft sits between published and archived: it is the queue, not the tail. */
 export const TEMPLATE_STATUS_ORDER: CertificateTemplateStatus[] = [
   'published',
   'draft',
@@ -29,7 +28,6 @@ export const TEMPLATE_STATUS_LABELS: Record<CertificateTemplateStatus, string> =
   archived: 'Archived',
 }
 
-/** One record per visual channel, so badge, dot and bar can never drift apart. */
 export const TEMPLATE_STATUS_BADGE_STYLES: Record<CertificateTemplateStatus, string> = {
   published: 'bg-emerald-50 text-emerald-700',
   draft: 'bg-amber-50 text-amber-700',
@@ -70,7 +68,6 @@ export const TEMPLATE_CATEGORY_LABELS: Record<CertificateTemplateCategory, strin
   sponsorship: 'Sponsorship',
 }
 
-/** Category is an identity, not a state — it tints the preview, never the status. */
 export const TEMPLATE_CATEGORY_ACCENTS: Record<
   CertificateTemplateCategory,
   { chip: string; frame: string; seal: string; rule: string }
@@ -134,6 +131,5 @@ export const TEMPLATE_ORIENTATION_LABELS: Record<CertificateOrientation, string>
   portrait: 'Portrait',
 }
 
-/** Rows/cards drawn while the first fetch settles — matches a filled first screen. */
 export const TEMPLATE_SKELETON_CARDS = 6
 export const TEMPLATE_SKELETON_ROWS = 8

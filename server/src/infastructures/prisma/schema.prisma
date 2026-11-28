@@ -25,13 +25,11 @@ model User {
   address_barangay             String?
   address_city                 String?
   address_province             String?
-  /// Beneficiaries only — how many people the assistance has to cover.
+  /// Beneficiaries only.
   household_size               Int?
-  /// Partner-barangay volunteers only — the partner barangay they signed up
-  /// through (one of PARTNER_BARANGAYS in the auth module).
+  /// Partner-barangay volunteers only; one of PARTNER_BARANGAYS.
   partner_barangay             String?
-  /// Beneficiaries only: REGULAR signed up without an ID; STUDENT verified a UC
-  /// school ID with a face match, which also opens their Volunteer side.
+  /// Beneficiaries only. STUDENT passed the school-ID + face check, which also opens their Volunteer side.
   beneficiary_type             BeneficiaryType?
   accounts                     Account[]
   assistance_requests          AssistanceRequest[]
@@ -74,9 +72,7 @@ model User {
   user_verifications           UserVerification[]
 }
 
-/// Proof of residency (barangay certificate, clearance) a mobile user uploaded
-/// to change their address. The address itself is read off the file by OCR
-/// and written to `User.current_address`; the file stays on record here.
+/// Proof of residency; OCR sets `User.current_address` from it.
 model ResidencyDocument {
   residency_document_id String   @id @default(uuid())
   user_id               String
@@ -84,7 +80,7 @@ model ResidencyDocument {
   file_name             String
   mime_type             String
   size_bytes            Int
-  /// What OCR read off the document — the address it set at the time.
+  /// The address OCR read at upload.
   extracted_address     String
   createdAt             DateTime @default(now())
   user                  User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -92,10 +88,7 @@ model ResidencyDocument {
   @@index([user_id, createdAt])
 }
 
-/// A mobile user's profile photo for one side of their account. The role
-/// switcher is local to the app, so the same person can be a volunteer, donor
-/// and beneficiary; each side keeps its own picture here instead of sharing
-/// `User.avatar`.
+/// Per-side profile photo (the role switcher is local), instead of sharing `User.avatar`.
 model UserRoleAvatar {
   user_role_avatar_id String   @id @default(uuid())
   user_id             String
@@ -120,7 +113,7 @@ model UserSchoolInfo {
   user_id             String
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
-  /// Scan of the school ID presented at registration; absent for ID-less roles.
+  /// Absent for ID-less roles.
   school_id_url       String?
   department          Department @relation(fields: [department_id], references: [department_id])
   major               Major      @relation(fields: [major_id], references: [major_id])
@@ -152,9 +145,7 @@ model YearLevel {
   user_school_info UserSchoolInfo[]
 }
 
-/// One ID check per submission. The biometric enrolled for that check hangs off the
-/// verification rather than the user, so a face scan is always tied to the review
-/// it was captured for.
+/// One per submission; the biometric hangs off the verification, tying each face scan to its review.
 model UserVerification {
   user_verification_id String             @id @default(uuid())
   user_id              String
@@ -185,8 +176,7 @@ model Role {
   users     User[]
 }
 
-/// Baseline rights every user of a role inherits. Keyed by `RoleType` rather than
-/// `role_id` because `Role` has no unique constraint on `type` — see the admin seeder.
+/// Keyed by `RoleType`, not `role_id`: `Role.type` isn't unique.
 model RolePermissionDefault {
   role_permission_default_id String        @id @default(uuid())
   role_type                  RoleType
@@ -197,8 +187,7 @@ model RolePermissionDefault {
   @@unique([role_type, permission])
 }
 
-/// A per-user departure from the role baseline. Only rows that actually differ from
-/// the role default are stored, so an untouched user has none.
+/// Only rows that differ from the role baseline are stored.
 model UserPermissionOverride {
   user_permission_override_id String                   @id @default(uuid())
   user_id                     String
@@ -214,15 +203,14 @@ model UserPermissionOverride {
   @@index([user_id])
 }
 
-/// A violation-driven suspension of one action. Layers *over* the granted rights: the
-/// grant is preserved so lifting the suspension restores the original scope.
+/// Layers over granted rights, so lifting it restores the original scope.
 model UserActionSuspension {
   user_action_suspension_id String        @id @default(uuid())
   user_id                   String
   permission                PermissionKey
   reason                    String
   issued_by_user_id         String
-  /// Null means indefinite — it stays in force until an admin lifts it.
+  /// Null = until an admin lifts it.
   expires_at                DateTime?
   lifted_at                 DateTime?
   lifted_by_user_id         String?
@@ -237,7 +225,7 @@ model BlockedIp {
   blocked_ip_id      String   @id @default(uuid())
   ip_address         String   @unique
   reason             String?
-  /// The account the block originated from — null for a manually entered address.
+  /// Null for a manually entered address.
   user_id            String?
   blocked_by_user_id String
   createdAt          DateTime @default(now())
@@ -245,9 +233,7 @@ model BlockedIp {
   user               User?    @relation(fields: [user_id], references: [user_id])
 }
 
-/// Portal-wide security settings, held as exactly one row: `singleton` is pinned to
-/// true and unique, so an upsert can never create a second policy. Every field has a
-/// default here that matches the fallback the server applies when the row is missing.
+/// Single row (`singleton` unique). Defaults must match the server's fallback.
 model SecurityPolicy {
   security_policy_id           String   @id @default(uuid())
   singleton                    Boolean  @unique @default(true)
@@ -258,41 +244,37 @@ model SecurityPolicy {
   password_require_symbol      Boolean  @default(false)
   lockout_enabled              Boolean  @default(true)
   lockout_max_attempts         Int      @default(5)
-  /// How far back failed attempts are counted, in minutes.
   lockout_window_minutes       Int      @default(15)
-  /// Minutes a lock is held. 0 means it stays until an administrator lifts it.
+  /// 0 = until an admin lifts it.
   lockout_duration_minutes     Int      @default(30)
-  /// Minutes of inactivity before a session is refused. 0 disables the check.
+  /// 0 disables.
   session_idle_timeout_minutes Int      @default(0)
-  /// Hours a session may live regardless of activity. 0 leaves it to the token's own expiry.
+  /// 0 defers to token expiry.
   session_max_duration_hours   Int      @default(0)
-  /// Devices one account may hold at once. 0 means unlimited.
+  /// 0 = unlimited.
   max_concurrent_sessions      Int      @default(0)
   login_hours_enabled          Boolean  @default(false)
-  /// Minutes past midnight, server time. A start after the end wraps over midnight.
+  /// Minutes past midnight, server time; start after end wraps midnight.
   login_hours_start_minute     Int      @default(0)
   login_hours_end_minute       Int      @default(1440)
-  /// Addresses allowed to sign in. Empty means no allowlist — see BlockedIp for the denylist.
+  /// Empty = no allowlist; see BlockedIp for the denylist.
   ip_allowlist                 String[] @default([])
   updated_by_user_id           String?
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt
 }
 
-/// One row per sign-in attempt, successful or not. Append-only: nothing updates or
-/// deletes a row, so the trail stays reviewable. `user_id` is null when the email
-/// matched no account, which is why the typed email is stored alongside it.
+/// Append-only. `user_id` is null when the email matched no account, hence `email`.
 model LoginActivity {
   login_activity_id String       @id @default(uuid())
-  /// Null when no account matched the submitted email.
   user_id           String?
-  /// The email exactly as submitted (lowercased), kept even when no account matched.
+  /// As submitted (lowercased).
   email             String
   ip_address        String
   user_agent        String?
   source            LoginSource
   outcome           LoginOutcome
-  /// The message the client was shown; null on a successful sign-in.
+  /// Shown to the client; null on success.
   failure_reason    String?
   createdAt         DateTime     @default(now())
   user              User?        @relation(fields: [user_id], references: [user_id])
@@ -303,19 +285,13 @@ model LoginActivity {
   @@index([email])
 }
 
-/// A social identity that may sign in as `user`. One row per provider account, so a
-/// donor can attach both Google and Facebook to the same CARES user.
-///
-/// Unlike `GmailConnection` — which stores mailbox tokens and grants no access on its
-/// own — a row here *is* an authentication factor, so no provider token is kept: the
-/// token is verified with the provider at sign-in and then discarded.
+/// An authentication factor (unlike `GmailConnection`); provider tokens are never stored.
 model OAuthIdentity {
   oauth_identity_id String       @id @default(uuid())
   provider          AuthProvider
-  /// The provider's immutable subject id (`sub` for Google, `id` for Facebook). The
-  /// email is not the key — providers let people change it.
+  /// `sub` for Google, `id` for Facebook; not the email, which can change.
   provider_user_id  String
-  /// Whatever the provider last reported, kept for support lookups only.
+  /// Support lookups only.
   email             String?
   user_id           String
   createdAt         DateTime     @default(now())
@@ -326,17 +302,16 @@ model OAuthIdentity {
   @@index([user_id])
 }
 
-/// One linked Google mailbox per portal user. Tokens are issued by Google OAuth and
-/// refreshed server-side; disconnecting deletes the row so nothing stale is kept.
+/// Deleted on disconnect.
 model GmailConnection {
   gmail_connection_id String   @id @default(uuid())
   user_id             String   @unique
   google_sub          String
   email               String
-  /// Granted scopes, space separated, exactly as Google returned them.
+  /// Space separated, as Google returned them.
   scope               String
   access_token        String
-  /// Google only returns this on the first consent, so it is never overwritten with null.
+  /// Only returned on first consent, so never overwritten with null.
   refresh_token       String
   access_expires_at   DateTime
   createdAt           DateTime @default(now())
@@ -359,7 +334,7 @@ model UserInterest {
   user_interest_id String   @id @default(uuid())
   user_id          String   @unique
   selected         Json
-  /// What the volunteer typed under "Others"; null unless OTHERS is selected.
+  /// Null unless OTHERS is selected.
   other_interest   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -390,7 +365,7 @@ model Event {
   area_sqm                Float?
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
-  /// Pin the operator dropped inside the geofence — the exact meeting spot.
+  /// Meeting spot inside the geofence.
   marker_lat              Float?
   marker_lng              Float?
   certificate_deployments CertificateDeployment[]
@@ -404,27 +379,22 @@ model Event {
   user_requests           UserRequest[]
 }
 
-/// One volunteer's registration for one event, plus whatever validation has ruled so far.
-/// The row is created on registration and stays PENDING until the coordinates are in and
-/// judged: before the event, while it runs, and after it for as long as an offline device
-/// still has not pushed.
+/// PENDING until readings arrive and are judged (an offline device may push late).
 model EventAttendance {
   event_attendance_id String               @id @default(uuid())
   event_id            Int
   user_id             String
   status              AttendanceStatus     @default(PENDING)
   validation_method   GeoValidationMethod?
-  /// First reading inside the event geofence.
+  /// First in-geofence reading.
   first_ping_at       DateTime?
-  /// Last reading inside the event geofence.
+  /// Last in-geofence reading.
   last_ping_at        DateTime?
-  /// Credited service hours; only meaningful once the row is COMPLETED.
+  /// Meaningful once COMPLETED.
   hours_rendered      Float?
-  /// The role the volunteer registered for. REGULAR needs no review; the others
-  /// file an EVENT_ROLE user request a director or coordinator rules on.
+  /// Non-REGULAR roles file an EVENT_ROLE request.
   participation_role  EventParticipationRole @default(REGULAR)
-  /// Where that role stands. A REJECTED role keeps the registration — the
-  /// volunteer simply takes part as a regular volunteer.
+  /// REJECTED keeps the registration as REGULAR.
   role_approval       EventRoleApproval      @default(APPROVED)
   remarks             String?
   registered_at       DateTime             @default(now())
@@ -438,11 +408,7 @@ model EventAttendance {
   @@index([user_id])
 }
 
-/// One GPS reading from a volunteer's device, one per second while their recorder is
-/// on. Live readings arrive one at a time (GEOFENCE); readings buffered offline arrive
-/// later as a CSV batch (OFFLINE_SYNC). `event_id` is the device's best guess and is
-/// null when it could not name a joined event — the validation service re-assigns rows
-/// from the coordinates, so nothing here is authoritative about attendance.
+/// Live (GEOFENCE) or CSV batch (OFFLINE_SYNC). `event_id` is the device's guess; the validation service re-assigns by coordinates.
 model EventLocationPing {
   event_location_ping_id Int                 @id @default(autoincrement())
   event_id               Int?
@@ -451,7 +417,7 @@ model EventLocationPing {
   latitude               Float
   longitude              Float
   accuracy_m             Float
-  /// The device's own inside-the-geofence check at capture time.
+  /// Device-side check at capture.
   in_area                Boolean
   source                 GeoValidationMethod
   createdAt              DateTime            @default(now())
@@ -462,11 +428,10 @@ model EventLocationPing {
   @@index([user_id, captured_at])
 }
 
-/// Direct (1:1) portal messaging. Participants are portal staff — volunteers use
-/// the mobile app and are not addressable here.
+/// 1:1 portal staff messaging; volunteers aren't addressable.
 model Conversation {
   conversation_id String                    @id @default(uuid())
-  /// Mirrors the newest message so the contact list can sort without a join.
+  /// Lets the contact list sort without a join.
   last_message_at DateTime?
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
@@ -478,7 +443,7 @@ model ConversationParticipant {
   conversation_participant_id String       @id @default(uuid())
   conversation_id             String
   user_id                     String
-  /// Everything sent after this timestamp counts as unread for this participant.
+  /// Later messages count as unread.
   last_read_at                DateTime?
   createdAt                   DateTime     @default(now())
   conversation                Conversation @relation(fields: [conversation_id], references: [conversation_id], onDelete: Cascade)
@@ -507,15 +472,13 @@ model ChatAttachment {
   name          String
   size          Int
   mime_type     String
-  /// S3 object URL; streamed back through the API, never exposed as a public link.
+  /// Streamed through the API, never public.
   url           String
   createdAt     DateTime    @default(now())
   message       ChatMessage @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
 }
 
-/// A reported problem or request. `reference_number` is the tracking number shown to
-/// the requester — sequential and never reused, which is why it is a DB sequence
-/// rather than a count of rows.
+/// `reference_number` is a DB sequence: sequential and never reused.
 model SupportTicket {
   support_ticket_id String                @id @default(uuid())
   reference_number  Int                   @unique @default(autoincrement())
@@ -525,8 +488,7 @@ model SupportTicket {
   status            SupportTicketStatus   @default(OPEN)
   priority          SupportTicketPriority @default(MEDIUM)
   requester_id      String
-  /// Null while the ticket is unassigned; cleared rather than deleted if the staff
-  /// account goes away, so the ticket itself survives.
+  /// Nulled, not deleted, when the staff account goes.
   assignee_id       String?
   source            LoginSource
   createdAt         DateTime              @default(now())
@@ -545,9 +507,9 @@ model SupportTicket {
 model SupportTicketReply {
   support_ticket_reply_id String                  @id @default(uuid())
   support_ticket_id       String
-  /// Null once the author's account is removed; the thread keeps the message.
+  /// Null once the author is removed.
   author_id               String?
-  /// Snapshot of the name shown in the thread, so a deleted author still reads right.
+  /// Snapshot, so deleted authors still read right.
   author_name             String
   author_type             SupportTicketAuthorType
   body                    String
@@ -558,30 +520,22 @@ model SupportTicketReply {
   @@index([support_ticket_id, createdAt])
 }
 
-/// A certificate design a director maintains in the portal. Everything that is pure
-/// drawing instruction — accent, frame, per-block position, fonts, sizes, wording,
-/// seal and where each imported image sits — lives in `design`, shaped by
-/// `CertificateDesignSchema`. It is one document edited as a whole by one screen, so
-/// splitting it into columns would buy nothing and cost a migration per control the
-/// customizer gains. What is *not* in there is anything another feature has to join
-/// on: the signatory accounts and the uploaded files are their own rows.
+/// `design` holds all drawing data (`CertificateDesignSchema`) as one document; joinable data (signatories, files) has its own rows.
 model CertificateTemplate {
   certificate_template_id String                         @id @default(uuid())
-  /// Human reference printed on the card, e.g. `CT-2026-014`.
+  /// e.g. `CT-2026-014`.
   reference               String                         @unique
   name                    String
   description             String
   category                CertificateTemplateCategory    @default(PARTICIPATION)
   status                  CertificateTemplateStatus      @default(DRAFT)
   orientation             CertificateOrientation         @default(LANDSCAPE)
-  /// Certificates already printed from this template.
   issued                  Int                            @default(0)
-  /// Events currently deploying it.
   deployed_events         Int                            @default(0)
   design                  Json
-  /// Null once the editor's account is removed; the template keeps the name.
+  /// Null once the editor is removed.
   updated_by_user_id      String?
-  /// Snapshot of who last saved it, so a deleted account still reads right on the card.
+  /// Snapshot, so deleted accounts still read right.
   updated_by_name         String                         @default("")
   createdAt               DateTime                       @default(now())
   updatedAt               DateTime                       @updatedAt
@@ -595,10 +549,7 @@ model CertificateTemplate {
   @@index([updatedAt])
 }
 
-/// One printed signature line. The coordinator account is the source of truth for the
-/// signature image, so the line stores the account rather than typed text; the printed
-/// strings are snapshotted beside it so a later rename or transfer cannot silently
-/// reword a template certificates were already issued from.
+/// Stores the account (source of the signature image); printed strings are snapshotted.
 model CertificateTemplateSignatory {
   certificate_template_signatory_id String              @id @default(uuid())
   certificate_template_id           String
@@ -606,12 +557,9 @@ model CertificateTemplateSignatory {
   name                              String
   title                             String
   department                        String
-  /// The placeholder the print job swaps for the coordinator's stored signature image
-  /// (`User.signature_url`). The customizer never shows it — a director picks an
-  /// account, not a token — but it is held per line rather than assumed globally so a
-  /// line can print without a signature later without a migration.
+  /// Replaced by `User.signature_url` at print time; per line so a line can drop its signature without a migration.
   signature_token                   String              @default("{{signature-image}}")
-  /// Left-to-right order of the lines on the sheet.
+  /// Left-to-right order.
   position                          Int                 @default(0)
   createdAt                         DateTime            @default(now())
   updatedAt                         DateTime            @updatedAt
@@ -623,15 +571,12 @@ model CertificateTemplateSignatory {
   @@index([certificate_template_id, position], map: "CertificateTemplateSignatory_certificate_template_id_positio_id")
 }
 
-/// A file a director imported onto a sheet. The bytes live in the private S3 bucket,
-/// so `design` references the row by id and the portal reads the bytes back through
-/// `GET /v1/certificate-templates/:id/assets/:assetId` — an `<img src>` pointed at the
-/// stored object URL would render broken.
+/// Private bucket: `design` references the row id and bytes go through `GET /v1/certificate-templates/:id/assets/:assetId`.
 model CertificateTemplateAsset {
   certificate_template_asset_id String               @id @default(uuid())
   certificate_template_id       String
   kind                          CertificateAssetKind
-  /// S3 object key, not a URL — the bucket and region are configuration.
+  /// Object key, not a URL; bucket and region are configuration.
   storage_key                   String
   file_name                     String
   content_type                  String
@@ -642,37 +587,31 @@ model CertificateTemplateAsset {
   @@index([certificate_template_id])
 }
 
-/// One template deployed to one event — what the live certificates page lists. The
-/// design, the signature lines and the event's own details are all frozen into the row
-/// at deploy time: the template it came from stays editable, and a certificate already
-/// promised to a volunteer must not silently change wording when a director tidies the
-/// template up afterwards. The template is still referenced, because the frozen design
-/// points at that template's stored artwork.
+/// Design, signatures and event details are frozen at deploy time; the template link remains for its artwork.
 model CertificateDeployment {
   certificate_deployment_id String                      @id @default(uuid())
-  /// Human reference for the deployment itself, e.g. `DC-2026-014`.
+  /// e.g. `DC-2026-014`.
   reference                 String                      @unique
   certificate_template_id   String
-  /// Snapshot of the template's name, category and shape as deployed.
+  /// Snapshot as deployed.
   template_name             String
   category                  CertificateTemplateCategory
   orientation               CertificateOrientation
-  /// The frozen sheet: the same shape as `CertificateTemplate.design`, plus the
-  /// signature lines as they read on the day.
+  /// `CertificateTemplate.design` shape plus the day's signature lines.
   design                    Json
   event_id                  Int
-  /// Snapshot of the event, so the list reads correctly even if the event is renamed.
+  /// Snapshot, so renames don't change the list.
   event_name                String
   event_venue               String
   event_date                DateTime
   status                    CertificateDeploymentStatus @default(SCHEDULED)
-  /// Participants the deployment covers — the denominator for everything below.
+  /// Denominator for the counts below.
   participants              Int                         @default(0)
-  /// Certificates generated and released to a participant.
+  /// Generated and released.
   distributed               Int                         @default(0)
-  /// Of those, how many the recipient actually opened.
+  /// Opened by the recipient.
   claimed                   Int                         @default(0)
-  /// Null once the deploying account is removed; the row keeps the name.
+  /// Null once the account is removed.
   deployed_by_user_id       String?
   deployed_by_name          String                      @default("")
   createdAt                 DateTime                    @default(now())
@@ -688,19 +627,15 @@ model CertificateDeployment {
   @@index([createdAt])
 }
 
-/// One certificate the issuing sweep generated for one participant of one deployment.
-/// The sheet is frozen here in full — the deployment's design with every placeholder
-/// filled and each signature line pointing at the image it printed — so what the
-/// volunteer holds never changes if the event, the template or a coordinator's
-/// profile is edited afterwards.
+/// Fully frozen (placeholders filled, signature images pinned), so later edits never change it.
 model IssuedCertificate {
   issued_certificate_id     String                      @id @default(uuid())
-  /// Printed on the sheet, e.g. `CERT-2026-000123`.
+  /// e.g. `CERT-2026-000123`.
   certificate_number        String                      @unique
   certificate_deployment_id String
   event_id                  Int
   user_id                   String
-  /// What the placeholders were filled with, as they read on the day of issue.
+  /// Placeholder values as of issue.
   recipient_name            String
   event_name                String
   event_date                DateTime
@@ -709,11 +644,10 @@ model IssuedCertificate {
   template_name             String
   category                  CertificateTemplateCategory
   orientation               CertificateOrientation
-  /// The deployment's frozen design plus, per signature line, the S3 key of the
-  /// coordinator's signature image at issue time (`StoredIssuedDesign`).
+  /// Plus each line's signature S3 key at issue time (`StoredIssuedDesign`).
   design                    Json
   issued_at                 DateTime                    @default(now())
-  /// When the recipient first opened it in the app; null until then.
+  /// First open in the app.
   claimed_at                DateTime?
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime                    @updatedAt
@@ -727,14 +661,11 @@ model IssuedCertificate {
   @@index([issued_at])
 }
 
-/// A named tray the director builds on top of the automatic filing — an accreditation
-/// packet, a set pulled for a board meeting. College folders are *not* rows: they are
-/// derived from each report's `department`, so every approved report has a home before
-/// anyone files it anywhere, and deleting a folder only drops it back to its college.
+/// Custom director tray. College folders aren't rows: they derive from `department`.
 model MonthlyReportFolder {
   monthly_report_folder_id String          @id @default(uuid())
   name                     String
-  /// Null once the creating account is removed; the folder keeps the name below.
+  /// Null once the account is removed.
   created_by_user_id       String?
   created_by_name          String          @default("")
   createdAt                DateTime        @default(now())
@@ -745,16 +676,13 @@ model MonthlyReportFolder {
   @@index([createdAt])
 }
 
-/// One coordinator submission for one reporting month. The submitter's name, email and
-/// post are snapshotted beside the account: a report already decided on must keep
-/// reading the way it read on the day, even if the coordinator is renamed or moves
-/// college.
+/// Submitter details snapshotted so decided reports read as they did.
 model MonthlyReport {
   monthly_report_id    String                    @id @default(uuid())
-  /// Tracking number both sides quote, e.g. `MR-2026-014`.
+  /// e.g. `MR-2026-014`.
   reference            String                    @unique
   title                String
-  /// Reporting month as `YYYY-MM` — the period filter and the grouping key.
+  /// `YYYY-MM`; filter and grouping key.
   period               String
   department           ReportDepartment
   status               MonthlyReportStatus       @default(UNDER_REVIEW)
@@ -769,12 +697,12 @@ model MonthlyReport {
   submitted_by_title   String
   submitted_at         DateTime                  @default(now())
   reviewer_user_id     String?
-  /// Snapshot of the deciding director, shown on the row without a join.
+  /// Snapshot, no join.
   reviewer_name        String?
   decided_at           DateTime?
-  /// Latest decision note — the only thing a returned report gives the coordinator.
+  /// Latest; all a returned report gives the coordinator.
   decision_note        String?
-  /// The director's tray this sits in. Null means it is filed under its college.
+  /// Null = filed under its college.
   folder_id            String?
   createdAt            DateTime                  @default(now())
   updatedAt            DateTime                  @updatedAt
@@ -791,17 +719,14 @@ model MonthlyReport {
   @@index([updatedAt])
 }
 
-/// A file attached to a submission. The bytes live in the private S3 bucket, so the
-/// row holds the object key and the portal reads them back through
-/// `GET /v1/monthly-reports/:id/documents/:documentId` — a stored object URL in an
-/// `<a href>` would 403.
+/// Private bucket: bytes go through `GET /v1/monthly-reports/:id/documents/:documentId`.
 model MonthlyReportDocument {
   monthly_report_document_id String                    @id @default(uuid())
   monthly_report_id          String
-  /// File name as the coordinator uploaded it, extension included.
+  /// Extension included.
   file_name                  String
   kind                       MonthlyReportDocumentKind
-  /// S3 object key, not a URL — the bucket and region are configuration.
+  /// Object key, not a URL; bucket and region are configuration.
   storage_key                String
   content_type               String
   byte_size                  Int
@@ -811,14 +736,12 @@ model MonthlyReportDocument {
   @@index([monthly_report_id])
 }
 
-/// Append-only history of the submission: who submitted, who decided, and the note
-/// that came with it. This is the report's own record, kept beside the entry rather
-/// than in the global audit log because the coordinator reads it too.
+/// Append-only; separate from the audit log because the coordinator reads it.
 model MonthlyReportTrailEntry {
   monthly_report_trail_entry_id String                   @id @default(uuid())
   monthly_report_id             String
   action                        MonthlyReportTrailAction
-  /// Snapshot of the actor's name, so a rename cannot rewrite the trail.
+  /// Snapshot, so renames can't rewrite the trail.
   actor_name                    String
   note                          String?
   createdAt                     DateTime                 @default(now())
@@ -827,9 +750,7 @@ model MonthlyReportTrailEntry {
   @@index([monthly_report_id, createdAt])
 }
 
-/// A notice written on the Maintenance board and read back on System Notices. State
-/// moves forward on its own once a scheduled `publish_at` or `expires_at` passes; the
-/// sweep runs on read, so a page that polls sees the flip without a scheduler.
+/// State advances on read once `publish_at`/`expires_at` passes (no scheduler).
 model Announcement {
   announcement_id String                 @id @default(uuid())
   title           String
@@ -839,16 +760,15 @@ model Announcement {
   channels        AnnouncementChannel[]  @default([])
   state           AnnouncementState      @default(DRAFT)
   publish_at      DateTime
-  /// Null means it stays up until taken down by hand.
+  /// Null = until taken down.
   expires_at      DateTime?
   pinned          Boolean                @default(false)
-  /// The maintenance window this notice was written for; windows are not persisted
-  /// yet, so this is a loose reference rather than a relation.
+  /// Loose reference: windows aren't persisted yet.
   window_id       String?
   author_id       String?
-  /// Snapshot of the author's name, so a rename cannot rewrite the board.
+  /// Snapshot, so renames can't rewrite the board.
   author_name     String
-  /// Accounts it reached when it went out; 0 until it publishes.
+  /// 0 until published.
   reach           Int                    @default(0)
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
@@ -858,9 +778,7 @@ model Announcement {
   @@index([publish_at])
 }
 
-/// One row per recipient. A notice addressed to a role is fanned out to every account
-/// holding that role at publish time, so read and dismissed state are per person and
-/// a later hire does not inherit a backlog.
+/// One row per recipient, fanned out at publish time.
 model Notification {
   notification_id String               @id @default(uuid())
   user_id         String
@@ -868,13 +786,11 @@ model Notification {
   description     String
   category        NotificationCategory
   tone            NotificationTone     @default(INFO)
-  /// Portal path the row opens — the screen the notice is about.
+  /// Portal path to open.
   href            String?
-  /// Set by schedulers so a repeated sweep cannot notify the same thing twice.
+  /// Stops repeated sweeps from double-notifying.
   dedupe_key      String?
-  /// Which side of a mobile account the row belongs to (a donor who also
-  /// volunteers sees donation news only on the Donor side). Null means the row
-  /// is about the account itself and shows on every side — and on the portal.
+  /// Mobile side the row belongs to; null = account-wide (every side and the portal).
   audience_role   RoleType?
   read_at         DateTime?
   dismissed_at    DateTime?
@@ -885,10 +801,7 @@ model Notification {
   @@index([user_id, dismissed_at, createdAt])
 }
 
-/// The post-event questionnaire the director builds in the portal. One form serves
-/// every completed event; the volunteer app only ever sees it once PUBLISHED. The
-/// questions are stored as the JSON the builder edits (see the evaluation validators
-/// for the shape) so adding a question type never needs a migration.
+/// Only PUBLISHED forms reach the app. Questions are builder JSON (see the evaluation validators), so new types need no migration.
 model EvaluationForm {
   evaluation_form_id String                 @id @default(uuid())
   title              String
@@ -898,22 +811,18 @@ model EvaluationForm {
   status             EvaluationFormStatus   @default(DRAFT)
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
-  /// The one questionnaire served for an event that has none assigned. At most one
-  /// row holds it; assigning it elsewhere moves it rather than adding a second.
+  /// Fallback for unassigned events; at most one row.
   is_default         Boolean                @default(false)
   assignments        EvaluationAssignment[]
   responses          EvaluationResponse[]
 }
 
-/// Which questionnaire one event asks its participants. An event has at most one,
-/// a questionnaire can serve many, and an event without a row falls back to the
-/// questionnaire flagged `is_default` — so feedback never goes dark on an event
-/// the director has not got to yet.
+/// At most one per event; unassigned events use the `is_default` form.
 model EvaluationAssignment {
   evaluation_assignment_id String         @id @default(uuid())
   form_id                  String
   event_id                 Int            @unique
-  /// The director who assigned it; kept null when the account is later removed.
+  /// Null once the account is removed.
   assigned_by_id           String?
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
@@ -924,36 +833,28 @@ model EvaluationAssignment {
   @@index([form_id])
 }
 
-/// How the volunteer leaderboard is scored and how its tier ladder is cut. One row:
-/// the portal's Rankings → Customization edits it, the volunteer app reads the tiers
-/// to draw its avatar frames. `tiers` is the JSON the customization form edits (see
-/// the rankings validators) so a new frame design never needs a migration.
+/// Single row. `tiers` is form JSON (see the rankings validators), so new frames need no migration.
 model RankingSettings {
   ranking_settings_id   String   @id @default(uuid())
-  /// Points a volunteer earns for every event they attended (COMPLETED).
+  /// Per COMPLETED event.
   points_per_attendance Int      @default(10)
-  /// First missed registration costs this much; each straight miss adds it again.
+  /// Each straight miss adds another step.
   absence_penalty_step  Int      @default(2)
-  /// Misses further apart than this restart the penalty at the first step.
+  /// Wider gaps restart the penalty.
   absence_reset_days    Int      @default(7)
   default_period        String   @default("month")
   tiers                 Json
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
-  /// Donor board: one point for every this many pesos of confirmed donations.
+  /// One point per this many confirmed pesos.
   donor_pesos_per_point Int      @default(100)
-  /// Peso value credited per unit of each goods type (`food`, `clothing`, …) when a
-  /// goods donation is scored; null falls back to the shipped defaults.
+  /// Pesos per unit (`food`, `clothing`, …); null uses the defaults.
   goods_type_values     Json?
-  /// Extra points per attended event for an approved special role (`ORGANIZER`,
-  /// `FACILITATOR`, `SPEAKER`), on top of `points_per_attendance`; null falls back
-  /// to the shipped defaults.
+  /// Bonus per approved `ORGANIZER`/`FACILITATOR`/`SPEAKER`; null uses the defaults.
   participation_role_points Json?
 }
 
-/// One volunteer's answers to the questionnaire for one completed event they took
-/// part in. `answers` is keyed by question id; `rating` copies the star-rating
-/// answer out so the portal can filter and average without opening the JSON.
+/// `answers` keyed by question id; `rating` copied out for filtering and averages.
 model EvaluationResponse {
   evaluation_response_id String                   @id @default(uuid())
   form_id                String
@@ -974,47 +875,40 @@ model EvaluationResponse {
   @@index([user_id])
 }
 
-/// One request filed from the mobile app for a director to rule on. The proof
-/// behind a ROLE_ACCESS request (ID sides, selfie) is copied off the Redis
-/// registration session at filing time so it outlives that session's TTL.
+/// ROLE_ACCESS proof is copied off the Redis registration session so it outlives the TTL.
 model UserRequest {
   user_request_id      String                  @id @default(uuid())
-  /// Sequential tracking number; the portal renders it as `REQ-007`.
+  /// Rendered as `REQ-007`.
   reference_number     Int                     @unique @default(autoincrement())
   kind                 UserRequestKind
   status               UserRequestStatus       @default(PENDING)
   user_id              String
-  /// ROLE_ACCESS only — the role being asked for.
+  /// ROLE_ACCESS only.
   requested_role       RoleType?
-  /// EVENT_JOIN / EVENT_ROLE — the event the request is about.
+  /// EVENT_JOIN / EVENT_ROLE.
   event_id             Int?
-  /// EVENT_ROLE only — the event role the volunteer asked to take.
+  /// EVENT_ROLE only.
   participation_role   EventParticipationRole?
-  /// ROLE_ACCESS / ALUMNI_REGISTRATION / PARTNER_BARANGAY_REGISTRATION /
-  /// MANUAL_REGISTRATION — the ID
-  /// presented with the request.
+  /// ROLE_ACCESS / ALUMNI_REGISTRATION / PARTNER_BARANGAY_REGISTRATION / MANUAL_REGISTRATION.
   id_front_url         String?
   id_back_url          String?
   selfie_url           String?
   face_similarity      Float?
-  /// One-line statement of what is being asked for, written at filing time.
+  /// Written at filing time.
   summary              String
   decided_by_user_id   String?
   decided_at           DateTime?
-  /// Set when a director rejects the request — the reason the requester sees
-  /// in the app. Cleared never: a re-application is a new row.
+  /// Shown to the requester; never cleared (reapplying creates a new row).
   rejection_reason     String?
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
-  /// The 512-dim face embedding from the session's match, kept so acceptance
-  /// can enrol the biometric without re-running the face service.
+  /// 512-dim embedding, so acceptance can enrol without re-running the face service.
   selfie_embedding     Json?
-  /// EVENT_JOIN only — the proof of residency the beneficiary attached.
+  /// EVENT_JOIN only.
   residency_proof_url  String?
   residency_proof_name String?
   residency_proof_mime String?
-  /// BENEFICIARY_REGISTRATION only — the supporting document attached to the
-  /// sign-up form. Any file type; the director opens it before approving.
+  /// BENEFICIARY_REGISTRATION only; any file type.
   document_url         String?
   document_name        String?
   document_mime        String?
@@ -1029,12 +923,11 @@ model UserRequest {
   @@index([kind, status])
 }
 
-/// One line on a request's history — filed, accepted, removed, restored.
 model UserRequestTrailEntry {
   user_request_trail_entry_id String      @id @default(uuid())
   user_request_id             String
   label                       String
-  /// Who caused it — the requester for the filing, a portal account after that.
+  /// The requester for the filing, a portal account after.
   actor_name                  String
   createdAt                   DateTime    @default(now())
   user_request                UserRequest @relation(fields: [user_request_id], references: [user_request_id], onDelete: Cascade)
@@ -1042,64 +935,59 @@ model UserRequestTrailEntry {
   @@index([user_request_id])
 }
 
-/// A beneficiary's Needs Assessment Survey — one per account, overwritten when
-/// they update it. Answers are stored as the codes the residential-needs
-/// clustering works on (`food`, `money`, …), not the app's display labels.
+/// One per account, overwritten on update. Stores clustering codes (`food`, `money`, …), not display labels.
 model NeedsAssessment {
   needs_assessment_id     String   @id @default(uuid())
   user_id                 String   @unique
-  /// Q1 — what the household needs help with (`food`, `healthcare`, … `other`).
+  /// Q1 needs (`food`, `healthcare`, … `other`).
   needs                   String[]
   other_need              String?
-  /// Q2 — 1 (not serious) to 5 (very serious).
+  /// Q2: 1 (not serious) to 5 (very serious).
   seriousness             Int
-  /// Q3 — what makes the need hard to meet (`money`, … `other`, `none`).
+  /// Q3 barriers (`money`, … `other`, `none`).
   barriers                String[]
   other_barrier           String?
-  /// Q4 — the problem most commonly seen in the community.
+  /// Q4.
   community_problem       String
   other_community_problem String?
-  /// Q5 — anything else the household wants CARES to know.
+  /// Q5.
   concern                 String?
-  /// When the answers were last submitted — the first take or the latest update.
+  /// First take or latest update.
   submitted_at            DateTime @default(now())
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   user                    User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
-/// Assistance a beneficiary asked for from the app (food pack, medicine, …).
-/// The stage timestamps drive the progress trail the app draws.
+/// Stage timestamps drive the app's progress trail.
 model AssistanceRequest {
   assistance_request_id String                        @id @default(uuid())
-  /// Sequential tracking number; the app renders it as `CARES-AR-2026-0007`.
+  /// Rendered as `CARES-AR-2026-0007`.
   reference_number      Int                           @unique @default(autoincrement())
   user_id               String
-  /// What is needed — the picked option or what the beneficiary typed.
+  /// The picked option or typed text.
   title                 String
   category              AssistanceCategory
   description           String
   urgency               AssistanceUrgency
   household_size        Int
-  /// Where the assistance is needed, pinned by the beneficiary on the map.
-  /// Both are set together or both are null.
+  /// Set together with longitude, or both null.
   location_latitude     Float?
   location_longitude    Float?
-  /// Landmark or address details typed beside the pin.
   location_details      String?
   status                AssistanceRequestStatus       @default(PENDING)
   assessment_status     AssistanceAssessmentStatus    @default(NOT_STARTED)
-  /// The needs assessment visit — scheduled or held.
+  /// Scheduled or held.
   assessment_date       DateTime?
   assigned_organization String?
-  /// What is being released, filled in by staff once it is decided.
+  /// Filled by staff once decided.
   items                 String[]
-  /// Staff note shown under the status; the app falls back to a stock line.
+  /// The app falls back to a stock line.
   status_note           String?
   screened_at           DateTime?
   decided_at            DateTime?
   released_at           DateTime?
-  /// Set when the beneficiary withdraws the request themselves.
+  /// Withdrawn by the beneficiary.
   cancelled_at          DateTime?
   cancel_reason         String?
   createdAt             DateTime                      @default(now())
@@ -1111,7 +999,6 @@ model AssistanceRequest {
   @@index([status])
 }
 
-/// A proof document filed with an assistance request (ID, bill, photo, …).
 model AssistanceRequestAttachment {
   assistance_request_attachment_id String            @id @default(uuid())
   assistance_request_id            String
@@ -1125,30 +1012,26 @@ model AssistanceRequestAttachment {
   @@index([assistance_request_id])
 }
 
-/// The donation ledger the portal's Donation Tracking works and the donor app's
-/// Activity tab reads. A money row is opened by the gateway callback once a
-/// checkout is paid; a goods row is opened when the donor pledges. Only CONFIRMED
-/// rows count towards the donor board.
+/// Money rows open on the paid callback, goods rows on pledge. Only CONFIRMED counts for the donor board.
 model Donation {
   donation_id    String               @id @default(uuid())
-  /// Human tracking number — `DN-0007` is sequence 7.
+  /// `DN-0007` is sequence 7.
   sequence       Int                  @unique @default(autoincrement())
   user_id        String
   event_id       Int
   kind           DonationKind
   status         DonationStatus       @default(PLEDGED)
-  /// Whole pesos: what was paid for money; the credited value of the goods
-  /// (goods-type value × quantity, snapshotted at pledge time) for goods.
+  /// Whole pesos: paid amount, or goods value × quantity snapshotted at pledge.
   amount         Int
   payment_id     String?              @unique
-  /// Goods only — the `goods_types` id on the event (`food`, `clothing`, …) or `other`.
+  /// Goods only; an event `goods_types` id or `other`.
   goods_type     String?
-  /// Goods only — what the donor said they are giving.
+  /// Goods only.
   goods_item     String?
   goods_quantity Int?
-  /// Goods only — the number CARES can reach the donor on about the drop-off.
+  /// Goods only.
   donor_contact  String?
-  /// Goods only — the day the donor plans to hand the goods in at the CARES office.
+  /// Goods only; planned office drop-off day.
   delivery_date  DateTime?
   confirmed_at   DateTime?
   createdAt      DateTime             @default(now())
@@ -1163,17 +1046,16 @@ model Donation {
   @@index([status])
 }
 
-/// Every status move on a donation, with who made it — the audit trail the portal
-/// shows and the proof that the donor was notified.
+/// Also proves the donor was notified.
 model DonationTrailEntry {
   donation_trail_entry_id String         @id @default(uuid())
   donation_id             String
   status                  DonationStatus
   note                    String?
   actor_id                String?
-  /// `System` for the donor-side submission, otherwise the portal account's name.
+  /// `System` for donor-side submissions.
   actor_label             String
-  /// Donor address the status notice went to; null when nothing was sent.
+  /// Null when nothing was sent.
   notified_email          String?
   createdAt               DateTime       @default(now())
   actor                   User?          @relation("DonationTrailActor", fields: [actor_id], references: [user_id])
@@ -1210,8 +1092,7 @@ enum RoleType {
   BENEFICIARY
 }
 
-/// Every action the portal can gate. Grouped `{MODULE}_{ACTION}`; the labels and
-/// module grouping the portal renders live in shared/constants/permission-catalog.ts.
+/// `{MODULE}_{ACTION}`; labels live in shared/constants/permission-catalog.ts.
 enum PermissionKey {
   USERS_VIEW
   USERS_RESTRICT
@@ -1255,31 +1136,29 @@ enum PermissionOverrideEffect {
   REVOKE
 }
 
-/// Why a sign-in attempt ended the way it did. Anything other than SUCCESS is a
-/// refusal the portal's login-activity page renders as a failed attempt.
+/// Anything but SUCCESS is a refusal.
 enum LoginOutcome {
   SUCCESS
   INVALID_CREDENTIALS
   BLOCKED_IP
   RESTRICTED_ACCOUNT
   ROLE_NOT_ALLOWED
-  /// Refused by a SecurityPolicy rule rather than by the credentials themselves.
+  /// A SecurityPolicy refusal, not bad credentials.
   LOCKED_OUT
   OUTSIDE_LOGIN_HOURS
   IP_NOT_ALLOWED
-  /// The temporary credential an administrator issued has passed its expiry.
+  /// Admin-issued temporary credential expired.
   CREDENTIAL_EXPIRED
-  /// The password matched but the email was never proven with the sign-up OTP.
+  /// Password matched but the sign-up OTP was never completed.
   EMAIL_NOT_VERIFIED
 }
 
-/// Which client the attempt came from — the React portal or the Flutter app.
 enum LoginSource {
   PORTAL
   MOBILE
 }
 
-/// Which area of CARES produced the entry. Drives the portal's category filter.
+/// Drives the portal's category filter.
 enum AuditCategory {
   AUTHENTICATION
   ACCESS_CONTROL
@@ -1291,7 +1170,7 @@ enum AuditCategory {
   SYSTEM
 }
 
-/// How much attention the entry deserves on review, independent of its outcome.
+/// Review attention, independent of outcome.
 enum AuditSeverity {
   INFO
   NOTICE
@@ -1299,54 +1178,49 @@ enum AuditSeverity {
   CRITICAL
 }
 
-/// Whether the action went through. DENIED is a permission refusal, not a server error.
+/// DENIED is a permission refusal, not a server error.
 enum AuditOutcome {
   SUCCESS
   FAILURE
   DENIED
 }
 
-/// Which client wrote the entry — the React portal, the Flutter app, or a background job.
 enum AuditSource {
   PORTAL
   MOBILE
   SYSTEM
 }
 
-/// One row per privileged action. Append-only: nothing updates or deletes a row, so
-/// the trail stays reviewable. The actor's name, email, and role are denormalised at
-/// write time so a later rename or role change cannot rewrite history.
+/// Append-only; actor details denormalised so renames can't rewrite history.
 model AuditLog {
   audit_log_id  String        @id @default(uuid())
-  /// Machine key, e.g. `access-control.permission.revoked` — stable across wording changes.
+  /// e.g. `access-control.permission.revoked`; stable across wording changes.
   action        String
-  /// The sentence the portal renders in the grid.
   description   String
   category      AuditCategory
   severity      AuditSeverity @default(INFO)
   outcome       AuditOutcome  @default(SUCCESS)
-  /// Null for background jobs, and for actors whose account was later deleted.
+  /// Null for background jobs and deleted actors.
   actor_user_id String?
   actor_user    User?         @relation(fields: [actor_user_id], references: [user_id], onDelete: SetNull)
   actor_name    String
   actor_email   String
-  /// Null when the actor is the system rather than an account.
+  /// Null when the actor is the system.
   actor_role    RoleType?
-  /// What the action was performed on — `user`, `event`, `certificate`, `system`, …
+  /// e.g. `user`, `event`, `certificate`, `system`.
   target_type   String
   target_label  String
-  /// Null when the target is not a single record (a route, a role baseline, a service).
+  /// Null when not a single record.
   target_id     String?
   ip_address    String
   user_agent    String?
   source        AuditSource   @default(PORTAL)
-  /// Correlates every entry written by one request.
+  /// Correlates one request's entries.
   request_id    String?
-  /// Operator-supplied justification, when the action asks for one.
   reason        String?
-  /// Field-level before/after pairs: `[{ field, before, after }]`.
+  /// `[{ field, before, after }]`.
   changes       Json          @default("[]")
-  /// Free-form context — counts, service scores, template names.
+  /// Free-form context.
   metadata      Json          @default("{}")
   createdAt     DateTime      @default(now())
 
@@ -1361,20 +1235,15 @@ model AuditLog {
 model Account {
   account_id String   @id @default(uuid())
   email      String   @unique
-  /// Null for an account that only ever signs in through a social provider — see
-  /// `OAuthIdentity`. Password sign-in is refused outright when this is null.
+  /// Null for social-only accounts (`OAuthIdentity`); password sign-in is refused.
   password   String?
-  /// Set when an administrator provisioned this account with temporary credentials.
-  /// Sign-in is refused once it passes; null means the password does not expire, which
-  /// is what a self-registered account and a completed hand-over both look like.
+  /// Temporary-credential expiry; null means it doesn't expire.
   credential_expires_at DateTime?
-  /// The administrator who issued the credential in force — null for self-registration.
+  /// Null for self-registration.
   provisioned_by_user_id String?
-  /// When the owner proved the address — the sign-up OTP, a provider that vouches for
-  /// it, or an administrator mailing the credential to it. Mobile password sign-in is
-  /// refused while this is null.
+  /// Via OTP, a provider, or a mailed credential. Mobile password sign-in is refused while null.
   email_verified_at DateTime?
-  /// Portal signatory image (directors/coordinators); printed onto certificates.
+  /// Printed onto certificates.
   signature_url      String?
   is_restricted      Boolean   @default(false)
   restricted_at      DateTime?
@@ -1391,10 +1260,7 @@ enum AuthProvider {
   FACEBOOK
 }
 
-/// Volunteer interests mirror the portal's event categories (site/src/constants/event.ts)
-/// so a volunteer's picks can be matched against the events staff publish. The first
-/// three values are the original catalog; they stay in the enum because Postgres
-/// cannot drop enum values, but their Interest rows are inactive.
+/// Must match site/src/constants/event.ts. The first three are legacy (Postgres can't drop enum values); their Interest rows are inactive.
 enum InterestCode {
   ACADEMIC_ACTIVITIES
   DONATION_DRIVES
@@ -1419,19 +1285,14 @@ enum EventStatus {
   Cancelled
 }
 
-/// Where a volunteer stands for one event. Attendance is geofence-based: the mobile app
-/// records coordinates while the event runs and the AI validation service decides,
-/// afterwards, whether the volunteer stayed inside the event area for its duration.
+/// Decided after the event by the validation service from geofence readings.
 enum AttendanceStatus {
   PENDING
   COMPLETED
   ABSENT
 }
 
-/// What a volunteer registers to do at an event. REGULAR is the plain
-/// volunteer slot; the others help run the event and need a director's or
-/// coordinator's approval, judged on what they know of the volunteer — no
-/// proof is attached.
+/// Non-REGULAR roles need director/coordinator approval; no proof attached.
 enum EventParticipationRole {
   REGULAR
   ORGANIZER
@@ -1439,17 +1300,14 @@ enum EventParticipationRole {
   SPEAKER
 }
 
-/// Review state of a volunteer's event role. REGULAR registrations start
-/// APPROVED; the other roles start PENDING until the EVENT_ROLE request is ruled.
+/// REGULAR starts APPROVED; others PENDING until the EVENT_ROLE request is ruled.
 enum EventRoleApproval {
   APPROVED
   PENDING
   REJECTED
 }
 
-/// Where the coordinates the validation service judged came from. Offline devices buffer
-/// their readings and push them as a CSV once back online, so a row can sit on
-/// AWAITING_SYNC with nothing to validate yet.
+/// Offline devices push a CSV later, hence AWAITING_SYNC.
 enum GeoValidationMethod {
   GEOFENCE
   OFFLINE_SYNC
@@ -1457,8 +1315,7 @@ enum GeoValidationMethod {
   MANUAL
 }
 
-/// Priority doubles as the portal's triage bucket: HIGH = Issue, MEDIUM = Support,
-/// LOW = Feature. One axis, so a ticket cannot be an "Issue" with low priority.
+/// Also the triage bucket: HIGH = Issue, MEDIUM = Support, LOW = Feature.
 enum SupportTicketPriority {
   HIGH
   MEDIUM
@@ -1468,15 +1325,15 @@ enum SupportTicketPriority {
 enum SupportTicketStatus {
   OPEN
   IN_PROGRESS
-  /// Fix is in — waiting for the requester to confirm it works on their side.
+  /// Awaiting the requester's confirmation.
   UNDER_VERIFICATION
-  /// Blocked on the requester: more detail or a decision is needed from them.
+  /// Blocked on the requester.
   CLIENT_FEEDBACK
   RESOLVED
   CLOSED
 }
 
-/// What the reporter says went wrong; drives triage routing in the portal.
+/// Drives triage routing.
 enum SupportTicketType {
   BUG
   LOGIN
@@ -1486,13 +1343,10 @@ enum SupportTicketType {
   MOBILE_APP
   FEATURE_REQUEST
   OTHER
-  /// Flagging another user, event, campaign, or content — raised from the app's
-  /// "Report a Problem" flow rather than a help request about the reporter's own
-  /// account.
+  /// Flags another user, event, campaign or content (app "Report a Problem").
   REPORT
 }
 
-/// Which side of a thread a reply sits on.
 enum SupportTicketAuthorType {
   STAFF
   REQUESTER
@@ -1517,16 +1371,14 @@ enum CertificateOrientation {
   PORTRAIT
 }
 
-/// What an uploaded file is used for on the sheet. IMAGE files are placed by the
-/// director; FRAME and SEAL replace the built-in artwork and there is at most one of
-/// each per template.
+/// IMAGE files are placed by the director; FRAME and SEAL replace built-ins (max one each).
 enum CertificateAssetKind {
   IMAGE
   FRAME
   SEAL
 }
 
-/// Where a deployment sits in its own life, independent of the event's status.
+/// Independent of the event's status.
 enum CertificateDeploymentStatus {
   SCHEDULED
   DISTRIBUTING
@@ -1534,18 +1386,14 @@ enum CertificateDeploymentStatus {
   COMPLETED
 }
 
-/// Where a coordinator's monthly report sits. It leaves the director's queue the
-/// moment it is approved — an approved report is a filed one, not a decided one still
-/// waiting in the list.
+/// Approved means filed; it leaves the director's queue.
 enum MonthlyReportStatus {
   UNDER_REVIEW
   APPROVED
   RETURNED
 }
 
-/// The college a report counts for. Held as an enum rather than a `Department` row
-/// because the portal groups, colours and totals on this exact set — a free-text
-/// department would let two spellings split one college's figures in half.
+/// An enum so the portal's per-college totals can't split across spellings.
 enum ReportDepartment {
   CCS
   CBA
@@ -1555,8 +1403,7 @@ enum ReportDepartment {
   CCJE
 }
 
-/// What an attached file is, so the portal can pick an icon and decide whether the
-/// viewer can render it or only offer it for download.
+/// Picks the icon and whether the viewer can render it.
 enum MonthlyReportDocumentKind {
   DOCX
   PDF
@@ -1597,8 +1444,7 @@ enum AnnouncementState {
   EXPIRED
 }
 
-/// What a portal notification is about — one value per portal module, so a feed can
-/// be scoped to the modules a role works in.
+/// One per portal module, so feeds can be scoped by role.
 enum NotificationCategory {
   EVENT
   REPORT
@@ -1613,7 +1459,6 @@ enum NotificationCategory {
   MAIL
 }
 
-/// How loudly a notification asks for attention.
 enum NotificationTone {
   INFO
   ATTENTION
@@ -1625,19 +1470,13 @@ enum EvaluationFormStatus {
   PUBLISHED
 }
 
-/// Whether every required question was answered when the volunteer submitted.
+/// Whether every required question was answered.
 enum EvaluationResponseStatus {
   COMPLETE
   PARTIAL
 }
 
-/// What a mobile user is asking the portal for. ROLE_ACCESS is a donor or
-/// beneficiary who passed the ID + face check and wants the volunteer side
-/// opened; EVENT_JOIN is a beneficiary asking to attend an event;
-/// BENEFICIARY_REGISTRATION is a new beneficiary account waiting for a
-/// director's approval — the account cannot sign in until it is accepted.
-/// RESIDENCY_VERIFICATION is a proof of residency uploaded from the profile:
-/// the beneficiary profile reads as complete only once it is accepted.
+/// ROLE_ACCESS: open the volunteer side after ID + face check. BENEFICIARY_REGISTRATION: sign-in waits for approval. RESIDENCY_VERIFICATION: profile completes once accepted.
 enum UserRequestKind {
   ROLE_ACCESS
   EVENT_JOIN
@@ -1646,23 +1485,17 @@ enum UserRequestKind {
   RESIDENCY_VERIFICATION
   ALUMNI_REGISTRATION
   PARTNER_BARANGAY_REGISTRATION
-  /// A staff or alumni sign-up whose ID photo the app could not recognize: the
-  /// registrant chose manual registration, so the ID skipped the automatic
-  /// checks and the face scan, and a director verifies it by hand.
+  /// Unrecognised ID photo: skips automatic checks and face scan; verified by a director.
   MANUAL_REGISTRATION
 }
 
-/// DELETED is a recycle bin, not a hard delete — the director can restore a
-/// request to PENDING, which is why the trail is kept on a dropped row.
-/// REJECTED is a decision the requester sees, with the director's reason; the
-/// requester may file a fresh request for the same event afterwards.
-/// How a beneficiary signed up. A STUDENT presented a UC school ID and passed the
-/// face match, so their school record is real and their Volunteer side is open.
+/// STUDENT passed the school-ID + face check, so their school record is real and their Volunteer side open.
 enum BeneficiaryType {
   REGULAR
   STUDENT
 }
 
+/// DELETED is a restorable recycle bin (trail kept); REJECTED shows the reason and allows a fresh request.
 enum UserRequestStatus {
   PENDING
   ACCEPTED
@@ -1686,18 +1519,17 @@ enum AssistanceUrgency {
   URGENT
 }
 
-/// DECLINED is final for this request; the beneficiary may file a new one.
+/// DECLINED is final; the beneficiary may file a new one.
 enum AssistanceRequestStatus {
   PENDING
   UNDER_REVIEW
   APPROVED
   COMPLETED
   DECLINED
-  /// Withdrawn by the beneficiary before it was completed.
+  /// Withdrawn before completion.
   CANCELLED
 }
 
-/// Where the request's needs assessment visit stands.
 enum AssistanceAssessmentStatus {
   NOT_STARTED
   SCHEDULED
@@ -1705,10 +1537,7 @@ enum AssistanceAssessmentStatus {
   COMPLETED
 }
 
-/// The Xendit channel behind each option on the app's payment-method step.
-/// GCASH is an e-wallet charge, QRPH a dynamic QR Ph code, CARD and
-/// BANK_TRANSFER go through Xendit's hosted checkout (card entry with 3DS,
-/// or BPI / UnionBank / RCBC / Chinabank direct debit).
+/// GCASH: e-wallet charge; QRPH: dynamic QR; CARD / BANK_TRANSFER: hosted checkout (3DS cards, BPI / UnionBank / RCBC / Chinabank direct debit).
 enum DonationPaymentMethod {
   GCASH
   QRPH
@@ -1716,9 +1545,7 @@ enum DonationPaymentMethod {
   BANK_TRANSFER
 }
 
-/// Payment lifecycle as Xendit reports it. PENDING is a checkout still open;
-/// the other three are terminal and are only ever set from a gateway callback
-/// or a status reconcile — never from the app.
+/// Terminal statuses are only set from a gateway callback or reconcile, never the app.
 enum DonationPaymentStatus {
   PENDING
   PAID
@@ -1726,15 +1553,12 @@ enum DonationPaymentStatus {
   EXPIRED
 }
 
-/// One money-donation checkout a donor started from the app. A row is created
-/// before the gateway is called so the client's idempotency key can dedupe a
-/// retried tap, and the gateway reference on it is what every Xendit callback
-/// carries back.
+/// Created before the gateway call so the idempotency key dedupes retries; callbacks carry `gateway_reference`.
 model DonationPayment {
   donation_payment_id String                @id @default(uuid())
   user_id             String
   user                User                  @relation("DonationPaymentDonor", fields: [user_id], references: [user_id], onDelete: Cascade)
-  /// The director event behind the campaign, when the campaign is event-backed.
+  /// Set when the campaign is event-backed.
   event_id            Int?
   event               Event?                @relation(fields: [event_id], references: [event_id], onDelete: SetNull)
   campaign_id         String
@@ -1744,24 +1568,24 @@ model DonationPayment {
   currency            String                @default("PHP")
   method              DonationPaymentMethod
   status              DonationPaymentStatus @default(PENDING)
-  /// Client-generated per checkout attempt; the same key returns the same row.
+  /// Per checkout attempt; the same key returns the same row.
   idempotency_key     String
-  /// The `reference_id` / `external_id` handed to Xendit; callbacks carry it back.
+  /// Xendit `reference_id` / `external_id`; callbacks carry it back.
   gateway_reference   String                @unique
-  /// Xendit's id for the charge, QR code or invoice we created.
+  /// Xendit's charge, QR code or invoice id.
   gateway_resource_id String?
-  /// Xendit's id for the settled payment — the reference shown on the receipt.
+  /// Xendit's settled payment id (receipt reference).
   payment_reference   String?
-  /// Payment channel Xendit reported on settlement (e.g. DD_BPI for a bank transfer).
+  /// Reported on settlement (e.g. DD_BPI).
   payment_channel     String?
-  /// GCASH / CARD / BANK_TRANSFER: where the donor completes the payment.
+  /// GCASH / CARD / BANK_TRANSFER.
   checkout_url        String?
-  /// QRPH only: the EMV string the app renders as a QR code.
+  /// QRPH only: the EMV string to render.
   qr_string           String?
   expires_at          DateTime?
   paid_at             DateTime?
   failure_reason      String?
-  /// The ledger row opened when this checkout settled as PAID.
+  /// Opened when settled as PAID.
   donation            Donation?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
@@ -1771,10 +1595,7 @@ model DonationPayment {
   @@index([status])
 }
 
-/// Every Xendit callback already applied, keyed by its `webhook-id` header.
-/// Xendit retries until it sees a 2xx, so the same event can arrive more than
-/// once; inserting here in the same transaction as the status change makes a
-/// replay a no-op.
+/// Keyed by `webhook-id`; inserted with the status change so replays are no-ops.
 model PaymentWebhookEvent {
   webhook_id        String   @id
   event             String
@@ -1785,127 +1606,104 @@ model PaymentWebhookEvent {
   @@index([gateway_reference])
 }
 
-/// Which Xendit account answers: the key prefix decides it, so the mode is stored
-/// alongside the key only so the portal can say out loud which one is live.
+/// The key prefix decides; stored only so the portal can say which is live.
 enum PaymentGatewayMode {
   TEST
   LIVE
 }
 
-/// Where a channel stands with the gateway. A channel is only chargeable once Xendit
-/// reports it activated on the account *and* the callbacks for it are registered;
-/// until the account exists, switching one on parks it at PENDING.
+/// Chargeable only once Xendit reports it active and callbacks are registered; PENDING without an account.
 enum PaymentMethodVerification {
-  /// Never checked — the director has not switched it on yet.
+  /// Never checked.
   NOT_VERIFIED
-  /// Asked for, but the gateway could not answer yet (no account connected).
+  /// No account connected yet.
   PENDING
-  /// Xendit reports the channel activated and the callbacks registered.
+  /// Active with callbacks registered.
   VERIFIED
-  /// The gateway answered and refused it; `verification_message` says why.
+  /// Refused; see `verification_message`.
   FAILED
 }
 
-/// How far the receiving account has got through ownership proof. CARES sends a small
-/// payout of a random amount to the account the director recorded, and the director
-/// proves they hold it by reporting the amount that arrived — the standard
-/// micro-deposit check, because no API will confirm who owns a GCash number.
+/// Micro-deposit check: a random payout the director reports back (no API proves GCash ownership).
 enum PaymentAccountProof {
-  /// No payout sent yet.
   NOT_STARTED
-  /// The payout is with the gateway, not yet reported as received.
+  /// With the gateway, not yet received.
   SENDING
-  /// Money is on its way; waiting for the director to report the amount.
+  /// Waiting for the director to report the amount.
   AWAITING_CONFIRMATION
-  /// The director reported the right amount — the account is theirs to reach.
+  /// Reported correctly.
   VERIFIED
-  /// The payout was refused, or the amount was reported wrong too many times.
+  /// Payout refused, or too many wrong answers.
   FAILED
 }
 
-/// The Xendit account CARES collects donations into, as the director enters it in
-/// the portal's Payments module. One row — every donor pays into the same account.
-///
-/// The secrets are held as AES-256-GCM ciphertext (see `secret-cipher-utils.ts`) and
-/// are never sent back to a client: the portal only ever sees `secret_key_last4` and
-/// the `*_set` flags, which is enough to say "a key is saved, and it ends in 1a2b".
+/// Single row. Secrets are AES-256-GCM ciphertext (`secret-cipher-utils.ts`), never sent to clients; only `secret_key_last4` and `*_set` flags.
 model PaymentGatewaySettings {
   payment_gateway_settings_id String             @id @default(uuid())
   singleton                   Boolean            @unique @default(true)
   mode                        PaymentGatewayMode @default(TEST)
-  /// Off until the director is ready to take money; every checkout is refused while false.
+  /// Checkouts are refused while false.
   enabled                     Boolean            @default(false)
-  /// Ciphertext of the Xendit secret API key. Null means "still on the env key".
+  /// Null = still on the env key.
   secret_key_cipher           String?
-  /// Last four characters of the saved key, for telling two keys apart in the portal.
+  /// Tells saved keys apart.
   secret_key_last4            String?
-  /// Ciphertext of the callback verification token from Xendit's dashboard.
   webhook_token_cipher        String?
-  /// Blank for https://api.xendit.co — only set when pointing at a mock or proxy.
+  /// Blank = https://api.xendit.co; set only for a mock or proxy.
   api_url                     String?
-  /// The name the donor sees on the GCash / card statement.
+  /// Shown on the donor's statement.
   statement_name              String?
-  /// Where donors reach CARES about a payment that went wrong.
   support_email               String?
   support_contact             String?
-  /// When the saved key last answered a live call, and why it last did not.
+  /// Last successful live call, and why it last failed.
   verified_at                 DateTime?
   verification_error          String?
   methods                     PaymentMethodSetting[]
-  /// No relation, like `SecurityPolicy`: the row outlives the account that saved it.
+  /// No relation, like `SecurityPolicy`: outlives the account.
   updated_by_user_id          String?
   createdAt                   DateTime           @default(now())
   updatedAt                   DateTime           @updatedAt
 }
 
-/// One donor-facing payment channel. A channel the director has not enabled is not
-/// offered in the app and is refused by the checkout endpoint, so hiding it in the
-/// portal and blocking it on the server are one decision.
+/// Disabled channels are hidden in the app and refused at checkout.
 model PaymentMethodSetting {
   payment_method_setting_id String                 @id @default(uuid())
   settings_id               String
   settings                  PaymentGatewaySettings @relation(fields: [settings_id], references: [payment_gateway_settings_id], onDelete: Cascade)
   method                    DonationPaymentMethod
   enabled                   Boolean                @default(false)
-  /// Overrides the channel's built-in name in the app; blank keeps the default.
+  /// Blank keeps the default.
   display_name              String?
-  /// One line under the name on the donor's method step.
   instructions              String?
-  /// The account the settlement lands in, as the director reads it off Xendit — the
-  /// GCash number or bank account. Reference only: Xendit routes to the account
-  /// behind the secret key, not to whatever is typed here.
+  /// Reference only: Xendit routes to the secret key's account, not this.
   account_name              String?
   account_number            String?
-  /// Xendit channel codes this method opens (CARD / BANK_TRANSFER); empty uses the
-  /// module's defaults.
+  /// CARD / BANK_TRANSFER; empty uses module defaults.
   channel_codes             String[]               @default([])
-  /// Whole pesos. 0 falls back to the module-wide donation limits.
+  /// Whole pesos; 0 uses module-wide limits.
   min_amount                Int                    @default(0)
   max_amount                Int                    @default(0)
   sort_order                Int                    @default(0)
-  /// Set by the activation check that runs when the director switches this on.
+  /// Set by the activation check.
   verification              PaymentMethodVerification @default(NOT_VERIFIED)
   verified_at               DateTime?
-  /// What the gateway said — the sentence the portal shows under the badge.
+  /// Shown under the badge.
   verification_message      String?
-  /// Channel codes Xendit reported activated at the last check, for the record.
+  /// For the record.
   verified_channel_codes    String[]               @default([])
-  /// When the callback URLs for this channel were last registered with Xendit.
   callbacks_registered_at   DateTime?
-  /// --- ownership proof: is the recorded account really reachable by CARES ---
+  /// Ownership proof fields.
   account_proof             PaymentAccountProof @default(NOT_STARTED)
-  /// Whole pesos sent, and the number the director has to report back. Cleared once
-  /// the account is verified so a later reader cannot simply look up the answer.
+  /// Whole pesos the director must report; cleared once verified.
   account_proof_amount      Int?
-  /// Our reference on the payout, and Xendit's id for it.
+  /// Ours and Xendit's payout ids.
   account_proof_reference   String?
   account_proof_id          String?
   account_proof_sent_at     DateTime?
-  /// Wrong answers so far; the proof locks after `ACCOUNT_PROOF_MAX_ATTEMPTS`.
+  /// Locks after `ACCOUNT_PROOF_MAX_ATTEMPTS`.
   account_proof_attempts    Int                 @default(0)
-  /// What the gateway or the check last said, for the portal to show.
   account_proof_message     String?
-  /// The account this proof covered, so editing the number invalidates the proof.
+  /// Editing the number invalidates the proof.
   account_proof_target      String?
   account_verified_at       DateTime?
   createdAt                 DateTime               @default(now())
@@ -1919,11 +1717,8 @@ enum DonationKind {
   GOODS
 }
 
-/// One ladder for both kinds, walked at different speeds. Goods: PLEDGED →
-/// AWAITING_PICKUP (CARES expects the donor to drop the goods off at the office
-/// on their delivery date) → VERIFYING → CONFIRMED. Money (already paid through the
-/// gateway): PLEDGED → VERIFYING → CONFIRMED. DECLINED is the director's off-ramp;
-/// CANCELLED is the donor's, and only from PLEDGED.
+/// Goods: PLEDGED → AWAITING_PICKUP (office drop-off) → VERIFYING → CONFIRMED. Money: PLEDGED → VERIFYING → CONFIRMED.
+/// DECLINED is the director's off-ramp; CANCELLED the donor's, only from PLEDGED.
 enum DonationStatus {
   PLEDGED
   AWAITING_PICKUP

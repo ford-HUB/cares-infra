@@ -11,7 +11,6 @@ interface FormStatusBadgeProps {
   className?: string
 }
 
-/** Whether volunteers can reach this questionnaire — the one state that gates it. */
 export function FormStatusBadge({ status, className }: FormStatusBadgeProps) {
   return (
     <span

@@ -2,7 +2,7 @@ import { Search, X } from 'lucide-react'
 import { formatNumber } from '../../../constants/formatting'
 
 export interface RankingListFilter {
-  /** Accessible name — the select has no visible label. */
+  /** Accessible name; the select has no visible label. */
   label: string
   value: string
   options: { value: string; label: string }[]
@@ -13,21 +13,17 @@ interface RankingListToolbarProps {
   search: string
   placeholder: string
   onSearchChange: (value: string) => void
-  /** The active board's own filter. */
   filter: RankingListFilter
   shown: number
   total: number
-  /** Noun for the count, plural — `volunteers`, `departments`. */
+  /** Plural, e.g. `volunteers`. */
   noun: string
 }
 
 const controlClass =
   'h-9 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
 
-/**
- * Search and the board's filter, above the standings. Both narrow the list only —
- * the rank column still shows each row's standing on the whole board.
- */
+/** Narrows the list only; rank still shows standing on the whole board. */
 export function RankingListToolbar({
   search,
   placeholder,

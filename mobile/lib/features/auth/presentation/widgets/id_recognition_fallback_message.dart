@@ -3,14 +3,9 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/data/id_image_pre_validator.dart';
 import 'package:mobile/features/auth/domain/id_image_quality.dart';
 
-/// Shown in place of the plain rejection banner for staff and alumni sign-ups
-/// when an ID photo is blurry, unclear, or read with low accuracy. Besides
-/// retaking the photo, the registrant can:
-///
-/// * [onProceedAnyway] — keep this photo and continue the standard sign-up;
-/// * [onManualRegistration] — switch to manual registration: no photo check
-///   and no face scan, the details are typed in, and a director reviews the
-///   uploaded ID through the Request module before the account opens.
+/// Staff/alumni alternative to the rejection banner: [onProceedAnyway] keeps
+/// the photo; [onManualRegistration] skips the photo check and face scan for
+/// director review.
 class IdRecognitionFallbackMessage extends StatelessWidget {
   const IdRecognitionFallbackMessage({
     super.key,
@@ -23,15 +18,13 @@ class IdRecognitionFallbackMessage extends StatelessWidget {
   final VoidCallback onProceedAnyway;
   final VoidCallback onManualRegistration;
 
-  // Both choices share one size and shape so they read as a matched pair.
   static const double _actionHeight = 46;
   static const _actionPadding = EdgeInsets.symmetric(horizontal: 12);
   static final _actionShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(14),
   );
 
-  /// Issues that mean the photo is an ID the app just couldn't read well. A
-  /// file that isn't an image at all has to be picked again.
+  /// A non-image file must be picked again.
   static bool offeredFor(IdImageCheckResult result) =>
       result.issues.isNotEmpty &&
       !result.issues.contains(IdImageIssue.unreadableFile);
@@ -158,8 +151,7 @@ class IdRecognitionFallbackMessage extends StatelessWidget {
   }
 }
 
-/// A centred, single-line button label that shrinks to fit a narrow screen
-/// instead of wrapping onto a second line.
+/// Shrinks to fit instead of wrapping.
 class _ActionLabel extends StatelessWidget {
   const _ActionLabel(this.text);
 

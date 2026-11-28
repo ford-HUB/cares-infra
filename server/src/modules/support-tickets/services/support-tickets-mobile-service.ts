@@ -29,17 +29,12 @@ import type { RequestContextDto } from '../../../shared/decorators/request-conte
 import type { JwtPayload } from '../../../shared/types/jwt-payload';
 import { AuditLogRecorder } from '../../audit-logs/services/audit-log-recorder';
 
-/** Who is acting and from where, for the requester's own activity trail. */
 export interface RequesterAudit {
   actor: JwtPayload;
   context: RequestContextDto;
 }
 
-/**
- * The portal's three triage buckets, keyed by what the reporter said went wrong.
- * An Issue is by definition high priority, a Feature low — the app and the portal
- * both show this mapping, so it is decided once, here, when the ticket is filed.
- */
+/** Decided once at filing: Issue = high, Feature = low. */
 const PRIORITY_BY_TYPE: Record<SupportTicketType, SupportTicketPriority> = {
   BUG: SupportTicketPriority.HIGH,
   LOGIN: SupportTicketPriority.HIGH,
@@ -93,7 +88,7 @@ export class SupportTicketsMobileService {
       metadata: { type: data.type },
     });
 
-    // Triage happens on the portal; a new ticket is the admins' cue to pick it up.
+    // Notifies admins to triage.
     const excerpt =
       data.description.length > 140
         ? `${data.description.slice(0, 140)}…`
@@ -111,7 +106,7 @@ export class SupportTicketsMobileService {
       dedupeKey: `ticket-created:${row.support_ticket_id}`,
     });
 
-    // The requester's receipt: proof the report landed, and the number to quote.
+    // The requester's receipt with the number.
     await this.notificationScheduler.publish({
       title: `We received ticket #${row.reference_number}`,
       description: `"${data.subject}" is with the CARES support team. You'll be notified when they reply or the status changes.`,
@@ -125,11 +120,7 @@ export class SupportTicketsMobileService {
     return toMobileSupportTicket(row);
   }
 
-  /**
-   * A reply from the requester answers whatever staff were waiting on, so a ticket
-   * blocked on them goes back to the team. Any other open status is left alone —
-   * the requester adding detail does not un-pick-up a ticket.
-   */
+  /** Tickets awaiting the requester go back to the team; other statuses unchanged. */
   async reply(
     id: string,
     userId: string,
@@ -155,7 +146,7 @@ export class SupportTicketsMobileService {
     return toMobileSupportTicket(row);
   }
 
-  /** "Yes, it's fixed" closes the loop; "still not working" hands it back to staff. */
+  /** "Fixed" closes; "still broken" returns it to staff. */
   async confirmFix(
     id: string,
     userId: string,
@@ -192,7 +183,7 @@ export class SupportTicketsMobileService {
     return toMobileSupportTicket(row);
   }
 
-  /** A resolved or closed ticket goes back to the top of the queue with the reason. */
+  /** Back to the top of the queue with the reason. */
   async reopen(
     id: string,
     userId: string,
@@ -221,7 +212,7 @@ export class SupportTicketsMobileService {
     return toMobileSupportTicket(row);
   }
 
-  /** One trail row per requester action; skipped on paths with no request context. */
+  /** Skipped without request context. */
   private async recordActivity(
     audit: RequesterAudit | undefined,
     ticket: SupportTicketRow,
@@ -273,7 +264,7 @@ export class SupportTicketsMobileService {
     }
   }
 
-  /** The requester's name is already on the row, so no extra read is needed. */
+  /** Name already on the row. */
   private requesterNote(ticket: SupportTicketRow, body: string) {
     return {
       authorId: ticket.requester_id,

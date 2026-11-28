@@ -7,14 +7,12 @@ import type {
   ServiceTriggerMode,
 } from '../types/system-service'
 
-/** How often the page re-reads service state while it is open. */
 export const SERVICE_POLL_INTERVAL_MS = 15_000
 
 export const SERVICE_STATE_FILTER_ALL = 'all'
 
 export type ServiceStateFilter = ServiceState | typeof SERVICE_STATE_FILTER_ALL
 
-/** Order the states are drawn in, best news first — also the bar's segment order. */
 export const SERVICE_STATE_ORDER: ServiceState[] = [
   'running',
   'scheduled',
@@ -29,7 +27,6 @@ export const SERVICE_STATE_LABELS: Record<ServiceState, string> = {
   failing: 'Failing',
 }
 
-/** What each state means for the reader — the segment tooltips. */
 export const SERVICE_STATE_HINTS: Record<ServiceState, string> = {
   running: 'Executing a run right now.',
   scheduled: 'On duty and waiting for its next trigger.',
@@ -37,7 +34,6 @@ export const SERVICE_STATE_HINTS: Record<ServiceState, string> = {
   failing: 'Last run errored or hit its runtime cap.',
 }
 
-/** Light-only palette, in step with the rest of the portal's badges. */
 export const SERVICE_STATE_STYLES: Record<ServiceState, string> = {
   running: 'bg-emerald-50 text-emerald-700',
   scheduled: 'bg-gray-100 text-gray-600',
@@ -45,7 +41,6 @@ export const SERVICE_STATE_STYLES: Record<ServiceState, string> = {
   failing: 'bg-red-50 text-red-700',
 }
 
-/** Dot colour inside the badge; `running` is the only one that animates. */
 export const SERVICE_STATE_DOT_STYLES: Record<ServiceState, string> = {
   running: 'bg-emerald-500',
   scheduled: 'bg-gray-400',
@@ -53,7 +48,6 @@ export const SERVICE_STATE_DOT_STYLES: Record<ServiceState, string> = {
   failing: 'bg-red-500',
 }
 
-/** Segment fill in the duty bar. */
 export const SERVICE_STATE_BAR_STYLES: Record<ServiceState, string> = {
   running: 'bg-emerald-500',
   scheduled: 'bg-emerald-200',
@@ -61,7 +55,6 @@ export const SERVICE_STATE_BAR_STYLES: Record<ServiceState, string> = {
   failing: 'bg-red-500',
 }
 
-/** Tick colour in a service's run history strip. */
 export const SERVICE_RUN_STYLES: Record<ServiceRun['outcome'], string> = {
   success: 'bg-emerald-400',
   failed: 'bg-red-400',
@@ -83,7 +76,6 @@ export const SERVICE_TRIGGER_LABELS: Record<ServiceTriggerMode, string> = {
   manual: 'Manual only',
 }
 
-/** The trigger modes offered in the schedule dialog, in the order they are shown. */
 export const SERVICE_TRIGGER_MODES: ServiceTriggerMode[] = [
   'interval',
   'daily',
@@ -91,15 +83,9 @@ export const SERVICE_TRIGGER_MODES: ServiceTriggerMode[] = [
   'manual',
 ]
 
-/** Interval choices staff pick from — a free-text minutes field invites typos. */
 export const SERVICE_INTERVAL_PRESETS = [5, 10, 15, 30, 60, 180, 360, 720] as const
 
-/**
- * Cron schedules staff pick from, each with the expression it stands for. Six-field
- * expressions carry a leading seconds field, which is how anything under a minute is
- * said; the scheduler accepts both shapes. The last entry is the escape hatch — pick
- * it and the raw expression becomes editable.
- */
+/** Six-field expressions lead with seconds; the scheduler accepts both. `custom` unlocks the raw expression. */
 export const SERVICE_CRON_CUSTOM = 'custom' as const
 
 export const SERVICE_CRON_PRESETS: { label: string; expression: string }[] = [
@@ -116,7 +102,6 @@ export const SERVICE_CRON_PRESETS: { label: string; expression: string }[] = [
   { label: 'First of the month at midnight', expression: '0 0 1 * *' },
 ]
 
-/** The preset an expression belongs to, or `custom` when it matches none. */
 export function cronPresetFor(expression: string): string {
   const trimmed = expression.trim().replace(/\s+/g, ' ')
   return (
@@ -125,13 +110,13 @@ export function cronPresetFor(expression: string): string {
   )
 }
 
-/** Five fields (minute first) or six (seconds first) — anything else is a typo. */
+/** Five fields (minute first) or six (seconds first). */
 export function isValidCronShape(expression: string): boolean {
   const fields = expression.trim().split(/\s+/).length
   return fields === 5 || fields === 6
 }
 
-/** Runtime caps, in minutes. A run still going at the cap is killed. */
+/** Minutes; a run still going at the cap is killed. */
 export const SERVICE_RUNTIME_PRESETS = [1, 2, 5, 10, 15, 30, 60] as const
 
 export const SERVICE_RETRY_PRESETS = [0, 1, 2, 3] as const
@@ -152,7 +137,6 @@ export const SERVICE_OWNER_LABELS: Record<string, string> = {
   'mobile-sync': 'Mobile sync',
 }
 
-/** One line summarising a trigger, used on the service row. */
 export function describeTrigger(trigger: ServiceTrigger): string {
   switch (trigger.mode) {
     case 'interval':
@@ -162,7 +146,6 @@ export function describeTrigger(trigger: ServiceTrigger): string {
     case 'daily':
       return `Daily at ${trigger.dailyAt}`
     case 'cron': {
-      // A preset reads as its label; only a hand-written expression shows raw.
       const preset = SERVICE_CRON_PRESETS.find(
         (one) => one.expression === trigger.cronExpression.trim().replace(/\s+/g, ' '),
       )
@@ -173,9 +156,7 @@ export function describeTrigger(trigger: ServiceTrigger): string {
   }
 }
 
-/** Compact run length — seconds under a minute, `m s` above it. */
 export function formatRuntime(seconds: number): string {
-  // A sweep that finishes in a few hundred milliseconds is a real run, not "0s".
   if (seconds > 0 && seconds < 1) return `${seconds.toFixed(1)}s`
   if (seconds < 60) return `${Math.round(seconds)}s`
   const minutes = Math.floor(seconds / 60)
@@ -183,10 +164,7 @@ export function formatRuntime(seconds: number): string {
   return rest === 0 ? `${minutes}m` : `${minutes}m ${rest}s`
 }
 
-/**
- * How long until a timestamp, as a countdown staff can read at a glance. `now` is
- * passed in rather than read here so the caller renders from its own clock tick.
- */
+/** `now` is passed in so the caller renders from its own clock tick. */
 export function formatCountdown(target: string | null, now: number): string {
   if (!target) return '—'
   const ms = new Date(target).getTime() - now
@@ -213,7 +191,6 @@ export const SERVICE_LOG_LEVEL_LABELS: Record<ServiceLogLevel, string> = {
   error: 'Error',
 }
 
-/** Only the two levels staff act on carry colour; info stays inert. */
 export const SERVICE_LOG_LEVEL_STYLES: Record<ServiceLogLevel, string> = {
   info: 'text-gray-500',
   warn: 'text-amber-700',

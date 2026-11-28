@@ -8,14 +8,8 @@ import 'package:mobile/features/dashboard/domain/cares_event.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/event_joined_count.dart';
 import 'package:mobile/features/dashboard/widgets/event_image_carousel.dart';
 
-/// Tall poster card for the events tab: a wide photo (or category-tinted
-/// fallback) on top, then title, date and place, and a single call-to-action
-/// pill at the bottom.
-///
-/// The pill mirrors the volunteer's state — "Register" when the event is
-/// open, "Registered" once they have joined, "View details" after it ends —
-/// and every tap on the card, pill included, opens the details screen where
-/// the actual registration happens.
+/// The pill reflects state (Register / Registered / View details); every tap
+/// opens the details screen, where registration happens.
 class EventDiscoverCard extends StatelessWidget {
   const EventDiscoverCard({
     super.key,
@@ -198,8 +192,7 @@ class _ActionPill extends StatelessWidget {
       border = AppColors.primary;
     }
 
-    // Countdown only while there are still days to count — on the day itself
-    // "0d left" says nothing the date line doesn't, so it goes away.
+    // No countdown on the day itself; "0d left" adds nothing.
     final urgent =
         !event.hasEnded() &&
         !registered &&

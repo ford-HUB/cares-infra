@@ -46,7 +46,7 @@ type Category = CertificateTemplateDto['category'];
 type Status = CertificateTemplateDto['status'];
 type Orientation = CertificateTemplateDto['orientation'];
 
-/** Where each block sits on a brand-new sheet — mirrors the customizer's defaults. */
+/** Mirrors the customizer's defaults. */
 const DEFAULT_LAYOUT = {
   headline: { x: 50, y: 25 },
   title: { x: 50, y: 43 },
@@ -74,10 +74,7 @@ const CATEGORY_ACCENTS: Record<Category, CertificateDesignDto['accent']> = {
   sponsorship: 'amber',
 };
 
-/**
- * The line printed under a signatory's name. Portal accounts carry a role and a
- * department, not a free-text job title, so the role is what the certificate prints.
- */
+/** Accounts have no job title, so the role is printed. */
 const ROLE_TITLES: Record<string, string> = {
   [RoleType.ADMIN]: 'Administrator',
   [RoleType.DIRECTOR]: 'Program Director',
@@ -114,8 +111,7 @@ export class CertificateTemplatesSiteService {
     const author = await this.resolveCaller(caller);
     const reference = await this.nextReference();
 
-    // A certificate needs someone to sign it, and the director creating it is the one
-    // account we know is present — they can swap the line in the customizer.
+    // Defaults to the creating director; swappable in the customizer.
     const signatory: PersistSignatory = {
       coordinatorUserId: author.user_id,
       name: fullName(author),
@@ -151,8 +147,7 @@ export class CertificateTemplatesSiteService {
         name: data.name,
         description: data.description,
         category: toPrismaCategory(data.category),
-        // New designs start as drafts: a template is not deployable until a director
-        // has actually looked at it in the customizer.
+        // Drafts aren't deployable until reviewed.
         status: CertificateTemplateStatus.DRAFT,
         orientation: toPrismaOrientation(data.orientation),
         design,
@@ -210,8 +205,7 @@ export class CertificateTemplatesSiteService {
       signatories,
     );
 
-    // Only once the save is committed: a file dropped from a design that then failed
-    // to save would take the still-referenced original with it.
+    // Only after commit, so a failed save can't lose referenced files.
     await this.discardAssets(existing, orphanAssetIds);
 
     await this.auditLogRecorder.record({
@@ -264,7 +258,7 @@ export class CertificateTemplatesSiteService {
       action: 'certificate-template.deleted',
       description: `Deleted the certificate template "${existing.name}"`,
       category: 'CERTIFICATE',
-      // The row is gone, so this entry is the only remaining record of the design.
+      // The only remaining record of the design.
       severity: 'WARNING',
       actor: caller,
       targetType: 'certificate-template',
@@ -278,12 +272,7 @@ export class CertificateTemplatesSiteService {
     return { id };
   }
 
-  /**
-   * The imported files sit in a private bucket, so their S3 URLs cannot go in an
-   * `<img src>` — the portal reads them through here. A content-hash ETag plus
-   * `no-cache` lets the browser revalidate rather than re-download a sheet's artwork
-   * on every redraw of the customizer.
-   */
+  /** Private bucket can't feed `<img src>`; content-hash ETag + `no-cache` allows revalidation. */
   async getAsset(
     templateId: string,
     assetId: string,
@@ -302,12 +291,7 @@ export class CertificateTemplatesSiteService {
     };
   }
 
-  /**
-   * Resolves one signature line's `{{signature-image}}` to the actual image the
-   * coordinator uploaded on their profile. The customizer never calls this — a
-   * director picks an account, not a picture — but the print job does, and so does
-   * anything else that has to render a finished certificate.
-   */
+  /** For the print job; the customizer never calls it. */
   async getSignatorySignature(
     templateId: string,
     signatoryId: string,
@@ -353,21 +337,14 @@ export class CertificateTemplatesSiteService {
     return author;
   }
 
-  /**
-   * `CT-2026-014`. Read-then-write rather than a sequence, so the reference stays
-   * human and restarts each year; the unique index is what actually guarantees it, and
-   * two directors creating a template in the same second is not a case worth a lock.
-   */
+  /** `CT-2026-014`; read-then-write so it restarts yearly. The unique index guards races. */
   private async nextReference(): Promise<string> {
     const year = new Date().getFullYear();
     const highest = await this.repository.highestReferenceSequence(year);
     return `CT-${year}-${String(highest + 1).padStart(3, '0')}`;
   }
 
-  /**
-   * Signature lines are built from the directory, never from what the caller typed:
-   * the name over a coordinator's signature has to be that coordinator's own.
-   */
+  /** Built from the directory, never caller input, so names can't be spoofed. */
   private async resolveSignatories(
     requested: SaveCertificateTemplateDto['signatories'],
   ): Promise<PersistSignatory[]> {
@@ -402,13 +379,7 @@ export class CertificateTemplatesSiteService {
     });
   }
 
-  /**
-   * Turns the design the portal submitted into the one that is stored: every file
-   * arrives either as a `data:` URL being imported on this save — uploaded to S3 here
-   * and recorded as an asset row — or as the asset route of a file already held, which
-   * is kept as-is. Anything the new design no longer mentions comes back as an orphan
-   * for the caller to drop once the save is committed.
-   */
+  /** `data:` URLs are uploaded as asset rows; existing asset routes kept. Returns orphans to drop after commit. */
   private async ingestDesign(
     template: CertificateTemplateRow,
     incoming: CertificateDesignDto,
@@ -478,9 +449,7 @@ export class CertificateTemplatesSiteService {
       : undefined;
 
     return {
-      // Written out rather than spread from the request: the stored shape holds asset
-      // ids where the request holds URLs, and spreading would carry a stale `images`
-      // or `*_svg_url` key into the JSON the next read trusts.
+      // Explicit, not spread, so stale `images` / `*_svg_url` keys don't persist.
       design: {
         accent: incoming.accent,
         frame: incoming.frame,
@@ -518,7 +487,6 @@ export class CertificateTemplatesSiteService {
     };
   }
 
-  /** Decodes one `data:` URL, checks it, and puts the bytes in the bucket. */
   private async storeDataUrl(
     templateId: string,
     dataUrl: string,
@@ -576,20 +544,14 @@ export class CertificateTemplatesSiteService {
     return asset.certificate_template_asset_id;
   }
 
-  /**
-   * Drops files no design references any more. Best effort on the S3 side: a leaked
-   * object costs storage, whereas failing the save the director already completed
-   * costs them their work.
-   */
+  /** Best-effort on S3: a leaked object beats failing a completed save. */
   private async discardAssets(
     template: CertificateTemplateRow,
     assetIds: string[],
   ): Promise<void> {
     if (assetIds.length === 0) return;
 
-    // A live deployment prints from a frozen copy of the design that still points at
-    // this template's artwork, so anything a deployment holds is not an orphan however
-    // far the template itself has moved on.
+    // Deployments' frozen designs still reference this template's artwork.
     const deployed = new Set(
       (
         await this.repository.deploymentDesigns(
@@ -707,11 +669,7 @@ function fromPrismaOrientation(
   return orientation.toLowerCase() as Orientation;
 }
 
-/**
- * Field-level before/after pairs for the audit trail. The design blob is reported as
- * one line rather than field by field: a save moves a dozen coordinates, and listing
- * them would bury the wording and status changes a review actually reads.
- */
+/** The design blob is one line; per-coordinate diffs would bury real changes. */
 function diffTemplate(
   previous: CertificateTemplateRow,
   next: SaveCertificateTemplateDto,
@@ -739,8 +697,7 @@ function diffTemplate(
     .filter(([, before, after]) => before !== after)
     .map(([field, before, after]) => ({ field, before, after }));
 
-  // Compared by account rather than by printed name: the names are re-read from the
-  // directory on every save, so a rename elsewhere is not an edit to this template.
+  // By account, not name: names are re-read from the directory on save.
   const beforeIds = previous.signatories
     .map((one) => one.coordinator_user_id)
     .join(', ');

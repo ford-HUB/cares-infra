@@ -2,7 +2,6 @@ import '../../features/auth/registration/models/registration_data.dart';
 import '../../features/dashboard/data/certificate_data.dart';
 import '../../features/prototype/models/prototype_user_data.dart';
 
-/// In-memory user record for the static prototype phase.
 class StaticSessionUser {
   StaticSessionUser({
     required this.firstName,
@@ -73,7 +72,6 @@ class StaticSessionUser {
     return role;
   }
 
-  /// Student and beneficiary accounts share the full CARES dashboard.
   bool get usesMainDashboard {
     if (accountType == AccountType.beneficiary) return true;
     return accountType == AccountType.regularUser &&
@@ -124,7 +122,6 @@ class StaticSessionUser {
   }
 }
 
-/// Temporary in-memory session for static auth and role-based routing.
 class StaticUserSession {
   StaticUserSession._();
 
@@ -148,9 +145,7 @@ class StaticUserSession {
     }
   }
 
-  /// Signs in (or creates) the in-memory user for an account whose role was
-  /// resolved elsewhere — API registration or API login. The role is written
-  /// through so role-based dashboard routing stays correct.
+  /// For accounts whose role was resolved by API registration or login.
   StaticSessionUser signInWithRole({
     required String email,
     required AccountType accountType,
@@ -176,7 +171,6 @@ class StaticUserSession {
     if (lastName.trim().isNotEmpty) user.lastName = lastName.trim();
 
     if (accountType == AccountType.beneficiary) {
-      // Beneficiaries never carry a volunteer role.
       user.userRole = null;
       user.beneficiaryType =
           beneficiaryType ?? user.beneficiaryType ?? BeneficiaryType.individual;

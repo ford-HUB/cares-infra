@@ -1,6 +1,6 @@
 import 'package:mobile/features/auth/domain/register_ocr_raw_parser.dart';
 
-/// Static sample data mirroring server [CreateUserSchema] for OCR preview UI.
+/// Static sample mirroring server [CreateUserSchema] for the OCR preview.
 class RegisterOcrSample {
   const RegisterOcrSample({
     required this.firstname,
@@ -39,8 +39,7 @@ class RegisterOcrSample {
   final int graduationDay;
   final String volunteerType;
 
-  /// The partner barangay a [VolunteerType.partnerBarangay] volunteer signs up
-  /// through, picked from `PartnerBarangays.names`. Empty for every other type.
+  /// From `PartnerBarangays.names`; empty for other types.
   final String partnerBarangay;
   final String rawTextFront;
   final String rawTextBack;
@@ -95,7 +94,6 @@ class RegisterOcrSample {
       '${graduationDay.toString().padLeft(2, '0')}/'
       '$graduationYear';
 
-  /// Backfills empty structured fields using raw OCR text from the API.
   RegisterOcrSample enrichFromRawText() {
     if (rawTextFront.isEmpty && rawTextBack.isEmpty) return this;
 
@@ -119,7 +117,6 @@ class RegisterOcrSample {
     );
   }
 
-  /// Empty defaults before OCR extraction completes.
   static RegisterOcrSample empty({required String volunteerType}) {
     return RegisterOcrSample(
       firstname: '',
@@ -140,7 +137,6 @@ class RegisterOcrSample {
     );
   }
 
-  /// Plausible UCLM student ID OCR preview.
   static const sample = RegisterOcrSample(
     firstname: 'Maria',
     lastname: 'Santos',
@@ -159,6 +155,5 @@ class RegisterOcrSample {
     volunteerType: 'STUDENT',
   );
 
-  /// Suggested email for the account step (static OCR preview).
   static const suggestedEmail = 'maria.santos@student.uclm.edu.ph';
 }

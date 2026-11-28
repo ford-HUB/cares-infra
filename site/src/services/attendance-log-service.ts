@@ -7,10 +7,8 @@ import type { AttendanceStatus, GeoValidationMethod } from '../types/attendee'
 import type { ApiResponse } from '../types/portal-roles'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
-/** Server snapshot shape — snake_case, with the Prisma enums upper-cased. */
 interface LiveAttendanceSnapshotResponse {
   session: {
     event_id: number
@@ -101,11 +99,7 @@ function toSnapshot(body: LiveAttendanceSnapshotResponse): LiveAttendanceSnapsho
   }
 }
 
-/**
- * One poll of today's running event and its roster. The server decides which event is
- * "active" — the portal never picks it, so a director watching the page can't drift
- * onto a stale event.
- */
+/** The server picks the active event so the page can't drift onto a stale one. */
 export async function getLiveAttendance(): Promise<ApiResponse<LiveAttendanceSnapshot>> {
   try {
     const { data: body } = await apiClient.get<ApiEnvelope<LiveAttendanceSnapshotResponse>>(

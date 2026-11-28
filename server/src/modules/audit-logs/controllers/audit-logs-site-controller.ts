@@ -15,7 +15,7 @@ import {
   ListAuditLogsQuerySchema,
 } from '../validators/audit-logs-site-validator';
 
-/** The trail records what every administrator did, so reading it stays admin-only. */
+/** Admin-only. */
 @Controller('v1/audit-logs')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SECURITY_AUDIT_VIEW)

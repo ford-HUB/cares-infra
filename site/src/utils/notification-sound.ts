@@ -1,8 +1,4 @@
-/**
- * Two-tone chime for incoming chat messages. Synthesised with the Web Audio API
- * rather than shipped as an audio file — no asset to load, no autoplay-blocked
- * <audio> element to keep in the DOM.
- */
+/** Synthesised with Web Audio: no asset to load, no autoplay-blocked <audio>. */
 const CHIME_NOTES_HZ = [880, 1174.7]
 const CHIME_NOTE_SECONDS = 0.12
 const CHIME_PEAK_GAIN = 0.09
@@ -25,7 +21,7 @@ export function playNotificationSound(): void {
   const context = getAudioContext()
   if (!context) return
 
-  // Browsers suspend the context until the user has interacted with the page.
+  // Browsers suspend the context until user interaction.
   if (context.state === 'suspended') {
     void context.resume()
   }

@@ -19,11 +19,6 @@ import { useResidentialNeeds } from '../../hooks/use-residential-needs'
 import type { NeedPriority } from '../../types/residential-needs'
 import { householdPriority } from '../../utils/residential-needs'
 
-/**
- * The Residential Needs module as it appears on the director's Overview: the one
- * number (households needing urgent help), the priority split, and the two doors
- * into the module. Reads the same live survey the module screens do.
- */
 export function ResidentialNeedsModuleCard() {
   const { households } = useResidentialNeeds()
   const counts = Object.fromEntries(NEED_PRIORITY_ORDER.map((band) => [band, 0])) as Record<

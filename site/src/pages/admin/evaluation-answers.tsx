@@ -33,8 +33,7 @@ export function EvaluationAnswersPage() {
   const [page, setPage] = useState(1)
   const [viewing, setViewing] = useState<EvaluationResponse | null>(null)
 
-  // The answers need the questions for their labels. Events can ask different
-  // questionnaires, so every one is loaded and each response is read against its own.
+  // Events can ask different questionnaires, so load them all.
   useEffect(() => {
     if (!formsInitialized) void fetchForms()
     void fetchResponses()
@@ -50,10 +49,7 @@ export function EvaluationAnswersPage() {
     [questionsByForm],
   )
 
-  /**
-   * Every question any of these answers was asked, in form order and de-duplicated —
-   * the question summary spans whatever questionnaires the filtered responses used.
-   */
+  /** De-duplicated across every questionnaire the filtered responses used. */
   const questions = useMemo(() => {
     const seen = new Map<string, (typeof forms)[number]['questions'][number]>()
     for (const one of forms) {
@@ -86,7 +82,6 @@ export function EvaluationAnswersPage() {
     })
   }, [search, event, department, rating, status, responses])
 
-  // Responses arrive newest first, so the first sighting of each event keeps that order.
   const events = useMemo(() => {
     const seen = new Map<number, string>()
     for (const response of responses) {
@@ -101,18 +96,13 @@ export function EvaluationAnswersPage() {
     [responses],
   )
 
-  /**
-   * The questionnaire behind the filtered set, when they all came from one — it
-   * titles the export. A mixed set has no single form, so the export falls back to
-   * its generic heading.
-   */
+  /** Null for a mixed set; the export uses its generic heading. */
   const formInScope = useMemo(() => {
     const ids = new Set(filtered.map((response) => response.formId))
     if (ids.size !== 1) return null
     return forms.find((one) => one.id === [...ids][0]) ?? null
   }, [filtered, forms])
 
-  // The average follows the event filter so a director reading one event sees its own score.
   const rated = filtered.filter((response) => response.rating > 0)
   const averageRating = rated.length
     ? rated.reduce((sum, response) => sum + response.rating, 0) / rated.length

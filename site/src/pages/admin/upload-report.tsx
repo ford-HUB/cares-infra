@@ -8,11 +8,6 @@ import { useUploadReportForm } from '../../hooks/use-upload-report-form'
 import { useMonthlyReportStore } from '../../store/monthly-report-store'
 import type { MonthlyReport } from '../../types/monthly-report'
 
-/**
- * The coordinator's side of monthly reporting: upload this month's report on the
- * left, and follow every report already sent — reviewing, approved, or returned with
- * a note — on the right. What the director decides shows here without a refresh.
- */
 export function UploadReportPage() {
   const upload = useUploadReportForm()
 

@@ -10,19 +10,15 @@ import type { CpuBand } from '../../../types/system-performance'
 
 interface CpuBandSegmentProps {
   band: CpuBand
-  /** Percentage points of host capacity this band is holding right now. */
+  /** Percentage points of host capacity. */
   value: number
-  /** This band's share of busy CPU, 0–1 — what the reader compares bands by. */
+  /** 0–1 share of busy CPU. */
   shareOfBusy: number
   active: boolean
   onToggle: (band: CpuBand) => void
 }
 
-/**
- * One band of CPU time, as a legend entry under the capacity bar — and the chart's
- * focus control: an admin asking "is this our code or is it disk?" clicks the band
- * and the other two drop back on the chart above.
- */
+/** Legend entry that doubles as the chart's focus control. */
 export function CpuBandSegment({
   band,
   value,

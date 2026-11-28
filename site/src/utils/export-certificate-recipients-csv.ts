@@ -16,7 +16,6 @@ function escapeCell(value: string | number): string {
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
 }
 
-/** The recipient roll of one deployment as a spreadsheet, one row per certificate. */
 export function exportCertificateRecipientsCsv(
   deployment: DeployedCertificate,
   recipients: CertificateRecipient[],

@@ -2,11 +2,7 @@ import { useEffect } from 'react'
 import { subscribeToResidentialNeeds } from '../services/residential-needs-socket'
 import { useResidentialNeedsStore } from '../store/residential-needs-store'
 
-/**
- * The submitted surveys, kept current: fetched when a screen opens, and again
- * whenever the server announces a new or updated survey — or the tab comes back
- * into focus, in case an announcement was missed while the socket was down.
- */
+/** Also refetches on tab focus in case a socket announcement was missed. */
 export function useResidentialNeeds() {
   const households = useResidentialNeedsStore((s) => s.households)
   const loaded = useResidentialNeedsStore((s) => s.loaded)

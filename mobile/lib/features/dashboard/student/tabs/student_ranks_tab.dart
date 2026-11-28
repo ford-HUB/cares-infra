@@ -58,8 +58,7 @@ class _StudentRanksTabState extends State<StudentRanksTab> {
     return verified;
   }
 
-  /// The prototype has no ledger behind it; the real donor board is scored on
-  /// the server from confirmed donations.
+  /// Prototype: no ledger; the real donor board is scored server-side.
   int get _userTotalDonated => 0;
 
   int get _userDonationsCount => 0;

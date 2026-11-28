@@ -76,7 +76,6 @@ class ChangePasswordResponse {
   final int revokedSessions;
 }
 
-/// One of the caller's signed-in devices, as the server records it.
 class AccountSession {
   const AccountSession({
     required this.sessionId,

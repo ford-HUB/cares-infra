@@ -7,15 +7,11 @@ export const CALENDAR_VIEWS: { value: CalendarView; label: string }[] = [
   { value: 'day', label: 'Day' },
 ]
 
-/** The grid only draws the working span — events outside it clamp to the edges. */
+/** Events outside the working span clamp to the edges. */
 export const CALENDAR_START_HOUR = 6
 export const CALENDAR_END_HOUR = 21
 
-/**
- * Height of one hour row. Every block offset is derived from this, never a
- * literal. Kept short enough that a full 6 AM–9 PM day fits a laptop viewport
- * with little scrolling.
- */
+/** All block offsets derive from this. */
 export const CALENDAR_HOUR_HEIGHT_PX = 44
 
 export const CALENDAR_HOURS = Array.from(
@@ -25,21 +21,13 @@ export const CALENDAR_HOURS = Array.from(
 
 export const CALENDAR_GRID_HEIGHT_PX = CALENDAR_HOURS.length * CALENDAR_HOUR_HEIGHT_PX
 
-/** Shortest block that still fits its title line. */
 export const CALENDAR_MIN_BLOCK_HEIGHT_PX = 20
 
-/** Width of the hour-label gutter — shared by the time grid and its skeleton. */
 export const CALENDAR_GUTTER_WIDTH = '3.25rem'
 
-/**
- * Overlapping events fan out instead of splitting the column evenly: each block
- * draws a little wider than its slot and tucks under the next one, so a title
- * stays readable even when three events share a morning. Kept modest — a wide
- * spread buries the earlier block's own title under its neighbour.
- */
+/** Overlapping blocks draw wider than their slot so titles stay readable; keep modest. */
 export const CALENDAR_BLOCK_SPREAD = 1.4
 
-/** Month cells list this many events before collapsing the rest into "+N more". */
 export const MONTH_CELL_VISIBLE_EVENTS = 3
 
 export const MONTH_GRID_WEEKS = 6
@@ -60,18 +48,12 @@ export const CALENDAR_DATE_FORMATS = {
 } as const
 
 export interface CalendarCategoryTint {
-  /** Time-grid block: fill, text and its left accent bar. */
   block: string
   bar: string
-  /** Month-cell pill and the legend dot. */
   chip: string
   dot: string
 }
 
-/**
- * One tint per event category so a director can read the week by colour alone.
- * Categories share the portal's badge palette rather than inventing new hues.
- */
 export const CALENDAR_CATEGORY_TINTS: Record<EventCategory, CalendarCategoryTint> = {
   School: {
     block: 'bg-blue-50 text-blue-900 hover:bg-blue-100',
@@ -141,5 +123,4 @@ export const CALENDAR_CATEGORY_TINTS: Record<EventCategory, CalendarCategoryTint
   },
 }
 
-/** Sentinel for the toolbar's category filter. */
 export const CALENDAR_CATEGORY_FILTER_ALL = 'all'

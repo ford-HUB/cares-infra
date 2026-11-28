@@ -1,15 +1,12 @@
 import type { AuditLogCategory, AuditLogOutcome } from './audit-log'
 
-/** Every account the platform holds, split by the role it signed up as. */
 export interface CommunityCounts {
   volunteers: number
-  /** Volunteers whose ID + face check has passed. */
+  /** ID + face check passed. */
   verifiedVolunteers: number
   beneficiaries: number
   donors: number
-  /** Admin, director and coordinator accounts together. */
   staff: number
-  /** Volunteer accounts created inside the recent window. */
   newVolunteers: number
 }
 
@@ -19,23 +16,19 @@ export interface EventCounts {
   ongoing: number
   completed: number
   cancelled: number
-  /** Upcoming events that start inside the recent window. */
   startingSoon: number
 }
 
-/** One row per volunteer per event: every registration, and how it was judged. */
+/** One row per volunteer per event. */
 export interface AttendanceCounts {
   registrations: number
   completed: number
   pending: number
   absent: number
-  /** Credited service hours across every completed row. */
   serviceHours: number
-  /** Rows judged completed inside the recent window. */
   recentCompleted: number
 }
 
-/** What is waiting on a person — the counts that should be zero by end of day. */
 export interface QueueCounts {
   reportsUnderReview: number
   openSupportTickets: number
@@ -52,7 +45,7 @@ export interface ActivityEntry {
 }
 
 export interface AdminOverviewData {
-  /** How far back "recent" reaches, in days — the server decides, the copy repeats it. */
+  /** Days; decided by the server. */
   recentDays: number
   community: CommunityCounts
   events: EventCounts
@@ -62,7 +55,6 @@ export interface AdminOverviewData {
   generatedAt: string
 }
 
-/** The coordinator's own submissions, by where each one stands. */
 export interface ReportCounts {
   underReview: number
   approved: number
@@ -71,9 +63,8 @@ export interface ReportCounts {
 
 export interface DepartmentOverviewData {
   recentDays: number
-  /** The coordinator's college as it reads on their profile; null when unassigned. */
+  /** As on the profile; null when unassigned. */
   department: string | null
-  /** Volunteers whose school record files under this college. */
   volunteers: number
   newVolunteers: number
   events: EventCounts
@@ -92,8 +83,6 @@ export function isDepartmentOverview(data: OverviewData): data is DepartmentOver
   return 'reports' in data
 }
 
-/** The four states an event can sit in; together they are `EventCounts.total`. */
 export type EventState = 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
 
-/** The account kinds that together make up the platform's user base. */
 export type CommunitySegment = 'volunteers' | 'beneficiaries' | 'donors' | 'staff'

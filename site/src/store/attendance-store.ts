@@ -5,13 +5,9 @@ import type { ActiveEventSession, LiveAttendee } from '../types/attendance'
 interface AttendanceState {
   session: ActiveEventSession | null
   attendees: LiveAttendee[]
-  /** When the snapshot on screen was captured, shown next to the LIVE indicator. */
   capturedAt: string | null
-  /** First load only — drives the skeleton. */
   loading: boolean
-  /** A poll or a manual refresh over data already on screen — never blanks the table. */
   refreshing: boolean
-  /** False until the first fetch settles, so the tiles don't flash zeroes. */
   initialized: boolean
   error: string | null
   fetchLiveAttendance: (options?: { silent?: boolean }) => Promise<void>

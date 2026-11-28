@@ -12,7 +12,6 @@ interface PortalSearchResultProps {
   onHover: () => void
 }
 
-/** The label with the typed words in bold, so it is clear why a row matched. */
 function HighlightedLabel({ label, query }: { label: string; query: string }) {
   const ranges = matchedRanges(label, query)
   if (ranges.length === 0) return <>{label}</>
@@ -45,12 +44,11 @@ export function PortalSearchResult({
       id={id}
       role="option"
       aria-selected={active}
-      // Keep focus in the input so typing can carry on after a pointer hover.
+      // Keep focus in the input so typing carries on after a pointer hover.
       onMouseDown={(e) => e.preventDefault()}
       onClick={onSelect}
       onMouseMove={onHover}
       className={`flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 transition-colors ${
-        // Accent is a pale green in light mode and neutral charcoal in dark.
         active ? 'bg-accent' : ''
       }`}
     >

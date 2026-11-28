@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors `ReportReviewPanel` — same header, submitter strip, metrics row and lists. */
 export function ReportReviewPanelSkeleton() {
   return (
     <div

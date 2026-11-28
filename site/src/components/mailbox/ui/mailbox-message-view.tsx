@@ -83,11 +83,7 @@ export function MailboxMessageView({
         className={`min-h-0 flex-1 ${message.bodyHtml ? 'overflow-hidden' : 'overflow-y-auto'}`}
       >
         {message.bodyHtml ? (
-          /**
-           * Mail is third-party HTML. It is sanitised on the server and then rendered in
-           * a fully sandboxed frame — no scripts, no forms, no access to the portal — so
-           * neither layer alone has to be perfect.
-           */
+          /** Third-party HTML: server-sanitised and rendered in a fully sandboxed frame. */
           <iframe
             title={`Message: ${message.subject}`}
             sandbox=""

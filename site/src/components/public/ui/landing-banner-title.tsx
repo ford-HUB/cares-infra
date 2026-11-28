@@ -8,23 +8,16 @@ import { useReveal } from '../../../hooks/use-reveal'
 
 interface LandingBannerTitleProps {
   title: string
-  /** Closing words of the title, set in gold italic. */
   accent?: string
   description: string
 }
 
 const delay = (ms: number): CSSProperties => ({ animationDelay: `${ms}ms` })
 
-/* Pale gold to deep gold, the accent's own colour; and a soft white band, clipped to the
- * same letters, that sweeps across them once. */
 const GOLD = 'bg-gradient-to-r from-yellow-100 via-yellow-200 to-amber-300'
 const SHIMMER =
   'bg-[linear-gradient(110deg,transparent_40%,rgba(255,255,255,0.85)_50%,transparent_60%)] bg-[length:250%_100%] bg-no-repeat'
 
-/** A section banner's title, rule and description, staged on first scroll into view:
- *  the white words slide up out of masks one after another, the gold words fade up and
- *  catch a single shimmer of light, the rule spreads from its centre, and the description
- *  fades up last. Plays once; under reduced motion everything is simply shown. */
 export function LandingBannerTitle({ title, accent, description }: LandingBannerTitleProps) {
   const { ref, visible } = useReveal<HTMLDivElement>(0.4)
   const words = title.split(' ')
@@ -41,8 +34,7 @@ export function LandingBannerTitle({ title, accent, description }: LandingBanner
         {words.map((word, index) => (
           <span key={`${word}-${index}`}>
             {index > 0 && ' '}
-            {/* The mask: slack below (cancelled by the negative margin) keeps descenders
-                from being clipped once the word settles. */}
+            {/* Slack below (cancelled by the negative margin) keeps descenders unclipped. */}
             <span aria-hidden className="-mb-[0.15em] inline-block overflow-hidden pb-[0.15em] align-bottom">
               <span
                 style={delay(index * LANDING_MOTION.bannerWordStepMs)}

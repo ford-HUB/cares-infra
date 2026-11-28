@@ -9,7 +9,6 @@ import '../../widgets/activity_tab_widgets.dart';
 import '../../widgets/assistance_request_widgets.dart';
 import '../../widgets/request_action_dialog.dart';
 
-/// Beneficiary "Request" tab — where assistance needs are filed and tracked.
 class BeneficiaryRequestsTab extends StatefulWidget {
   const BeneficiaryRequestsTab({super.key});
 
@@ -86,8 +85,6 @@ class _BeneficiaryRequestsTabState extends State<BeneficiaryRequestsTab> {
     setState(() => _selectedFilter = 0);
   }
 
-  /// The tab's one action: ask what the beneficiary wants to start, then
-  /// open that screen.
   Future<void> _startAction() async {
     final action = await RequestActionDialog.show(
       context,
@@ -136,7 +133,6 @@ class _BeneficiaryRequestsTabState extends State<BeneficiaryRequestsTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Same deep forest gradient as the header band above.
                     DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: AppGradients.deepHeader,
@@ -238,9 +234,7 @@ class _BeneficiaryRequestsTabState extends State<BeneficiaryRequestsTab> {
   }
 }
 
-/// The four request filters as header chips, two per row so every label
-/// stays full size on a phone-width band. Each chip but History carries
-/// its request count.
+/// Two per row so labels stay full size; all but History show a count.
 class _RequestFilterGrid extends StatelessWidget {
   const _RequestFilterGrid({
     required this.filters,

@@ -7,10 +7,6 @@ import {
 import { useTilt } from '../../../hooks/use-tilt'
 import { LandingProcessGlyphIcon } from './landing-process-glyphs'
 
-/** A core process on a cream card: its solid green icon in a large mint circle, centred
- *  above its title in condensed bold capitals. On hover (mouse) the card tilts up to 2°
- *  toward the pointer and lifts 5px, its edge glows mint, the circle grows to 1.08 and the
- *  icon plays its own small motion once. */
 export function LandingAboutProcessCard({ card }: { card: LandingAboutCard }) {
   const ref = useTilt<HTMLElement>(LANDING_MOTION.aboutTiltDeg, LANDING_MOTION.processLiftPx)
 

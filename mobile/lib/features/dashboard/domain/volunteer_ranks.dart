@@ -28,7 +28,6 @@ class LeaderboardEntry {
   final bool isCurrentUser;
 }
 
-/// Tier thresholds and helpers for the ranks UI.
 abstract final class VolunteerRanks {
   static const tiers = [
     RankTier(name: 'Bronze', minPoints: 0, maxPoints: 499, iconName: 'bronze'),

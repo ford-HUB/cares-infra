@@ -4,7 +4,7 @@ import { SystemDiagnosticsSiteController } from '../controllers/system-diagnosti
 import { SystemDiagnosticsSiteService } from '../services/system-diagnostics-site-service';
 
 @Module({
-  // The checker and its Redis-kept reports come from the schedulers module.
+  // Checker and Redis reports come from the schedulers module.
   imports: [SchedulersModule],
   controllers: [SystemDiagnosticsSiteController],
   providers: [SystemDiagnosticsSiteService],

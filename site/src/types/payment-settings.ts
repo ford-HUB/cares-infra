@@ -1,13 +1,9 @@
-/** The four channels the server's `DonationPaymentMethod` enum names. */
+/** Server `DonationPaymentMethod` values. */
 export type PaymentMethodKey = 'GCASH' | 'QRPH' | 'CARD' | 'BANK_TRANSFER'
 
 export type PaymentGatewayMode = 'TEST' | 'LIVE'
 
-/**
- * One channel as the director configures it. `minAmount` / `maxAmount` are 0 when the
- * channel follows the module-wide donation limits, matching the server's "0 means
- * unset" convention.
- */
+/** Min/max are 0 when following module-wide limits (server's "0 means unset"). */
 export interface PaymentMethodSetting {
   method: PaymentMethodKey
   enabled: boolean
@@ -20,21 +16,14 @@ export interface PaymentMethodSetting {
   maxAmount: number
 }
 
-/**
- * Where a channel stands with the gateway, as the server's activation check left it.
- * `pending` is the state everything sits in until the CARES Xendit account exists.
- */
+/** `pending` until the CARES Xendit account exists. */
 export type PaymentMethodVerification =
   | 'NOT_VERIFIED'
   | 'PENDING'
   | 'VERIFIED'
   | 'FAILED'
 
-/**
- * How far the receiving account has got through ownership proof: CARES sends a small
- * payout of a random amount, and the director proves they hold the account by
- * reporting what arrived.
- */
+/** CARES sends a random small payout; the director proves ownership by reporting it. */
 export type PaymentAccountProof =
   | 'NOT_STARTED'
   | 'SENDING'
@@ -42,31 +31,26 @@ export type PaymentAccountProof =
   | 'VERIFIED'
   | 'FAILED'
 
-/** The channel's built-in copy, its Xendit codes and its activation state — read-only. */
 export interface PaymentMethodMeta {
   method: PaymentMethodKey
   defaultLabel: string
   availableChannelCodes: string[]
   verification: PaymentMethodVerification
-  /** The gateway's own words, shown under the badge. */
   verificationMessage?: string
   verifiedAt?: string
   verifiedChannelCodes: string[]
   callbacksRegisteredAt?: string
-  /** The amount CARES sent is never returned — reporting it is the proof. */
+  /** The sent amount is never returned; reporting it is the proof. */
   accountProof: PaymentAccountProof
   accountProofMessage?: string
   accountProofSentAt?: string
   accountProofAttempts: number
   accountVerifiedAt?: string
-  /**
-   * What CARES sent — only ever present on a sandbox key, where no money reaches a
-   * real wallet and there is nothing for the director to read. Absent on a live key.
-   */
+  /** Sandbox keys only; absent on a live key. */
   accountProofSandboxAmount?: number
 }
 
-/** What the form edits. The secrets are write-only, so they are not part of it. */
+/** Secrets are write-only, so not part of it. */
 export interface PaymentSettings {
   mode: PaymentGatewayMode
   enabled: boolean
@@ -77,14 +61,13 @@ export interface PaymentSettings {
   methods: PaymentMethodSetting[]
 }
 
-/** The settings plus everything the screen reports but cannot edit. */
 export interface PaymentSettingsDetail extends PaymentSettings {
   secretKeySet: boolean
   secretKeyLast4?: string
   webhookTokenSet: boolean
-  /** True while the API is still running on the key from the server's environment. */
+  /** Still on the key from the server's environment. */
   usingEnvCredentials: boolean
-  /** The callback URL to paste into Xendit's dashboard. */
+  /** Paste into Xendit's dashboard. */
   webhookUrl: string
   verifiedAt?: string
   verificationError?: string
@@ -95,7 +78,7 @@ export interface PaymentSettingsDetail extends PaymentSettings {
   updatedAt?: string
 }
 
-/** The two secrets a save may carry: absent keeps the stored one, '' clears it. */
+/** Absent keeps the stored secret, '' clears it. */
 export interface PaymentSecretsInput {
   secretKey?: string
   webhookToken?: string

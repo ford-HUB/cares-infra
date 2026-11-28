@@ -1,11 +1,6 @@
 import { z } from 'zod';
 
-/**
- * `JSON.parse` keeps `"__proto__"` as an own key, and `.strict()` silently drops
- * it instead of reporting it as unrecognized. Wrapping a request schema with this
- * rejects such a body outright, so a pollution attempt is a 400 rather than a
- * quietly accepted request.
- */
+/** `.strict()` silently drops an own `__proto__` key; this rejects it with a 400. */
 export const withoutPrototypeKeys = <T extends z.ZodType>(schema: T) =>
   z.preprocess((input, ctx) => {
     if (

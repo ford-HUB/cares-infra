@@ -3,7 +3,7 @@ import { AssistanceRequestsSiteController } from '../controllers/assistance-requ
 import { AssistanceRequestsRepository } from '../repositories/assistance-requests-repository';
 import { AssistanceRequestsSiteService } from '../services/assistance-requests-site-service';
 
-/** Director-side review. `NotificationScheduler` comes from the global schedulers module. */
+/** `NotificationScheduler` comes from the global schedulers module. */
 @Module({
   controllers: [AssistanceRequestsSiteController],
   providers: [AssistanceRequestsSiteService, AssistanceRequestsRepository],

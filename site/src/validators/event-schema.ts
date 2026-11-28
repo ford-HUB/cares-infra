@@ -51,8 +51,7 @@ export const eventFormSchema = z
       )
       .default([]),
     beneficiary_applicable: z.boolean().default(false),
-    // Genuinely optional: an untouched number input submits '', which z.coerce would
-    // otherwise turn into 0 and fail the positive check.
+    // An untouched number input submits '', which z.coerce would turn into 0.
     max_beneficiaries: z.preprocess(
       (value) =>
         value === '' || value === null || value === undefined ? undefined : value,
@@ -65,7 +64,6 @@ export const eventFormSchema = z
     funds_donation: z.boolean().default(false),
     goods_donation: z.boolean().default(false),
     goods_types: z.array(z.string()).default([]),
-    /** Approved assistance request ids the event is aimed at. */
     target_beneficiaries: z.array(z.string()).default([]),
     geojson: z.unknown().optional().nullable(),
     area_sqm: z.number().optional().nullable(),

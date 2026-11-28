@@ -38,7 +38,6 @@ export interface CaresEvent {
   max_beneficiaries?: number
   geojson?: Geometry | null
   area_sqm?: number | null
-  /** Pin inside the geofence marking the exact meeting spot. */
   marker_lat?: number | null
   marker_lng?: number | null
 }
@@ -94,19 +93,16 @@ export interface CreateEventPayload {
   goods_types?: string[]
   geojson?: Geometry | null
   area_sqm?: number | null
-  /** Pin inside the geofence marking the exact meeting spot. */
   marker_lat?: number | null
   marker_lng?: number | null
 }
 
-/** One event reduced to what the event map needs to draw and label a marker. */
 export interface EventMapPin {
   eventId: number
   title: string
   status: EventStatus
   participants: number
-  /** Whether the event has a photo to pull through the authenticated image route. */
   hasImage: boolean
-  /** `[lng, lat]` — the centre of the event's drawn area. */
+  /** `[lng, lat]` centre of the drawn area. */
   center: [number, number]
 }

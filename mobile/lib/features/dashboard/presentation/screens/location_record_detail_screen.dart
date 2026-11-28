@@ -6,9 +6,8 @@ import 'package:mobile/features/dashboard/domain/location_records.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/location_record_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// One day's captures: facts up top, then a preview of the first rows in the
-/// same columns the server receives. Rows come from SQLite for that day;
-/// Delete removes the day's rows from the device.
+/// Preview rows use the server's CSV columns; Delete removes the day from the
+/// device.
 class LocationRecordDetailScreen extends StatefulWidget {
   const LocationRecordDetailScreen({
     super.key,
@@ -289,7 +288,6 @@ class _Fact extends StatelessWidget {
   }
 }
 
-/// Horizontally scrollable table mirroring the CSV columns.
 class _CsvPreviewTable extends StatelessWidget {
   const _CsvPreviewTable({required this.rows});
 

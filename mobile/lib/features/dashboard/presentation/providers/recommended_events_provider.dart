@@ -20,13 +20,9 @@ final eventEvaluationServiceProvider = Provider<EventEvaluationService>(
   (ref) => EventEvaluationService(),
 );
 
-/// Interest-matched events for the home tab. Auto-disposed so leaving the
-/// dashboard drops the list and the next visit asks the server again — the
-/// tagging itself is cached server-side, so a refetch is cheap.
-///
-/// Every fetch also reconciles the in-memory registration store with the
-/// server's `is_registered` flags, so a join made before the app restarted
-/// still reads as joined (and the geofence recorder knows about it).
+/// Auto-disposed; server-side tagging is cached so refetches are cheap. Each
+/// fetch reconciles the registration store with `is_registered` so joins
+/// survive restarts (and reach the geofence recorder).
 final recommendedEventsProvider =
     FutureProvider.autoDispose<RecommendedEventsPage>((ref) async {
       final page = await ref.read(recommendedEventsServiceProvider).fetch();
@@ -34,18 +30,14 @@ final recommendedEventsProvider =
       return page;
     });
 
-/// Open events flagged for beneficiaries — the beneficiary home carousel and
-/// Events tab read this. Beneficiaries hold no registrations, so nothing is
-/// reconciled with the registration store.
+/// Beneficiaries hold no registrations, so nothing is reconciled.
 final beneficiaryEventsProvider =
     FutureProvider.autoDispose<List<RecommendedEvent>>(
       (ref) =>
           ref.read(recommendedEventsServiceProvider).fetchForBeneficiaries(),
     );
 
-/// Finished events that were open to beneficiaries — the beneficiary
-/// Activity tab. Nothing volunteer-side (registrations, feedback,
-/// certificates) is touched.
+/// Touches nothing volunteer-side.
 final beneficiaryCompletedEventsProvider =
     FutureProvider.autoDispose<List<RecommendedEvent>>(
       (ref) => ref
@@ -53,14 +45,9 @@ final beneficiaryCompletedEventsProvider =
           .fetchCompletedForBeneficiaries(),
     );
 
-/// The volunteer's own registrations for the activity page. Unlike the feed
-/// this includes finished events, so it is the source that puts them under
-/// "Completed" after a restart. Each fetch reconciles the store the same way
-/// and additionally drops local server-backed rows the server no longer has.
-///
-/// The same load pulls which of those events already have feedback, so the
-/// "Submit Feedback" / "Submitted" state on the completed cards is the
-/// server's, not whatever this install remembers.
+/// Includes finished events, so it repopulates "Completed" after a restart.
+/// Also drops local server-backed rows the server no longer has, and loads
+/// feedback state from the server.
 final registeredEventsProvider =
     FutureProvider.autoDispose<List<RecommendedEvent>>((ref) async {
       final events = await ref
@@ -84,8 +71,7 @@ final registeredEventsProvider =
       return events;
     });
 
-/// Best effort: a failed feedback lookup must not take the activity page down
-/// with it, so the cards fall back to whatever the store already holds.
+/// Best-effort: on failure the cards keep what the store holds.
 Future<void> _syncFeedback(Ref ref, String email) async {
   try {
     final submissions = await ref
@@ -108,8 +94,7 @@ void _syncRegistrations(List<RecommendedEvent> events) {
     if (event.isRegistered && !local) {
       store.register(event.toCaresEvent(), email: email);
     } else if (event.isRegistered && local) {
-      // Already joined: keep the stored copy current so the server's status
-      // and counts win over the snapshot taken at join time.
+      // Keep the stored copy current so server status and counts win.
       store.refreshEvent(event.toCaresEvent(), email: email);
     } else if (!event.isRegistered && local) {
       store.cancelParticipation(event.caresEventId, email);

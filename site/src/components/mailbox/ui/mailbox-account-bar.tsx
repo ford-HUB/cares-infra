@@ -7,7 +7,6 @@ interface MailboxAccountBarProps {
   onDisconnect: () => void
 }
 
-/** Names the linked Google account and gives the admin the way back out of it. */
 export function MailboxAccountBar({
   email,
   disconnecting,

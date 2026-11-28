@@ -12,7 +12,7 @@ interface ProfileFormModalProps {
   onClose: () => void
   saving: boolean
   isDirector: boolean
-  /** Coordinators belong to a college, so their department is picked, not typed. */
+  /** Coordinators pick their department from a list. */
   isCoordinator: boolean
   avatarPreview: string | null
   signaturePreview: string | null
@@ -50,7 +50,7 @@ export function ProfileFormModal({
 
   if (!open) return null
 
-  // A department saved before the list existed stays selectable rather than vanishing.
+  // A department saved before the list existed stays selectable.
   const currentDepartment = watch('department' as keyof ProfileFormValues) as string | undefined
   const departmentOptions = Object.keys(DEPARTMENT_COURSES)
   if (currentDepartment && !departmentOptions.includes(currentDepartment)) {

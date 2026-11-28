@@ -23,7 +23,7 @@ interface ReportSeed {
     serviceHours: number;
     beneficiaries: number;
   };
-  /** Days before now the coordinator submitted; the trail is built off this. */
+  /** Days ago the report was submitted; the trail derives from it. */
   submittedDaysAgo: number;
   decisionNote?: string;
   /** Extra annex beside the narrative, so a folder holds more than one file per report. */
@@ -181,10 +181,7 @@ const SEEDS: ReportSeed[] = [
   },
 ];
 
-/**
- * A one-page PDF built by hand, so the seeder needs no document library and the file
- * the director opens is a real PDF rather than a renamed text file.
- */
+/** Hand-built PDF: no document library needed. */
 const buildPdf = (title: string, lines: string[]): Buffer => {
   const escape = (text: string) => text.replace(/([()\\])/g, '\\$1');
   const body = [title, '', ...lines]
@@ -238,15 +235,7 @@ const narrative = (seed: ReportSeed): string[] => [
   seed.coordinator.title,
 ];
 
-/**
- * Fills the director's Monthly Report board: submissions across three months and six
- * colleges, each with a real PDF in the bucket, plus one director-made folder so the
- * library has a shelf that is not a college.
- *
- * Attachments need AWS credentials. Without them the reports are still seeded — the
- * board reads correctly, the file list is simply empty — so the seeder stays usable on
- * a machine with no bucket configured.
- */
+/** Attachments need AWS credentials; without them reports seed with empty file lists. */
 export const seedMonthlyReports = async (
   prisma: PrismaClient,
 ): Promise<void> => {
@@ -389,7 +378,7 @@ export const seedMonthlyReports = async (
   await seedFolder(prisma, director?.user_id ?? null, reviewerName);
 };
 
-/** Continues the `MR-YYYY-NNN` run rather than restarting it on a re-seed. */
+/** Continues the `MR-YYYY-NNN` sequence on re-seed. */
 const nextSequence = async (prisma: PrismaClient): Promise<number> => {
   const year = new Date().getFullYear();
   const latest = await prisma.monthlyReport.findFirst({
@@ -404,7 +393,7 @@ const nextSequence = async (prisma: PrismaClient): Promise<number> => {
   return Number.isFinite(sequence) ? sequence + 1 : 1;
 };
 
-/** One director-made shelf, so the library opens with a folder that is not a college. */
+/** A non-college folder for the library. */
 const seedFolder = async (
   prisma: PrismaClient,
   createdByUserId: string | null,
@@ -430,7 +419,7 @@ const seedFolder = async (
     select: { monthly_report_folder_id: true },
   });
 
-  // Approved reports only — the queue's own submissions are not filed anywhere yet.
+  // Approved reports only.
   const filed = await prisma.monthlyReport.findMany({
     where: { status: MonthlyReportStatus.APPROVED, period: '2026-08' },
     select: { monthly_report_id: true },

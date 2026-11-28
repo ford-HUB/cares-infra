@@ -10,8 +10,6 @@ import 'package:mobile/features/dashboard/beneficiary/domain/beneficiary_profile
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Green band with the iOS-style back control; the heading below carries the
-/// screen title, so nothing sits beside the chevron.
 class ProfileEditHeader extends StatelessWidget {
   const ProfileEditHeader({
     super.key,
@@ -28,8 +26,6 @@ class ProfileEditHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Same deep band, radius and type scale as the dashboard tabs'
-    // [DeepTabHeader]; the back control sits on the 20pt content margin.
     return HeaderBand.deep(
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
       radius: 26,
@@ -45,8 +41,8 @@ class ProfileEditHeader extends StatelessWidget {
                 onTap: onBack,
                 borderRadius: BorderRadius.circular(20),
                 child: const Padding(
-                  // Only vertical + trailing padding: the chevron itself stays
-                  // on the 20pt content margin like a UINavigationBar back button.
+                  // The chevron stays on the 20pt margin, like a
+                  // UINavigationBar back button.
                   padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -98,9 +94,8 @@ class ProfileEditHeader extends StatelessWidget {
   }
 }
 
-/// Large avatar with a camera badge. Shows, in order of preference: the photo
-/// just picked, the photo on file (private stream + bearer header), or the
-/// initial on the role colour.
+/// Picked photo, then the photo on file (private stream + bearer), then the
+/// initial.
 class ProfileAvatarPicker extends StatelessWidget {
   const ProfileAvatarPicker({
     super.key,
@@ -226,9 +221,7 @@ class ProfileAvatarPicker extends StatelessWidget {
   }
 }
 
-/// Volunteer school record. Every field is disabled: the values come off the
-/// ID via OCR and are only ever changed by re-running that check, so a tap on
-/// any of them explains that instead of opening a keyboard.
+/// Disabled: values come from ID OCR and only re-verification changes them.
 class ProfileSchoolRecordCard extends StatelessWidget {
   const ProfileSchoolRecordCard({
     super.key,
@@ -266,9 +259,7 @@ class ProfileSchoolRecordCard extends StatelessWidget {
   }
 }
 
-/// Beneficiary household size — the same chip picker the profile setup uses,
-/// inside a form card so it sits with the other sections. Tapping the chosen
-/// chip again clears it; the value saves with the rest of the form.
+/// Tapping the chosen chip clears it.
 class ProfileHouseholdSizeCard extends StatelessWidget {
   const ProfileHouseholdSizeCard({
     super.key,
@@ -334,9 +325,7 @@ class ProfileHouseholdSizeCard extends StatelessWidget {
   }
 }
 
-/// An address saved before barangay / city were picked from a list. It stays
-/// on file (and is saved back untouched) until the person fills the fields
-/// below, so this shows what is there now.
+/// Saved back untouched until the person fills the fields below.
 class ProfileLegacyAddressNote extends StatelessWidget {
   const ProfileLegacyAddressNote({super.key, required this.address});
 
@@ -388,10 +377,7 @@ class ProfileLegacyAddressNote extends StatelessWidget {
   }
 }
 
-/// Beneficiary address. The field is locked: the address is only ever set by
-/// OCR from an uploaded proof of residency, so a tap explains that and starts
-/// the upload instead of opening a keyboard. Files already on record are
-/// listed underneath, newest first.
+/// Locked: set only by OCR of a proof of residency, so a tap starts the upload.
 class ProfileResidencyAddressCard extends StatelessWidget {
   const ProfileResidencyAddressCard({
     super.key,
@@ -406,12 +392,10 @@ class ProfileResidencyAddressCard extends StatelessWidget {
 
   final String address;
 
-  /// The administrator's ruling on the latest upload; null when none.
+  /// Null when none.
   final ResidencyReview? review;
 
-  /// [address] already resolved against [PhAddressDirectory]. When it isn't
-  /// complete the card splits [address] itself with [PhAddress.lenient].
-  /// Every row is locked either way.
+  /// When incomplete, the card splits [address] with [PhAddress.lenient].
   final PhAddress structured;
   final List<ResidencyDocument> documents;
 
@@ -422,8 +406,7 @@ class ProfileResidencyAddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Split columns when the server has them, otherwise the best split of the
-    // text on file (OCR reads don't always match the barangay list exactly).
+    // OCR reads don't always match the barangay list exactly.
     final parts = structured.isComplete
         ? structured
         : PhAddress.lenient(address);
@@ -508,8 +491,7 @@ class ProfileResidencyAddressCard extends StatelessWidget {
   }
 }
 
-/// Where the latest upload stands with the administrator: waiting, or
-/// turned down with the reason (a new upload files a fresh review).
+/// A new upload files a fresh review.
 class _ResidencyReviewNotice extends StatelessWidget {
   const _ResidencyReviewNotice({required this.review});
 
@@ -685,8 +667,7 @@ class _ResidencyDocumentTile extends StatelessWidget {
   }
 }
 
-/// Why the address can't be typed in, and how to change it. Resolves true
-/// when the person chooses to upload a document.
+/// True when the person chooses to upload.
 Future<bool> showAddressLockedDialog(BuildContext context) async {
   final proceed = await showDialog<bool>(
     context: context,
@@ -738,7 +719,6 @@ Future<bool> showAddressLockedDialog(BuildContext context) async {
   return proceed ?? false;
 }
 
-/// Where the residency document comes from.
 enum ResidencyDocumentSource { camera, gallery, file }
 
 Future<ResidencyDocumentSource?> showResidencyDocumentSourceSheet(
@@ -797,9 +777,8 @@ Future<ResidencyDocumentSource?> showResidencyDocumentSourceSheet(
   );
 }
 
-/// Full-screen look at a stored residency file. Images render from the
-/// private stream; PDFs have no in-app renderer, so the sheet shows what is
-/// known about the file and the address that was read off it.
+/// PDFs have no in-app renderer, so the sheet shows the file details and the
+/// read address.
 Future<void> showResidencyDocumentPreview(
   BuildContext context, {
   required ResidencyDocument document,
@@ -929,8 +908,6 @@ Future<void> showResidencyDocumentPreview(
   );
 }
 
-/// Looks like a read-only [RegisterFormField] but is not editable at all; the
-/// whole thing is one tap target.
 class _LockedField extends StatelessWidget {
   const _LockedField({
     required this.label,
@@ -1001,8 +978,7 @@ class _LockedField extends StatelessWidget {
   }
 }
 
-/// Why the school record can't be edited by hand, and the way to change it.
-/// Resolves true when the person chooses to re-verify.
+/// True when the person chooses to re-verify.
 Future<bool> showSchoolRecordLockedDialog(BuildContext context) async {
   final proceed = await showDialog<bool>(
     context: context,

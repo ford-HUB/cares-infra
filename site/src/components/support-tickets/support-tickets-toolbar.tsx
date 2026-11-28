@@ -14,7 +14,6 @@ interface SupportTicketsToolbarProps {
   type: TicketTypeFilter
   shown: number
   summary: SupportTicketSummary
-  /** False until the first fetch settles, so the counts don't flash "0 of 0 tickets". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onStatusChange: (value: TicketStatusFilter) => void

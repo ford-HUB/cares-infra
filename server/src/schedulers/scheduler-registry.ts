@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { RedisService } from '../infastructures/redis/redis-service';
 
-/** The BullMQ queues the server runs. Each has one processor under `processors/`. */
+/** One processor each under `processors/`. */
 export const SCHEDULER_QUEUES = {
   email: 'email',
   notification: 'notification',
@@ -16,42 +16,31 @@ export const SCHEDULER_QUEUES = {
 export type SchedulerQueueName =
   (typeof SCHEDULER_QUEUES)[keyof typeof SCHEDULER_QUEUES];
 
-/** Which deployable owns a worker — shown so staff know where to look on failure. */
+/** Shown so staff know where to look. */
 export type SchedulerOwner = 'server' | 'microservices' | 'mobile-sync';
 
-/**
- * How a job fires. `every` is milliseconds between runs; `pattern` is a cron
- * expression; neither means the job only runs when something enqueues it.
- */
+/** `every` = ms between runs; `pattern` = cron; neither = on-demand only. */
 export interface SchedulerTrigger {
   every?: number;
   pattern?: string;
 }
 
-/**
- * One scheduled job as the portal sees it. The id doubles as the BullMQ job
- * scheduler key and the job name, so the queue and this catalogue cannot drift.
- */
+/** The id is also the BullMQ scheduler key and job name, so they can't drift. */
 export interface SchedulerDefinition {
   id: string;
   queue: SchedulerQueueName;
   name: string;
-  /** One line on what the job actually does, in staff language. */
   description: string;
   owner: SchedulerOwner;
   trigger: SchedulerTrigger;
-  /** Hard cap on one run; a run still going past it is failed and retried. */
+  /** Runs past this are failed and retried. */
   maxRuntimeMs: number;
-  /** Retries after a failed run before the job is flagged failing. */
   attempts: number;
 }
 
 const MINUTE = 60 * 1000;
 
-/**
- * Every job the server schedules on its own clock. On-demand jobs (a single
- * `publish` or `send`) are not listed — they are what these sweeps enqueue.
- */
+/** On-demand jobs (`publish`, `send`) aren't listed. */
 export const SCHEDULER_DEFINITIONS: SchedulerDefinition[] = [
   {
     id: 'event-start-reminders',
@@ -177,14 +166,13 @@ export interface SchedulerOverride {
   attempts: number;
 }
 
-/** A definition whose trigger may be null — a job staff set to manual. */
+/** `trigger` null means manual. */
 export type EffectiveDefinition = Omit<SchedulerDefinition, 'trigger'> & {
   trigger: SchedulerTrigger | null;
 };
 
 export type SchedulerRunOutcome = 'success' | 'failed' | 'timed_out';
 
-/** One finished run, as kept in Redis for the portal's recent-runs strip. */
 export interface SchedulerRunRecord {
   id: string;
   startedAt: string;
@@ -194,7 +182,6 @@ export interface SchedulerRunRecord {
   error: string | null;
 }
 
-/** A run that has started and not yet finished. */
 export interface SchedulerActiveRun {
   id: string;
   startedAt: string;
@@ -209,15 +196,11 @@ export interface SchedulerLogLine {
   message: string;
 }
 
-/** How many finished runs and log lines are kept per job. */
+/** Per job, runs and log lines. */
 const RUN_HISTORY_MAX = 12;
 const LOG_HISTORY_MAX = 200;
 
-/**
- * Where the processors write what happened and the Services screen reads it.
- * BullMQ keeps its own job records, but they are pruned and keyed by queue; this is
- * the per-job history staff actually look at, kept small and in one place.
- */
+/** Small per-job history; BullMQ's own records are pruned and keyed by queue. */
 @Injectable()
 export class SchedulerRunRecorder {
   constructor(private readonly redisService: RedisService) {}
@@ -304,7 +287,7 @@ export class SchedulerRunRecorder {
     return this.redisService.listAll<SchedulerLogLine>(this.logsKey(jobId));
   }
 
-  /** When the job was last resumed — the start of its current on-duty streak. */
+  /** Start of the current on-duty streak. */
   async onDutySince(jobId: string): Promise<string | null> {
     return this.redisService.get<string>(this.dutyKey(jobId));
   }
@@ -317,10 +300,7 @@ export class SchedulerRunRecorder {
     }
   }
 
-  /**
-   * Staff-set trigger and limits, replacing the catalogue defaults until cleared.
-   * `trigger: null` means "manual" — the job only runs when someone presses Run.
-   */
+  /** Overrides catalogue defaults until cleared; `trigger: null` = manual. */
   async getOverride(jobId: string): Promise<SchedulerOverride | null> {
     return this.redisService.get<SchedulerOverride>(this.overrideKey(jobId));
   }
@@ -329,7 +309,6 @@ export class SchedulerRunRecorder {
     await this.redisService.set(this.overrideKey(jobId), override);
   }
 
-  /** The catalogue entry with any staff override applied — what actually runs. */
   async effective(
     definition: SchedulerDefinition,
   ): Promise<EffectiveDefinition> {
@@ -347,7 +326,7 @@ export class SchedulerRunRecorder {
     return `scheduler:override:${jobId}`;
   }
 
-  /** Staff switched the job off; survives a restart so it is not silently re-armed. */
+  /** Survives restarts so it isn't silently re-armed. */
   async isPaused(jobId: string): Promise<boolean> {
     return (
       (await this.redisService.get<boolean>(this.pausedKey(jobId))) === true
@@ -383,12 +362,7 @@ export class SchedulerRunRecorder {
   }
 }
 
-/**
- * Registers every catalogued job for a queue as a BullMQ job scheduler. Idempotent:
- * an existing scheduler with the same id is updated in place, so a restart never
- * doubles a job up. A job that staff paused stays paused — its scheduler was removed
- * and only `resume` on the Services screen brings it back.
- */
+/** Idempotent upsert; paused jobs stay unregistered until resumed. */
 export async function registerQueueSchedulers(
   queue: Queue,
   queueName: SchedulerQueueName,

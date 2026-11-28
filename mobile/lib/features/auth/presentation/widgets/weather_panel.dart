@@ -6,9 +6,6 @@ import 'package:mobile/features/auth/presentation/providers/weather_provider.dar
 import 'package:mobile/features/auth/presentation/widgets/dot_matrix_text.dart';
 import 'package:mobile/features/auth/presentation/widgets/weather_ambience.dart';
 
-/// Live weather in the login header: the current temperature sitting inside an
-/// ambient animation that changes with the sky — wind drifting past on a dry
-/// day, rain falling on a wet one.
 class WeatherPanel extends ConsumerWidget {
   const WeatherPanel({super.key, required this.width, required this.progress});
 
@@ -31,8 +28,6 @@ class WeatherPanel extends ConsumerWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Scenery first, reading on top — the animation runs behind and
-          // through the pill without ever obscuring the numbers.
           Positioned.fill(
             child: WeatherAmbience(
               size: size,
@@ -41,8 +36,7 @@ class WeatherPanel extends ConsumerWidget {
               discomfort: discomfort,
             ),
           ),
-          // Scale the reading down rather than overflow when the panel is
-          // narrow (small phones, or a longer label like "-12°C").
+          // Scale down rather than overflow on narrow panels.
           FittedBox(
             fit: BoxFit.scaleDown,
             child: _TemperaturePill(label: tempLabel, mood: mood),
@@ -53,10 +47,8 @@ class WeatherPanel extends ConsumerWidget {
   }
 }
 
-/// The reading sits on the dark green header band, so it needs a ground of its
-/// own — but a bordered chip cuts the wind in half. Instead of an outline, the
-/// backdrop is a radial wash that fades to nothing at its edge, so the gusts
-/// blow straight through it and only the numerals stay hard.
+/// A radial wash instead of a bordered chip, so gusts blow through and only the
+/// numerals stay hard.
 class _TemperaturePill extends StatelessWidget {
   const _TemperaturePill({required this.label, required this.mood});
 
@@ -96,8 +88,6 @@ class _TemperaturePill extends StatelessWidget {
             shadows: const [Shadow(color: Color(0xB31F5F28), blurRadius: 6)],
           ),
           const SizedBox(width: 8),
-          // Dot-matrix numerals: a readout, not body copy. With the border gone
-          // the halo under the dots is what keeps them off the background.
           DotMatrixText(
             text: label,
             color: Colors.white,

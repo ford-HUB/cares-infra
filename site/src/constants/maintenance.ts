@@ -10,12 +10,7 @@ import type {
   WindowState,
 } from '../types/maintenance'
 
-/**
- * A blank notice, so the dialog has the same shape for a new one as for an existing
- * one. Both Maintenance and System Notices compose from here, so the starting point of
- * a notice cannot drift between the two screens. `author` is a placeholder: the server
- * stamps the real name of whoever is signed in.
- */
+/** Shared by Maintenance and System Notices; the server stamps the real `author`. */
 export function blankAnnouncement(): Announcement {
   return {
     id: '',
@@ -34,14 +29,13 @@ export function blankAnnouncement(): Announcement {
   }
 }
 
-/** How often the page re-reads state while it is open — a window can start on its own. */
+/** Windows can start on their own, so poll while open. */
 export const MAINTENANCE_POLL_INTERVAL_MS = 20_000
 
 export const SURFACE_STATE_FILTER_ALL = 'all'
 
 export type SurfaceStateFilter = SurfaceState | typeof SURFACE_STATE_FILTER_ALL
 
-/** Draw order, best news first — also the segment order in the availability bar. */
 export const SURFACE_STATE_ORDER: SurfaceState[] = ['live', 'booked', 'down']
 
 export const SURFACE_STATE_LABELS: Record<SurfaceState, string> = {
@@ -50,35 +44,30 @@ export const SURFACE_STATE_LABELS: Record<SurfaceState, string> = {
   down: 'In maintenance',
 }
 
-/** What each state means for the reader — the segment tooltips. */
 export const SURFACE_STATE_HINTS: Record<SurfaceState, string> = {
   live: 'Open and serving users right now.',
   booked: 'Still open, but a window is booked that will close it.',
   down: 'Closed — users see the maintenance notice instead.',
 }
 
-/** Light-only palette, in step with the rest of the portal's badges. */
 export const SURFACE_STATE_STYLES: Record<SurfaceState, string> = {
   live: 'bg-emerald-50 text-emerald-700',
   booked: 'bg-amber-50 text-amber-700',
   down: 'bg-red-50 text-red-700',
 }
 
-/** Dot inside the badge; only a surface that is down animates. */
 export const SURFACE_STATE_DOT_STYLES: Record<SurfaceState, string> = {
   live: 'bg-emerald-500',
   booked: 'bg-amber-500',
   down: 'bg-red-500',
 }
 
-/** Segment fill in the availability bar. */
 export const SURFACE_STATE_BAR_STYLES: Record<SurfaceState, string> = {
   live: 'bg-emerald-500',
   booked: 'bg-amber-400',
   down: 'bg-red-500',
 }
 
-/** The full roster — the denominator every count on this page is read against. */
 export const MAINTENANCE_SURFACES: MaintenanceSurface[] = [
   'portal',
   'mobile',
@@ -93,7 +82,6 @@ export const SURFACE_LABELS: Record<MaintenanceSurface, string> = {
   api: 'CARES API',
 }
 
-/** Who is locked out when the surface closes — the line under each toggle. */
 export const SURFACE_HINTS: Record<MaintenanceSurface, string> = {
   portal: 'Admins, coordinators, and staff sign-ins.',
   mobile: 'Volunteer check-ins, attendance sync, and event feeds.',
@@ -156,7 +144,6 @@ export const ANNOUNCEMENT_STATE_DOT_STYLES: Record<AnnouncementState, string> = 
   expired: 'bg-gray-300',
 }
 
-/** Tone is the only colour an announcement carries; it maps to severity, not taste. */
 export const ANNOUNCEMENT_TONE_LABELS: Record<AnnouncementTone, string> = {
   info: 'Notice',
   warning: 'Advisory',
@@ -169,7 +156,6 @@ export const ANNOUNCEMENT_TONE_STYLES: Record<AnnouncementTone, string> = {
   critical: 'bg-red-50 text-red-700',
 }
 
-/** Left rail on the announcement row, so tone reads before the title does. */
 export const ANNOUNCEMENT_TONE_RAIL_STYLES: Record<AnnouncementTone, string> = {
   info: 'bg-gray-300',
   warning: 'bg-amber-400',
@@ -198,7 +184,7 @@ export const CHANNEL_LABELS: Record<AnnouncementChannel, string> = {
   email: 'Email',
 }
 
-/** Heads-up options before a window opens; 0 is "no notice". */
+/** Minutes; 0 means no notice. */
 export const NOTICE_LEAD_PRESETS = [0, 15, 30, 60, 180, 1440] as const
 
 export function formatNoticeLead(minutes: number): string {
@@ -208,7 +194,7 @@ export function formatNoticeLead(minutes: number): string {
   return `${minutes} minutes before`
 }
 
-/** `Mar 4, 1:00 AM – 3:30 AM` — collapses the date when a window stays inside one day. */
+/** `Mar 4, 1:00 AM – 3:30 AM`; collapses the date within one day. */
 export function formatWindowRange(startAt: string, endAt: string): string {
   const start = dayjs(startAt)
   const end = dayjs(endAt)
@@ -218,7 +204,6 @@ export function formatWindowRange(startAt: string, endAt: string): string {
   return `${start.format('MMM D, h:mm A')} – ${tail}`
 }
 
-/** How long a window holds the system, in the unit staff booked it in. */
 export function formatWindowLength(startAt: string, endAt: string): string {
   const minutes = Math.max(0, dayjs(endAt).diff(dayjs(startAt), 'minute'))
   if (minutes < 60) return `${minutes} min`
@@ -226,7 +211,7 @@ export function formatWindowLength(startAt: string, endAt: string): string {
   return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} h`
 }
 
-/** `2h 14m` from now to `at` — the countdown the banner and the rows share. */
+/** `2h 14m` from now to `at`. */
 export function formatCountdown(at: string | null, now: number): string {
   if (!at) return '—'
 
@@ -242,18 +227,13 @@ export function formatCountdown(at: string | null, now: number): string {
   return `${Math.floor(hours / 24)}d ${hours % 24}h`
 }
 
-/** `Portal, app` — a surface list short enough to sit on a row. */
 export function describeSurfaces(surfaces: MaintenanceSurface[]): string {
   if (surfaces.length === 0) return 'No surface'
   if (surfaces.length === MAINTENANCE_SURFACES.length) return 'Whole system'
   return surfaces.map((one) => SURFACE_LABELS[one]).join(', ')
 }
 
-/**
- * Where each surface stands, read from the switch first and the calendar second: a
- * surface the switch holds down is down whatever the calendar says, and a surface
- * named by a booked window is live but spoken for.
- */
+/** Switch wins over the calendar; a booked surface is live but spoken for. */
 export function resolveSurfaceStates(
   mode: { surfaces: MaintenanceSurface[] } | null,
   windows: { surfaces: MaintenanceSurface[]; state: WindowState }[],
@@ -274,10 +254,7 @@ export function resolveSurfaceStates(
   )
 }
 
-/**
- * Directory sizes per audience, standing in for the counts the recipient service will
- * report. They exist so a reach figure is never shown without its denominator.
- */
+/** Placeholder counts until the recipient service reports real ones. */
 export const AUDIENCE_SIZES: Record<AnnouncementAudience, number> = {
   volunteers: 1180,
   beneficiaries: 640,
@@ -285,12 +262,10 @@ export const AUDIENCE_SIZES: Record<AnnouncementAudience, number> = {
   coordinators: 46,
 }
 
-/** How many accounts a notice addressed to these audiences could reach. */
 export function audienceReachTotal(audiences: AnnouncementAudience[]): number {
   return audiences.reduce((total, one) => total + AUDIENCE_SIZES[one], 0)
 }
 
-/** Segment fill in the notice-board availability bar — the fourth visual channel. */
 export const ANNOUNCEMENT_STATE_BAR_STYLES: Record<AnnouncementState, string> = {
   draft: 'bg-gray-300',
   scheduled: 'bg-amber-400',
@@ -298,7 +273,6 @@ export const ANNOUNCEMENT_STATE_BAR_STYLES: Record<AnnouncementState, string> = 
   expired: 'bg-gray-200',
 }
 
-/** What each state means for the reader — the legend tooltips on the notice board. */
 export const ANNOUNCEMENT_STATE_HINTS: Record<AnnouncementState, string> = {
   draft: 'Written but never sent. Nobody has read it.',
   scheduled: 'Queued to go out on its own at the time it names.',
@@ -306,10 +280,6 @@ export const ANNOUNCEMENT_STATE_HINTS: Record<AnnouncementState, string> = {
   expired: 'Ran its course or was taken down. Kept as record.',
 }
 
-/**
- * The day heading a notice sits under in the feed. Named days carry the reader for the
- * span they actually think in; anything older or further out is dated outright.
- */
 export function formatNoticeDay(timestamp: string): string {
   const day = dayjs(timestamp).startOf('day')
   const today = dayjs().startOf('day')
@@ -321,11 +291,7 @@ export function formatNoticeDay(timestamp: string): string {
   return day.format(day.isSame(today, 'year') ? 'dddd, MMM D' : 'MMM D, YYYY')
 }
 
-/**
- * Whether a notice is showing to one audience right now: the director addressed it
- * to them, it goes out on the portal, and it is live — drafts, scheduled notices and
- * anything that has expired are the writer's business, not the reader's.
- */
+/** Live for an audience only if addressed to it, on the portal, and currently live. */
 export function isAnnouncementLiveFor(
   announcement: Announcement,
   audience: AnnouncementAudience,

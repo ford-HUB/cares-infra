@@ -69,8 +69,7 @@ class _RegistrationFlowScreenState
 
   bool get _canContinueAccountType => _data.accountType != null;
 
-  /// The rules the administrator set in the portal, falling back to the built-in
-  /// defaults while the fetch is in flight.
+  /// Falls back to the built-in defaults while fetching.
   PasswordPolicy get _passwordPolicy => ref.read(currentPasswordPolicyProvider);
 
   void _goToLogin() {
@@ -231,8 +230,7 @@ class _RegistrationFlowScreenState
 
   @override
   Widget build(BuildContext context) {
-    // The system back gesture retraces steps the same way the Back button
-    // does; only the first step actually leaves the screen.
+    // System back retraces steps like Back; only the first step leaves.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {

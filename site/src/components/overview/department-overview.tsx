@@ -24,11 +24,6 @@ interface DepartmentOverviewProps {
   overview: DepartmentOverviewData
 }
 
-/**
- * The coordinator's own college, charted the same way as the system overview: events,
- * attendance and monthly reports as parts of their totals, then the two rates that say
- * whether the department is keeping up.
- */
 export function DepartmentOverview({ overview }: DepartmentOverviewProps) {
   const { events, attendance, reports, recentDays } = overview
   const reportsSubmitted = reports.underReview + reports.approved + reports.returned

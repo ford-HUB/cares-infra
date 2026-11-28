@@ -6,7 +6,6 @@ interface ProfilePageSkeletonProps {
   homePath: string
 }
 
-/** Two-column field grid matching the loaded page's `grid-cols-2 gap-16`. */
 function FieldGridSkeleton({ left, right }: { left: number; right: number }) {
   return (
     <div aria-hidden className="mx-4 grid grid-cols-2 gap-16">
@@ -24,11 +23,7 @@ function FieldGridSkeleton({ left, right }: { left: number; right: number }) {
   )
 }
 
-/**
- * Mirrors `ProfilePage` while the profile request is in flight. The breadcrumb and
- * section headings stay real — they're route-derived, not fetched — so only the
- * account's own data reads as pending.
- */
+/** The breadcrumb and headings stay real; they're route-derived, not fetched. */
 export function ProfilePageSkeleton({ homePath }: ProfilePageSkeletonProps) {
   return (
     <div aria-busy className="mx-8 my-4 flex h-full flex-col">

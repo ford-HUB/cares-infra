@@ -21,11 +21,7 @@ import {
   UpdateSecurityPolicySchema,
 } from '../validators/security-policy-site-validator';
 
-/**
- * The policy gates who can sign in at all, so reading and changing it stays with the
- * admin role — a coordinator who could widen the allowlist could grant themselves
- * access the policy exists to deny.
- */
+/** Admin-only: widening the allowlist would grant access. */
 @Controller('v1/security-policy')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.SECURITY_POLICY_MANAGE)

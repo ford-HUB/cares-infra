@@ -43,11 +43,7 @@ export function ActiveSessionsPage() {
   const [role, setRole] = useState<SessionRoleFilter>(ACTIVE_SESSIONS_FILTER_ALL)
   const [target, setTarget] = useState<RevokeTarget | null>(null)
 
-  /**
-   * Every filter — search included — narrows on the server: the grid only ever holds
-   * the pages scrolled so far, so filtering what is loaded would silently skip the
-   * devices further down the list.
-   */
+  /** Filters run server-side; the grid only holds scrolled pages. */
   useEffect(() => {
     const timer = setTimeout(
       () => setDebouncedSearch(search.trim()),
@@ -60,7 +56,7 @@ export function ActiveSessionsPage() {
     void fetchSessions({ search: debouncedSearch, source, role })
   }, [fetchSessions, debouncedSearch, source, role])
 
-  // Stable, so the scroll observer is not torn down and rebuilt on every render.
+  // Stable so the scroll observer isn't rebuilt every render.
   const handleLoadMore = useCallback(() => void loadMore(), [loadMore])
 
   const refresh = () => void fetchSessions({ search: debouncedSearch, source, role })
@@ -79,11 +75,7 @@ export function ActiveSessionsPage() {
       sessionCount: sessionsPerUser[session.userId] ?? 1,
     })
 
-  /**
-   * Revoking your own browser is allowed — it is how an admin clears a device they no
-   * longer trust — but the token dies with the session, so the portal has to sign out
-   * rather than keep making requests that will now 401.
-   */
+  /** Revoking this browser kills its token, so sign out instead of 401-ing. */
   const handleConfirm = async (confirmed: RevokeTarget) => {
     const endsThisBrowser =
       confirmed.kind === 'session'
@@ -133,11 +125,7 @@ export function ActiveSessionsPage() {
         onRefresh={refresh}
       />
 
-      {/*
-        A failed fetch leaves `sessions` empty, which the table would otherwise render
-        as "no devices match the current filters" — a filter problem, not the outage it
-        actually is. Say which one it is.
-      */}
+      {/* Distinguish a failed fetch from an empty filter result. */}
       {error && (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

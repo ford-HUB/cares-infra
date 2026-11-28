@@ -20,7 +20,6 @@ import type {
 import { CertificatesRepository } from '../repositories/certificates-repository';
 import { withCertificateStorage } from './certificate-storage-guard';
 
-/** The live page's view of who a deployment has actually reached. */
 @Injectable()
 export class CertificatesSiteService {
   constructor(
@@ -50,12 +49,7 @@ export class CertificatesSiteService {
     }));
   }
 
-  /**
-   * The "Remind N" button: nudges every covered participant who does not hold a
-   * certificate yet to finish what is outstanding — the post-event questionnaire,
-   * or an attendance sync the ruling is still waiting on. Once a day per person, so
-   * a director pressing it twice does not spam the roster.
-   */
+  /** Once a day per person, so repeat presses don't spam. */
   async remindPending(
     caller: JwtPayload,
     deploymentId: string,

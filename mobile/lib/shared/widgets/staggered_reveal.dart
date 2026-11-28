@@ -7,8 +7,6 @@ double staggeredInterval(double t, double start, double end) {
   return Curves.easeOutCubic.transform((t - start) / (end - start));
 }
 
-/// Fades and lifts [child] in while a parent intro animation's [progress]
-/// passes through `[start, end]` — the stagger used on the login screen.
 class StaggeredReveal extends StatelessWidget {
   const StaggeredReveal({
     super.key,

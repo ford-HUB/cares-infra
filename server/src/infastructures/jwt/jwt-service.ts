@@ -30,10 +30,7 @@ export class JwtService implements OnModuleInit {
     return this.configService.get<string>('JWT_EXPIRES_IN') ?? '7d';
   }
 
-  /**
-   * The same lifetime as `expiresIn`, in seconds, so a session record in Redis can be
-   * given a TTL that expires exactly when its token does.
-   */
+  /** For Redis session TTLs that match token expiry. */
   get expiresInSeconds(): number {
     const value = this.expiresIn.trim();
     const match = /^(\d+)\s*(s|m|h|d)?$/i.exec(value);
@@ -71,8 +68,7 @@ export class JwtService implements OnModuleInit {
       }
 
       const payload = decoded as jwt.JwtPayload & Partial<JwtPayload>;
-      // Scoped tokens (see `signScoped`) carry an audience; none of them is a
-      // session, whatever else they hold.
+      // Audience-scoped tokens are never sessions.
       if (payload.aud !== undefined) {
         throw new UnauthorizedException('Invalid token');
       }
@@ -94,11 +90,7 @@ export class JwtService implements OnModuleInit {
     }
   }
 
-  /**
-   * A single-purpose token — e.g. the link in a "registration submitted" email —
-   * bound to [audience]. `verify` refuses any token with an audience, so one of
-   * these can never stand in for a session.
-   */
+  /** Single-purpose token bound to [audience]; `verify` rejects any token with an audience. */
   signScoped(
     subject: string,
     audience: string,
@@ -107,7 +99,6 @@ export class JwtService implements OnModuleInit {
     return jwt.sign({}, this.secret, { subject, audience, expiresIn });
   }
 
-  /** The subject of a token from `signScoped`, or null when it is not valid for [audience]. */
   verifyScoped(token: string, audience: string): string | null {
     try {
       const decoded = jwt.verify(token, this.secret, { audience });

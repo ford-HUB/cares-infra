@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/auth/presentation/widgets/cares_terms_dialog.dart';
 
-/// Sign-up consent row: the box only ticks after the notice has been read to the end,
-/// so tapping either the box or the inline link opens the dialog first.
+/// Tapping the box or link opens the notice first; it ticks only once read to
+/// the end.
 class TermsAgreementCheckbox extends StatefulWidget {
   const TermsAgreementCheckbox({
     super.key,
@@ -22,7 +22,7 @@ class TermsAgreementCheckbox extends StatefulWidget {
 }
 
 class _TermsAgreementCheckboxState extends State<TermsAgreementCheckbox> {
-  /// Lives with the state so the inline link is not rebuilt into a leak.
+  /// Held in state so the recognizer is disposed rather than leaked.
   late final TapGestureRecognizer _linkRecognizer = TapGestureRecognizer()
     ..onTap = _openTerms;
 

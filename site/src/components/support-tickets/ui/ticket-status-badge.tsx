@@ -10,7 +10,6 @@ const statusStyles: Record<SupportTicketStatus, { badge: string; dot: string }> 
   closed: { badge: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
 }
 
-/** Dense badge sized for the tickets grid; reused in the details panel header. */
 export function TicketStatusBadge({ status }: { status: SupportTicketStatus }) {
   const style = statusStyles[status] ?? statusStyles.closed
 

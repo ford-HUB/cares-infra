@@ -12,7 +12,7 @@ import {
 import type { Announcement, AnnouncementTone } from '../../types/maintenance'
 
 interface AnnouncementBoardProps {
-  /** Live notices addressed to this reader — already filtered by the page. */
+  /** Already filtered by the page to this reader. */
   announcements: Announcement[]
 }
 
@@ -22,11 +22,7 @@ const TONE_ICONS: Record<AnnouncementTone, LucideIcon> = {
   critical: OctagonAlert,
 }
 
-/**
- * The reading side of notices for a coordinator: what the director has announced to
- * them, and nothing about drafts, schedules, or reach. Pinned notices hold the top —
- * this is a feed people act on, not the record the director keeps.
- */
+/** Read-only feed: no drafts, schedules or reach; pinned notices hold the top. */
 export function AnnouncementBoard({ announcements }: AnnouncementBoardProps) {
   if (announcements.length === 0) {
     return (

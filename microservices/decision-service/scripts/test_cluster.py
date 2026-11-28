@@ -1,7 +1,4 @@
-"""Manual probe: POST a handful of survey rows and print the grouping.
-
-    python scripts/test_cluster.py [http://localhost:8006]
-"""
+"""Manual probe: python scripts/test_cluster.py [http://localhost:8006]"""
 
 import json
 import random

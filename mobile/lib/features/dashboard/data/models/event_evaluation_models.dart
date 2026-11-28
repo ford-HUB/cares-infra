@@ -1,5 +1,5 @@
-/// Question kinds the portal's questionnaire builder can produce. Unknown
-/// values fall back to [shortAnswer] so a new type never blanks the form.
+/// Unknown values fall back to [shortAnswer] so a new type never blanks the
+/// form.
 enum EvaluationQuestionType {
   shortAnswer('short_answer'),
   paragraph('paragraph'),
@@ -13,7 +13,6 @@ enum EvaluationQuestionType {
 
   const EvaluationQuestionType(this.wire);
 
-  /// The value as the server sends it.
   final String wire;
 
   static EvaluationQuestionType fromWire(String? value) => values.firstWhere(
@@ -22,7 +21,6 @@ enum EvaluationQuestionType {
   );
 }
 
-/// One question of the questionnaire as the director configured it.
 class EvaluationQuestion {
   const EvaluationQuestion({
     required this.id,
@@ -72,9 +70,8 @@ class EvaluationQuestion {
   final int maxFiles;
 }
 
-/// The questionnaire volunteers answer after one event. The director assigns a
-/// questionnaire per event in the portal's Evaluation → Forms, so two events can
-/// ask different questions; an event with none assigned gets the default one.
+/// Assigned per event in the portal's Evaluation → Forms; unassigned events get
+/// the default.
 class EvaluationForm {
   const EvaluationForm({
     required this.id,
@@ -101,12 +98,10 @@ class EvaluationForm {
   final String description;
   final List<EvaluationQuestion> questions;
 
-  /// True when this is the fallback questionnaire rather than one chosen for
-  /// this event — the screen labels the two differently.
+  /// The fallback questionnaire; the screen labels it differently.
   final bool isDefault;
 }
 
-/// What the volunteer already sent for an event: answers keyed by question id.
 class EvaluationSubmission {
   const EvaluationSubmission({
     required this.id,
@@ -129,9 +124,8 @@ class EvaluationSubmission {
   final Map<String, dynamic> answers;
 }
 
-/// `GET /evaluation/events/:id` — the questionnaire this event asks (the one
-/// assigned to it, or the default) plus whether this volunteer may still
-/// answer it.
+/// `GET /evaluation/events/:id`: the questionnaire (assigned or default) and
+/// whether this volunteer may still answer.
 class EventEvaluation {
   const EventEvaluation({
     required this.eventId,
@@ -164,8 +158,8 @@ class EventEvaluation {
   /// Null until the director publishes a questionnaire.
   final EvaluationForm? form;
 
-  /// True when the event is over, the volunteer took part, and a form is
-  /// published — the server's own gate, so the screen can show it up front.
+  /// The server's own gate (event over, took part, form published), shown up
+  /// front.
   final bool canSubmit;
   final EvaluationSubmission? submission;
 }

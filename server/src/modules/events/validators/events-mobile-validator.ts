@@ -27,7 +27,7 @@ export const RecommendedEventsQuerySchema = z
 export const MatchedInterestSchema = z.object({
   code: z.enum(InterestCode),
   label: z.string(),
-  /** Blended 0–1 confidence from nlp-service; the volunteer sees it as a tag, not a number. */
+  /** 0–1 from nlp-service; shown as a tag, not a number. */
   score: z.number(),
 });
 
@@ -39,84 +39,61 @@ export const RecommendedEventSchema = z.object({
   event_ended: z.string(),
   location: z.string(),
   max_participants: z.number(),
-  /** Volunteers with an attendance row — the real registration count, not a cached figure. */
+  /** Attendance row count, not a cached figure. */
   participants: z.number(),
-  /** `max_participants - participants`, floored at zero. */
+  /** Floored at zero. */
   slots_left: z.number().int().min(0),
-  /** Whether the caller already holds one of those slots. */
   is_registered: z.boolean(),
-  /**
-   * The geofence ruling on the caller's own attendance — PENDING until the
-   * event is judged, then COMPLETED or ABSENT. Null when not registered.
-   */
+  /** PENDING until judged, then COMPLETED or ABSENT. Null when not registered. */
   attendance_status: z.enum(AttendanceStatus).nullable(),
-  /** The role the caller registered for. Null when not registered. */
+  /** Null when not registered. */
   participation_role: z.enum(EventParticipationRole).nullable(),
-  /**
-   * Where that role stands — APPROVED for Regular, PENDING while a director or
-   * coordinator reviews an Organizer/Facilitator/Speaker request, REJECTED when
-   * they turned it down (the volunteer stays on as Regular). Null when not
-   * registered.
-   */
+  /** APPROVED for Regular; PENDING under review; REJECTED keeps them as Regular. Null when not registered. */
   role_approval: z.enum(EventRoleApproval).nullable(),
   organizer_name: z.string(),
   category: z.string(),
   status: z.enum(EventStatus),
   beneficiary_applicable: z.boolean(),
-  /** The director's "Accepted Donations" panel — what a donor may give. */
+  /** What a donor may give. */
   funds_donation: z.boolean(),
   goods_donation: z.boolean(),
   goods_types: z.array(z.string()),
-  /** Money paid towards this event so far (pledged or better), whole pesos. */
+  /** Pledged or better, whole pesos. */
   funds_raised: z.number().int().min(0),
-  /** Money and goods donations opened on this event, cancelled and declined excluded. */
+  /** Excludes cancelled and declined. */
   donations_count: z.number().int().min(0),
-  /**
-   * A beneficiary's own application for this event: PENDING while a director
-   * has yet to rule, ACCEPTED once they have (which is also when
-   * `is_registered` flips), REJECTED when they turned it down — the
-   * beneficiary may apply again. Null for volunteers and unapplied events.
-   */
+  /** ACCEPTED also flips `is_registered`; REJECTED may reapply. Null for volunteers and unapplied events. */
   application_status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).nullable(),
-  /** REJECTED only — the director's reason, shown on the event in the app. */
+  /** REJECTED only. */
   application_rejection_reason: z.string().nullable(),
   marker_lat: z.number().nullable(),
   marker_lng: z.number().nullable(),
-  /**
-   * The attendance area the director drew on the portal map, as `[lng, lat]`
-   * rings (holes and MultiPolygon parts flattened in). The app tests the
-   * volunteer's position against it with an even-odd rule — the same boundary
-   * the gps-validator-service rules attendance on. Null when none was drawn.
-   */
+  /** `[lng, lat]` rings (holes and parts flattened); the app uses even-odd, like gps-validator-service. Null when none. */
   geofence: z.array(z.array(z.tuple([z.number(), z.number()]))).nullable(),
-  /** How many images the event carries; each streams from `GET /events/:id/images/:index`. */
+  /** Each streams from `GET /events/:id/images/:index`. */
   image_count: z.number().int().min(0),
-  /** Interests the volunteer selected that this event was tagged with, best first. */
+  /** Best first. */
   matched_interests: z.array(MatchedInterestSchema),
-  /** Highest score across matched_interests — what the list is ordered by. */
+  /** Max over matched_interests; the sort key. */
   match_score: z.number(),
 });
 
 export const RecommendedEventsResponseSchema = z.object({
-  /** False when the volunteer has not picked interests yet, so the app can prompt. */
+  /** False prompts the app to ask for interests. */
   has_interests: z.boolean(),
   events: z.array(RecommendedEventSchema),
 });
 
-/** Open events accepting donations — the donor app's campaign feed. */
 export const DonationEventsResponseSchema = z.object({
   events: z.array(RecommendedEventSchema),
 });
 
-/** The volunteer's own registrations, past and upcoming. No interest matching. */
+/** Past and upcoming; no interest matching. */
 export const RegisteredEventsResponseSchema = z.object({
   events: z.array(RecommendedEventSchema),
 });
 
-/**
- * `POST /events/:id/register` body. The role defaults to REGULAR, so an empty
- * body (older app builds) registers exactly as before.
- */
+/** Role defaults to REGULAR, so an empty body (older builds) still works. */
 export const RegisterForEventBodySchema = z
   .object({
     participation_role: z
@@ -127,16 +104,14 @@ export const RegisterForEventBodySchema = z
   .default({ participation_role: EventParticipationRole.REGULAR });
 
 export const EventParticipantSchema = z.object({
-  /** First and last name as the volunteer registered them. */
   name: z.string(),
-  /** True on the caller's own row, so the app can badge it without user ids. */
+  /** Badges the caller's row without user ids. */
   is_me: z.boolean(),
   participation_role: z.enum(EventParticipationRole),
   role_approval: z.enum(EventRoleApproval),
   attendance_status: z.enum(AttendanceStatus),
 });
 
-/** `GET /events/:id/participants` — the volunteers registered for an event. */
 export const EventParticipantsResponseSchema = z.object({
   event_id: z.number(),
   participants: z.array(EventParticipantSchema),
@@ -145,7 +120,7 @@ export const EventParticipantsResponseSchema = z.object({
 export const EventRegistrationResponseSchema = z.object({
   event_id: z.number(),
   is_registered: z.boolean(),
-  /** Null once the registration is cancelled. */
+  /** Null once cancelled. */
   participation_role: z.enum(EventParticipationRole).nullable(),
   role_approval: z.enum(EventRoleApproval).nullable(),
   max_participants: z.number(),

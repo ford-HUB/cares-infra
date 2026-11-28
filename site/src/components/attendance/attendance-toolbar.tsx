@@ -10,9 +10,7 @@ interface AttendanceToolbarProps {
   state: LiveStateFilter
   shown: number
   total: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
-  /** True while a poll or manual refresh is in flight. */
   refreshing: boolean
   onSearchChange: (value: string) => void
   onStateChange: (value: LiveStateFilter) => void

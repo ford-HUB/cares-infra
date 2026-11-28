@@ -29,13 +29,10 @@ export const LoginResponseSchema = z.object({
   access_token: z.string(),
 });
 
-/**
- * The rights in force for the account — baseline + grants − revokes − active
- * suspensions. The portal builds its navigation and route guards from this list.
- */
+/** baseline + grants − revokes − active suspensions; drives portal nav and route guards. */
 const PermissionsSchema = z.array(z.enum(PermissionKey));
 
-/** Active suspensions on the account, so the portal can show what was locked and why. */
+/** So the portal can show what was locked and why. */
 const SuspensionsSchema = z.array(SessionSuspensionSchema);
 
 export const AdminLoginResponseSchema = LoginResponseSchema.extend({
@@ -50,13 +47,13 @@ export const MeResponseSchema = z.object({
   firstname: z.string(),
   lastname: z.string(),
   role_type: z.enum(RoleType),
-  /** The root operator account — its sign-in email is fixed. */
+  /** Root operator account: sign-in email is fixed. */
   is_protected: z.boolean(),
   permissions: PermissionsSchema,
   suspensions: SuspensionsSchema,
 });
 
-/** Mirrors the portal's Request Access form limits (site/src/constants/request-access.ts). */
+/** Must match site/src/constants/request-access.ts. */
 export const ACCESS_REQUEST_MAX_FILES = 5;
 export const ACCESS_REQUEST_MAX_FILE_BYTES = 5 * 1024 * 1024;
 export const ACCESS_REQUEST_MAX_TOTAL_BYTES = 15 * 1024 * 1024;
@@ -70,12 +67,7 @@ export const ACCESS_REQUEST_ALLOWED_MIME_TYPES = [
   'application/msword',
 ];
 
-/**
- * The subject becomes the mail's Subject header, so it is held to plain prose:
- * letters, digits, spaces and sentence punctuation — never two punctuation marks
- * in a row (`'--`, `()`, `!!!`), a colon that isn't followed by a space
- * (`javascript:`), or a hex literal (`0x27…`, a quote smuggled past the filter).
- */
+/** Mail Subject header: plain prose only; no doubled punctuation, colon without space (`javascript:`), or hex literal. */
 const SUBJECT_ALLOWED_PATTERN = /^[\p{L}\p{N} .,'\-()&/:?!]+$/u;
 const SUBJECT_PUNCTUATION_RUN_PATTERN = /[.,'\-()&/:?!]{2,}/;
 const SUBJECT_BARE_COLON_PATTERN = /:(?! |$)/;
@@ -138,21 +130,19 @@ export const PortalForgotPasswordSchema = withoutPrototypeKeys(
 
 export const PortalForgotPasswordResponseSchema = z.object({
   email: z.string(),
-  /** How long before another temporary password may be requested for this email. */
   retry_after_seconds: z.number(),
 });
 
-/** `GET /v1/auth/registration-status?token=` — the signed link from the "submitted" email. */
 export const RegistrationStatusQuerySchema = z
   .object({
     token: z.string().trim().min(1).max(2048),
   })
   .strict();
 
-/** A reviewed sign-up as the public status page shows it — nothing beyond the decision. */
+/** Only the decision, nothing more. */
 export const RegistrationStatusResponseSchema = z.object({
   reference: z.string(),
-  /** What was registered, e.g. "beneficiary" or "manual volunteer". */
+  /** e.g. "beneficiary" or "manual volunteer". */
   registration_label: z.string(),
   firstname: z.string(),
   status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']),

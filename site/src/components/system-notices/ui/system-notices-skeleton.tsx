@@ -2,12 +2,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface SystemNoticesSkeletonProps {
-  /** Roughly what the loaded feed shows, so the swap causes no jump. */
   groups: number
   rowsPerGroup: number
 }
 
-/** Mirrors the banner and the day-grouped feed underneath it. */
 export function SystemNoticesSkeleton({
   groups,
   rowsPerGroup,

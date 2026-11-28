@@ -1,9 +1,4 @@
-/**
- * A beneficiary's request for assistance (food, medical, financial, …), filed from
- * the mobile app and worked through by the relief desk here:
- * pending → under_review → approved → completed, or declined at review. The
- * beneficiary may cancel it themselves until it is completed.
- */
+/** pending → under_review → approved → completed, or declined; the beneficiary may cancel until completed. */
 export type AssistanceRequestStatus =
   'pending' | 'under_review' | 'approved' | 'completed' | 'declined' | 'cancelled'
 
@@ -15,21 +10,18 @@ export type AssistanceUrgency = 'low' | 'normal' | 'high' | 'urgent'
 export interface AssistanceRequestAttachment {
   id: string
   label: string
-  /** API path the portal streams the file from behind the bearer token. */
+  /** Streamed through the API behind the bearer token. */
   path: string
   contentType?: string
   sizeBytes: number
 }
 
-/** Where the beneficiary pinned the need on the app's map. */
 export interface AssistanceRequestLocation {
   latitude: number
   longitude: number
-  /** Landmark or address details typed beside the pin. */
   details?: string
 }
 
-/** One stage of the request, derived from the stamps the server keeps. */
 export interface AssistanceRequestStage {
   label: string
   at: string
@@ -37,7 +29,7 @@ export interface AssistanceRequestStage {
 
 export interface AssistanceRequest {
   id: string
-  /** `CARES-AR-2026-0007`, the same label the beneficiary sees. */
+  /** e.g. `CARES-AR-2026-0007`, as the beneficiary sees it. */
   reference: string
   status: AssistanceRequestStatus
   requester: {
@@ -46,14 +38,13 @@ export interface AssistanceRequest {
     role: string
     barangay: string | null
   }
-  /** What is needed — the picked option or what the beneficiary typed. */
   title: string
   category: AssistanceCategory
   urgency: AssistanceUrgency
   description: string
   householdSize: number
   location?: AssistanceRequestLocation
-  /** The approval note or the decline reason. */
+  /** Approval note or decline reason. */
   statusNote?: string
   cancelReason?: string
   attachments: AssistanceRequestAttachment[]
@@ -62,5 +53,4 @@ export interface AssistanceRequest {
   updatedAt: string
 }
 
-/** The relief desk's moves on a request. */
 export type AssistanceDecision = 'review' | 'approve' | 'decline' | 'complete'

@@ -2,11 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { PermissionKey } from './access-control'
 import type { PortalRole } from './portal-roles'
 
-/**
- * Two gates, both of which must pass. `roles` is the coarse split the portal was
- * built on; `permission` is the right an admin can grant or revoke per account in
- * Access Control. An item with neither is open to every signed-in portal user.
- */
+/** Both gates must pass; an item with neither is open to every portal user. */
 export interface NavGate {
   roles?: PortalRole[]
   permission?: PermissionKey
@@ -31,17 +27,13 @@ export interface NavGroupItem extends NavGate {
   children: NavChildItem[]
 }
 
-/**
- * Heading that labels the items following it, up to the next section. Purely
- * presentational — it renders no link and is dropped when every item it heads is
- * hidden from the current role.
- */
+/** Presentational; dropped when every item it heads is hidden. */
 export interface NavSectionItem extends NavGate {
   type: 'section'
   label: string
 }
 
-/** The one check every nav layer shares — the route guard applies the same two tests. */
+/** Shared with the route guard. */
 export function navGateAllows(
   gate: NavGate,
   userRole: PortalRole | undefined,

@@ -22,8 +22,7 @@ function Block({ block }: { block: LegalBlock }) {
   )
 }
 
-/** One numbered section of a legal document. `scroll-mt` clears the sticky site header
- *  when a table-of-contents link or deep link jumps here. */
+/** `scroll-mt` clears the sticky header on TOC and deep-link jumps. */
 export function LegalSectionBody({ section, number }: { section: LegalSection; number: number }) {
   return (
     <section id={section.id} aria-labelledby={`${section.id}-title`} className="scroll-mt-24">

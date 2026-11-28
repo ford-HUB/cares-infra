@@ -19,10 +19,6 @@ export const REQUEST_KIND_LABELS: Record<UserRequestKind, string> = {
   manual_registration: 'Manual Registration',
 }
 
-/**
- * The timeline reads top to bottom as one column of rows, so the kind is the only
- * thing telling them apart at a glance — each gets its own dot and chip colour.
- */
 export const REQUEST_KIND_STYLES: Record<UserRequestKind, { chip: string; dot: string }> = {
   role_access: { chip: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
   event_join: { chip: 'bg-sky-50 text-sky-700', dot: 'bg-sky-500' },
@@ -48,7 +44,7 @@ export const REQUEST_STATUS_STYLES: Record<UserRequestStatus, string> = {
   rejected: 'bg-red-50 text-red-700',
 }
 
-/** Kept in step with the server's cap on a rejection reason. */
+/** Matches the server's rejection-reason cap. */
 export const REJECTION_REASON_MAX_LENGTH = 500
 
 export function formatFileSize(bytes: number): string {
@@ -57,10 +53,8 @@ export function formatFileSize(bytes: number): string {
   return `${bytes} B`
 }
 
-/** Rows the skeleton draws before the first fetch settles. */
 export const REQUEST_SKELETON_ROWS = 4
 
-/** Timeline headings group the queue by the day the request came in. */
 export function formatRequestDay(timestamp: string): string {
   const value = dayjs(timestamp)
   const today = dayjs()

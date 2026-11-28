@@ -52,7 +52,7 @@ export function ProfilePage({ homePath }: ProfilePageProps) {
     onSuccess: () => setModalOpen(false),
   })
 
-  // `!initialized` covers the mount render, before the effect has flipped `loading`.
+  // `!initialized` covers the mount render before `loading` flips.
   if (!initialized || (loading && !profile)) {
     return <ProfilePageSkeleton homePath={homePath} />
   }

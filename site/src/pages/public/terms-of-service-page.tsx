@@ -2,7 +2,6 @@ import { LegalDocumentView } from '../../components/public/legal/legal-document-
 import { TERMS_OF_SERVICE } from '../../constants/legal-terms-of-service'
 import { PRIVACY_POLICY_PATH } from '../../constants/routes'
 
-/** Public terms of service at /terms-of-service. */
 export default function TermsOfServicePage() {
   return (
     <LegalDocumentView

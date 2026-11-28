@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-/** Recipients are typed as one comma-separated line, the way every mail client does it. */
 export function parseEmailList(value: string): string[] {
   return value
     .split(',')

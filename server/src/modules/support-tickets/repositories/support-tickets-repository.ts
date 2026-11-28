@@ -27,7 +27,7 @@ export interface CreateSupportTicketInput {
 
 export interface UpdateSupportTicketInput {
   status?: SupportTicketStatus;
-  /** `null` unassigns; `undefined` leaves the assignee as it is. */
+  /** `null` unassigns; `undefined` keeps it. */
   assigneeId?: string | null;
   note?: {
     authorId: string;
@@ -65,8 +65,7 @@ export class SupportTicketsRepository {
       ...(input.priority === 'all' ? {} : { priority: input.priority }),
     };
 
-    // Two independent reads, so they run concurrently rather than holding a
-    // transaction slot open — a capped read needs no atomicity.
+    // Concurrent reads; a capped read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.supportTicket.findMany({
         where,
@@ -80,10 +79,7 @@ export class SupportTicketsRepository {
     return { rows, total };
   }
 
-  /**
-   * The JWT carries no name, and a reply snapshots the author's — so the name is read
-   * here rather than trusted from the request body.
-   */
+  /** Read from DB: the JWT carries no name. */
   async findUserName(userId: string): Promise<string | null> {
     const user = await this.prisma.user.findUnique({
       where: { user_id: userId },
@@ -100,7 +96,7 @@ export class SupportTicketsRepository {
     });
   }
 
-  /** Every ticket the requester filed, newest activity first — the app's own queue. */
+  /** Newest activity first. */
   async listTicketsForRequester(
     requesterId: string,
   ): Promise<SupportTicketRow[]> {
@@ -111,10 +107,7 @@ export class SupportTicketsRepository {
     });
   }
 
-  /**
-   * Scoped by requester so a guessed id from another account reads as missing, not
-   * as forbidden — the app never learns the ticket exists.
-   */
+  /** Another account's id reads as missing, not forbidden. */
   async findTicketForRequester(
     id: string,
     requesterId: string,
@@ -141,10 +134,7 @@ export class SupportTicketsRepository {
     });
   }
 
-  /**
-   * Status change and its note land in one write, so a thread can never show a note
-   * explaining a move that did not happen.
-   */
+  /** Status and note in one write. */
   async updateTicket(
     id: string,
     data: UpdateSupportTicketInput,

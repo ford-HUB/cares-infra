@@ -13,7 +13,6 @@ import type {
 } from '../types/audit-log'
 import { apiClient, parseApiError } from './api-client'
 
-/** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is kebab-case. */
 export const CATEGORY_FROM_API: Record<string, AuditLogCategory> = {
   AUTHENTICATION: 'authentication',
   ACCESS_CONTROL: 'access-control',
@@ -82,7 +81,7 @@ function mapApiEntry(data: AuditLogApiResponse): AuditLogEntry {
     severity: data.severity.toLowerCase() as AuditLogSeverity,
     outcome: data.outcome.toLowerCase() as AuditLogOutcome,
     actor: {
-      // A system entry has no account behind it; the grid keys on the row id anyway.
+      // System entries have no actor; the grid keys on the row id.
       id: data.actor_user_id ?? '',
       name: data.actor_name,
       email: data.actor_email,
@@ -107,10 +106,6 @@ function mapApiEntry(data: AuditLogApiResponse): AuditLogEntry {
   }
 }
 
-/**
- * One keyset page of the audit trail. Every filter narrows on the server, so the grid
- * never has to hold more than the pages actually scrolled.
- */
 export async function listAuditLogs(query: AuditLogQuery = {}): Promise<AuditLogPage> {
   try {
     const search = query.search?.trim()

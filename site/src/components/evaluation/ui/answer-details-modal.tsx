@@ -19,7 +19,7 @@ interface AnswerDetailsModalProps {
   onClose: () => void
 }
 
-/** One attached photo, fetched behind the token; opens full size in a new tab. */
+/** Fetched behind the token; opens full size in a new tab. */
 function AnswerImage({ path, label }: { path: string; label: string }) {
   const { objectUrl, loading, failed } = useAuthenticatedImage(path)
 
@@ -47,7 +47,6 @@ function AnswerImage({ path, label }: { path: string; label: string }) {
   )
 }
 
-/** Renders one answer in the shape its question type calls for. */
 function AnswerValue({
   responseId,
   question,
@@ -125,10 +124,6 @@ function AnswerValue({
   }
 }
 
-/**
- * A participant's full submission. The header mirrors the users master's details
- * modal; below it every question in form order with the answer given.
- */
 export function AnswerDetailsModal({ response, questions, onClose }: AnswerDetailsModalProps) {
   useEffect(() => {
     if (!response) return

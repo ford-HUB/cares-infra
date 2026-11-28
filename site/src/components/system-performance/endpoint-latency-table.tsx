@@ -23,11 +23,7 @@ interface EndpointLatencyTableProps {
 
 const SORTS: EndpointSort[] = ['slowest', 'busiest']
 
-/**
- * Where the loading time is actually spent. The p95 column is drawn as a bar against
- * the slowest route on the page, so the two or three endpoints worth optimising stand
- * out without the reader comparing ten numbers by eye.
- */
+/** p95 is drawn as a bar against the slowest route on the page. */
 export function EndpointLatencyTable({
   endpoints,
   sort,

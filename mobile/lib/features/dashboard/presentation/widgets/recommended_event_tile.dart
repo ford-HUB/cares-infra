@@ -4,9 +4,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 
-/// One row in "Recommended Events": square thumbnail on the left, title,
-/// organizer and schedule on the right, with the match strength tucked
-/// under the schedule so a volunteer still sees *why* the row is here.
+/// Match strength shows under the schedule so the volunteer sees why it's here.
 class RecommendedEventTile extends StatelessWidget {
   const RecommendedEventTile({
     super.key,
@@ -122,8 +120,6 @@ class RecommendedEventTile extends StatelessWidget {
   }
 }
 
-/// First uploaded image when the event has one; otherwise a category-tinted
-/// block with an icon so the row keeps its shape.
 class _Thumbnail extends StatelessWidget {
   const _Thumbnail({required this.event, required this.size});
 

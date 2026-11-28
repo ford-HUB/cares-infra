@@ -14,16 +14,11 @@ interface PerformanceToolbarProps {
   onRangeChange: (range: PerformanceRangeId) => void
   streaming: boolean
   onStreamingChange: (streaming: boolean) => void
-  /** Timestamp of the newest reading on screen. */
   capturedAt: string
   onRefresh: () => void
 }
 
-/**
- * The page's two controls: how far back it looks, and whether it keeps moving. Pausing
- * matters more than it looks — reading a row is impossible while the stream shifts it
- * every three seconds.
- */
+/** Pausing matters: rows are unreadable while the stream shifts every 3 s. */
 export function PerformanceToolbar({
   range,
   onRangeChange,

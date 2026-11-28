@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/activity_log_models.dart';
 
-/// The caller's own audit trail, keyset-paged by the id of the last row seen.
+/// Keyset-paged by the last row's id.
 class ActivityLogService {
   ActivityLogService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -20,9 +20,8 @@ class ActivityLogService {
     return ActivityLogPage.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Reports a device-side action (a role switch or unlock) so it lands in the
-  /// same trail as server actions. Best-effort: the switch already happened
-  /// on the device, so a failed report is logged and otherwise ignored.
+  /// Best-effort: the switch already happened on the device, so a failed report
+  /// is only logged.
   Future<void> recordClientActivity(
     String action, {
     Map<String, String> metadata = const {},

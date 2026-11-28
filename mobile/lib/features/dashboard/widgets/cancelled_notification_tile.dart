@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/models/notification_models.dart';
 
-/// Feed row for a cancelled event registration (or an event the organizer
-/// called off): soft red card, crossed-out calendar, red title, and the time
-/// with the unread dot in the corner. The title says everything, so the
-/// server's follow-up line is left off.
+/// The title says it all, so the server's follow-up line is left off.
 class CancelledEventNotificationTile extends StatelessWidget {
   const CancelledEventNotificationTile({
     super.key,

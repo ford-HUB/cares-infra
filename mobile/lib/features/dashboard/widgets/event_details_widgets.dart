@@ -6,7 +6,6 @@ import 'package:mobile/features/dashboard/domain/cares_event.dart';
 const Color kEventInk = Color(0xFF1B1F24);
 const Color kEventMuted = Color(0xFF6B7280);
 
-/// Round translucent button that sits over the hero photo (back, save).
 class EventHeroButton extends StatelessWidget {
   const EventHeroButton({
     super.key,
@@ -42,8 +41,6 @@ class EventHeroButton extends StatelessWidget {
   }
 }
 
-/// The white card that straddles the hero's bottom edge with the three
-/// quick actions: who's going, how to get there, and the email reminder.
 class EventActionCard extends StatelessWidget {
   const EventActionCard({
     super.key,
@@ -188,7 +185,6 @@ class _ActionDivider extends StatelessWidget {
   }
 }
 
-/// Outlined status pill beside the title ("REGISTERED", "COMPLETED").
 class EventStatusPill extends StatelessWidget {
   const EventStatusPill({super.key, required this.label, this.color});
 
@@ -218,8 +214,6 @@ class EventStatusPill extends StatelessWidget {
   }
 }
 
-/// Shown to a beneficiary whose application a director rejected: the
-/// director's reason, and a nudge that they can apply again.
 class ApplicationRejectedBanner extends StatelessWidget {
   const ApplicationRejectedBanner({super.key, this.reason});
 
@@ -285,9 +279,6 @@ class ApplicationRejectedBanner extends StatelessWidget {
   }
 }
 
-/// "38 Members are joined:" with a stack of avatar discs and an orange
-/// "+N" overflow disc. Reads "Be the first to join" while nobody has
-/// registered.
 class EventMembersRow extends StatelessWidget {
   const EventMembersRow({
     super.key,
@@ -380,7 +371,7 @@ class EventMembersRow extends StatelessWidget {
     );
   }
 
-  /// 15700 → "15.7k", 999 → "999".
+  /// 999 → "999", 1500 → "1.5k", 15700 → "16k".
   static String _compact(int n) {
     if (n < 1000) return '$n';
     final k = n / 1000;
@@ -411,9 +402,8 @@ class _Disc extends StatelessWidget {
   }
 }
 
-/// One-line "Organized by" row: small initials avatar and the name, no
-/// card. Server events carry no organizer blurb, so the row only grows a
-/// chevron (and the expandable text under it) when [description] exists.
+/// Server events carry no organizer blurb, so the chevron and expandable text
+/// appear only with [description].
 class EventOrganizerRow extends StatelessWidget {
   const EventOrganizerRow({
     super.key,
@@ -522,7 +512,6 @@ class EventOrganizerRow extends StatelessWidget {
   }
 }
 
-/// Bold section heading used down the details body.
 class EventSectionTitle extends StatelessWidget {
   const EventSectionTitle(this.title, {super.key});
 
@@ -542,8 +531,6 @@ class EventSectionTitle extends StatelessWidget {
   }
 }
 
-/// When and where, as two labelled rows in one card, with the countdown
-/// pinned to the date row so "Today" / "In 3 days" reads at a glance.
 class EventInfoCard extends StatelessWidget {
   const EventInfoCard({super.key, required this.event});
 
@@ -682,8 +669,6 @@ class _CountdownPill extends StatelessWidget {
   }
 }
 
-/// Replaces the countdown once the event has started: a pulsing-dot pill
-/// so "in progress" reads as live rather than as another date.
 class _OngoingPill extends StatelessWidget {
   const _OngoingPill();
 
@@ -715,9 +700,6 @@ class _OngoingPill extends StatelessWidget {
   }
 }
 
-/// Floating footer for an event the volunteer hasn't joined: the slot
-/// count on the left so the decision and its context sit together, the
-/// dark "Register Now" on the right.
 class EventRegisterBar extends StatelessWidget {
   const EventRegisterBar({
     super.key,

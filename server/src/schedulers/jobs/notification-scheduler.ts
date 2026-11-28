@@ -10,7 +10,7 @@ import {
 } from '../scheduler-registry';
 import { SchedulerRepository } from '../scheduler-repository';
 
-/** One notice per participant group; the group decides the audience role. */
+/** The group decides the audience role. */
 type EventNotice = Omit<
   PublishNotificationInput,
   'roles' | 'userIds' | 'audienceRole'
@@ -22,7 +22,7 @@ export interface EventParticipantNotices {
   donors?: EventNotice;
 }
 
-/** Job names on the notification queue. Sweeps share their id with the catalogue. */
+/** Sweeps share their id with the catalogue. */
 export const NOTIFICATION_JOBS = {
   publish: 'publish',
   eventStartReminders: 'event-start-reminders',
@@ -30,12 +30,7 @@ export const NOTIFICATION_JOBS = {
   credentialExpiryAlerts: 'credential-expiry-alerts',
 } as const;
 
-/**
- * The write side of portal notifications. Features call `publish()` and get on with
- * their request; the fan-out to one row per recipient and the socket push happen on
- * the worker, so a notice addressed to every coordinator never slows the request
- * that raised it. The sweeps registered here are what generate the scheduled notices.
- */
+/** `publish()` returns at once; fan-out and socket push run on the worker. */
 @Injectable()
 export class NotificationScheduler implements OnModuleInit {
   private readonly logger = new Logger(NotificationScheduler.name);
@@ -56,7 +51,7 @@ export class NotificationScheduler implements OnModuleInit {
     );
   }
 
-  /** Fire-and-forget: the row(s) exist once the worker has picked the job up. */
+  /** Fire-and-forget. */
   async publish(input: PublishNotificationInput): Promise<void> {
     await this.queue.add(NOTIFICATION_JOBS.publish, input, {
       attempts: 3,
@@ -66,12 +61,7 @@ export class NotificationScheduler implements OnModuleInit {
     });
   }
 
-  /**
-   * Tells the people attached to an event — registered volunteers, accepted
-   * beneficiaries, donors with a live donation — each in their own words and on
-   * their own side of the app. Recipients are read now, not on the worker, so
-   * this can be called just before the event (and its cascades) is deleted.
-   */
+  /** Recipients are read now, so it can run just before the event is deleted. */
   async publishToEventParticipants(
     eventId: number,
     notices: EventParticipantNotices,

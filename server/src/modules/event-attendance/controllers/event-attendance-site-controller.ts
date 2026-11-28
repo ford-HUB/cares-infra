@@ -27,10 +27,7 @@ import {
   ManualAttendanceSchema,
 } from '../validators/event-attendance-site-validator';
 
-/**
- * Sits on its own path rather than under `v1/events/:id` so the roster can be loaded
- * across every event at once — which is what the portal's attendees table shows.
- */
+/** Own path so the roster spans every event. */
 @Controller('v1/event-attendees')
 @Roles(...PORTAL_ROLE_TYPES)
 export class EventAttendanceSiteController {
@@ -38,10 +35,7 @@ export class EventAttendanceSiteController {
     private readonly eventAttendanceSiteService: EventAttendanceSiteService,
   ) {}
 
-  /**
-   * One poll of the running event and who the geofence sees on site. The server
-   * picks the event so a director watching the page cannot drift onto a stale one.
-   */
+  /** The server picks the event so the page can't drift onto a stale one. */
   @Get('live')
   @ResponseMessage('Live attendance')
   @ZSerialize(LiveAttendanceSnapshotSchema)
@@ -58,10 +52,7 @@ export class EventAttendanceSiteController {
     return this.eventAttendanceSiteService.listAttendees(query.event_id);
   }
 
-  /**
-   * The backup for a failed geofence: marks the selected participants present and
-   * credits each the full event window as service hours.
-   */
+  /** Geofence fallback: marks present and credits the full event window. */
   @Post('manual-attendance')
   @RequirePermission(PermissionKey.ATTENDANCE_MANUAL_MARK)
   @ResponseMessage('Attendance marked')

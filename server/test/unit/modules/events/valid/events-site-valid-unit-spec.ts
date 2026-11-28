@@ -25,14 +25,6 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Manage Event Module · Create Event — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
   const lengthBounds = (field: string, min: number, max: number): LayerFixture[] => [
     { name: `${field} at min`, input: { ...VALID, [field]: 'a'.repeat(min) }, expected: 'PASS' },
@@ -126,13 +118,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Create event — normalisation: the schema trims the text and turns the form's strings
-   * back into numbers, booleans, lists and JSON; the service receives that with the caller
-   * and where the request came from; and only the response schema's fields leave the server.
-   */
   describe('events site · create — normalisation', () => {
     const ctx = useEventsApp();
 
@@ -242,7 +228,6 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   const fixtures: LayerFixture[] = [
 
@@ -255,17 +240,16 @@ import {
     ...['title', 'location', 'organizer_name', 'department', 'specified_category'].flatMap((field) => [
     ]),
 
-    // Free text: stored as data through Prisma and escaped by the clients when rendered.
+    // Free text: Prisma parameterises it and clients escape it on render.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `description ← ${p.category}: ${p.label}`,
-        // Padded past the minimum, so a payload is judged on its content and not on its length.
+        // Padded past the minimum so only the payload's content is judged.
         input: { ...VALID, description: `Event details ${p.value as string}` },
         expected: 'PASS',
       }),
     ),
-    // The field trims, so it is treated as sanitised: control characters must not get
-    // through. The form encodes every line break as CRLF, so that is the exception.
+    // Trimmed field rejects control characters; CRLF is allowed (the form encodes line breaks as CRLF).
     ...CONTROL_CHAR_PAYLOADS.filter((p) => p.label === 'CRLF injection').map((p): LayerFixture => ({
       name: `description ← ${p.category}: ${p.label}`,
       input: { ...VALID, description: `Event details ${p.value as string}` },
@@ -291,7 +275,7 @@ import {
       });
     });
 
-    // The controller's service is mocked above; the file rules live in the real one.
+    // The controller's service is mocked; file rules live in the real one.
     describe('createEvent (real service)', () => {
       const data = {
         ...VALID,

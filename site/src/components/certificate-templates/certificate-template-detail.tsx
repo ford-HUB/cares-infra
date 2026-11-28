@@ -18,11 +18,6 @@ interface CertificateTemplateDetailProps {
   onAction: (action: string, template: CertificateTemplate) => void
 }
 
-/**
- * Everything about one template that the gallery card has no room for. It opens beside
- * the library rather than over it, so the director keeps the list in view while
- * checking a template's signatories before deploying it.
- */
 export function CertificateTemplateDetail({
   template,
   onClose,

@@ -12,16 +12,13 @@ import type { PerformanceSnapshot } from '../types/system-performance'
 
 interface SystemPerformanceState {
   snapshot: PerformanceSnapshot | null
-  /** False until the first read settles, so the hero never flashes `0%`. */
   initialized: boolean
   error: string | null
   range: PerformanceRangeId
-  /** Whether the live window is still appending readings. */
   streaming: boolean
   fetchSnapshot: (options?: { silent?: boolean }) => Promise<void>
   setRange: (range: PerformanceRangeId) => Promise<void>
   setStreaming: (streaming: boolean) => void
-  /** Appends one live reading and trims the window to the range's length. */
   tick: () => Promise<void>
 }
 
@@ -46,8 +43,7 @@ export const useSystemPerformanceStore = create<SystemPerformanceState>((set, ge
   },
 
   setRange: async (range) => {
-    // The aggregate windows do not stream; leaving the flag on would show a live chip
-    // over a chart that never moves.
+    // Aggregate windows don't stream.
     set({ range, streaming: findPerformanceRange(range).streaming, snapshot: null, initialized: false })
     await get().fetchSnapshot()
   },
@@ -62,7 +58,6 @@ export const useSystemPerformanceStore = create<SystemPerformanceState>((set, ge
     try {
       tick = await fetchPerformanceTick()
     } catch {
-      // A missed tick leaves the last reading in place; the next one catches up.
       return
     }
     const { sample, cores, processes, loadAverage } = tick
@@ -71,8 +66,7 @@ export const useSystemPerformanceStore = create<SystemPerformanceState>((set, ge
     const current = get().snapshot
     if (!current) return
 
-    // The sampler and this timer run on different clocks, so the same reading can
-    // come back twice; appending it again would draw a flat step that never happened.
+    // Sampler and timer use different clocks; skip a repeated reading.
     const last = current.samples[current.samples.length - 1]
     const { points } = findPerformanceRange(range)
     const samples =

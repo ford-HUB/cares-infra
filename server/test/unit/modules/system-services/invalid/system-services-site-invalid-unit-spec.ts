@@ -17,21 +17,7 @@ import {
 import { SystemServicesSiteService } from '../../../../../src/modules/system-services/services/system-services-site-service';
 import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/security-payloads';
 
-/**
- * System Module · Services — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Run service / Stop run — error handling: unexpected service errors are masked as a
-   * generic 500 with nothing leaked, and the service's deliberate HttpExceptions keep
-   * their status and message through the envelope.
-   */
   const DELIBERATE_ERRORS = [
     { title: 'run · 404 for an unknown service', endpoint: RUN_ENDPOINT, error: new NotFoundException('Service not found') },
     { title: 'run · 409 when a run is already in progress', endpoint: RUN_ENDPOINT, error: new ConflictException('A run is already in progress') },
@@ -66,12 +52,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Run service / Stop run — input validation: every id in the scheduler catalogue must
-   * pass, and the id format is lower-case words separated by single hyphens.
-   */
   const fixtures: LayerFixture<string>[] = [
 
     { name: 'upper-case letters', input: 'Unread-Digest', expected: 'FAIL' },
@@ -94,12 +75,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /**
-   * Run service / Stop run — security: the id is a catalogue slug, so every hostile
-   * string FAILs. Neither handler reads a body, so nothing in one can steer the run.
-   */
   const fixtures: LayerFixture<string>[] = [
     ...HOSTILE_STRINGS.map((p): LayerFixture<string> => ({
       name: `id ← ${p.category}: ${p.label}`,
@@ -110,7 +86,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
     { name: 'id ← valid id with stacked query', input: `${VALID_SERVICE_ID}; DROP TABLE "User"`, expected: 'FAIL' },
   ];
 
-  /** Fit the id format but name no catalogue entry, including an inherited object key. */
+  /** Match the id format but no catalogue entry; `constructor` is an inherited object key. */
   const UNKNOWN_WELL_FORMED_IDS = ['no-such-service', '---', '0x27204f5220313d31', 'constructor'];
 
   describe('system services site · run and stop — security', () => {
@@ -143,8 +119,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
       });
     });
 
-    // Only catalogue ids may touch a queue: the real service has to stop anything else
-    // before it reaches the recorder or BullMQ.
+    // Only catalogue ids may reach the recorder or BullMQ; the real service must stop the rest.
     describe.each([
       { title: 'triggerRun (real service)', method: 'triggerRun' },
       { title: 'stopRun (real service)', method: 'stopRun' },

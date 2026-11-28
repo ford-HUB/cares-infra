@@ -4,8 +4,6 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/skeleton.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
-/// Placeholder for the profile tab while the role's record is being fetched.
-/// Mirrors the real layout: header card, stat row, then two detail sections.
 class ProfileTabSkeleton extends StatelessWidget {
   const ProfileTabSkeleton({super.key});
 
@@ -65,8 +63,6 @@ class ProfileTabSkeleton extends StatelessWidget {
   }
 }
 
-/// Avatar + three text bars in translucent white, standing in for the
-/// identity row on the deep band.
 class _BandIdentitySkeleton extends StatelessWidget {
   const _BandIdentitySkeleton();
 

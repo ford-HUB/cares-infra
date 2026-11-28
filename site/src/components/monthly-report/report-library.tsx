@@ -21,11 +21,11 @@ import { ReportFolderTile } from './ui/report-folder-tile'
 import { ReportLibrarySkeleton } from './ui/report-library-skeleton'
 
 interface ReportLibraryProps {
-  /** Approved reports only — nothing files here until the director signs off. */
+  /** Approved reports only. */
   reports: MonthlyReport[]
   folders: ReportFolder[]
   totals: ReportMetrics
-  /** Period in view, or null when the library spans every period. */
+  /** Null when every period is in view. */
   period: string | null
   initialized: boolean
   saving: boolean
@@ -61,12 +61,7 @@ function Figure({ label, value }: { label: string; value: string }) {
   )
 }
 
-/**
- * Where approved reports live. Filing is automatic — a report sits under its college
- * the moment it is approved — and the director can lift any of them onto a folder of
- * their own, named whatever the packet is for, without changing which college it
- * counts for.
- */
+/** Approved reports auto-file under their college; a custom folder doesn't change which college it counts for. */
 export function ReportLibrary({
   reports,
   folders,
@@ -85,7 +80,7 @@ export function ReportLibrary({
     { mode: 'create' } | { mode: 'rename'; folder: LibraryFolder } | null
   >(null)
 
-  /** A report belongs to at most one folder, so this is the whole assignment map. */
+  /** A report is in at most one folder, so this is the whole map. */
   const folderOf = useMemo(() => {
     const map = new Map<string, string>()
     folders.forEach((folder) =>
@@ -109,8 +104,7 @@ export function ReportLibrary({
     [folders, reports, folderOf],
   )
 
-  // A college folder only holds what the director has not filed elsewhere, so a
-  // report is never listed twice across the library.
+  // College folders exclude reports filed elsewhere, so none is listed twice.
   const departmentFolders = useMemo<LibraryFolder[]>(
     () =>
       DEPARTMENT_ORDER.map((department) => {
@@ -129,7 +123,6 @@ export function ReportLibrary({
     [reports, folderOf],
   )
 
-  // Director-made shelves first — they are the ones someone chose to build.
   const libraryFolders = [...customFolders, ...departmentFolders]
   const openFolder = libraryFolders.find((folder) => folder.id === openFolderId) ?? null
 
@@ -177,8 +170,6 @@ export function ReportLibrary({
               <Figure label="Beneficiaries" value={formatNumber(totals.beneficiaries)} />
             </div>
 
-            {/* Service hours are the one figure every college contributes to, so the
-                bar shows who carried the period rather than repeating the counts. */}
             <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-gray-100">
               {DEPARTMENT_ORDER.map((department) => {
                 const hours = sumMetrics(
@@ -251,8 +242,7 @@ export function ReportLibrary({
         </div>
       )}
 
-      {/* Files show inside a folder. At the top level the library is the folders
-          themselves — every approved report already sits in one of them. */}
+      {/* Files show inside a folder; the top level lists only folders. */}
       {(openFolder ? files.length === 0 : libraryFolders.length === 0) ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl bg-white px-6 py-14 text-center ring-1 ring-gray-200">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-400">

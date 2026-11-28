@@ -10,7 +10,6 @@ interface ReportStatusBadgeProps {
   className?: string
 }
 
-/** Where the submission sits on the coordinator → director line. */
 export function ReportStatusBadge({ status, className }: ReportStatusBadgeProps) {
   return (
     <span

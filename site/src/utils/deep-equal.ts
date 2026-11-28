@@ -1,8 +1,4 @@
-/**
- * Structural equality for plain data — the JSON-shaped values a form holds. `Object.is`
- * on the leaves keeps `Infinity` (the catch-all tier's cut-off) and `NaN` comparable,
- * which `JSON.stringify` would flatten to `null`.
- */
+/** `Object.is` on leaves keeps `Infinity` (catch-all tier) and `NaN` comparable, unlike JSON. */
 export function deepEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true
   if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {

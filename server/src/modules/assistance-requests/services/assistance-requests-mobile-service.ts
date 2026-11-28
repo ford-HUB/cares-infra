@@ -38,7 +38,7 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   heic: 'image/heic',
 };
 
-/** What the app shows under the status when staff have not written a note. */
+/** Shown when staff wrote no note. */
 const STOCK_STATUS_NOTES: Record<AssistanceRequestStatus, string> = {
   PENDING: 'Submitted — waiting for initial screening.',
   UNDER_REVIEW: 'The relief desk is reviewing your request.',
@@ -48,7 +48,7 @@ const STOCK_STATUS_NOTES: Record<AssistanceRequestStatus, string> = {
   CANCELLED: 'You cancelled this request.',
 };
 
-/** Only a request the relief desk has not started screening can be edited. */
+/** Editable only before screening starts. */
 const EDITABLE_STATUS = AssistanceRequestStatus.PENDING;
 
 @Injectable()
@@ -63,10 +63,7 @@ export class AssistanceRequestsMobileService {
     return { items: rows.map(toMobileDto) };
   }
 
-  /**
-   * Files a request with its proof documents. Every file is checked before
-   * any is uploaded, so a bad third file doesn't leave the first two in S3.
-   */
+  /** All files are checked before any upload, so a bad file leaves no orphans in S3. */
   async create(
     userId: string,
     body: CreateAssistanceRequestDto,
@@ -77,7 +74,7 @@ export class AssistanceRequestsMobileService {
         `You can attach up to ${ASSISTANCE_ATTACHMENT_MAX_COUNT} files`,
       );
     }
-    // Household size lives on the profile, not on each request.
+    // Lives on the profile, not the request.
     const householdSize =
       await this.assistanceRequestsRepository.findHouseholdSize(userId);
     if (householdSize == null) {
@@ -125,10 +122,7 @@ export class AssistanceRequestsMobileService {
     return toMobileDto(row);
   }
 
-  /**
-   * Changes what the beneficiary filled in, while the relief desk has not
-   * started on it. Attachments stay as filed.
-   */
+  /** Only before screening; attachments stay as filed. */
   async update(
     userId: string,
     requestId: string,
@@ -153,7 +147,6 @@ export class AssistanceRequestsMobileService {
     return toMobileDto(row);
   }
 
-  /** Withdraws a request that has not been completed yet. */
   async cancel(
     userId: string,
     requestId: string,
@@ -200,7 +193,6 @@ const STATUS_WORDS: Record<AssistanceRequestStatus, string> = {
   CANCELLED: 'cancelled',
 };
 
-/** Filing and editing send the same fields, so one mapping serves both. */
 function toFieldsInput(
   body: CreateAssistanceRequestDto,
 ): AssistanceRequestFieldsInput {
@@ -225,7 +217,7 @@ function canCancel(row: AssistanceRequestRow): boolean {
   );
 }
 
-/** Trusts the declared type when it is specific, else the file extension. */
+/** Declared type when specific, else the extension. */
 function resolveMime(file: Express.Multer.File): string {
   if (file.mimetype && file.mimetype !== 'application/octet-stream') {
     return file.mimetype === 'image/jpg' ? 'image/jpeg' : file.mimetype;
@@ -243,10 +235,7 @@ function referenceLabel(row: AssistanceRequestRow): string {
   return `CARES-AR-${row.createdAt.getFullYear()}-${serial}`;
 }
 
-/**
- * The five stages the app draws. A declined request stops at the decision,
- * so it has no release stage.
- */
+/** Five stages; a declined request has no release stage. */
 function buildTimeline(
   row: AssistanceRequestRow,
 ): AssistanceTimelineEntryDto[] {
@@ -295,7 +284,7 @@ function buildTimeline(
     },
   ];
   if (status === AssistanceRequestStatus.CANCELLED) {
-    // Stages that never happened drop off; the trail ends at the withdrawal.
+    // Unreached stages drop off; the trail ends at withdrawal.
     return [
       ...timeline.filter((entry) => entry.done),
       {

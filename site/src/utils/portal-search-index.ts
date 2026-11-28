@@ -8,12 +8,7 @@ import { navGateAllows, type PortalNavConfig } from '../types/nav'
 import type { PortalRole } from '../types/portal-roles'
 import type { PortalSearchEntry } from '../types/portal-search'
 
-/**
- * Every screen this account may open, flattened from the sidebar config plus the
- * screens that live inside modules. It runs the sidebar's own gate, so search never
- * offers a module the sidebar hides (a suspended right is left out too — the
- * sidebar shows it locked, but there is nothing to open).
- */
+/** Runs the sidebar's own gate; suspended rights are excluded. */
 export function buildPortalSearchIndex(
   nav: PortalNavConfig,
   role: PortalRole | undefined,
@@ -29,7 +24,6 @@ export function buildPortalSearchIndex(
   }
 
   for (const item of nav.items) {
-    // Section headings ("Menu", "Support") are sidebar layout, not a place.
     if (item.type === 'section') continue
     if (!navGateAllows(item, role, permissions)) continue
 
@@ -56,7 +50,7 @@ export function buildPortalSearchIndex(
         label: child.label,
         trail: item.label,
         description: meta?.description,
-        // The group's own name is a keyword, so "event" finds Map and Calendar too.
+        // The group name is a keyword, so "event" finds Map and Calendar too.
         keywords: [item.label, ...(meta?.keywords ?? [])],
         icon: item.icon,
         to: child.to,
@@ -100,8 +94,7 @@ interface NormalizedEntry {
   description: string
 }
 
-// Records are rebuilt only when a store changes, so normalising each one once (not
-// once per keystroke) keeps a few thousand users cheap to search.
+// Normalise once per record, not per keystroke.
 const normalizedCache = new WeakMap<PortalSearchEntry, NormalizedEntry>()
 
 function normalized(entry: PortalSearchEntry): NormalizedEntry {
@@ -118,7 +111,7 @@ function normalized(entry: PortalSearchEntry): NormalizedEntry {
   return n
 }
 
-/** Best score one query token earns against an entry, or 0 when it matches nothing. */
+/** 0 when nothing matches. */
 function scoreToken(n: NormalizedEntry, token: string, fullQuery: string): number {
   if (n.label === fullQuery) return W.labelExact
   if (n.label.startsWith(token)) return W.labelPrefix
@@ -135,12 +128,7 @@ export interface RankedEntry {
   score: number
 }
 
-/**
- * Every token of the query must land somewhere (label, module, synonym or
- * description); entries are ranked by the sum of their best hits, label first.
- * An empty query lists every screen and action — but no records, which would bury
- * the modules under the whole user list.
- */
+/** Every token must match; empty query lists screens and actions but no records. */
 export function rankPortalEntries(
   entries: PortalSearchEntry[],
   query: string,
@@ -180,7 +168,7 @@ export function searchPortalIndex(
   return rankPortalEntries(entries, query, limit).map((r) => r.entry)
 }
 
-/** [start, end) ranges of `label` that a query token matched, for highlighting. */
+/** `[start, end)` ranges. */
 export function matchedRanges(label: string, query: string): [number, number][] {
   const lower = label.toLowerCase()
   const ranges: [number, number][] = []

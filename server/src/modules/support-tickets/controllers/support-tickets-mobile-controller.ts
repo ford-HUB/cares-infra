@@ -28,11 +28,7 @@ import {
 
 const TicketIdParamSchema = z.uuid('A valid support request id is required');
 
-/**
- * The requester's side of the queue. Shares `v1/support-tickets` with the portal
- * controller; every route here is under `me/` so the two never collide, and every
- * read is scoped to the caller's own tickets.
- */
+/** Routes under `me/` to avoid clashing with the site controller; caller-scoped. */
 @Controller('v1/support-tickets')
 @Roles(...MOBILE_SUPPORT_TICKET_ROLE_TYPES)
 export class SupportTicketsMobileController {

@@ -7,15 +7,11 @@ import {
   registerQueueSchedulers,
 } from '../scheduler-registry';
 
-/** Job names on the attendance queue — one catalogued sweep. */
 export const ATTENDANCE_JOBS = {
   validateEndedAttendance: 'validate-ended-attendance',
 } as const;
 
-/**
- * The geofence ruling's own queue. Uploads already trigger a ruling for the one
- * volunteer who pushed; this sweep catches everyone else once an event is over.
- */
+/** Uploads rule their own volunteer; this sweep catches the rest after the event. */
 @Injectable()
 export class AttendanceScheduler implements OnModuleInit {
   private readonly logger = new Logger(AttendanceScheduler.name);

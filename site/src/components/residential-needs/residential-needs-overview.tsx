@@ -36,10 +36,7 @@ interface ResidentialNeedsOverviewProps {
   households: Household[]
 }
 
-/**
- * The survey as a whole: how many households are urgent, what they lack, where they
- * are, then the rows. The banner's bands and the barangay picker both narrow the table.
- */
+/** The banner's bands and the barangay picker both narrow the table. */
 export function ResidentialNeedsOverview({ households }: ResidentialNeedsOverviewProps) {
   const [priority, setPriority] = useState<PriorityFilter>(NEEDS_FILTER_ALL)
   const [barangay, setBarangay] = useState<string>(NEEDS_FILTER_ALL)
@@ -72,8 +69,7 @@ export function ResidentialNeedsOverview({ households }: ResidentialNeedsOvervie
     [scoped, priority],
   )
 
-  // One row per answer choice for the three multiple-choice questions, over the
-  // barangay-scoped rows so the charts and the banner describe the same households.
+  // Over the barangay-scoped rows, so charts and banner describe the same households.
   const needRows = useMemo(
     () =>
       NEED_CATEGORY_ORDER.map((need) => ({

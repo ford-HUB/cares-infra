@@ -2,18 +2,13 @@ import { z } from 'zod';
 import { RoleType } from '../../../infastructures/prisma/common/client';
 import { HouseholdSurveySchema } from './residential-needs-site-validator';
 
-/** Every mobile side can answer; the app's role switcher is local to the device. */
+/** All mobile roles; role switching is client-side. */
 export const MOBILE_NEEDS_ROLE_TYPES = [
   RoleType.VOLUNTEER,
   RoleType.DONOR,
   RoleType.BENEFICIARY,
 ] as const;
 
-/**
- * The beneficiary's own answers, in the same codes the Clusters screen feeds
- * the model. Picking `other` needs the matching free text, and `none` on Q3
- * cannot sit beside a real barrier.
- */
 export const SubmitNeedsAssessmentSchema = HouseholdSurveySchema.extend({
   needs: HouseholdSurveySchema.shape.needs.min(
     1,
@@ -60,7 +55,7 @@ export const SubmitNeedsAssessmentSchema = HouseholdSurveySchema.extend({
     }
   });
 
-/** Stored answers come back as plain strings so an old code never fails the read. */
+/** Plain strings so retired codes still parse. */
 export const MobileNeedsAssessmentSchema = z.object({
   needs: z.array(z.string()),
   other_need: z.string().nullable(),
@@ -73,7 +68,7 @@ export const MobileNeedsAssessmentSchema = z.object({
   submitted_at: z.iso.datetime(),
 });
 
-/** `assessment` is null until the survey has been taken once. */
+/** Null until first submission. */
 export const MyNeedsAssessmentResponseSchema = z.object({
   assessment: MobileNeedsAssessmentSchema.nullable(),
 });

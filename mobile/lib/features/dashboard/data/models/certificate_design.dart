@@ -1,9 +1,8 @@
 import 'package:flutter/painting.dart' show FontWeight;
 
-/// The sheet as the director designed it in the portal's customizer, exactly as
-/// the server froze it on the issued certificate. Positions and sizes are the
-/// portal's own units — percent of the sheet for placement, points on an
-/// 11-inch-wide sheet for type — so the app draws the same certificate.
+/// Frozen as designed in the portal customizer, in portal units (percent of the
+/// sheet for placement, points on an 11-inch sheet for type) so the app draws
+/// the same certificate.
 class CertificateDesign {
   const CertificateDesign({
     required this.accent,
@@ -75,11 +74,10 @@ class CertificateDesign {
   final String accent;
   final String frame;
 
-  /// The app's route to an uploaded SVG frame, drawn instead of the preset.
+  /// Drawn instead of the preset frame.
   final String? frameSvgUrl;
 
-  /// Centre of each block (`headline`, `title`, `body`, `seal`, `signatures`)
-  /// as a percentage of the sheet.
+  /// Percent of the sheet.
   final Map<String, CertificatePoint> layout;
   final String font;
   final Map<String, String> elementFonts;
@@ -94,13 +92,12 @@ class CertificateDesign {
   final Map<String, double> elementHeights;
   final Map<String, String> elementAligns;
 
-  /// `regular`, `semibold`, `bold` or `extrabold`; absent keeps the frame's
-  /// own weight for that block.
+  /// Absent keeps the frame's weight.
   final Map<String, String> elementWeights;
   final Map<String, bool> elementUnderlines;
 
-  /// The award name, filled in. Empty on a certificate issued before the award
-  /// name had its own wording — the sheet prints the template name then.
+  /// Empty on certificates issued before award names had their own wording; the
+  /// template name prints then.
   final String title;
 
   /// Already filled in — no `{{placeholders}}` remain on an issued sheet.
@@ -150,7 +147,6 @@ class CertificateDesign {
 
   String alignOf(String id) => elementAligns[id] ?? 'center';
 
-  /// The block's picked weight, or null to keep the frame's.
   FontWeight? weightOf(String id) => switch (elementWeights[id]) {
     'regular' => FontWeight.w400,
     'semibold' => FontWeight.w600,
@@ -186,7 +182,7 @@ class CertificatePoint {
   final double y;
 }
 
-/// An image the director placed on the sheet, centred at (x, y) percent.
+/// Centred at (x, y) percent.
 class CertificateImage {
   const CertificateImage({
     required this.id,
@@ -223,7 +219,6 @@ class CertificateImage {
   final int z;
 }
 
-/// One signature line as printed on an issued certificate.
 class CertificateSignatory {
   const CertificateSignatory({
     required this.id,
@@ -248,7 +243,6 @@ class CertificateSignatory {
   final String title;
   final String department;
 
-  /// API path of the signature image the line was issued with; null when the
-  /// coordinator had none uploaded on the day.
+  /// Null when the coordinator had none uploaded that day.
   final String? signatureUrl;
 }

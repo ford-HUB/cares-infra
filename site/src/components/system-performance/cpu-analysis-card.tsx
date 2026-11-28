@@ -24,18 +24,14 @@ const FINDING_ICON = {
   critical: AlertTriangle,
 } as const
 
-/** Icon + wording carry the finding as well as the tint, never colour alone. */
+/** Icon and wording carry the finding as well as the tint, never colour alone. */
 const FINDING_STYLES: Record<HealthState, string> = {
   healthy: 'bg-emerald-50 text-emerald-700',
   strained: 'bg-amber-50 text-amber-700',
   critical: 'bg-red-50 text-red-700',
 }
 
-/**
- * The analysis half of the page: the chart says what CPU is doing, this says what it
- * means and where to look. Findings are thresholds on values already on screen, so a
- * reader can always trace a sentence back to a number above it.
- */
+/** Findings are thresholds on values already on screen, so each traces back to a number. */
 export function CpuAnalysisCard({ sample, cores, processes }: CpuAnalysisCardProps) {
   const findings = analyseCpu(sample, cores, processes)
   const busy = cpuBusy(sample)

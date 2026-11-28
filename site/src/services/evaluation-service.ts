@@ -10,10 +10,7 @@ import type {
 import type { ApiResponse } from '../types/portal-roles'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
-
-/* ---------- Wire shapes (snake_case, as the server's Zod schemas emit them) ---------- */
 
 interface TypographyPayload {
   font_family: EvaluationTypography['fontFamily']
@@ -92,10 +89,7 @@ interface ResponsePayload {
   answers: Record<string, EvaluationAnswerValue>
 }
 
-/**
- * Where the portal reads one photo of an image-upload answer. The bucket is
- * private, so it goes through the API with the bearer token.
- */
+/** Private bucket: fetched through the API with the bearer token. */
 export function evaluationAnswerImagePath(
   responseId: string,
   questionId: string,
@@ -103,8 +97,6 @@ export function evaluationAnswerImagePath(
 ): string {
   return `/api/v1/evaluation/responses/${responseId}/answers/${encodeURIComponent(questionId)}/images/${index}`
 }
-
-/* ---------- Mapping ---------- */
 
 const toTypography = (t: TypographyPayload): EvaluationTypography => ({
   fontFamily: t.font_family,
@@ -216,9 +208,6 @@ function toResponse(row: ResponsePayload): EvaluationResponse {
   }
 }
 
-/* ---------- Calls ---------- */
-
-/** Every questionnaire — the builder's switcher and the Forms page read the same list. */
 export async function listEvaluationForms(): Promise<ApiResponse<EvaluationForm[]>> {
   try {
     const { data: body } = await apiClient.get<ApiEnvelope<FormPayload[]>>(
@@ -243,7 +232,6 @@ export async function getEvaluationForm(
   }
 }
 
-/** A new questionnaire opens empty and as a draft; the builder fills it. */
 export async function createEvaluationForm(
   title: string,
   description = '',
@@ -259,10 +247,7 @@ export async function createEvaluationForm(
   }
 }
 
-/**
- * Replaces one questionnaire wholesale. `status` decides whether the volunteer app
- * can see it: only a published form is served for feedback.
- */
+/** Only a published form is served to the volunteer app. */
 export async function saveEvaluationForm(
   form: EvaluationForm,
   status: EvaluationForm['status'] = form.status,
@@ -297,7 +282,6 @@ export async function deleteEvaluationForm(
   }
 }
 
-/** Makes one questionnaire the fallback for events with none assigned. */
 export async function setDefaultEvaluationForm(
   formId: string,
 ): Promise<ApiResponse<EvaluationForm>> {
@@ -325,7 +309,6 @@ export async function listEvaluationAssignments(): Promise<
   }
 }
 
-/** Every event the picker offers, flagged with the questionnaire it already carries. */
 export async function listAssignableEvents(): Promise<ApiResponse<AssignableEvent[]>> {
   try {
     const { data: body } = await apiClient.get<
@@ -337,7 +320,6 @@ export async function listAssignableEvents(): Promise<ApiResponse<AssignableEven
   }
 }
 
-/** Points one event at one questionnaire, replacing whatever it had. */
 export async function assignEvaluationForm(
   formId: string,
   eventId: number,
@@ -353,7 +335,6 @@ export async function assignEvaluationForm(
   }
 }
 
-/** Puts the event back on the default questionnaire. */
 export async function unassignEvaluationForm(
   assignmentId: string,
 ): Promise<ApiResponse<null>> {
@@ -367,7 +348,6 @@ export async function unassignEvaluationForm(
   }
 }
 
-/** Every submitted response, or one event's; the page filters the rest client-side. */
 export async function listEvaluationResponses(
   eventId?: number,
 ): Promise<ApiResponse<EvaluationResponse[]>> {

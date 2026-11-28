@@ -3,11 +3,7 @@ import { CONTROL_CHARACTER_PATTERN } from '../../../shared/validators/control-ch
 import { plainLabel } from '../../../shared/validators/plain-label-validator';
 import { withoutPrototypeKeys } from '../../../shared/validators/prototype-key-validator';
 
-/**
- * Every signature line carries this placeholder. The print job swaps it for the
- * coordinator's stored signature image (`Account.signature_url`); the customizer never
- * renders it, because a director picks an account rather than typing a token.
- */
+/** Replaced by `Account.signature_url` at print time; the customizer never renders it. */
 export const SIGNATURE_IMAGE_TOKEN = '{{signature-image}}';
 
 export const CERTIFICATE_STATUSES = ['published', 'draft', 'archived'] as const;
@@ -69,7 +65,7 @@ export const CERTIFICATE_FONTS = [
   'inter',
 ] as const;
 
-/** The movable blocks on the sheet; images are their own layer. */
+/** Images are their own layer. */
 export const CERTIFICATE_ELEMENTS = [
   'headline',
   'title',
@@ -87,7 +83,7 @@ export const CERTIFICATE_IMAGE_SHAPES = [
 
 export const CERTIFICATE_TEXT_ALIGNS = ['left', 'center', 'right'] as const;
 
-/** Kept in step with `FONT_WEIGHT_ORDER` in `site/src/constants/certificate-typography.ts`. */
+/** Must match `FONT_WEIGHT_ORDER` in `site/src/constants/certificate-typography.ts`. */
 export const CERTIFICATE_FONT_WEIGHTS = [
   'regular',
   'semibold',
@@ -95,13 +91,13 @@ export const CERTIFICATE_FONT_WEIGHTS = [
   'extrabold',
 ] as const;
 
-/** Kept in step with `site/src/constants/certificate-design.ts`. */
+/** Must match `site/src/constants/certificate-design.ts`. */
 export const MAX_SIGNATORIES = 3;
 export const HEADLINE_MAX_LENGTH = 60;
 export const TITLE_MAX_LENGTH = 80;
 export const BODY_MAX_LENGTH = 240;
 
-/** Placeholders the print job fills per recipient; the first three are mandatory. */
+/** Filled per recipient; the first three are mandatory. */
 export const CERTIFICATE_TOKENS = [
   '{{recipient}}',
   '{{event}}',
@@ -116,14 +112,10 @@ export const REQUIRED_CERTIFICATE_TOKENS = [
   '{{date}}',
 ] as const;
 
-/** Anything brace-wrapped, so a half-typed `{{date}` is caught rather than printed. */
+/** Catches half-typed tokens like `{{date}`. */
 const TOKEN_LIKE_PATTERN = /\{+[^{}]*\}+/g;
 
-/**
- * Every brace group must be a real placeholder written exactly. The award name is held
- * to this alone — it may carry placeholders, but none is required there. Returns the
- * message, or `null` when the text is fine.
- */
+/** Every brace group must be an exact placeholder; none required. Null when fine. */
 export function placeholderIssue(text: string): string | null {
   const names = new Set<string>(
     CERTIFICATE_TOKENS.map((token) => token.slice(2, -2)),
@@ -142,11 +134,7 @@ export function placeholderIssue(text: string): string | null {
   return null;
 }
 
-/**
- * The same wording rule the customizer enforces, re-checked here: the portal is not
- * the only thing that can `PUT` a template, and a malformed placeholder only surfaces
- * once certificates are printed. Returns the message, or `null` when the text is fine.
- */
+/** Re-checked server-side: the portal isn't the only client. Null when fine. */
 export function awardTextIssue(text: string): string | null {
   const malformed = placeholderIssue(text);
   if (malformed) return malformed;
@@ -162,7 +150,7 @@ export function awardTextIssue(text: string): string | null {
 }
 
 export const CERTIFICATE_MAX_IMAGES = 8;
-/** Per file, before base64 expansion — matches the customizer's own import limit. */
+/** Per file, before base64; matches the customizer limit. */
 export const CERTIFICATE_IMAGE_MAX_BYTES = 512 * 1024;
 export const CERTIFICATE_SVG_MAX_BYTES = 1024 * 1024;
 
@@ -175,12 +163,7 @@ export const CERTIFICATE_IMAGE_MIMES = [
 
 export const CERTIFICATE_SVG_MIMES = ['image/svg+xml'] as const;
 
-/**
- * What the portal sends for an imported file: either a `data:` URL for a file being
- * imported on this save, or the asset route the server handed back for one already
- * stored. Anything else — an off-site `https://` image, say — is refused, so a
- * certificate can never depend on bytes this system does not hold.
- */
+/** A `data:` URL or an existing asset route; off-site URLs refused. */
 const AssetReferenceSchema = z
   .string()
   .max(2_000_000, 'Imported file is too large to send inline')
@@ -196,7 +179,7 @@ const PositionSchema = z.object({
   y: z.number().min(0).max(100),
 });
 
-/** One entry per movable block, so a layout can never arrive missing a position. */
+/** One entry per block, so no position is missing. */
 const LayoutSchema = z.object(
   Object.fromEntries(
     CERTIFICATE_ELEMENTS.map((element) => [element, PositionSchema]),
@@ -232,10 +215,7 @@ export const CertificateDesignSchema = z.object({
   element_aligns: ElementRecord(z.enum(CERTIFICATE_TEXT_ALIGNS)).default({}),
   element_weights: ElementRecord(z.enum(CERTIFICATE_FONT_WEIGHTS)).default({}),
   element_underlines: ElementRecord(z.boolean()).default({}),
-  /**
-   * The printed award name, separate from the template's own name. Optional: a design
-   * saved before it existed prints the template name instead.
-   */
+  /** Optional: older designs print the template name. */
   title: z
     .string()
     .trim()
@@ -265,11 +245,7 @@ export const CertificateDesignSchema = z.object({
   images: z.array(ImageSchema).max(CERTIFICATE_MAX_IMAGES).default([]),
 });
 
-/**
- * A signature line is submitted as the account it prints, not as free text: the name,
- * title and department are re-read from the directory server-side, so a caller cannot
- * put someone else's name over a coordinator's signature.
- */
+/** Submitted as an account; name, title and department re-read server-side. */
 const SignatorySchema = z.object({
   coordinator_id: z.uuid('Pick a coordinator account'),
 });
@@ -287,13 +263,7 @@ export const SaveCertificateTemplateSchema = TemplateDetailsSchema.extend({
   signatories: z.array(SignatorySchema).min(1).max(MAX_SIGNATORIES),
 }).strict();
 
-/**
- * A new template starts from the customizer's own defaults, so creation takes a name
- * and category and nothing else — the director then customises it.
- *
- * The name also becomes the printed title, which the response checks for broken
- * placeholders, so plain wording here is what keeps a saved template servable.
- */
+/** Name and category only; the name is also the printed title, so it must be placeholder-safe. */
 export const CreateCertificateTemplateSchema = withoutPrototypeKeys(
   z
     .object({
@@ -326,9 +296,9 @@ const SignatoryResponseSchema = z.object({
   name: z.string(),
   title: z.string(),
   department: z.string(),
-  /** Always `{{signature-image}}` today; the print job resolves it per recipient. */
+  /** Always `{{signature-image}}`; resolved per recipient. */
   signature_token: z.string(),
-  /** False when the coordinator has not uploaded a signature image yet. */
+  /** False until the coordinator uploads a signature. */
   has_signature: z.boolean(),
 });
 

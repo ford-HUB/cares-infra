@@ -1,9 +1,5 @@
 import { z } from 'zod'
 
-/**
- * A new questionnaire only needs a name to be filed. The header, the questions and
- * their typography are settled afterwards in the builder, which owns them.
- */
 export const newEvaluationFormSchema = z.object({
   title: z
     .string()

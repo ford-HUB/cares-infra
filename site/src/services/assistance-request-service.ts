@@ -8,7 +8,6 @@ import type {
 } from '../types/assistance-request'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 const ASSISTANCE_REQUESTS_URL = '/api/v1/assistance-requests'
@@ -56,7 +55,6 @@ function titleCase(value: string): string {
   return value.charAt(0) + value.slice(1).toLowerCase()
 }
 
-/** The trail the server's stage stamps describe, oldest first. */
 function stagesOf(data: AssistanceRequestApiResponse): AssistanceRequestStage[] {
   const decision = data.status === 'DECLINED' ? 'Declined' : 'Approved'
   const stages: (AssistanceRequestStage | null)[] = [
@@ -110,7 +108,6 @@ function mapRequest(data: AssistanceRequestApiResponse): AssistanceRequest {
   }
 }
 
-/** Every request in one read — the portal groups and filters client-side. */
 export async function fetchAssistanceRequests(): Promise<AssistanceRequest[]> {
   try {
     const { data: body } =
@@ -121,10 +118,7 @@ export async function fetchAssistanceRequests(): Promise<AssistanceRequest[]> {
   }
 }
 
-/**
- * Every move returns the updated request, so the store swaps one row in place.
- * `note` is the approval note (optional) or the decline reason (required).
- */
+/** `note`: optional approval note or required decline reason. */
 export async function decideAssistanceRequest(
   id: string,
   decision: AssistanceDecision,

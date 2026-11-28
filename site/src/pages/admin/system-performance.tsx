@@ -28,7 +28,7 @@ export function SystemPerformancePage() {
   const setStreaming = useSystemPerformanceStore((s) => s.setStreaming)
   const tick = useSystemPerformanceStore((s) => s.tick)
 
-  /** Which CPU band the banner has focused; null charts all three. */
+  /** Null charts all three. */
   const [focus, setFocus] = useState<CpuBand | null>(null)
   const [endpointSort, setEndpointSort] = useState<EndpointSort>('slowest')
 
@@ -36,8 +36,7 @@ export function SystemPerformancePage() {
     void fetchSnapshot()
   }, [fetchSnapshot])
 
-  // The live window appends a reading on every tick; the aggregate windows sit still,
-  // so the timer is not armed for them at all.
+  // Aggregate windows don't stream, so no timer.
   useEffect(() => {
     if (!streaming || !findPerformanceRange(range).streaming) return
 
@@ -70,10 +69,7 @@ export function SystemPerformancePage() {
         )}
       </header>
 
-      {/*
-        A failed read would otherwise leave the last sample on screen, which reads as
-        "the host is fine" exactly when nothing is being measured.
-      */}
+      {/* Otherwise the stale sample reads as "the host is fine". */}
       {error ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

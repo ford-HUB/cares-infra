@@ -26,21 +26,7 @@ import {
   SecurityPayload,
 } from '../../../../config/security-payloads';
 
-/**
- * Mail Inbox Module · Connect / Send Mail — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Mail Inbox — error handling: unexpected service errors are masked as a
-   * generic 500 with nothing leaked, and the service's deliberate HttpExceptions
-   * keep their status and message through the envelope.
-   */
   const REAUTHORIZE_MESSAGE = 'Google ended the connection to this mailbox. Connect it again to continue.';
 
   describe('mailbox site — error handling', () => {
@@ -78,12 +64,7 @@ import {
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Mail Inbox — input validation: recipient lists, length boundaries, optional
-   * reply fields, and legitimate inputs that must still pass.
-   */
   const emails = (count: number) => Array.from({ length: count }, (_, i) => `user${i}@cares.ph`);
 
   const recipientFixtures = (field: 'cc' | 'bcc'): LayerFixture[] => [
@@ -91,11 +72,9 @@ import {
     { name: `${field} with a malformed address`, input: { ...VALID_MAIL, [field]: ['not-an-email'] }, expected: 'FAIL', field: `${field}.0` },
   ];
 
-  // The Gmail message envelope needs only a recipient: the composer enforces a
-  // non-empty body, the API lets subject and body default to empty.
+  // Only a recipient is required; subject and body default to empty (the composer enforces a body).
   const fixtures: LayerFixture[] = [
 
-    // to
     { name: 'to missing', input: { subject: VALID_MAIL.subject, body: VALID_MAIL.body }, expected: 'FAIL', field: 'to' },
     { name: 'to empty list', input: { ...VALID_MAIL, to: [] }, expected: 'FAIL', field: 'to' },
     { name: 'to over max', input: { ...VALID_MAIL, to: emails(51) }, expected: 'FAIL', field: 'to' },
@@ -122,17 +101,11 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   /**
-   * Mail Inbox — security, per field class:
-   *   to / cc / bcc        constrained: every hostile string FAILs
-   *   thread_id            constrained (Gmail id): every hostile string FAILs
-   *   in_reply_to          constrained (Message-ID, written raw into mail headers): every hostile string FAILs
-   *   subject              free text (replies carry any punctuation), but written into
-   *                        the Subject header: control characters and CRLF FAIL
-   *   body                 free text, not trimmed, base64-encoded when sent: everything PASSes
-   * plus type confusion, mass assignment and prototype pollution.
+   * to/cc/bcc, thread_id, in_reply_to (raw into mail headers): every hostile string FAILs.
+   * subject: free text but goes into the Subject header, so control chars and CRLF FAIL.
+   * body: not trimmed, base64-encoded on send, so everything PASSes.
    */
   const hostileFixtures = (
     field: string,
@@ -148,7 +121,7 @@ import {
       ...(issuePath ? { field: issuePath } : {}),
     }));
 
-  /** `to: [...]` with one bad address reports `to.0`; a non-array value reports `to` itself. */
+  /** One bad address in an array reports `to.0`; a non-array reports `to`. */
   const recipientTypeFixtures = (field: 'to' | 'cc' | 'bcc'): LayerFixture[] =>
     OPERATOR_INJECTION_PAYLOADS.map((p) => ({
       name: `${field} ← ${p.category}: ${p.label}`,
@@ -187,7 +160,7 @@ import {
       input: { ...VALID_MAIL, ...extra },
       expected: 'FAIL',
     })),
-    // The sender is always the caller's linked Google account; it must not be forgeable.
+    // Sender is always the caller's linked Google account; must not be forgeable.
     { name: 'mass assignment: from', input: { ...VALID_MAIL, from: 'director@cares.ph' }, expected: 'FAIL' },
     { name: 'mass assignment: reply_to', input: { ...VALID_MAIL, reply_to: 'attacker@cares.ph' }, expected: 'FAIL' },
     { name: 'mass assignment: headers', input: { ...VALID_MAIL, headers: { 'X-Injected': '1' } }, expected: 'FAIL' },
@@ -220,7 +193,7 @@ import {
     });
 
     describe(`POST ${CONNECTION_PATH}`, () => {
-      // No schema reads the body here, so nothing in it can choose whose mailbox gets linked.
+      // No schema reads this body, so it can't choose whose mailbox gets linked.
       asCase('invalid', 'Attacker names another user in the body when connecting the mailbox').it('uses the caller from the token, never one named in the body', async () => {
         await runApiLayer(ctx.app, {
           method: 'post',

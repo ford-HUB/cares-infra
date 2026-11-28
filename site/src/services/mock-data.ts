@@ -6,17 +6,13 @@ import type {
   MaintenanceWindow,
 } from '../types/maintenance'
 
-/** Minutes/hours/days ago, as an ISO string — keeps the fixture feed looking fresh. */
 const agoIso = (minutes: number) =>
   new Date(Date.now() - minutes * 60 * 1000).toISOString()
 
 const HOUR = 60
 const DAY = 24 * HOUR
 
-/**
- * Actors are denormalised onto every audit entry — the real trail copies the name,
- * email, and role held at write time so a later rename cannot rewrite history.
- */
+/** Denormalised like the real trail, so renames can't rewrite history. */
 const auditActors = {
   admin: {
     id: 'usr-1001',
@@ -65,7 +61,6 @@ type AuditSeed = Omit<
 > &
   Partial<Pick<AuditLogEntry, 'changes' | 'metadata'>>
 
-/** Ids and request ids are derived from the seed order so the fixture stays stable. */
 const auditEntry = (minutesAgo: number, seed: AuditSeed, index: number): AuditLogEntry => ({
   id: `alog-${String(index + 1).padStart(4, '0')}`,
   createdAt: agoIso(minutesAgo),
@@ -647,16 +642,10 @@ const auditSeeds: [number, AuditSeed][] = [
   ],
 ]
 
-/** Newest first — the grid renders the trail in the order it is returned. */
 export const mockAuditLogs: AuditLogEntry[] = auditSeeds
   .map(([minutesAgo, seed], index) => auditEntry(minutesAgo, seed, index))
   .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
-/**
- * Maintenance fixtures. The system is live when the page first loads — the interesting
- * screen is the one where a window is booked for tonight and the notice has already
- * gone out, so the roster is written that way.
- */
 export function buildMockMaintenanceMode(): MaintenanceMode {
   return {
     enabled: false,

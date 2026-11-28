@@ -5,10 +5,6 @@ import { DepartmentStatisticsSkeleton } from '../../components/statistics/depart
 import { useSystemStatistics } from '../../hooks/use-system-statistics'
 import { DEPARTMENT_STATISTICS_DEPARTMENTS } from '../../services/department-statistics-service'
 
-/**
- * The admin and director Statistics screen — the whole system by default, with a
- * department filter to read one college the way its coordinator does.
- */
 export function SystemStatisticsPage() {
   const {
     pending,

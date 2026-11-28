@@ -104,10 +104,7 @@ async function fetchUserPage(
   return body.data
 }
 
-/**
- * One page of name/email matches for a typeahead. Suggestions are a convenience, so a
- * failed or aborted lookup resolves to nothing rather than surfacing an error.
- */
+/** Failures resolve to nothing; suggestions are a convenience. */
 export async function searchUserDirectory(
   search: string,
   limit: number,
@@ -128,7 +125,7 @@ export async function listManagedUsers(
     const first = await fetchUserPage(query, 1)
     const list = first.items.map(mapApiUser)
 
-    // The table paginates client-side, so pull the remaining pages up to the cap.
+    // Client-side pagination: pull remaining pages up to the cap.
     const loadable = Math.min(first.total, MANAGE_USERS_MAX_LOADED)
     let page = 2
     while (list.length < loadable) {
@@ -188,7 +185,6 @@ export async function unrestrictManagedUser(id: string): Promise<MutationResult>
   }
 }
 
-/** Permanent — the server removes the account and everything tied to it. */
 export async function deleteManagedUser(id: string): Promise<MutationResult> {
   try {
     await apiClient.delete(`/api/v1/users/${id}`)
@@ -290,7 +286,7 @@ function mapApiUserDetail(data: ManagedUserDetailApiResponse): ManagedUserDetail
           department: data.school_info.department,
           major: data.school_info.major,
           yearLevel: data.school_info.year_level,
-          // Only the year is collected at registration; month/day are placeholders.
+          // Only the year is collected at registration.
           graduationYear: data.school_info.graduation_date.slice(0, 4),
         }
       : undefined,
@@ -323,11 +319,7 @@ export async function getManagedUserDetail(id: string): Promise<{
   }
 }
 
-/**
- * Creates a portal account and returns the credential to hand over. The password comes
- * back in plaintext here and nowhere else — it is hashed server-side, so a caller that
- * discards this response has to re-issue rather than look it up.
- */
+/** Plaintext password is returned only here; it's hashed server-side. */
 export async function provisionManagedUser(
   payload: ProvisionUserPayload,
 ): Promise<ProvisionUserResult> {
@@ -359,11 +351,7 @@ export async function provisionManagedUser(
   }
 }
 
-/**
- * Asks the server whether an address can receive the credential mail — shape, a
- * domain that accepts mail, and no account already on it. A rejection comes back as
- * `check.valid === false` with a reason; `success: false` means the check itself failed.
- */
+/** Rejection is `check.valid === false`; `success: false` means the check itself failed. */
 export async function checkProvisionEmail(
   email: string,
 ): Promise<ProvisionEmailCheckResult> {
@@ -379,7 +367,6 @@ export async function checkProvisionEmail(
   }
 }
 
-/** Replaces the credential on an existing account; the sign-in email stays as it was. */
 export async function reissueManagedUserCredentials(
   id: string,
   expiresInHours: number,

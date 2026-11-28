@@ -14,11 +14,7 @@ interface NeedsClustersProps {
   households: Household[]
 }
 
-/**
- * The Residential Needs child module: the K-Means grouping of the survey, run by
- * decision-service. Cards name each group and its defining need, the scatter shows
- * where the groups sit, and the table lists who is in the selected one.
- */
+/** K-Means grouping of the survey, run by decision-service. */
 export function NeedsClusters({ households }: NeedsClustersProps) {
   const { k, result, loading, error, selected, changeK, reseed, toggleSelected } =
     useNeedsClusters(households)

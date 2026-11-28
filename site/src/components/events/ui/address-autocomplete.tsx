@@ -33,7 +33,6 @@ export function AddressAutocomplete({
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
-  // Keep the highlight in range as the suggestion list changes.
   const activeIndex = highlighted < suggestions.length ? highlighted : -1
 
   const choose = (suggestion: AddressSuggestion) => {

@@ -7,12 +7,8 @@ import 'package:mobile/features/auth/presentation/widgets/leading/leading_photo.
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_progress.dart';
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_slides.dart';
 
-/// The leading story between the splash and login: one full-bleed photo per
-/// beat, dark green → black ground under the copy, and a single Continue.
-///
-/// Continue (or a swipe left) moves forward; Back (or a swipe right) moves
-/// back. Continue on the last beat — or Skip — hands off via [onFinished];
-/// the slide-away itself belongs to [AppFlow].
+/// Continue on the last beat (or Skip) calls [onFinished]; the slide-away
+/// belongs to [AppFlow].
 class LeadingStory extends StatefulWidget {
   const LeadingStory({
     super.key,
@@ -22,8 +18,7 @@ class LeadingStory extends StatefulWidget {
 
   final VoidCallback onFinished;
 
-  /// Where the story opens. Pulled down again from login it opens on the last
-  /// beat, so the person rolls back through it from the end.
+  /// Opens on the last beat when pulled down from login.
   final int initialIndex;
 
   @override
@@ -48,8 +43,7 @@ class LeadingStoryState extends State<LeadingStory> {
     });
   }
 
-  /// Steps one beat back. Returns false when already on the first beat, so a
-  /// system back press can decide what else to do.
+  /// False on the first beat so system back can decide.
   bool goBack() {
     if (_index == 0) return false;
     HapticFeedback.selectionClick();
@@ -92,8 +86,6 @@ class LeadingStoryState extends State<LeadingStory> {
                 if (!incoming) {
                   return FadeTransition(opacity: animation, child: child);
                 }
-                // The new photo settles in from slightly closer — a soft
-                // camera move rather than a hard cut.
                 return FadeTransition(
                   opacity: animation,
                   child: ScaleTransition(
@@ -127,7 +119,7 @@ class LeadingStoryState extends State<LeadingStory> {
                         children: [...previous, ?current],
                       ),
                       // The caption staggers its own entrance; the switcher
-                      // only fades the outgoing one away.
+                      // only fades the old one out.
                       transitionBuilder: (child, animation) =>
                           child.key == ValueKey(_index)
                           ? child
@@ -151,8 +143,6 @@ class LeadingStoryState extends State<LeadingStory> {
   }
 }
 
-/// Darkens the top for the status bar and progress, leaves the middle of the
-/// photo clear, then falls into the dark green → black ground under the copy.
 class _Scrim extends StatelessWidget {
   const _Scrim();
 
@@ -219,8 +209,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/// Same shape as the approved header back control: chevron + "Back", flush on
-/// the 20pt content margin.
 class _BackControl extends StatelessWidget {
   const _BackControl({required this.onTap});
 

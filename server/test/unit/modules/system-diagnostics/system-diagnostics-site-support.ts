@@ -6,19 +6,7 @@ import { setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'System Module', unit: 'Diagnostics', prefix: 'DIAG' });
 
-/**
- * Shared by every spec in this folder — Run checks on the portal's Diagnostics screen
- * (System):
- *   POST /api/v1/system-diagnostics/check  (runDiagnostics: runs every probe now)
- *
- * The handler reads no body, query or path param, so there is no request schema and
- * no layer 1. These specs cover the endpoint itself and what it sends back.
- * `@RequirePermission` is not exercised: the global guards are out of scope for these
- * layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only from
- * `config/security-payloads.ts`.
- */
+/** The handler reads no input, so there is no request schema and no layer 1. */
 export const CHECK_PATH = '/api/v1/system-diagnostics/check';
 
 export const DIAGNOSTICS_RESPONSE = {
@@ -34,11 +22,7 @@ export const DIAGNOSTICS_RESPONSE = {
   history: [{ checked_at: '2026-11-03T07:59:00.000Z', overall: 'healthy', failing: 0 }],
 };
 
-/**
- * Boots `SystemDiagnosticsSiteController` with a mocked service for the enclosing
- * `describe`. The handler does not read the caller, so no stand-in guard is needed.
- * Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** The handler doesn't read the caller, so no stub guard; `app` is assigned in `beforeAll`. */
 export const useSystemDiagnosticsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,

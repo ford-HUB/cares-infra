@@ -6,8 +6,7 @@ import 'package:mobile/core/services/auth_session.dart';
 import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/features/dashboard/data/mobile_profile_models.dart';
 
-/// Reads the signed-in person's profile from the server and mirrors it into
-/// [RoleAccountStore] so the Profile tab shows the role's real data.
+/// Mirrors the profile into [RoleAccountStore].
 class ProfileService {
   ProfileService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -21,20 +20,16 @@ class ProfileService {
 
   static const residencyPath = '/profile/me/mobile/residency';
 
-  /// [roleType] is the dashboard being shown (`VOLUNTEER`, `DONOR`,
-  /// `BENEFICIARY`). The switcher is local, so the server is told which side
-  /// to measure `profile_completion` against; omitted, it uses the
-  /// registered role.
+  /// The switcher is local, so this tells the server which side to measure
+  /// `profile_completion` against; omitted, it uses the registered role.
   Future<MobileProfile> fetchMyProfile({String? roleType}) async {
     final response = await _api.getJson(_scoped(profilePath, roleType));
     final data = response['data'] as Map<String, dynamic>? ?? {};
     return MobileProfile.fromJson(data);
   }
 
-  /// Fetches the profile scoped to [roleType] and writes it onto that role
-  /// account. Does nothing without a session token (e.g. the static
-  /// prototype paths). Throws [ApiException] on failure so callers can decide
-  /// how to surface it.
+  /// No-op without a session token. Throws [ApiException] so callers choose how
+  /// to surface it.
   Future<MobileProfile?> syncRoleAccount({String? roleType}) async {
     if (!AuthSession.isSignedIn) return null;
 
@@ -43,10 +38,8 @@ class ProfileService {
     return profile;
   }
 
-  /// `PUT /profile/me/mobile` — a full replace of the editable fields, with
-  /// the new photo attached when the person picked one. The server answers
-  /// with the re-read profile, which is written onto the role account so the
-  /// Profile tab reflects the change without another fetch.
+  /// Full replace; the re-read profile in the response is written to the role
+  /// account.
   Future<MobileProfile> updateMyProfile(
     MobileProfileUpdate update, {
     XFile? avatar,
@@ -75,10 +68,8 @@ class ProfileService {
     return profile;
   }
 
-  /// `POST /profile/me/mobile/school-record` — after the ID upload, face
-  /// match and OCR steps have run on [registrationId], asks the server to
-  /// rewrite the school record (department, program, year level, student ID)
-  /// from what OCR read. Nothing is typed in on the device.
+  /// Rewrites the school record from the OCR of [registrationId]'s ID/face
+  /// steps; nothing is typed on the device.
   Future<MobileProfile> applySchoolRecord({
     required String registrationId,
   }) async {
@@ -92,11 +83,8 @@ class ProfileService {
     return profile;
   }
 
-  /// `POST /profile/me/mobile/residency` — uploads a barangay certificate or
-  /// similar proof of residency (photo or PDF). The server runs it through
-  /// OCR, moves the address to what it read, keeps the file on record and
-  /// answers with the re-read profile. A 400 carries the reason the document
-  /// could not be read.
+  /// The server OCRs the proof, moves the address to what it read and keeps the
+  /// file; a 400 carries why it was unreadable.
   Future<MobileProfile> uploadResidencyDocument({
     required String path,
     required String fileName,
@@ -121,8 +109,7 @@ class ProfileService {
     return profile;
   }
 
-  /// Absolute URL of a stored residency file, for `Image.network` with
-  /// [avatarHeaders] (the stream is private to its owner).
+  /// For `Image.network` with [avatarHeaders]; the stream is owner-private.
   String residencyDocumentUrl(String documentId) =>
       _api.uri('$residencyPath/$documentId').toString();
 
@@ -139,11 +126,8 @@ class ProfileService {
     );
   }
 
-  /// Absolute URL of the avatar stream, for `Image.network` with
-  /// [avatarHeaders]. Null when the role has no photo on file. Each role
-  /// keeps its own picture on the server, so the URL names the profiling
-  /// role; the `v` query changes per read so a fresh upload is not served
-  /// from the image cache under the old key.
+  /// Null without a photo. Names the profiling role (photos are per role); the
+  /// `v` query busts the image cache after an upload.
   String? avatarUrlFor(MobileProfile profile) {
     if (!profile.hasProfileImage) return null;
     final base = _api.uri(avatarPath);

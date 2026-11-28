@@ -63,16 +63,12 @@ export function ManageUsersPage() {
   const [reissued, setReissued] = useState<IssuedCredentials | null>(null)
 
   const provision = useProvisionUserForm()
-  // A director asks for an account; an administrator issues it — the same split the
-  // server enforces, so the controls a director cannot use are not shown to them.
+  // Mirrors the server: directors request accounts, admins issue them.
   const canProvision = usePortalRole() === 'admin'
-  // The per-account rights from Access Control. A control the account has no right
-  // to is not drawn, so the row menu and the toolbar shrink to what is allowed.
   const canRestrict = usePermission(PORTAL_PERMISSION.USERS_RESTRICT)
   const canBlockIp = usePermission(PORTAL_PERMISSION.USERS_BLOCK_IP)
   const canExport = usePermission(PORTAL_PERMISSION.USERS_EXPORT)
-  // A right pulled by a suspension is the one exception: the control stays on screen,
-  // locked and red, so the person can see what was taken and why.
+  // Suspended rights stay visible but locked.
   const restrictSuspension = useSuspension(PORTAL_PERMISSION.USERS_RESTRICT)
   const blockIpSuspension = useSuspension(PORTAL_PERMISSION.USERS_BLOCK_IP)
   const exportSuspension = useSuspension(PORTAL_PERMISSION.USERS_EXPORT)
@@ -206,7 +202,6 @@ export function ManageUsersPage() {
     if (!detailsUser) return
     setPanelOpen(true)
 
-    // Already loaded for this row — reuse it instead of refetching.
     if (detail?.id === detailsUser.id) return
 
     setDetailLoading(true)
@@ -260,7 +255,7 @@ export function ManageUsersPage() {
         onBlockIp={canBlockIp ? setBlockingIpUser : undefined}
         onUnblockIp={canBlockIp ? handleUnblockIp : undefined}
         onReissueCredentials={canProvision ? setReissueUser : undefined}
-        // Deleting is admin-only on the server, the same as issuing an account.
+        // Deleting is admin-only on the server.
         onDelete={canProvision ? setDeletingUser : undefined}
         restrictSuspension={restrictSuspension}
         blockIpSuspension={blockIpSuspension}

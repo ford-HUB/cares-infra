@@ -5,11 +5,8 @@ import 'package:mobile/core/session/role_account_store.dart';
 import 'package:mobile/features/dashboard/data/models/user_request_models.dart';
 import 'package:mobile/features/dashboard/data/notification_sync.dart';
 
-/// The requester's side of `v1/user-requests` — everything under `me/`.
-///
-/// A role-access request is filed after the ID + face check ran inside a
-/// registration session; the server copies that session's proof onto the
-/// request so a director can review it after the session expires.
+/// Role-access proof from the registration session is copied server-side so a
+/// director can review it after the session expires.
 class UserRequestService {
   UserRequestService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -40,13 +37,8 @@ class UserRequestService {
     );
   }
 
-  /// Beneficiaries do not take a slot on the spot — the application carries a
-  /// proof of residency (photo or PDF), the director reviews it, and that
-  /// acceptance is what books the place.
-  ///
-  /// Always sent as the beneficiary side (`?role=BENEFICIARY`): the role
-  /// switcher is local, so a donor- or volunteer-registered account that
-  /// switched to Beneficiary would otherwise be judged by its registered role.
+  /// Doesn't book a slot: a director reviews the proof of residency first.
+  /// Always sent as `?role=BENEFICIARY`, since the switcher is local.
   Future<UserRequestResponse> applyForEvent({
     required int eventId,
     required String proofPath,

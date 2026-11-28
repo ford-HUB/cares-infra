@@ -44,7 +44,6 @@ export function MailboxMessageList({
   onNextPage,
   onPreviousPage,
 }: MailboxMessageListProps) {
-  // A refetch keeps the rows that are already on screen; only a cold list skeletons.
   const showSkeleton = !initialized || (loading && messages.length === 0)
 
   return (

@@ -2,11 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Renders the markdown GitHub release notes are written in: headings,
-/// paragraphs, bullet / numbered / task lists (nested), quotes, code blocks,
-/// rules, and inline bold, italic, strikethrough, code, links, bare URLs and
-/// @mentions. GitHub pull / issue / compare URLs are shortened the way GitHub
-/// shows them (`#12`, `v1.0.0...v1.0.1`).
+/// GitHub-flavoured subset; PR/issue/compare URLs are shortened as GitHub shows
+/// them (`#12`, `v1.0.0...v1.0.1`).
 class ReleaseNotesMarkdown extends StatefulWidget {
   const ReleaseNotesMarkdown({
     super.key,
@@ -207,7 +204,6 @@ class _ReleaseNotesMarkdownState extends State<ReleaseNotesMarkdown> {
         ),
       );
     }
-    // Filled dot at the top level, hollow ring when nested.
     return Padding(
       padding: const EdgeInsets.only(top: 8, left: 2),
       child: Align(
@@ -226,8 +222,6 @@ class _ReleaseNotesMarkdownState extends State<ReleaseNotesMarkdown> {
       ),
     );
   }
-
-  // --- Inline ---------------------------------------------------------------
 
   static final RegExp _inlinePattern = RegExp(
     r'\*\*(.+?)\*\*' // 1 bold
@@ -343,8 +337,6 @@ class _ReleaseNotesMarkdownState extends State<ReleaseNotesMarkdown> {
     return url.replaceFirst(RegExp(r'^https?://(www\.)?'), '');
   }
 }
-
-// --- Blocks -----------------------------------------------------------------
 
 sealed class _Block {
   const _Block();
@@ -483,8 +475,8 @@ List<_Block> _parseBlocks(String markdown) {
       continue;
     }
 
-    // A wrapped line continues the list item above it — indented, or (as on
-    // GitHub) any line straight after the item with no blank line between.
+    // A wrapped line continues the item above: indented, or (as on GitHub)
+    // directly after it.
     final last = blocks.isEmpty ? null : blocks.last;
     final followsItem = i > 0 && lines[i - 1].trim().isNotEmpty;
     if (paragraph.isEmpty &&

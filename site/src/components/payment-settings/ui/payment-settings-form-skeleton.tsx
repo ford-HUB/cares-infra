@@ -1,13 +1,8 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 
-/** The four channel cards the form renders. */
 const METHOD_CARDS = 4
 
-/**
- * Mirrors the form's summary card and its grid of channel cards — same heights, same
- * columns — so the swap to the loaded settings causes no jump.
- */
 export function PaymentSettingsFormSkeleton() {
   return (
     <div className="space-y-4" aria-hidden>

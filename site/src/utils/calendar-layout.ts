@@ -12,7 +12,7 @@ import type { CalendarEvent, PositionedCalendarEvent } from '../types/calendar'
 
 const MINUTES_PER_HOUR = 60
 
-/** Offset in pixels from the top of the time grid, clamped to the drawn span. */
+/** Clamped to the drawn span. */
 function offsetPx(moment: Dayjs): number {
   const minutes = moment.hour() * MINUTES_PER_HOUR + moment.minute()
   const from = (minutes - CALENDAR_START_HOUR * MINUTES_PER_HOUR) / MINUTES_PER_HOUR
@@ -20,13 +20,13 @@ function offsetPx(moment: Dayjs): number {
   return clamped * CALENDAR_HOUR_HEIGHT_PX
 }
 
-/** The seven days of the week `date` falls in, Sunday first. */
+/** Sunday first. */
 export function weekDays(date: Dayjs): Dayjs[] {
   const start = date.startOf('week')
   return Array.from({ length: DAYS_PER_WEEK }, (_, index) => start.add(index, 'day'))
 }
 
-/** The 6×7 cells a month grid draws, including the leading and trailing spill days. */
+/** 6×7 cells including spill days. */
 export function monthGridDays(date: Dayjs): Dayjs[] {
   const start = date.startOf('month').startOf('week')
   return Array.from({ length: MONTH_GRID_WEEKS * DAYS_PER_WEEK }, (_, index) =>
@@ -34,11 +34,7 @@ export function monthGridDays(date: Dayjs): Dayjs[] {
   )
 }
 
-/**
- * Timed events belong to the day they start on. An all-day event repeats across
- * every day it covers instead — a multi-day event listed only on its first day
- * reads as if the schedule were clear for the rest of its run.
- */
+/** All-day events repeat across every day they cover; timed ones only on their start day. */
 function coversDay(event: CalendarEvent, day: Dayjs): boolean {
   if (!event.allDay) return dayjs(event.start).isSame(day, 'day')
   return !day.isBefore(dayjs(event.start), 'day') && !day.isAfter(dayjs(event.end), 'day')
@@ -50,24 +46,18 @@ export function eventsOnDay(events: CalendarEvent[], day: Dayjs): CalendarEvent[
     .sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf())
 }
 
-/** The events drawn anywhere in the visible range — what the toolbar counts. */
 export function eventsInDays(events: CalendarEvent[], days: Dayjs[]): CalendarEvent[] {
   return events.filter((event) => days.some((day) => coversDay(event, day)))
 }
 
-/**
- * Place one day's timed events into the grid. Events that overlap in time are
- * split across the column's width — without this every concurrent event stacks
- * on the same pixels and only the last one is readable.
- */
+/** Overlapping events split the column width so each stays readable. */
 export function positionDayEvents(events: CalendarEvent[]): PositionedCalendarEvent[] {
   const timed = events
     .filter((event) => !event.allDay)
     .sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf())
 
   const placed: PositionedCalendarEvent[] = []
-  // Events are walked in start order, so a group ends as soon as one starts after
-  // every member of the current group has finished.
+  // Walked in start order: a group ends once an event starts after all members finish.
   let group: PositionedCalendarEvent[] = []
   let groupEnd = 0
 
@@ -100,7 +90,7 @@ export function positionDayEvents(events: CalendarEvent[]): PositionedCalendarEv
   return placed
 }
 
-/** Where the "now" line sits, or null when today is outside the drawn span. */
+/** Null when today is outside the drawn span. */
 export function nowIndicatorOffset(now: Dayjs = dayjs()): number | null {
   const hour = now.hour()
   if (hour < CALENDAR_START_HOUR || hour >= CALENDAR_END_HOUR) return null

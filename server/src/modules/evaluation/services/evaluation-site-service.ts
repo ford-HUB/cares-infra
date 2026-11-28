@@ -35,7 +35,6 @@ export class EvaluationSiteService {
     private readonly s3Service: S3Service,
   ) {}
 
-  /** Every questionnaire, for the builder's switcher and the Forms page's list. */
   async listForms(): Promise<EvaluationFormDto[]> {
     const forms = await this.evaluationRepository.findForms();
     return forms.map((form) => this.evaluationFormService.toDto(form));
@@ -47,10 +46,7 @@ export class EvaluationSiteService {
     return this.evaluationFormService.toDto(form);
   }
 
-  /**
-   * A new questionnaire opens empty and as a draft — it reaches volunteers only
-   * once the builder publishes it and it is assigned to an event.
-   */
+  /** Starts empty as a draft; reaches volunteers only once published and assigned. */
   async createForm(data: CreateEvaluationFormDto): Promise<EvaluationFormDto> {
     const created = await this.evaluationRepository.createForm({
       title: data.title,
@@ -62,11 +58,7 @@ export class EvaluationSiteService {
     return this.evaluationFormService.toDto(created);
   }
 
-  /**
-   * Replaces the whole questionnaire. Question ids come from the builder and are
-   * kept as-is — earlier answers stay keyed to them, so a question edited in
-   * place keeps its history while one deleted and re-added starts fresh.
-   */
+  /** Whole replace; builder question ids are kept so answers stay keyed to them. */
   async saveForm(
     formId: string,
     data: SaveEvaluationFormDto,
@@ -83,10 +75,7 @@ export class EvaluationSiteService {
     return this.evaluationFormService.toDto(saved);
   }
 
-  /**
-   * Deleting takes its responses with it (the rows cascade), so a questionnaire
-   * that has already been answered is kept instead — unassign it to retire it.
-   */
+  /** Answered forms are kept (responses would cascade); unassign to retire. */
   async deleteForm(formId: string): Promise<void> {
     const form = await this.evaluationRepository.findForm(formId);
     if (!form) throw new NotFoundException('Questionnaire not found');
@@ -103,7 +92,6 @@ export class EvaluationSiteService {
     await this.evaluationRepository.deleteForm(formId);
   }
 
-  /** Makes one questionnaire the fallback for events with none of their own. */
   async setDefaultForm(formId: string): Promise<EvaluationFormDto> {
     const form = await this.evaluationRepository.findForm(formId);
     if (!form) throw new NotFoundException('Questionnaire not found');
@@ -121,7 +109,6 @@ export class EvaluationSiteService {
     return rows.map((row) => this.toAssignmentDto(row));
   }
 
-  /** The picker's list: every event, flagged with the questionnaire it carries. */
   async listAssignableEvents(): Promise<AssignableEventDto[]> {
     const events = await this.evaluationRepository.findAssignableEvents();
     return events.map((event) => ({
@@ -136,11 +123,7 @@ export class EvaluationSiteService {
     }));
   }
 
-  /**
-   * Points one event at one questionnaire, replacing whatever it had. A draft can
-   * be assigned ahead of publishing — the volunteer app only serves it once the
-   * questionnaire goes live, and falls back to the default until then.
-   */
+  /** Drafts can be assigned; the app serves the default until published. */
   async assignForm(
     data: AssignEvaluationFormDto,
     assignedById: string | null,
@@ -160,7 +143,7 @@ export class EvaluationSiteService {
     return this.toAssignmentDto(row);
   }
 
-  /** Removing the assignment puts the event back on the default questionnaire. */
+  /** The event falls back to the default. */
   async unassignForm(assignmentId: string): Promise<void> {
     const existing =
       await this.evaluationRepository.findAssignment(assignmentId);
@@ -191,20 +174,13 @@ export class EvaluationSiteService {
     };
   }
 
-  /**
-   * Every submitted response, or one event's. The portal loads them once and
-   * searches, filters and pages client-side, the same as the attendees roster.
-   */
+  /** Unpaged: the portal filters client-side. */
   async listResponses(eventId?: number): Promise<EvaluationResponseRowDto[]> {
     const rows = await this.evaluationRepository.findResponses(eventId);
     return rows.map((row) => this.mapToDto(row));
   }
 
-  /**
-   * One photo a participant attached to an image-upload answer. The key is read
-   * off the stored answer rather than taken from the caller, and must sit under
-   * the evaluation prefix, so this can never be steered at another object.
-   */
+  /** Key read from the stored answer and must sit under the evaluation prefix. */
   async getAnswerImage(responseId: string, questionId: string, index: number) {
     const row = await this.evaluationRepository.findResponseAnswers(responseId);
     if (!row) throw new NotFoundException('Response not found');

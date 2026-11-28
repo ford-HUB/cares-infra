@@ -30,8 +30,7 @@ class LoginResponse {
   final bool hasInterests;
   final String accessToken;
 
-  /// Sides open besides [roleType] from sign-up on — a student beneficiary's
-  /// `VOLUNTEER` side.
+  /// Sides open from sign-up, e.g. a student beneficiary's `VOLUNTEER` side.
   final List<String> unlockedRoles;
 
   bool get isVolunteer => roleType == 'VOLUNTEER';

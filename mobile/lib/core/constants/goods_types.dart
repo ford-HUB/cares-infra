@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// The goods a director can tick on an event's "Accepted Donations" panel.
-/// Mirrors the server's `shared/constants/goods-types.ts` and the portal's
-/// `GOODS_TYPE_OPTIONS`; the ids are what the server stores.
+/// Mirrors server `shared/constants/goods-types.ts` and portal
+/// `GOODS_TYPE_OPTIONS`; ids are stored by the server.
 class GoodsType {
   const GoodsType({
     required this.id,
@@ -63,7 +62,6 @@ abstract final class GoodsTypes {
     ),
   ];
 
-  /// The catch-all the donor picks for something not on the event's list.
   static const other = GoodsType(
     id: 'other',
     label: 'Other',
@@ -76,7 +74,7 @@ abstract final class GoodsTypes {
 
   static String labelOf(String? id) => id == null ? 'Goods' : byId(id).label;
 
-  /// The event's ticked types in catalog order; `other` is offered separately.
+  /// Catalog order; `other` is offered separately.
   static List<GoodsType> forEvent(List<String> ids) => [
     for (final type in all)
       if (type.id != 'other' && ids.contains(type.id)) type,

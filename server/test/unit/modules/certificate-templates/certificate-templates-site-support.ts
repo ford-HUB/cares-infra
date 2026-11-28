@@ -17,17 +17,6 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Certificate Module', unit: 'Certificate Template', prefix: 'CERT-TPL' });
 
-/**
- * Shared by every spec in this folder — New Template on the Customization screen of the
- * portal's Manage Certificate module:
- *   POST /api/v1/certificate-templates  (createTemplate: CreateCertificateTemplateSchema)
- *
- * `@Roles` and `@RequirePermission` are not exercised: the global guards are out of
- * scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const TEMPLATES_PATH = '/api/v1/certificate-templates';
 export const CALLER = { sub: 'caller-user-id', role_type: RoleType.DIRECTOR };
 
@@ -88,11 +77,7 @@ export const TEMPLATE_RESPONSE = {
   updated_by: 'Ada Lovelace',
 };
 
-/**
- * Boots `CertificateTemplatesSiteController` with a mocked service for the enclosing
- * `describe`. The handler reads the caller, so a stand-in for the global JWT guard puts
- * `CALLER` on the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the handler reads it); `app` is assigned in `beforeAll`. */
 export const useCertificateTemplatesApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -124,10 +109,7 @@ export const useCertificateTemplatesApp = () => {
   return ctx;
 };
 
-/**
- * Body fixtures through both layers. A FAIL must come back in the validation envelope
- * without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeTemplateTable = (ctx: ReturnType<typeof useCertificateTemplatesApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

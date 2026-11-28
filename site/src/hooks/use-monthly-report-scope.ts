@@ -5,11 +5,7 @@ import {
 } from '../constants/monthly-report'
 import { useMonthlyReportStore } from '../store/monthly-report-store'
 
-/**
- * The period and search box scope both report screens the same way, and both read
- * from the same store, so the queue and the library stay in step: approving a report
- * on one shows it filed on the other without a refetch.
- */
+/** Shared store keeps queue and library in step without refetching. */
 export function useMonthlyReportScope() {
   const reports = useMonthlyReportStore((s) => s.reports)
   const loading = useMonthlyReportStore((s) => s.loading)

@@ -6,8 +6,6 @@ import '../data/donation_format.dart';
 import '../data/models/donation_models.dart';
 import '../widgets/donation_flow_widgets.dart';
 
-/// Read-only view of a completed donation. Reached from the "View Donation"
-/// button at the end of the flow and by tapping an item in donation history.
 class DonationReceiptScreen extends StatelessWidget {
   const DonationReceiptScreen({super.key, required this.donation});
 

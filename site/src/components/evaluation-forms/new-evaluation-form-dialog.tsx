@@ -13,11 +13,10 @@ import { useNewEvaluationForm } from '../../hooks/use-new-evaluation-form'
 interface NewEvaluationFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Handed the new questionnaire's id so the page can open the builder on it. */
+  /** Receives the new id so the page can open the builder on it. */
   onCreated: (id: string) => void
 }
 
-/** Files a new questionnaire; the builder is where it is actually written. */
 export function NewEvaluationFormDialog({
   open,
   onOpenChange,

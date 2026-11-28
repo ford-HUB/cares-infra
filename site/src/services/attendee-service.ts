@@ -7,10 +7,8 @@ import type {
 import type { ApiResponse } from '../types/portal-roles'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
-/** Server row shape — snake_case, with the Prisma enums upper-cased. */
 interface EventAttendeeResponse {
   event_attendance_id: string
   event_id: number
@@ -29,7 +27,7 @@ interface EventAttendeeResponse {
   validation_method: 'GEOFENCE' | 'OFFLINE_SYNC' | 'AWAITING_SYNC' | 'MANUAL' | null
   first_ping_at: string | null
   last_ping_at: string | null
-  /** Null while still inside, or out for under the 1 h break buffer mid-event. */
+  /** Null while inside, or out under the 1 h break buffer mid-event. */
   time_out_at: string | null
   hours_rendered: number | null
   remarks: string | null
@@ -79,7 +77,6 @@ function toEventAttendee(row: EventAttendeeResponse): EventAttendee {
   }
 }
 
-/** The whole roster across events; the page groups and filters it client-side. */
 export async function listEventAttendees(): Promise<ApiResponse<EventAttendee[]>> {
   try {
     const { data: body } = await apiClient.get<ApiEnvelope<EventAttendeeResponse[]>>(
@@ -96,10 +93,7 @@ interface ManualAttendanceResponse {
   already_completed: number
 }
 
-/**
- * The backup for a failed geofence: marks these attendance rows present. The server
- * credits each the event's full start-to-end window as service hours.
- */
+/** Fallback for a failed geofence; the server credits the full event window. */
 export async function markAttendeesPresent(
   eventAttendanceIds: string[],
   reason?: string,

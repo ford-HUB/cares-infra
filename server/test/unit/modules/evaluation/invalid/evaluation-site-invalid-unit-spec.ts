@@ -37,21 +37,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Evaluation Module · Create / Assign Form — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Evaluation POST actions — error handling: unexpected service errors and a response the
-   * serializer refuses are masked as a generic 500 with nothing leaked, and the service's
-   * deliberate HttpExceptions keep their status and message through the envelope.
-   */
   const DELIBERATE_ERRORS = [
     { title: '404 for an unknown questionnaire', error: new NotFoundException('Questionnaire not found') },
     { title: '404 for an unknown event', error: new NotFoundException('Event not found') },
@@ -89,13 +75,7 @@ import {
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Evaluation POST actions — input validation: the new questionnaire's title and
-   * description, and the questionnaire and event an assignment joins, plus legitimate
-   * inputs that must pass.
-   */
   const createFixtures: LayerFixture[] = [
 
     { name: 'title missing', input: { description: VALID_CREATE.description }, expected: 'FAIL', field: 'title' },
@@ -136,17 +116,10 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
   /**
-   * Evaluation POST actions — security, per field class:
-   *   title            short label shown to volunteers: SQLi, special-char series, control
-   *                    chars, XSS FAIL
-   *   description      free text: control characters FAIL, line breaks stay
-   *   form_id          a uuid, the only form this table's ids take: every hostile string FAILs
-   *   event_id         a number: every hostile string FAILs
-   * plus type confusion, mass assignment, prototype pollution, and what the real service
-   * builds and refuses.
+   * title: label shown to volunteers, SQLi/special/control/XSS FAIL. description: free
+   * text, control chars FAIL. form_id (uuid) and event_id (number): every hostile string FAILs.
    */
   const typeConfusion = (valid: object, field: string, skip: (value: unknown) => boolean = () => false): LayerFixture[] =>
     OPERATOR_INJECTION_PAYLOADS.filter((p) => !skip(p.value)).map((p) => ({
@@ -174,8 +147,7 @@ import {
       }),
     ),
     ...typeConfusion(VALID_CREATE, 'title'),
-    // Control characters must not get through; a description can run over several lines,
-    // so line breaks are the exception.
+    // Control characters FAIL; line breaks are allowed for multi-line descriptions.
     ...CONTROL_CHAR_PAYLOADS.filter((p) => !(p.label === 'CRLF injection')).map((p): LayerFixture => ({
       name: `description ← ${p.category}: ${p.label}`,
       input: { ...VALID_CREATE, description: p.value },
@@ -203,7 +175,7 @@ import {
     ...typeConfusion(VALID_ASSIGN, 'form_id'),
 
     ...rejectHostile(VALID_ASSIGN, 'event_id'),
-    // A number is what this field wants, so that payload is not type confusion here.
+    // This field wants a number, so that payload isn't type confusion here.
     ...typeConfusion(VALID_ASSIGN, 'event_id', (value) => typeof value === 'number'),
 
     ...MASS_ASSIGNMENT_KEYS.map((extra): LayerFixture => ({
@@ -219,8 +191,7 @@ import {
   describe('evaluation site · POST actions — security', () => {
     const ctx = useEvaluationApp();
 
-    // The guards themselves are out of scope here, but which roles they are told to
-    // admit is not: the portal keeps this area to directors, and so must the API.
+    // Guards are out of scope, but the roles they admit are not: directors only, as on the portal.
     asCase('invalid', 'A role other than Director calls the evaluation routes').it('admits directors alone, with no route opening itself wider', () => {
       expect(Reflect.getMetadata(ROLES_KEY, EvaluationSiteController)).toEqual([RoleType.DIRECTOR]);
       const handlers = Object.getOwnPropertyNames(EvaluationSiteController.prototype).filter((name) => name !== 'constructor');
@@ -266,7 +237,7 @@ import {
       });
     });
 
-    // The controller's service is mocked above; what gets written lives in the real one.
+    // The controller's service is mocked; writes live in the real one.
     describe('real service', () => {
       const NOW = new Date('2026-10-30T08:00:00.000Z');
 

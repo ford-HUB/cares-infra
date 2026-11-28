@@ -11,11 +11,7 @@ import {
   type NotificationRow,
 } from '../repositories/notifications-repository';
 
-/**
- * The read side of a user's own feed. Every method is scoped to the caller — there is
- * no way to read or change anyone else's rows through here. Writes push the new unread
- * count over the socket so a second tab's bell agrees with the one that clicked.
- */
+/** Caller-scoped; writes push the unread count to sync other tabs. */
 @Injectable()
 export class NotificationsSiteService {
   constructor(

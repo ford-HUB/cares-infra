@@ -4,8 +4,7 @@ import { SystemPerformanceRepository } from '../repositories/system-performance-
 import { SystemPerformanceSiteService } from '../services/system-performance-site-service';
 
 @Module({
-  // The sampler and request recorder come from the global MetricsModule — this one
-  // only reads them and keeps the page timings the portal reports.
+  // Sampler and recorder come from the global MetricsModule.
   controllers: [SystemPerformanceSiteController],
   providers: [SystemPerformanceSiteService, SystemPerformanceRepository],
 })

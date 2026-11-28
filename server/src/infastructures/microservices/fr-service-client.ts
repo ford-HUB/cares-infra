@@ -89,7 +89,7 @@ export class FrServiceClient {
     };
   }
 
-  /** Extracts a face embedding from a single image — used when there is no ID photo to match against. */
+  /** For when there is no ID photo to match against. */
   async embedImage(
     image: Buffer,
     filename: string,

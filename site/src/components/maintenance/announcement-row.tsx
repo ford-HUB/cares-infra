@@ -36,7 +36,6 @@ export function AnnouncementRow({
 
   return (
     <li className="flex gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50/70">
-      {/* Tone reads before the title does — it is why the reader stopped on this row. */}
       <span
         aria-hidden
         className={cn(
@@ -163,7 +162,6 @@ export function AnnouncementRow({
   )
 }
 
-/** Empty state for a filter that matches nothing — a designed screen, not a blank list. */
 export function AnnouncementEmpty({ message }: { message: string }) {
   return (
     <div className="border-t border-gray-100 py-10 text-center">

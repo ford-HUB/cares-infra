@@ -9,7 +9,7 @@ interface BlockIpModalProps {
 }
 
 export function BlockIpModal({ user, loading, onClose, onConfirm }: BlockIpModalProps) {
-  // Keyed by user id upstream, so the prefill matches the row that opened it.
+  // Keyed by user id upstream, so the prefill matches the row.
   const [ipAddress, setIpAddress] = useState(user?.lastLoginIp ?? '')
   const [reason, setReason] = useState('')
 

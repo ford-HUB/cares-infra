@@ -18,21 +18,16 @@ import type {
 
 interface MailboxState {
   connection: MailboxConnection | null
-  /** False until the first connection check settles; gates the connect screen. */
   initialized: boolean
   connectionLoading: boolean
   connecting: boolean
   disconnecting: boolean
 
   folder: MailFolder
-  /** The term the current list reflects — not the text being typed. */
   search: string
   messages: MailSummary[]
   nextPageToken: string | null
-  /**
-   * Gmail page tokens only run forwards, so every token used to reach a page is
-   * kept here — index 0 is the first page, which needs no token at all.
-   */
+  /** Gmail page tokens only run forwards, so keep every token; index 0 needs none. */
   pageTokens: (string | null)[]
   pageIndex: number
   estimatedTotal: number
@@ -60,7 +55,6 @@ interface MailboxState {
   reset: () => void
 }
 
-/** Everything that has to fall away the moment the mailbox is disconnected. */
 const EMPTY_MAIL = {
   messages: [] as MailSummary[],
   nextPageToken: null,
@@ -73,11 +67,7 @@ const EMPTY_MAIL = {
 }
 
 export const useMailboxStore = create<MailboxState>((set, get) => {
-  /**
-   * Gmail rejects a burst of concurrent calls from one account with 429, and React's
-   * StrictMode runs every mount effect twice in development. These handles let an
-   * identical request that is already in flight be joined instead of fired again.
-   */
+  /** Gmail 429s concurrent bursts and StrictMode doubles effects, so join identical in-flight requests. */
   let connectionRequest: Promise<void> | null = null
   let listRequest: { key: string; promise: Promise<void> } | null = null
   let listSequence = 0
@@ -93,14 +83,13 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
       pageToken: tokens[index] ?? undefined,
     })
 
-    // A newer page started while this was in flight — its answer is the current one.
+    // A newer page started meanwhile; drop this answer.
     if (sequence !== listSequence) return
 
     if (!res.success || !res.data) {
       set({
         listLoading: false,
         listInitialized: true,
-        // A dropped connection sends the page back to the connect screen.
         ...(res.notConnected
           ? {
               ...EMPTY_MAIL,
@@ -125,10 +114,6 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
     })
   }
 
-  /**
-   * Loads one page of the current folder. `tokens` is the history that reached it,
-   * so stepping backwards can replay the token the page was originally fetched with.
-   */
   const loadPage = (tokens: (string | null)[]) => {
     const { folder, search } = get()
     const key = `${folder}|${search}|${tokens[tokens.length - 1] ?? ''}`
@@ -142,7 +127,6 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
     return promise
   }
 
-  /** Invalidates any list request still in flight so its answer cannot land later. */
   const abandonList = () => {
     listSequence += 1
     listRequest = null
@@ -213,7 +197,7 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
         return null
       }
 
-      // Left `connecting` — the caller navigates away, so the button stays busy.
+      // Stays `connecting`: the caller navigates away.
       return res.data
     },
 
@@ -241,7 +225,6 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
     openFolder: async (folder) => {
       if (get().folder === folder) return
       set({ folder, selectedId: null, detail: null })
-      // A new folder always starts at the first page.
       await loadPage([null])
     },
 
@@ -250,7 +233,6 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
       await loadPage([null])
     },
 
-    /** Reloads the page currently on screen; a folder or search change starts over. */
     refresh: async () => {
       await loadPage(get().pageTokens.slice(0, get().pageIndex + 1))
     },
@@ -277,7 +259,7 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
       set({ selectedId: id, detail: null, detailLoading: true, error: null })
       const res = await getMail(id)
 
-      // A second click while this was in flight wins — drop the stale response.
+      // A newer click wins; drop the stale response.
       if (get().selectedId !== id) return
 
       if (!res.success || !res.data) {
@@ -287,14 +269,12 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
 
       set({ detail: res.data, detailLoading: false })
 
-      // Opening a message clears its unread badge, exactly as Gmail behaves.
       if (res.data.unread) await get().toggleRead(id, false)
     },
 
     clearSelection: () => set({ selectedId: null, detail: null }),
 
     toggleRead: async (id, unread) => {
-      // Optimistic: the badge flips immediately and rolls back only on failure.
       const previous = get().messages
       set({
         messages: previous.map((message) =>
@@ -318,7 +298,6 @@ export const useMailboxStore = create<MailboxState>((set, get) => {
       }
 
       set({ sending: false })
-      // Sent mail only shows up in the list when that is the folder being viewed.
       if (get().folder === 'sent') await get().refresh()
       return true
     },

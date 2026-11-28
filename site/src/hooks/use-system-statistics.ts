@@ -3,11 +3,6 @@ import { STATISTICS_DEPARTMENT_ALL } from '../constants/department-statistics'
 import { useDepartmentStatisticsStore } from '../store/department-statistics-store'
 import type { StatisticsRange } from '../types/department-statistics'
 
-/**
- * The admin and director view of the same statistics: every department by default,
- * narrowed to one college through the toolbar's department filter rather than the
- * caller's profile.
- */
 export function useSystemStatistics() {
   const statistics = useDepartmentStatisticsStore((s) => s.statistics)
   const range = useDepartmentStatisticsStore((s) => s.range)
@@ -25,7 +20,6 @@ export function useSystemStatistics() {
 
   const scope = departmentFilter === STATISTICS_DEPARTMENT_ALL ? null : departmentFilter
 
-  // Mount and every department change; range and category refetch through their setters.
   useEffect(() => {
     void fetchStatistics(scope)
   }, [scope, fetchStatistics])

@@ -16,9 +16,8 @@ import { NeedPriorityBadge } from './need-priority-badge'
 
 interface HouseholdTableProps {
   households: Household[]
-  /** One line above the rows saying what the list is narrowed to. */
   caption: string
-  /** Present on the Clusters screen: which group each row landed in. */
+  /** Clusters screen only. */
   clusterOf?: (household: Household) => number
   emptyMessage?: string
 }
@@ -29,14 +28,14 @@ const cellClass = 'px-3 py-2.5 align-top text-[13px] text-gray-700'
 const chipClass =
   'inline-block max-w-full truncate rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-700'
 
-/** Q1 chips — "Other" carries what the beneficiary typed. */
+/** "Other" carries what the beneficiary typed. */
 function needLabels(survey: HouseholdSurvey): string[] {
   return survey.needs.map((need) =>
     need === 'other' && survey.otherNeed ? `Other — ${survey.otherNeed}` : NEED_CATEGORY_LABELS[need],
   )
 }
 
-/** Q3 chips — "Other" carries what the beneficiary typed. */
+/** "Other" carries what the beneficiary typed. */
 function barrierLabels(survey: HouseholdSurvey): string[] {
   return survey.barriers.map((barrier) =>
     barrier === 'other' && survey.otherBarrier
@@ -45,19 +44,13 @@ function barrierLabels(survey: HouseholdSurvey): string[] {
   )
 }
 
-/** Q4 — "Other" carries what the beneficiary typed. */
+/** "Other" carries what the beneficiary typed. */
 function communityProblemLabel(survey: HouseholdSurvey): string {
   return survey.communityProblem === 'other' && survey.otherCommunityProblem
     ? `Other — ${survey.otherCommunityProblem}`
     : COMMUNITY_PROBLEM_LABELS[survey.communityProblem]
 }
 
-/**
- * The survey rows themselves — the content the summary blocks above describe. One
- * column per question so a row reads the way the beneficiary answered it: what they
- * need, how serious it is, what stands in the way, what they see around them, and
- * anything else they wrote.
- */
 export function HouseholdTable({
   households,
   caption,

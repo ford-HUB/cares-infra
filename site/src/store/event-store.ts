@@ -13,7 +13,6 @@ import {
 interface EventState {
   events: CaresEvent[]
   loading: boolean
-  /** False until the first fetch settles, so the mount render isn't read as "no events". */
   initialized: boolean
   error: string | null
   fetchEvents: () => Promise<void>

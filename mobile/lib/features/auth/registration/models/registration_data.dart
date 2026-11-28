@@ -77,8 +77,7 @@ class RegistrationData {
     return parts.where((p) => p.isNotEmpty).join(' ');
   }
 
-  /// Everything the beneficiary form asks for, filled in. The password rules are
-  /// passed in rather than hardcoded here — they belong to the administrator.
+  /// Password rules are passed in; the administrator owns them.
   bool beneficiaryBasicsComplete(PasswordPolicy policy) {
     if (firstName.trim().isEmpty || lastName.trim().isEmpty) return false;
     if (beneficiaryType == null) return false;

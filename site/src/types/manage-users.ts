@@ -5,55 +5,49 @@ export interface ManagedUser {
   email: string
   firstName: string
   lastName: string
-  /** Lowercased RoleType — `admin`, `director`, `coordinator`, `volunteer`, … */
+  /** Lowercased RoleType. */
   role: string
   status: ManagedUserStatus
   department?: string
   restrictionReason?: string
   lastLoginIp?: string
   blockedIps: string[]
-  /** Set while an administrator-issued credential is outstanding on the account. */
+  /** Set while an admin-issued credential is outstanding. */
   credentialExpiresAt?: string
 }
 
-/** How the sign-in name is decided when an administrator provisions an account. */
 export type ProvisionMode = 'manual' | 'generate'
 
 export interface ProvisionUserPayload {
   mode: ProvisionMode
   /** Required in `manual` mode; the server mints one in `generate` mode. */
   email?: string
-  /** The inbox the issued credentials are mailed to. */
   recipientEmail: string
   role: string
-  /** `STUDENT`, `STAFF`, `ALUMNI` or `PARTNER_BARANGAY` — sent only with the `VOLUNTEER` role. */
+  /** `STUDENT`, `STAFF`, `ALUMNI` or `PARTNER_BARANGAY`; `VOLUNTEER` role only. */
   volunteerType?: string
   department?: string
-  /** Sent only with the `PARTNER_BARANGAY` volunteer type, in place of a department. */
+  /** `PARTNER_BARANGAY` type only, in place of a department. */
   partnerBarangay?: string
-  /** The complete set of actions the account should hold; omit to keep the role baseline. */
+  /** Full target set; omit to keep the role baseline. */
   permissions?: string[]
   expiresInHours: number
 }
 
-/** The server's verdict on a recipient address before the form is submitted. */
 export interface ProvisionEmailCheck {
   email: string
   valid: boolean
-  /** Why it was rejected; null when it passed. */
+  /** Null when it passed. */
   reason: string | null
 }
 
-/** Whether the credential mail reached SMTP; null when nothing was mailed (a re-issue). */
+/** Null when nothing was mailed (a re-issue). */
 export interface CredentialDelivery {
   recipient: string
   sent: boolean
 }
 
-/**
- * The plaintext credential, handed back once at issue time. Nothing can look it up
- * afterwards, so the dialog showing it is the only chance to copy it.
- */
+/** Plaintext, returned once at issue; nothing can look it up later. */
 export interface IssuedCredentials {
   email: string
   password: string
@@ -78,7 +72,7 @@ export interface ManageUsersResult {
   success: boolean
   message?: string
   list: ManagedUser[]
-  /** Total matching rows on the server, which may exceed what was loaded. */
+  /** May exceed what was loaded. */
   total: number
   truncated: boolean
 }
@@ -97,7 +91,7 @@ export interface ManagedUserSchoolInfo {
   graduationYear: string
 }
 
-/** Server status codes: N = pending, F = failed, V = verified. */
+/** N = pending, F = failed, V = verified. */
 export type ManagedUserVerificationStatus = 'N' | 'F' | 'V'
 
 export interface ManagedUserVerification {
@@ -111,7 +105,6 @@ export interface ManagedUserBlockedIp {
   blockedAt: string
 }
 
-/** Everything the side panel shows — one request, fetched when the panel opens. */
 export interface ManagedUserDetail extends ManagedUser {
   middleName?: string
   gender: string

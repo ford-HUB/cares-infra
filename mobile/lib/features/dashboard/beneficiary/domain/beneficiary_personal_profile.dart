@@ -1,5 +1,4 @@
-/// Personal information shown on the beneficiary's Edit Profile form —
-/// deliberately separate from assistance details.
+/// Deliberately separate from assistance details.
 class BeneficiaryPersonalProfile {
   const BeneficiaryPersonalProfile({
     required this.firstName,

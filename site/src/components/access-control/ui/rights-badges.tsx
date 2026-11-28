@@ -9,7 +9,6 @@ interface RightsBadgesProps {
 const badgeBase =
   'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium'
 
-/** Counts of how far a user departs from their role baseline, for the table row. */
 export function RightsBadges({ granted, revoked, suspended }: RightsBadgesProps) {
   if (granted === 0 && revoked === 0 && suspended === 0) {
     return <span className="text-[12px] text-gray-400">Role default</span>
@@ -40,7 +39,6 @@ const SOURCE_STYLES: Record<PermissionSource, { label: string; className: string
   unset: { label: '', className: '' },
 }
 
-/** Why one permission is on or off — the per-row explanation inside the rights panel. */
 export function PermissionSourceBadge({ source }: { source: PermissionSource }) {
   if (source === 'unset') return null
 

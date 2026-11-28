@@ -44,8 +44,8 @@ class AssistanceRequestService {
     );
     final response = await _api.postMultipart(
       _path,
-      // Household size is read from the profile server-side, and the body
-      // is validated strictly, so it is not sent here.
+      // Household size comes from the profile server-side and the body is
+      // strict, so it isn't sent.
       fields: {
         'title': title,
         'category': categoryCode,
@@ -63,8 +63,7 @@ class AssistanceRequestService {
     return assistanceRequestFromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// `PATCH me/:id` — every field the form shows; a null [location] removes
-  /// the pin. Attachments stay as filed.
+  /// A null [location] removes the pin; attachments stay as filed.
   Future<AssistanceRequest> update(
     String id, {
     required String title,

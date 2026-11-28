@@ -1,11 +1,4 @@
-"""K-means over the Beneficiary Needs Assessment survey.
-
-Each household becomes one row of the feature matrix — household size, how serious
-its main need is (Q2), and a 0/1 flag per named Q1 category — standardised so
-household size cannot swamp a 0/1 flag, then grouped with scikit-learn's KMeans
-(k-means++ seeding, Lloyd iterations). The clusters come back ordered by need
-level so the first group is always the one to serve first.
-"""
+"""K-means over the needs survey on standardised features; clusters ordered highest need first."""
 
 import logging
 from collections import Counter
@@ -28,8 +21,7 @@ from app.schemas import (
 
 logger = logging.getLogger(__name__)
 
-# Seriousness (Q2) at or above which a cluster falls into each band, checked
-# top-down — mirrors NEED_PRIORITY_THRESHOLDS on the portal.
+# Checked top-down; must match NEED_PRIORITY_THRESHOLDS on the portal.
 PRIORITY_THRESHOLDS: list[tuple[str, int]] = [
     ("critical", 5),
     ("high", 4),
@@ -65,15 +57,13 @@ class Fit:
 
 
 class DecisionEngine:
-    """Stateless wrapper — there are no weights to load, but the lifespan hook and
-    `model_loaded` flag keep the service shaped like its siblings."""
+    """No weights; load()/model_loaded only keep the shape of sibling services."""
 
     def __init__(self) -> None:
         self.model_loaded = False
 
     def load(self) -> None:
-        # Touch sklearn once so an import problem surfaces at boot, not on the
-        # first request.
+        # Surface sklearn import problems at boot.
         KMeans(n_clusters=1, n_init=1).fit(np.zeros((1, 1)))
         self.model_loaded = True
         logger.info("Decision engine ready (scikit-learn KMeans)")
@@ -91,8 +81,7 @@ class DecisionEngine:
             labels=model.labels_,
             inertia=float(model.inertia_),
             iterations=int(model.n_iter_),
-            # sklearn stops early once assignments settle; hitting the cap means
-            # they had not.
+            # Hitting the cap means assignments had not settled.
             converged=int(model.n_iter_) < max_iterations,
         )
 
@@ -121,7 +110,6 @@ class DecisionEngine:
         clusters = [
             self._describe(label, households, raw, fit.labels) for label in range(effective_k)
         ]
-        # Highest need first; ties broken by size so the bigger group leads.
         clusters.sort(key=lambda c: (-c.need_level, -len(c.household_ids)))
         for position, cluster in enumerate(clusters):
             cluster.index = position
@@ -154,8 +142,7 @@ class DecisionEngine:
         if len(member_idx):
             centroid_values = raw[member_idx].mean(axis=0)
         else:
-            # k-means can leave a group empty when rows repeat; keep the slot so
-            # indexes stay dense, with a neutral description.
+            # Empty cluster (repeated rows): keep the slot so indexes stay dense.
             centroid_values = np.zeros(len(FEATURE_KEYS))
         centroid = {
             key: round(float(value), 4) for key, value in zip(FEATURE_KEYS, centroid_values)
@@ -187,8 +174,7 @@ class DecisionEngine:
             share=round(top_count / len(members), 4) if members else 0.0,
         )
 
-        # Seriousness (1–5) plus the average number of named needs ticked (0–5):
-        # a group that is both very serious and short on many fronts ranks first.
+        # Seriousness (1–5) + mean named needs ticked (0–5).
         needs_selected = sum(centroid[need] for need in CLUSTER_NEEDS)
         need_level = round(centroid["seriousness"] + needs_selected, 4)
 

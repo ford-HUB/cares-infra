@@ -31,7 +31,7 @@ const searchableText = (program: LandingDepartmentProgram) =>
 
 export function LandingPrograms() {
   const [query, setQuery] = useState('')
-  // In the URL, not state: coming back from a full-screen bulletin page reopens the dialog.
+  // In the URL, not state, so returning from a full-screen bulletin page reopens the dialog.
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedId = searchParams.get(LANDING_PROGRAM_DEPARTMENT_PARAM)
   const selected = LANDING_DEPARTMENT_PROGRAMS.find((program) => program.id === selectedId) ?? null
@@ -51,7 +51,6 @@ export function LandingPrograms() {
 
   return (
     <section className="relative overflow-clip bg-emerald-50 bg-[radial-gradient(circle_at_0_85%,rgb(184_228_199/0.5),transparent_35%),radial-gradient(circle_at_100%_70%,rgb(210_236_214/0.7),transparent_30%)]">
-      {/* Mint tint closing on rolling hills, as under the org chart. */}
       <LandingHillsBackdrop />
       <div className={`${LANDING_CONTAINER} relative pt-14 pb-28 sm:pt-18 sm:pb-36`}>
         <LandingReveal>

@@ -76,8 +76,8 @@ class StudentHomeTab extends StatelessWidget {
     ];
   }
 
-  /// The prototype has no server behind it, so donor mode shows nothing here;
-  /// the real donor dashboard reads `GET /events/donations`.
+  /// Prototype: donor mode shows nothing (the real dashboard reads
+  /// `GET /events/donations`).
   List<Widget> _donorSlivers(BuildContext context) {
     return [
       SliverToBoxAdapter(

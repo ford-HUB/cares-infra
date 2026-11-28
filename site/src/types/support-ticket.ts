@@ -1,20 +1,16 @@
 export type SupportTicketStatus =
   | 'open'
   | 'in_progress'
-  /** Fix is in — waiting for the requester to confirm it works on their side. */
+  /** Waiting for the requester to confirm the fix. */
   | 'under_verification'
-  /** Blocked on the requester: more detail or a decision is needed from them. */
+  /** Blocked on the requester. */
   | 'client_feedback'
   | 'resolved'
   | 'closed'
 
-/**
- * Priority doubles as the ticket's bucket on the mini dashboard:
- * `high` = Issue, `medium` = Support, `low` = Feature.
- */
+/** `high` = Issue, `medium` = Support, `low` = Feature. */
 export type SupportTicketPriority = 'high' | 'medium' | 'low'
 
-/** What the reporter says went wrong — drives triage routing and the type filter. */
 export type SupportTicketType =
   | 'bug'
   | 'login'
@@ -23,21 +19,20 @@ export type SupportTicketType =
   | 'event'
   | 'mobile_app'
   | 'feature_request'
-  /** Flagging another user, event, campaign, or content — not a request about the reporter's own account. */
+  /** About another user, event or content, not the reporter's own account. */
   | 'report'
   | 'other'
 
 export interface SupportTicketRequester {
   name: string
   email: string
-  /** Lowercased RoleType — `volunteer`, `coordinator`, `director`, … */
+  /** Lowercased RoleType. */
   role: string
 }
 
 export interface SupportTicketReply {
   id: string
   author: string
-  /** `staff` replies render on the portal side of the thread, `requester` on the other. */
   authorType: 'staff' | 'requester'
   body: string
   createdAt: string
@@ -45,7 +40,7 @@ export interface SupportTicketReply {
 
 export interface SupportTicket {
   id: string
-  /** Sequential tracking number — 10th ticket filed is `Support #010`. */
+  /** e.g. `Support #010`. */
   reference: string
   subject: string
   description: string
@@ -53,9 +48,9 @@ export interface SupportTicket {
   status: SupportTicketStatus
   priority: SupportTicketPriority
   requester: SupportTicketRequester
-  /** Portal account handling the ticket; unset while the ticket is unassigned. */
+  /** Unset while unassigned. */
   assignee?: string
-  /** Where the report came from, e.g. `Mobile app`, `Staff portal`. */
+  /** e.g. `Mobile app`, `Staff portal`. */
   source: string
   createdAt: string
   updatedAt: string
@@ -69,10 +64,9 @@ export interface SupportTicketSummary {
   resolved: number
 }
 
-/** One mini-dashboard tile: a priority bucket with its counts. */
 export interface SupportTicketBucketCount {
   priority: SupportTicketPriority
   total: number
-  /** Still needing work — anything not resolved or closed. */
+  /** Anything not resolved or closed. */
   unresolved: number
 }

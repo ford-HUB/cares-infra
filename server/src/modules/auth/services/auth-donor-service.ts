@@ -28,28 +28,14 @@ import type { LoginResponseDto } from '../dto/auth-mobile-dto';
 import { RegistrationApprovalGate } from './registration-approval-gate';
 import { unlockedRoles } from 'src/shared/utils/unlocked-roles';
 
-/** How long a verified profile stays claimable while the donor fills in the form. */
+/** How long a verified profile stays claimable. */
 const TICKET_TTL_SECONDS = DurationUtils.THIRTY_MINUTES;
 
 /**
- * Donor sign-in and sign-up through Google or Facebook.
- *
- * Split from `AuthMobileService` because almost nothing is shared with the volunteer
- * flow: a donor presents no ID and enrols no face, so the whole ID/OCR/face state
- * machine is absent here. The one thing borrowed is the email OTP — a donor who signs
- * up with a password (no provider to vouch for the address) goes through the same
- * `/v1/auth/send-verification` + `/v1/auth/verify-otp` pair as a volunteer, and
- * `registerDonorWithEmail` only reads the verified flag those calls leave in Redis.
- *
- * Verifying the provider token is not this service's job: `DonorOAuthGuard` runs the
- * matching Passport strategy first, and what arrives here is an already-verified profile.
- *
- * The exchange is two calls rather than one. The first verifies the provider token and,
- * for someone new, parks the verified profile in Redis under a ticket; the second spends
- * that ticket to create the donor. That way the phone number and address the form still
- * has to collect do not force the client to hold a provider token across two screens, and
- * a replayed registration call cannot invent an identity — the ticket is the only proof
- * accepted, and it is deleted the moment it is used.
+ * Split from `AuthMobileService`: donors present no ID or face. Shares only the email OTP
+ * (`registerDonorWithEmail` reads its Redis flag). `DonorOAuthGuard` already verified the
+ * provider token. Two-step exchange: sign-in parks the profile under a single-use ticket
+ * that registration spends, so the client needn't hold the provider token.
  */
 @Injectable()
 export class AuthDonorService {
@@ -76,8 +62,7 @@ export class AuthDonorService {
       source: 'MOBILE' as const,
     };
 
-    // Lockout and IP rules apply to a social sign-in exactly as they do to a password
-    // one — the credential being a provider token changes nothing about who may sign in.
+    // Lockout and IP rules apply to social sign-ins too.
     await this.loginPolicyEnforcer.assertLoginAllowed(attempt);
 
     const identity = await this.authRepository.findOAuthIdentity(
@@ -100,8 +85,7 @@ export class AuthDonorService {
       };
     }
 
-    // An account already on this email is the same person arriving by a new door: link
-    // the identity rather than colliding on `Account.email`, which is unique.
+    // Same email: link the identity (`Account.email` is unique).
     const existingAccount = await this.authRepository.findUserByEmail(
       profile.email,
     );
@@ -144,11 +128,7 @@ export class AuthDonorService {
     };
   }
 
-  /**
-   * Completes donor sign-up for a ticket handed out by `signInWithProvider`. The email
-   * and provider identity come from the ticket, never from the request body — a client
-   * may correct its own name, but it may not name a different account.
-   */
+  /** Email and identity come from the ticket, never the body. */
   async registerDonor(
     data: RegisterDonorDto,
     ipAddress?: string,
@@ -191,7 +171,7 @@ export class AuthDonorService {
       providerUserId: ticket.providerUserId,
     });
 
-    // Spent, whatever happens next — a ticket must not create a second donor.
+    // Spent regardless of outcome, so a ticket can't create two donors.
     await this.redisService.delete(this.ticketKey(data.oauth_ticket));
 
     return this.issueSession(
@@ -202,11 +182,7 @@ export class AuthDonorService {
     );
   }
 
-  /**
-   * Completes email + password donor sign-up. The email must already be OTP-verified
-   * (`AuthMobileService.verifyOtpEmail`) — the flag it sets is the only proof accepted,
-   * and it is cleared here so the same code cannot open a second account.
-   */
+  /** The OTP-verified flag is the only proof and is cleared here (one account per code). */
   async registerDonorWithEmail(
     data: RegisterDonorWithEmailDto,
     ipAddress?: string,
@@ -260,7 +236,7 @@ export class AuthDonorService {
     );
   }
 
-  /** Opens a revocable session for a user resolved by a provider rather than a password. */
+  /** Revocable session for a provider-resolved user. */
   private async issueSession(
     userId: string,
     attempt: {
@@ -277,8 +253,7 @@ export class AuthDonorService {
       throw new UnauthorizedException('This account is no longer available');
     }
 
-    // A beneficiary still waiting on (or refused) a director's approval can't get
-    // in by linking a social provider either.
+    // Pending or refused approvals can't bypass via a social provider.
     await this.registrationApprovalGate.assertApproved(userId, attempt);
 
     const account = user.accounts[0];
@@ -363,7 +338,7 @@ export class AuthDonorService {
     return `donor-oauth:${ticket}`;
   }
 
-  // Mirror `AuthMobileService.otpKey` / `otpVerifiedKey` — the OTP is issued there.
+  // Must mirror `AuthMobileService.otpKey` / `otpVerifiedKey`.
   private otpKey(email: string): string {
     return `otp:${email}`;
   }

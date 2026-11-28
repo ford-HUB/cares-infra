@@ -1,9 +1,5 @@
-"""Address extraction for proof-of-residency documents.
-
-A barangay certificate / residency clearance is prose, not a labelled card:
-"...is a bona fide resident of Purok 3, Barangay Looc, Mandaue City, Cebu...".
-The parser reads the sentence around the residency phrase first and only falls
-back to the ID-card "ADDRESS:" label logic when no phrase is present.
+"""Address extraction from residency prose ("...resident of Purok 3, Barangay Looc, ...");
+falls back to the ID-card "ADDRESS:" label logic.
 """
 
 import re
@@ -13,7 +9,7 @@ import fitz  # PyMuPDF
 
 from app.ocr_engine import _extract_address, _normalize_lines, ocr_engine
 
-# Pages rendered off a PDF — a certificate is one page; cap the work anyway.
+# Certificates are one page; cap the work anyway.
 MAX_PDF_PAGES = 3
 PDF_RENDER_DPI = 200
 

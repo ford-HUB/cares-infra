@@ -15,16 +15,12 @@ import {
   type PaymentSettingsFormValues,
 } from '../validators/payment-settings-schema'
 
-/**
- * Drops everything the server reports but does not accept back — the audit fields, the
- * key's last four, the webhook URL.
- */
+/** Drops fields the server reports but won't accept back. */
 function toFormValues(settings: PaymentSettingsDetail): PaymentSettingsFormValues {
   return {
     mode: settings.mode,
     enabled: settings.enabled,
-    // Carried through untouched: this screen does not edit them, and the server
-    // replaces the whole row on save.
+    // Not edited here; the server replaces the whole row on save.
     apiUrl: settings.apiUrl,
     statementName: settings.statementName,
     supportEmail: settings.supportEmail,
@@ -36,7 +32,6 @@ function toFormValues(settings: PaymentSettingsDetail): PaymentSettingsFormValue
   }
 }
 
-/** The editable half of the form, in the shape the service maps to the API. */
 function toSettings(values: PaymentSettingsFormValues): PaymentSettings {
   return {
     mode: values.mode,
@@ -62,11 +57,7 @@ export function usePaymentSettingsForm() {
   const sendAccountProof = usePaymentSettingsStore((state) => state.sendAccountProof)
   const confirmAccount = usePaymentSettingsStore((state) => state.confirmAccount)
 
-  /**
-   * The channel the confirmation dialog is open on. Switching one on is not a form
-   * edit that waits for Save — it asks the gateway to activate the channel — so the
-   * director confirms it, and confirming commits.
-   */
+  /** Enabling a channel asks the gateway to activate it, so it needs confirming. */
   const [confirming, setConfirming] = useState<PaymentMethodKey | null>(null)
 
   const form = useForm<PaymentSettingsFormValues>({
@@ -78,23 +69,16 @@ export function usePaymentSettingsForm() {
     void fetchSettings()
   }, [fetchSettings])
 
-  /**
-   * Resets rather than sets each field, so the saved settings become the form's
-   * baseline — that is what makes `isDirty` mean "differs from what is stored" and lets
-   * Save stay disabled until something actually changed.
-   */
+  /** Reset, not set, so `isDirty` means "differs from stored". */
   useEffect(() => {
     if (!settings) return
 
     form.reset(toFormValues(settings))
   }, [settings, form])
 
-  // No credentials travel with a save from this screen — the gateway account is
-  // entered elsewhere, and an omitted secret leaves the stored one alone.
+  // Omitted secrets leave the stored ones alone.
   const save = async (message: string) => {
-    // The switch and the dialog save without going through `handleSubmit`, so the
-    // account rules are run by hand — otherwise a channel could be offered with the
-    // very details the server is about to refuse it for.
+    // Bypasses `handleSubmit`, so run the account rules by hand.
     if (!(await form.trigger())) {
       toast.error('Check the highlighted fields before offering this method')
       return false
@@ -118,10 +102,6 @@ export function usePaymentSettingsForm() {
   const indexOf = (method: PaymentMethodKey) =>
     form.getValues('methods').findIndex((entry) => entry.method === method)
 
-  /**
-   * The switch on a method card. Turning one on opens the confirmation first; turning
-   * one off is immediate — there is nothing to confirm about offering less.
-   */
   const onToggleMethod = (method: PaymentMethodKey, next: boolean) => {
     if (next) {
       setConfirming(method)
@@ -134,11 +114,7 @@ export function usePaymentSettingsForm() {
     void save('Payment method switched off')
   }
 
-  /**
-   * Confirming commits the switch and saves, and the server runs the activation check
-   * for that channel as part of the save — so the card comes back carrying the
-   * gateway's verdict rather than an optimistic "on".
-   */
+  /** Server runs the activation check on save; the card returns its verdict. */
   const onConfirmMethod = async () => {
     const method = confirming
     if (!method) return
@@ -154,8 +130,6 @@ export function usePaymentSettingsForm() {
       .getState()
       .settings?.meta.find((entry) => entry.method === method)
 
-    // The activation check ran server-side during that save; say what it found rather
-    // than leaving the director to spot the badge.
     if (checked?.verification === 'PENDING') {
       toast('Waiting for the Xendit account before this can take payments', {
         icon: '\u23F3',
@@ -165,15 +139,11 @@ export function usePaymentSettingsForm() {
     }
   }
 
-  /** Step one of the walk-through: store the account before anything is sent to it. */
   const onSaveDetails = async () => {
     await save('Account details saved')
   }
 
-  /**
-   * Both proof steps save the form first: the payout goes to the number in the box,
-   * so an unsaved edit would send money to the old account.
-   */
+  /** Save first: the payout goes to the saved number. */
   const onSendAccountProof = async (method: PaymentMethodKey) => {
     if (form.formState.isDirty && !(await save('Payment settings updated'))) return
 

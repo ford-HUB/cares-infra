@@ -7,15 +7,7 @@ import type {
   SessionSuspension,
 } from '../types/access-control'
 
-/**
- * The rights the user holds on paper: role baseline ± per-user overrides, **before**
- * suspensions are applied.
- *
- * This is deliberately not `effectivePermissions`. A suspension is a temporary layer
- * over the grant, so the panel's toggles must show the underlying grant — if they
- * showed the effective set, saving the form would turn every active suspension into a
- * permanent revoke and lifting it later would restore nothing.
- */
+/** Grant before suspensions, not `effectivePermissions`: saving the effective set would make suspensions permanent revokes. */
 export function grantedPermissions(detail: AccessUserDetail): Set<PermissionKey> {
   const granted = new Set(detail.rolePermissions)
 
@@ -30,7 +22,6 @@ export function grantedPermissions(detail: AccessUserDetail): Set<PermissionKey>
   return granted
 }
 
-/** Permissions with a suspension currently in force. */
 export function suspendedPermissions(detail: AccessUserDetail): Set<PermissionKey> {
   return new Set(
     detail.suspensions
@@ -39,7 +30,6 @@ export function suspendedPermissions(detail: AccessUserDetail): Set<PermissionKe
   )
 }
 
-/** Why a permission reads the way it does, for the panel's per-row badge. */
 export function permissionSource(
   permission: PermissionKey,
   detail: AccessUserDetail,
@@ -54,7 +44,6 @@ export function permissionSource(
   return granted.has(permission) ? 'inherited' : 'unset'
 }
 
-/** True when the selection differs from what is stored, gating the Save button. */
 export function hasPendingChanges(
   selected: Set<PermissionKey>,
   granted: Set<PermissionKey>,
@@ -66,7 +55,6 @@ export function hasPendingChanges(
   return false
 }
 
-/** Active suspension for one permission, if any. */
 export function activeSuspensionOf(
   permission: PermissionKey,
   detail: AccessUserDetail,
@@ -76,10 +64,7 @@ export function activeSuspensionOf(
   )
 }
 
-/**
- * The window a suspension covers, as the hover card reads it —
- * "Issued 12 Sep 2026 · until 19 Sep 2026 (3 days left)" or "· until lifted".
- */
+/** e.g. "Issued 12 Sep 2026 · until 19 Sep 2026 (3 days left)" or "· until lifted". */
 export function formatSuspensionWindow(suspension: SessionSuspension): {
   issued: string
   until: string

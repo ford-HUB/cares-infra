@@ -8,11 +8,7 @@ import type {
 } from '../dto/residential-needs-mobile-dto';
 import { ResidentialNeedsRepository } from '../repositories/residential-needs-repository';
 
-/**
- * The beneficiary's own Needs Assessment Survey. Free text is only kept when
- * the matching "other" choice is picked, so a stale entry from an earlier
- * answer never rides along.
- */
+/** Free text is kept only when its `other` choice is picked. */
 @Injectable()
 export class ResidentialNeedsMobileService {
   constructor(
@@ -46,7 +42,6 @@ export class ResidentialNeedsMobileService {
           : null,
       concern: textOrNull(body.concern),
     });
-    // Open Residential Needs screens reload their list and clustering.
     this.residentialNeedsGateway.emitChanged();
     return { assessment: toMobileDto(row) };
   }

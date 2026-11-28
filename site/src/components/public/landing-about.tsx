@@ -11,12 +11,10 @@ import { LandingAboutProcessCard } from './ui/landing-about-process-card'
 import { LandingReveal } from './ui/landing-reveal'
 import { LandingSectionHeading } from './ui/landing-section-heading'
 
-/** Vision and mission as dark posters, the core processes as centred icon cards, then
- *  the objectives. */
 export function LandingAbout() {
   return (
     <section className="relative overflow-clip">
-      {/* Tint only: the org chart below carries it on and closes on the hills. */}
+      {/* Tint only; the org chart below closes on the hills. */}
       <LandingHillsBackdrop hills={false} />
       <div className={`${LANDING_CONTAINER} relative py-14 sm:py-16`}>
         <LandingSectionHeading title="Vision and Mission" plain brush risingLetters />

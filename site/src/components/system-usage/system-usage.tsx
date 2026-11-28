@@ -8,7 +8,6 @@ import { SystemEventsList } from './ui/system-events-list'
 
 type SystemUsageProps = Omit<ReturnType<typeof useSystemUsage>, 'pending' | 'refresh'>
 
-/** The admin's report body: live summary, CPU per day, 24 h loads, services, events. */
 export function SystemUsage(props: SystemUsageProps) {
   const { samples, liveSample, host, performanceSource } = props
   const series = (pick: (s: (typeof samples)[number]) => number) =>

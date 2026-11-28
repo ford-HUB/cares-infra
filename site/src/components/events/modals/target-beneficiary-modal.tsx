@@ -12,25 +12,21 @@ interface TargetBeneficiaryModalProps {
   requests: AssistanceRequest[]
   loading: boolean
   error: string | null
-  /** Ids already targeted when the modal opens. */
   initialSelected: string[]
-  /** Max beneficiaries set on the event; undefined leaves the pick uncapped. */
+  /** Undefined leaves the pick uncapped. */
   limit?: number
   onRetry: () => void
   onCancel: () => void
   onConfirm: (ids: string[]) => void
 }
 
-/**
- * Picks which approved assistance requests the event is aimed at. Each confirmed
- * pick is pinned on the event map so the director can place the event near them.
- */
+/** Confirmed picks are pinned on the event map. */
 export function TargetBeneficiaryModal({
   isOpen,
   ...props
 }: TargetBeneficiaryModalProps) {
   if (!isOpen) return null
-  // Mounted fresh on every open, so the draft always starts from the saved pick.
+  // Mounted fresh on every open, so the draft starts from the saved pick.
   return <TargetBeneficiaryDialog {...props} />
 }
 

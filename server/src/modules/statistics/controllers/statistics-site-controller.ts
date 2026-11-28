@@ -15,10 +15,7 @@ import {
   StatisticsResponseSchema,
 } from '../validators/statistics-site-validator';
 
-/**
- * The Statistics page. One route for every portal role: the service scopes a
- * coordinator to their own college and lets admin and director pick one.
- */
+/** Coordinators are scoped to their college; admin and director can pick one. */
 @Controller('v1/statistics')
 @Roles(...PORTAL_ROLE_TYPES)
 export class StatisticsSiteController {

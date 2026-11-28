@@ -1,7 +1,6 @@
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors a deployment card: preview, title row, meta, distribution bar, footer. */
 export function DeployedCertificatesGallerySkeleton({ cards }: { cards: number }) {
   return (
     <div

@@ -21,7 +21,7 @@ import {
   type SaveAnnouncementInput,
 } from '../repositories/announcements-repository';
 
-/** Roles that read notices in the app rather than on the portal. */
+/** Roles that read notices in the app. */
 const APP_ROLES = new Set<RoleType>([
   RoleType.VOLUNTEER,
   RoleType.DONOR,
@@ -35,11 +35,7 @@ export class AnnouncementsSiteService {
     private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
-  /**
-   * Every read sweeps first: a scheduled notice whose time has come is published (and
-   * its reach counted), and a published one past its expiry is retired. There is no
-   * scheduler, so the polling page is what moves the board forward.
-   */
+  /** No scheduler: each read publishes due notices and retires expired ones. */
   async listAnnouncements(
     query: ListAnnouncementsQueryDto,
   ): Promise<AnnouncementListDto> {
@@ -72,7 +68,7 @@ export class AnnouncementsSiteService {
     return toAnnouncement(row);
   }
 
-  /** Read first so a bad id is a 404 rather than the P2025 a blind update would raise. */
+  /** Read first so a bad id 404s instead of P2025. */
   async updateAnnouncement(
     id: string,
     draft: SaveAnnouncementDto,
@@ -87,10 +83,7 @@ export class AnnouncementsSiteService {
     return toAnnouncement(row);
   }
 
-  /**
-   * Publishing stamps the real send time and counts who it reached; taking down keeps
-   * the original publish time so the record still says when it went out.
-   */
+  /** Publishing stamps send time and reach; taking down keeps the original publish time. */
   async setState(
     id: string,
     body: SetAnnouncementStateDto,
@@ -117,7 +110,7 @@ export class AnnouncementsSiteService {
     const now = new Date();
     const due = await this.announcementsRepository.findDueScheduled(now);
 
-    // The scheduled time stays as the publish time: it went out when it said it would.
+    // Keep the scheduled time as the publish time.
     await Promise.all(due.map((row) => this.publish(row, row.publish_at)));
     await this.announcementsRepository.expireLapsed(now);
   }
@@ -126,7 +119,7 @@ export class AnnouncementsSiteService {
     row: AnnouncementRow,
     publishAt: Date,
   ): Promise<AnnouncementRow> {
-    // A notice re-published after being taken down keeps the reach it already had.
+    // Re-publishing keeps the existing reach.
     const reach =
       row.reach > 0
         ? row.reach
@@ -141,11 +134,8 @@ export class AnnouncementsSiteService {
       },
     );
 
-    // Every addressed role gets it in their feed, plus every director and admin,
-    // who read the System Notices board regardless of who a notice was
-    // addressed to. App audiences get their own row tagged with the side it
-    // belongs to, so a donor who also volunteers sees a donors-only notice on
-    // the Donor side and not the Volunteer one.
+    // Addressed roles plus every director and admin. App audiences get one row per side,
+    // so a donor-volunteer sees a donors-only notice only on the Donor side.
     const portalRoles = new Set<RoleType>([RoleType.ADMIN, RoleType.DIRECTOR]);
     const appRoles = new Set<RoleType>();
     for (const audience of row.audiences) {
@@ -165,7 +155,7 @@ export class AnnouncementsSiteService {
           : row.tone === AnnouncementTone.WARNING
             ? NotificationTone.ATTENTION
             : NotificationTone.INFO,
-      // A notice re-published after being taken down is not news twice.
+      // Re-publishing doesn't notify twice.
       dedupeKey: `announcement:${row.announcement_id}`,
     };
 

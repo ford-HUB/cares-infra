@@ -9,17 +9,14 @@ import type {
 export class SecurityPolicyRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Null before an administrator has saved the policy for the first time. */
+  /** Null until first saved. */
   async findPolicy() {
     return this.prisma.securityPolicy.findUnique({
       where: { singleton: true },
     });
   }
 
-  /**
-   * Upserts the one row. `singleton` is unique, so a concurrent save updates the same
-   * record instead of creating a second policy.
-   */
+  /** Upsert on the unique `singleton`, so concurrent saves can't duplicate. */
   async savePolicy(data: UpdateSecurityPolicyDto, updatedByUserId: string) {
     const values: SecurityPolicyValuesDto = data;
 

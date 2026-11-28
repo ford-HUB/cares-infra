@@ -11,7 +11,6 @@ import { useMailboxStore } from '../store/mailbox-store'
 import type { MailFolder } from '../types/mailbox'
 import { useMailComposer } from './use-mail-composer'
 
-/** Wires the mailbox store to the page: connection, folders, search and selection. */
 export function useMailboxWorkspace() {
   const connection = useMailboxStore((s) => s.connection)
   const initialized = useMailboxStore((s) => s.initialized)
@@ -45,16 +44,12 @@ export function useMailboxWorkspace() {
   const [searchDraft, setSearchDraft] = useState('')
   const [searchParams, setSearchParams] = useSearchParams()
 
-  /**
-   * Google redirects back here with a `?gmail=` flag. It is reported once and then
-   * stripped, so a refresh does not replay the toast.
-   */
+  /** Reported once then stripped, so a refresh doesn't replay the toast. */
   const callbackFlag = searchParams.get(MAILBOX_CALLBACK_PARAM)
   const reportedCallbackFlag = useRef<string | null>(null)
   useEffect(() => {
     if (!callbackFlag) return
-    // The param is only stripped on the next render, so a re-run (StrictMode's
-    // double mount included) would otherwise fire the same toast twice.
+    // Param strips on the next render; guards StrictMode double-run.
     if (reportedCallbackFlag.current === callbackFlag) return
     reportedCallbackFlag.current = callbackFlag
 
@@ -84,7 +79,7 @@ export function useMailboxWorkspace() {
       toast.error(useMailboxStore.getState().error ?? 'Could not start Google sign-in')
       return
     }
-    // Full navigation, not a router push — consent happens on Google's own origin.
+    // Full navigation: consent happens on Google's origin.
     window.location.assign(authorizeUrl)
   }
 

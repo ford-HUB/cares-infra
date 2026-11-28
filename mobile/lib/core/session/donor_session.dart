@@ -1,4 +1,3 @@
-/// The signed-in donor for the current app run.
 class DonorSessionUser {
   DonorSessionUser({
     required this.firstName,
@@ -11,8 +10,7 @@ class DonorSessionUser {
     this.avatarUrl,
   });
 
-  /// The CARES `user_id`. Null only for the local prototype paths that still create a
-  /// donor without a server account.
+  /// Null only on local prototype paths with no server account.
   final String? userId;
   final String firstName;
   final String middleName;
@@ -34,7 +32,7 @@ class DonorSessionUser {
   }
 }
 
-/// In-memory donor session, cleared when the app restarts.
+/// In-memory; cleared on restart.
 class DonorSession {
   DonorSession._();
 

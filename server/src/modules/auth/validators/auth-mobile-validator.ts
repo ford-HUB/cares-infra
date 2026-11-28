@@ -6,11 +6,7 @@ import {
   RoleType,
 } from '../../../infastructures/prisma/common/client';
 
-/**
- * The barangays UCLM CARES has adopted as partner communities — the only values a
- * partner-barangay volunteer can sign up through. Kept in step with the mobile
- * app's `PartnerBarangays.names` and the site's `LANDING_PARTNER_BARANGAYS`.
- */
+/** Must match mobile `PartnerBarangays.names` and site `LANDING_PARTNER_BARANGAYS`. */
 export const PARTNER_BARANGAYS = [
   'Barangay Looc',
   'Barangay Opao',
@@ -39,7 +35,7 @@ export const CreateUserSchema = z
 
     school_info: z.object({
       id_number: z.string().trim().min(1),
-      // Scan of the presented school ID; absent for ID-less roles.
+      // Absent for ID-less roles.
       school_id_url: z.string().trim().url().optional(),
       graduation_year: z.number().int().min(1900).max(3000),
       graduation_month: z.number().int().min(1).max(12),
@@ -55,8 +51,7 @@ export const CreateUserSchema = z
       }),
     }),
 
-    // Absent for beneficiaries: they register without an ID or a face scan, so
-    // there is nothing to enrol.
+    // Absent for beneficiaries (no ID or face scan).
     biometric: z
       .object({
         face_url: z.string().trim().url(),
@@ -74,11 +69,7 @@ export const RegistrationIdSchema = z
   })
   .strict();
 
-/**
- * `volunteerType: 'STAFF'` makes the OCR service read the card as a staff /
- * faculty ID (employee number after "ID NO.", "SURNAME, FIRST M." name).
- * Left out for every other registration.
- */
+/** `volunteerType: 'STAFF'` reads a staff/faculty ID ("ID NO." number, "SURNAME, FIRST M." name). */
 export const ExtractIdSchema = z
   .object({
     registrationId: z.uuid(),
@@ -97,10 +88,9 @@ export const RegisterFromSessionSchema = CreateUserSchema.omit({
 })
   .extend({
     registrationId: z.uuid(),
-    // Partner-barangay sessions only: the partner barangay the volunteer picked.
-    // Only accepted here, on the reviewed sign-up — never on direct `register`.
+    // Partner-barangay sessions only; never accepted on direct `register`.
     partner_barangay: z.enum(PARTNER_BARANGAYS).optional(),
-    // The ID scan is the one uploaded to the session, never a client-supplied URL.
+    // The ID scan comes from the session, never the client.
     school_info: CreateUserSchema.shape.school_info.omit({
       school_id_url: true,
     }),
@@ -110,15 +100,12 @@ export const RegisterFromSessionSchema = CreateUserSchema.omit({
 export const SendVerificationSchema = z
   .object({
     email: z.string().trim().email(),
-    // Optional so the availability check runs before a code is ever mailed —
-    // a taken phone number or ID number is caught on the form, not after OTP.
+    // Optional so availability is checked before any code is mailed.
     phone_number: PhoneNumberSchema.optional(),
     id_number: z.string().trim().min(1).optional(),
-    // `login` mails a code to an existing account that signed up without finishing
-    // the OTP, so its next sign-in can prove the address instead of being refused.
+    // `login`: code for an existing unverified account so it can sign in.
     purpose: z.enum(['registration', 'login']).default('registration'),
-    // Set by the OTP screen's resend button so a fresh code is mailed even while
-    // the previous one is still live; without it a live code is reused.
+    // Forces a fresh code; otherwise a live code is reused.
     resend: z.boolean().optional(),
   })
   .strict();
@@ -166,7 +153,7 @@ export const ResetPasswordSchema = z
       .trim()
       .email()
       .transform((value) => value.toLowerCase()),
-    /** Handed out by `verify-reset-otp`; the OTP itself is never replayed here. */
+    /** From `verify-reset-otp`; the OTP is never replayed here. */
     resetToken: z.uuid(),
     newPassword: z.string().min(8),
   })
@@ -193,20 +180,16 @@ export const RegistrationStepSchema = z.enum([
 export const RegisterUserResponseSchema = z.object({
   user_id: z.string(),
   account_id: z.string(),
-  // Null for a beneficiary — no face is enrolled on an ID-less registration.
+  // Null for beneficiaries (no face enrolled).
   user_biometric_id: z.string().nullable(),
-  // True for a self-registered beneficiary: the account cannot sign in until a
-  // director accepts its registration request.
+  // Self-registered beneficiaries can't sign in until approved.
   requires_approval: z.boolean(),
 });
 
-/** The supporting document a beneficiary attaches; any file type is accepted. */
+/** Any file type. */
 export const REGISTRATION_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 
-/**
- * The volunteer sign-ups that can fall back to manual registration — every one
- * of them: a blurry or unreadable ID never has to be a dead end.
- */
+/** Every volunteer sign-up can fall back to manual. */
 export const ManualVolunteerTypeSchema = z.enum([
   'STUDENT',
   'STAFF',
@@ -230,11 +213,7 @@ export const LoginResponseSchema = z.object({
   firstname: z.string(),
   has_interests: z.boolean(),
   access_token: z.string(),
-  /**
-   * Sides of the account opened besides `role_type` without a role-access
-   * request — a student beneficiary's Volunteer side, since they already passed
-   * the school-ID and face check at sign-up.
-   */
+  /** Extra sides opened without a role-access request (e.g. a student beneficiary's Volunteer side). */
   unlocked_roles: z.array(z.enum(RoleType)),
 });
 

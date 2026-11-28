@@ -17,26 +17,16 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Certificate Module', unit: 'Deploy Certificate', prefix: 'CERT-DEPLOY' });
 
-/**
- * Shared by every spec in this folder — Deploy on the portal's Manage Certificate module:
- *   POST /api/v1/certificate-deployments  (deploy: DeployCertificateSchema)
- *
- * `@Roles` and `@RequirePermission` are not exercised: the global guards are out of
- * scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const DEPLOYMENTS_PATH = '/api/v1/certificate-deployments';
 export const CALLER = { sub: 'caller-user-id', role_type: RoleType.DIRECTOR };
 
 export const VALID_TEMPLATE_ID = 'b3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 export const VALID_DEPLOY = { certificate_template_id: VALID_TEMPLATE_ID, event_id: 5 };
 
-/** The largest value the `Int` column behind `event_id` can hold. */
+/** Postgres `Int` max, the column behind `event_id`. */
 export const EVENT_ID_MAX = 2147483647;
 
-/** A template's stored design, which a deployment copies as it reads at deploy time. */
+/** Template design a deployment snapshots at deploy time. */
 export const STORED_DESIGN = {
   accent: 'rose',
   frame: 'plain',
@@ -98,11 +88,7 @@ export const DEPLOYMENT_RESPONSE = {
   deployed_by: 'Ada Lovelace',
 };
 
-/**
- * Boots `CertificateDeploymentsSiteController` with a mocked service for the enclosing
- * `describe`. The handler reads the caller, so a stand-in for the global JWT guard puts
- * `CALLER` on the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (the handler reads it); `app` is assigned in `beforeAll`. */
 export const useDeploymentsApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -134,10 +120,7 @@ export const useDeploymentsApp = () => {
   return ctx;
 };
 
-/**
- * Body fixtures through both layers. A FAIL must come back in the validation envelope
- * without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeDeployTable = (ctx: ReturnType<typeof useDeploymentsApp>, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {

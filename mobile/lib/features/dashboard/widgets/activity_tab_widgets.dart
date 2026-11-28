@@ -5,12 +5,7 @@ import 'package:mobile/features/dashboard/domain/volunteer_activity.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Building blocks of the Activity tab — the All / Registered / Completed
-/// chip row, the titled sections and their cards — shared by the volunteer
-/// and beneficiary tabs so both read as the same page.
-
-/// Which slice of the page is showing. `all` stacks every section; the
-/// rest show just theirs so a tap on "Registered" is only joined events.
+/// `all` stacks every section; the rest show just theirs.
 enum ActivityGroup { all, registered, completed }
 
 extension on ActivityGroup {
@@ -27,8 +22,7 @@ extension on ActivityGroup {
   };
 }
 
-/// Card-shaped placeholder while the first registration list is on its way,
-/// so the empty state does not flash before the server answers.
+/// So the empty state doesn't flash before the server answers.
 class ActivityLoadingState extends StatelessWidget {
   const ActivityLoadingState({super.key});
 
@@ -51,10 +45,8 @@ class ActivityLoadingState extends StatelessWidget {
   }
 }
 
-/// Deep green header band of every dashboard tab (Activity, Requests,
-/// Ranks, Drives, Profile): white title + subtitle over an optional
-/// [bottom] — a row of [HeaderFilterChip]s, a search field, or the
-/// profile's identity row.
+/// Shared header band of every dashboard tab; [bottom] holds chips, a search
+/// field or the identity row.
 class DeepTabHeader extends StatelessWidget {
   const DeepTabHeader({
     super.key,
@@ -65,7 +57,6 @@ class DeepTabHeader extends StatelessWidget {
 
   final String title;
 
-  /// Optional line under the title; omitted, the band shows the title alone.
   final String? subtitle;
   final Widget? bottom;
 
@@ -113,8 +104,6 @@ class DeepTabHeader extends StatelessWidget {
   }
 }
 
-/// The Activity tab's header: [DeepTabHeader] over the All / Registered /
-/// Completed chip row.
 class ActivityHeader extends StatelessWidget {
   const ActivityHeader({
     super.key,
@@ -139,8 +128,6 @@ class ActivityHeader extends StatelessWidget {
   }
 }
 
-/// Section heading — a plain outlined green icon, a thin vertical rule, then
-/// the title and its one-line ink hint — over the section's cards.
 class ActivitySection extends StatelessWidget {
   const ActivitySection({
     super.key,
@@ -156,7 +143,6 @@ class ActivitySection extends StatelessWidget {
   final String subtitle;
   final List<Widget> children;
 
-  /// Optional action at the heading's right edge, e.g. a "See all" link.
   final Widget? trailing;
 
   @override
@@ -211,15 +197,12 @@ class ActivitySection extends StatelessWidget {
   }
 }
 
-/// Icon accents used across the activity page.
 const _kHoursColor = Color(0xFF1976D2);
 const _kPointsColor = Color(0xFFF9A825);
 const _kDateColor = Color(0xFF5C6BC0);
 const _kLocationColor = Color(0xFFE65100);
 
-/// Group chip row on the deep header band. "All" hugs its label; the other
-/// two share the remaining width. The selected chip is a deeper green pill
-/// with a white hairline, the rest are white pills.
+/// "All" hugs its label; the other two share the remaining width.
 class ActivityGroupPanel extends StatelessWidget {
   const ActivityGroupPanel({
     super.key,
@@ -251,9 +234,7 @@ class ActivityGroupPanel extends StatelessWidget {
   }
 }
 
-/// White pill chip on a deep header band — tinted icon + label; the
-/// selected one is a deeper green pill with a white hairline. A non-null
-/// [count] shows as a small badge after the label.
+/// A non-null [count] shows as a badge after the label.
 class HeaderFilterChip extends StatelessWidget {
   const HeaderFilterChip({
     super.key,
@@ -313,9 +294,8 @@ class HeaderFilterChip extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 16, 0),
-            // Center loosens the chip's fixed height so an unflexed chip
-            // hugs its label instead of the FittedBox stretching to the
-            // 42pt height's aspect ratio.
+            // Center loosens the fixed height so an unflexed chip hugs its
+            // label instead of the FittedBox stretching.
             child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -347,8 +327,6 @@ class HeaderFilterChip extends StatelessWidget {
   }
 }
 
-/// Count pill inside a [HeaderFilterChip]: deep green on a white chip,
-/// white on the selected green chip.
 class _CountBadge extends StatelessWidget {
   const _CountBadge({required this.count, required this.onSelected});
 
@@ -380,13 +358,8 @@ class _CountBadge extends StatelessWidget {
   }
 }
 
-/// What sits behind the empty state's icon: a soft organic blob, or a
-/// rounded pale-green tile.
 enum ActivityEmptyBackdrop { blob, tile }
 
-/// Placeholder card shown under a section that has nothing to list yet:
-/// white ground card with the pale corner wave, the icon on its backdrop,
-/// a bold title and one centred ink line.
 class ActivityEmptyState extends StatelessWidget {
   const ActivityEmptyState({
     super.key,
@@ -457,8 +430,6 @@ class ActivityEmptyState extends StatelessWidget {
   }
 }
 
-/// Pale green organic swell behind the empty-state icon, leaning to the
-/// right as in the reference.
 class _EmptyBlobPainter extends CustomPainter {
   const _EmptyBlobPainter();
 

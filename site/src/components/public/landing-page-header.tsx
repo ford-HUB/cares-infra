@@ -3,15 +3,12 @@ import { LandingBannerTitle } from './ui/landing-banner-title'
 
 interface LandingPageHeaderProps {
   title: string
-  /** Closing words of the title, set in gold italic. */
   accent?: string
   description: string
-  /** Photos that fade in from either side, with hills along the bottom edge. */
   photos?: {
     readonly left: string
     readonly right: string
-    /** Where each photo is cropped from (CSS object-position), for a photo whose faces
-     *  would fall outside the banner's wide strip if it were cropped from the middle. */
+    /** CSS object-position, for photos whose faces would fall outside a centre crop. */
     readonly leftPosition?: string
     readonly rightPosition?: string
   }
@@ -22,7 +19,6 @@ interface LandingPageHeaderProps {
 const PHOTO =
   'pointer-events-none absolute inset-y-0 h-full w-1/2 object-cover opacity-25 sm:w-2/5 sm:opacity-60'
 
-/** Green banner that opens each section after Home on the public page. */
 export function LandingPageHeader({
   title,
   accent,

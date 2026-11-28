@@ -8,16 +8,11 @@ import { RankingTableSkeleton } from './ranking-table-skeleton'
 interface RankingTableShellProps {
   columns: readonly { key: string; label: string; width: string }[]
   loading: boolean
-  /** True once rows exist — an empty board after loading is the empty state. */
   isEmpty: boolean
   emptyMessage: string
   children: ReactNode
 }
 
-/**
- * Table chrome shared by both boards: the rank gutter, the sticky header built from
- * the board's own columns, and the loading/empty states.
- */
 export function RankingTableShell({
   columns,
   loading,

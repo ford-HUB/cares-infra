@@ -4,15 +4,7 @@ import type {
   CertificateFontId,
 } from '../types/certificate-template'
 
-/**
- * The faces a director can print a certificate in. Every one is a Google Fonts family
- * (open licence, loaded by the `@import` at the top of `index.css`), so nothing here
- * depends on what happens to be installed on the machine doing the printing — the
- * local name in each stack is only a fallback for a blocked network.
- *
- * `default` is not a face: it means "leave the typography to the frame preset", which
- * is how every existing template already reads.
- */
+/** Google Fonts faces (`@import` in index.css); `default` defers to the frame preset. */
 export const CERTIFICATE_FONT_ORDER: CertificateFontId[] = [
   'default',
   'old_english',
@@ -34,11 +26,9 @@ export const CERTIFICATE_FONT_ORDER: CertificateFontId[] = [
 
 export interface CertificateFontPreset {
   label: string
-  /** Grouping shown in the picker, so the blackletter faces sit together. */
   group: 'Default' | 'Blackletter' | 'Serif' | 'Script' | 'Sans'
-  /** What it is good for, one line. */
   note: string
-  /** CSS `font-family`; `null` for `default`, which keeps the frame's own classes. */
+  /** `null` for `default`: keep the frame's classes. */
   stack: string | null
 }
 
@@ -142,7 +132,6 @@ export const CERTIFICATE_FONT_PRESETS: Record<CertificateFontId, CertificateFont
     },
   }
 
-/** The picker renders in groups, so a director scans faces of one kind together. */
 export const CERTIFICATE_FONT_GROUP_ORDER: CertificateFontPreset['group'][] = [
   'Default',
   'Blackletter',
@@ -153,10 +142,7 @@ export const CERTIFICATE_FONT_GROUP_ORDER: CertificateFontPreset['group'][] = [
 
 export const DEFAULT_CERTIFICATE_FONT: CertificateFontId = 'default'
 
-/**
- * Which face a block ends up in: its own override first, then the sheet font, and
- * `default` at either level falls through to the frame preset's classes.
- */
+/** Element override, then sheet font; `default` falls through to the frame preset. */
 export function resolveElementFont(
   design: CertificateDesign,
   id: CertificateElementId,
@@ -166,7 +152,6 @@ export function resolveElementFont(
   return design.font ?? DEFAULT_CERTIFICATE_FONT
 }
 
-/** The inline `font-family` for a block, or `undefined` to leave the frame's classes alone. */
 export function elementFontStyle(
   design: CertificateDesign,
   id: CertificateElementId,

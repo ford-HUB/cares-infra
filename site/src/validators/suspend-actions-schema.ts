@@ -13,7 +13,7 @@ export const suspendActionsSchema = z.object({
       SUSPENSION_REASON_MAX,
       `Reason must not exceed ${SUSPENSION_REASON_MAX} characters`,
     ),
-  /** Days until the suspension lapses; `0` means it stays until an admin lifts it. */
+  /** `0` means until an admin lifts it. */
   durationDays: z.number().int().min(0),
 })
 

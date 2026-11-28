@@ -19,28 +19,16 @@ def _normalise(text: str) -> str:
 
 
 class NlpEngine:
-    """
-    Sentence-embedding matcher between event copy and the interest catalog.
+    """Best cosine vs. short per-interest prototypes (a keyword blob embeds to a blur), blended with lexicon hits.
 
-    Each interest becomes a small set of prototype sentences — "Health: Medical
-    missions and wellness drives", the example blurbs in INTEREST_PROTOTYPES, then
-    one per lexicon term ("Health: blood donation") — and its semantic score is the
-    best cosine against any of them.
-    One long sentence stuffed with every keyword embeds to a blur that matches
-    nothing well; short focused prototypes keep each facet sharp. Each event becomes
-    `title. title. description`; the title is repeated because it is the strongest
-    signal and would otherwise be drowned by a long description. The semantic score
-    is then blended with a lexical hit rate so that local vocabulary the model does
-    not know still counts, but never below the raw cosine — a clear semantic match
-    with no keyword hits must still pass.
+    Event text repeats the title (strongest signal); the blend never drops below the raw cosine.
     """
 
     def __init__(self) -> None:
         self.model = None
         self.model_loaded = False
         self._lock = threading.Lock()
-        # Interest prototypes rarely change between calls; keyed by their text.
-        # Value: (embeddings, owner index per row) so rows map back to interests.
+        # Keyed by prototype texts; value: (embeddings, owner interest index per row).
         self._prototype_cache: dict[tuple[str, ...], tuple[np.ndarray, np.ndarray]] = {}
 
     def load(self) -> None:
@@ -50,8 +38,6 @@ class NlpEngine:
         self.model = SentenceTransformer(settings.model_name, device="cpu")
         self.model_loaded = True
         logger.info("Sentence model ready")
-
-    # ---- prototypes ---------------------------------------------------------
 
     @staticmethod
     def _prototype_texts(interest: MatchInterest) -> list[str]:
@@ -97,8 +83,6 @@ class NlpEngine:
             self._prototype_cache[key] = entry
         return entry
 
-    # ---- scoring ------------------------------------------------------------
-
     @staticmethod
     def _lexical_score(event_text: str, code: str) -> float:
         """Share of an interest's vocabulary present in the event, saturating at 3 hits."""
@@ -120,8 +104,7 @@ class NlpEngine:
         event_texts = [f"{e.title}. {e.title}. {e.description}".strip() for e in events]
         event_vectors = self._embed(event_texts)
 
-        # Both sides are unit vectors, so the dot product is the cosine similarity.
-        # Reduce prototype rows to one column per interest by taking the best one.
+        # Unit vectors: dot = cosine. Keep the best prototype per interest.
         per_prototype = event_vectors @ prototype_vectors.T
         similarity = np.full((len(events), len(interests)), -1.0)
         for col in range(len(interests)):

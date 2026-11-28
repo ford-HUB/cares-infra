@@ -14,18 +14,9 @@ import type { PaymentMethodVerificationWrite } from '../repositories/payments-re
 import { checkPaymentAccount } from '../validators/payment-account-validator';
 
 /**
- * What switching a payment method on actually does with the gateway.
- *
- * Xendit does not let an API call *sign CARES up* for GCash: a channel is activated
- * by Xendit for the merchant after their own onboarding. What can be done from here,
- * and what this service does, is the rest of it:
- *
- *   1. ask Xendit which channels the account has activated, and
- *   2. point the callback URLs for that channel at our webhook,
- *
- * then record the verdict on the channel so the portal can say "active", "waiting" or
- * exactly what the gateway refused. Until an account is connected, step 1 has nothing
- * to ask, so the channel is parked at PENDING and the same check re-runs later.
+ * Xendit activates channels after merchant onboarding, not via API. This checks which
+ * channels are active and points their callbacks at our webhook, then records the verdict.
+ * With no account connected, the channel stays PENDING and is re-checked later.
  */
 @Injectable()
 export class PaymentActivationService {
@@ -33,7 +24,6 @@ export class PaymentActivationService {
 
   constructor(private readonly xendit: XenditService) {}
 
-  /** The verdict for one channel, ready to be written onto its row. */
   async verify(
     method: DonationPaymentMethod,
     credentials: XenditCredentials | null,
@@ -42,15 +32,13 @@ export class PaymentActivationService {
       accountNumber: string | null;
       accountName: string | null;
       channelCodes: readonly string[];
-      /** Whether the test payout proved CARES holds this account. */
+      /** Whether the test payout proved ownership. */
       proven?: boolean;
     } = { accountNumber: null, accountName: null, channelCodes: [] },
   ): Promise<PaymentMethodVerificationWrite> {
     const descriptor = paymentMethodDescriptor(method);
 
-    // The account CARES will be paid into is checked first, and without the gateway:
-    // a channel pointing at a mistyped number is wrong however healthy Xendit is, and
-    // the director should hear about the typo rather than about the gateway.
+    // Check the account locally first: a typo is wrong regardless of the gateway.
     const accountCheck = checkPaymentAccount(
       method,
       account,
@@ -65,9 +53,7 @@ export class PaymentActivationService {
       };
     }
 
-    // Ownership is proven by a payout, not by the channel being live: a channel Xendit
-    // has activated still must not be called "Active" while CARES cannot show the
-    // account it pays into is its own.
+    // Not "Active" until ownership is proven by a payout.
     if (descriptor.collectsAccount && !account.proven) {
       return {
         verification: PaymentMethodVerification.PENDING,
@@ -87,10 +73,7 @@ export class PaymentActivationService {
       };
     }
 
-    // Done first, and regardless of what the channel list says: the callbacks are
-    // ours to set, and a channel Xendit cannot report on still has to be able to
-    // report its payments. Best effort — an account that only allows callbacks to be
-    // set in the dashboard must not hold a channel back.
+    // Always register callbacks; best effort, since some accounts only allow dashboard setup.
     const callbacks = await this.registerCallbacks(
       descriptor.callbackTypes,
       credentials,
@@ -115,10 +98,7 @@ export class PaymentActivationService {
       };
     }
 
-    // An empty list is Xendit saying nothing, not saying no — test accounts routinely
-    // report no channels while sandbox charges work perfectly. Claiming the channel is
-    // dead on that basis would make the screen unusable in development, so it reads as
-    // "could not confirm" and the first real donation is what proves it.
+    // Empty list is unknown, not no (sandbox accounts often report none).
     if (channels.length === 0) {
       return {
         verification: PaymentMethodVerification.PENDING,
@@ -136,8 +116,7 @@ export class PaymentActivationService {
       byCode.get(code),
     );
 
-    // The account reported its channels and this one is not among the live ones —
-    // that is a real no, and only Xendit can change it.
+    // A real no; only Xendit can change it.
     if (activated.length === 0) {
       return {
         verification: PaymentMethodVerification.FAILED,

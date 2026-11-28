@@ -30,10 +30,7 @@ import type { LoginResponseDto } from '../dto/auth-mobile-dto';
 import { ResponseMessage } from 'src/shared/decorators/response-message-decorator';
 import { Public } from 'src/shared/decorators/public-decorator';
 
-/**
- * Passport hangs the verified identity on `req.user`. It is a provider profile, not a
- * CARES identity — no session exists yet — so it deliberately shadows Express' `user`.
- */
+/** A provider profile, not a CARES identity; shadows Express' `user`. */
 type DonorOAuthRequest = Omit<Request, 'user'> & {
   user?: OAuthIdentityProfile;
 };
@@ -42,13 +39,7 @@ type DonorOAuthRequest = Omit<Request, 'user'> & {
 export class AuthDonorController {
   constructor(private readonly authDonorService: AuthDonorService) {}
 
-  /**
-   * Exchanges a Google ID token or Facebook access token for either a CARES session
-   * (known donor) or a one-shot ticket the registration call below spends.
-   *
-   * `DonorOAuthGuard` has already run the strategy the posted `provider` names, so the
-   * token itself never reaches the service — only the identity it proved.
-   */
+  /** Returns a session (known donor) or a one-shot ticket for `register`. The guard already verified the token. */
   @Post('oauth')
   @Public()
   @UseGuards(DonorOAuthGuard)
@@ -90,11 +81,7 @@ export class AuthDonorController {
     );
   }
 
-  /**
-   * Email + password donor sign-up. The address must have passed the shared OTP check
-   * first — the client sends the code via `POST /v1/auth/send-verification` and
-   * confirms it via `POST /v1/auth/verify-otp` before calling this.
-   */
+  /** Requires the OTP via `send-verification` + `verify-otp` first. */
   @Post('register-email')
   @Public()
   @ResponseMessage('Donor account created')

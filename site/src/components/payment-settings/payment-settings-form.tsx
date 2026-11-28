@@ -16,13 +16,13 @@ interface PaymentSettingsFormProps {
   settings: PaymentSettingsDetail
   onSubmit: () => void
   onReset: () => void
-  /** The switch on a card — on asks for confirmation first, off is immediate. */
+  /** Turning on asks for confirmation; off is immediate. */
   onToggleMethod: (method: PaymentMethodKey, next: boolean) => void
   confirming: PaymentMethodKey | null
   onCancelConfirm: () => void
   onConfirmMethod: () => void
   onVerifyMethod: (method: PaymentMethodKey) => void
-  /** Saves the form from inside the dialog, before a payout is sent to the account. */
+  /** Saves before a payout is sent to the account. */
   onSaveDetails: () => void
   onSendAccountProof: (method: PaymentMethodKey) => void
   onConfirmAccount: (method: PaymentMethodKey, amount: number) => void
@@ -30,12 +30,7 @@ interface PaymentSettingsFormProps {
   saving: boolean
 }
 
-/**
- * The screen answers one question — which payment methods can donors use right now —
- * so the count of live methods leads, and the four channel cards are the page's real
- * content. The gateway credentials are deliberately not here: connecting the Xendit
- * account is its own job, and this screen is about what CARES offers.
- */
+/** Gateway credentials are deliberately not here; connecting Xendit is a separate job. */
 export function PaymentSettingsForm({
   form,
   settings,
@@ -98,7 +93,6 @@ export function PaymentSettingsForm({
 
           <div className="hidden w-px self-stretch bg-gray-100 lg:block" />
 
-          {/* The bar is the four channels: how much of what CARES could offer it does. */}
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-gray-100">
               {methods.map((method) => (

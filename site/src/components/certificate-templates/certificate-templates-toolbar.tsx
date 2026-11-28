@@ -19,15 +19,14 @@ interface CertificateTemplatesToolbarProps {
   view: TemplateViewMode
   shown: number
   total: number
-  /** False until the first fetch settles, so the count doesn't flash "0 of 0". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onStatusChange: (value: TemplateStatusFilter) => void
   onCategoryChange: (value: TemplateCategoryFilter) => void
   onViewChange: (value: TemplateViewMode) => void
-  /** Omitted when the account lacks the manage right — the button is not drawn. */
+  /** Omitted without the manage right. */
   onCreate?: () => void
-  /** Set when the manage right is suspended — the button is drawn locked instead. */
+  /** Set when the manage right is suspended; draws the button locked. */
   createSuspension?: SessionSuspension
 }
 
@@ -102,7 +101,6 @@ export function CertificateTemplatesToolbar({
           ))}
         </select>
 
-        {/* One choice of two, so a toggle group rather than two ad-hoc buttons. */}
         <ToggleGroup
           type="single"
           value={view}

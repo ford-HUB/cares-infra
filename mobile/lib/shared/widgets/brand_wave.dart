@@ -3,14 +3,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 
 enum _WaveStyle { heroEdge, footer }
 
-/// The flowing green wave from the login reference.
-///
-/// * [BrandWave.heroEdge] closes the bottom of a photo hero: a soft white wash,
-///   a lime crest, then the page's white ground sweeping up to the right.
-/// * [BrandWave.footer] anchors the bottom of a white page with layered green
-///   bands rising the same way.
-///
-/// Both are pure paint — place them with `Positioned` behind content.
+/// Pure paint; place with `Positioned` behind content.
 class BrandWave extends StatelessWidget {
   const BrandWave.heroEdge({
     super.key,
@@ -48,7 +41,6 @@ class _BrandWavePainter extends CustomPainter {
   final _WaveStyle style;
   final Color ground;
 
-  /// A wave that dips a little at the left third, then climbs to the right.
   Path _wave(Size size, double left, double dip, double rise, double right) {
     final w = size.width;
     final h = size.height;
@@ -101,7 +93,6 @@ class _BrandWavePainter extends CustomPainter {
               colors: [AppColors.primary, AppColors.primaryDark],
             ).createShader(rect),
         );
-        // Thin white crest line along the front band's top edge.
         final w = size.width;
         final h = size.height;
         canvas.drawPath(

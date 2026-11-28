@@ -10,26 +10,20 @@ import 'package:mobile/shared/widgets/gradient_button.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Share of the screen the sheet opens at.
 const double _sheetInitialSize = 0.7;
 
-/// Share of the screen the sheet expands to — the whole screen.
 const double _sheetMaxSize = 1.0;
 
 /// Dragged down to this share, the modal closes.
 const double _sheetMinSize = 0.4;
 
-/// Released below this share (from the header), the sheet closes instead of
-/// settling back at [_sheetInitialSize].
+/// Released below this from the header, it closes instead of settling back.
 const double _sheetCloseBelow = 0.55;
 
-/// Corner radius of the sheet while it is not full screen.
 const double _sheetRadius = 26;
 
-/// Opens the release history read from GitHub Releases, newest first. The
-/// sheet slides up to 70% of the screen. Scrolling the notes (or dragging the
-/// header up) expands it to full screen; scrolling back to the top and
-/// pulling down shrinks it again, and pulling past 70% closes it.
+/// Scrolling the notes or dragging the header expands to full screen; pulling
+/// below 70% closes it.
 Future<void> showReleaseNotesSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -54,8 +48,7 @@ class _ReleaseNotesSheet extends ConsumerStatefulWidget {
 class _ReleaseNotesSheetState extends ConsumerState<_ReleaseNotesSheet> {
   final _sheet = DraggableScrollableController();
 
-  /// Current sheet size as a share of the screen, driving the status-bar
-  /// inset and corner radius as the sheet reaches the top.
+  /// Drives the status-bar inset and corner radius.
   final _extent = ValueNotifier<double>(_sheetInitialSize);
 
   @override
@@ -185,8 +178,6 @@ class _ReleaseNotesSheetState extends ConsumerState<_ReleaseNotesSheet> {
       },
     );
 
-    // Pinned header — dragging it moves the sheet: up to full screen, down
-    // to 70% and then closed.
     final header = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onVerticalDragUpdate: (d) => _onHeaderDrag(d, screenHeight),
@@ -249,8 +240,7 @@ class _ReleaseNotesSheetState extends ConsumerState<_ReleaseNotesSheet> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  // Always scrollable so a short list (loading, empty)
-                  // still drives the sheet up and down.
+                  // Always scrollable so a short list still drives the sheet.
                   physics: const BouncingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics(),
                   ),
@@ -274,8 +264,7 @@ class _ReleaseNotesSheetState extends ConsumerState<_ReleaseNotesSheet> {
             valueListenable: _extent,
             child: body,
             builder: (context, extent, child) {
-              // How far the sheet's top has slid under the status bar:
-              // 0 while clear of it, 1 once full screen.
+              // 0 while clear of the status bar, 1 at full screen.
               final gap = screenHeight * (1 - extent);
               final under = topInset <= 0
                   ? (extent >= _sheetMaxSize ? 1.0 : 0.0)
@@ -308,7 +297,6 @@ class _ReleaseNotesSheetState extends ConsumerState<_ReleaseNotesSheet> {
   }
 }
 
-/// Fades and lifts a release card in, one after another, once the sheet is up.
 class _Entrance extends StatelessWidget {
   const _Entrance({required this.index, required this.child});
 
@@ -372,8 +360,7 @@ class _Handle extends StatelessWidget {
   }
 }
 
-/// "Update to vX" with download progress, reusing the splash's installer
-/// flow through [appUpdateProvider].
+/// Reuses the splash's installer flow via [appUpdateProvider].
 class _UpdateAction extends ConsumerWidget {
   const _UpdateAction({required this.release});
 

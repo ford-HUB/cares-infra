@@ -10,11 +10,9 @@ import 'package:mobile/features/dashboard/screens/event_details_screen.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 import 'package:mobile/features/dashboard/widgets/completed_event_widgets.dart';
 
-/// Beneficiary activity — the volunteer tab's layout (All / Registered /
-/// Completed chips over two sections) fed by the events this beneficiary
-/// applied for: `GET /events/beneficiary` for the ones still ahead and
-/// `GET /events/beneficiary/completed` for the ones that ran. Nothing of the
-/// volunteer's registrations, feedback or certificates reaches this page.
+/// Fed by `GET /events/beneficiary` (ahead) and
+/// `GET /events/beneficiary/completed`; no volunteer registrations, feedback or
+/// certificates.
 class BeneficiaryActivityTab extends ConsumerStatefulWidget {
   const BeneficiaryActivityTab({super.key});
 
@@ -54,8 +52,8 @@ class _BeneficiaryActivityTabState
   void _open(CaresEvent event) =>
       EventDetailsScreen.open(context, event, readOnly: true);
 
-  /// Only events the beneficiary has applied for — the feeds carry every
-  /// event open to beneficiaries, with `application_status` null on the rest.
+  /// The feeds carry every beneficiary event; `application_status` is null
+  /// where not applied.
   AsyncValue<List<RecommendedEvent>> _applied(
     AsyncValue<List<RecommendedEvent>> value,
   ) => value.whenData(
@@ -159,8 +157,6 @@ class _BeneficiaryActivityTabState
   }
 }
 
-/// One section's contents across the fetch's states: the loading card, the
-/// error card with retry, the empty card, or the built list.
 class _Body extends StatelessWidget {
   const _Body({
     required this.value,

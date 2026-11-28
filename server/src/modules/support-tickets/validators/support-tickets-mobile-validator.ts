@@ -7,7 +7,7 @@ import {
   SupportTicketType,
 } from '../../../infastructures/prisma/common/client';
 
-/** The app's role switcher is local, so every mobile side files into one queue. */
+/** The role switcher is local, so every mobile side shares one queue. */
 export const MOBILE_SUPPORT_TICKET_ROLE_TYPES = [
   RoleType.VOLUNTEER,
   RoleType.DONOR,
@@ -18,10 +18,7 @@ export const SUPPORT_TICKET_SUBJECT_MAX = 120;
 export const SUPPORT_TICKET_DESCRIPTION_MAX = 4000;
 export const SUPPORT_TICKET_REPLY_MAX = 2000;
 
-/**
- * Priority is not accepted from the app: the portal triages by three buckets and
- * the bucket follows from the type, so the mapping lives in the service.
- */
+/** No priority from the app: it follows from the type. */
 export const CreateSupportTicketSchema = z
   .object({
     subject: z.string().trim().min(1).max(SUPPORT_TICKET_SUBJECT_MAX),
@@ -38,10 +35,7 @@ export const RequesterReplySchema = z
   .object({ body: z.string().trim().min(1).max(SUPPORT_TICKET_REPLY_MAX) })
   .strict();
 
-/**
- * Answer to "did the fix work?" on a ticket under verification. A "no" needs a
- * word from the requester so the thread says what is still wrong.
- */
+/** A "no" requires a note. */
 export const ConfirmSupportTicketFixSchema = z
   .object({
     fixed: z.boolean(),
@@ -61,7 +55,7 @@ export const MobileSupportTicketReplySchema = z.object({
   created_at: z.iso.datetime(),
 });
 
-/** The requester's view: no requester block (it is them) and no assignee id. */
+/** No requester block or assignee id. */
 export const MobileSupportTicketSchema = z.object({
   support_ticket_id: z.string(),
   reference_number: z.number(),

@@ -19,19 +19,9 @@ import 'package:mobile/features/dashboard/widgets/events_page_widgets.dart';
 import 'package:mobile/features/interests/presentation/widgets/interest_selection_dialog.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// Browse and search events: a centred "For You" title, a search pill, quick
-/// date chips (Today / Tomorrow / This Week / This Month), then the "Events"
-/// list of tall poster cards. One 20px gutter
-/// lines every block up; the chip row bleeds to the screen edge but starts
-/// on that same gutter.
-///
-/// Volunteers see the events the server matched to their interests (title and
-/// description read by nlp-service), so the list is empty until something
-/// fits what they picked. Events the volunteer has already registered for
-/// drop out of this list — they live on the Activity tab instead. With
-/// [forBeneficiary] the list is every open event an operator flagged as
-/// applicable to beneficiaries, read from `GET /events/beneficiary`; cards
-/// open read-only since beneficiaries do not register.
+/// Volunteers see server interest matches (nlp-service), minus events already
+/// registered (those live on Activity). With [forBeneficiary], every
+/// beneficiary-flagged event from `GET /events/beneficiary`, opened read-only.
 class EventsTabScreen extends ConsumerStatefulWidget {
   const EventsTabScreen({super.key, this.forBeneficiary = false});
 
@@ -59,8 +49,7 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
   void initState() {
     super.initState();
     _searchFocusNode.addListener(() => setState(() {}));
-    // Registering (or cancelling) from the details screen moves the event
-    // between this tab and Activity, so rebuild when the store changes.
+    // Joins and cancels move events between this tab and Activity.
     _registrationStore.addListener(_onRegistrationChanged);
   }
 
@@ -132,7 +121,6 @@ class _EventsTabScreenState extends ConsumerState<EventsTabScreen> {
     final showSuggestions =
         _searchFocusNode.hasFocus && _suggestions.isNotEmpty;
 
-    // Beneficiaries get the flagged pool, volunteers the interest matches.
     final AsyncValue<_Catalog> catalog = widget.forBeneficiary
         ? ref
               .watch(beneficiaryEventsProvider)

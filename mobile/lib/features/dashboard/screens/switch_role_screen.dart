@@ -3,11 +3,7 @@ import 'package:mobile/core/session/app_role.dart';
 import 'package:mobile/core/session/role_session.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Profile → Account → Switch Role.
-///
-/// Lists every role the account is registered or authorized for and switches
-/// the active one. Data from the other roles is kept — switching back restores
-/// the same events, requests, and donations.
+/// Other roles' data is kept, so switching back restores it.
 class SwitchRoleScreen extends StatefulWidget {
   const SwitchRoleScreen({super.key});
 
@@ -38,8 +34,7 @@ class _SwitchRoleScreenState extends State<SwitchRoleScreen> {
 
     if (confirmed != true || !mounted) return;
 
-    // Grab the messenger before popping — the snackbar is shown by the new
-    // role's dashboard, not by this screen.
+    // Grab the messenger first: the new dashboard shows the snackbar.
     final messenger = ScaffoldMessenger.of(context);
     _session.switchTo(role);
     Navigator.of(context).pop(role);
@@ -245,8 +240,6 @@ class _RoleCard extends StatelessWidget {
   }
 }
 
-/// Confirmation shown before the active role changes. Spells out where the
-/// user is going and reassures them that nothing from the current role is lost.
 class _SwitchRoleConfirmDialog extends StatelessWidget {
   const _SwitchRoleConfirmDialog({
     required this.fromRole,
@@ -398,7 +391,6 @@ class _ConfirmPoint {
   final String text;
 }
 
-/// "Current role → new role" header of the confirmation dialog.
 class _RoleTransition extends StatelessWidget {
   const _RoleTransition({required this.fromRole, required this.toRole});
 

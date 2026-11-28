@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
 export interface RecordLoginAttemptInput {
-  /** Null when the submitted email matched no account. */
+  /** Null when the email matched no account. */
   userId: string | null;
   email: string;
   ipAddress: string;
@@ -21,18 +21,14 @@ export interface ListLoginActivityInput {
   search?: string;
   outcome: LoginOutcome | 'all';
   source: LoginSource | 'all';
-  /** Null means "all time" — the range filter is left off entirely. */
+  /** Null = all time. */
   since: Date | null;
-  /** Id of the last row already returned; the page starts after it. */
+  /** Last returned id; the page starts after it. */
   cursor?: string;
   limit: number;
 }
 
-/**
- * Attempts that count towards a lockout: someone tried a credential and got it wrong.
- * A policy refusal (locked out, outside hours, IP not allowed) is deliberately absent
- * — counting those would let a lock renew itself forever.
- */
+/** Policy refusals excluded, or a lock would renew itself forever. */
 const CREDENTIAL_FAILURE_OUTCOMES: LoginOutcome[] = ['INVALID_CREDENTIALS'];
 
 export type LoginActivityRow = Prisma.LoginActivityGetPayload<{
@@ -51,10 +47,7 @@ export type LoginActivityRow = Prisma.LoginActivityGetPayload<{
 export class LoginActivityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Appends one attempt. Sign-in must not fail because the trail could not be
-   * written, so the caller treats a rejection here as non-fatal.
-   */
+  /** The caller treats failures as non-fatal. */
   async recordAttempt(data: RecordLoginAttemptInput) {
     return this.prisma.loginActivity.create({
       data: {
@@ -70,11 +63,7 @@ export class LoginActivityRepository {
     });
   }
 
-  /**
-   * How many times this email failed to sign in since `since`, and when it last
-   * succeeded. The lockout policy is derived from the trail rather than a parallel
-   * counter, so what locks an account is exactly what the portal displays.
-   */
+  /** Lockout derives from the trail, so it matches what the portal shows. */
   async summarizeRecentAttempts(
     email: string,
     since: Date,
@@ -85,7 +74,7 @@ export class LoginActivityRepository {
       select: { createdAt: true },
     });
 
-    // A successful sign-in resets the streak, so only failures after it count.
+    // A success resets the streak.
     const where = {
       email,
       outcome: { in: CREDENTIAL_FAILURE_OUTCOMES },
@@ -104,16 +93,11 @@ export class LoginActivityRepository {
     return { failures, lastFailureAt: lastFailure?.createdAt ?? null };
   }
 
-  /**
-   * Keyset paging, not offset: the cursor is the last row already shown, so an
-   * attempt recorded while the operator scrolls cannot shift a row into the next page
-   * and hide it. The id tiebreaker keeps rows written in the same millisecond ordered.
-   */
+  /** Keyset paging so new rows can't shift into the next page; id breaks same-ms ties. */
   async listActivity(input: ListLoginActivityInput) {
     const where = buildWhere(input);
 
-    // Two independent reads, so they run concurrently rather than holding a
-    // transaction slot open — a paged read needs no atomicity.
+    // Concurrent reads; a paged read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.loginActivity.findMany({
         where,

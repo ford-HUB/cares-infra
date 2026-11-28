@@ -51,7 +51,7 @@ export interface NewAttachment {
 export class ChatRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Portal staff the caller may message — never themselves, never volunteers. */
+  /** Portal staff only, excluding the caller. */
   async listContacts(
     callerId: string,
     roles: readonly RoleType[],
@@ -90,7 +90,7 @@ export class ChatRepository {
     return conversation?.conversation_id ?? null;
   }
 
-  /** The first message between two people is what creates their conversation. */
+  /** The first message creates the conversation. */
   async findOrCreateConversation(
     userId: string,
     contactId: string,
@@ -153,7 +153,6 @@ export class ChatRepository {
         data: { last_message_at: message.createdAt },
       });
 
-      // The sender has read what they just wrote.
       await tx.conversationParticipant.updateMany({
         where: { conversation_id: conversationId, user_id: senderId },
         data: { last_read_at: message.createdAt },
@@ -182,7 +181,7 @@ export class ChatRepository {
     return participant !== null;
   }
 
-  /** Every conversation the caller is in that has at least one message. */
+  /** Only conversations with at least one message. */
   async listThreads(userId: string): Promise<ChatThreadRow[]> {
     const participants = await this.prisma.conversationParticipant.findMany({
       where: {
@@ -215,7 +214,7 @@ export class ChatRepository {
       orderBy: { conversation: { last_message_at: 'desc' } },
     });
 
-    // Portal staff counts are small, so a count per thread stays cheap here.
+    // Few portal staff, so per-thread counts are cheap.
     return Promise.all(
       participants
         .filter(

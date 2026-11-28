@@ -1,11 +1,4 @@
-/**
- * Stand-in for `src/infastructures/prisma/common/client` under Jest.
- *
- * The generated client is ESM (`import.meta.url`) and opens a real database
- * connection, neither of which a unit test wants. `config/jest-unit.json` maps every
- * import of the client here: enums stay real (validators build `z.enum(...)`
- * from them), and the handful of runtime values the services touch are inert.
- */
+/** Jest stand-in for the Prisma client (mapped in `config/jest-unit.json`): real enums, inert runtime. */
 export * from '../../src/infastructures/prisma/common/enums';
 
 export class PrismaClient {

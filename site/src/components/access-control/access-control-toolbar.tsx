@@ -16,14 +16,13 @@ interface AccessControlToolbarProps {
   total: number
   customised: number
   suspended: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onRoleChange: (value: string) => void
   onRightsChange: (value: AccessRightsFilter) => void
-  /** Omitted when the account may only view rights — the baselines button is not drawn. */
+  /** Omitted for view-only accounts; the button is not drawn. */
   onEditBaselines?: () => void
-  /** Set when the manage right is suspended — the button is drawn locked instead. */
+  /** Set when the manage right is suspended; draws the button locked. */
   editBaselinesSuspension?: SessionSuspension
 }
 

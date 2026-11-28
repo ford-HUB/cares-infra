@@ -67,12 +67,7 @@ export class EventsMobileService {
     private readonly notificationScheduler: NotificationScheduler,
   ) {}
 
-  /**
-   * Open events whose title and description read as one of the volunteer's
-   * interests, best match first. The NLP tagging is per event and independent of
-   * who is asking, so it is what gets cached — the intersection with the
-   * volunteer's own interests is recomputed on every call.
-   */
+  /** Only the per-event NLP tagging is cached; the interest intersection is per call. */
   async listRecommended(
     userId: string,
     limit: number,
@@ -124,10 +119,7 @@ export class EventsMobileService {
     return { has_interests: true, events: recommended.slice(0, limit) };
   }
 
-  /**
-   * Open events an operator marked as applicable to beneficiaries. No interest
-   * matching: the flag is the whole criterion, so every flagged event is listed.
-   */
+  /** The beneficiary flag is the whole criterion; no interest matching. */
   async listForBeneficiaries(
     userId: string,
   ): Promise<RegisteredEventsResponseDto> {
@@ -138,10 +130,7 @@ export class EventsMobileService {
     return { events: await this.withApplications(userId, events) };
   }
 
-  /**
-   * Open events accepting money or goods — the donor's campaigns. Each row
-   * carries what has been raised so far so the cards can show progress.
-   */
+  /** Includes the amount raised for progress. */
   async listForDonors(userId: string): Promise<DonationEventsResponseDto> {
     const events = await this.eventsRepository.findOpenForDonors(
       userId,
@@ -157,7 +146,6 @@ export class EventsMobileService {
     };
   }
 
-  /** Finished events that were open to beneficiaries — the beneficiary activity page. */
   async listCompletedForBeneficiaries(
     userId: string,
   ): Promise<RegisteredEventsResponseDto> {
@@ -168,7 +156,6 @@ export class EventsMobileService {
     return { events: await this.withApplications(userId, events) };
   }
 
-  /** Rows for a beneficiary carry where their own application stands. */
   private async withApplications(
     userId: string,
     events: OpenEvent[],
@@ -178,8 +165,7 @@ export class EventsMobileService {
         userId,
         events.map((event) => event.event_id),
       );
-    // Newest first, so the first row seen per event is the latest filing — a
-    // re-application after a rejection shows as PENDING, not REJECTED.
+    // Newest first, so a re-application after rejection shows PENDING.
     const latest = new Map<number, (typeof applications)[number]>();
     for (const application of applications) {
       if (application.event_id === null || latest.has(application.event_id)) {
@@ -202,22 +188,14 @@ export class EventsMobileService {
     });
   }
 
-  /**
-   * The volunteer's own registrations — every event they hold a slot on, whether
-   * it is still ahead, running, or already over. This is what the activity page
-   * hydrates from, since finished events drop out of the recommended pool.
-   */
+  /** Includes finished events, which drop out of the recommended pool. */
   async listRegistered(userId: string): Promise<RegisteredEventsResponseDto> {
     const events =
       await this.eventsRepository.findRegisteredForVolunteer(userId);
     return { events: events.map((event) => this.mapToDto(event, [])) };
   }
 
-  /**
-   * The volunteers registered for an event, by name — the participants list on
-   * the event screen. Only names and roles leave the server; the caller's own
-   * row is flagged instead of exposing user ids.
-   */
+  /** Names and roles only; the caller's row is flagged instead of exposing ids. */
   async listParticipants(
     userId: string,
     eventId: number,
@@ -226,8 +204,7 @@ export class EventsMobileService {
     if (!event) throw new NotFoundException('Event not found');
 
     const rows = await this.eventsRepository.findParticipants(eventId);
-    // Someone already holding a slot keeps seeing who else is going, even if the
-    // event was narrowed to another department after they joined.
+    // Joined volunteers keep seeing the list after a department re-scope.
     const joined = rows.some((row) => row.user_id === userId);
     if (!joined && !(await this.canSee(userId, event))) {
       throw new NotFoundException('Event not found');
@@ -245,13 +222,7 @@ export class EventsMobileService {
     };
   }
 
-  /**
-   * Takes one slot on the event for the volunteer, in the participation role
-   * they picked. Regular is confirmed outright; Organizer, Facilitator and
-   * Speaker hold the slot with the role pending a director's or coordinator's
-   * approval. Idempotent: a second call for an event they already joined just
-   * returns the current counts and the role already on record.
-   */
+  /** REGULAR is confirmed; other roles wait for approval. Idempotent. */
   async register(
     userId: string,
     eventId: number,
@@ -292,15 +263,14 @@ export class EventsMobileService {
     });
   }
 
-  /** Gives the slot back. Not registered is not an error — the counts still come back. */
+  /** Not registered is not an error. */
   async unregister(
     userId: string,
     eventId: number,
   ): Promise<EventRegistrationResponseDto> {
     const event = await this.eventsRepository.findById(eventId);
     if (!event) throw new NotFoundException('Event not found');
-    // The slot is locked in once the event starts — the app greys out Cancel
-    // at the same moment, so this only catches a stale screen.
+    // Locked once started; catches stale screens.
     if (
       event.status !== EventStatus.Upcoming ||
       event.event_started.getTime() <= Date.now()
@@ -329,14 +299,13 @@ export class EventsMobileService {
     return this.toRegistrationDto(eventId, counts, null);
   }
 
-  /** Query filter that hides School events scoped to another department. */
+  /** Hides School events scoped to another department. */
   private async audienceFor(userId: string) {
     return eventAudienceWhere(
       await this.eventsRepository.findUserDepartment(userId),
     );
   }
 
-  /** Whether the user's department lets them see and join [event]. */
   private async canSee(
     userId: string,
     event: { category: string; department: string | null },
@@ -347,7 +316,6 @@ export class EventsMobileService {
     );
   }
 
-  /** Registration only makes sense while the event is still ahead and accepting. */
   private async assertOpen(eventId: number) {
     const event = await this.eventsRepository.findById(eventId);
     if (!event) throw new NotFoundException('Event not found');
@@ -363,10 +331,7 @@ export class EventsMobileService {
     return event;
   }
 
-  /**
-   * Postgres aborts one of two serializable transactions that touch the same
-   * event at once (P2034); the loser simply runs again and sees the winner's row.
-   */
+  /** Retries P2034 serialization aborts. */
   private async withSerializationRetry<T>(
     run: () => Promise<T>,
     attempts = 3,
@@ -384,7 +349,7 @@ export class EventsMobileService {
     }
   }
 
-  /** `registration` is the caller's role on the event, or null when they hold no slot. */
+  /** Null when the caller holds no slot. */
   private toRegistrationDto(
     eventId: number,
     counts: { participants: number; max_participants: number },
@@ -404,11 +369,7 @@ export class EventsMobileService {
     };
   }
 
-  /**
-   * Interest tags per event id. Keyed on a hash of the copy plus the catalog, so an
-   * edited title or a changed interest list misses naturally instead of needing an
-   * invalidation hook on the write path; stale keys age out on their TTL.
-   */
+  /** Keyed on a hash of copy + catalog, so edits miss naturally; stale keys expire via TTL. */
   private async tagEvents(
     events: OpenEvent[],
     catalog: CatalogInterest[],
@@ -418,8 +379,7 @@ export class EventsMobileService {
         .map((i) => `${i.code}|${i.label}|${i.description ?? ''}`)
         .join('\n'),
     );
-    // Read key by key: `getMany` compacts misses out of its result, and the miss
-    // positions are exactly what is needed here.
+    // Key by key: `getMany` drops misses, and miss positions are needed.
     const cached = await Promise.all(
       events.map((event) =>
         this.redisService.get<NlpInterestScore[]>(
@@ -481,12 +441,7 @@ export class EventsMobileService {
     return tags;
   }
 
-  /**
-   * The organizer's own category pick is a stronger signal than anything read
-   * out of the copy, so it always tags the event at full score; the NLP tags
-   * only add interests the category does not already cover. "Others" falls
-   * back to the specified category when that names a real interest.
-   */
+  /** The organizer's category tags at full score; NLP only adds others. "Others" uses the specified category if it's a real interest. */
   private withCategoryTag(
     event: OpenEvent,
     nlpTags: NlpInterestScore[] | undefined,

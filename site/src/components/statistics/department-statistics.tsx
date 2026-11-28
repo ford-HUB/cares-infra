@@ -21,7 +21,7 @@ interface DepartmentStatisticsProps {
   title: string
   range: StatisticsRange
   category: string
-  /** Director-level only: lets the reader narrow the whole system to one college. */
+  /** Director only: narrows the whole system to one college. */
   departmentFilter?: {
     value: string
     options: readonly string[]
@@ -33,12 +33,7 @@ interface DepartmentStatisticsProps {
   onRefresh: () => void
 }
 
-/**
- * The coordinator's department in numbers. Four headline figures with their movement,
- * then the two trends that explain them (participation, events held), then the
- * breakdowns — outcomes, categories, hours, reports, year levels — and the table.
- * Every block obeys the period and category filters in the toolbar.
- */
+/** Every block obeys the toolbar's period and category filters. */
 export function DepartmentStatistics({
   data,
   title,

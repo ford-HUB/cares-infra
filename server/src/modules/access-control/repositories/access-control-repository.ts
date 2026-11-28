@@ -13,11 +13,11 @@ export interface ListAccessUsersFilter {
   rights: 'all' | 'customised' | 'suspended';
   skip: number;
   take: number;
-  /** Roles that hold portal rights — app-side accounts never appear on this page. */
+  /** Portal roles only; app-side accounts never appear here. */
   portalRoles: readonly RoleType[];
 }
 
-/** A suspension counts as in force until it is lifted or its expiry passes. */
+/** In force until lifted or expired. */
 export function activeSuspensionWhere(
   now: Date,
 ): Prisma.UserActionSuspensionWhereInput {
@@ -74,8 +74,7 @@ export class AccessControlRepository {
   async listUsers(filter: ListAccessUsersFilter) {
     const where = buildWhere(filter);
 
-    // Two independent reads, so they run concurrently rather than holding a
-    // transaction slot open — a paged read needs no atomicity.
+    // Concurrent reads; a paged read needs no transaction.
     const [rows, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
@@ -110,7 +109,7 @@ export class AccessControlRepository {
     });
   }
 
-  /** Replaces a role's baseline wholesale — the caller sends the complete set. */
+  /** Replaces wholesale; the caller sends the complete set. */
   async replaceRoleDefaults(roleType: RoleType, permissions: PermissionKey[]) {
     await this.prisma.$transaction([
       this.prisma.rolePermissionDefault.deleteMany({
@@ -126,7 +125,7 @@ export class AccessControlRepository {
     ]);
   }
 
-  /** Replaces every override for one user; an empty list drops them back to baseline. */
+  /** An empty list resets to baseline. */
   async replaceUserOverrides(
     userId: string,
     overrides: OverrideInput[],
@@ -156,7 +155,7 @@ export class AccessControlRepository {
     issuedByUserId: string;
     expiresAt: Date | null;
   }) {
-    // Re-suspending an action supersedes the standing one rather than stacking.
+    // Re-suspending supersedes rather than stacks.
     await this.prisma.$transaction([
       this.prisma.userActionSuspension.updateMany({
         where: {
@@ -188,8 +187,7 @@ export class AccessControlRepository {
         user_action_suspension_id: true,
         user_id: true,
         lifted_at: true,
-        // Both are read for the audit entry: lifting a suspension has to say which
-        // action came back, and why it was suspended in the first place.
+        // Read for the audit entry.
         permission: true,
         reason: true,
       },

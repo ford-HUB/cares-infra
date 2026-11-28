@@ -1,4 +1,3 @@
-/// Volunteer event shown in dashboard carousels and program listings.
 class VolunteerEvent {
   const VolunteerEvent({
     required this.id,

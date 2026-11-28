@@ -4,14 +4,10 @@ interface RankColorPickerProps {
   colorFrom: string
   colorTo: string
   onChange: (colors: { colorFrom: string; colorTo: string }) => void
-  /** Swatch is a combo shortcut; the two inputs stay the source of truth. */
   inputClass: string
 }
 
-/**
- * A half-typed hex ("#f9") is not a colour a swatch input can show, so it keeps the
- * last complete value while the text field carries the in-progress one.
- */
+/** A half-typed hex can't show in a swatch input, so keep the last complete value. */
 function swatchValue(color: string, fallback: string): string {
   return HEX_COLOR_PATTERN.test(color.trim()) ? color : fallback
 }

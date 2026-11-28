@@ -1,11 +1,4 @@
-/**
- * Hostile inputs shared by every unit spec under `test/unit/modules/`.
- *
- * Specs never inline their own attack strings — they pull from here so every
- * module is held to the same catalogue, and a new technique added once is
- * exercised everywhere. Whether a payload must be rejected is NOT decided here:
- * each spec's fixture table states `expected: 'PASS' | 'FAIL'` per field.
- */
+/** Shared hostile inputs; each spec's fixture decides PASS/FAIL per field. */
 
 export type PayloadCategory =
   | 'sql-tautology'
@@ -65,12 +58,7 @@ export const SPECIAL_CHARACTERS = [
   '<', '>', '{', '}', '[', ']', '(', ')', '=', '+', '!', '?', '~', '^', '@', ':',
 ] as const;
 
-/**
- * Runs of one special character (`''''`, `;;;;;;;;;;`) and mixed series
- * (`'";--/**\/`). A field constrained to names, codes, ids or emails should
- * reject every one of these; a field that legitimately allows punctuation
- * states that in its fixture as `expected: 'PASS'`.
- */
+/** Single-character runs and mixed series; a field that allows punctuation marks them PASS. */
 export const specialCharacterSeries = (lengths: number[] = [3, 10]): SecurityPayload[] => {
   const runs = SPECIAL_CHARACTERS.flatMap((char) =>
     lengths.map((n) => p('special-char-series', `${JSON.stringify(char)} x${n}`, char.repeat(n))),
@@ -118,10 +106,7 @@ export const PATH_TRAVERSAL_PAYLOADS: SecurityPayload[] = [
   p('path-traversal', 'encoded traversal', '%2e%2e%2f%2e%2e%2f'),
 ];
 
-/**
- * Well-formed URLs that must not be fetched by the server. Only for fields that hold
- * an outbound URL, so they stay out of `HOSTILE_STRINGS`.
- */
+/** Only for outbound-URL fields, hence not in `HOSTILE_STRINGS`. */
 export const SSRF_URL_PAYLOADS: SecurityPayload[] = [
   p('ssrf', 'file scheme', 'file:///etc/passwd'),
   p('ssrf', 'gopher scheme', 'gopher://localhost:6379/_INFO'),
@@ -131,10 +116,7 @@ export const SSRF_URL_PAYLOADS: SecurityPayload[] = [
   p('ssrf', 'cloud metadata over IPv6-mapped address', 'http://[::ffff:169.254.169.254]/'),
 ];
 
-/**
- * Well-formed references to another feature's files in the shared private bucket. Only
- * for fields that hold a stored object, so they stay out of `HOSTILE_STRINGS`.
- */
+/** Other features' private-bucket keys; only for stored-object fields, hence not in `HOSTILE_STRINGS`. */
 export const PRIVATE_OBJECT_KEY_PAYLOADS: SecurityPayload[] = [
   p('private-object-key', 'bare key to a residency proof', 'user-requests/user-id/residency-1.jpg'),
   p('private-object-key', 'bare key to a profile file', 'mobile-profiles/user-id/residency-1.jpg'),
@@ -144,7 +126,7 @@ export const PRIVATE_OBJECT_KEY_PAYLOADS: SecurityPayload[] = [
   p('private-object-key', 'allowed prefix climbing out in a url', 'https://bucket.s3.amazonaws.com/events/../user-requests/user-id/residency-1.jpg'),
 ];
 
-/** Non-string values aimed at fields typed as strings — the type-confusion layer. */
+/** Type confusion: non-strings for string fields. */
 export const OPERATOR_INJECTION_PAYLOADS: SecurityPayload[] = [
   p('operator-injection', '{ $ne: null }', { $ne: null }),
   p('operator-injection', '{ $gt: "" }', { $gt: '' }),
@@ -155,10 +137,7 @@ export const OPERATOR_INJECTION_PAYLOADS: SecurityPayload[] = [
   p('operator-injection', 'null', null),
 ];
 
-/**
- * Extra top-level keys. Every request schema is `.strict()`, so each of these
- * must come back FAIL with an `unrecognized_keys` issue.
- */
+/** Schemas are `.strict()`: each must FAIL with `unrecognized_keys`. */
 export const MASS_ASSIGNMENT_KEYS: Record<string, unknown>[] = [
   { role_type: 'ADMIN' },
   { is_protected: true },
@@ -166,13 +145,13 @@ export const MASS_ASSIGNMENT_KEYS: Record<string, unknown>[] = [
   { permissions: ['ALL'] },
 ];
 
-/** Raw JSON bodies — `JSON.parse` keeps `__proto__` as an own key, an object literal would not. */
+/** Raw JSON: `JSON.parse` keeps `__proto__` as an own key; an object literal wouldn't. */
 export const PROTOTYPE_POLLUTION_BODIES: SecurityPayload[] = [
   p('prototype-pollution', '__proto__', '{"__proto__":{"isAdmin":true}}'),
   p('prototype-pollution', 'constructor.prototype', '{"constructor":{"prototype":{"isAdmin":true}}}'),
 ];
 
-/** Everything that is a string and hostile — the default sweep for a constrained text field. */
+/** Default sweep for a constrained text field. */
 export const HOSTILE_STRINGS: SecurityPayload[] = [
   ...SQL_INJECTION_PAYLOADS,
   ...specialCharacterSeries(),
@@ -182,11 +161,7 @@ export const HOSTILE_STRINGS: SecurityPayload[] = [
   ...PATH_TRAVERSAL_PAYLOADS,
 ];
 
-/**
- * Fragments that must never appear in an error body. Their presence means a
- * database or runtime error leaked to the client instead of being masked by
- * `HttpExceptionFilter`.
- */
+/** Any match means a DB/runtime error escaped `HttpExceptionFilter`. */
 export const LEAK_SIGNATURES: RegExp[] = [
   /syntax error at or near/i,
   /PrismaClient\w*Error/,

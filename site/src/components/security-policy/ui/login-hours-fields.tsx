@@ -8,11 +8,7 @@ interface LoginHoursFieldsProps {
   endError?: string
 }
 
-/**
- * The policy stores minutes since midnight; the inputs speak "HH:mm". `Controller`
- * owns the pair because a `register`ed time input would put the string into the form
- * state the schema expects to be a number.
- */
+/** Stored as minutes since midnight; `Controller` converts, since a registered time input would store a string. */
 export function LoginHoursFields({ control, disabled, endError }: LoginHoursFieldsProps) {
   return (
     <div className="flex flex-wrap items-start gap-4">

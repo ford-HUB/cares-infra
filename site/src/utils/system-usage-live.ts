@@ -15,11 +15,7 @@ import type {
 const round1 = (n: number) => Math.round(n * 10) / 10
 const DAY_MS = 24 * 60 * 60 * 1000
 
-/**
- * The last 24 h as the chart's final bar: the snapshot's 20-minute buckets for the
- * average, and for the peak the highest of those buckets and every 3 s tick seen
- * since the screen opened (a bucket average smooths a short spike away).
- */
+/** Peak includes 3 s ticks, since bucket averages smooth spikes away. */
 export function lastDayUsage(
   snapshot: PerformanceSnapshot | null,
   liveSample: PerformanceSample | null,
@@ -43,7 +39,7 @@ const PROBE_HEALTH: Record<DiagnosticStatus, ServiceHealth> = {
   fail: 'down',
 }
 
-/** A failing scheduler is still on duty and retrying — degraded, not down. */
+/** Failing schedulers are still retrying: degraded, not down. */
 const SCHEDULER_HEALTH: Record<ServiceState, ServiceHealth> = {
   running: 'operational',
   scheduled: 'operational',
@@ -57,12 +53,7 @@ function successRate(service: SystemService): number | null {
   return (finished.filter((r) => r.outcome === 'success').length / finished.length) * 100
 }
 
-/**
- * One row per thing that can break: every diagnostics probe (database, cache, ML
- * services, queues, processes) and every scheduler from the roster. The sweep also
- * probes schedulers, but the roster knows more about them, so those probes are
- * dropped rather than listed twice.
- */
+/** Scheduler probes are dropped in favour of the roster, which knows more. */
 export function serviceRows(
   diagnostics: SystemDiagnostics | null,
   services: SystemService[],
@@ -94,7 +85,6 @@ export function serviceRows(
     note: service.state === 'failing' ? service.lastError : null,
   }))
 
-  // Worst first, so what needs attention is at the top of the table.
   const rank = (h: ServiceHealth) =>
     h === 'down' ? 0 : h === 'degraded' ? 1 : h === 'operational' ? 2 : 3
   return [...probes, ...schedulers].sort(
@@ -120,12 +110,7 @@ export function systemHealth(diagnostics: SystemDiagnostics | null): SystemHealt
   }
 }
 
-/**
- * What happened recently, read off the live sources: CPU runs above the critical
- * line, sweeps that found the system degraded or down, probes failing now, and
- * scheduler runs that failed or timed out. Consecutive readings of one episode are
- * folded into a single entry.
- */
+/** Consecutive readings of one episode fold into a single entry. */
 export function deriveEvents(
   snapshot: PerformanceSnapshot | null,
   diagnostics: SystemDiagnostics | null,
@@ -133,7 +118,6 @@ export function deriveEvents(
 ): SystemEvent[] {
   const events: SystemEvent[] = []
 
-  // CPU runs above the critical line — one entry per run, at its start, with its max.
   const pushSpike = (spike: { at: string; max: number }) =>
     events.push({
       id: `cpu:${spike.at}`,
@@ -154,7 +138,6 @@ export function deriveEvents(
   }
   if (spike) pushSpike(spike)
 
-  // Sweeps that found the system degraded or down — one entry per unbroken episode.
   type Episode = { at: string; overall: string; failing: number }
   const pushEpisode = (episode: Episode) =>
     events.push({

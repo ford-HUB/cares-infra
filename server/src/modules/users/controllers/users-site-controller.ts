@@ -69,10 +69,7 @@ export class UsersSiteController {
     return this.usersSiteService.listUsers(caller, query);
   }
 
-  /**
-   * Creating an account is an admin-only act: a director asks for one, an
-   * administrator issues it. The method-level `@Roles` narrows the class default.
-   */
+  /** Admin-only; narrows the class default. */
   @Post()
   @Roles(RoleType.ADMIN)
   @ResponseMessage('Account created')
@@ -85,11 +82,7 @@ export class UsersSiteController {
     return this.usersSiteService.provisionUser(caller, data, context);
   }
 
-  /**
-   * Pre-validates the inbox the add-user form will mail credentials to, so a typo is
-   * caught while the field still has focus rather than after the account exists.
-   * Declared before the `:id` routes so the literal segment wins the match.
-   */
+  /** Catches recipient typos early. Declared before `:id` so the literal wins. */
   @Post('check-email')
   @Roles(RoleType.ADMIN)
   @ResponseMessage('Email checked')
@@ -123,7 +116,7 @@ export class UsersSiteController {
     return this.usersSiteService.getUserDetail(caller, id);
   }
 
-  /** Permanent and admin-only, on the same footing as issuing an account. */
+  /** Permanent; admin-only. */
   @Delete(':id')
   @Roles(RoleType.ADMIN)
   @ResponseMessage('User deleted')

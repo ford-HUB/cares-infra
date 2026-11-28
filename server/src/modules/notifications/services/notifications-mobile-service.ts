@@ -9,11 +9,7 @@ import { NotificationsRepository } from '../repositories/notifications-repositor
 import { toNotificationDto } from './notifications-site-service';
 import { MOBILE_NOTIFICATIONS_DEFAULT_LIMIT } from '../validators/notifications-mobile-validator';
 
-/**
- * The app's read side of a person's own feed. The app has no socket — it polls
- * this on resume and surfaces anything new as a device notification — so unlike
- * the portal service nothing here pushes a count anywhere.
- */
+/** The app polls (no socket), so nothing is pushed here. */
 @Injectable()
 export class NotificationsMobileService {
   constructor(
@@ -55,10 +51,7 @@ export class NotificationsMobileService {
     return this.reload(caller);
   }
 
-  /**
-   * "Mark all as read" on one side of the account leaves the other sides'
-   * unread rows alone — they have not been seen yet.
-   */
+  /** Leaves other sides' unread rows alone. */
   async markAllRead(
     caller: JwtPayload,
     query: MarkAllMobileNotificationsReadQueryDto = {},

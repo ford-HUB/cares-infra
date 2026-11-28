@@ -36,11 +36,7 @@ interface NewCertificateTemplateDialogProps {
 const fieldLabel = 'text-[11px] tracking-wider text-gray-500 uppercase'
 const errorText = 'text-[11px] text-red-600'
 
-/**
- * Files a new template. It asks for the four things the library lists it by and nothing
- * else — the sheet itself starts on the plain defaults and opens straight into the
- * customizer, so a director designs it there rather than twice in two places.
- */
+/** Asks only for listing metadata; the sheet starts on defaults and is designed in the customizer. */
 export function NewCertificateTemplateDialog({
   open,
   onOpenChange,

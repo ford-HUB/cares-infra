@@ -1,6 +1,5 @@
 import 'package:mobile/features/auth/domain/ph_address.dart';
 
-/// Whether a beneficiary is signing up for themselves or on behalf of a group.
 enum BeneficiaryKind { individual, organization }
 
 extension BeneficiaryKindX on BeneficiaryKind {
@@ -10,9 +9,8 @@ extension BeneficiaryKindX on BeneficiaryKind {
   };
 }
 
-/// Whether an individual beneficiary signs up as a regular beneficiary or as a
-/// UC student. A student verifies their school ID and face like a student
-/// volunteer, so no director review is needed and their Volunteer side opens.
+/// Students verify school ID + face like volunteers: no director review, and
+/// their Volunteer side opens.
 enum BeneficiaryCategory { regular, student }
 
 extension BeneficiaryCategoryX on BeneficiaryCategory {
@@ -22,10 +20,8 @@ extension BeneficiaryCategoryX on BeneficiaryCategory {
   };
 }
 
-/// Beneficiary-specific answers collected on the details step.
-///
-/// The organization fields are presentation-only for now — the registration
-/// payload has no place for them yet, so nothing here is sent to the server.
+/// Organization fields are presentation-only; the payload has no place for them
+/// yet.
 class BeneficiaryProfile {
   const BeneficiaryProfile({
     this.kind,
@@ -39,16 +35,14 @@ class BeneficiaryProfile {
 
   final BeneficiaryKind? kind;
 
-  /// Individuals only: regular or student. Null until picked, and always null
-  /// for an organization.
+  /// Null until picked; always null for an organization.
   final BeneficiaryCategory? category;
   final String organizationName;
   final String? organizationType;
   final String organizationRole;
   final String organizationAddress;
 
-  /// The beneficiary's own home address. Registration sends it as
-  /// [PhAddress.formatted] in `current_address`.
+  /// Sent as [PhAddress.formatted] in `current_address`.
   final PhAddress address;
 
   static const organizationTypes = [
@@ -64,7 +58,6 @@ class BeneficiaryProfile {
 
   bool get isIndividual => kind == BeneficiaryKind.individual;
 
-  /// An individual signing up as a UC student — the ID + face scan path.
   bool get isStudent => isIndividual && category == BeneficiaryCategory.student;
 
   bool get organizationDetailsComplete =>
@@ -99,15 +92,14 @@ class BeneficiaryProfile {
     );
   }
 
-  /// Clears the organization answers when the beneficiary switches back to
-  /// registering as an individual. The home address is kept.
+  /// Keeps the home address.
   BeneficiaryProfile asIndividual() => BeneficiaryProfile(
     kind: BeneficiaryKind.individual,
     category: category,
     address: address,
   );
 
-  /// Switching to an organization drops the regular / student answer.
+  /// Drops the regular / student answer.
   BeneficiaryProfile asOrganization() => BeneficiaryProfile(
     kind: BeneficiaryKind.organization,
     organizationName: organizationName,

@@ -18,14 +18,6 @@ export function InlinePageHeader({ title, description, action }: InlinePageHeade
   )
 }
 
-// `LoadingState` (a centred spinner) lived here until both of its callers — the admin
-// dashboard and the profile page — moved to layout-matching skeletons. See the
-// `site-loading-skeletons` skill before adding a spinner back.
-//
-// `StatCard`, `MetricTile`, `GradientMetricTile` and `SectionCard` lived here until the
-// overview screens became charts (see `components/overview/`); a metrics block belongs
-// in a `ChartCard` now, not in a grid of equal-weight tiles.
-
 export function StatusPill({
   status,
 }: {

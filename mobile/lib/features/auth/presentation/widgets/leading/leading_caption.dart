@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/constants/app_copy.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Kicker, headline and body for one slide. Each line arrives in turn —
-/// sliding in from the side the story is moving toward — so the eye reads
-/// top to bottom instead of taking in a block at once.
+/// Lines arrive in turn from the direction of travel, so the eye reads top to
+/// bottom.
 class LeadingCaption extends StatefulWidget {
   const LeadingCaption({super.key, required this.copy, required this.forward});
 

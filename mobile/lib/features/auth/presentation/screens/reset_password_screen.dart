@@ -8,8 +8,7 @@ import 'package:mobile/features/auth/presentation/widgets/register_form_field.da
 import 'package:mobile/features/auth/presentation/widgets/registration_form_card.dart';
 import 'package:mobile/features/auth/registration/widgets/password_strength_indicator.dart';
 
-/// Last step of the reset flow — reached only with a token the OTP dialog earned,
-/// so it asks for nothing but the new password itself.
+/// Reached only with a token from the OTP dialog.
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({
     super.key,
@@ -77,8 +76,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       );
       if (!mounted) return;
 
-      // Back to sign-in: the reset signs every existing session out, so there is
-      // nothing to carry forward except the new password.
+      // The reset signs every session out, so there is nothing to carry
+      // forward.
       Navigator.of(context).pop(true);
       _showMessage('Password updated. Sign in with your new password.');
     } on ApiException catch (error) {

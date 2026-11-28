@@ -1,12 +1,4 @@
-/**
- * The server's `PermissionKey` values the portal gates its own screens on. Kept as
- * literals rather than a shared enum so the site never imports from `server/`; the
- * catalog endpoint remains the source of truth for what each key means.
- *
- * The `*_VIEW` keys decide whether a module shows in the sidebar and whether its
- * URL opens. The rest are the actions inside a screen — a button or menu item is
- * rendered only while the account holds the matching right.
- */
+/** Server `PermissionKey` literals (site never imports `server/`); `*_VIEW` gates nav and routes. */
 export const PORTAL_PERMISSION = {
   USERS_VIEW: 'USERS_VIEW',
   USERS_RESTRICT: 'USERS_RESTRICT',
@@ -45,9 +37,5 @@ export const PORTAL_PERMISSION = {
   MOBILE_APP_ACCESS: 'MOBILE_APP_ACCESS',
 } as const
 
-/**
- * How often the portal re-reads the session's rights while a tab is open, on top of
- * the re-read it does on every navigation and whenever the tab regains focus. Short
- * enough that an admin's change shows up while the person is still on the page.
- */
+/** Also re-read on navigation and tab focus. */
 export const PERMISSION_SYNC_INTERVAL_MS = 30_000

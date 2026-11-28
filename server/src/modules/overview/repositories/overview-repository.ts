@@ -21,7 +21,7 @@ export interface AttendanceTotals extends StatusCounts<AttendanceStatus> {
   serviceHours: number;
 }
 
-/** Support states still waiting on staff — resolved and closed tickets are done. */
+/** Excludes resolved and closed. */
 const OPEN_TICKET_STATUSES: SupportTicketStatus[] = [
   SupportTicketStatus.OPEN,
   SupportTicketStatus.IN_PROGRESS,
@@ -29,19 +29,12 @@ const OPEN_TICKET_STATUSES: SupportTicketStatus[] = [
   SupportTicketStatus.CLIENT_FEEDBACK,
 ];
 
-/**
- * Departments are free text on the profile, the event and the school record, and each
- * spells the college its own way — so a scope is a list of aliases, matched
- * case-insensitively.
- */
+/** Free-text departments, so matched case-insensitively against aliases. */
 function departmentIn(aliases: string[]) {
   return { in: aliases, mode: Prisma.QueryMode.insensitive };
 }
 
-/**
- * Read-only aggregates for the dashboards. Every method is a count or a sum — the
- * overview never lists rows, that is what the feature pages are for.
- */
+/** Counts and sums only. */
 @Injectable()
 export class OverviewRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -74,7 +67,7 @@ export class OverviewRepository {
     });
   }
 
-  /** Volunteers whose school record files under any spelling of the college. */
+  /** Matches any spelling of the college. */
   volunteersInDepartment(aliases: string[]): Prisma.UserWhereInput {
     return {
       user_school_info: {
@@ -87,12 +80,7 @@ export class OverviewRepository {
     return { department: departmentIn(aliases) };
   }
 
-  /**
-   * The stored `status` never moves on its own — an event created as Upcoming stays
-   * Upcoming in the row after it has run. Status is therefore derived from the
-   * timestamps, the same rule the portal's events grid applies: Cancelled is kept,
-   * everything else is Upcoming / Ongoing / Completed by where `now` falls.
-   */
+  /** Stored `status` is stale, so derived from timestamps like the portal grid; Cancelled kept. */
   async countEventsByStatus(
     now: Date,
     where: Prisma.EventWhereInput = {},
@@ -163,7 +151,7 @@ export class OverviewRepository {
     };
   }
 
-  /** Rows judged COMPLETED since the given moment — the last write on a row is its verdict. */
+  /** The last write on a row is its verdict. */
   countAttendanceCompletedSince(
     since: Date,
     where: Prisma.EventAttendanceWhereInput = {},

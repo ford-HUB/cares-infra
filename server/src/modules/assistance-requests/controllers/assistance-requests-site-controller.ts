@@ -21,11 +21,7 @@ import {
   SiteAssistanceRequestSchema,
 } from '../validators/assistance-requests-site-validator';
 
-/**
- * Beneficiaries' assistance requests, reviewed under Users → Request in the
- * portal, so it follows that page's gate. The app's own routes live under
- * `me`, which the uuid params here never match.
- */
+/** Follows the Users → Request gate. App routes live under `me`, which `:id` uuids never match. */
 @Controller('v1/assistance-requests')
 @Roles(...PORTAL_ROLE_TYPES)
 @RequirePermission(PermissionKey.USERS_VIEW)
@@ -41,7 +37,7 @@ export class AssistanceRequestsSiteController {
     return this.assistanceRequestsSiteService.list();
   }
 
-  /** Proof documents are private in S3, so the portal streams them here. */
+  /** Private in S3, so streamed here. */
   @Get(':id/attachments/:attachmentId')
   async getAttachment(
     @ZParam('id', AssistanceRequestIdParamSchema) id: string,

@@ -9,7 +9,7 @@ import {
   PAYMENTS_MOBILE_ROLE_TYPES,
 } from '../validators/payments-mobile-validator';
 
-/** The donor app asks this before showing the amount step. */
+/** Fetched before the amount step. */
 @Controller('v1/payments')
 @Roles(...PAYMENTS_MOBILE_ROLE_TYPES)
 export class PaymentsMobileController {

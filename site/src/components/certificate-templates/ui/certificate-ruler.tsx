@@ -6,7 +6,7 @@ import {
 
 interface CertificateRulerProps {
   orientation: 'horizontal' | 'vertical'
-  /** Live position of the block being dragged, as a percentage along this axis. */
+  /** Live drag position, as a percentage along this axis. */
   marker?: number
 }
 
@@ -15,11 +15,7 @@ const ticks = Array.from(
   (_, index) => index * RULER_TICK_STEP,
 )
 
-/**
- * The measuring edge around the sheet. Percentages, not millimetres — the sheet is
- * rendered at whatever size the dialog allows, so a share of the page is the only
- * measure that survives the scale, and it is what the layout itself stores.
- */
+/** Percentages, not mm: the sheet renders at any size and the layout stores percentages. */
 export function CertificateRuler({ orientation, marker }: CertificateRulerProps) {
   const horizontal = orientation === 'horizontal'
 

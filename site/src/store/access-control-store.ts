@@ -26,30 +26,17 @@ interface AccessControlState {
   total: number
   truncated: boolean
   loading: boolean
-  /**
-   * False until the first fetch settles. Without it, the mount render — where
-   * `loading` is still false and `users` is still empty — is indistinguishable from a
-   * finished fetch that returned nothing, and the table flashes its empty state.
-   */
+  /** Distinguishes the mount render from an empty result, so the empty state doesn't flash. */
   initialized: boolean
   error: string | null
 
-  /**
-   * The permission catalog is the same for every admin and changes only when the
-   * server ships a new key, so it is fetched once per session and held here rather
-   * than being re-requested on each visit.
-   */
+  /** Fetched once per session; changes only when the server ships a new key. */
   catalog: AccessCatalog | null
   catalogLoading: boolean
 
-  /**
-   * The query behind the rows on screen. A baseline change has to refetch, and it must
-   * reuse the active filter — refetching bare would quietly widen the table while the
-   * toolbar still reads "Customised".
-   */
+  /** Baseline changes refetch with this so the active filter isn't silently widened. */
   lastQuery: AccessUsersQuery
 
-  /** The row whose rights panel is open, kept separate from the list rows. */
   detail: AccessUserDetail | null
   detailLoading: boolean
   detailError: string | null
@@ -75,10 +62,7 @@ interface AccessControlState {
 }
 
 export const useAccessControlStore = create<AccessControlState>((set, get) => {
-  /**
-   * Every mutation returns the user's full rights detail, so patch both the open panel
-   * and the matching list row instead of refetching the whole table.
-   */
+  /** Mutations return full detail, so patch panel and row instead of refetching. */
   const applyDetail = (result: {
     success: boolean
     message?: string
@@ -150,7 +134,6 @@ export const useAccessControlStore = create<AccessControlState>((set, get) => {
     },
 
     openDetail: async (id) => {
-      // Already loaded for this row — reuse it instead of refetching.
       if (get().detail?.id === id) return
 
       set({ detailLoading: true, detailError: null, detail: null })
@@ -199,14 +182,13 @@ export const useAccessControlStore = create<AccessControlState>((set, get) => {
           : catalog,
       })
 
-      // A baseline change moves the effective rights of everyone holding that role.
+      // A baseline change moves everyone holding that role.
       await get().fetchUsers()
       return { ok: true, message: res.message }
     },
   }
 })
 
-/** The list row's slice of a detail payload — keeps the table in sync after a mutation. */
 function toListRow(detail: AccessUserDetail): AccessUser {
   return {
     id: detail.id,

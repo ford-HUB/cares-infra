@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Shown once a new account has been created. Sign-up never opens a dashboard
-/// on its own: the person is told the account is ready and sent back to the
-/// sign-in screen (the first route) to sign in with it — automatically after a
-/// short countdown, or straight away with the button.
+/// Sign-up never opens a dashboard: returns to sign-in after a countdown or on
+/// tap.
 class RegistrationSuccessScreen extends StatefulWidget {
   const RegistrationSuccessScreen({
     super.key,
@@ -17,8 +15,7 @@ class RegistrationSuccessScreen extends StatefulWidget {
 
   final String email;
 
-  /// How to sign in, when it is not the usual email + password — e.g. a donor
-  /// who registered through Google.
+  /// Only when not email + password, e.g. a Google-registered donor.
   final String? signInHint;
 
   final Duration redirectAfter;

@@ -1,9 +1,5 @@
 import type { Geometry, Position } from 'geojson'
 
-/**
- * Flatten any geometry down to the raw coordinate list it is built from.
- * Geometry collections recurse; unknown types yield nothing.
- */
 function collectPositions(geometry: Geometry): Position[] {
   switch (geometry.type) {
     case 'Point':
@@ -23,11 +19,7 @@ function collectPositions(geometry: Geometry): Position[] {
   }
 }
 
-/**
- * Average coordinate of a geometry, used to drop a single map pin for an event
- * whose stored shape is the drawn attendance geofence rather than a point.
- * Returns null when the geometry carries no usable coordinate.
- */
+/** Pin for events whose stored shape is a geofence; null without usable coordinates. */
 export function geometryCenter(geometry: Geometry | null | undefined): [number, number] | null {
   if (!geometry) return null
 

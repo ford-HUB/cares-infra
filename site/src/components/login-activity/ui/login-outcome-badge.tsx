@@ -14,7 +14,6 @@ const outcomeStyles: Record<LoginOutcome, { badge: string; dot: string }> = {
   'email-not-verified': { badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
 }
 
-/** Dense badge sized for the login-activity grid. */
 export function LoginOutcomeBadge({ outcome }: { outcome: LoginOutcome }) {
   const style = outcomeStyles[outcome] ?? outcomeStyles['invalid-credentials']
 

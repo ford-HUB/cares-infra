@@ -8,10 +8,6 @@ import {
 
 const GRID_COLUMNS = `${CALENDAR_GUTTER_WIDTH} repeat(${CALENDAR_WEEKDAY_LABELS.length}, minmax(0, 1fr))`
 
-/**
- * Mirrors the time grid's header row and hour rows so the swap to real data
- * causes no jump — same hour count, same row height, same gutter.
- */
 export function CalendarSkeleton() {
   return (
     <div

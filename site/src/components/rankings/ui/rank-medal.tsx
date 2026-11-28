@@ -3,11 +3,10 @@ import { RANKING_MEDAL_FALLBACK, RANKING_MEDAL_STYLES } from '../../../constants
 
 interface RankMedalProps {
   rank: number
-  /** Absent for a first-time entrant — no movement can be shown. */
+  /** Absent for a first-time entrant. */
   previousRank?: number
 }
 
-/** The standing plus how it moved since the previous period. */
 export function RankMedal({ rank, previousRank }: RankMedalProps) {
   const movement = previousRank === undefined ? undefined : previousRank - rank
 

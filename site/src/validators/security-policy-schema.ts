@@ -10,11 +10,7 @@ import {
   SESSION_MAX_DURATION_HOURS_CEILING,
 } from '../constants/security-policy'
 
-/**
- * Mirrors `security-policy-site-validator.ts` on the server. It is duplicated rather
- * than shared because the two speak different field names, but the bounds must stay in
- * step — a value this schema accepts and the server rejects surfaces as a bare 400.
- */
+/** Mirrors server `security-policy-site-validator.ts`; keep bounds in sync or saves 400. */
 const wholeNumber = (min: number, max: number, label: string) =>
   z
     .number({ message: `${label} must be a number` })
@@ -75,10 +71,7 @@ export const securityPolicySchema = z
 
 export type SecurityPolicyFormValues = z.infer<typeof securityPolicySchema>
 
-/**
- * What the form shows before the saved policy arrives, and what a fresh install has:
- * kept in step with `DEFAULT_SECURITY_POLICY` on the server.
- */
+/** Keep in sync with server `DEFAULT_SECURITY_POLICY`. */
 export const securityPolicyDefaultValues: SecurityPolicyFormValues = {
   passwordMinLength: 8,
   passwordRequireUppercase: true,

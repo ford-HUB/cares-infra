@@ -1,4 +1,3 @@
-/// Bundled image paths for the CARES mobile app.
 abstract final class AppAssets {
   static const String caresLogo = 'assets/images/cares_logo.png';
   static const String logo = 'assets/images/transparent-logo.png';
@@ -9,15 +8,12 @@ abstract final class AppAssets {
       'assets/images/onboarding_discover.png';
   static const String onboardingImpact = 'assets/images/onboarding_impact.png';
 
-  /// Entry splash poster: outreach photos, the CARES seal and wordmark.
   static const String entrySplash = 'assets/images/entry-splash.jpg';
 
   static const String campaignPhoto = 'assets/images/intro-img-3.jpg';
 
-  /// Outreach photo sitting behind the green login header band.
   static const String loginEntryBanner = 'assets/images/entry-login-banner.png';
 
-  /// Leading story photos shown between the splash and login.
   static const String leadingSunriseCleanup =
       'assets/images/leadings/voluntering-trash.png';
   static const String leadingCleanUpDay =

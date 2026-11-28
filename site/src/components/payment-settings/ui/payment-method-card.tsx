@@ -25,25 +25,20 @@ interface PaymentMethodCardProps {
   meta?: PaymentMethodMeta
   enabled: boolean
   onEnabledChange: (enabled: boolean) => void
-  /** True while this channel's activation check is in flight. */
   checking: boolean
   onCheckAgain: () => void
-  /** What is typed in the account box right now — the proof is sent to this. */
+  /** The proof is sent to this. */
   accountNumber: string
   onSendAccountProof: () => void
   onConfirmAccount: (amount: number) => void
-  /** Which Xendit codes are ticked, so the checkboxes can be controlled. */
+  /** Ticked Xendit codes, for controlled checkboxes. */
   channelCodes: string[]
   onChannelCodesChange: (codes: string[]) => void
   register: UseFormRegister<PaymentSettingsFormValues>
   errors?: FieldErrors<PaymentSettingsFormValues['methods'][number]>
 }
 
-/**
- * One channel, as its own card with its own mark — the director recognises GCash by
- * the logo long before they read the word. The switch is the whole decision; every
- * field under it is optional, so turning a method on stays one click.
- */
+/** Every field under the switch is optional, so turning a method on stays one click. */
 export function PaymentMethodCard({
   index,
   method,

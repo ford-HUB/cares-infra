@@ -30,10 +30,7 @@ import {
   VerifyEmailChangeOtpSchema,
 } from '../validators/account-settings-volunteer-validator';
 
-/**
- * The app's Account Security screen. Shares `v1/account` with the admin controller;
- * the routes are all under `mobile/` so the two never collide.
- */
+/** Routes under `mobile/` to avoid clashing with the admin controller. */
 @Controller('v1/account/mobile')
 @Roles(...MOBILE_PROFILE_ROLE_TYPES)
 export class AccountSettingsVolunteerController {
@@ -94,7 +91,7 @@ export class AccountSettingsVolunteerController {
     return this.accountSettingsVolunteerService.listOwnSessions(user);
   }
 
-  // Declared before `:sessionId` so the literal segment is never read as an id.
+  // Declared before `:sessionId` so the literal isn't read as an id.
   @Delete('sessions/others')
   @ResponseMessage('Other devices signed out')
   @ZSerialize(RevokeOwnSessionsResponseSchema)

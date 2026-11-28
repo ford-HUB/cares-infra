@@ -7,7 +7,6 @@ import {
 } from '../../../constants/chat'
 
 interface ChatEmptyStateProps {
-  /** `no-selection` is the page default; `no-history` is a never-messaged contact. */
   variant: 'no-selection' | 'no-history'
 }
 

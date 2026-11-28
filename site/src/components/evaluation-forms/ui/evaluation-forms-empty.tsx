@@ -2,14 +2,13 @@ import { ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface EvaluationFormsEmptyProps {
-  /** True when the library is filtered down to nothing rather than genuinely empty. */
+  /** Filtered to nothing, as opposed to genuinely empty. */
   filtered: boolean
   errored: boolean
   onClearFilters: () => void
   onOpenBuilder: () => void
 }
 
-/** Designed zero state — the screen never renders a bare empty grid. */
 export function EvaluationFormsEmpty({
   filtered,
   errored,

@@ -178,11 +178,7 @@ function mapStatistics(data: StatisticsApiResponse): DepartmentStatistics {
   }
 }
 
-/**
- * `department` null reads the whole system — the admin and director view. A
- * coordinator passes their own college, though the server scopes them from their
- * profile regardless of what the query says.
- */
+/** `null` reads the whole system; coordinators are scoped server-side from their profile regardless. */
 export async function getDepartmentStatistics(
   department: string | null,
   query: DepartmentStatisticsQuery,
@@ -204,8 +200,6 @@ export async function getDepartmentStatistics(
   }
 }
 
-/** Category choices for the filter — the same set the events form offers. */
 export const DEPARTMENT_STATISTICS_CATEGORIES: readonly string[] = EVENT_CATEGORIES
 
-/** Department choices for the director-level filter — the UCLM departments. */
 export const DEPARTMENT_STATISTICS_DEPARTMENTS: readonly string[] = STATISTICS_DEPARTMENTS

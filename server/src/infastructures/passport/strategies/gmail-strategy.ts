@@ -6,7 +6,6 @@ import { apiPublicUrl } from '../../../shared/utils/environment-utils';
 
 export const GMAIL_STRATEGY_NAME = 'gmail';
 
-/** What Google hands back after consent, normalised for the mailbox service. */
 export interface GmailOAuthResult {
   google_sub: string;
   email: string;
@@ -24,14 +23,7 @@ interface GoogleTokenParams {
 
 const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 3600;
 
-/**
- * Links a portal user's Google mailbox — this is **not** a portal sign-in strategy.
- * Portal authentication stays with the JWT in `infastructures/jwt`; a Google identity
- * on its own never grants access to CARES.
- *
- * `true` as the third argument widens the verify arity to 6 so passport-oauth2 hands us
- * the raw token params, which is where `expires_in` lives.
- */
+/** Links a mailbox only, never a portal sign-in. Verify arity 6 exposes `expires_in`. */
 @Injectable()
 export class GmailStrategy extends PassportStrategy(
   Strategy,

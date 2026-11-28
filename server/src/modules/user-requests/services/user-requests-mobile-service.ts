@@ -44,12 +44,7 @@ export class UserRequestsMobileService {
     return { items: rows.map(toMobileDto) };
   }
 
-  /**
-   * Files the volunteer-side unlock for a donor / beneficiary account. The ID
-   * check and face match have already run inside the registration session
-   * (`/auth/upload-id`, `/auth/verify-face`); this copies their proof onto a
-   * durable row so a director can rule on it after the session expires.
-   */
+  /** Copies the session's ID and face proof onto a durable row so the review outlives the session. */
   async createRoleAccess(
     userId: string,
     callerRole: RoleType,
@@ -114,16 +109,7 @@ export class UserRequestsMobileService {
     return toMobileDto(row);
   }
 
-  /**
-   * A beneficiary applying for a place on an event. Unlike a volunteer join
-   * this does not take a slot straight away — the row waits for a director,
-   * who reviews the attached proof of residency, and the attendance record is
-   * only created when they accept.
-   *
-   * [viewRole] is the side the app has open (`?role=`, else the registered
-   * role). The role switcher is local, so a donor or volunteer who switched
-   * to their beneficiary side applies exactly like a beneficiary account.
-   */
+  /** No slot until a director accepts the attached residency proof. [viewRole]: `?role=`, else registered role. */
   async createEventJoin(
     userId: string,
     viewRole: RoleType,
@@ -221,7 +207,7 @@ export class UserRequestsMobileService {
     return toMobileDto(row);
   }
 
-  /** Trusts the bytes over the declared type: a real PDF starts with `%PDF-`. */
+  /** Bytes over declared type (`%PDF-` prefix). */
   private resolveProofMime(file: Express.Multer.File): string {
     const isPdf =
       file.buffer.subarray(0, 5).toString('latin1') === '%PDF-' &&

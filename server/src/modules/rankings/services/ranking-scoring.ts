@@ -10,59 +10,46 @@ import {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** The knobs Customization exposes; everything below is derived from them. */
+/** Customization's knobs; everything else derives from them. */
 export interface ScoringRule {
   pointsPerAttendance: number;
   absencePenaltyStep: number;
   absenceResetDays: number;
-  /** Extra points per attended event, by approved role; a role left out earns none. */
+  /** Per approved role; omitted roles earn none. */
   participationRolePoints: Partial<Record<EventParticipationRole, number>>;
 }
 
-/** One ruled attendance row, in the shape the scorer needs and nothing more. */
 export interface ScoredAttendance {
   status: AttendanceStatus;
-  /** When the event ended — the moment the ruling applies to. */
   endedAt: Date;
   hoursRendered: number | null;
-  /** The role the volunteer registered for, and where its review stands. */
   participationRole: EventParticipationRole;
   roleApproval: EventRoleApproval;
 }
 
 export interface VolunteerScore {
-  /** Attendance points plus role bonuses — everything earned before deductions. */
+  /** Before deductions. */
   pointsEarned: number;
-  /** The share of `pointsEarned` that came from approved participation roles. */
+  /** Portion of `pointsEarned` from approved roles. */
   rolePoints: number;
-  /** Attended events served in each approved special role. */
   roleCounts: Record<SpecialParticipationRole, number>;
   pointsDeducted: number;
-  /** Earned minus deducted, floored at zero so a standing never reads negative. */
+  /** Floored at zero. */
   points: number;
   eventsAttended: number;
   eventsMissed: number;
   hours: number;
-  /** Straight misses still counting against the next one as of `now`. */
+  /** Straight misses still counting as of `now`. */
   currentStreak: number;
   lastActiveAt: Date | null;
 }
 
 /**
- * The volunteer scoring mechanic:
- *
- * - every attended event (COMPLETED) earns `pointsPerAttendance`, plus the
- *   `participationRolePoints` bonus for the role the volunteer took — only once
- *   that role was APPROVED; a pending or rejected role counts as Regular;
- * - a registered event the volunteer skipped (ABSENT) costs `absencePenaltyStep`
- *   the first time, and each straight miss within `absenceResetDays` of the last
- *   one costs one step more — −2, −4, −6 …;
- * - the escalation resets to the first step once a miss is more than a week
- *   after the previous one, or once the volunteer attends something in between;
- * - rows still PENDING (unruled, awaiting sync) count for nothing either way.
- *
- * Rows are taken in event order, so the streak follows the calendar and not the
- * order the validator happened to rule in.
+ * - COMPLETED: `pointsPerAttendance` + `participationRolePoints` (APPROVED roles only).
+ * - ABSENT: `absencePenaltyStep`, one step more per straight miss within `absenceResetDays` (−2, −4, −6 …);
+ *   resets after a longer gap or an attended event.
+ * - PENDING: nothing.
+ * Rows are taken in event order, not ruling order.
  */
 export function scoreAttendance(
   rows: ScoredAttendance[],
@@ -118,7 +105,7 @@ export function scoreAttendance(
     lastMissAt = row.endedAt;
   }
 
-  // A streak only threatens the next event while it is still inside the window.
+  // Only counts while inside the window.
   score.currentStreak =
     lastMissAt !== null && now.getTime() - lastMissAt.getTime() <= resetMs
       ? streak
@@ -127,7 +114,7 @@ export function scoreAttendance(
   return score;
 }
 
-/** What one more miss would cost right now, given the streak in progress. */
+/** Given the current streak. */
 export function nextAbsencePenalty(
   currentStreak: number,
   rule: ScoringRule,
@@ -135,11 +122,7 @@ export function nextAbsencePenalty(
   return rule.absencePenaltyStep * (currentStreak + 1);
 }
 
-/**
- * The extra points one attended event earns for the volunteer's role. Zero for
- * Regular, and for any role still pending or rejected — the volunteer took part
- * as Regular then.
- */
+/** Zero for Regular and for pending or rejected roles. */
 export function participationRoleBonus(
   row: Pick<ScoredAttendance, 'participationRole' | 'roleApproval'>,
   rule: ScoringRule,

@@ -4,8 +4,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/popular_event_dec
 import 'package:mobile/shared/widgets/empty_illustration.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 
-/// "Popular Events 🔥 ......... VIEW ALL" — fixed height so the home tab can
-/// size its dark ground without measuring.
+/// Fixed height so the home tab can size its dark ground without measuring.
 class HomeSectionTitle extends StatelessWidget {
   const HomeSectionTitle({
     super.key,
@@ -70,8 +69,7 @@ class HomeSectionTitle extends StatelessWidget {
   }
 }
 
-/// White card the category section shows instead of a list when there is
-/// nothing to list: a fetch error, no interests chosen yet, or no matches.
+/// Shown for a fetch error, no interests yet, or no matches.
 class HomeStateCard extends StatelessWidget {
   const HomeStateCard({
     super.key,
@@ -157,8 +155,7 @@ class HomeStateCard extends StatelessWidget {
   }
 }
 
-/// Fills the popular-deck slot on the home tabs when there is no deck to
-/// show — the same height as a deck card, so the dark ground still lines up.
+/// Same height as a deck card so the dark ground still lines up.
 class HomeDeckPlaceholder extends StatelessWidget {
   const HomeDeckPlaceholder({
     super.key,

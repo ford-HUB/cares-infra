@@ -4,10 +4,8 @@ import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_category_icons.dart';
 import 'package:mobile/features/dashboard/data/models/recommended_event_models.dart';
 
-/// First photo of a server event, streamed with the bearer token because the
-/// bucket is private. Events with no upload (and failed loads) fall back to
-/// a category-tinted panel with the category glyph, so a card never shows a
-/// broken image.
+/// Streamed with the bearer token (private bucket); missing or failed images
+/// fall back to a category-tinted panel.
 class HomeEventImage extends StatelessWidget {
   const HomeEventImage({super.key, required this.event, this.iconSize = 34});
 

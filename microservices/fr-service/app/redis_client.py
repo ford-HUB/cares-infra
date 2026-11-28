@@ -23,7 +23,7 @@ async def connect_redis() -> None:
             decode_responses=True,
         )
     await redis.ping()
-    # Logged from the live connection so a URL's password never reaches the log.
+    # From the live connection so the URL's password is never logged.
     connection = redis.connection_pool.connection_kwargs
     logger.info("Connected to Redis at %s:%s", connection.get("host"), connection.get("port"))
 

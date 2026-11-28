@@ -7,18 +7,15 @@ import { ChartCard } from '../../statistics/ui/chart-card'
 interface RateGaugeProps {
   title: string
   description: string
-  /** The part; always shown against `total` so the arc has a denominator in words too. */
+  /** Always shown against `total`. */
   value: number
   total: number
-  /** What the pair counts, e.g. "volunteers verified". */
+  /** E.g. "volunteers verified". */
   caption: string
   color: string
 }
 
-/**
- * One ratio as an arc. The percentage is the headline, the `x of y` under it keeps the
- * raw counts on screen — a rate off a total of three should not read like a trend.
- */
+/** Shows `x of y` under the percentage so small totals don't read as trends. */
 export function RateGauge({
   title,
   description,

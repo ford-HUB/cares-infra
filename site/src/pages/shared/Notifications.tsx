@@ -14,12 +14,6 @@ import {
 import { usePortalRole } from '../../store/auth-store'
 import { useNotificationStore } from '../../store/notification-store'
 
-/**
- * The portal's inbox, scoped to the signed-in role. It answers one question first —
- * how much of this week still needs looking at — then lists the week by day, and keeps
- * everything older folded away as history so the record is there without crowding
- * what is current.
- */
 export function NotificationsPage() {
   const role = usePortalRole()
   const feed = useNotificationStore((s) => s.feed)

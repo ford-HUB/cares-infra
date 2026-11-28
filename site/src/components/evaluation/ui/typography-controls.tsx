@@ -13,14 +13,13 @@ import type {
 interface TypographyControlsProps {
   value: EvaluationTypography
   onChange: (patch: Partial<EvaluationTypography>) => void
-  /** Prefix for the two selects' accessible names, e.g. "Question 3". */
+  /** Prefix for the selects' accessible names, e.g. "Question 3". */
   label: string
 }
 
 const selectClass =
   'h-8 rounded-md border border-gray-200 bg-white px-2 text-[12px] text-gray-700 focus:border-transparent focus:ring-2 focus:ring-[var(--cares-primary)] focus:outline-none'
 
-/** Font family + size pair — the same two controls on the header card and each question. */
 export function TypographyControls({ value, onChange, label }: TypographyControlsProps) {
   return (
     <div className="flex items-center gap-1.5">

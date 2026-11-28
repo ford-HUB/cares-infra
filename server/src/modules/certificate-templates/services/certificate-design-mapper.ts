@@ -3,12 +3,7 @@ import type {
   StoredCertificateDesign,
 } from '../dto/certificate-templates-site-dto';
 
-/**
- * Where the portal reads one imported file back from. The bucket is private, so the
- * stored design holds asset ids and this is the only shape a browser can fetch — a
- * deployment's frozen design points at the template's assets too, which is why the
- * route is built from a template id rather than owned by either feature.
- */
+/** Private bucket: designs hold asset ids and browsers fetch this route. Keyed by template since deployments share its assets. */
 export function certificateAssetRoute(
   templateId: string,
   assetId: string,
@@ -16,7 +11,7 @@ export function certificateAssetRoute(
   return `/api/v1/certificate-templates/${templateId}/assets/${assetId}`;
 }
 
-/** Stored design (asset ids) → the design the portal draws (asset routes). */
+/** Asset ids → asset routes. */
 export function toDesignDto(
   design: StoredCertificateDesign,
   templateId: string,
@@ -68,7 +63,6 @@ export function toDesignDto(
   };
 }
 
-/** Every asset a stored design still points at. */
 export function designAssetIds(design: StoredCertificateDesign): string[] {
   return [
     ...(design.images ?? []).map((image) => image.asset_id),

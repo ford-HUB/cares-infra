@@ -11,7 +11,6 @@ import 'package:mobile/shared/widgets/gradient_button.dart';
 import 'package:mobile/shared/widgets/header_back_control.dart';
 import 'package:mobile/shared/widgets/header_band.dart';
 
-/// First step of registration — pick volunteer, donor, or beneficiary.
 class RegisterTypeSelectionScreen extends StatefulWidget {
   const RegisterTypeSelectionScreen({super.key});
 
@@ -220,8 +219,6 @@ class _RegisterTypeSelectionScreenState
   }
 }
 
-/// Green gradient band at the top of the role picker. It keeps the brand colour
-/// in one bounded place so the cards below can sit on plain white.
 class _RegisterHeader extends StatelessWidget {
   const _RegisterHeader();
 

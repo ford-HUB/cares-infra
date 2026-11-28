@@ -26,24 +26,15 @@ import { CertificateSealMark } from './certificate-seal-mark'
 interface CertificateElementProps {
   id: CertificateElementId
   design: CertificateDesign
-  /** Printed as the award name when the design has no wording of its own. */
+  /** Used as the award name when the design has no wording. */
   title: string
 }
 
-/**
- * Sizes are container units (`cqw` — a percent of the sheet's width) rather than
- * pixels, so the whole certificate scales with the sheet: the same layout reads
- * identically in the editor, the detail panel and a full-page print.
- *
- * The contents of one movable block. The static preview and the drag-and-drop editor
- * both render through this, so a block cannot look one way while being positioned and
- * another once saved.
- */
+/** Sized in `cqw` so the layout scales with the sheet; shared by preview and editor. */
 export function CertificateElement({ id, design, title }: CertificateElementProps) {
   const accent = CERTIFICATE_ACCENT_STYLES[design.accent]
   const preset = CERTIFICATE_FRAME_PRESETS[design.frame]
-  // A picked face, size and weight win over the frame's own classes — inline style
-  // beats the utility.
+  // Inline face/size/weight override the frame's utility classes.
   const align = elementAlign(design, id)
   const font = {
     ...elementFontStyle(design, id),
@@ -93,7 +84,7 @@ export function CertificateElement({ id, design, title }: CertificateElementProp
 
   if (id === 'seal') {
     return design.showSeal ? (
-      // The seal is a mark, not a line of text, so alignment slides the whole disc.
+      // The seal is a mark, so alignment slides the whole disc.
       <span className={cn('block', ALIGN_SELF_MARGIN[align])}>
         <CertificateSealMark
           design={design}

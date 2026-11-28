@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors three permission-module sections — the panel's typical first screenful. */
 export function AccessRightsPanelSkeleton() {
   return (
     <div aria-hidden className="space-y-3">

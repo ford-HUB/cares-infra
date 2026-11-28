@@ -10,13 +10,12 @@ export interface AdminLoginApiResponse {
   firstname: string
   lastname: string
   has_interests: boolean
-  /** Effective rights — baseline + grants − revokes − active suspensions. */
+  /** Baseline + grants − revokes − active suspensions. */
   permissions: string[]
   suspensions: SessionSuspensionApi[]
   access_token: string
 }
 
-/** One active suspension on the session, as the server sends it. */
 export interface SessionSuspensionApi {
   permission: string
   reason: string

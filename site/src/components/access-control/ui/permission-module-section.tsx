@@ -18,19 +18,11 @@ interface PermissionModuleSectionProps {
   suspensionOf: (permission: PermissionKey) => ActionSuspension | undefined
   disabled: boolean
   onToggle: (permission: PermissionKey, next: boolean) => void
-  /** The module header's tick — grants or revokes every action listed under it. */
   onToggleAll: (permissions: PermissionKey[], next: boolean) => void
   onLiftSuspension: (suspensionId: string) => void
 }
 
-/**
- * One module's actions, each with its own toggle, provenance, and suspension notice,
- * under a header tick that moves the whole module at once.
- *
- * A suspended action stays listed and ticked — the grant is still there underneath —
- * but its toggle is locked and the row reads red. Hovering the row shows the reason
- * and the window; the only thing left to do on it is lift the suspension.
- */
+/** Suspended actions stay ticked (grant kept) but are locked and read red. */
 export function PermissionModuleSection({
   module,
   permissions,

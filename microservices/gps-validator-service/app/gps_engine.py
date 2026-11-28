@@ -1,13 +1,6 @@
-"""Chronological movement analysis of one volunteer against one event geofence.
+"""Movement analysis of one volunteer against one event geofence.
 
-Everything geographic lives here: parsing the event's GeoJSON into a Shapely
-polygon, deciding per reading whether the volunteer is inside, stitching the
-readings into IN/OUT visits, crediting time inside, and flagging readings that
-do not look like a person walking around an event.
-
-Distances are geodesic (WGS84 via pyproj) — Shapely itself works in plain
-lon/lat degrees, which is fine for point-in-polygon on fences a few hundred
-metres wide but not for metres or speeds.
+Distances are geodesic (WGS84 via pyproj); Shapely's lon/lat degrees are only used for point-in-polygon.
 """
 
 from __future__ import annotations
@@ -28,11 +21,6 @@ from app.schemas import Anomaly, EventZone, Ping, Thresholds, ZoneVisit
 logger = logging.getLogger(__name__)
 
 _GEOD = Geod(ellps="WGS84")
-
-
-# ---------------------------------------------------------------------------
-# Zone
-# ---------------------------------------------------------------------------
 
 
 def parse_zone(geojson: dict[str, Any]) -> Polygon | MultiPolygon:
@@ -83,11 +71,6 @@ def distance_m(a: Ping, b: Ping) -> float:
     return float(dist)
 
 
-# ---------------------------------------------------------------------------
-# Rules
-# ---------------------------------------------------------------------------
-
-
 @dataclass(frozen=True)
 class Rules:
     required_coverage_ratio: float
@@ -126,11 +109,6 @@ class Rules:
             "maxTransitionsPerHour": self.max_transitions_per_hour,
             "departureBufferSeconds": self.departure_buffer_seconds,
         }
-
-
-# ---------------------------------------------------------------------------
-# Analysis
-# ---------------------------------------------------------------------------
 
 
 @dataclass
@@ -173,11 +151,7 @@ def _classify(zone: Polygon | MultiPolygon, pings: list[Ping], rules: Rules) -> 
 
 
 def _visits(readings: list[Reading], window_start: datetime, window_end: datetime, rules: Rules) -> list[ZoneVisit]:
-    """Stitch consecutive inside readings into visits.
-
-    A reading credits the time until the next reading, capped at the max gap so
-    a device that stopped recording for an hour does not earn that hour. Only
-    the part of each stretch that overlaps the event window counts."""
+    """Stitch inside readings into visits; each credits time to the next reading, capped at the max gap, clipped to the window."""
     visits: list[ZoneVisit] = []
     entered: datetime | None = None
     exited: datetime | None = None
@@ -219,13 +193,7 @@ def _visits(readings: list[Reading], window_start: datetime, window_end: datetim
 
 
 def _time_out(inside: list[Reading], window_end: datetime, live: bool, rules: Rules) -> datetime | None:
-    """When the volunteer left the zone for good: their last reading inside it.
-
-    Stepping out and coming back (a lunch break, an errand) never ends the stay —
-    only the *final* exit is the time out, so earlier exits are ignored. Once the
-    event is over that exit is settled. Mid-event (`live`) it is not settled until
-    the volunteer has been away for the departure buffer without returning:
-    still inside, or out for less than the buffer, leaves the time out open."""
+    """Last inside reading (breaks ignored); when `live`, open until away for the departure buffer."""
     if not inside:
         return None
     last_inside = inside[-1].ping.captured_at
@@ -305,8 +273,7 @@ def _anomalies(readings: list[Reading], window_start: datetime, window_end: date
                              message=f"{transitions} IN/OUT transitions in {hours:.1f} h — device hovering on the fence line",
                              details={"transitions": transitions}))
 
-    # A phone that reports the exact same spot for the whole event is more
-    # likely left on a table (or spoofed) than carried by a volunteer.
+    # Same spot all event: likely left on a table or spoofed.
     if len(readings) >= 30:
         first = readings[0].ping
         if all(distance_m(first, r.ping) <= rules.stationary_radius_m for r in readings):
@@ -314,7 +281,6 @@ def _anomalies(readings: list[Reading], window_start: datetime, window_end: date
                                  message=f"Device never moved more than {rules.stationary_radius_m:.0f} m for the whole recording",
                                  details={"pings": len(readings)}))
 
-    # Device said "inside" but the fence says otherwise (or vice versa).
     disagreements = sum(1 for r in readings if r.ping.in_area is not None and r.ping.in_area != r.inside)
     if disagreements:
         share = disagreements / len(readings)
@@ -338,8 +304,7 @@ def analyze(
     duration = (window_end - window_start).total_seconds()
 
     normalised = [p.model_copy(update={"captured_at": _utc(p.captured_at)}) for p in pings]
-    # Anomaly detection wants the raw order (to spot out-of-order rows); the
-    # movement analysis wants a clean timeline.
+    # Anomalies need raw order (out-of-order rows); visits need a sorted timeline.
     raw_readings = _classify(zone, normalised, rules)
     ordered = sorted(raw_readings, key=lambda r: r.ping.captured_at)
 

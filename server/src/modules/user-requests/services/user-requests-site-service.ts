@@ -48,15 +48,8 @@ export class UserRequestsSiteService {
   }
 
   /**
-   * Accepting an event-join request is what confirms the beneficiary's place.
-   * It does not take a volunteer slot or create an attendance row — the
-   * attendance list is the volunteers'; beneficiaries receive from the event
-   * rather than serve at it, so the accepted request is their record. The
-   * event's beneficiary cap, when set, is enforced against accepted requests.
-   * Accepting a role-access request enrols the verified ID + face on the
-   * account, so the Volunteer side's profile completion counts the ID check
-   * as done. Accepting a beneficiary registration is what lets the account
-   * sign in — the mobile login gate reads this row's status.
+   * EVENT_JOIN: confirms the beneficiary's place (no attendance row; cap enforced on accepted requests).
+   * ROLE_ACCESS: enrols the verified ID + face. Registration reviews: lets the account sign in.
    */
   async accept(id: string, callerId: string): Promise<UserRequestDto> {
     const row = await this.requirePending(id);
@@ -112,14 +105,7 @@ export class UserRequestsSiteService {
     return toSiteDto(updated);
   }
 
-  /**
-   * Turns down a beneficiary's event application with a reason they see in
-   * the app. Unlike a removal this is final for the row — nothing restores
-   * it — but the beneficiary may file a fresh application for the same event,
-   * since only a PENDING row counts as a duplicate. Rejecting a beneficiary
-   * registration keeps the account shut; the reason is emailed to them, since
-   * an account that cannot sign in never sees an in-app notice.
-   */
+  /** Final for the row, but the beneficiary may reapply. Rejected registrations are emailed (no app access). */
   async reject(
     id: string,
     callerId: string,
@@ -168,8 +154,7 @@ export class UserRequestsSiteService {
 
   async remove(id: string, callerId: string): Promise<UserRequestDto> {
     const row = await this.requireRow(id);
-    // A removed registration would leave the account shut with no decision on
-    // record — it is approved or rejected, never binned.
+    // Registrations are approved or rejected, never binned.
     if (isRegistrationReview(row.kind)) {
       throw new BadRequestException(
         'Approve or reject a registration instead of removing it',
@@ -184,8 +169,7 @@ export class UserRequestsSiteService {
       decidedByUserId: callerId,
       trail: { label: 'Request removed from the review queue', actorName },
     };
-    // A removed role request is not approved, so the volunteer takes part as
-    // Regular until a restore puts it back in front of a reviewer.
+    // Removed role requests aren't approved: Regular until restored.
     const updated =
       row.kind === 'EVENT_ROLE'
         ? await this.userRequestsRepository.decideEventRole(
@@ -246,7 +230,7 @@ export class UserRequestsSiteService {
     return declaredMime ? { ...object, contentType: declaredMime } : object;
   }
 
-  /** The event must still be open and, if capped, have a beneficiary place left. */
+  /** Open, and a beneficiary place left if capped. */
   private async assertBeneficiaryPlace(eventId: number): Promise<void> {
     const capacity =
       await this.userRequestsRepository.findBeneficiaryCapacity(eventId);
@@ -271,12 +255,7 @@ export class UserRequestsSiteService {
     }
   }
 
-  /**
-   * Every move on a request is news to the person who filed it — it is the
-   * only way they learn a decision was made. An event application belongs to
-   * the Beneficiary side; a role unlock is about the account itself, so it
-   * shows on whichever side they have open.
-   */
+  /** Event applications go to the Beneficiary side; role unlocks are account-wide. */
   private async notifyRequester(
     row: UserRequestRow,
     status: 'ACCEPTED' | 'REJECTED' | 'DELETED' | 'PENDING',
@@ -286,7 +265,7 @@ export class UserRequestsSiteService {
       category: NotificationCategory.USER_REQUEST,
       href: `/requests/${row.user_request_id}`,
       userIds: [row.user_id],
-      // A restored request can be decided again; each move is its own notice.
+      // Restored requests can be decided again; each move notifies.
       dedupeKey: `user-request:${row.user_request_id}:${status}:${row.trail.length}`,
     };
 
@@ -412,11 +391,7 @@ export class UserRequestsSiteService {
     await this.notificationScheduler.publish(notice);
   }
 
-  /**
-   * A registrant cannot sign in until approved, so the decision goes out by email —
-   * the approval also leaves a welcome notice for their first sign-in. A failed
-   * email never undoes the decision; the director's ruling is already on record.
-   */
+  /** Emailed (no sign-in yet); approval also leaves a welcome notice. Failures never undo the decision. */
   private async notifyRegistrant(
     row: UserRequestRow,
     status: 'ACCEPTED' | 'REJECTED' | 'DELETED' | 'PENDING',
@@ -426,10 +401,8 @@ export class UserRequestsSiteService {
     const approved = status === 'ACCEPTED';
     const alumni = row.kind === 'ALUMNI_REGISTRATION';
     const partnerBarangay = row.kind === 'PARTNER_BARANGAY_REGISTRATION';
-    // A manual registration is a volunteer sign-up (student, staff, alumni or
-    // partner barangay) whose ID the app could not recognize.
+    // A volunteer sign-up whose ID the app couldn't recognise.
     const manual = row.kind === 'MANUAL_REGISTRATION';
-    // Alumni, partner-barangay and manual sign-ups all open a volunteer account.
     const volunteer = alumni || partnerBarangay || manual;
     const registrationLabel = alumni
       ? 'alumni'
@@ -492,7 +465,7 @@ export class UserRequestsSiteService {
     }
   }
 
-  /** An event role can only be ruled on while the volunteer still holds the slot. */
+  /** Only while the volunteer still holds the slot. */
   private async requireEventRoleAttendance(row: UserRequestRow): Promise<void> {
     const attendance =
       row.event_id === null
@@ -534,10 +507,7 @@ export class UserRequestsSiteService {
   }
 }
 
-/**
- * A sign-up review (beneficiary, alumni, partner barangay or manual): approving it is what lets the
- * account sign in, so it is never binned and the decision goes out by email.
- */
+/** Approval lets the account sign in, so never binned; decisions are emailed. */
 function isRegistrationReview(kind: UserRequestKind): boolean {
   return (
     kind === UserRequestKind.BENEFICIARY_REGISTRATION ||

@@ -1,7 +1,6 @@
 import 'package:mobile/features/auth/domain/volunteer_type.dart';
 
-/// Field rules for the volunteer details form. Shared by the form (inline
-/// errors) and the registration flow (Continue gating) so both agree.
+/// Shared by inline errors and Continue gating so both agree.
 abstract final class VolunteerFieldRules {
   static const minAge = 15;
   static const maxAge = 80;
@@ -9,22 +8,18 @@ abstract final class VolunteerFieldRules {
   /// Students enter an expected graduation year, at most this many years out.
   static const maxYearsUntilGraduation = 6;
 
-  /// Earliest graduation year accepted for alumni.
   static const earliestAlumniYear = 1950;
 
-  /// Longest name the profile accepts later — kept in step with the server's
-  /// `max(80)` on first, middle and last name.
+  /// Matches the server's `max(80)` on names.
   static const maxNameLength = 80;
 
-  /// Starts with a letter; then letters (ñ and accents included), spaces,
-  /// hyphens, apostrophes and periods — "Ma. Luisa", "Dela Cruz", "O'Neil".
+  /// e.g. "Ma. Luisa", "Dela Cruz", "O'Neil"; ñ and accents allowed.
   static final _namePattern = RegExp(
     r"^\p{L}[\p{L}\p{M} .'’-]*$",
     unicode: true,
   );
 
-  /// Why a name field is not acceptable yet, or null when it is. [label] names
-  /// the field in the "required" and "too long" messages.
+  /// Null when valid; [label] names the field in messages.
   static String? nameError(
     String raw, {
     required String label,

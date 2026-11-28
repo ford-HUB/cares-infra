@@ -2,11 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mobile/core/session/app_role.dart';
 import 'package:mobile/core/session/mock_account_roles.dart';
 
-/// Holds the roles of the signed-in account and which one is active.
-///
-/// One account, many roles: switching only changes [activeRole] — no data is
-/// cleared, so each role's stores (volunteer profile, beneficiary requests,
-/// donor donations) stay exactly as the user left them.
+/// Switching only changes [activeRole]; each role's stores are kept.
 class RoleSession extends ChangeNotifier {
   RoleSession._();
 
@@ -23,7 +19,6 @@ class RoleSession extends ChangeNotifier {
 
   AppRole get activeRole => _activeRole;
 
-  /// Roles this account is registered or authorized for, in a stable order.
   Set<AppRole> get availableRoles => _availableRoles;
 
   bool get canSwitchRole => _availableRoles.length > 1;
@@ -35,7 +30,6 @@ class RoleSession extends ChangeNotifier {
   String get lastName => _lastName;
   bool get profileComplete => _profileComplete;
 
-  /// Whether the volunteer already picked event-type interests.
   bool get hasInterests => _hasInterests;
 
   String get displayName {
@@ -46,8 +40,7 @@ class RoleSession extends ChangeNotifier {
     return parts.join(' ');
   }
 
-  /// Starts a session for a signed-in account. [availableRoles] defaults to the
-  /// mock authorization fixture for the account's email.
+  /// [availableRoles] defaults to the mock authorization fixture.
   void start({
     required AppRole activeRole,
     required String email,
@@ -71,8 +64,6 @@ class RoleSession extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Switches the active role. Ignored when the account is not authorized for
-  /// [role] or it is already active.
   bool switchTo(AppRole role) {
     if (!_availableRoles.contains(role) || role == _activeRole) return false;
     _activeRole = role;
@@ -80,7 +71,7 @@ class RoleSession extends ChangeNotifier {
     return true;
   }
 
-  /// Grants an extra role to the current account (mock authorization).
+  /// Mock authorization only.
   void grantRole(AppRole role) {
     if (_availableRoles.contains(role)) return;
     _availableRoles = {

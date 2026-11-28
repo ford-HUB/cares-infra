@@ -32,28 +32,9 @@ import { ZodType } from 'zod';
 setCaseUnit({ module: 'Access Control Module', unit: 'Manage User & Role Rights', prefix: 'ACCESS-CTL' });
 
 /**
- * Shared by every spec in this folder — field validation for every Access Control
- * endpoint that takes input:
- *
- *   GET    /api/v1/access-control/users                              List      search · role · rights · page · page_size
- *   GET    /api/v1/access-control/users/:id                          Detail    id (uuid)
- *   PATCH  /api/v1/access-control/users/:id/permissions              Rights    id · permissions · reason
- *   POST   /api/v1/access-control/users/:id/suspensions              Suspend   id · permissions · reason · expires_at
- *   DELETE /api/v1/access-control/users/:id/suspensions/:suspensionId Lift     id · suspensionId (uuid)
- *   PATCH  /api/v1/access-control/roles/:roleType/permissions        Baseline  roleType · permissions
- *
- * The app runs the REAL `AccessControlSiteController` and `AccessControlSiteService`,
- * so the refusals that live in the service — unknown or non-portal user, changing or
- * suspending yourself, the protected root admin, a past expiry, the fixed admin
- * baseline, an unknown or already lifted suspension — are production code. Only
- * `AccessControlRepository` (Prisma), `ConfigService`, `AuditLogRecorder` and
- * `NotificationScheduler` are mocked. `@RequirePermission` is not exercised: the
- * global guards are out of scope for these layers.
- *
- * The id schemas are private consts in the controller, so id cases run through the
- * API layer only.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix).
+ * Real controller + service, so service refusals are production code; only the
+ * repository, ConfigService, AuditLogRecorder and NotificationScheduler are mocked.
+ * Id schemas are private to the controller, so id cases are API-layer only.
  */
 export const CALLER = {
   sub: '0f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f',
@@ -69,8 +50,6 @@ export const PORTAL_ROLES = [RoleType.ADMIN, RoleType.DIRECTOR, RoleType.COORDIN
 export const NON_PORTAL_ROLES = [RoleType.VOLUNTEER, RoleType.DONOR, RoleType.BENEFICIARY];
 export { ACCESS_LIST_MAX_PAGE_SIZE };
 
-/* ───────────────────────────── paths ───────────────────────────── */
-
 export const USERS_PATH = '/api/v1/access-control/users';
 export const userPath = (id: string = VALID_USER_ID) => `${USERS_PATH}/${encodeURIComponent(id)}`;
 export const rightsPath = (id: string = VALID_USER_ID) => `${userPath(id)}/permissions`;
@@ -79,8 +58,6 @@ export const liftPath = (id: string = VALID_USER_ID, suspensionId: string = VALI
   `${suspendPath(id)}/${encodeURIComponent(suspensionId)}`;
 export const baselinePath = (roleType: string) =>
   `/api/v1/access-control/roles/${encodeURIComponent(roleType)}/permissions`;
-
-/* ───────────────────────────── bodies ───────────────────────────── */
 
 export const VALID_RIGHTS = {
   permissions: [PermissionKey.EVENTS_VIEW, PermissionKey.EVENTS_CREATE],
@@ -91,7 +68,6 @@ export const VALID_SUSPENSION = {
   reason: 'Deleted three published events without approval.',
 };
 export const VALID_BASELINE = { permissions: [PermissionKey.EVENTS_VIEW, PermissionKey.CHAT_ACCESS] };
-/** Far enough ahead to stay in the future whenever the suite runs. */
 export const VALID_EXPIRY = '2099-01-01T00:00:00.000Z';
 
 /** Exact refusals the real code sends. */
@@ -111,8 +87,6 @@ export const MESSAGES = {
   suspensionNotFound: 'Suspension not found',
   alreadyLifted: 'That suspension has already been lifted',
 };
-
-/* ───────────────────────────── stored rows ───────────────────────────── */
 
 export interface StoredSuspension {
   user_action_suspension_id: string;
@@ -135,7 +109,7 @@ export const storedSuspension = (overrides: Partial<StoredSuspension> = {}): Sto
   ...overrides,
 });
 
-/** A user as `AccessControlRepository.findUser` returns them — a portal coordinator by default. */
+/** `findUser` row; a portal coordinator by default. */
 export const storedUser = (
   overrides: { role?: RoleType; userId?: string; email?: string; suspensions?: StoredSuspension[] } = {},
 ) => ({
@@ -149,20 +123,15 @@ export const storedUser = (
   action_suspensions: overrides.suspensions ?? [],
 });
 
-/** The suspension row `findSuspension` returns: the stored one plus its owner. */
+/** `findSuspension` row: the suspension plus its owner. */
 export const storedSuspensionRecord = (overrides: Partial<StoredSuspension> & { user_id?: string } = {}) => ({
   ...storedSuspension(overrides),
   user_id: overrides.user_id ?? VALID_USER_ID,
 });
 
-/* ───────────────────────────── app ───────────────────────────── */
-
 /**
- * Boots the access-control controller on the real service for the enclosing
- * `describe`. A stand-in for the global JWT guard puts `CALLER` on the request.
- * Before each test every mock goes back to the happy default: the target is a
- * portal coordinator who is not the caller and not the root admin, role baselines
- * fall back to the catalog, an active suspension exists, writes succeed.
+ * A stub guard sets `CALLER`. Mocks reset to the happy path before each test:
+ * target is another non-root coordinator, baselines use the catalog, writes succeed.
  */
 export const useAccessControlApp = () => {
   const ctx = {
@@ -216,10 +185,8 @@ export const useAccessControlApp = () => {
 
 export type AccessCtx = ReturnType<typeof useAccessControlApp>;
 
-/** The root operator account, by the default protected email. */
+/** Root admin, by the default protected email. */
 export const PROTECTED_ADMIN = () => storedUser({ role: RoleType.ADMIN, email: DEFAULT_PROTECTED_ADMIN_EMAIL });
-
-/* ───────────────────────────── requests ───────────────────────────── */
 
 export const listUsers = (ctx: AccessCtx, query?: Record<string, string>) =>
   runApiLayer(ctx.app, { method: 'get', path: USERS_PATH, query });
@@ -233,16 +200,12 @@ export const lift = (ctx: AccessCtx, id = VALID_USER_ID, suspensionId = VALID_SU
 export const updateBaseline = (ctx: AccessCtx, roleType: string, body: unknown) =>
   runApiLayer(ctx.app, { method: 'patch', path: baselinePath(roleType), body });
 
-/* ───────────────────────────── shared checks ───────────────────────────── */
-
-/** A refusal from the service: exact status + message in the `{ ok: false }` envelope. */
 export const expectRefusal = (outcome: LayerOutcome, status: number, message: string) => {
   expect(outcome.status).toBe(status);
   expectSafeErrorEnvelope(outcome);
   expect(outcome.body.message).toBe(message);
 };
 
-/** A refused change wrote nothing, logged nothing and told no one. */
 export const expectNothingChanged = (ctx: AccessCtx) => {
   expect(ctx.repository.replaceUserOverrides).not.toHaveBeenCalled();
   expect(ctx.repository.replaceRoleDefaults).not.toHaveBeenCalled();
@@ -251,8 +214,6 @@ export const expectNothingChanged = (ctx: AccessCtx) => {
   expect(ctx.audit.record).not.toHaveBeenCalled();
   expect(ctx.notifications.publish).not.toHaveBeenCalled();
 };
-
-/* ───────────────────────────── fixture tables ───────────────────────────── */
 
 type BodyRoute = 'list' | 'rights' | 'suspend' | 'baseline';
 
@@ -290,11 +251,7 @@ const reached = (ctx: AccessCtx, route: BodyRoute) => {
   }
 };
 
-/**
- * Body (or, for the list, query-string) fixtures through both layers. A FAIL must
- * come back in the validation envelope with nothing read or written; a PASS must
- * reach the route's write (or the list read) exactly once.
- */
+/** FAIL: validation envelope, nothing read or written. PASS: reaches the route once. */
 export const describeFieldTable = (ctx: AccessCtx, route: BodyRoute, fixtures: LayerFixture[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 1 — schema', async () => {
@@ -320,11 +277,7 @@ export const describeFieldTable = (ctx: AccessCtx, route: BodyRoute, fixtures: L
 
 type IdRoute = 'detail' | 'rights' | 'suspend' | 'lift';
 
-/**
- * User-id fixtures (the fixture `input` is the raw id, URL-encoded into the path)
- * through the API layer, with a valid body so the id is the only thing under test.
- * A FAIL must name the user-id rule and never look the user up.
- */
+/** `input` is the raw id (URL-encoded); the body stays valid so only the id is tested. */
 export const describeUserIdTable = (ctx: AccessCtx, route: IdRoute, fixtures: LayerFixture<string>[]) => {
   fixtureCases(fixtures, (fixture) => {
     it('layer 2 — api', async () => {

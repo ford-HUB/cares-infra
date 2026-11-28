@@ -10,7 +10,7 @@ export const LeaderboardQuerySchema = z
   })
   .strict();
 
-/** A row of the app's leaderboard — enough to draw the card, nothing personal. */
+/** Nothing personal. */
 export const LeaderboardEntrySchema = z.object({
   user_id: z.string(),
   display_name: z.string(),
@@ -18,12 +18,12 @@ export const LeaderboardEntrySchema = z.object({
   rank: z.number().int(),
   points: z.number().int(),
   events_attended: z.number().int(),
-  /** Which rung the standing falls into — the frame the avatar wears. */
+  /** Determines the avatar frame. */
   tier_id: z.string(),
   is_me: z.boolean(),
 });
 
-/** The caller's own standing, present even when they sit outside the top list. */
+/** Present even outside the top list. */
 export const LeaderboardMeSchema = z.object({
   rank: z.number().int().nullable(),
   points: z.number().int(),
@@ -32,7 +32,7 @@ export const LeaderboardMeSchema = z.object({
   events_attended: z.number().int(),
   events_missed: z.number().int(),
   current_streak: z.number().int(),
-  /** What the next straight miss would cost, given the streak so far. */
+  /** Given the current streak. */
   next_absence_penalty: z.number().int(),
   tier_id: z.string(),
 });
@@ -48,13 +48,12 @@ export const LeaderboardResponseSchema = z.object({
   me: LeaderboardMeSchema,
 });
 
-/** A row of the donor app's leaderboard. */
 export const DonorLeaderboardEntrySchema = z.object({
   user_id: z.string(),
   display_name: z.string(),
   rank: z.number().int(),
   points: z.number().int(),
-  /** Confirmed pesos in the period — money paid plus the credited value of goods. */
+  /** Money plus credited goods value. */
   amount: z.number().int(),
   donations: z.number().int(),
   tier_id: z.string(),

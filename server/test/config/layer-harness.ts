@@ -9,15 +9,8 @@ import { ResponseTransformInterceptor } from '../../src/shared/interceptors/resp
 import { LEAK_SIGNATURES } from './security-payloads';
 
 /**
- * Two layers, one verdict each:
- *
- *   Layer 1 — schema: the module's Zod request schema, `safeParse`d directly.
- *   Layer 2 — API:    the same input sent through the real controller, nest-zod
- *                     pipe, interceptor and `HttpExceptionFilter`, with the
- *                     service mocked so nothing reaches Prisma.
- *
- * A fixture's `expected` is the only source of truth. Both layers must return
- * that verdict; a test never adjusts `expected` to match what the code does.
+ * Layer 1: Zod schema. Layer 2: real controller, pipe, interceptor and filter
+ * with the service mocked. Both must match the fixture's `expected`.
  */
 export type Verdict = 'PASS' | 'FAIL';
 
@@ -25,9 +18,9 @@ export interface LayerFixture<TInput = unknown> {
   name: string;
   input: TInput;
   expected: Verdict;
-  /** Dotted issue path that must be reported when `expected` is FAIL, e.g. `email` or `items.0.qty`. */
+  /** Issue path required on FAIL, e.g. `items.0.qty`. */
   field?: string;
-  /** Exact message (string) or pattern the issue for `field` must carry. */
+  /** Expected message of the `field` issue. */
   message?: string | RegExp;
 }
 
@@ -69,27 +62,22 @@ export const runSchemaLayer = async (
 
 export interface ApiCall {
   method: 'get' | 'post' | 'put' | 'patch' | 'delete';
-  /** Full path including the global prefix, e.g. `/api/v1/auth/admin/login`. */
+  /** Includes the `/api` prefix. */
   path: string;
   body?: unknown;
-  /** Sent verbatim with `Content-Type: application/json` — use for `__proto__` bodies. */
+  /** Sent verbatim as JSON, for `__proto__` bodies. */
   rawBody?: string;
   query?: Record<string, unknown>;
   headers?: Record<string, string>;
 }
 
-/** Splices a `PROTOTYPE_POLLUTION_BODIES` payload into an otherwise valid raw JSON body. */
+/** Splices a `PROTOTYPE_POLLUTION_BODIES` payload into a valid raw JSON body. */
 export const withPollution = (valid: object, raw: string) =>
   `${JSON.stringify(valid).slice(0, -1)},${raw.slice(1)}`;
 
-/**
- * Fixtures run in the thousands, and a connection per request leaves a socket in
- * TIME_WAIT for each one: enough on Windows to exhaust the ephemeral ports, which then
- * fails unrelated tests with EADDRINUSE. Reusing connections keeps the suite repeatable.
- */
+/** Keep-alive: a socket per request exhausts Windows ephemeral ports (EADDRINUSE). */
 const keepAliveAgent = new Agent({ keepAlive: true });
 
-/** Any status below 400 is PASS; the error envelope is what makes it FAIL. */
 export const runApiLayer = async (
   app: INestApplication,
   call: ApiCall,
@@ -121,10 +109,6 @@ export const runApiLayer = async (
   };
 };
 
-/**
- * Asserts one layer against the fixture. Fails with a message naming the
- * layer and fixture so a red test says exactly which gate let the input through.
- */
 export const expectLayer = (outcome: LayerOutcome, fixture: LayerFixture) => {
   const detail = `[${outcome.layer}] "${fixture.name}" expected ${fixture.expected}, got ${outcome.verdict}` +
     (outcome.issues.length ? ` — issues: ${JSON.stringify(outcome.issues)}` : '') +
@@ -144,10 +128,7 @@ export const expectLayer = (outcome: LayerOutcome, fixture: LayerFixture) => {
   }
 };
 
-/**
- * The error contract every FAIL from the API layer must honour: the envelope
- * shape from `HttpExceptionFilter`, and nothing from the database or stack.
- */
+/** FAIL envelope must not leak database or stack detail. */
 export const expectSafeErrorEnvelope = (outcome: LayerOutcome) => {
   expect(outcome.body).toEqual(
     expect.objectContaining({ ok: false, message: expect.any(String) }),
@@ -161,7 +142,6 @@ export const expectSafeErrorEnvelope = (outcome: LayerOutcome) => {
   }
 };
 
-/** `expectSafeErrorEnvelope` plus the validation-specific shape: 400 and `{ path, message }[]`. */
 export const expectValidationEnvelope = (outcome: LayerOutcome) => {
   expect(outcome.status).toBe(400);
   expectSafeErrorEnvelope(outcome);
@@ -182,11 +162,7 @@ const LIFECYCLE_KEYS = new Set<PropertyKey>([
   'onApplicationShutdown',
 ]);
 
-/**
- * A provider whose every method is a `jest.fn()` created on first access.
- * Lifecycle hooks and `then` stay undefined so Nest neither calls them nor
- * treats the mock as a promise.
- */
+/** Lazy `jest.fn()` per method; lifecycle hooks and `then` stay undefined so Nest won't call or await them. */
 export const autoMock = <T extends object>(overrides: Partial<Record<keyof T, any>> = {}): jest.Mocked<T> => {
   const fns = new Map<PropertyKey, jest.Mock>(
     Object.entries(overrides).map(([k, v]) => [k, v as jest.Mock]),
@@ -206,11 +182,7 @@ export const mockProvider = <T extends object>(token: Type<T> | string | symbol,
   useValue: autoMock<T>(overrides),
 });
 
-/**
- * Boots only the controller(s) under test with the same global prefix,
- * interceptor and filter as `main.ts`. Global guards from `app-module.ts`
- * are deliberately absent — auth is out of scope for validation layers.
- */
+/** Same prefix, interceptor and filter as `main.ts`; global guards omitted on purpose. */
 export const createApiLayerApp = async (
   metadata: Pick<ModuleMetadata, 'controllers' | 'providers' | 'imports'>,
 ): Promise<INestApplication> => {
@@ -221,7 +193,7 @@ export const createApiLayerApp = async (
   app.useGlobalInterceptors(new ResponseTransformInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Already listening, so supertest does not start and stop a server per request.
+  // Listen once so supertest doesn't start a server per request.
   await app.listen(0, '127.0.0.1');
   return app;
 };

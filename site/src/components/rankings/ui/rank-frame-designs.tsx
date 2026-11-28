@@ -5,37 +5,27 @@ import type { RankFrameDesignId } from '../../../types/ranking'
 interface FrameArtProps {
   /** `url(#…)` gradient painted by the tier's two colours. */
   fill: string
-  /** Soft outer halo, drawn only where a design wants one. */
   glow: string
-  /** False in table rows: ornaments outside the ring are dropped, rings stay. */
+  /** False in table rows: ornaments outside the ring are dropped. */
   detailed: boolean
 }
 
-/** Eight spikes around the ring — the ornament that reads as a rank badge. */
 const SPIKE_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
 
-/** A laurel branch is leaves stepped along one side's arc. */
 const LAUREL_ANGLES = [18, 40, 62, 84, 106, 128]
 
-/** Markers riding the orbit ring. */
 const ORBIT_ANGLES = [0, 120, 240]
 
-/** Rivet positions around the hex plate. */
 const SHIELD_ANGLES = [30, 90, 150, 210, 270, 330]
 
-/** Five points, star-spaced. */
 const STAR_ANGLES = [0, 72, 144, 216, 288]
 
-/** Eight petals, one per compass point. */
 const PETAL_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
 
-/** Twelve cog teeth. */
 const GEAR_ANGLES = Array.from({ length: 12 }, (_, index) => index * 30)
 
-/** The three tongues of the flame crest, centre one upright. */
 const FLAME_ANGLES = [-32, 0, 32]
 
-/** Corner gems on the tilted facet. */
 const PRISM_ANGLES = [45, 135, 225, 315]
 
 function Aurora({ fill, glow, detailed }: FrameArtProps) {
@@ -64,7 +54,6 @@ function Aurora({ fill, glow, detailed }: FrameArtProps) {
 
       {detailed && (
         <>
-          {/* Wings sweeping out of the ring, and a crown gem at the top. */}
           <path
             d="M8 50 C8 30, 22 16, 40 14 C26 22, 18 34, 18 50 Z"
             fill={fill}
@@ -99,7 +88,7 @@ function Laurel({ fill, glow, detailed }: FrameArtProps) {
 
       {detailed &&
         LAUREL_ANGLES.map((angle) => (
-          // Each leaf is mirrored onto the far branch, so the wreath stays even.
+          // Mirrored onto the far branch so the wreath stays even.
           <g key={angle}>
             <ellipse
               cx="50"
@@ -169,7 +158,6 @@ function Orbit({ fill, glow, detailed }: FrameArtProps) {
   return (
     <>
       <circle cx="50" cy="50" r="49" fill={glow} />
-      {/* Two open arcs rather than a closed band — the gaps make it read as motion. */}
       <path
         d="M50 8 A42 42 0 0 1 92 50"
         fill="none"
@@ -228,7 +216,6 @@ function Crown({ fill, glow, detailed }: FrameArtProps) {
 
       {detailed && (
         <>
-          {/* Three-point crown resting on the ring, ribbon tails hanging below. */}
           <path
             d="M26 14 L36 -2 L50 10 L64 -2 L74 14 L64 20 L36 20 Z"
             fill={fill}
@@ -359,7 +346,6 @@ function Flame({ fill, glow, detailed }: FrameArtProps) {
 
       {detailed &&
         FLAME_ANGLES.map((angle) => (
-          // Each tongue leans out from the top of the band.
           <path
             key={angle}
             d="M50 -10 C58 2, 58 10, 50 16 C42 10, 42 2, 50 -10 Z"
@@ -418,7 +404,6 @@ function Halo({ fill, glow, detailed }: FrameArtProps) {
       <circle cx="50" cy="50" r="49" fill={glow} />
       {detailed && (
         <>
-          {/* The halo floats clear of the band rather than touching it. */}
           <ellipse
             cx="50"
             cy="2"
@@ -479,11 +464,7 @@ function Ring({ fill, glow }: FrameArtProps) {
   )
 }
 
-/**
- * The ornament half of a rank badge, one function per design. Colour never appears
- * here — every shape paints with the gradient handed in, so a director recolouring a
- * tier restyles all six designs at once.
- */
+/** Shapes never set colour; they paint with the passed gradient so a recoloured tier restyles every design. */
 const FRAME_ART: Record<RankFrameDesignId, (props: FrameArtProps) => ReactNode> = {
   aurora: Aurora,
   laurel: Laurel,

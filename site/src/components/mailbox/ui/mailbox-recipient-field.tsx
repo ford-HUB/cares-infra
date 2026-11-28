@@ -42,7 +42,7 @@ export function MailboxRecipientField({
   // The first match is pre-selected, so Enter completes without arrowing down first.
   const activeIndex = highlighted < suggestions.length ? highlighted : 0
 
-  /** Replaces the fragment being typed, leaving the caret ready for the next address. */
+  /** Replaces the typed fragment, leaving the caret ready for the next address. */
   const choose = (contact: MailContact) => {
     const head = value.slice(0, start)
     onChange(`${head}${head ? ' ' : ''}${contact.email}, `)

@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { SITE_URL, routeSeo } from '../constants/seo'
 
-/** Finds (or adds) a head tag and sets one attribute on it. */
 function upsertHead(selector: string, create: () => HTMLElement, attr: string, value: string) {
   let el = document.head.querySelector<HTMLElement>(selector)
   if (!el) {
@@ -25,9 +24,7 @@ function setMeta(key: 'name' | 'property', id: string, content: string) {
   )
 }
 
-/** Keeps the document title, description, canonical, robots and social tags in step
- *  with the current route. index.html carries the home page's values for crawlers
- *  that don't run JavaScript; this updates them as the SPA navigates. */
+/** index.html holds the home values for non-JS crawlers. */
 export function useRouteSeo() {
   const { pathname } = useLocation()
 

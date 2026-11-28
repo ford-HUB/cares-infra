@@ -148,7 +148,6 @@ function mapDepartmentOverview(
   }
 }
 
-/** System-wide counts — the admin and director dashboard. */
 export async function getAdminOverview(): Promise<ApiResponse<AdminOverviewData>> {
   try {
     const { data: body } = await apiClient.get<{
@@ -161,7 +160,7 @@ export async function getAdminOverview(): Promise<ApiResponse<AdminOverviewData>
   }
 }
 
-/** The caller's own college — the server scopes it from their profile, not a query. */
+/** Server scopes it from the caller's profile. */
 export async function getDepartmentOverview(): Promise<
   ApiResponse<DepartmentOverviewData>
 > {

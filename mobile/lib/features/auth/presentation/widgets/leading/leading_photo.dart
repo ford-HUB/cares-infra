@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/features/auth/presentation/widgets/leading/leading_slides.dart';
 
-/// Full-bleed story photo with a slow Ken Burns push-in, so a still frame
-/// still feels alive while the person reads.
 class LeadingPhoto extends StatefulWidget {
   const LeadingPhoto({super.key, required this.slide});
 

@@ -3,8 +3,6 @@ import '../../../core/theme/app_theme.dart';
 import '../domain/cares_event.dart';
 import '../domain/event_participation_role.dart';
 
-/// Shows [child] as a modal dialog with a "bounce pop" entrance: it scales
-/// up from slightly small, overshoots, then settles, while fading in.
 Future<T?> _showBouncePopDialog<T>({
   required BuildContext context,
   required bool barrierDismissible,
@@ -139,8 +137,7 @@ Future<bool> showEventJoinConfirmationDialog(
   ).then((value) => value ?? false);
 }
 
-/// Asks the volunteer to confirm leaving an event they already joined.
-/// Resolves to `true` only when they tap "Yes, Cancel".
+/// `true` only for "Yes, Cancel".
 Future<bool> showEventCancelConfirmationDialog(
   BuildContext context,
   CaresEvent event,

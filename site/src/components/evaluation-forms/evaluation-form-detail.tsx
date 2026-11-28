@@ -15,7 +15,7 @@ import { FormStatusBadge } from './ui/form-status-badge'
 
 interface EvaluationFormDetailProps {
   form: EvaluationForm
-  /** Only this questionnaire's assignments — the page filters before passing them. */
+  /** Pre-filtered by the page to this questionnaire. */
   assignments: EvaluationAssignment[]
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -23,11 +23,6 @@ interface EvaluationFormDetailProps {
   onUnassign: (assignment: EvaluationAssignment) => void
 }
 
-/**
- * What this questionnaire asks and where it is asked. The two lists are the whole
- * record a director checks before assigning it again, so they sit side by side
- * rather than behind tabs.
- */
 export function EvaluationFormDetail({
   form,
   assignments,

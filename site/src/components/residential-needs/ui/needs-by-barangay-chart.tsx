@@ -22,7 +22,7 @@ interface NeedsByBarangayChartProps {
   households: Household[]
 }
 
-/** Priority hues as hex for the chart — the same four the badge and bar classes use. */
+/** Hex for the chart; same four hues as the badge and bar classes. */
 const PRIORITY_HEX: Record<NeedPriority, string> = {
   critical: '#ef4444',
   high: '#f59e0b',
@@ -40,11 +40,6 @@ const config: ChartConfig = Object.fromEntries(
 const legendOrder = (item: { dataKey?: unknown }) =>
   NEED_PRIORITY_ORDER.indexOf(String(item.dataKey) as NeedPriority)
 
-/**
- * Where the surveyed households live and how urgent each barangay's list is — one
- * stacked bar per barangay, so a place with many critical rows reads as a long red
- * start even when its total is small.
- */
 export function NeedsByBarangayChart({ households }: NeedsByBarangayChartProps) {
   const rows = householdBarangays(households).map((barangay) => {
     const counts = Object.fromEntries(NEED_PRIORITY_ORDER.map((band) => [band, 0])) as Record<

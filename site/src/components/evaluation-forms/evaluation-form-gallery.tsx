@@ -11,7 +11,6 @@ interface EvaluationFormGalleryProps {
   onAction: (action: string, form: EvaluationForm) => void
 }
 
-/** The default view: the questions are what is being assigned, so they are shown. */
 export function EvaluationFormGallery({
   forms,
   showSkeleton,

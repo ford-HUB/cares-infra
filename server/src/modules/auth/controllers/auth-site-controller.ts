@@ -98,11 +98,7 @@ export class AuthSiteController {
     return await this.authSiteService.submitAccessRequest(data, files);
   }
 
-  /**
-   * The public status page behind the "Check status" button in the registration
-   * email. The signed token is the only key: a registrant cannot sign in while
-   * their sign-up is under review, so this is how they follow it.
-   */
+  /** Public status page from the registration email; the signed token is the only key. */
   @Get('registration-status')
   @Public()
   @ResponseMessage('Registration status')

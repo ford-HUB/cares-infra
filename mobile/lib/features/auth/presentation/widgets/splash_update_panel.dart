@@ -6,10 +6,7 @@ import 'package:mobile/features/auth/presentation/providers/app_update_provider.
 import 'package:mobile/shared/widgets/gradient_button.dart';
 import 'package:mobile/shared/widgets/ground_card.dart';
 
-/// Floating card at the foot of the splash offering a newer release.
-///
-/// Reads [appUpdateProvider]: offer → download progress → installer hand-off,
-/// with retry on failure. "Later" is hidden when the release is required.
+/// "Later" is hidden when the release is required.
 class SplashUpdatePanel extends ConsumerWidget {
   const SplashUpdatePanel({super.key});
 

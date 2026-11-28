@@ -5,7 +5,7 @@ import { publicRoutes } from './public-routes'
 
 export const mainRouter = createBrowserRouter([
   {
-    // Pathless, so every route keeps its own path; it only keeps the head tags current.
+    // Pathless: only keeps head tags current.
     element: <SeoRoot />,
     children: [...publicRoutes, ...permittedRoutes],
   },

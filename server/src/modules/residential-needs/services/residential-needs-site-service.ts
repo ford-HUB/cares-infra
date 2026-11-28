@@ -15,12 +15,7 @@ import {
 } from '../repositories/residential-needs-repository';
 import { UNSPECIFIED_BARANGAY } from '../validators/residential-needs-site-validator';
 
-/**
- * The Residential Needs screens. Every row is a Needs Assessment Survey a
- * beneficiary submitted from the app; the Clusters screen hands the same rows
- * to decision-service for the K-Means grouping. The server translates between
- * the portal's snake_case and the service's camelCase.
- */
+/** Maps portal snake_case <-> decision-service camelCase. */
 @Injectable()
 export class ResidentialNeedsSiteService {
   private readonly logger = new Logger(ResidentialNeedsSiteService.name);
@@ -76,11 +71,6 @@ export class ResidentialNeedsSiteService {
   }
 }
 
-/**
- * The respondent's profile supplies the household details the survey does not
- * ask: family name, barangay, and head count (profile first, else the size
- * given on their latest assistance request).
- */
 function toHouseholdRow(row: NeedsAssessmentRow): HouseholdRowDto {
   const members =
     row.user.household_size ??
@@ -105,13 +95,7 @@ function toHouseholdRow(row: NeedsAssessmentRow): HouseholdRowDto {
   };
 }
 
-/**
- * The `address_barangay` column is only written by the portal profile form.
- * App users have just `current_address`, which the app always formats as
- * `Street, Barangay, City/Municipality, Province` — so when the column is
- * empty the barangay is read out of that string, the same way the Users
- * master list does.
- */
+/** Falls back to `current_address` (`Street, Barangay, City, Province`). */
 function toBarangay(user: NeedsAssessmentRow['user']): string {
   const stored = user.address_barangay?.trim();
   if (stored) return stored;
@@ -120,8 +104,7 @@ function toBarangay(user: NeedsAssessmentRow['user']): string {
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean);
-  // Anything shorter isn't the app's canonical shape (e.g. a free-text
-  // address read off a residency document) — guessing would mislabel it.
+  // Not the app's format; don't guess.
   if (parts.length < 4) return UNSPECIFIED_BARANGAY;
 
   return parts[parts.length - 3] || UNSPECIFIED_BARANGAY;

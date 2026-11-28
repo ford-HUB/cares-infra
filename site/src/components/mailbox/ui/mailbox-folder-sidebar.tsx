@@ -9,7 +9,6 @@ interface MailboxFolderSidebarProps {
   onCompose: () => void
 }
 
-/** Collapsed rail on desktop: labels appear on hover, mobile keeps the icon+label row. */
 const buttonClass =
   'inline-flex shrink-0 items-center gap-2 rounded-[var(--cares-radius)] px-3 py-2 text-xs transition md:w-full md:justify-center md:group-hover:justify-start'
 
@@ -22,8 +21,7 @@ export function MailboxFolderSidebar({
   onCompose,
 }: MailboxFolderSidebarProps) {
   return (
-    // The rail stays in the flow and widens on hover, so the columns beside it move
-    // across instead of being covered by the expanded labels.
+    // The rail widens in flow on hover, pushing the columns instead of covering them.
     <aside className="group flex w-full shrink-0 flex-row gap-1 overflow-hidden border-b border-[var(--cares-border)] bg-[var(--cares-card)] p-2 md:w-14 md:flex-col md:border-b-0 md:border-r md:transition-[width] md:duration-200 md:hover:w-56">
       <button
         type="button"

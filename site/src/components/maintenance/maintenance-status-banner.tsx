@@ -21,9 +21,8 @@ import { SurfaceToggle } from './ui/surface-toggle'
 interface MaintenanceStatusBannerProps {
   mode: MaintenanceMode
   states: Record<MaintenanceSurface, SurfaceState>
-  /** The soonest window still to come — the countdown under the hero. */
   nextWindow: MaintenanceWindow | null
-  /** Shared clock tick, so the countdown advances without owning a timer. */
+  /** Shared clock tick, so the countdown needs no timer of its own. */
   now: number
   busy: boolean
   onToggleSurface: (surface: MaintenanceSurface) => void
@@ -31,11 +30,7 @@ interface MaintenanceStatusBannerProps {
   onScheduleWindow: () => void
 }
 
-/**
- * The one question this page answers: is CARES up right now, and for whom. The four
- * surfaces are parts of one system, so they share a single availability bar rather
- * than four tiles — and each part is the switch that closes it.
- */
+/** The four surfaces share one availability bar; each legend entry is its toggle. */
 export function MaintenanceStatusBanner({
   mode,
   states,

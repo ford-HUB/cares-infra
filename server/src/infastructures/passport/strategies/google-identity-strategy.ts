@@ -10,13 +10,12 @@ import {
 
 export const GOOGLE_IDENTITY_STRATEGY_NAME = 'google-identity';
 
-/** Google's OpenID signing keys. `jwks-rsa` fetches these once and caches them. */
+/** Cached by `jwks-rsa`. */
 const GOOGLE_JWKS_URI = 'https://www.googleapis.com/oauth2/v3/certs';
 
 /** Google mints tokens under both spellings; both are legitimate. */
 const ALLOWED_ISSUERS = ['accounts.google.com', 'https://accounts.google.com'];
 
-/** The ID token claims the donor flow reads, once passport-jwt has verified the token. */
 interface GoogleIdTokenClaims {
   sub?: string;
   email?: string;
@@ -27,23 +26,7 @@ interface GoogleIdTokenClaims {
   picture?: string;
 }
 
-/**
- * Signs a donor in from the ID token Google Sign-In handed the mobile app.
- *
- * `passport-jwt` rather than `passport-google-oauth20` because the phone has already
- * completed consent natively — there is no browser leg to redirect, only a signed token
- * to check. And rather than Google's `tokeninfo` endpoint, which is a debugging aid:
- * verifying locally against the cached JWKS costs no network round-trip per sign-in and
- * cannot be taken down or rate-limited out from under us.
- *
- * Everything that makes this an authentication check is declared in the options below and
- * enforced by `jsonwebtoken`, not by hand: RS256 signature against Google's published
- * keys, `iss`, `exp`, and — the one people forget — `audience`. Without the audience
- * check, an ID token minted for *any* Google app would sign someone in here.
- *
- * Unlike `GmailStrategy`, which links a mailbox and grants no access, a success here *is*
- * an authentication: it puts a verified identity on `req.user`.
- */
+/** Verifies the native-login ID token locally against JWKS: RS256, `iss`, `exp` and `audience`. */
 @Injectable()
 export class GoogleIdentityStrategy extends PassportStrategy(
   Strategy,
@@ -66,10 +49,7 @@ export class GoogleIdentityStrategy extends PassportStrategy(
     });
   }
 
-  /**
-   * Reached only for a token that already passed every check above, so this is claim
-   * mapping and nothing more — there is no verification left to do here.
-   */
+  /** Already verified; claim mapping only. */
   validate(claims: GoogleIdTokenClaims): OAuthIdentityProfile {
     const fallback = splitDisplayName(claims.name ?? '');
 
@@ -86,15 +66,7 @@ export class GoogleIdentityStrategy extends PassportStrategy(
   }
 }
 
-/**
- * Every client id that may sign in: the Android and iOS clients mint the token, and the
- * web client id is what `serverClientId` puts in `aud` when the mobile app asks for an ID
- * token meant for this backend.
- *
- * Read once at construction because `audience` is a strategy option, not a per-request
- * decision — the same point `GmailStrategy` reads its own credentials. An empty list
- * would silently accept nothing, so it fails loudly instead.
- */
+/** Android, iOS and web (`serverClientId`) client ids; an empty list throws. */
 function resolveAllowedAudiences(): string[] {
   const audiences = [
     process.env.GOOGLE_MOBILE_CLIENT_ID,

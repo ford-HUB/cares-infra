@@ -4,9 +4,7 @@ import type { ActiveSession } from '../../../types/active-session'
 import { formatUserAgent } from '../../../utils/user-agent-label'
 
 export type RevokeTarget =
-  /** One device. */
   | { kind: 'session'; session: ActiveSession }
-  /** Every device of the account behind the row. */
   | { kind: 'user'; session: ActiveSession; sessionCount: number }
 
 interface RevokeSessionModalProps {
@@ -16,10 +14,6 @@ interface RevokeSessionModalProps {
   onConfirm: (target: RevokeTarget) => void
 }
 
-/**
- * Revoking is immediate and cannot be undone — the device has to sign in again — so it
- * goes through a confirmation that names exactly what is about to be ended.
- */
 export function RevokeSessionModal({
   target,
   loading,

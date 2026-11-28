@@ -14,7 +14,6 @@ interface EvaluationFormsToolbarProps {
   view: FormViewMode
   shown: number
   total: number
-  /** False until the first fetch settles, so the count doesn't flash "0 of 0". */
   initialized: boolean
   onSearchChange: (value: string) => void
   onSortChange: (value: FormSort) => void
@@ -75,7 +74,6 @@ export function EvaluationFormsToolbar({
           ))}
         </select>
 
-        {/* One choice of two, so a toggle group rather than two ad-hoc buttons. */}
         <ToggleGroup
           type="single"
           value={view}

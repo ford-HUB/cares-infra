@@ -10,20 +10,10 @@ import 'package:mobile/features/dashboard/data/models/notification_models.dart';
 import 'package:mobile/features/dashboard/data/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Keeps the person's feed current and turns rows that arrived while the app
-/// was away into device notifications. There is no push channel, so this
-/// polls: on every dashboard resume and refresh, shortly after the person does
-/// something the server answers with a notice, and on a slow timer while the
-/// app is in the foreground.
-///
-/// The server feed covers every side of the account. What the screens read
-/// ([feed], [unread]) is scoped to the side that is open — a donor who also
-/// volunteers never sees donation news on the Volunteer side — while device
-/// pops cover every side the account holds, so nothing is missed just because
-/// another side was open when it landed.
-///
-/// The first fetch after sign-in only records a high-water mark — a backlog
-/// of old rows must not pop all at once on a fresh install.
+/// No push channel, so this polls: on dashboard resume/refresh, shortly after
+/// actions, and on a slow foreground timer. Screens see the open side only;
+/// device pops cover every side. The first fetch after sign-in only records a
+/// high-water mark so a backlog never pops at once.
 class NotificationSync extends ChangeNotifier {
   NotificationSync._() {
     // Switching sides re-scopes the feed and the bell without a refetch.
@@ -34,15 +24,14 @@ class NotificationSync extends ChangeNotifier {
 
   static const Duration pollInterval = Duration(minutes: 1);
 
-  /// How long after a user action the feed is re-read. The server writes
-  /// notices on a background worker, so an immediate read would miss them.
+  /// The server writes notices on a background worker, so an immediate read
+  /// would miss them.
   static const Duration actionFollowUp = Duration(seconds: 4);
 
   /// Past this many new rows, one summary pop replaces the individual ones.
   static const int maxIndividualPops = 3;
 
-  /// Tap payload for a pop that belongs to a side other than the open one;
-  /// the dashboard shell switches to that side before opening the feed.
+  /// The shell switches to that side before opening the feed.
   static const String rolePayloadPrefix = 'role:';
 
   static const _seenKey = 'notifications.seen_at';
@@ -59,13 +48,11 @@ class NotificationSync extends ChangeNotifier {
   Timer? _followUp;
   bool _refreshing = false;
 
-  /// Dashboards currently holding the poll open. A side switch pushes the new
-  /// dashboard before the old one is disposed, so the poll must outlive a
-  /// single [stop].
+  /// A side switch pushes the new dashboard before disposing the old, so the
+  /// poll must outlive one [stop].
   int _holders = 0;
 
-  /// The side the app has open, or null before any dashboard signed in (the
-  /// feed is then shown whole).
+  /// Null before any dashboard signed in; the feed is then shown whole.
   AppRole? get activeRole {
     final type = RoleAccountStore.instance.active?.roleType;
     return type == null ? null : AppRoleX.fromApiValue(type);
@@ -76,20 +63,17 @@ class NotificationSync extends ChangeNotifier {
     return role == null || item.isFor(role);
   }
 
-  /// Whether the account can open [role]'s side at all.
   bool _holds(AppRole role) {
     final store = RoleAccountStore.instance;
     return store.isEmpty || store.isUnlocked(role.apiValue);
   }
 
-  /// The open side's rows plus the account-wide ones, newest first.
   List<AppNotification> get feed => _all.items.where(_onOpenSide).toList();
 
-  /// Unread on the open side — what the bell dot and "Mark all" follow.
+  /// Drives the bell dot and "Mark all".
   int get unread =>
       _all.items.where((item) => item.isUnread && _onOpenSide(item)).length;
 
-  /// Unread rows waiting on the account's other sides, by side.
   Map<AppRole, int> get unreadOnOtherSides {
     final counts = <AppRole, int>{};
     for (final item in _all.items) {
@@ -101,14 +85,13 @@ class NotificationSync extends ChangeNotifier {
     return counts;
   }
 
-  /// Starts the foreground poll for one dashboard. Pair with [stop].
+  /// Pair with [stop].
   void start() {
     _holders++;
     _timer ??= Timer.periodic(pollInterval, (_) => refresh());
     unawaited(refresh());
   }
 
-  /// Releases one dashboard's hold; the poll ends when the last one goes.
   void stop() {
     if (_holders > 0) _holders--;
     if (_holders > 0) return;
@@ -122,9 +105,7 @@ class NotificationSync extends ChangeNotifier {
     _followUp = null;
   }
 
-  /// Re-reads the feed shortly after the person registered, applied, donated
-  /// or filed a ticket, so the server's receipt pops without waiting a full
-  /// poll. Repeated calls collapse into one read.
+  /// Repeated calls after an action collapse into one read.
   void refreshSoon() {
     _followUp?.cancel();
     _followUp = Timer(actionFollowUp, () {
@@ -133,8 +114,7 @@ class NotificationSync extends ChangeNotifier {
     });
   }
 
-  /// Fetches the feed and pops anything newer than the last mark. A network
-  /// failure leaves the last good feed in place; the next tick retries.
+  /// A network failure keeps the last good feed; the next tick retries.
   Future<void> refresh() async {
     if (!AuthSession.isSignedIn || _refreshing) return;
     _refreshing = true;
@@ -170,7 +150,7 @@ class NotificationSync extends ChangeNotifier {
     }
   }
 
-  /// Clears the open side only — the other sides' news has not been seen.
+  /// Open side only; other sides' news is still unseen.
   Future<void> markAllRead() async {
     final role = activeRole ?? AppRole.volunteer;
     _all = NotificationFeed(
@@ -189,8 +169,7 @@ class NotificationSync extends ChangeNotifier {
     }
   }
 
-  /// Forgets the feed and the high-water mark — sign-out, so the next account
-  /// on this device starts clean.
+  /// On sign-out, so the next account starts clean.
   Future<void> clear() async {
     _holders = 0;
     _cancelTimers();
@@ -204,8 +183,7 @@ class NotificationSync extends ChangeNotifier {
     }
   }
 
-  /// A row pops only when it belongs to this account's sides: account-wide
-  /// rows always, side rows only for a side the account actually holds.
+  /// Account-wide rows always; side rows only for sides the account holds.
   bool _poppable(AppNotification item) {
     final role = item.audienceRole;
     return role == null || _holds(role);
@@ -266,8 +244,7 @@ class NotificationSync extends ChangeNotifier {
       final otherSide = role != null && !_onOpenSide(item);
       await notifier.show(
         id: _popId(item.id),
-        // Name the side when it is not the open one, so "Payment received"
-        // is not mistaken for something on the side the person is looking at.
+        // Prefix other sides so a pop isn't mistaken for the open side's.
         title: otherSide ? '${role.label} · ${item.title}' : item.title,
         body: item.message,
         payload: otherSide

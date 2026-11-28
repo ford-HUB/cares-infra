@@ -2,7 +2,6 @@ import { CALENDAR_CATEGORY_TINTS } from '../../../constants/calendar'
 import type { EventCategory } from '../../../types/event'
 
 interface CalendarLegendProps {
-  /** Only the categories present in the current range — an unused key is noise. */
   categories: EventCategory[]
 }
 

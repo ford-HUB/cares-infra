@@ -39,14 +39,7 @@ export class S3Service {
     return this.buildObjectUrl(filename);
   }
 
-  /**
-   * A stored key that is no longer in the bucket is a missing file, not a server
-   * fault: rows outlive objects (a record restored from a dump, an upload that went to
-   * another bucket, a file deleted by hand). Left as the raw SDK error it reaches the
-   * exception filter as an unknown failure and prints a stack for every broken avatar,
-   * so it is translated here — once, for all the callers — into the 404 the clients
-   * already know how to fall back from.
-   */
+  /** Maps a missing object (rows can outlive objects) to the 404 clients already handle. */
   async getObject(
     keyOrUrl: string,
   ): Promise<{ buffer: Buffer; contentType: string }> {
@@ -78,11 +71,7 @@ export class S3Service {
     };
   }
 
-  /**
-   * The SDK reports a missing object as `NoSuchKey` on a plain GET and as `NotFound`
-   * when the caller lacks `s3:ListBucket` — the same situation, two shapes. The status
-   * check is the backstop for a version that reports neither.
-   */
+  /** `NoSuchKey` on GET, `NotFound` without `s3:ListBucket`; status check as backstop. */
   private isMissingObject(error: unknown): boolean {
     if (error instanceof NoSuchKey || error instanceof NotFound) return true;
 

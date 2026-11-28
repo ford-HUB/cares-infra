@@ -11,7 +11,7 @@ const PORTAL_ROLES = [
 type PortalRole = (typeof PORTAL_ROLES)[number];
 
 type PortalSeedOptions = {
-  /** Env var prefix, e.g. `SEED_ADMIN` reads SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, ... */
+  /** e.g. `SEED_ADMIN` reads `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, ... */
   envPrefix: string;
   defaultFirstname: string;
   defaultLastname: string;
@@ -82,7 +82,7 @@ const findOrCreateRole = async (prisma: PrismaClient, type: RoleType) => {
   );
 };
 
-/** Creates a portal account, or resets its password and role if the email already exists. */
+/** Creates a portal account, or resets its password and role. */
 export const seedPortalAccount = async (
   prisma: PrismaClient,
   options: PortalSeedOptions,

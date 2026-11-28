@@ -10,10 +10,8 @@ export type RegistrationStatusState =
 const MISSING_TOKEN =
   'This link is missing its status code. Open the "Check status" button from your registration email again.'
 
-/** Loads the review status named by the email link's token. */
 export function useRegistrationStatus(token: string | null): RegistrationStatusState {
-  // Kept with the token it answers, so a new token reads as loading until its own
-  // answer lands — no state is reset synchronously inside the effect.
+  // Keyed by token so a new token reads as loading without a sync reset in the effect.
   const [loaded, setLoaded] = useState<{
     token: string
     state: RegistrationStatusState

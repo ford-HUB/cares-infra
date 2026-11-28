@@ -32,11 +32,7 @@ export function LoginActivityPage() {
   const [range, setRange] = useState<LoginActivityRange>(LOGIN_ACTIVITY_DEFAULT_RANGE)
   const [selected, setSelected] = useState<LoginActivityEntry | null>(null)
 
-  /**
-   * Every filter — search included — narrows on the server: the grid only ever holds
-   * the pages scrolled so far, so filtering what is loaded would silently skip the
-   * rest of the trail.
-   */
+  /** Filters run server-side; the grid only holds scrolled pages. */
   useEffect(() => {
     const timer = setTimeout(
       () => setDebouncedSearch(search.trim()),
@@ -49,7 +45,7 @@ export function LoginActivityPage() {
     void fetchActivity({ search: debouncedSearch, outcome, source, range })
   }, [fetchActivity, debouncedSearch, outcome, source, range])
 
-  // Stable, so the scroll observer is not torn down and rebuilt on every render.
+  // Stable so the scroll observer isn't rebuilt every render.
   const handleLoadMore = useCallback(() => void loadMore(), [loadMore])
 
   const failedCount = entries.filter((entry) => entry.outcome !== 'success').length
@@ -74,11 +70,7 @@ export function LoginActivityPage() {
         onExport={() => exportLoginActivityCsv(entries)}
       />
 
-      {/*
-        A failed fetch leaves `entries` empty, which the table would otherwise render
-        as "no attempts match the current filters" — a filter problem, not the outage
-        it actually is. Say which one it is.
-      */}
+      {/* Distinguish a failed fetch from an empty filter result. */}
       {error && (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-800">
           <span>{error}</span>

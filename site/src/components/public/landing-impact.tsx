@@ -35,8 +35,7 @@ function ImpactCell({ stat, start }: { stat: LandingImpactStat; start: boolean }
   )
 }
 
-/** Independent headline figures from the 2024–2025 bulletin — no shared whole,
- *  so they sit side by side in one card rather than as a part-to-whole bar. */
+/** Independent figures with no shared whole, so no part-to-whole bar. */
 export function LandingImpact() {
   const { ref, visible } = useReveal<HTMLDivElement>(0.3)
 

@@ -12,7 +12,6 @@ interface SurfaceStateBadgeProps {
   className?: string
 }
 
-/** Where one surface stands. Only a closed surface animates — it is the live fact. */
 export function SurfaceStateBadge({ state, className }: SurfaceStateBadgeProps) {
   return (
     <span

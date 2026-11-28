@@ -20,21 +20,11 @@ import { fixtureCases, setCaseUnit } from '../../../config/test-case';
 
 setCaseUnit({ module: 'Evaluation Module', unit: 'Create / Assign Form', prefix: 'EVAL' });
 
-/**
- * Shared by every spec in this folder — the two POSTs on the portal's Evaluation module:
- *   POST /api/v1/evaluation/forms        (createForm: CreateEvaluationFormSchema)
- *   POST /api/v1/evaluation/assignments  (assignForm: AssignEvaluationFormSchema)
- *
- * `@Roles` is not exercised: the global guards are out of scope for these layers.
- *
- * Not a spec itself (no `-unit-spec.ts` suffix); attack strings still come only
- * from `config/security-payloads.ts`.
- */
 export const CALLER = { sub: 'caller-user-id', role_type: RoleType.DIRECTOR };
 
 export const VALID_FORM_ID = 'b3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 
-/** The largest value the `Int` column behind an event id can hold. */
+/** Postgres `Int` max, the column behind an event id. */
 export const EVENT_ID_MAX = 2147483647;
 
 export const VALID_CREATE = { title: 'Post-Event Feedback', description: 'Asked after every outreach event.' };
@@ -90,11 +80,7 @@ export const ASSIGN_ENDPOINT = {
 } as const;
 export const ENDPOINTS = [CREATE_ENDPOINT, ASSIGN_ENDPOINT];
 
-/**
- * Boots `EvaluationSiteController` with a mocked service for the enclosing `describe`.
- * Assigning reads `user.sub`, so a stand-in for the global JWT guard puts `CALLER` on
- * the request. Read `app` inside tests — it is assigned in `beforeAll`.
- */
+/** Stub guard sets `CALLER` (assigning reads `user.sub`); `app` is assigned in `beforeAll`. */
 export const useEvaluationApp = () => {
   const ctx = {
     app: undefined as unknown as INestApplication,
@@ -127,10 +113,7 @@ export const useEvaluationApp = () => {
   return ctx;
 };
 
-/**
- * Body fixtures through both layers. A FAIL must come back in the validation envelope
- * without reaching the service; a PASS must reach it exactly once.
- */
+/** FAIL: validation envelope, service untouched. PASS: service called once. */
 export const describeBodyTable = (
   ctx: ReturnType<typeof useEvaluationApp>,
   endpoint: (typeof ENDPOINTS)[number],

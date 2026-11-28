@@ -1,8 +1,6 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/auth/data/models/password_reset_models.dart';
 
-/// The three calls behind "forgot password": mail a code, trade the code for a
-/// reset token, then write the new password with that token.
 class PasswordResetService {
   PasswordResetService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();

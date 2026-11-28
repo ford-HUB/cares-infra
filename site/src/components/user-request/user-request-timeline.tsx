@@ -9,11 +9,10 @@ interface UserRequestTimelineProps {
   onAccept: (request: UserRequest) => void
   onReject: (request: UserRequest) => void
   onDelete: (request: UserRequest) => void
-  /** What the empty state says — each tab names its own queue. */
   emptyMessage?: string
 }
 
-/** Groups the queue by submission day, newest first, keeping each day's rows in order. */
+/** By submission day, newest first, keeping each day's rows in order. */
 function groupByDay(requests: UserRequest[]) {
   const groups = new Map<string, UserRequest[]>()
 
@@ -52,7 +51,7 @@ export function UserRequestTimeline({
             {day}
           </h2>
 
-          {/* The rail is one border on the list so it runs unbroken behind the dots. */}
+          {/* One border on the list, so the rail runs unbroken behind the dots. */}
           <ol className="space-y-3 border-l-2 border-gray-200 pl-0">
             {dayRequests.map((request) => (
               <RequestTimelineItem

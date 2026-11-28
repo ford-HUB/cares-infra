@@ -11,12 +11,10 @@ interface ActiveSessionsToolbarProps {
   search: string
   source: SessionSourceFilter
   role: SessionRoleFilter
-  /** Devices scrolled in so far — the grid loads the list a page at a time. */
   loaded: number
   total: number
-  /** Counts describe what is loaded, not every session, so they grow while scrolling. */
+  /** Counts cover loaded rows only, so they grow while scrolling. */
   activeNow: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
   loading: boolean
   onSearchChange: (value: string) => void

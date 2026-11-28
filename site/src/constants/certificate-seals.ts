@@ -15,7 +15,6 @@ export const CERTIFICATE_SEAL_ORDER: CertificateSealStyle[] = [
 
 export interface CertificateSealPreset {
   label: string
-  /** One line on when this seal suits a certificate. */
   description: string
 }
 
@@ -49,21 +48,17 @@ export const CERTIFICATE_SEAL_PRESETS: Record<
   },
 }
 
-/** What a certificate seals with until the director picks another. */
 export const DEFAULT_CERTIFICATE_SEAL: CertificateSealStyle = 'stamp'
 
 export function sealStyleOf(design: CertificateDesign): CertificateSealStyle {
   return design.sealStyle ?? DEFAULT_CERTIFICATE_SEAL
 }
 
-/**
- * A seal is often the one part of a certificate in its own colour — a gold seal on a
- * blue sheet — so it may carry an accent of its own, falling back to the sheet's.
- */
+/** Seal may carry its own accent, falling back to the sheet's. */
 export function sealAccentOf(design: CertificateDesign): CertificateAccent {
   return design.sealAccent ?? design.accent
 }
 
-/** Imported seals are inlined as data URLs in the mock, so keep them small. */
+/** Inlined as data URLs in the mock. */
 export const SEAL_SVG_MAX_BYTES = 512 * 1024
 export const SEAL_SVG_ACCEPTED_TYPES = 'image/svg+xml'

@@ -38,11 +38,6 @@ const config: ChartConfig = Object.fromEntries(
   ]),
 )
 
-/**
- * Where registrations ended up, per event category, as horizontal stacks — each bar
- * is one category's whole, so a category that draws sign-ups but not attendance
- * shows as a long bar with a short green start.
- */
 export function AttendanceOutcomesChart({ categories }: AttendanceOutcomesChartProps) {
   const rows = categories.map((row) => ({ category: row.category, ...row.outcomes }))
 
@@ -92,7 +87,7 @@ export function AttendanceOutcomesChart({ categories }: AttendanceOutcomesChartP
               dataKey={outcome}
               stackId="outcome"
               fill={`var(--color-${outcome})`}
-              // A hairline of surface between stacked segments keeps them separable.
+              // A surface hairline keeps stacked segments separable.
               stroke="#ffffff"
               strokeWidth={1}
               radius={index === ATTENDANCE_OUTCOME_ORDER.length - 1 ? [0, 4, 4, 0] : 0}

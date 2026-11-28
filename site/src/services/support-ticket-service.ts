@@ -8,7 +8,6 @@ import type {
 } from '../types/support-ticket'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 const SUPPORT_TICKETS_URL = '/api/v1/support-tickets'
@@ -48,7 +47,6 @@ interface SupportTicketListApiResponse {
   total: number
 }
 
-/** Server enums are SCREAMING_SNAKE; the portal's own vocabulary is snake_case. */
 const SOURCE_LABELS: Record<SupportTicketApiResponse['source'], string> = {
   MOBILE: 'Mobile app',
   PORTAL: 'Staff portal',
@@ -86,10 +84,7 @@ function mapTicket(data: SupportTicketApiResponse): SupportTicket {
   }
 }
 
-/**
- * The whole queue in one read — the portal filters and sorts client-side. The server
- * caps the row count; `total` is the full match count when the cap bites.
- */
+/** Server caps the rows; `total` is the full match count. */
 export async function fetchSupportTickets(): Promise<SupportTicket[]> {
   try {
     const { data: body } = await apiClient.get<
@@ -103,11 +98,9 @@ export async function fetchSupportTickets(): Promise<SupportTicket[]> {
 
 export interface SupportTicketUpdate {
   status: SupportTicketStatus
-  /** Optional note posted to the thread alongside the status change. */
   note?: string
 }
 
-/** Every mutation returns the updated ticket, so the store swaps one row in place. */
 export async function updateSupportTicket(
   id: string,
   update: SupportTicketUpdate,

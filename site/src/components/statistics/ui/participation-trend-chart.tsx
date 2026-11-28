@@ -30,10 +30,6 @@ const config: ChartConfig = {
   attended: { label: 'Attended', color: STATISTICS_SERIES_COLOR.attended },
 }
 
-/**
- * Registrations against completed attendance, month by month. The gap between the
- * two lines is the no-show rate — the thing a coordinator can actually act on.
- */
 export function ParticipationTrendChart({ monthly }: ParticipationTrendChartProps) {
   const registrations = monthly.reduce((sum, row) => sum + row.registrations, 0)
   const attended = monthly.reduce((sum, row) => sum + row.attended, 0)

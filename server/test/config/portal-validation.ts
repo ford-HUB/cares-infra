@@ -1,20 +1,15 @@
 import { Page, Request, expect, test as base } from '@playwright/test';
 
-/**
- * Fixtures and assertions shared by every Playwright spec in
- * `test/integration/modules/`. The point of these suites is the portal's own
- * validation: an invalid input must be stopped in the browser with the exact
- * message from `site/src/validators/*-schema.ts`, and must never reach the API.
- */
+/** Invalid input must stop in the browser with the exact `site/src/validators` message, never reaching the API. */
 export type Verdict = 'PASS' | 'FAIL';
 
 export interface InputFixture {
   name: string;
-  /** Accessible label of the input, as rendered by `<label htmlFor>`. */
+  /** Accessible label (`<label htmlFor>`). */
   field: string;
   value: string;
   expected: Verdict;
-  /** Exact message the portal must show under the field when `expected` is FAIL. */
+  /** Exact message shown on FAIL. */
   message?: string;
 }
 
@@ -32,20 +27,19 @@ export const envelope = { ok, fail };
 
 interface ApiStub {
   method?: string;
-  /** Path after the origin, e.g. `/api/v1/auth/admin/login`. */
+  /** Pathname, without origin. */
   path: string | RegExp;
   status?: number;
   body: unknown;
 }
 
 interface PortalFixtures {
-  /** Every `/api/**` request the page made, in order. */
   apiCalls: Request[];
-  /** Register canned responses; anything unstubbed gets a 501 envelope. */
+  /** Unstubbed calls get a 501 envelope. */
   stubApi: (...stubs: ApiStub[]) => void;
-  /** JS dialogs opened by the page — any entry means an XSS payload executed. */
+  /** Any entry means an XSS payload executed. */
   dialogs: string[];
-  /** Puts a token in sessionStorage and stubs `/auth/me` so protected routes render. */
+  /** Seeds a session token and stubs `/auth/me` for protected routes. */
   signIn: (user?: Record<string, unknown>) => Promise<void>;
 }
 
@@ -115,13 +109,8 @@ export const test = base.extend<PortalFixtures>({
 
 export { expect };
 
-/** The error text rendered for a field, scoped to the field's container. */
 const fieldError = (page: Page, message: string) => page.getByText(message, { exact: true });
 
-/**
- * Asserts one input fixture after submit. FAIL → exact message visible and no
- * API call for `submitPath`. PASS → no message, and the request went out.
- */
 export const expectInputVerdict = async (
   page: Page,
   fixture: InputFixture,
@@ -140,7 +129,7 @@ export const expectInputVerdict = async (
   }
 };
 
-/** A react-hot-toast message (the portal's channel for server-side errors). */
+/** react-hot-toast: the portal's channel for server errors. */
 export const expectToast = async (page: Page, message: string) => {
   await expect(page.getByRole('status').filter({ hasText: message })).toBeVisible();
 };

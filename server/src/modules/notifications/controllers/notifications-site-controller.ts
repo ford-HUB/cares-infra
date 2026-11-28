@@ -18,11 +18,7 @@ import {
 
 const NotificationIdParamSchema = z.uuid('A valid notification id is required');
 
-/**
- * A user's own inbox. No permission gate beyond being a portal user: the rows are
- * already scoped to whoever is signed in, so there is nothing here to protect from
- * a colleague.
- */
+/** Rows are scoped to the caller, so no extra gate. */
 @Controller('v1/notifications')
 @Roles(...PORTAL_ROLE_TYPES)
 export class NotificationsSiteController {
@@ -40,7 +36,7 @@ export class NotificationsSiteController {
     return this.notificationsSiteService.listNotifications(caller, query);
   }
 
-  /** Declared before `:id` so the literal segment wins the match. */
+  /** Declared before `:id` so the literal wins. */
   @Patch('read-all')
   @ResponseMessage('All notifications marked read')
   @ZSerialize(NotificationFeedSchema)

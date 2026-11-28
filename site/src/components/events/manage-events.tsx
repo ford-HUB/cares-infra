@@ -35,22 +35,18 @@ export function ManageEvents() {
   const { events, loading, initialized, error, fetchEvents, removeEvent, cancelEvent } =
     useEventStore()
 
-  // A coordinator's events are scoped to the college on their profile: the list
-  // shows only that college's events, and the form pins category and department to
-  // it. Other roles see every event and get the open form.
+  // Coordinators are scoped to their profile's college: list filtered, category/department pinned.
   const isCoordinator = usePortalRole() === 'coordinator'
   const profileDepartment = useProfileStore((s) => s.profile?.department)
   const profileInitialized = useProfileStore((s) => s.initialized)
   const ensureProfile = useProfileStore((s) => s.ensureProfile)
   const lockedDepartment = isCoordinator ? (profileDepartment ?? '') : undefined
 
-  // Each write on this screen is its own right in Access Control; a control whose
-  // right the account lacks is not drawn. Cancelling is a change to an event, so it
-  // rides on the edit right.
+  // Each write is its own Access Control right; controls without one aren't drawn. Cancel rides on edit.
   const canCreate = usePermission(PORTAL_PERMISSION.EVENTS_CREATE)
   const canUpdate = usePermission(PORTAL_PERMISSION.EVENTS_UPDATE)
   const canDelete = usePermission(PORTAL_PERMISSION.EVENTS_DELETE)
-  // Suspended rights keep their control on screen, locked and red, with the reason on hover.
+  // Suspended rights stay on screen, locked and red, with the reason on hover.
   const createSuspension = useSuspension(PORTAL_PERMISSION.EVENTS_CREATE)
   const updateSuspension = useSuspension(PORTAL_PERMISSION.EVENTS_UPDATE)
   const deleteSuspension = useSuspension(PORTAL_PERMISSION.EVENTS_DELETE)
@@ -90,16 +86,11 @@ export function ManageEvents() {
 
   const allRows = useMemo(() => events.map(formatEventRow), [events])
 
-  /**
-   * The only set this screen ever works from. Filtering here — rather than in the
-   * table — is what keeps another college's event out of the type list, the counts,
-   * the row actions, and the detail and edit modals, which all read from these rows.
-   */
+  /** Scoped here, not in the table, so every consumer (types, counts, actions, modals) sees only this college. */
   const rows = useMemo(() => {
     if (!isCoordinator) return allRows
     const scope = profileDepartment?.trim() ?? ''
-    // Until the profile lands there is no scope to apply, and showing every college's
-    // events in the meantime would be exactly what this is meant to prevent.
+    // No profile yet means no scope; showing every college meanwhile would leak.
     if (!scope) return []
     return allRows.filter((row) => isEventInDepartment(row.department, scope))
   }, [allRows, isCoordinator, profileDepartment])
@@ -156,7 +147,7 @@ export function ManageEvents() {
     return filtered
   }, [rows, searchTerm, selectedType, timeFilter, statusFilter, sortConfig])
 
-  /** Any filter change re-pages from the top, so the visible slice stays meaningful. */
+  /** Filter changes re-page from the top. */
   const resetToFirstPage =
     <T,>(setter: (value: T) => void) =>
     (value: T) => {
@@ -173,7 +164,6 @@ export function ManageEvents() {
   }
 
   const openActionMenu = (event: EventTableRow, button: HTMLButtonElement) => {
-    // Toggle off when the same row's trigger is clicked again.
     setActionMenu((current) =>
       current?.eventId === event.id
         ? null
@@ -193,7 +183,7 @@ export function ManageEvents() {
     setCancelState({ isOpen: false, eventName: '', eventCode: null })
   }
 
-  /** The list as the reader sees it — same rows, same order, filters spelled out. */
+  /** Exports the list as shown: same rows, same order, filters spelled out. */
   const handleExport = () => {
     exportEventsPdf(filteredEvents, {
       scopeLabel: isCoordinator ? (profileDepartment ?? undefined) : undefined,

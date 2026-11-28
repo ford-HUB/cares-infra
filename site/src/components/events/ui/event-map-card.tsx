@@ -9,16 +9,11 @@ interface EventMapCardProps {
   onViewDetails: () => void
 }
 
-/** Percentage of the participant cap that is filled, clamped for the bar width. */
 function fillPercent(current: number, max: number): number {
   if (!max) return 0
   return Math.min(100, Math.round((current / max) * 100))
 }
 
-/**
- * Floating card shown over the map when a pin is clicked: the event photo,
- * where and when it runs, and how many volunteers have joined.
- */
 function MissingPhoto() {
   return (
     <div className="flex h-full w-full items-center justify-center text-gray-400">

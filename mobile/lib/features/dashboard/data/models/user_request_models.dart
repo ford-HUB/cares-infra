@@ -1,5 +1,4 @@
-/// One request the signed-in person filed for a director to rule on, as
-/// `v1/user-requests/me` returns it.
+/// Requests filed for a director to rule on (`v1/user-requests/me`).
 enum UserRequestKind { roleAccess, eventJoin, eventRole, unknown }
 
 enum UserRequestStatus { pending, accepted, deleted, rejected, unknown }
@@ -62,7 +61,7 @@ class UserRequestResponse {
   final int? eventId;
   final DateTime? decidedAt;
 
-  /// The director's reason, set only on a [UserRequestStatus.rejected] row.
+  /// Set only when rejected.
   final String? rejectionReason;
   final DateTime createdAt;
 }

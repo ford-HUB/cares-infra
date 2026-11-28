@@ -3,8 +3,6 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/features/dashboard/data/event_category_colors.dart';
 import 'package:mobile/features/dashboard/data/event_category_icons.dart';
 
-/// "Choose By Category" chip row: icon in a small disc + label, the selected
-/// chip filled orange. Scrolls horizontally and bleeds to the screen edge.
 class HomeCategoryChips extends StatelessWidget {
   const HomeCategoryChips({
     super.key,
@@ -49,8 +47,7 @@ class HomeCategoryChips extends StatelessWidget {
   }
 }
 
-/// One icon-disc + label pill from the category row. Public so other
-/// dashboard screens (the Activity group panel) can share the exact look.
+/// Public so the Activity group panel shares the exact look.
 class HomeCategoryChip extends StatelessWidget {
   const HomeCategoryChip({
     super.key,
@@ -70,16 +67,14 @@ class HomeCategoryChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  /// Smaller disc, type and padding for rows that sit under a page title
-  /// rather than headlining a section (the Activity group panel).
+  /// For rows under a page title (the Activity group panel).
   final bool compact;
 
-  /// Fill behind the selected chip; Home uses orange, Activity the brand
-  /// green so it matches the Events tab's time filter.
+  /// Home uses orange; Activity the brand green to match the Events time
+  /// filter.
   final Color selectedColor;
 
-  /// Hairline border instead of a drop shadow — the flatter treatment the
-  /// green pill rows use.
+  /// Hairline border instead of a shadow, for the flatter green rows.
   final bool outlined;
 
   @override

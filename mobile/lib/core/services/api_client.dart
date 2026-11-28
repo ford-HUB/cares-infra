@@ -58,8 +58,7 @@ class ApiClient {
     }, path);
   }
 
-  /// [headers] are merged over the defaults — for per-request extras such as
-  /// an `Idempotency-Key`.
+  /// Merged over the defaults, e.g. an `Idempotency-Key`.
   Future<Map<String, dynamic>> postJson(
     String path, {
     required Map<String, dynamic> body,
@@ -82,9 +81,8 @@ class ApiClient {
     }, path);
   }
 
-  /// [endSessionOnUnauthorized] — pass false when a 401 from this endpoint
-  /// means "wrong credential in the body" (e.g. the current password on a
-  /// password change) rather than "session dropped", so the screen keeps it.
+  /// Pass false when a 401 means a wrong credential in the body (e.g. current
+  /// password), not a dropped session.
   Future<Map<String, dynamic>> putJson(
     String path, {
     required Map<String, dynamic> body,
@@ -189,8 +187,7 @@ class ApiClient {
     }, path);
   }
 
-  /// Bearer header only — for requests the client does not build itself
-  /// (multipart uploads, `Image.network` against a private stream).
+  /// For requests built elsewhere (multipart uploads, `Image.network`).
   Map<String, String> authHeaders({bool authenticate = true}) {
     if (!authenticate) return const {};
     final token = AuthSession.accessToken;
@@ -232,9 +229,8 @@ class ApiClient {
       final message =
           body?['message'] as String? ??
           'Request failed (${response.statusCode})';
-      // A 401 on a request that carried our token means the server dropped the
-      // session (restricted account, revoked device, expiry). A 401 from login
-      // itself is a wrong password and stays with the form.
+      // A 401 on an authenticated request means the session was dropped; a 401
+      // from login is a wrong password.
       if (response.statusCode == 401 &&
           authenticated &&
           endSessionOnUnauthorized &&
@@ -263,8 +259,8 @@ class ApiClient {
     return body;
   }
 
-  /// Names the app and OS so a session shows up as "CARES app · Android" in
-  /// the connected-devices list instead of the Dart runtime's default.
+  /// Shows as "CARES app · Android" in connected devices instead of the Dart
+  /// default.
   static final String userAgent =
       'CARES-Mobile (${Platform.operatingSystem}; '
       '${Platform.operatingSystemVersion})';

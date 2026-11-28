@@ -31,7 +31,7 @@ import {
   UpdateAssistanceRequestSchema,
 } from '../validators/assistance-requests-mobile-validator';
 
-/** The beneficiary's own assistance requests — everything under `me`. */
+/** Everything under `me`. */
 @Controller('v1/assistance-requests')
 @Roles(...MOBILE_ASSISTANCE_ROLE_TYPES)
 export class AssistanceRequestsMobileController {
@@ -48,10 +48,7 @@ export class AssistanceRequestsMobileController {
     return this.assistanceRequestsMobileService.listMine(user.sub);
   }
 
-  /**
-   * Multipart: the request fields as text beside up to three optional
-   * `attachments` (an ID, a bill, a medical certificate, a photo).
-   */
+  /** Multipart: text fields plus up to three `attachments`. */
   @Post('me')
   @ResponseMessage('Your request is pending review')
   @ZSerialize(MobileAssistanceRequestResponseSchema)
@@ -72,7 +69,7 @@ export class AssistanceRequestsMobileController {
     );
   }
 
-  /** Allowed only until the relief desk starts screening the request. */
+  /** Only until screening starts. */
   @Patch('me/:id')
   @ResponseMessage('Your request was updated')
   @ZSerialize(MobileAssistanceRequestResponseSchema)
@@ -84,7 +81,7 @@ export class AssistanceRequestsMobileController {
     return this.assistanceRequestsMobileService.update(user.sub, id, body);
   }
 
-  /** Allowed until the request is completed, declined, or already cancelled. */
+  /** Until completed, declined or cancelled. */
   @Post('me/:id/cancel')
   @ResponseMessage('Your request was cancelled')
   @ZSerialize(MobileAssistanceRequestResponseSchema)

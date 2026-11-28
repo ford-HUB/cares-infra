@@ -7,21 +7,16 @@ interface PermissionScopePickerProps {
   catalog: AccessCatalog | null
   loading: boolean
   selected: Set<PermissionKey>
-  /** The role's own rights, so a departure from them can be marked as one. */
+  /** The role's rights, so departures can be marked. */
   baseline: PermissionKey[]
   customised: boolean
   disabled: boolean
   onToggle: (permission: PermissionKey, next: boolean) => void
-  /** The module header's tick — moves every action in the module together. */
   onToggleAll: (permissions: PermissionKey[], next: boolean) => void
   onReset: () => void
 }
 
-/**
- * The actions a new account will hold, grouped the way the catalog groups them. It
- * starts on the role's baseline; anything ticked or unticked away from that is stored
- * as a per-user override, which is why the departures are called out here.
- */
+/** Starts on the role baseline; departures are stored as per-user overrides. */
 export function PermissionScopePicker({
   catalog,
   loading,

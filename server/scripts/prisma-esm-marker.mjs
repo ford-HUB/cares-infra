@@ -1,15 +1,7 @@
 /*
- * The `prisma-client` generator emits ESM source (it uses `import.meta.url`),
- * but the server itself is a CommonJS package. Under `module: nodenext` tsc
- * decides the emit format per-file from the nearest package.json, so without a
- * marker the generated client is compiled to CJS with `import.meta` left in it
- * — Node then re-detects the file as ESM and fails with "exports is not defined".
- *
- * This marker tells tsc (and Node) to treat the generated client as ESM. The
- * rest of the CJS server consumes it through Node's require(esm) support.
- *
- * `prisma generate` clears its output directory, so this is re-applied from the
- * build/start lifecycle scripts rather than committed once.
+ * Marks the generated Prisma client (ESM: `import.meta.url`) as ESM so tsc
+ * doesn't emit it as CJS in this CommonJS package ("exports is not defined").
+ * Re-run on build/start because `prisma generate` wipes the output dir.
  */
 import { writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';

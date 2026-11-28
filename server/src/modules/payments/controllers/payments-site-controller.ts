@@ -29,11 +29,7 @@ import {
   UpdatePaymentSettingsSchema,
 } from '../validators/payments-site-validator';
 
-/**
- * The Payments module in the director portal. Where donor money lands is a finance
- * decision, so the role is narrowed to the director and the admin on top of the
- * right — a coordinator granted the right by mistake still cannot repoint the account.
- */
+/** Narrowed to director and admin on top of the right: it decides where money lands. */
 @Controller('v1/payments/settings')
 @Roles(RoleType.DIRECTOR, RoleType.ADMIN)
 @RequirePermission(PermissionKey.PAYMENT_SETTINGS_MANAGE)
@@ -58,11 +54,7 @@ export class PaymentsSiteController {
     return this.paymentsSiteService.updateSettings(body, user, context);
   }
 
-  /**
-   * Re-runs the activation check for one channel: asks Xendit whether it is switched
-   * on for this account and points its callbacks at our webhook. 200 either way — the
-   * verdict rides back on the channel as `verification`.
-   */
+  /** Checks activation and registers callbacks; 200 either way, verdict in `verification`. */
   @Post('methods/:method/verify')
   @HttpCode(200)
   @ResponseMessage('Payment method checked')
@@ -74,10 +66,7 @@ export class PaymentsSiteController {
     return this.paymentsSiteService.verifyMethod(method, user);
   }
 
-  /**
-   * Sends the token payout that proves CARES holds the account this channel pays into.
-   * The amount is random and never returned — reporting it back is the proof.
-   */
+  /** Random amount, never returned: reporting it back is the proof. */
   @Post('methods/:method/account-proof')
   @HttpCode(200)
   @ResponseMessage('Test payout sent')
@@ -89,7 +78,7 @@ export class PaymentsSiteController {
     return this.paymentsSiteService.startAccountProof(method, user);
   }
 
-  /** The director reports what arrived; a match verifies the account. */
+  /** A match verifies the account. */
   @Post('methods/:method/account-proof/confirm')
   @HttpCode(200)
   @ResponseMessage('Account proof checked')
@@ -106,7 +95,7 @@ export class PaymentsSiteController {
     );
   }
 
-  /** Proves the key against Xendit. 200 either way — the verdict is in the body. */
+  /** 200 either way; verdict in the body. */
   @Post('test')
   @HttpCode(200)
   @ResponseMessage('Payment gateway tested')

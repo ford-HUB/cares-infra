@@ -28,11 +28,7 @@ interface EventFormModalProps {
   mode: 'create' | 'edit'
   eventId?: number
   defaultValues?: Partial<EventFormValues>
-  /**
-   * A coordinator only runs events for their own college: category is pinned to
-   * School, department to this value, and the beneficiary programme is off the table.
-   * Undefined leaves every choice open (admin, director).
-   */
+  /** Coordinator scope: category pinned to School, department to this, no beneficiary programme. */
   lockedDepartment?: string
   onClose: () => void
   onSaved: () => void
@@ -62,7 +58,7 @@ export function EventFormModal({
     replaceArea?: boolean
   } | null>(null)
   const [pickingTargets, setPickingTargets] = useState(false)
-  /** The targeted request whose pin the event is currently placed on. */
+  /** Targeted request whose pin the event is placed on. */
   const locationTargetId = useRef<string | null>(null)
 
   const {
@@ -117,9 +113,7 @@ export function EventFormModal({
     !scoped && Boolean(beneficiaryApplicable),
   )
 
-  // Max beneficiaries is no longer typed in: it is every family member across the
-  // targeted households. Targets are not stored with the event yet, so an edited
-  // event keeps its saved max until the director picks targets again.
+  // Max beneficiaries = family members across targeted households. Targets aren't stored yet, so edits keep the saved max.
   const familyTotal = targets.selected.reduce((sum, request) => sum + request.householdSize, 0)
   const targetsTouched = useRef(false)
 
@@ -135,15 +129,14 @@ export function EventFormModal({
     targetsTouched.current = true
     setValue('target_beneficiaries', ids, { shouldDirty: true, shouldValidate: true })
 
-    // The event sits on the first targeted beneficiary who pinned a location. It only
-    // moves when that beneficiary changes, so adding more targets leaves it in place.
+    // Anchored to the first targeted beneficiary with a pin; adding targets doesn't move it.
     const anchor = ids
       .map((id) => targets.approved.find((request) => request.id === id))
       .find((request) => request?.location)
     if (!anchor?.location || anchor.id === locationTargetId.current) return
     locationTargetId.current = anchor.id
 
-    // A readable placeholder until the map's reverse geocode replaces it.
+    // Placeholder until the map's reverse geocode replaces it.
     const fallbackLabel = anchor.location.details ?? anchor.requester.barangay
     if (fallbackLabel) {
       setValue('location', fallbackLabel, { shouldDirty: true, shouldValidate: true })
@@ -184,9 +177,7 @@ export function EventFormModal({
 
   const eventImages = watch('event_images')
 
-  // Already-uploaded photos are private S3 URLs, so they are previewed through the
-  // authenticated route by their position in the event's stored list. That position
-  // is fixed at open time — removing one here must not renumber the others.
+  // Stored photos are private S3 URLs previewed by list position, fixed at open so removals don't renumber.
   const storedImageIndex = useRef(
     new Map((defaultValues?.event_images ?? []).flatMap((img, index) =>
       typeof img === 'string' ? [[img, index] as const] : [],
@@ -254,7 +245,7 @@ export function EventFormModal({
       location: data.location,
       max_participants: data.max_participants,
       organizer_name: data.organizer_name,
-      // The locked fields are re-asserted here so a devtools edit cannot widen the scope.
+      // Locked fields re-asserted so a devtools edit can't widen the scope.
       category: scoped ? 'School' : (data.category as EventCategory),
       department: scoped ? lockedDepartment : data.department,
       specified_category: scoped ? undefined : data.specified_category,
@@ -496,10 +487,7 @@ export function EventFormModal({
             </Field>
           </div>
 
-          {/*
-            Locked selects are rendered without `register`: a disabled input drops out of
-            the submitted values, so the defaults above carry the value instead.
-          */}
+          {/* Locked selects skip `register` (disabled inputs drop from submit); the defaults carry the value. */}
           <Field label="Category" error={errors.category?.message}>
             {scoped ? (
               <select className={inputClass(false)} value="School" disabled>
@@ -575,7 +563,7 @@ export function EventFormModal({
             </div>
           )}
 
-          {/* Read-only: derived from the targeted households, carried by the form value. */}
+          {/* Read-only: derived from the targeted households. */}
           {!scoped && beneficiaryApplicable && (
             <Field label="Total family members" error={errors.max_beneficiaries?.message}>
               <input

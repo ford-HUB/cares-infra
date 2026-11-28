@@ -12,7 +12,6 @@ import type { StoredIssuedDesign } from '../dto/certificates-mobile-dto';
 
 export type IssuedCertificateRow = Prisma.IssuedCertificateGetPayload<object>;
 
-/** A deployment the sweep may hand certificates out for, with the event it covers. */
 export type DueDeploymentRow = Prisma.CertificateDeploymentGetPayload<{
   include: {
     event: {
@@ -28,7 +27,6 @@ export type DueDeploymentRow = Prisma.CertificateDeploymentGetPayload<{
   };
 }>;
 
-/** A participant who finished the event and its requirements, not yet issued. */
 export interface EligibleParticipant {
   userId: string;
   firstname: string;
@@ -57,12 +55,7 @@ export interface PersistIssuedCertificate {
 export class CertificatesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Deployments still handing out — or waiting to — whose event has finished. The
-   * status sweep flips events to Completed on its own minute, so the end time is
-   * checked as well rather than waiting on it. Paused and completed deployments are
-   * left alone: the first is the director's hold, the second has nothing left to do.
-   */
+  /** Checks the end time too (the status sweep may lag). Skips paused and completed deployments. */
   async findDueDeployments(now: Date): Promise<DueDeploymentRow[]> {
     return this.prisma.certificateDeployment.findMany({
       where: {
@@ -98,11 +91,7 @@ export class CertificatesRepository {
     });
   }
 
-  /**
-   * Who has earned a certificate on this deployment and does not hold one yet: the
-   * geofence ruling marked them COMPLETED and they answered the post-event
-   * questionnaire — the requirement the app gates the certificate on.
-   */
+  /** COMPLETED by the geofence ruling and answered the post-event questionnaire. */
   async findEligibleParticipants(
     deploymentId: string,
     eventId: number,
@@ -141,7 +130,7 @@ export class CertificatesRepository {
     }));
   }
 
-  /** Registrations the ruling did not mark absent — the roster a deployment covers. */
+  /** Registrations not ruled absent. */
   async countCoveredParticipants(eventId: number): Promise<number> {
     return this.prisma.eventAttendance.count({
       where: {
@@ -151,7 +140,7 @@ export class CertificatesRepository {
     });
   }
 
-  /** The signature image each coordinator has on file today, keyed by user id. */
+  /** Keyed by user id. */
   async findSignatureKeys(
     coordinatorIds: string[],
   ): Promise<Map<string, string | null>> {
@@ -184,12 +173,7 @@ export class CertificatesRepository {
     return Number.isFinite(sequence) ? sequence : 0;
   }
 
-  /**
-   * Writes one batch for a deployment and brings its tallies up to date in the same
-   * transaction, so the live page never shows more distributed than rows exist.
-   * `participants` is re-read from the roster: the deploy took a snapshot of the
-   * event's headcount, and by now the ruling has settled who actually took part.
-   */
+  /** Same transaction as the tallies; `participants` re-read since the deploy-time headcount is stale. */
   async issueBatch(
     deploymentId: string,
     templateId: string,
@@ -242,7 +226,7 @@ export class CertificatesRepository {
     });
   }
 
-  /** First open only; the deployment's opened count moves with it. */
+  /** First open only; bumps the opened count. */
   async markClaimed(id: string, at: Date): Promise<IssuedCertificateRow> {
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.issuedCertificate.update({
@@ -268,11 +252,7 @@ export class CertificatesRepository {
     });
   }
 
-  /**
-   * Covered participants still without a certificate on this deployment: they were
-   * not ruled absent, but the ruling or the questionnaire is outstanding. These are
-   * who a director's "Remind" reaches.
-   */
+  /** Not absent but ruling or questionnaire outstanding; the "Remind" audience. */
   async findPendingParticipants(
     deploymentId: string,
     eventId: number,

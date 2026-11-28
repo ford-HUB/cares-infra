@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/event_evaluation_models.dart';
 
-/// One event the volunteer already gave feedback on.
 class EvaluationSubmissionSummary {
   const EvaluationSubmissionSummary({
     required this.eventId,
@@ -22,9 +21,7 @@ class EvaluationSubmissionSummary {
   final DateTime submittedAt;
 }
 
-/// `/evaluation/*` — the post-event questionnaire the director assigned to this
-/// event in the portal (or the default one) and the answers a volunteer sends
-/// back for a completed event.
+/// The questionnaire the director assigned to the event (or the default).
 class EventEvaluationService {
   EventEvaluationService({ApiClient? apiClient})
     : _api = apiClient ?? ApiClient();
@@ -36,14 +33,9 @@ class EventEvaluationService {
     return EventEvaluation.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// Sends the answers keyed by question id. The server rejects a second
-  /// submission for the same event, so callers check [EventEvaluation.canSubmit]
-  /// first.
-  ///
-  /// [images] holds the picked photo paths per image-upload question. When
-  /// there are any, the request goes multipart: `answers` as a JSON string and
-  /// each photo under `image_<questionId>`; the server stores them and fills
-  /// those answers itself.
+  /// The server rejects a second submission; check [EventEvaluation.canSubmit]
+  /// first. With [images] it goes multipart: `answers` as JSON plus
+  /// `image_<questionId>` files.
   Future<EvaluationSubmission> submit(
     int eventId,
     Map<String, dynamic> answers, {
@@ -71,8 +63,7 @@ class EventEvaluationService {
     );
   }
 
-  /// Every event this volunteer has answered for — what the activity tab's
-  /// "Feedback: Submitted" badge is hydrated from after a restart.
+  /// Hydrates the activity tab's "Feedback: Submitted" badge after a restart.
   Future<List<EvaluationSubmissionSummary>> fetchSubmissions() async {
     final response = await _api.getJson('/evaluation/submissions');
     final data = response['data'] as Map<String, dynamic>;

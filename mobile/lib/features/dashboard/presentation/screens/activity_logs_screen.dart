@@ -9,10 +9,7 @@ import 'package:mobile/features/dashboard/presentation/widgets/account_log_widge
 import 'package:mobile/features/dashboard/presentation/widgets/account_security_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Activity Logs, opened from the Profile tab. A day-grouped timeline of
-/// every action recorded against this account, read from `/audit-logs/me`
-/// and paged in as the person scrolls. The category chips filter the rows
-/// already loaded — the server hands back one trail, newest first.
+/// Chips filter the loaded rows; the server returns one newest-first trail.
 class ActivityLogsScreen extends ConsumerStatefulWidget {
   const ActivityLogsScreen({super.key});
 

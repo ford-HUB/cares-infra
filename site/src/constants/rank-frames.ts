@@ -4,11 +4,7 @@ import type {
   RankFrameDesignId,
 } from '../types/ranking'
 
-/**
- * The frame gallery a director picks from in Customization. A preset is the
- * ornament only — colours are chosen separately per tier, so the same design can
- * dress Mythic in gold and Legend in violet.
- */
+/** Ornament only; colours are chosen per tier. */
 export const RANK_FRAME_DESIGNS: RankFrameDesign[] = [
   {
     id: 'aurora',
@@ -74,19 +70,12 @@ export const RANK_FRAME_DESIGNS: RankFrameDesign[] = [
 
 export const RANK_FRAME_FALLBACK: RankFrameDesignId = 'ring'
 
-/**
- * The gallery's ids, in gallery order. The schema's enum is built from this, so a
- * new preset is one edit to the list above rather than two lists drifting apart.
- */
+/** The schema's enum is built from this. */
 export const RANK_FRAME_IDS = RANK_FRAME_DESIGNS.map((design) => design.id) as [
   RankFrameDesignId,
   ...RankFrameDesignId[],
 ]
 
-/**
- * One-click gradient pairs. They are a shortcut for the two colour inputs, not a
- * separate setting — picking one just writes both stops.
- */
 export const RANK_COLOR_COMBOS: RankColorCombo[] = [
   { id: 'sunburst', label: 'Sunburst', colorFrom: '#facc15', colorTo: '#f97316' },
   { id: 'amethyst', label: 'Amethyst', colorFrom: '#a78bfa', colorTo: '#6366f1' },
@@ -98,18 +87,13 @@ export const RANK_COLOR_COMBOS: RankColorCombo[] = [
   { id: 'forest', label: 'Forest', colorFrom: '#86efac', colorTo: '#166534' },
 ]
 
-/** Six-digit hex — what `<input type="color">` emits, and what the schema accepts. */
+/** What `<input type="color">` emits and the schema accepts. */
 export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/
 
-/**
- * The first design nothing else in the ladder is wearing, so an added tier never
- * arrives looking identical to one already there.
- */
 export function nextUnusedFrame(used: RankFrameDesignId[]): RankFrameDesignId {
   return RANK_FRAME_IDS.find((id) => !used.includes(id)) ?? RANK_FRAME_FALLBACK
 }
 
-/** Colours a newly cut tier starts on, before the director picks its own. */
 export const RANK_FRAME_DEFAULT_COLORS = {
   colorFrom: RANK_COLOR_COMBOS[6].colorFrom,
   colorTo: RANK_COLOR_COMBOS[6].colorTo,

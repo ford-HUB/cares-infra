@@ -48,7 +48,6 @@ const MODE_OPTIONS = [
   },
 ] as const
 
-/** Volunteer sub-types sit under one heading; the rest are top-level choices. */
 const VOLUNTEER_TYPES = REGULAR_USER_TYPES.filter((option) => option.group === 'Volunteer')
 const OTHER_REGULAR_TYPES = REGULAR_USER_TYPES.filter((option) => option.group === null)
 
@@ -57,7 +56,6 @@ const fieldClass =
 const labelClass = 'mb-1 block text-[12px] font-medium text-gray-700'
 const errorClass = 'mt-1 text-[12px] text-red-600'
 
-/** The inline verdict beside the recipient field — one glyph per state, nothing while idle. */
 function RecipientCheckIndicator({ check }: { check: RecipientEmailCheck }) {
   if (check.status === 'idle') return null
 
@@ -77,7 +75,6 @@ function RecipientCheckIndicator({ check }: { check: RecipientEmailCheck }) {
   )
 }
 
-/** The add-user form itself — the dialog around it owns the credential step. */
 export function ProvisionUserFields({
   form,
   mode,
@@ -101,8 +98,7 @@ export function ProvisionUserFields({
   const { errors } = form.formState
   const recipientField = form.register('recipientEmail')
 
-  // The schema error (shape) and the server verdict (deliverability, duplicates) land
-  // in different places; whichever is present is the one to show, never both.
+  // Show the schema error or the server verdict, never both.
   const recipientError =
     errors.recipientEmail?.message ??
     (recipientCheck.status === 'invalid' ? recipientCheck.message : undefined)

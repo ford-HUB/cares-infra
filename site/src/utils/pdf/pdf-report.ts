@@ -25,28 +25,20 @@ import {
 } from '../../constants/pdf-export'
 import { getPdfLogo } from './pdf-logo'
 
-/** The plugin records where the last table ended on the document itself. */
 type AutoTableDoc = jsPDF & { lastAutoTable?: { finalY: number } }
 
 export type PdfCell = string | number | CellDef
 export type PdfRow = PdfCell[]
 
 export interface PdfTableOptions {
-  /** Column indexes rendered right-aligned — numbers, rates. */
   numericColumns?: number[]
-  /** Explicit widths in mm by column index; the rest share what is left. */
+  /** mm by column index; the rest share what's left. */
   columnWidths?: Record<number, number>
-  /** A closing row (totals, averages) drawn bold above a rule. */
   foot?: PdfRow
-  /** Shown in place of the table when `body` is empty. */
   emptyMessage?: string
 }
 
-/**
- * One portal report, page by page. Owns the cursor so callers stack headings,
- * paragraphs and tables without measuring anything; the first page gets the title
- * band and every page the same footer (brand, generated at, page N of M).
- */
+/** Owns the cursor; first page gets the title band, every page the footer. */
 export class PdfReport {
   private readonly doc: AutoTableDoc
   private y: number
@@ -54,7 +46,6 @@ export class PdfReport {
   private readonly pageHeight: number
   private readonly generatedAt: string
 
-  /** Landscape suits wide tables — many columns, long titles. */
   constructor(options: { landscape?: boolean } = {}) {
     this.doc = new jsPDF({
       unit: PDF_UNIT,
@@ -67,7 +58,6 @@ export class PdfReport {
     this.y = PDF_MARGIN_MM
   }
 
-  /** Width of the printable area between the margins. */
   get contentWidth() {
     return this.pageWidth - PDF_MARGIN_MM * 2
   }
@@ -76,7 +66,7 @@ export class PdfReport {
     return this.pageHeight - PDF_MARGIN_MM - PDF_FOOTER_HEIGHT_MM
   }
 
-  /** Starts a new page when `height` mm would not fit above the footer. */
+  /** New page when `height` mm wouldn't fit above the footer. */
   ensureSpace(height: number) {
     if (this.y + height > this.bottomLimit) {
       this.doc.addPage()
@@ -84,12 +74,6 @@ export class PdfReport {
     }
   }
 
-  /**
-   * Title band: the CARES seal on the left, then a brand eyebrow, the report name and
-   * its subtitle beside it, with a thin seal-yellow accent underneath. Below the band
-   * the scope lines print as a two-column list — labels in one column, values lined
-   * up in the next — so they read as a table rather than a ragged run of text.
-   */
   title(title: string, subtitle: string, meta: { label: string; value: string }[]) {
     const { doc } = this
     const logo = getPdfLogo()
@@ -112,7 +96,6 @@ export class PdfReport {
       doc.addImage(logo, 'PNG', PDF_MARGIN_MM, (bandHeight - logoSize) / 2, logoSize, logoSize)
     }
 
-    // Vertically centre the text block against the seal.
     let textY = (bandHeight - textHeight) / 2 + 3
     doc.setTextColor(...PDF_BAND_MUTED_RGB)
     doc.setFont(PDF_FONT, 'bold')
@@ -145,7 +128,6 @@ export class PdfReport {
     this.rule()
   }
 
-  /** A section heading with a little air above it, kept with the block that follows. */
   heading(text: string, note?: string) {
     this.ensureSpace(22)
     this.y += 4
@@ -163,7 +145,6 @@ export class PdfReport {
     this.y += 5
   }
 
-  /** A smaller run-in heading for a sub-block — one question, one respondent. */
   subheading(text: string, note?: string) {
     this.ensureSpace(16)
     this.y += 2
@@ -182,7 +163,6 @@ export class PdfReport {
     this.y += lines.length * 4.6 + 1
   }
 
-  /** Body copy, wrapped to the content width. */
   paragraph(text: string, options: { muted?: boolean; italic?: boolean } = {}) {
     const { doc } = this
     doc.setFont(PDF_FONT, options.italic ? 'italic' : 'normal')
@@ -197,7 +177,6 @@ export class PdfReport {
     this.y += 1
   }
 
-  /** Label-over-value tiles, `perRow` across — the stat row in print. */
   facts(items: { label: string; value: string; note?: string }[], perRow = 4) {
     const { doc } = this
     const cellWidth = this.contentWidth / perRow
@@ -229,7 +208,6 @@ export class PdfReport {
     this.y += 1
   }
 
-  /** A striped table with a brand-coloured head; page breaks are handled for us. */
   table(head: string[], body: PdfRow[], options: PdfTableOptions = {}) {
     if (!body.length) {
       this.paragraph(options.emptyMessage ?? 'No records in this period.', {
@@ -287,7 +265,7 @@ export class PdfReport {
       },
       alternateRowStyles: { fillColor: PDF_STRIPE_RGB },
       columnStyles,
-      // Head and foot cells don't inherit column alignment, so numbers line up by hand.
+      // Head and foot cells don't inherit column alignment.
       didParseCell: (data) => {
         if (numeric.has(data.column.index) && data.section !== 'body') {
           data.cell.styles.halign = 'right'
@@ -305,7 +283,6 @@ export class PdfReport {
     this.y += 4
   }
 
-  /** Stamps every page's footer, then triggers the download. */
   save(filename: string) {
     const { doc } = this
     const pages = doc.getNumberOfPages()

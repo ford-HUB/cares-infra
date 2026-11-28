@@ -41,7 +41,7 @@ interface DeployedDesignApi {
   /** Absent on designs saved before weight and underline existed. */
   element_weights?: NonNullable<CertificateDesign['elementWeights']>
   element_underlines?: NonNullable<CertificateDesign['elementUnderlines']>
-  /** Absent on designs saved before the award name had its own wording. */
+  /** Absent on designs saved before the award-name field. */
   title?: string
   headline: string
   body: string
@@ -113,10 +113,7 @@ function mapDesign(design: DeployedDesignApi): CertificateDesign {
   }
 }
 
-/**
- * The frozen design still points at the artwork of the template it was cut from, so it
- * goes through the same private-bucket resolver the templates page uses.
- */
+/** Frozen design still references template artwork, so it needs the private-bucket resolver. */
 async function mapDeployment(
   deployment: DeployedCertificateApi,
 ): Promise<DeployedCertificate> {
@@ -151,11 +148,7 @@ export async function listDeployedCertificates(): Promise<DeployedCertificate[]>
   }
 }
 
-/**
- * Puts a published template onto an event. Deploying the same pair again re-cuts the
- * existing record with the current design, which the server refuses once sheets have
- * gone out.
- */
+/** Re-deploying re-cuts the record; the server refuses once sheets are out. */
 export async function deployCertificateTemplate(
   templateId: string,
   eventId: number,
@@ -175,7 +168,7 @@ export async function deployCertificateTemplate(
   }
 }
 
-/** Holding a deployment or letting it run again — `scheduled` is not settable by hand. */
+/** `scheduled` is not settable by hand. */
 export async function updateDeploymentStatus(
   id: string,
   status: Exclude<DeploymentStatus, 'scheduled'>,
@@ -202,7 +195,6 @@ interface CertificateRecipientApi {
   claimed_at: string | null
 }
 
-/** Who the issuing sweep has reached on one deployment, and who has opened theirs. */
 export async function listCertificateRecipients(
   deploymentId: string,
 ): Promise<CertificateRecipient[]> {
@@ -226,18 +218,13 @@ export async function listCertificateRecipients(
   }
 }
 
-/** What one "Remind" reached. */
 export interface RemindResult {
   reminded: number
   awaitingFeedback: number
   awaitingAttendance: number
 }
 
-/**
- * Nudges every covered participant who has no certificate yet to finish what is
- * outstanding (the questionnaire, or an attendance sync). The server sends each person
- * at most one reminder a day, so pressing it again the same day reaches no one new.
- */
+/** Server sends at most one reminder per person per day. */
 export async function remindPendingRecipients(
   deploymentId: string,
 ): Promise<RemindResult> {
@@ -295,7 +282,6 @@ export function countDeployedCertificates(
   }
 }
 
-/** Share of a deployment's participants that already hold their certificate. */
 export function distributionShare(deployment: DeployedCertificate): number {
   return deployment.participants > 0
     ? deployment.distributed / deployment.participants

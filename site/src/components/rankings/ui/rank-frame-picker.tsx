@@ -5,13 +5,12 @@ import { RankFrame } from './rank-frame'
 
 interface RankFramePickerProps {
   value: RankFrameDesignId
-  /** Previews wear the tier's own colours, so the choice is design only. */
+  /** Previews wear the tier's colours, so the choice is design only. */
   colorFrom: string
   colorTo: string
   onChange: (design: RankFrameDesignId) => void
 }
 
-/** The design gallery — one preset per card, drawn live in the tier's colours. */
 export function RankFramePicker({
   value,
   colorFrom,
@@ -47,7 +46,7 @@ export function RankFramePicker({
               </span>
             )}
 
-            {/* Padded so the ornaments that sit outside the ring aren't clipped. */}
+            {/* Padded so ornaments outside the ring aren't clipped. */}
             <span className="flex h-16 w-16 items-center justify-center">
               <RankFrame
                 appearance={{ frame: design.id, colorFrom, colorTo }}

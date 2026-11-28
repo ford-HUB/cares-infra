@@ -1,19 +1,8 @@
-// Unit tests for the beneficiary's "Request Assistance" form — filing a new
-// request and editing one the relief desk has not picked up yet:
-//
-//   AssistanceRequestFormScreen        new + edit modes, required fields,
-//                                      "Other" need, urgency, location
-//                                      details, proof documents, submit
-//   POST  /v1/assistance-requests/me       AssistanceRequestStore.submit
-//   PATCH /v1/assistance-requests/me/:id   AssistanceRequestStore.update
-//   showRequestSubmittedDialog          the confirmation with the reference
-//
-// The form talks to the app-wide AssistanceRequestStore, whose service is
-// built the first time the store is touched — so the store is created once
-// inside `http.runWithClient`, with a MockClient that forwards to the
-// current test's fake server. The file picker is a fake, and the household
-// size comes from a beneficiary profile seeded in RoleAccountStore. Every
-// request and profile here is a local fixture — nothing reaches a server.
+// Unit tests for the "Request Assistance" form (new + edit),
+// `POST /v1/assistance-requests/me`, `PATCH /v1/assistance-requests/me/:id` and
+// showRequestSubmittedDialog. The app-wide store builds its service on first
+// touch, so it is created once inside `http.runWithClient` with a MockClient
+// forwarding to each test's fake server. All data is local fixtures.
 
 import 'dart:async';
 import 'dart:convert';
@@ -43,10 +32,6 @@ const _detailsHint = 'Landmark or address details (optional)';
 const _otherHint = 'Please specify what you need';
 const _incompleteHint =
     'Choose what you need and describe your situation to continue.';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 /// One request as `v1/assistance-requests/me` returns it.
 Map<String, dynamic> _requestJson({
@@ -85,7 +70,6 @@ Map<String, dynamic> _requestJson({
   'can_cancel': canCancel,
 };
 
-/// The flood-relief request the edit tests open.
 AssistanceRequest _filed({
   String title = 'Food Pack',
   String category = 'FOOD',
@@ -119,10 +103,6 @@ void _seedProfile({int? householdSize = 4}) {
     }),
   );
 }
-
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
 
 class _Server {
   /// Overrides the reply to a new request; null files it as AR-2031-0042.
@@ -191,7 +171,6 @@ http.Response _ok(Map<String, dynamic> data) =>
 http.Response _fail(int status, String message) =>
     _json(status, {'ok': false, 'message': message});
 
-/// One part of a captured multipart/form-data body.
 class _Part {
   _Part(this.headers, this.content);
 
@@ -239,10 +218,6 @@ Map<String, String> _fieldsOf(http.Request request) => {
 List<_Part> _filesOf(http.Request request) =>
     _partsOf(request).where((p) => p.filename != null).toList();
 
-// ---------------------------------------------------------------------------
-// Fake file picker
-// ---------------------------------------------------------------------------
-
 class _FakePicker extends FilePicker {
   FilePickerResult? next;
   Object? error;
@@ -282,17 +257,12 @@ class _FakePicker extends FilePicker {
 
 late _FakePicker _picker;
 
-// ---------------------------------------------------------------------------
-// Form harness
-// ---------------------------------------------------------------------------
-
 class _Outcome {
   bool closed = false;
   AssistanceRequest? result;
 }
 
-/// Opens the form from a launcher page — a new request, or an edit of
-/// [editing] — on a tall surface so every field is built without scrolling.
+/// On a tall surface so every field builds without scrolling.
 Future<_Outcome> _openForm(
   WidgetTester tester, {
   AssistanceRequest? editing,
@@ -371,7 +341,6 @@ Future<void> _describe(WidgetTester tester, String text) async {
   await tester.pump();
 }
 
-/// The quickest complete form: "Food Pack" and a description.
 Future<void> _fillMinimum(WidgetTester tester) async {
   await _pickNeed(tester, 'Food Pack');
   await _describe(tester, 'Our house was flooded and we lost our rice.');
@@ -382,8 +351,7 @@ Future<void> _tapSubmit(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
-/// Submits with real file reads (attachments go through
-/// `MultipartFile.fromPath`), which the fake clock would stall.
+/// Real file reads (`MultipartFile.fromPath`) would stall under the fake clock.
 Future<void> _submitWithFiles(WidgetTester tester) async {
   await tester.runAsync(() async {
     await tester.tap(_button('Submit Request'));
@@ -446,10 +414,6 @@ void main() {
     AuthSession.onSessionEnded = null;
     RoleAccountStore.instance.clear();
   });
-
-  // -------------------------------------------------------------------------
-  // New request — the empty form
-  // -------------------------------------------------------------------------
 
   group('new request — fields', () {
     testWidgets('starts empty with sensible defaults', (tester) async {
@@ -584,10 +548,6 @@ void main() {
       expect(_chipSelected(tester, 'Urgent'), isFalse);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // New request — submitting
-  // -------------------------------------------------------------------------
 
   group('new request — submit', () {
     testWidgets('files the request with the server codes', (tester) async {
@@ -838,10 +798,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Proof documents
-  // -------------------------------------------------------------------------
-
   group('new request — proof documents', () {
     testWidgets('Choose file opens the picker for PDFs and images', (
       tester,
@@ -1005,10 +961,6 @@ void main() {
       expect(_enabled(tester, 'Submit Request'), isTrue);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // Editing a filed request
-  // -------------------------------------------------------------------------
 
   group('edit request', () {
     testWidgets('opens filled in with the filed answers', (tester) async {
@@ -1199,10 +1151,6 @@ void main() {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Confirmation dialog on its own
-  // -------------------------------------------------------------------------
-
   testWidgets('showRequestSubmittedDialog stays until Done', (tester) async {
     final request = assistanceRequestFromJson(
       _requestJson(reference: 'AR-2031-0099'),
@@ -1245,10 +1193,6 @@ void main() {
     expect(filed.location, const LatLng(10.3297, 123.9496));
     expect(_filed(pinned: false).location, isNull);
   });
-
-  // -------------------------------------------------------------------------
-  // Invalid fields
-  // -------------------------------------------------------------------------
 
   group('invalid fields', () {
     testWidgets('the description is capped at 500 characters', (tester) async {

@@ -28,20 +28,7 @@ import {
   specialCharacterSeries,
 } from '../../../../config/security-payloads';
 
-/**
- * Payments Module · Payment Gateway Settings — valid inputs.
- *
- * Every case here is a legitimate input the system must accept.
- * The invalid cases for this unit live in ../invalid/.
- */
-
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Payments POST actions — input validation: the `:method` param, the reported payout
-   * amount and its bounds, and the optional key and URL of a connection test, plus
-   * legitimate inputs that must pass.
-   */
   const methodFixtures: LayerFixture<string>[] = [
     ...Object.values(DonationPaymentMethod).map((method): LayerFixture<string> => ({
       name: `method ${method}`,
@@ -95,13 +82,7 @@ import {
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Payments POST actions — normalisation: the service receives the validated method, the
-   * caller from the token and the trimmed key; the two actions without a body ignore one;
-   * and the response schema keeps what must not reach the portal off the wire.
-   */
   describe('payments site · POST actions — normalisation', () => {
     const ctx = usePaymentsApp();
 
@@ -166,14 +147,12 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /** Padded past the minimum, so a payload is judged on its content and not on its length. */
+  /** Padded past the minimum so only the payload's content is judged. */
   const asSecretKey = (value: unknown) => `${'k'.repeat(SECRET_KEY_MIN)}${value as string}`;
 
   const testFixtures: LayerFixture[] = [
-    // Credential text, like a password: it is base64-encoded into a header and never
-    // reaches SQL or a page, so punctuation is no reason to refuse it.
+    // Credential text: base64-encoded into a header, never SQL or a page, so punctuation is fine.
     ...[...SQL_INJECTION_PAYLOADS, ...specialCharacterSeries(), ...UNICODE_CONFUSABLE_PAYLOADS, ...XSS_PAYLOADS, ...PATH_TRAVERSAL_PAYLOADS].map(
       (p): LayerFixture => ({
         name: `secret_key ← ${p.category}: ${p.label}`,
@@ -196,8 +175,8 @@ import {
     describe.each(BODY_ENDPOINTS)('$title', (endpoint) => {
     });
 
-    // The key must not be able to leave for an address the request chose, so this runs
-    // the real service: the validators cannot tell a proxy from an attacker's host.
+    // Real service: the key must not leave for a request-chosen address, and the
+    // validators can't tell a proxy from an attacker's host.
     describe('testConnection (real service)', () => {
       const SAVED = { secretKey: 'saved-secret-key', apiUrl: 'https://saved-host.example' };
       const REQUEST_URL = 'https://request-host.example';
@@ -230,8 +209,7 @@ import {
       });
     });
 
-    // PUT is outside this suite, but it shares these field rules: a saved URL is where
-    // every later gateway call sends the key.
+    // PUT shares these field rules; a saved URL is where every later gateway call sends the key.
     describe('UpdatePaymentSettingsSchema (shared field rules)', () => {
       const VALID_UPDATE = { mode: 'TEST', enabled: false, methods: [] };
       const parse = (extra: object) => UpdatePaymentSettingsSchema.safeParseAsync({ ...VALID_UPDATE, ...extra });

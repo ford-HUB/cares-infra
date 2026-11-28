@@ -8,12 +8,11 @@ final appUpdateServiceProvider = Provider<AppUpdateService>(
   (ref) => AppUpdateService(),
 );
 
-/// The installed version, e.g. `1.2.0`, for the version badge.
 final installedVersionProvider = FutureProvider<String>(
   (ref) => AppUpdateService.installedVersion(),
 );
 
-/// GitHub releases for the release-notes sheet; fetched each time it opens.
+/// Refetched each time the sheet opens.
 final releaseHistoryProvider =
     FutureProvider.autoDispose<List<AppReleaseEntry>>(
       (ref) => ref.read(appUpdateServiceProvider).fetchReleaseHistory(),
@@ -24,16 +23,14 @@ final appUpdateProvider = NotifierProvider<AppUpdateNotifier, AppUpdateState>(
 );
 
 enum AppUpdatePhase {
-  /// Nothing asked yet.
   idle,
   checking,
 
-  /// Up to date, unsupported build, or the check failed — carry on.
+  /// Up to date, unsupported, or failed: carry on.
   none,
   available,
   downloading,
 
-  /// The Android installer has been opened.
   installing,
   failed,
 
@@ -52,11 +49,10 @@ class AppUpdateState {
   final AppUpdatePhase phase;
   final AppRelease? release;
 
-  /// 0–1 while downloading; null when not yet known.
+  /// Null while the size is unknown.
   final double? progress;
   final String? error;
 
-  /// The splash stays up while this is true.
   bool get holdsSplash => switch (phase) {
     AppUpdatePhase.idle ||
     AppUpdatePhase.none ||
@@ -64,7 +60,6 @@ class AppUpdateState {
     _ => true,
   };
 
-  /// The update card is shown on the splash.
   bool get showsPanel => holdsSplash && phase != AppUpdatePhase.checking;
 
   AppUpdateState copyWith({
@@ -88,7 +83,7 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
     return const AppUpdateState();
   }
 
-  /// Runs once per launch, alongside the splash animation.
+  /// Once per launch, alongside the splash animation.
   Future<void> check() async {
     if (state.phase != AppUpdatePhase.idle) return;
     state = const AppUpdateState(phase: AppUpdatePhase.checking);
@@ -98,7 +93,7 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
         : AppUpdateState(phase: AppUpdatePhase.available, release: release);
   }
 
-  /// Download the APK and open the installer. Also the retry action.
+  /// Also the retry action.
   void startUpdate() {
     final release = state.release;
     if (release == null || state.phase == AppUpdatePhase.downloading) return;
@@ -125,15 +120,13 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
     });
   }
 
-  /// Install [release] picked from the release-notes sheet — also after
-  /// "Later" was tapped on the splash.
+  /// Also works after "Later" was tapped on the splash.
   void startUpdateTo(AppRelease release) {
     if (state.phase == AppUpdatePhase.downloading) return;
     state = AppUpdateState(phase: AppUpdatePhase.available, release: release);
     startUpdate();
   }
 
-  /// "Later" — only offered when the release is not marked required.
   void dismiss() {
     if (state.release?.isRequired ?? false) return;
     _install?.cancel();

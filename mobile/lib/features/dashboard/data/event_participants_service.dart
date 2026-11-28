@@ -1,7 +1,6 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/domain/event_participation_role.dart';
 
-/// One volunteer holding a slot on an event, as the participants list shows it.
 class EventParticipant {
   const EventParticipant({
     required this.name,
@@ -27,7 +26,6 @@ class EventParticipant {
 
   final String name;
 
-  /// The signed-in volunteer's own row.
   final bool isMe;
   final EventParticipationRole? participationRole;
   final EventRoleApproval? roleApproval;

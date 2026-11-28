@@ -11,16 +11,12 @@ import { FolderGlyph } from './folder-glyph'
 interface ReportFolderTileProps {
   folder: LibraryFolder
   onOpen: (folder: LibraryFolder) => void
-  /** Folder management; omitted on read-only boards, where no folder is custom. */
+  /** Omitted on read-only boards. */
   onRename?: (folder: LibraryFolder) => void
   onDelete?: (folder: LibraryFolder) => void
 }
 
-/**
- * A shelf in the library, drawn the way a folder is drawn everywhere else: the folder
- * itself, its name underneath. Only a folder the director made can be renamed or
- * removed — the college folders are filled by the approval itself.
- */
+/** Only custom folders can be renamed or removed; college folders fill on approval. */
 export function ReportFolderTile({
   folder,
   onOpen,
@@ -66,8 +62,7 @@ export function ReportFolderTile({
                 <PencilLine className="h-3.5 w-3.5" />
                 Rename folder
               </DropdownMenuItem>
-              {/* Deleting only empties the shelf — the reports fall back to their
-                  college folder, so nothing filed is ever lost with it. */}
+              {/* Deleting only empties the folder; reports fall back to their college folder. */}
               <DropdownMenuItem variant="destructive" onSelect={() => onDelete(folder)}>
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete folder

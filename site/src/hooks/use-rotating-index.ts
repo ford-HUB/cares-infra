@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-/** Steps through 0..count-1 every `intervalMs`, pausing while the tab is hidden.
- *  Under reduced motion it stays on the first item. */
 export function useRotatingIndex(count: number, intervalMs: number) {
   const [index, setIndex] = useState(0)
 

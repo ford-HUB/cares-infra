@@ -20,18 +20,13 @@ import type {
 } from '../../../types/certificate-template'
 
 interface CertificateFontPickerProps {
-  /** The block the font applies to, or `null` for the whole sheet. */
+  /** `null` for the whole sheet. */
   target: CertificateElementId | null
   value: CertificateFontId
   onChange: (font: CertificateFontId) => void
 }
 
-/**
- * Picks the typeface, for the selected block when there is one and for the whole
- * sheet otherwise — so a blackletter award name can sit over a serif body the way a
- * DepEd certificate does. Each option previews in its own face, because a font name
- * tells a director nothing on its own.
- */
+/** Applies to the selected block, or the whole sheet when none is selected. */
 export function CertificateFontPicker({
   target,
   value,
@@ -50,8 +45,7 @@ export function CertificateFontPicker({
         aria-label={`Font for ${scope.toLowerCase()}`}
       >
         <Type className="h-3.5 w-3.5 shrink-0 text-gray-500" />
-        {/* Radix positions the open list against this node, so the trigger must hold a
-            SelectValue — its own children keep the summary to one line. */}
+        {/* Radix positions the list against SelectValue, so the trigger must hold one. */}
         <SelectValue>
           <span className="flex min-w-0 items-center gap-1 text-[13px]">
             <span className="shrink-0 text-gray-500">{scope} font:</span>

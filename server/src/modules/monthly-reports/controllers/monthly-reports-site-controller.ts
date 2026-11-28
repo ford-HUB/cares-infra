@@ -52,11 +52,7 @@ import {
   SubmitMonthlyReportSchema,
 } from '../validators/monthly-reports-site-validator';
 
-/**
- * Reading the board is open to the portal roles — a coordinator has to see what became
- * of what they sent — while every decision and every shelf is the director's, so the
- * writes narrow to director and admin. Submitting is the coordinator's own half.
- */
+/** Readable by portal roles; decisions and folders are director/admin; submitting is the coordinator's. */
 @Controller('v1/monthly-reports')
 @Roles(...PORTAL_ROLE_TYPES)
 export class MonthlyReportsSiteController {
@@ -84,7 +80,7 @@ export class MonthlyReportsSiteController {
     return this.monthlyReportsService.submitReport(caller, data);
   }
 
-  /** Declared before the `:id` routes so `folders` is not read as a report id. */
+  /** Declared before `:id` so `folders` isn't read as an id. */
   @Get('folders')
   @ResponseMessage('Report folders')
   @ZSerialize(ReportFolderListResponseSchema)
@@ -147,7 +143,7 @@ export class MonthlyReportsSiteController {
     return this.monthlyReportsService.moveReport(id, data);
   }
 
-  /** Attachments live in a private bucket; the portal reads the bytes through here. */
+  /** Private bucket, so streamed here. */
   @Get(':id/documents/:documentId')
   async getDocument(
     @ZParam('id', MonthlyReportIdParamSchema) id: string,

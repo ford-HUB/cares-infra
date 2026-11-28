@@ -1,18 +1,14 @@
 interface ConfirmBuildingModalProps {
   isOpen: boolean
   buildingName: string
-  /** Traced footprint size, already formatted (e.g. "1.12 hectares"). */
+  /** Pre-formatted, e.g. "1.12 hectares". */
   areaLabel: string | null
-  /** True when the place has no footprint and a circle is used instead. */
+  /** No footprint, so a circle is used instead. */
   approximate?: boolean
   onCancel: () => void
   onConfirm: () => void
 }
 
-/**
- * Asks the operator to confirm before a double-clicked building replaces the
- * currently drawn event area.
- */
 export function ConfirmBuildingModal({
   isOpen,
   buildingName,

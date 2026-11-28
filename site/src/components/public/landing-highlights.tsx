@@ -3,7 +3,6 @@ import { LandingHighlightYear } from './ui/landing-highlight-year'
 import { LANDING_CONTAINER } from '../../constants/landing-bulletin'
 import { LandingHillsBackdrop } from './ui/landing-about-botanicals'
 
-/** Achievements by year, newest first. */
 export function LandingHighlights() {
   return (
     <div className="relative overflow-clip">

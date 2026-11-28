@@ -36,7 +36,7 @@ class VolunteerProfile {
     );
   }
 
-  /// Progress across account registration plus volunteer profile sections.
+  /// Registration plus volunteer profile sections.
   int get completionPercent =>
       VolunteerProfileCompletion.calculate(profile: this);
 

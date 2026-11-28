@@ -89,7 +89,7 @@ class FaceLivenessChecker {
     return p;
   }
 
-  /// Resets hold progress when the face leaves frame — no auto-capture.
+  /// Resets hold progress; no auto-capture.
   void tickWithoutFace() {
     if (phase == FaceLivenessPhase.finished) return;
     _streak = 0;

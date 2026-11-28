@@ -20,11 +20,9 @@ import { RightsBadges } from './ui/rights-badges'
 interface AccessControlTableProps {
   users: AccessUser[]
   loading: boolean
-  /** False until the first fetch settles — see `access-control-store`. */
   initialized: boolean
-  /** True when the last fetch failed, so the empty row doesn't blame the filters. */
   errored: boolean
-  /** Total gated actions in the catalog, the denominator for the scope column. */
+  /** Denominator for the scope column. */
   totalPermissions: number
   page: number
   onPageChange: (page: number) => void
@@ -52,8 +50,7 @@ export function AccessControlTable({
     ACCESS_HEADER_HEIGHT_PX,
   )
 
-  // Covers the mount render too, where `loading` has not flipped true yet. A refilter
-  // or refetch keeps existing rows on screen instead of blanking the grid.
+  // `!initialized` covers the mount render; refetches keep existing rows on screen.
   const showSkeleton = !initialized || (loading && users.length === 0)
 
   const totalPages = Math.max(1, Math.ceil(users.length / rowsPerPage))

@@ -9,17 +9,16 @@ import {
 interface MonthlyReportToolbarProps {
   title: string
   description: string
-  /** What the count on the right of the title is counting, e.g. `submissions`. */
+  /** Counted noun, e.g. `submissions`. */
   noun: string
   search: string
   period: PeriodFilter
-  /** Every `YYYY-MM` that has at least one submission, newest first. */
+  /** Every `YYYY-MM` with a submission, newest first. */
   periods: string[]
   shown: number
   total: number
-  /** False until the first fetch settles, so the counts don't flash "0 of 0". */
   initialized: boolean
-  /** What the month picker filters by — `reporting period` unless a page says otherwise. */
+  /** Defaults to `reporting period`. */
   periodLabel?: string
   onSearchChange: (value: string) => void
   onPeriodChange: (value: PeriodFilter) => void

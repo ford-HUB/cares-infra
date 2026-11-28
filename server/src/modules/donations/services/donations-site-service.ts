@@ -25,12 +25,7 @@ import {
 } from '../repositories/donations-repository';
 import { toSiteDonationDto } from './donations-mapper';
 
-/**
- * The two ladders. Goods pass through a drop-off leg because the donor has to
- * hand the item in at the CARES office before anyone can verify it; money is
- * already paid, so it skips straight
- * to verification. Mirrors `DONATION_FLOW` in the portal.
- */
+/** Goods have a drop-off leg; money skips to verification. Must match `DONATION_FLOW` in the portal. */
 const DONATION_FLOW: Record<DonationKind, DonationStatus[]> = {
   GOODS: [
     DonationStatus.PLEDGED,
@@ -54,7 +49,7 @@ const STATUS_LABELS: Record<DonationStatus, string> = {
   CANCELLED: 'Cancelled',
 };
 
-/** What the donor is told on each move — the app shows it in Notifications. */
+/** Shown in the app's Notifications. */
 const STATUS_NOTICES: Record<DonationStatus, string> = {
   PLEDGED:
     'Your donation is back to pledged and waiting for CARES to act on it.',
@@ -67,7 +62,6 @@ const STATUS_NOTICES: Record<DonationStatus, string> = {
   CANCELLED: 'Your donation was cancelled.',
 };
 
-/** The portal's Donation Tracking: the ledger and the moves along its ladders. */
 @Injectable()
 export class DonationsSiteService {
   constructor(
@@ -84,12 +78,7 @@ export class DonationsSiteService {
     return toSiteDonationDto(await this.find(donationId));
   }
 
-  /**
-   * Moves a donation along its ladder. Forward moves must go one rung at a time
-   * — a director cannot confirm goods that were never picked up — while DECLINED
-   * is reachable from any open rung and PLEDGED reopens a declined one. A
-   * cancelled donation belongs to the donor and is never reopened here.
-   */
+  /** Forward one rung at a time; DECLINED from any open rung; PLEDGED reopens declined. CANCELLED is never reopened. */
   async changeStatus(
     caller: JwtPayload,
     actorLabel: string,
@@ -158,7 +147,7 @@ export class DonationsSiteService {
     }
   }
 
-  /** One row on the donor's feed per move; the dedupe key keeps a retry quiet. */
+  /** The dedupe key keeps retries quiet. */
   private async notifyDonor(
     row: DonationRow,
     status: DonationStatus,
@@ -180,7 +169,6 @@ export class DonationsSiteService {
     });
   }
 
-  /** The name the trail records for the portal account making the move. */
   async actorLabel(caller: JwtPayload): Promise<string> {
     const name = await this.donationsRepository.findUserName(caller.sub);
     return name ?? caller.email;

@@ -7,10 +7,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/account_security_
 import 'package:mobile/features/dashboard/presentation/widgets/connected_device_widgets.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/profile_edit_widgets.dart';
 
-/// Every session signed in to the account, reached from "See all devices"
-/// on Account Security when more than the preview count are connected.
-/// Resolves to the sessions still connected when the person goes back so
-/// the landing preview stays in sync.
+/// Resolves to the still-connected sessions so the landing preview stays in
+/// sync.
 class ConnectedDevicesScreen extends StatefulWidget {
   const ConnectedDevicesScreen({super.key, required this.devices});
 

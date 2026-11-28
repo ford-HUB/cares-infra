@@ -6,7 +6,6 @@ import type {
 } from '../types/event'
 import { apiClient, parseApiError } from './api-client'
 
-/** Backend wraps successful responses in an { ok, data } envelope. */
 type ApiEnvelope<T> = { ok: true; message?: string; data: T }
 
 function withLiveStatus(event: CaresEvent): CaresEvent {

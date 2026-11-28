@@ -8,17 +8,14 @@ import { IssuedCredentialsPanel } from './issued-credentials-panel'
 
 interface ReissueCredentialsModalProps {
   user: ManagedUser | null
-  /** Set once the server has issued them — the dialog then only shows the result. */
+  /** Once set, the dialog only shows the result. */
   credentials: IssuedCredentials | null
   loading?: boolean
   onClose: () => void
   onConfirm: (expiresInHours: number) => void
 }
 
-/**
- * Replaces the password on an account whose temporary one lapsed or was never
- * collected. The sign-in email is left alone: the requester already has it.
- */
+/** Replaces only the password; the requester already has the sign-in email. */
 export function ReissueCredentialsModal({
   user,
   credentials,
@@ -26,7 +23,7 @@ export function ReissueCredentialsModal({
   onClose,
   onConfirm,
 }: ReissueCredentialsModalProps) {
-  // The parent keys this component by user id, so the choice starts fresh per target.
+  // Keyed by user id upstream, so the choice starts fresh per target.
   const [expiresInHours, setExpiresInHours] = useState<number>(CREDENTIAL_DEFAULT_HOURS)
 
   if (!user) return null

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Top of the events tab: centred title, with an optional line under it.
 class DiscoverHeader extends StatelessWidget {
   const DiscoverHeader({
     super.key,

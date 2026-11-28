@@ -35,21 +35,7 @@ import {
   PROTOTYPE_POLLUTION_BODIES,
 } from '../../../../config/security-payloads';
 
-/**
- * Certificate Module · Deploy Certificate — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Deploy — error handling: unexpected service errors and a response the serializer
-   * refuses are masked as a generic 500 with nothing leaked, and the service's deliberate
-   * HttpExceptions keep their status and message through the envelope.
-   */
   const DELIBERATE_ERRORS = [
     { title: '404 for an unknown template', error: new NotFoundException('Certificate template not found') },
     { title: '404 for an unknown event', error: new NotFoundException('Event not found') },
@@ -90,12 +76,7 @@ import {
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Deploy — input validation: the template id and the event id, each required, plus the
-   * forms an event id legitimately arrives in.
-   */
   const fixtures: LayerFixture[] = [
 
     { name: 'template id missing', input: { event_id: VALID.event_id }, expected: 'FAIL', field: 'certificate_template_id', message: 'Pick a certificate template' },
@@ -126,13 +107,7 @@ import {
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /**
-   * Deploy — security: both fields are constrained ids, so every hostile string FAILs,
-   * plus type confusion, mass assignment, prototype pollution, and the rules in the real
-   * service that decide what may be deployed and what a deployment freezes.
-   */
   const fixtures: LayerFixture[] = [
     ...HOSTILE_STRINGS.map((p): LayerFixture => ({
       name: `certificate_template_id ← ${p.category}: ${p.label}`,
@@ -155,7 +130,7 @@ import {
       field: 'event_id',
     })),
     { name: 'event_id ← id with SQL tail', input: { ...VALID, event_id: '5 OR 1=1' }, expected: 'FAIL', field: 'event_id' },
-    // A number is what this field wants, so that payload is not type confusion here.
+    // This field wants a number, so that payload isn't type confusion here.
     ...OPERATOR_INJECTION_PAYLOADS.filter((p) => typeof p.value !== 'number').map((p): LayerFixture => ({
       name: `event_id ← ${p.category}: ${p.label}`,
       input: { ...VALID, event_id: p.value },
@@ -168,7 +143,7 @@ import {
       input: { ...VALID, ...extra },
       expected: 'FAIL',
     })),
-    // Everything on a deployment is read from the template and the event, never supplied.
+    // Deployment fields come from the template and event, never the body.
     { name: 'mass assignment: status', input: { ...VALID, status: 'completed' }, expected: 'FAIL' },
     { name: 'mass assignment: design', input: { ...VALID, design: {} }, expected: 'FAIL' },
     { name: 'mass assignment: template_name', input: { ...VALID, template_name: 'Overwritten' }, expected: 'FAIL' },
@@ -211,7 +186,7 @@ import {
       });
     });
 
-    // The controller's service is mocked above; what may be deployed lives in the real one.
+    // The controller's service is mocked; deploy rules live in the real one.
     describe('deploy (real service)', () => {
       const PAST = new Date('2026-10-30T05:00:00.000Z');
 
@@ -246,7 +221,7 @@ import {
         status: EventStatus.Completed,
       };
 
-      /** What the row looks like once saved, so the real mapper runs over the real copy. */
+      /** Saved row, so the real mapper runs over the real copy. */
       const savedRow = (reference: string, persisted: any, id = 'new-deployment-id') => ({
         certificate_deployment_id: id,
         reference,

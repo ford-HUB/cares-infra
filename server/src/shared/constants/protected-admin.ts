@@ -1,12 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
 
-/**
- * The root operator account. It is the one login that must never be locked out of the
- * portal, so it cannot have its actions suspended and cannot change the email it signs
- * in with — either would risk leaving the system with no reachable administrator.
- *
- * Override with `PROTECTED_ADMIN_EMAIL` in `server/.env` if the root account differs.
- */
+/** Root operator: can't be suspended or change its email. Override with `PROTECTED_ADMIN_EMAIL`. */
 export const DEFAULT_PROTECTED_ADMIN_EMAIL = 'admin@cares.com';
 
 export function getProtectedAdminEmail(configService: ConfigService): string {

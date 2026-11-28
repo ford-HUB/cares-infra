@@ -1,7 +1,6 @@
 import { unlockedRoles } from './unlocked-roles';
 
-// The generated client is ESM, which Jest cannot load; only the enum values the
-// rule compares against are needed here.
+// The generated client is ESM (Jest can't load it); only the enum values are needed.
 jest.mock('../../infastructures/prisma/common/client', () => ({
   RoleType: {
     VOLUNTEER: 'VOLUNTEER',

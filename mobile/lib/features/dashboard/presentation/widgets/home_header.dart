@@ -16,8 +16,8 @@ class HomeHeader extends StatelessWidget {
   final String firstName;
   final int points;
 
-  /// Allows the unread dot at all; it only shows while the open side has
-  /// unread notifications.
+  /// Gates the unread dot; it shows only while the open side has unread
+  /// notifications.
   final bool showNotificationDot;
 
   /// Replaces the points pill, e.g. '2 active' on the beneficiary dashboard.

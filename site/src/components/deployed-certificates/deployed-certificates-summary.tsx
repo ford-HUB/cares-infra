@@ -17,17 +17,10 @@ import { DeploymentStatusSegment } from './ui/deployment-status-segment'
 
 interface DeployedCertificatesSummaryProps {
   counts: DeployedCertificateCounts
-  /** The list's current filter — the matching segment reads as selected. */
   status: DeploymentStatusFilter
   onStatusChange: (value: DeploymentStatusFilter) => void
 }
 
-/**
- * The screen's one question: of every participant a deployed certificate covers, how
- * many are actually holding theirs. The deployment statuses beside it are parts of a
- * second whole — the deployment log — so they share one bar and double as its filter,
- * and the event count stands apart because it belongs to neither.
- */
 export function DeployedCertificatesSummary({
   counts,
   status,

@@ -1,9 +1,8 @@
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
 
-/// `/rankings/leaderboard` — the volunteer board the portal scores: points per
-/// event attended, an escalating penalty per registered event skipped, and the
-/// tier ladder that decides which frame an avatar wears.
+/// Points per attended event, an escalating penalty per skipped registration,
+/// and the tier ladder for avatar frames.
 class RankingService {
   RankingService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
@@ -17,8 +16,7 @@ class RankingService {
     return Leaderboard.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// `/rankings/donors/leaderboard` — confirmed giving scored at the portal's
-  /// pesos-per-point rate, cut into the same tier ladder.
+  /// Confirmed giving at the portal's pesos-per-point rate, same tier ladder.
   Future<DonorLeaderboard> fetchDonorLeaderboard({String? period}) async {
     final query = period == null ? '' : '?period=$period';
     final response = await _api.getJson('/rankings/donors/leaderboard$query');

@@ -1,12 +1,6 @@
 import { ReportDepartment } from '../../infastructures/prisma/common/client';
 
-/**
- * Every spelling a college goes by across the system. A portal profile carries the
- * department as free text (usually the code), an event carries the full name the
- * events form offers, a monthly report carries the enum code, and a volunteer's
- * school record carries whatever the ID scan read. Scoping anything "to a
- * department" has to accept all of them.
- */
+/** Profiles (free text), events (full name), reports (enum) and school records (OCR) all spell colleges differently. */
 export const DEPARTMENT_ALIASES: Record<ReportDepartment, readonly string[]> = {
   [ReportDepartment.CCS]: ['CCS', 'College of Computer Studies'],
   [ReportDepartment.CBA]: [
@@ -36,17 +30,12 @@ export const DEPARTMENT_ALIASES: Record<ReportDepartment, readonly string[]> = {
 };
 
 export interface DepartmentScope {
-  /** The enum code, when the profile text maps to one of the report colleges. */
+  /** When the profile text maps to a report college. */
   code: ReportDepartment | null;
-  /** Every spelling to match against free-text department columns. */
   aliases: string[];
 }
 
-/**
- * Resolves a profile's free-text department to its code and full alias list.
- * Unknown text still scopes — to itself only — so a college the map does not know
- * yet shows the rows that spell it exactly the same way, rather than nothing.
- */
+/** Unknown text still scopes to itself, so exact matches show. */
 export function resolveDepartmentScope(
   profileDepartment: string,
 ): DepartmentScope {

@@ -6,11 +6,7 @@ interface YearLevelParticipationListProps {
   yearLevels: YearLevelParticipation[]
 }
 
-/**
- * Of each year level's volunteers, how many actually turned up this period. Each row
- * is a meter — the active share of that level's roster — so the levels compare on
- * rate, not on size.
- */
+/** Rows are meters of each level's active share, so levels compare on rate, not size. */
 export function YearLevelParticipationList({
   yearLevels,
 }: YearLevelParticipationListProps) {

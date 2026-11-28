@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Faint community glyphs scattered over the home tab's dark ground — trees,
-/// people, hands, a heart — so the band reads as CARES rather than a flat
-/// block. Purely decorative: ignores touches and never sits under the text
-/// column on the left.
+/// Decorative: ignores touches and stays clear of the left text column.
 class HomeHeroParticles extends StatelessWidget {
   const HomeHeroParticles({super.key});
 

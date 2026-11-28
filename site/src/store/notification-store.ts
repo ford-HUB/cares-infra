@@ -20,10 +20,9 @@ interface NotificationState {
   loading: boolean
   initialized: boolean
   error: string | null
-  /** Where a desktop alert's click should take the person; set by the layout. */
   openHref: (href: string) => void
   load: () => Promise<void>
-  /** Opens the live channel; safe to call again — it re-binds rather than doubling up. */
+  /** Safe to call again: re-binds rather than doubling up. */
   connect: (openHref: (href: string) => void) => void
   disconnect: () => void
   markRead: (id: string) => Promise<void>
@@ -34,7 +33,6 @@ interface NotificationState {
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => {
-  /** Every write returns the whole feed, so the store swaps rather than patches. */
   const apply = (result: Awaited<ReturnType<typeof fetchNotifications>>) => {
     if (result.success && result.feed) {
       set({ feed: result.feed, error: null })
@@ -43,7 +41,6 @@ export const useNotificationStore = create<NotificationState>((set, get) => {
     }
   }
 
-  /** A row pushed over the socket: prepend it, bump the count, and make some noise. */
   const receive = (item: NotificationItem) => {
     const current = get().feed ?? { summary: { total: 0, unread: 0, read: 0 }, items: [] }
     if (current.items.some((existing) => existing.id === item.id)) return
@@ -94,8 +91,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => {
         onUnread: ({ unread }) => {
           const feed = get().feed
           if (!feed || feed.summary.unread === unread) return
-          // Another tab changed something; the count is authoritative, the rows are
-          // refetched so the two agree.
+          // Another tab changed something: trust the count, refetch the rows.
           set({ feed: { ...feed, summary: { ...feed.summary, unread } } })
           void get().load()
         },

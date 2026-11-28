@@ -16,18 +16,13 @@ import { LivePulse } from './live-pulse'
 interface AttendanceStateSegmentProps {
   state: LiveAttendanceState
   value: number
-  /** Share of the roster this state holds, 0–1. */
+  /** 0–1. */
   share: number
-  /** True while the table is filtered to this state. */
   active: boolean
   onToggle: (state: LiveAttendanceState) => void
 }
 
-/**
- * One state of the roster, as a legend entry under the coverage bar. It doubles as
- * the table's filter — clicking narrows the rows to that state, clicking again clears
- * it, which is why this is a button and not a plain tile.
- */
+/** Legend entry that doubles as the table's state filter; clicking again clears it. */
 export function AttendanceStateSegment({
   state,
   value,

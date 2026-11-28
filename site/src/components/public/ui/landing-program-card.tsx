@@ -19,7 +19,6 @@ interface LandingProgramCardProps {
   onSelect: (program: LandingDepartmentProgram) => void
 }
 
-/** A department's photo, logo, program label and highlights. Opens its activities. */
 export function LandingProgramCard({ program, onSelect }: LandingProgramCardProps) {
   const hiddenHighlights = program.highlights.length - VISIBLE_HIGHLIGHTS
 
@@ -52,8 +51,6 @@ export function LandingProgramCard({ program, onSelect }: LandingProgramCardProp
       </div>
 
       <div className="flex flex-1 flex-col px-4 pb-4">
-        {/* The glass label tucks under the logo's right edge, so the two read as one
-            badge with no gap between them. */}
         <div className="relative z-10 -mt-7 flex min-h-14 items-center">
           <span className="relative z-10 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-white shadow-md">
             <img

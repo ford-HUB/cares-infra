@@ -5,22 +5,15 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
-/// A notification the person tapped, handed to whoever owns navigation.
 class NotificationTap {
   const NotificationTap({required this.payload});
 
-  /// A route hint: the server's `href` for a feed row, or `event:<id>` for a
-  /// scheduled reminder. Null when the tap carried nothing.
+  /// Server `href` for a feed row, or `event:<id>` for a reminder.
   final String? payload;
 }
 
-/// Device notifications — the only push channel the app has, since there is
-/// no FCM in the project. Two uses: reminders scheduled on the device for
-/// registered events, and immediate pops for feed rows the server wrote while
-/// the app was away (attendance rulings, start reminders, certificates,
-/// announcements).
-///
-/// Channels are split so a person can mute reminders without muting rulings.
+/// The only push channel (no FCM): event reminders and feed rows missed while
+/// away. Separate channels let reminders be muted alone.
 class LocalNotifications {
   LocalNotifications._();
 
@@ -47,10 +40,9 @@ class LocalNotifications {
   final StreamController<NotificationTap> _taps =
       StreamController<NotificationTap>.broadcast();
 
-  /// Taps on any notification this service showed, while the app is running.
   Stream<NotificationTap> get taps => _taps.stream;
 
-  /// The tap that launched a cold app, if any — read once by the app root.
+  /// Read once by the app root.
   NotificationTap? launchTap;
 
   bool _initialized = false;
@@ -90,8 +82,7 @@ class LocalNotifications {
     await android?.createNotificationChannel(_feedChannel);
   }
 
-  /// Asks the OS for permission the first time it matters (Android 13+, iOS).
-  /// Returns whether notifications may be shown.
+  /// Android 13+ / iOS.
   Future<bool> requestPermission() async {
     final android = _plugin
         .resolvePlatformSpecificImplementation<
@@ -115,7 +106,6 @@ class LocalNotifications {
     return true;
   }
 
-  /// Shows a notification now — a feed row that arrived while the app was away.
   Future<void> show({
     required int id,
     required String title,
@@ -148,10 +138,8 @@ class LocalNotifications {
     }
   }
 
-  /// Schedules a reminder for a moment in the future; a past moment is skipped.
-  /// Re-scheduling with the same [id] replaces the earlier one, so callers can
-  /// re-arm idempotently. Inexact delivery keeps the app clear of the exact-alarm
-  /// permission — a reminder a minute or two late is still a reminder.
+  /// Same [id] replaces the earlier one; inexact delivery avoids the
+  /// exact-alarm permission.
   Future<void> schedule({
     required int id,
     required DateTime at,
@@ -187,7 +175,6 @@ class LocalNotifications {
 
   Future<void> cancel(int id) => _plugin.cancel(id);
 
-  /// Everything pending — used on sign-out so a stale reminder never fires for
-  /// the wrong account.
+  /// Used on sign-out so a stale reminder never fires for the wrong account.
   Future<void> cancelAll() => _plugin.cancelAll();
 }

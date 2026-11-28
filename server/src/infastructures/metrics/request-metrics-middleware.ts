@@ -6,18 +6,10 @@ import { RequestMetricsRecorder } from './request-metrics-recorder';
 const ID_SEGMENT =
   /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+|[A-Za-z0-9_-]{24,})$/i;
 
-/**
- * The page's own reads are left out: a viewer polling every three seconds would
- * otherwise top the "busiest" list and measure nothing but itself.
- */
+/** Excludes the page's own polling. */
 const EXCLUDED_PREFIX = '/api/v1/system-performance';
 
-/**
- * Times every request from arrival to the last byte and hands it to the recorder.
- * Routes are normalised here rather than read from Express, which has not matched
- * the route yet when middleware runs: ids collapse to `:id` so one endpoint is one
- * row in the table, not one row per record.
- */
+/** Normalises routes (ids → `:id`) itself: Express hasn't matched them yet. */
 @Injectable()
 export class RequestMetricsMiddleware implements NestMiddleware {
   constructor(private readonly recorder: RequestMetricsRecorder) {}
@@ -28,8 +20,7 @@ export class RequestMetricsMiddleware implements NestMiddleware {
 
     res.on('finish', () => {
       const path = req.originalUrl.split('?')[0];
-      // CORS preflights are the browser's, not the portal's — they would only pad
-      // the call counts.
+      // Skip CORS preflights.
       if (req.method === 'OPTIONS' || path.startsWith(EXCLUDED_PREFIX)) return;
 
       const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;

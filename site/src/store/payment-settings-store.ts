@@ -21,13 +21,9 @@ interface SaveOutcome {
 interface PaymentSettingsState {
   settings: PaymentSettingsDetail | null
   loading: boolean
-  /**
-   * False until the first fetch settles. The form must not populate from defaults and
-   * then jump to the saved values — it renders a skeleton until this flips.
-   */
+  /** Skeleton until loaded so the form doesn't jump from defaults to saved values. */
   initialized: boolean
   saving: boolean
-  /** The channel whose activation check is in flight, so only its card spins. */
   verifying: PaymentMethodKey | null
   error: string | null
   fetchSettings: () => Promise<void>
@@ -36,9 +32,7 @@ interface PaymentSettingsState {
     secrets: PaymentSecretsInput,
   ) => Promise<SaveOutcome>
   verifyMethod: (method: PaymentMethodKey) => Promise<SaveOutcome>
-  /** Sends the token payout for this channel's account. */
   sendAccountProof: (method: PaymentMethodKey) => Promise<SaveOutcome>
-  /** Reports the amount that arrived. */
   confirmAccount: (
     method: PaymentMethodKey,
     amount: number,
@@ -76,8 +70,7 @@ export const usePaymentSettingsStore = create<PaymentSettingsState>((set) => ({
       return { ok: false, message: result.message }
     }
 
-    // Keep the saved copy: it carries the new `updated_at`, which the form's footer
-    // shows, and a refetch would only ask for what the response already returned.
+    // The saved copy carries the new `updated_at`; no refetch needed.
     set({ settings: result.settings ?? null, saving: false, error: null })
     return { ok: true }
   },
@@ -93,8 +86,7 @@ export const usePaymentSettingsStore = create<PaymentSettingsState>((set) => ({
 
     set({ settings: result.settings ?? null, verifying: null })
 
-    // A gateway that answered and refused the channel is a failed check, not a failed
-    // request — the reason rides back on the method.
+    // A refused channel is a failed check, not a failed request.
     const checked = result.settings?.meta.find((entry) => entry.method === method)
     return {
       ok: checked?.verification !== 'FAILED',
@@ -113,8 +105,7 @@ export const usePaymentSettingsStore = create<PaymentSettingsState>((set) => ({
 
     set({ settings: result.settings ?? null, verifying: null })
 
-    // A gateway that refused to send is a failed proof, not a failed request — the
-    // reason rides back on the method.
+    // A refused send is a failed proof, not a failed request.
     const proof = result.settings?.meta.find((entry) => entry.method === method)
     return {
       ok: proof?.accountProof !== 'FAILED',

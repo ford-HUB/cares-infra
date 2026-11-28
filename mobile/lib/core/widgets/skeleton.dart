@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Shared shimmer driver so every [SkeletonBox] on a screen pulses in step.
+/// Shared so every [SkeletonBox] pulses in step.
 class _SkeletonShimmer extends InheritedWidget {
   const _SkeletonShimmer({required this.animation, required super.child});
 
@@ -16,7 +16,6 @@ class _SkeletonShimmer extends InheritedWidget {
       oldWidget.animation != animation;
 }
 
-/// Wraps a loading placeholder tree and animates every [SkeletonBox] inside it.
 class SkeletonLoader extends StatefulWidget {
   const SkeletonLoader({super.key, required this.child});
 
@@ -45,7 +44,6 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
   }
 }
 
-/// A single grey placeholder block. Put it under a [SkeletonLoader] to shimmer.
 class SkeletonBox extends StatelessWidget {
   const SkeletonBox({
     super.key,
@@ -55,7 +53,6 @@ class SkeletonBox extends StatelessWidget {
     this.shape = BoxShape.rectangle,
   });
 
-  /// Circular avatar placeholder.
   const SkeletonBox.circle({super.key, required double size})
     : width = size,
       height = size,
@@ -91,7 +88,6 @@ class SkeletonBox extends StatelessWidget {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, _) {
-        // Sweep a light band left to right across the block.
         final t = animation.value;
         return Container(
           width: width,
@@ -110,7 +106,6 @@ class SkeletonBox extends StatelessWidget {
   }
 }
 
-/// Card-shaped container used to group skeleton lines, matching the app cards.
 class SkeletonCard extends StatelessWidget {
   const SkeletonCard({
     super.key,

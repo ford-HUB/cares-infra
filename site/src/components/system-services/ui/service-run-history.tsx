@@ -10,18 +10,14 @@ import type { ServiceRun } from '../../../types/system-service'
 
 interface ServiceRunHistoryProps {
   runs: ServiceRun[]
-  /** Runtime cap in seconds — a tick that reaches the top spent its whole window. */
+  /** Runtime cap in seconds; a full-height tick spent its whole window. */
   capSeconds: number
 }
 
-/** Minimum tick height, so a two-second run still reads as a run and not a gap. */
+/** So a two-second run still reads as a run, not a gap. */
 const MIN_TICK_SHARE = 0.18
 
-/**
- * The last dozen runs as a strip of ticks: colour is the outcome, height is how much
- * of the runtime cap the run spent. A job creeping toward its cap is visible here
- * before it starts timing out.
- */
+/** Colour is the outcome, height the share of the runtime cap spent. */
 export function ServiceRunHistory({ runs, capSeconds }: ServiceRunHistoryProps) {
   return (
     <div className="flex h-8 items-end gap-[3px]" aria-hidden={false}>

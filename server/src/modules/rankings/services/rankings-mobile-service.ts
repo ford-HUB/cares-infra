@@ -7,10 +7,9 @@ import type {
 import { nextAbsencePenalty } from './ranking-scoring';
 import { RankingsBoardService, periodStart } from './rankings-board-service';
 
-/** Rows the app lists; the caller's own row is always appended if it fell outside. */
+/** The caller's row is appended if outside. */
 const LEADERBOARD_SIZE = 50;
 
-/** The volunteer app's leaderboard: the whole school, with the caller picked out. */
 @Injectable()
 export class RankingsMobileService {
   constructor(private readonly board: RankingsBoardService) {}
@@ -66,10 +65,7 @@ export class RankingsMobileService {
     };
   }
 
-  /**
-   * The donor app's leaderboard: confirmed pesos at one point per
-   * `donor_pesos_per_point`, cut into the same tier ladder as the volunteers.
-   */
+  /** Same tier ladder as volunteers. */
   async getDonorLeaderboard(
     userId: string,
     period?: RankingPeriod,

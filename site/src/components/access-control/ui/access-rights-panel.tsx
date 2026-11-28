@@ -25,11 +25,7 @@ interface AccessRightsPanelProps {
   loading: boolean
   error?: string
   saving: boolean
-  /**
-   * The account may see rights but not change them — every toggle is frozen and the
-   * footer offers no save, reset, or suspend. This is the "View rights" right on its
-   * own, without "Manage rights".
-   */
+  /** View rights without Manage rights: toggles frozen, no save/reset/suspend. */
   readOnly?: boolean
   onClose: () => void
   onSave: (permissions: PermissionKey[]) => void
@@ -62,9 +58,7 @@ export function AccessRightsPanel({
   const [selected, setSelected] = useState<Set<PermissionKey>>(granted)
   const [syncedGranted, setSyncedGranted] = useState(granted)
 
-  // Reset the draft whenever a new detail payload lands — including after a save,
-  // where the server's recomputed grant becomes the new baseline for the form.
-  // Adjusting during render rather than in an effect avoids a cascading re-render.
+  // Reseed the draft on each new payload; done during render to avoid an effect cascade.
   if (syncedGranted !== granted) {
     setSyncedGranted(granted)
     setSelected(new Set(granted))
@@ -86,8 +80,7 @@ export function AccessRightsPanel({
   const toggle = (permission: PermissionKey, next: boolean) =>
     toggleMany([permission], next)
 
-  // A suspended action's toggle is locked in the UI; skipping it here keeps a module
-  // tick from moving it either.
+  // Suspended actions are locked, so module ticks skip them too.
   const toggleMany = (permissions: PermissionKey[], next: boolean) => {
     setSelected((current) => {
       const updated = new Set(current)

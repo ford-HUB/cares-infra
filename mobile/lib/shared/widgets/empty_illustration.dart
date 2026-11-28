@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// The empty-state mark from the reference set: an outlined green icon on a
-/// soft pale-green blob, with three short "sparkle" strokes at its top-right.
 class EmptyIllustration extends StatelessWidget {
   const EmptyIllustration({
     super.key,
@@ -72,7 +70,6 @@ class _BlobPainter extends CustomPainter {
   bool shouldRepaint(_BlobPainter oldDelegate) => false;
 }
 
-/// Centered illustration + bold title + ink body — the full empty state.
 class EmptyStateBlock extends StatelessWidget {
   const EmptyStateBlock({
     super.key,

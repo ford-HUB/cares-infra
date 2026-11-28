@@ -1,19 +1,11 @@
-// Unit tests for editing the mobile profile — the screen opened from the
-// avatar on the Profile tab, for volunteers, donors and beneficiaries:
+// Unit tests for MobileProfileEditScreen, its profile models and the Philippine
+// phone helpers (local fixtures; MockClient via `http.runWithClient`; fake
+// pickers):
 //
 //   GET  /v1/profile/me/mobile                 ProfileService.fetchMyProfile / syncRoleAccount
 //   PUT  /v1/profile/me/mobile                 ProfileService.updateMyProfile (multipart + avatar)
 //   POST /v1/profile/me/mobile/school-record   ProfileService.applySchoolRecord
 //   POST /v1/profile/me/mobile/residency       ProfileService.uploadResidencyDocument
-//   MobileProfile / MobileProfileUpdate / ProfileAddress / ProfileCompletion /
-//   ResidencyDocument, the Philippine phone helpers, and
-//   MobileProfileEditScreen — loading, every field, validation, the dirty
-//   check, save, the locked school record and residency address, household
-//   size and the profile photo.
-//
-// The screen builds its own ProfileService, so the network is package:http's
-// MockClient through `http.runWithClient`. The file and image pickers are
-// fakes. Every profile here is a local fixture — nothing reaches a server.
 
 import 'dart:async';
 import 'dart:convert';
@@ -48,10 +40,6 @@ const _donor = RoleAccountStore.donor;
 const _beneficiary = RoleAccountStore.beneficiary;
 
 const _address = '123 Rizal St., Pajo, Lapu-Lapu City, Cebu';
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 Map<String, dynamic> _structuredAddress({
   String street = '123 Rizal St.',
@@ -144,10 +132,6 @@ void _cache(Map<String, dynamic> json) {
   RoleAccountStore.instance.applyServerProfile(MobileProfile.fromJson(json));
 }
 
-// ---------------------------------------------------------------------------
-// Mock network
-// ---------------------------------------------------------------------------
-
 typedef _Handler = Future<http.Response> Function(http.Request request);
 
 class _Server {
@@ -218,7 +202,6 @@ http.Response _ok(Object data) =>
 http.Response _fail(int status, String message, {Object? errors}) =>
     _json(status, {'ok': false, 'message': message, 'errors': ?errors});
 
-/// One part of a captured multipart/form-data body.
 class _Part {
   _Part(this.headers, this.content);
 
@@ -265,10 +248,6 @@ Map<String, String> _fieldsOf(http.Request request) => {
 List<_Part> _filesOf(http.Request request) =>
     _partsOf(request).where((p) => p.filename != null).toList();
 
-// ---------------------------------------------------------------------------
-// Fake pickers
-// ---------------------------------------------------------------------------
-
 class _FakeFilePicker extends FilePicker {
   FilePickerResult? next;
   final List<List<String>?> extensions = [];
@@ -308,10 +287,6 @@ class _FakeImagePicker {
     return path;
   }
 }
-
-// ---------------------------------------------------------------------------
-// Screen harness
-// ---------------------------------------------------------------------------
 
 class _Outcome {
   bool closed = false;
@@ -384,8 +359,7 @@ Future<void> _save(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Saves with real file reads (photo or document), which the fake clock
-/// would stall.
+/// Real file reads would stall under the fake clock.
 Future<void> _saveWithFiles(WidgetTester tester) async {
   await tester.runAsync(() async {
     await tester.tap(_saveButton);
@@ -401,8 +375,8 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
-/// Lets a chain of UI futures and real file reads finish: the sheet result
-/// needs the fake clock, `MultipartFile.fromPath` needs the real one.
+/// The sheet result needs the fake clock, `MultipartFile.fromPath` the real
+/// one.
 Future<void> _settleIo(WidgetTester tester) async {
   for (var i = 0; i < 8; i++) {
     await tester.pump(const Duration(milliseconds: 100));
@@ -476,7 +450,6 @@ void main() {
     AuthSession.onSessionEnded = null;
   });
 
-  /// A widget test with the screen's network faked.
   void screenTest(
     String description,
     Future<void> Function(WidgetTester) body,
@@ -485,10 +458,6 @@ void main() {
       await http.runWithClient(() => body(tester), server.client);
     });
   }
-
-  // =========================================================================
-  // Phone helpers
-  // =========================================================================
 
   group('Philippine phone numbers', () {
     test('normalize to +639XXXXXXXXX', () {
@@ -533,10 +502,6 @@ void main() {
       expect(type('+639171234567', '+6391712345678').text, '+639171234567');
     });
   });
-
-  // =========================================================================
-  // Models
-  // =========================================================================
 
   group('MobileProfile', () {
     test('reads every field of a volunteer record', () {
@@ -693,10 +658,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Service
-  // =========================================================================
-
   group('ProfileService', () {
     setUp(() => AuthSession.setAccessToken('jwt.volunteer'));
 
@@ -841,10 +802,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Screen — loading
-  // =========================================================================
-
   group('MobileProfileEditScreen — loading', () {
     screenTest('uses the record the Profile tab already synced', (
       tester,
@@ -974,10 +931,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Screen — fields and validation
-  // =========================================================================
-
   group('MobileProfileEditScreen — fields', () {
     setUp(() => _cache(_profileJson()));
 
@@ -1073,10 +1026,6 @@ void main() {
       expect(_canSave(tester), isTrue);
     });
   });
-
-  // =========================================================================
-  // Screen — saving
-  // =========================================================================
 
   group('MobileProfileEditScreen — save', () {
     setUp(() => _cache(_profileJson()));
@@ -1217,10 +1166,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Screen — address (volunteers and donors)
-  // =========================================================================
-
   group('MobileProfileEditScreen — address', () {
     screenTest('opens with the structured address in the fields', (
       tester,
@@ -1317,10 +1262,6 @@ void main() {
       );
     });
   });
-
-  // =========================================================================
-  // Screen — role-specific sections
-  // =========================================================================
 
   group('MobileProfileEditScreen — volunteer school record', () {
     screenTest('shows the school record, locked', (tester) async {
@@ -1559,10 +1500,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // Screen — profile photo
-  // =========================================================================
-
   group('MobileProfileEditScreen — photo', () {
     setUp(() => _cache(_profileJson()));
 
@@ -1628,10 +1565,6 @@ void main() {
       expect(_canSave(tester), isFalse);
     });
   });
-
-  // =========================================================================
-  // Invalid fields
-  // =========================================================================
 
   group('Philippine phone numbers — invalid input', () {
     const message = 'Enter an 11-digit PH mobile number (09XXXXXXXXX)';

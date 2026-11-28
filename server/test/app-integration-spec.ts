@@ -1,10 +1,6 @@
 import { envelope, expect, test } from './config/portal-validation';
 
-/**
- * Entry check for the Playwright toolchain. It owns no form — it proves the
- * portal boots and every `/api/**` call is intercepted, so a red module spec
- * is about the form, never the setup or a live backend.
- */
+/** Toolchain smoke check: portal boots and every `/api/**` call is intercepted. */
 test.describe('app — integration toolchain', () => {
   test('portal renders the login form', async ({ page, stubApi }) => {
     stubApi();

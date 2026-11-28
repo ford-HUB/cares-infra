@@ -23,7 +23,6 @@ export const ASSISTANCE_STATUS_STYLES: Record<AssistanceRequestStatus, string> =
   cancelled: 'bg-gray-100 text-gray-600',
 }
 
-/** Dot on the timeline rail — still-open requests stand out from closed ones. */
 export const ASSISTANCE_STATUS_DOTS: Record<AssistanceRequestStatus, string> = {
   pending: 'bg-blue-500',
   under_review: 'bg-amber-500',
@@ -49,7 +48,6 @@ export const ASSISTANCE_URGENCY_LABELS: Record<AssistanceUrgency, string> = {
   urgent: 'Urgent',
 }
 
-/** Only the two top levels earn colour; low and normal stay quiet. */
 export const ASSISTANCE_URGENCY_STYLES: Record<AssistanceUrgency, string> = {
   low: 'bg-gray-50 text-gray-600',
   normal: 'bg-gray-50 text-gray-600',
@@ -57,7 +55,6 @@ export const ASSISTANCE_URGENCY_STYLES: Record<AssistanceUrgency, string> = {
   urgent: 'bg-red-600 text-white',
 }
 
-/** Requests the desk still has to act on. */
 export const OPEN_ASSISTANCE_STATUSES: readonly AssistanceRequestStatus[] = [
   'pending',
   'under_review',
@@ -72,13 +69,13 @@ export const ASSISTANCE_FILTERS: { value: AssistanceFilter; label: string }[] = 
   { value: 'all', label: 'All' },
 ]
 
-/** Kept in step with the server's cap on an approval note or decline reason. */
+/** Matches the server's note/reason cap. */
 export const ASSISTANCE_NOTE_MAX_LENGTH = 500
 
 export const ASSISTANCE_STATIC_MAP_SIZE = { width: 560, height: 220 } as const
 export const ASSISTANCE_STATIC_MAP_ZOOM = 15
 
-/** Mapbox static image of the pin; null without a token, so the card links out only. */
+/** Null without a Mapbox token. */
 export function assistanceStaticMapUrl(latitude: number, longitude: number): string | null {
   if (!MAPBOX_ACCESS_TOKEN) return null
   const { width, height } = ASSISTANCE_STATIC_MAP_SIZE

@@ -2,17 +2,10 @@ import { z } from 'zod';
 import { DonationPaymentMethod } from '../../../infastructures/prisma/common/client';
 import { MOBILE_ROLE_TYPES } from '../../../shared/constants/mobile-role-types';
 
-/**
- * Whoever can open a checkout may ask what it accepts — the same accounts as
- * the donation routes (see `DONATIONS_MOBILE_ROLE_TYPES`).
- */
+/** Same accounts as `DONATIONS_MOBILE_ROLE_TYPES`. */
 export const PAYMENTS_MOBILE_ROLE_TYPES = MOBILE_ROLE_TYPES;
 
-/**
- * One channel as a donor sees it: the label and copy the director settled on, the
- * account the money lands in (shown on the confirmation so the donor knows where it
- * went), and the limits the app enforces before it even opens a checkout.
- */
+/** Includes the receiving account (shown on confirmation) and the limits the app enforces. */
 export const AvailablePaymentMethodSchema = z.object({
   method: z.enum(DonationPaymentMethod),
   label: z.string(),
@@ -24,11 +17,10 @@ export const AvailablePaymentMethodSchema = z.object({
 });
 
 export const AvailablePaymentMethodsResponseSchema = z.object({
-  /** Empty while the director has switched payments off or saved no key yet. */
+  /** Empty while payments are off or no key is saved. */
   items: z.array(AvailablePaymentMethodSchema),
-  /** False when nothing can be paid right now — the app shows goods donations only. */
+  /** False shows goods donations only. */
   accepting_payments: z.boolean(),
-  /** Who the donor contacts about a payment that went wrong, when CARES gave one. */
   support_email: z.string().nullable(),
   support_contact: z.string().nullable(),
 });

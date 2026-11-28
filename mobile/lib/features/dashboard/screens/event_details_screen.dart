@@ -42,9 +42,8 @@ class EventDetailsScreen extends StatefulWidget {
 
   final CaresEvent event;
 
-  /// Beneficiaries never register — registration is a volunteer endpoint.
-  /// They apply instead: the join/cancel bar becomes "Apply as Beneficiary",
-  /// which files a proof-of-residency application a director rules on.
+  /// Beneficiaries don't register (a volunteer endpoint); the bar becomes
+  /// "Apply as Beneficiary", a proof-of-residency application.
   final bool readOnly;
 
   static void open(
@@ -70,18 +69,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final _tracker = EventLocationTracker.instance;
   final _registrationApi = EventRegistrationService();
 
-  /// Starts as the event the card opened with; a join or cancellation
-  /// replaces it with the server's fresh slot numbers.
+  /// Replaced with the server's fresh slot numbers after a join or
+  /// cancellation.
   late CaresEvent _event = widget.event;
   bool _descriptionExpanded = false;
   bool _organizerExpanded = false;
   bool _registrationBusy = false;
 
-  /// The role picked in the "Participation Role" dropdown before joining.
   EventParticipationRole _selectedRole = EventParticipationRole.regular;
 
-  /// Redraws once a minute so the screen crosses from upcoming to ongoing to
-  /// finished on its own while it stays open.
+  /// Redraws each minute so upcoming → ongoing → finished happens on its own.
   Timer? _phaseTimer;
 
   @override
@@ -115,8 +112,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     if (mounted) setState(() {});
   }
 
-  /// A feed refresh may have swapped in a newer copy of a joined event
-  /// (status flipped, end time corrected) — follow it while the screen is up.
+  /// Follows a newer copy of the joined event from a feed refresh.
   void _onStoreChanged() {
     final refreshed = _store.participationFor(_event.id, _participantEmail);
     if (!mounted) return;
@@ -131,7 +127,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   bool get _feedbackSubmitted =>
       _feedbackStore.hasSubmitted(_event.id, _participantEmail);
 
-  /// The sheet the scheduler generated for this event, once it has.
   CaresCertificate? get _certificate =>
       _certificateStore.forEvent(_event.serverId);
 
@@ -204,13 +199,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     if (!await _ensureLocationPermission()) return;
     if (!mounted) return;
 
-    // Server events take the slot on the server first; the fixture keeps the
-    // in-memory flow. Either way the local store drives the geofence tracker.
+    // Server events take the slot server-side first; fixtures stay in memory.
+    // The local store drives the geofence tracker either way.
     final synced = await _syncRegistration(join: true, role: role);
     if (!synced || !mounted) return;
 
-    // Fixtures have no server to answer with the role, so mirror what it
-    // would have said.
+    // Fixtures have no server reply, so mirror what it would say.
     if (_event.serverId == null) {
       _event = _event.withParticipationRole(
         role,
@@ -237,10 +231,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  /// Registers or cancels on the server and redraws with the counts it sends
-  /// back, then refreshes the recommended lists so every card agrees. Returns
-  /// false when the server refused (full, closed, offline) — the message is
-  /// shown and nothing changes locally.
+  /// Then refreshes the recommended lists so every card agrees. False when
+  /// refused (full, closed, offline); nothing changes locally.
   Future<bool> _syncRegistration({
     required bool join,
     EventParticipationRole role = EventParticipationRole.regular,
@@ -310,9 +302,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  /// Location must be on before joining, since check-in depends on it. When
-  /// the permission is already granted this is silent; otherwise the user is
-  /// walked through the explanation → device prompt → denied loop.
+  /// Check-in needs location. Silent when granted; otherwise explanation →
+  /// device prompt → denied loop.
   Future<bool> _ensureLocationPermission() async {
     var result = await requestEventLocationPermission();
     if (result.isGranted) return true;
@@ -372,8 +363,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final event = _event;
     final participation = _participation;
     final isRegistered = _isRegistered;
-    // Ended on the server or by the clock — either way the join/cancel
-    // controls are gone and the completed section takes over.
+    // Ended by server or clock: the completed section replaces the join/cancel
+    // controls.
     final isCompleted = event.hasEnded();
     final isOngoing = event.isOngoing();
     final feedbackSubmitted = _feedbackSubmitted;
@@ -472,8 +463,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                   _descriptionExpanded = !_descriptionExpanded,
                             ),
                           ),
-                          // Volunteers pick their role before joining; once
-                          // joined the role and its review status show here.
                           if (!widget.readOnly && !isCompleted) ...[
                             if (!isRegistered) ...[
                               const SizedBox(height: 24),
@@ -527,8 +516,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         ],
                       ),
                     ),
-                    // Room for the floating action bar so the last card is
-                    // never hidden behind it.
+                    // Room for the floating action bar.
                     const SizedBox(height: 96),
                   ],
                 ),
@@ -559,8 +547,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  /// Full-bleed photo with the back button over it, the category
-  /// tag at its foot, and the quick-action card straddling its bottom edge.
   Widget _buildHero(CaresEvent event) {
     final topInset = MediaQuery.paddingOf(context).top;
     const photoHeight = 320.0;
@@ -586,9 +572,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     imageUrls: event.imageUrls,
                     placeholder: const _HeroPlaceholder(),
                   ),
-                  // Overlays ignore touches so a swipe anywhere still moves
-                  // the deck; the scrim keeps the buttons legible over any
-                  // photo.
+                  // Overlays ignore touches so swipes still move the deck; the
+                  // scrim keeps buttons legible.
                   IgnorePointer(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -660,9 +645,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  /// The beneficiary's action, by where their application stands: apply,
-  /// wait for the director, see that it was approved, or apply again after
-  /// a rejection.
+  /// Apply, wait, approved, or apply again after a rejection.
   Widget _buildBeneficiaryBar(CaresEvent event, bool isCompleted) {
     if (isCompleted) {
       return FilledButton.icon(
@@ -740,8 +723,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     required bool feedbackSubmitted,
   }) {
     if (widget.readOnly) return _buildBeneficiaryBar(event, isCompleted);
-    // A finished event has no Cancel or Sync — only the feedback /
-    // certificate follow-up for those who joined.
+    // A finished event only has the feedback/certificate follow-up.
     if (isCompleted) {
       if (!isRegistered) {
         return FilledButton.icon(
@@ -751,8 +733,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           style: _pillStyle,
         );
       }
-      // Ruled absent by the geofence validator: the server refuses feedback,
-      // so say so here rather than offer a button that will fail.
+      // Ruled absent: the server refuses feedback, so don't offer a button that
+      // will fail.
       if (event.isMarkedAbsent && !feedbackSubmitted) {
         return FilledButton.icon(
           onPressed: null,
@@ -793,8 +775,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             );
     }
     if (isRegistered) {
-      // Once the event has started the slot is locked in: Cancel stays
-      // visible but disabled, and Sync keeps working for attendance.
+      // Once started, Cancel stays visible but disabled; Sync keeps working for
+      // attendance.
       final canCancel = !_registrationBusy && !isOngoing;
       return Row(
         children: [
@@ -913,11 +895,9 @@ class _VerifiedBanner extends StatelessWidget {
   }
 }
 
-/// Height of the rounded lip the content sheet draws over the hero photo.
 const double _sheetLip = 28;
 
-// The CTAs float over the scrolling content instead of sitting in a footer,
-// so they carry their own shadow to lift off the page.
+// Floating CTAs carry their own shadow to lift off the content.
 final ButtonStyle _pillStyle = FilledButton.styleFrom(
   backgroundColor: kEventInk,
   foregroundColor: Colors.white,
@@ -928,8 +908,7 @@ final ButtonStyle _pillStyle = FilledButton.styleFrom(
   textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
 );
 
-/// Compact secondary pill for cancelling a registration — sits beside the
-/// full-width Sync button, so it hugs its content instead of stretching.
+/// Hugs its content beside the full-width Sync button.
 final ButtonStyle _pillCancelStyle = OutlinedButton.styleFrom(
   foregroundColor: AppColors.error,
   backgroundColor: Colors.white,
@@ -942,8 +921,6 @@ final ButtonStyle _pillCancelStyle = OutlinedButton.styleFrom(
   textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
 );
 
-/// Body copy clamped to a few lines with an inline "read more..." link that
-/// expands it in place, and "show less" once open.
 class _ExpandableText extends StatefulWidget {
   const _ExpandableText(
     this.text, {
@@ -1048,7 +1025,6 @@ class _ExpandableTextState extends State<_ExpandableText> {
   }
 }
 
-/// The gradient hero drawn when the event has no photos.
 class _HeroPlaceholder extends StatelessWidget {
   const _HeroPlaceholder();
 

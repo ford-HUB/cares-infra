@@ -11,19 +11,15 @@ import {
 } from '../services/system-service-service'
 import type { ServiceLogEntry, SystemService } from '../types/system-service'
 
-/** How long after "Run now" to re-read the roster for the run's outcome. */
 const RUN_SETTLE_REFRESH_MS = 3000
 
 interface SystemServiceState {
   services: SystemService[]
-  /** False until the first read settles, so the duty banner doesn't flash "0 of 0". */
   initialized: boolean
   error: string | null
-  /** Id of the service whose control is in flight — only that row locks. */
   busyId: string | null
-  /** Log lines for the service whose viewer is open, newest line last. */
   logs: ServiceLogEntry[]
-  /** Which service `logs` belongs to, so a stale read cannot land in another viewer. */
+  /** Guards against a stale read landing in another viewer. */
   logsServiceId: string | null
   logsLoading: boolean
   fetchServices: (options?: { silent?: boolean }) => Promise<void>
@@ -37,7 +33,6 @@ interface SystemServiceState {
   ) => Promise<void>
 }
 
-/** Shared shape of every control: lock the row, apply, report, unlock. */
 async function control(
   set: (partial: Partial<SystemServiceState>) => void,
   id: string,
@@ -80,7 +75,7 @@ export const useSystemServiceStore = create<SystemServiceState>((set) => ({
     set({ logsServiceId: id, logsLoading: true })
     try {
       const logs = await fetchServiceLogs(id)
-      // The viewer may have moved on while the read was in flight.
+      // The viewer may have moved on meanwhile.
       if (useSystemServiceStore.getState().logsServiceId === id) set({ logs })
     } catch {
       set({ logs: [] })
@@ -108,8 +103,7 @@ export const useSystemServiceStore = create<SystemServiceState>((set) => ({
       () => triggerServiceRun(service.id),
       `${service.name} triggered.`,
     )
-    // The response may catch the run in flight; a follow-up read a moment later
-    // swaps the live bar for the finished tick without waiting on the 15s poll.
+    // The response may catch the run in flight; re-read without waiting on the poll.
     window.setTimeout(
       () => void useSystemServiceStore.getState().fetchServices({ silent: true }),
       RUN_SETTLE_REFRESH_MS,

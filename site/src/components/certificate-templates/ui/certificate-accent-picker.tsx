@@ -11,7 +11,6 @@ interface CertificateAccentPickerProps {
   onChange: (accent: CertificateAccent) => void
 }
 
-/** Colour here is the director's choice of look, the one place it carries no status. */
 export function CertificateAccentPicker({
   value,
   onChange,

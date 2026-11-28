@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '../../../infastructures/redis/redis-service';
 
-/** One screen load as the portal reported it. */
 export interface PageTimingRecord {
   label: string;
   ttfbMs: number;
@@ -15,15 +14,12 @@ export interface PageTimingHistory {
   records: PageTimingRecord[];
 }
 
-/** Loads kept per screen — enough for a stable median, small enough to read whole. */
+/** Per screen; enough for a stable median. */
 const PAGE_HISTORY_MAX = 100;
 
 const PAGE_KEY_PREFIX = 'metrics:page:';
 
-/**
- * Browser-side load times live in Redis rather than memory: they are reported by
- * many tabs over days, and a restart must not reset the medians to nothing.
- */
+/** Redis, not memory, so restarts keep the medians. */
 @Injectable()
 export class SystemPerformanceRepository {
   constructor(private readonly redisService: RedisService) {}

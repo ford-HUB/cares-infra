@@ -6,7 +6,6 @@ import { ATTENDANCE_JOBS } from '../jobs/attendance-scheduler';
 import { SCHEDULER_QUEUES, SchedulerRunRecorder } from '../scheduler-registry';
 import { CatalogedProcessor } from './base-processor';
 
-/** Rules on every finished event that still has pending volunteers. */
 @Processor(SCHEDULER_QUEUES.attendance)
 export class AttendanceProcessor extends CatalogedProcessor {
   protected readonly logger = new Logger(AttendanceProcessor.name);

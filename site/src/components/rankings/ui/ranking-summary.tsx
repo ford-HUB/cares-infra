@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface RankingSummaryProps {
-  /** One tile per headline figure for the active board. */
   tiles: { label: string; value: string; hint: string }[]
   loading: boolean
 }

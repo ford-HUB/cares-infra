@@ -9,8 +9,7 @@ class PasswordResetRequestResponse {
 
   final String email;
 
-  /// False when a code was already in flight — the server keeps the live one
-  /// rather than mailing a second, so the countdown continues from where it was.
+  /// False when a live code was reused; the countdown continues.
   final bool sent;
   final bool reused;
   final int expiresInSeconds;
@@ -25,8 +24,8 @@ class PasswordResetRequestResponse {
   }
 }
 
-/// Reply to `POST /v1/auth/verify-reset-otp` — the code is spent, and this token
-/// is what authorises the new password.
+/// Reply to `POST /v1/auth/verify-reset-otp`; the token authorises the new
+/// password.
 class PasswordResetTokenResponse {
   const PasswordResetTokenResponse({
     required this.email,

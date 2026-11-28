@@ -16,10 +16,7 @@ const baseUrl = API_BASE_URL
 
 let socket: Socket | null = null
 
-/**
- * One shared connection for the tab. The gateway authenticates the handshake
- * token, so a missing token means there is nothing to connect for.
- */
+/** Gateway authenticates the handshake token; none means nothing to connect. */
 export function connectNotificationSocket(
   handlers: NotificationSocketHandlers,
 ): Socket | null {

@@ -33,12 +33,12 @@ export function toDonationPaymentDto(
   };
 }
 
-/** `DN-0007` — the tracking number both the portal and the app print. */
+/** e.g. `DN-0007`. */
 export function formatDonationReference(sequence: number): string {
   return `DN-${String(sequence).padStart(4, '0')}`;
 }
 
-/** Calendar day as `YYYY-MM-DD`; delivery dates carry no time of their own. */
+/** `YYYY-MM-DD`; delivery dates carry no time. */
 function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }

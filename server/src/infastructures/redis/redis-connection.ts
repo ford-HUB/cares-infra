@@ -1,12 +1,8 @@
 import type { RedisOptions } from 'ioredis';
 
-/**
- * Connection options shared by RedisService and BullMQ. REDIS_URL (what Railway's
- * Redis provides, password included) wins; otherwise REDIS_HOST / REDIS_PORT /
- * REDIS_USERNAME / REDIS_PASSWORD are used, which is how docker-compose wires it.
- */
+/** Shared by RedisService and BullMQ. REDIS_URL (Railway) wins over REDIS_HOST/PORT/USERNAME/PASSWORD (docker-compose). */
 export function redisConnectionOptions(): RedisOptions {
-  // 0 lets DNS pick IPv4 or IPv6 — Railway's private network may be IPv6-only.
+  // 0 = IPv4 or IPv6; Railway's private network may be IPv6-only.
   const family = 0;
   const url = process.env.REDIS_URL?.trim();
 

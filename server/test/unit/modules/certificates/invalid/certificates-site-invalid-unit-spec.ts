@@ -18,21 +18,7 @@ import { CertificateDeploymentStatus, Prisma } from '../../../../../src/infastru
 import { CertificatesSiteService } from '../../../../../src/modules/certificates/services/certificates-site-service';
 import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/security-payloads';
 
-/**
- * Certificate Module · Remind Pending — invalid inputs.
- *
- * Every case here is an intentionally wrong input. A case Passes when the system
- * refuses it exactly as stated — a rejection as expected is the correct result.
- * The valid cases for this unit live in ../valid/.
- */
-
-/* ── error handling ──────────────────────────────────────────────────────── */
 {
-  /**
-   * Remind pending recipients — error handling: unexpected service errors and a response
-   * the serializer refuses are masked as a generic 500 with nothing leaked, and the
-   * service's deliberate HttpExceptions keep their status and message through the envelope.
-   */
   const DELIBERATE_ERRORS = [
     { title: '404 for an unknown deployment', error: new NotFoundException('Deployment not found') },
     {
@@ -77,12 +63,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
   });
 }
 
-/* ── input validation ────────────────────────────────────────────────────── */
 {
-  /**
-   * Remind pending recipients — input validation: the action reads nothing but the
-   * deployment id in its path.
-   */
   const fixtures: LayerFixture<string>[] = [
     { name: 'not a uuid', input: 'deployment-1', expected: 'FAIL', message: 'A valid deployment id is required' },
     { name: 'uuid missing a character', input: VALID_DEPLOYMENT_ID.slice(0, -1), expected: 'FAIL' },
@@ -100,13 +81,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
   });
 }
 
-/* ── normalization ───────────────────────────────────────────────────────── */
 {
-  /**
-   * Remind pending recipients — normalisation: the service receives the validated id with
-   * the caller and where the request came from, a body is ignored, and the response schema
-   * keeps who was reminded off the wire.
-   */
   describe('certificates site · remind pending recipients — normalisation', () => {
     const ctx = useCertificatesApp();
 
@@ -124,13 +99,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
   });
 }
 
-/* ── security ────────────────────────────────────────────────────────────── */
 {
-  /**
-   * Remind pending recipients — security: hostile strings in the deployment id (a uuid, so
-   * all must FAIL), a body the action must ignore, and the rules in the real service that
-   * decide who gets a notification.
-   */
   const fixtures: LayerFixture<string>[] = [
     ...HOSTILE_STRINGS.map((p): LayerFixture<string> => ({
       name: `id ← ${p.category}: ${p.label}`,
@@ -161,7 +130,7 @@ import { HOSTILE_STRINGS, PROTOTYPE_POLLUTION_BODIES } from '../../../../config/
       });
     });
 
-    // The controller's service is mocked above; who is notified lives in the real one.
+    // The controller's service is mocked; who is notified lives in the real one.
     describe('remindPending (real service)', () => {
       const DEPLOYMENT = {
         certificate_deployment_id: VALID_DEPLOYMENT_ID,

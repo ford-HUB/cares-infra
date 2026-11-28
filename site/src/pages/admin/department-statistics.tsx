@@ -7,7 +7,6 @@ import { DepartmentStatisticsSkeleton } from '../../components/statistics/depart
 import { ADMIN_PROFILE_PATH } from '../../constants/routes'
 import { useDepartmentStatistics } from '../../hooks/use-department-statistics'
 
-/** The coordinator's Statistics screen — scoped to the department on their profile. */
 export function DepartmentStatisticsPage() {
   const {
     department,

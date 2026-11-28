@@ -4,7 +4,6 @@ import 'package:mobile/features/dashboard/data/models/ranking_models.dart';
 import 'package:mobile/features/dashboard/presentation/widgets/rank_tier_frame.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
-/// Period selector for the Ranks tab.
 class RankPeriodChips extends StatelessWidget {
   const RankPeriodChips({
     super.key,
@@ -24,8 +23,6 @@ class RankPeriodChips extends StatelessWidget {
     _ => Icons.all_inclusive_rounded,
   };
 
-  /// The period pills, styled like the Activity tab's group chips so they
-  /// sit in a [DeepTabHeader]. Scrolls sideways on narrow screens.
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -48,9 +45,8 @@ class RankPeriodChips extends StatelessWidget {
   }
 }
 
-/// The volunteer's own standing: rank, tier frame, points, and how the total
-/// came about — what was earned, what a missed registration cost, and what
-/// the next one would cost while a streak is live.
+/// Shows how the total came about, including what the next missed registration
+/// would cost.
 class YourRankCard extends StatelessWidget {
   const YourRankCard({
     super.key,
@@ -232,8 +228,7 @@ class _Stat extends StatelessWidget {
   }
 }
 
-/// A live streak: the penalty grows with each straight miss inside the window,
-/// so the card says exactly what skipping the next registration would cost.
+/// The penalty grows with each consecutive miss in the window.
 class _StreakWarning extends StatelessWidget {
   const _StreakWarning({required this.me, required this.resetDays});
 
@@ -276,8 +271,7 @@ class _StreakWarning extends StatelessWidget {
   }
 }
 
-/// One leaderboard row. The avatar wears the frame of the tier its standing
-/// falls into; the caller's own row is tinted.
+/// The caller's own row is tinted.
 class LeaderboardRow extends StatelessWidget {
   const LeaderboardRow({super.key, required this.entry, required this.tier});
 

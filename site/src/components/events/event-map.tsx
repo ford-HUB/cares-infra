@@ -39,8 +39,7 @@ export function EventMap() {
     [rows, statusFilter],
   )
 
-  // Only events with a drawn area can be placed; the rest are counted separately
-  // so the operator knows why the pin count is short of the event count.
+  // Only events with a drawn area get pins; the rest are counted so the shortfall is explained.
   const pins = useMemo<EventMapPin[]>(
     () =>
       visibleRows.flatMap((row) => {
@@ -67,7 +66,7 @@ export function EventMap() {
     [visibleRows, selectedEventId],
   )
 
-  // A filter change can hide the open card's event, so the selection goes with it.
+  // A filter change can hide the open card's event, so clear the selection too.
   const changeStatusFilter = (value: EventMapStatusFilter) => {
     setStatusFilter(value)
     setSelectedEventId(null)

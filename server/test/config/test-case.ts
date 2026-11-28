@@ -1,27 +1,8 @@
 /**
- * Test-case catalogue for the unit suites — one row of the UNIT TESTING table per
- * case, the same shape the project document uses:
- *
- *   Module Name · Unit Name · Test Case ID · Test Case Description ·
- *   Expected Result · Actual Result · Result
- *
- * A case is a `describe` whose title carries that metadata; the `it`s inside it are
- * its checks (layer 1 schema, layer 2 API, one per payload variant, …). The case is
- * Passed only when every check inside it passes. `config/unit-case-reporter.js`
- * reads the titles back and prints the table.
- *
- * `kind` says what the input is, not what the test returns:
- *   valid   — a legitimate input; the expected result is that the system accepts it.
- *   invalid — an intentionally wrong input; the expected result is that the system
- *             refuses it in the stated way. A refusal that happens as stated is a
- *             Passed case — a wrong password being rejected is correct behaviour.
- * Valid cases run from `…/{unit}/valid/`, invalid ones from `…/{unit}/invalid/`.
- *
- * Two ways to declare cases, both written straight into a valid/ or invalid/ spec:
- *   - `defineCases(...)` — explicit cases (see `auth/login`).
- *   - `setCaseUnit(...)` in the module support + `fixtureCases` / `asCase` in the specs
- *     (every other module). These check that each case sits in the folder of its kind
- *     and fail the spec with "move it to …/" when one does not.
+ * A case is a `describe` whose title carries its metadata; it passes only if all
+ * its `it`s do. `config/unit-case-reporter.js` prints the table from the titles.
+ * `kind` is the input, not the outcome: an invalid input refused as stated passes.
+ * `setCaseUnit` + `fixtureCases`/`asCase` also fail a case in the wrong kind folder.
  */
 import type { LayerFixture } from './layer-harness';
 
@@ -36,7 +17,7 @@ export interface CaseMeta {
   expected: string;
 }
 
-/** Field separator inside a case title. Never used in descriptions. */
+/** Must never appear in a description. */
 export const CASE_SEPARATOR = ' ¦ ';
 
 export const caseTitle = (meta: CaseMeta) =>
@@ -50,10 +31,7 @@ export interface CaseCatalogue {
   prefix: string;
 }
 
-/**
- * Returns `testCase(description, expected, body)`. IDs are numbered in declaration
- * order, so append new cases at the end of a file to keep existing IDs stable.
- */
+/** IDs follow declaration order: append new cases to keep IDs stable. */
 export const defineCases = ({ module, unit, kind, prefix }: CaseCatalogue) => {
   let sequence = 0;
   const tag = kind === 'valid' ? 'V' : 'I';
@@ -65,9 +43,6 @@ export const defineCases = ({ module, unit, kind, prefix }: CaseCatalogue) => {
   };
 };
 
-/* ─────────────────────── setCaseUnit · asCase · fixtureCases ─────────────────────── */
-
-/** `valid` / `invalid` from the folder of the spec file Jest is running; null elsewhere. */
 export const currentKind = (): CaseKind | null => {
   const path = (expect.getState().testPath ?? '').replace(/\\/g, '/');
   if (path.includes('/invalid/')) return 'invalid';
@@ -78,11 +53,7 @@ export const currentKind = (): CaseKind | null => {
 let unit: Omit<CaseCatalogue, 'kind'> | null = null;
 const sequences: Record<CaseKind, number> = { valid: 0, invalid: 0 };
 
-/**
- * Names the module and unit every case registered after this belongs to. Call it at
- * the top of the module's `*-support.ts` — Jest isolates modules per spec file, so the
- * setting and the ID counters are per run of a valid/ or invalid/ spec.
- */
+/** Call atop `*-support.ts`; Jest isolates modules per spec, so unit and ID counters reset per spec. */
 export const setCaseUnit = (catalogue: Omit<CaseCatalogue, 'kind'>) => {
   unit = catalogue;
 };
@@ -112,10 +83,7 @@ const sentence = (text: string) => {
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 };
 
-/**
- * Wraps one plain check as its own case: `asCase('invalid', 'The database fails').it(...)`.
- * The check's title becomes the Expected Result unless `expected` is given.
- */
+/** One check as its own case; its title is the Expected Result unless `expected` is given. */
 export const asCase = (kind: CaseKind, description: string, expected?: string): { it: jest.It } => {
   const caseIt = ((title: string, fn: jest.ProvidesCallback, timeout?: number) =>
     registerCase(kind, description, expected ?? sentence(title), () => it(title, fn, timeout))) as unknown as jest.It;
@@ -157,12 +125,7 @@ const expectedFor = (fixture: LayerFixture<any>) => {
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-/**
- * Drop-in for `describe.each(fixtures)('$expected · $name', body)`. Registers the PASS
- * fixtures as valid cases and the FAIL fixtures as invalid cases; a payload family
- * (`field ← category: label`, or `mass assignment: …`) becomes ONE case whose checks
- * are its variants, so the table shows one row per scenario.
- */
+/** `describe.each` drop-in: PASS → valid, FAIL → invalid; a payload family is one case, a check per variant. */
 export const fixtureCases = <F extends LayerFixture<any>>(fixtures: F[], body: (fixture: F) => void) => {
   const groups: { key: string; items: F[] }[] = [];
   const byKey = new Map<string, F[]>();

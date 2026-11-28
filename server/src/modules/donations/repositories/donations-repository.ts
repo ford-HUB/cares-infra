@@ -10,7 +10,6 @@ import type {
 } from '../../../infastructures/prisma/common/client';
 import { PrismaService } from '../../../infastructures/prisma/prisma-service';
 
-/** Prisma's unique-constraint violation code. */
 const UNIQUE_VIOLATION = 'P2002';
 
 export function isUniqueViolation(error: unknown): boolean {
@@ -20,7 +19,7 @@ export function isUniqueViolation(error: unknown): boolean {
   );
 }
 
-/** A checkout row plus the ledger row it opened, if it has settled as paid. */
+/** Plus the ledger row once settled as paid. */
 const PAYMENT_INCLUDE = {
   donation: { select: { donation_id: true } },
 } as const;
@@ -29,7 +28,6 @@ export type DonationPaymentRow = Prisma.DonationPaymentGetPayload<{
   include: typeof PAYMENT_INCLUDE;
 }>;
 
-/** A ledger row with everything both clients render: event, payment, donor, trail. */
 const DONATION_INCLUDE = {
   event: { select: { title: true } },
   payment: {
@@ -79,8 +77,6 @@ export interface TrailEntryData {
 @Injectable()
 export class DonationsRepository {
   constructor(private readonly prisma: PrismaService) {}
-
-  // ------------------------------------------------------------- payments
 
   findByIdempotencyKey(
     userId: string,
@@ -137,7 +133,6 @@ export class DonationsRepository {
     });
   }
 
-  /** Fills in what the gateway handed back for the freshly created checkout. */
   attachCheckout(
     donationPaymentId: string,
     data: {
@@ -154,7 +149,7 @@ export class DonationsRepository {
     });
   }
 
-  /** The gateway call failed, so the reservation is released for a retry. */
+  /** Gateway failed: release the reservation for a retry. */
   deletePending(donationPaymentId: string): Promise<void> {
     return this.prisma.donationPayment
       .deleteMany({
@@ -164,14 +159,8 @@ export class DonationsRepository {
   }
 
   /**
-   * Moves a PENDING payment to a terminal status. The `status: PENDING` guard in
-   * the WHERE makes this a no-op on replay, so a callback that arrives twice
-   * (or after a reconcile already settled the row) changes nothing.
-   *
-   * A settle to PAID also opens the ledger row: the money is in, so the
-   * donation is pledged and waits for a director to verify and confirm it. It
-   * needs an event behind the campaign — a checkout for a campaign that is not
-   * an event has nothing to be tracked against and stays a bare payment.
+   * `status: PENDING` guard makes replays no-ops. PAID also opens the ledger row,
+   * but only when the campaign is an event.
    */
   async settle(
     gatewayReference: string,
@@ -231,10 +220,7 @@ export class DonationsRepository {
     return count;
   }
 
-  /**
-   * Records a callback and applies it atomically. Resolves `false` when the
-   * `webhook-id` was already recorded — Xendit re-sent an event we handled.
-   */
+  /** Atomic; `false` when the `webhook-id` was already recorded. */
   async applyWebhook(
     webhookId: string,
     event: string,
@@ -261,9 +247,6 @@ export class DonationsRepository {
     }
   }
 
-  // --------------------------------------------------------------- ledger
-
-  /** The event a pledge is for: whether it still runs and what it accepts. */
   findEvent(eventId: number) {
     return this.prisma.event.findUnique({
       where: { event_id: eventId },
@@ -315,7 +298,7 @@ export class DonationsRepository {
     });
   }
 
-  /** The whole ledger for the portal, latest activity first. */
+  /** Latest activity first. */
   listAllDonations(filter: {
     status?: DonationStatus;
     kind?: DonationKind;
@@ -367,11 +350,7 @@ export class DonationsRepository {
     });
   }
 
-  /**
-   * Moves a donation to a new rung and writes the trail entry in one transaction.
-   * `from` guards the move: a stale screen that races another change is a no-op
-   * and comes back null rather than overwriting the newer status.
-   */
+  /** One transaction; `from` guards against stale races (null instead of overwrite). */
   async changeStatus(
     donationId: string,
     from: DonationStatus,
@@ -409,7 +388,7 @@ export class DonationsRepository {
     });
   }
 
-  /** Money raised and rows opened per event, for the donor's campaign cards. */
+  /** For the donor's campaign cards. */
   async totalsByEvent(
     eventIds: number[],
   ): Promise<Map<number, { fundsRaised: number; donations: number }>> {

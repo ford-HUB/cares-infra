@@ -11,13 +11,12 @@ import type { MonthlyReport } from '../../../types/monthly-report'
 import { monthGridDays } from '../../../utils/calendar-layout'
 
 interface ReportUploadCalendarProps {
-  /** The department's reports; each is marked on the day it was uploaded. */
   reports: MonthlyReport[]
-  /** Month on show as `YYYY-MM`; null lets the calendar open on the latest upload. */
+  /** `YYYY-MM`; null opens on the latest upload. */
   month: string | null
-  /** Fired by the month arrows — the page keeps its month filter in step with this. */
+  /** The page keeps its month filter in step with this. */
   onMonthChange: (month: string) => void
-  /** `YYYY-MM-DD` of the day the list is narrowed to, if any. */
+  /** `YYYY-MM-DD`, if narrowed to one day. */
   selectedDay: string | null
   onSelectDay: (day: string | null) => void
 }
@@ -26,14 +25,7 @@ const DAY_KEY = 'YYYY-MM-DD'
 const MONTH_KEY = 'YYYY-MM'
 const WEEKDAY_HEADINGS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
-/**
- * A month at a glance with a dot on every day a report went up, coloured by where
- * that report stands now. The month shown is the month the list is filtered to —
- * the arrows here and the month picker in the toolbar move the same thing. Picking
- * a day narrows the list further; picking it again lets go. With no month chosen
- * the calendar opens on the most recent upload, not on today, so a coordinator
- * catching up in a quiet month still lands on something.
- */
+/** Shares the month with the toolbar picker; with none chosen it opens on the latest upload, not today. */
 export function ReportUploadCalendar({
   reports,
   month,

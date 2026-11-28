@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// One tile in a [StatsRow] built with [StatsRow.custom].
 class StatsRowItem {
   const StatsRowItem({
     required this.icon,
@@ -14,8 +13,7 @@ class StatsRowItem {
 
   final IconData icon;
 
-  /// Shown as-is. Plain integers count up from zero on first build;
-  /// anything else (₱ amounts, percentages) is rendered directly.
+  /// Plain integers count up from zero; anything else (₱, %) shows as is.
   final String value;
 
   final String label;
@@ -24,13 +22,9 @@ class StatsRowItem {
 
   final Color? iconColor;
 
-  /// Optional — the tile reads as a button and opens the related detail.
   final VoidCallback? onTap;
 }
 
-/// Three-up summary tiles under a dashboard header or profile card. Each tile
-/// carries its own tint so the eye can tell hours, activities and points
-/// apart at a glance; numbers count up when the row first appears.
 class StatsRow extends StatelessWidget {
   const StatsRow({
     super.key,
@@ -42,8 +36,7 @@ class StatsRow extends StatelessWidget {
     this.onPointsTap,
   }) : items = null;
 
-  /// Same three-tile layout with caller-supplied stats — used by dashboards
-  /// that track something other than volunteer hours (e.g. beneficiaries).
+  /// For dashboards tracking something other than hours (e.g. beneficiaries).
   const StatsRow.custom({super.key, required List<StatsRowItem> this.items})
     : serviceHours = 0,
       activities = 0,
@@ -60,8 +53,7 @@ class StatsRow extends StatelessWidget {
   final VoidCallback? onPointsTap;
   final List<StatsRowItem>? items;
 
-  /// Per-stat tints: green for time given, blue for events, orange for
-  /// points — the same orange the points pill on the home header uses.
+  /// The orange matches the home header's points pill.
   static const _hoursTint = _StatTint(
     background: Color(0xFFE3F1E4),
     foreground: AppColors.primaryDark,
@@ -211,8 +203,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// The big number. Whole numbers count up from zero the first time the tile
-/// appears; formatted values (₱, %) are shown as-is.
 class _StatValue extends StatelessWidget {
   const _StatValue({required this.value});
 

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
-/// Volunteer interest categories shown in the post-login picker.
-///
-/// These mirror the event types staff can publish from the portal
-/// (`site/src/constants/event.ts` → `EVENT_CATEGORIES`) and the server's
-/// `InterestCode` enum, so a volunteer's picks line up with real events.
+/// Mirrors the portal's `EVENT_CATEGORIES` (`site/src/constants/event.ts`) and
+/// the server's `InterestCode` enum.
 enum UserInterest {
   school,
   community,
@@ -21,19 +18,14 @@ enum UserInterest {
 }
 
 extension UserInterestX on UserInterest {
-  /// Interests reserved for members of the school community. Donors and
-  /// beneficiaries whose Volunteer role was opened by a director come from
-  /// outside the campus, so these are hidden from their picker and dropped
-  /// from anything they saved before the role was approved.
+  /// Hidden from, and dropped for, director-approved outside volunteers.
   static const Set<UserInterest> schoolCommunityOnly = {UserInterest.school};
 
-  /// The interests a volunteer may pick.
   static List<UserInterest> selectable({required bool outsideSchool}) => [
     for (final interest in UserInterest.values)
       if (!outsideSchool || !schoolCommunityOnly.contains(interest)) interest,
   ];
 
-  /// [interests] with the school-only picks removed for an outside volunteer.
   static Set<UserInterest> allowed(
     Set<UserInterest> interests, {
     required bool outsideSchool,
@@ -53,9 +45,8 @@ extension UserInterestX on UserInterest {
     UserInterest.others => 'OTHERS',
   };
 
-  /// Codes from the retired three-item catalog. Accounts that picked them
-  /// before the event-type catalog landed still carry these values, so they
-  /// are folded into the closest event type rather than dropped.
+  /// Retired catalog codes still on older accounts, folded into the closest
+  /// event type.
   static const Map<String, UserInterest> _legacyCodes = {
     'ACADEMIC_ACTIVITIES': UserInterest.school,
     'DONATION_DRIVES': UserInterest.donationDrive,
@@ -114,8 +105,7 @@ extension UserInterestX on UserInterest {
     UserInterest.others => Icons.more_horiz_rounded,
   };
 
-  /// Lottie animation shown on the picker card. Files live under
-  /// `assets/lottie/interests/`; a missing file falls back to [icon].
+  /// Under `assets/lottie/interests/`; a missing file falls back to [icon].
   String get lottieAsset => switch (this) {
     UserInterest.school => 'assets/lottie/interests/school.json',
     UserInterest.community => 'assets/lottie/interests/community.json',

@@ -9,7 +9,6 @@ interface IssuedCredentialsPanelProps {
   delivery?: CredentialDelivery | null
 }
 
-/** How long the "copied" tick stays up before the button goes back to its idle state. */
 const COPIED_FEEDBACK_MS = 1500
 
 function CredentialRow({ label, value }: { label: string; value: string }) {
@@ -21,7 +20,7 @@ function CredentialRow({ label, value }: { label: string; value: string }) {
       setCopied(true)
       window.setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
     } catch {
-      // Clipboard access can be refused; the value is on screen to be read either way.
+      // Clipboard can be refused; the value is on screen either way.
       setCopied(false)
     }
   }
@@ -51,12 +50,7 @@ function CredentialRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-/**
- * The credential as issued. It is shown once — the password is stored hashed, so
- * nothing can read it back and an administrator who closes this has to re-issue.
- * `delivery` says whether the same credential also went out by email; a failed send
- * is a notice here, not an error, because the account already exists.
- */
+/** Shown once (stored hashed); a failed email send is a notice, since the account exists. */
 export function IssuedCredentialsPanel({
   credentials,
   delivery = null,

@@ -3,13 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { PERMISSION_SYNC_INTERVAL_MS } from '../constants/portal-permissions'
 import { useAuthStore } from '../store/auth-store'
 
-/**
- * Keeps the session's rights current while the portal is open. The server is the
- * only place a right can change (an admin in Access Control), so the portal re-reads
- * on every navigation, whenever the tab comes back into view, and on a timer for the
- * case where the person just sits on one screen. Each read is one small request and
- * only touches state when something actually moved.
- */
+/** Re-reads on navigation, tab focus, and a timer; only updates state on change. */
 export function usePermissionSync(): void {
   const refreshPermissions = useAuthStore((s) => s.refreshPermissions)
   const signedIn = useAuthStore((s) => s.user !== null)

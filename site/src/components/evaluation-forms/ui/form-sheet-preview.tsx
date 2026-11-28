@@ -8,12 +8,7 @@ interface FormSheetPreviewProps {
   className?: string
 }
 
-/**
- * The questionnaire as the volunteer meets it, shrunk to a card header — the same
- * move the certificate gallery makes with the sheet: the thing being assigned is
- * shown, not described. The header keeps its chosen face so a director recognises
- * the form at a glance; the questions below are titles only.
- */
+/** The header keeps its chosen face; questions show titles only. */
 export function FormSheetPreview({ form, className }: FormSheetPreviewProps) {
   const shown = form.questions.slice(0, FORM_CARD_QUESTION_PREVIEW)
   const rest = form.questions.length - shown.length

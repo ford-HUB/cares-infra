@@ -14,11 +14,7 @@ interface ReviewDecisionModalProps {
   onSubmit: (note: string) => void
 }
 
-/**
- * Approving files the report under its department; returning sends it back. The note
- * is optional on an approval and required on a return — it is the only thing the
- * coordinator receives to act on.
- */
+/** The note is optional on approval, required on return. */
 export function ReviewDecisionModal({
   report,
   decision,

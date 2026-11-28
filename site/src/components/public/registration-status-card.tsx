@@ -31,7 +31,6 @@ function formatDate(iso: string | null): string | null {
   return iso ? formatDateTime(iso) : null
 }
 
-/** One reviewed sign-up's status: a heading, the decision pill, and what to do next. */
 export function RegistrationStatusCard({ status }: { status: RegistrationStatus }) {
   const copy = STATUS_COPY[status.status]
   const Icon = copy.icon
@@ -86,7 +85,6 @@ export function RegistrationStatusCard({ status }: { status: RegistrationStatus 
   )
 }
 
-/** The card's shape while the status loads. */
 export function RegistrationStatusCardSkeleton() {
   return (
     <div

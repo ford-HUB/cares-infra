@@ -6,14 +6,11 @@ import type { CertificateRecipient } from '../../../types/deployed-certificate'
 interface CertificateRecipientsListProps {
   recipients: CertificateRecipient[] | null
   error: string | null
-  /** True while the deployment's event has not finished — nothing can be issued yet. */
+  /** Event not finished yet, so nothing can be issued. */
   scheduled: boolean
 }
 
-/**
- * Who the issuing sweep has reached, in the detail modal's column. Each row is one
- * generated certificate; the tick is whether the volunteer has opened it in the app.
- */
+/** One row per generated certificate; the tick means opened in the app. */
 export function CertificateRecipientsList({
   recipients,
   error,

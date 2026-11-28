@@ -11,7 +11,7 @@ interface ReportSubmissionListProps {
   reports: MonthlyReport[]
   loading: boolean
   initialized: boolean
-  /** True when the fetch failed, so an empty list isn't read as "no matches". */
+  /** So an empty list isn't read as "no matches". */
   errored: boolean
   selectedId?: string
   onSelect: (report: MonthlyReport) => void

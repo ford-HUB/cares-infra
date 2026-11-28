@@ -20,19 +20,15 @@ import { DonationStatusBadge } from './donation-status-badge'
 interface DonationDetailModalProps {
   donation: InternalDonation | null
   saving: boolean
-  /** Only the director may move a donation; everyone else reads. */
+  /** Director only. */
   canAct: boolean
-  /** Set when the record right is suspended — the actions are drawn locked instead. */
+  /** Set when the record right is suspended; draws the actions locked. */
   actSuspension?: SessionSuspension
   onClose: () => void
   onAdvance: (status: DonationStatus, note: string) => void
 }
 
-/**
- * Where a donation actually moves. The next rung is a single button rather than a
- * status dropdown — the flow is fixed per kind, so the only real choices are "move it
- * forward" and "decline it", and each carries the donor notice with it.
- */
+/** The flow is fixed per kind, so only "advance" and "decline" are offered; each sends the donor notice. */
 export function DonationDetailModal({
   donation,
   saving,
@@ -41,7 +37,7 @@ export function DonationDetailModal({
   onClose,
   onAdvance,
 }: DonationDetailModalProps) {
-  // The parent keys this component by donation id, so the note starts fresh each time.
+  // The parent keys this by donation id, so the note starts fresh.
   const [note, setNote] = useState('')
 
   if (!donation) return null

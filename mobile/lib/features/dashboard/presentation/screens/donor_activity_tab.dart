@@ -12,11 +12,8 @@ import 'package:mobile/features/dashboard/presentation/widgets/home_tab_states.d
 import 'package:mobile/features/dashboard/screens/donation_flow_screen.dart';
 import 'package:mobile/features/dashboard/widgets/activity_tab_widgets.dart';
 
-/// The donor's donation tracking — every money and goods donation they made,
-/// from `GET /donations/me`, with where each one stands on its ladder. The
-/// header's Confirmed / Donations / Drives chips filter the list. A tap on a
-/// card opens the status view; the Director's moves on the portal show up
-/// here on the next fetch.
+/// From `GET /donations/me`; header chips filter, and director moves show on
+/// the next fetch.
 class DonorActivityTab extends ConsumerStatefulWidget {
   const DonorActivityTab({super.key});
 
@@ -89,8 +86,6 @@ class _DonorActivityTabState extends ConsumerState<DonorActivityTab> {
     );
   }
 
-  /// The list under the header for the selected chip: cards with 12pt gaps,
-  /// and on Drives a heading above each drive's donations.
   List<Widget> _rowsFor(List<Donation> items) {
     Widget card(Donation d) => Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -125,7 +120,6 @@ class _DonorActivityTabState extends ConsumerState<DonorActivityTab> {
   }
 }
 
-/// Heading above one drive's donations on the Drives view.
 class _DriveHeading extends StatelessWidget {
   const _DriveHeading({
     required this.title,
@@ -376,8 +370,7 @@ class _EmptyActivityState extends StatelessWidget {
         'Donate to a drive to track it here.',
       ),
     };
-    // Top padding keeps the empty state clear of the header band's
-    // rounded bottom edge instead of centring it right against it.
+    // Keeps the empty state clear of the header band's rounded edge.
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 56, 32, 32),
       child: Column(

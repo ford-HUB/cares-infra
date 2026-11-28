@@ -27,10 +27,6 @@ import {
   useAuthSiteApp,
 } from '../login-site-support';
 
-/**
- * Request Access — invalid inputs. Each case Passes when the form is refused as
- * stated and no email goes out.
- */
 const testCase = defineCases({ module: MODULE, unit: 'Request Access', kind: 'invalid', prefix: 'ACCESS' });
 
 const MB = 1024 * 1024;
@@ -53,8 +49,6 @@ describe('Request Access — invalid inputs', () => {
     expect(ctx.mailer.sendEmail).not.toHaveBeenCalled();
   };
 
-  /* ── required fields and lengths ──────────────────────────────────────── */
-
   const fieldCases: [string, Record<string, unknown>, string][] = [
     ['Volunteer leaves the email field empty', { ...VALID, from_email: '' }, 'from_email'],
     ['Volunteer enters only spaces in the email field', { ...VALID, from_email: '   ' }, 'from_email'],
@@ -74,8 +68,6 @@ describe('Request Access — invalid inputs', () => {
       rejectsByValidation(ctx, ACCESS_REQUEST, input, field),
     );
   }
-
-  /* ── hostile input ───────────────────────────────────────────────────── */
 
   testCase(
     `Attacker enters hostile strings in the email field (${HOSTILE_STRINGS.length} variants)`,
@@ -125,8 +117,6 @@ describe('Request Access — invalid inputs', () => {
     'Request fails with "Validation failed" (400); Object.prototype is not polluted',
     () => rejectsPrototypePollution(ctx, ACCESS_REQUEST, VALID, PROTOTYPE_POLLUTION_BODIES),
   );
-
-  /* ── attachments ─────────────────────────────────────────────────────── */
 
   testCase(
     'Volunteer submits the request without attaching an ID',
@@ -183,8 +173,6 @@ describe('Request Access — invalid inputs', () => {
       });
     },
   );
-
-  /* ── system errors ───────────────────────────────────────────────────── */
 
   testCase(
     'The email server is down when the request is sent',

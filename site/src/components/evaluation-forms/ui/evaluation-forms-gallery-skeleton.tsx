@@ -1,7 +1,6 @@
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Mirrors a questionnaire card: sheet preview, title row, reach row, footer. */
 export function EvaluationFormsGallerySkeleton({ cards }: { cards: number }) {
   return (
     <div

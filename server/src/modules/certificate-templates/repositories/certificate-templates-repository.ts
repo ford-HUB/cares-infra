@@ -58,7 +58,6 @@ export interface PersistAsset {
   byteSize: number;
 }
 
-/** A staff account offered in the signatory picker. */
 const coordinatorSelect = {
   user_id: true,
   firstname: true,
@@ -105,12 +104,7 @@ export class CertificateTemplatesRepository {
     });
   }
 
-  /**
-   * Details, design and signature lines land in one transaction: a half-applied save
-   * would leave a sheet whose wording no longer matches the people signing it. The
-   * lines are replaced rather than diffed — there are at most three, and their order
-   * is part of the design.
-   */
+  /** One transaction so wording and signatories stay in step; lines replaced (max three, order matters). */
   async update(
     id: string,
     details: PersistTemplateDetails,
@@ -160,11 +154,7 @@ export class CertificateTemplatesRepository {
     });
   }
 
-  /**
-   * The frozen designs of every deployment cut from this template. A deployment points
-   * at the template's own artwork, so a file dropped from the template today may still
-   * be the one a live certificate prints.
-   */
+  /** Deployments reference template artwork, so a dropped file may still be in use. */
   async deploymentDesigns(
     templateId: string,
   ): Promise<StoredCertificateDesign[]> {
@@ -186,10 +176,7 @@ export class CertificateTemplatesRepository {
     });
   }
 
-  /**
-   * The highest reference issued this year. References read `CT-2026-014`, so the
-   * sequence restarts each January and the caller only has to add one.
-   */
+  /** `CT-2026-014`: sequence restarts yearly. */
   async highestReferenceSequence(year: number): Promise<number> {
     const latest = await this.prisma.certificateTemplate.findFirst({
       where: { reference: { startsWith: `CT-${year}-` } },
@@ -203,10 +190,7 @@ export class CertificateTemplatesRepository {
     return Number.isFinite(sequence) ? sequence : 0;
   }
 
-  /**
-   * Accounts a director can print as a signatory. Restricted accounts are left out —
-   * a name that can no longer sign in should not be going onto new certificates.
-   */
+  /** Excludes restricted accounts. */
   async listCoordinators(): Promise<CoordinatorRow[]> {
     return this.prisma.user.findMany({
       where: {
